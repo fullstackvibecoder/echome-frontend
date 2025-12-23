@@ -98,6 +98,7 @@ export interface KnowledgeBase {
   name: string;
   status: 'active' | 'training' | 'archived';
   totalChunks: number;
+  storageUsed?: number; // bytes
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +115,9 @@ export interface UploadedFile {
   uploadedAt: Date;
   processedAt?: Date;
 }
+
+// Alias for consistency
+export type KBFile = UploadedFile;
 
 // ============================================
 // SOCIAL INTEGRATION TYPES
