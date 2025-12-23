@@ -127,6 +127,7 @@ export interface SocialIntegration {
   accountName: string;
   accountId: string;
   status: 'connected' | 'disconnected' | 'expired';
+  postsImported?: number;
   lastSynced?: Date;
   createdAt: Date;
 }
