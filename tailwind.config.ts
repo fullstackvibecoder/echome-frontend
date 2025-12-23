@@ -9,20 +9,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'bg-primary': '#0A0E17',
-        'bg-secondary': '#0F1419',
-        'text-primary': '#FFFFFF',
-        'text-secondary': '#E2E8F0',
-        'text-tertiary': '#94A3B8',
-        'text-muted': '#64748B',
-        'accent': '#6366F1',
-        'accent-light': '#818CF8',
-        'accent-dark': '#4F46E5',
-        'border': '#1E293B',
-        'border-light': '#334155',
-        'success': '#10B981',
-        'error': '#EF4444',
-        'warning': '#F59E0B',
+        bg: {
+          primary: '#0A0E17',
+          secondary: '#0F1419',
+        },
+        text: {
+          primary: '#FFFFFF',
+          secondary: '#E2E8F0',
+          tertiary: '#94A3B8',
+          muted: '#64748B',
+        },
+        accent: {
+          DEFAULT: '#6366F1',
+          light: '#818CF8',
+          dark: '#4F46E5',
+        },
+        border: {
+          DEFAULT: '#1E293B',
+          light: '#334155',
+        },
+        success: '#10B981',
+        error: '#EF4444',
+        warning: '#F59E0B',
       },
       fontFamily: {
         display: ['var(--font-fraunces)', 'serif'],
