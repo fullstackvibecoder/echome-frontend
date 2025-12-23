@@ -51,6 +51,11 @@ export interface GeneratedContent {
   voiceScore: number; // 0-100
   qualityScore: number; // 0-100
   userFeedback?: 'good' | 'bad' | 'neutral';
+  metadata?: {
+    characterCount?: number;
+    wordCount?: number;
+    hashtags?: string[];
+  };
   createdAt: Date;
 }
 
@@ -68,6 +73,8 @@ export interface GenerationRequest {
   useTllValidator?: boolean;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   results?: GeneratedContent[];
+  voiceScore?: number;
+  qualityScore?: number;
   createdAt: Date;
   completedAt?: Date;
 }
