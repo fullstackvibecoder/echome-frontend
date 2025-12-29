@@ -1,27 +1,18 @@
-import type { Metadata } from 'next';
-import { Fraunces, Karla } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { satoshi } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
 
-// Load Fraunces (display font - sophisticated, editorial)
-const fraunces = Fraunces({
-  variable: '--font-fraunces',
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-  display: 'swap',
-});
-
-// Load Karla (body font - warm, readable)
-const karla = Karla({
-  variable: '--font-karla',
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  display: 'swap',
-});
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#00D4FF',
+};
 
 export const metadata: Metadata = {
-  title: 'EchoMe - Content, in your voice',
-  description: 'Stop sounding like ChatGPT. Start sounding like you.',
+  title: 'EchoMe - Unmute Yourself',
+  description: 'Your voice has been trapped in one piece of content. Echo sets it free across every platform.',
 };
 
 export default function RootLayout({
@@ -31,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fraunces.variable} ${karla.variable} font-body antialiased`}>
+      <body className={`${satoshi.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

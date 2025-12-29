@@ -1,0 +1,41 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Echo waves (ambient) -->
+  <circle cx="100" cy="100" r="90" fill="#3A8E9C" opacity="0.05"/>
+  <circle cx="100" cy="100" r="70" fill="#3A8E9C" opacity="0.08"/>
+  <circle cx="100" cy="100" r="50" fill="#3A8E9C" opacity="0.12"/>
+
+  <!-- Robot body (head and upper torso only for versatility) -->
+  <rect x="60" y="50" width="80" height="80" rx="12" fill="#D4C4B0" stroke="#3A8E9C" stroke-width="8"/>
+
+  <!-- Left arm stub -->
+  <rect x="40" y="80" width="20" height="30" rx="6" fill="#D4C4B0" stroke="#3A8E9C" stroke-width="6"/>
+
+  <!-- Right arm stub -->
+  <rect x="140" y="80" width="20" height="30" rx="6" fill="#D4C4B0" stroke="#3A8E9C" stroke-width="6"/>
+
+  <!-- Left eye -->
+  <circle cx="82" cy="80" r="8" fill="#3A8E9C"/>
+
+  <!-- Right eye -->
+  <circle cx="118" cy="80" r="8" fill="#3A8E9C"/>
+
+  <!-- Left eyebrow -->
+  <path d="M 70 67 Q 82 63 90 67" stroke="#3A8E9C" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Right eyebrow -->
+  <path d="M 110 67 Q 118 63 126 67" stroke="#3A8E9C" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Nose/bridge -->
+  <path d="M 95 87 L 100 93 L 105 87" stroke="#3A8E9C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Happy smile -->
+  <path d="M 80 105 Q 100 115 120 105" stroke="#3A8E9C" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- Chest badge -->
+  <circle cx="100" cy="120" r="12.6" fill="#B8A4D4"/>
+
+  <!-- Sound waves in badge -->
+  <path d="M 95 120 L 97 116 L 97 124 Z" fill="#5BADB8"/>
+  <path d="M 101 116 Q 104 120 101 124" stroke="#5BADB8" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 104 114 Q 108 120 104 126" stroke="#5BADB8" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

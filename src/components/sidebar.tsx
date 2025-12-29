@@ -8,10 +8,10 @@ export function Sidebar() {
   const { activeItem, navigate } = useAppNavigation();
 
   return (
-    <aside className="h-screen w-64 bg-bg-secondary border-r border-border flex flex-col">
+    <aside className="h-screen w-64 bg-sidebar border-r border-border flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-display font-bold text-accent">EchoMe</h1>
+        <h1 className="text-2xl font-bold text-primary">EchoMe</h1>
       </div>
 
       {/* Navigation */}
@@ -22,11 +22,11 @@ export function Sidebar() {
             onClick={() => navigate(item.path)}
             className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-lg
-              text-body font-medium transition-all duration-200
+              font-medium transition-all duration-200
               ${
                 activeItem === item.id
-                  ? 'bg-accent text-white'
-                  : 'text-text-secondary hover:bg-bg-primary hover:text-text-primary'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
               }
             `}
           >
@@ -40,17 +40,17 @@ export function Sidebar() {
       {user && (
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center font-semibold">
+            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
               {user.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-body font-medium truncate">{user.name}</p>
-              <p className="text-small text-text-secondary truncate">{user.email}</p>
+              <p className="font-medium truncate text-foreground">{user.name}</p>
+              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="w-full px-4 py-2 border-2 border-border rounded-lg text-body text-text-secondary hover:border-error hover:text-error transition-colors"
+            className="w-full px-4 py-2 border-2 border-border rounded-lg text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
           >
             Logout
           </button>

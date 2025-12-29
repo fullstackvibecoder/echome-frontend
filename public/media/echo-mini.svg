@@ -1,0 +1,20 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Robot head (simplified) -->
+  <rect x="8" y="6" width="16" height="20" rx="2.4" fill="#D4C4B0" stroke="#3A8E9C" stroke-width="1.6"/>
+
+  <!-- Left eye -->
+  <circle cx="13" cy="12" r="1.6" fill="#3A8E9C"/>
+
+  <!-- Right eye -->
+  <circle cx="19" cy="12" r="1.6" fill="#3A8E9C"/>
+
+  <!-- Smile -->
+  <path d="M 12 17 Q 16 19 20 17" stroke="#3A8E9C" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Chest badge -->
+  <circle cx="16" cy="22" r="2.5" fill="#B8A4D4"/>
+
+  <!-- Sound wave in badge -->
+  <path d="M 15.2 22 L 15.8 21 L 15.8 23 Z" fill="#5BADB8"/>
+  <path d="M 16.6 21.2 Q 17.4 22 16.6 22.8" stroke="#5BADB8" stroke-width="0.6" fill="none" stroke-linecap="round"/>
+</svg>

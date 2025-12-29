@@ -23,10 +23,10 @@ export default function ForgotPasswordPage() {
     return (
       <div className="card animate-fade-in text-center">
         <div className="text-5xl mb-4">📧</div>
-        <h1 className="text-subheading text-2xl mb-4">Check your email</h1>
-        <p className="text-body text-text-secondary mb-6">
+        <h1 className="text-2xl font-bold mb-4 text-foreground">Check your email</h1>
+        <p className="text-muted-foreground mb-6">
           We have sent password reset instructions to{' '}
-          <span className="font-semibold text-text-primary">{email}</span>
+          <span className="font-semibold text-foreground">{email}</span>
         </p>
         <Link href="/auth/login" className="btn-primary inline-block">
           Back to Sign In
@@ -39,8 +39,8 @@ export default function ForgotPasswordPage() {
     <div className="card animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-subheading text-3xl mb-2">Forgot Password?</h1>
-        <p className="text-body text-text-secondary">
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Forgot Password?</h1>
+        <p className="text-muted-foreground">
           Enter your email and we will send you reset instructions
         </p>
       </div>
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-small font-medium text-text-primary mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Email
           </label>
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+            className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-primary transition-colors bg-input"
             placeholder="you@example.com"
           />
         </div>
@@ -78,11 +78,11 @@ export default function ForgotPasswordPage() {
       </form>
 
       {/* Back to Login */}
-      <p className="mt-6 text-center text-small text-text-secondary">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         Remember your password?{' '}
         <Link
           href="/auth/login"
-          className="text-accent hover:underline font-medium"
+          className="text-primary hover:underline font-medium"
         >
           Sign in
         </Link>

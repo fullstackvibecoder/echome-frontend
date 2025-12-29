@@ -19,8 +19,8 @@ export default function LoginPage() {
     <div className="card animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-subheading text-3xl mb-2">Welcome Back</h1>
-        <p className="text-body text-text-secondary">
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Welcome Back</h1>
+        <p className="text-muted-foreground">
           Sign in to continue creating authentic content
         </p>
       </div>
@@ -29,7 +29,7 @@ export default function LoginPage() {
       <form action={handleSubmit} className="space-y-4">
         {/* General Error */}
         {generalError && (
-          <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-small">
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
             {generalError}
           </div>
         )}
@@ -38,7 +38,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-small font-medium text-text-primary mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Email
           </label>
@@ -47,13 +47,13 @@ export default function LoginPage() {
             name="email"
             type="email"
             required
-            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-accent transition-colors ${
-              errors.email ? 'border-error' : 'border-border'
+            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+              errors.email ? 'border-destructive' : 'border-border'
             }`}
             placeholder="you@example.com"
           />
           {errors.email && (
-            <p className="mt-1 text-small text-error">{errors.email}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.email}</p>
           )}
         </div>
 
@@ -62,13 +62,13 @@ export default function LoginPage() {
           <div className="flex items-center justify-between mb-2">
             <label
               htmlFor="password"
-              className="block text-small font-medium text-text-primary"
+              className="block text-sm font-medium text-foreground"
             >
               Password
             </label>
             <Link
               href="/auth/forgot-password"
-              className="text-small text-accent hover:underline"
+              className="text-sm text-primary hover:underline"
             >
               Forgot password?
             </Link>
@@ -78,13 +78,13 @@ export default function LoginPage() {
             name="password"
             type="password"
             required
-            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-accent transition-colors ${
-              errors.password ? 'border-error' : 'border-border'
+            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+              errors.password ? 'border-destructive' : 'border-border'
             }`}
             placeholder="••••••••"
           />
           {errors.password && (
-            <p className="mt-1 text-small text-error">{errors.password}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.password}</p>
           )}
         </div>
 
@@ -103,8 +103,8 @@ export default function LoginPage() {
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border"></div>
         </div>
-        <div className="relative flex justify-center text-small">
-          <span className="px-2 bg-bg-primary text-text-secondary">
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-card text-muted-foreground">
             Or continue with
           </span>
         </div>
@@ -114,11 +114,11 @@ export default function LoginPage() {
       <OAuthButtons />
 
       {/* Signup Link */}
-      <p className="mt-6 text-center text-small text-text-secondary">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         New to EchoMe?{' '}
         <Link
           href="/auth/signup"
-          className="text-accent hover:underline font-medium"
+          className="text-primary hover:underline font-medium"
         >
           Create an account
         </Link>

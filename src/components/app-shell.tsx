@@ -27,7 +27,7 @@ export function AppShell({ children, kbChunks }: AppShellProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <AppHeader kbChunks={kbChunks} />
-        <main className="flex-1 overflow-y-auto bg-bg-primary">
+        <main className="flex-1 overflow-y-auto bg-background">
           {children}
         </main>
       </div>
