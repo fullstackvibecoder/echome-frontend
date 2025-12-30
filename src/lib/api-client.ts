@@ -14,14 +14,17 @@ import type {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-// Create axios instance
+// Create axios instance with default timeout
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds
+  timeout: 30000, // 30 seconds default
 });
+
+// Extended timeout for long-running operations like content generation
+const GENERATION_TIMEOUT = 90000; // 90 seconds for AI generation
 
 // Request interceptor - add JWT token
 apiClient.interceptors.request.use(
@@ -110,7 +113,8 @@ export const api = {
 
       const response = await apiClient.post<ApiResponse<GenerationRequest>>(
         '/generate',
-        payload
+        payload,
+        { timeout: GENERATION_TIMEOUT }
       );
       return response.data;
     },
