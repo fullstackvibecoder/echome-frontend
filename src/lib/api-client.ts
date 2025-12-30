@@ -95,9 +95,22 @@ export const api = {
   // -------- CONTENT GENERATION --------
   generation: {
     generate: async (data: Partial<GenerationRequest>) => {
+      // Transform camelCase to snake_case for API
+      const payload = {
+        input_type: data.inputType,
+        input_text: data.inputText,
+        input_audio_path: data.inputAudioPath,
+        input_video_path: data.inputVideoPath,
+        knowledge_base_id: data.knowledgeBaseId,
+        platforms: data.platforms,
+        tone: data.tone,
+        additional_instructions: data.additionalInstructions,
+        use_tll_validator: data.useTllValidator,
+      };
+
       const response = await apiClient.post<ApiResponse<GenerationRequest>>(
         '/generate',
-        data
+        payload
       );
       return response.data;
     },

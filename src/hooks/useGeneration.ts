@@ -33,10 +33,10 @@ export function useGeneration(): UseGenerationReturn {
         setResults(null);
 
         const response = await api.generation.generate({
-          input_type: inputType,
-          input_text: inputType === 'text' ? input : undefined,
-          input_audio_path: inputType === 'audio' ? input : undefined,
-          input_video_path: inputType === 'video' ? input : undefined,
+          inputType,
+          inputText: inputType === 'text' ? input : undefined,
+          inputAudioPath: inputType === 'audio' ? input : undefined,
+          inputVideoPath: inputType === 'video' ? input : undefined,
           platforms,
         });
 
