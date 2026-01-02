@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { ContentCards } from '@/components/content-cards';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
+import { Platform } from '@/types';
 
 interface GenerationDetail {
   request: {
@@ -74,9 +75,12 @@ export default function LibraryDetail() {
   // Transform content to match ContentCards expected format
   const transformedResults = data?.content?.map((item) => ({
     id: item.id,
-    platform: item.platform,
+    requestId: requestId,
+    platform: item.platform as Platform,
     content: item.content,
-    score: (item.metadata as { score?: number })?.score,
+    voiceScore: (item.metadata as { voiceScore?: number })?.voiceScore || 0,
+    qualityScore: (item.metadata as { qualityScore?: number })?.qualityScore || 0,
+    createdAt: new Date(data.request.created_at),
   })) || [];
 
   return (
