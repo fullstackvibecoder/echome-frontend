@@ -1,14 +1,98 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
 import { InputType, Platform } from '@/types';
 
+// Progress step component with EchoMe branding
+function ProgressStep({
+  icon,
+  text,
+  subtext,
+  active,
+  completed,
+}: {
+  icon: string;
+  text: string;
+  subtext: string;
+  active: boolean;
+  completed?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-start gap-3 p-4 rounded-lg transition-all duration-300 ${
+        active
+          ? 'bg-accent/10 border border-accent/30'
+          : completed
+          ? 'bg-success/10 border border-success/30'
+          : 'bg-bg-secondary border border-transparent opacity-50'
+      }`}
+    >
+      <div className="text-2xl flex-shrink-0">
+        {completed ? '✅' : icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className={`text-body font-medium ${active ? 'text-accent' : ''}`}>
+            {text}
+          </span>
+          {active && (
+            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          )}
+        </div>
+        <span className="text-small text-text-secondary">{subtext}</span>
+      </div>
+    </div>
+  );
+}
+
+// Fun tips that rotate during generation
+const ECHO_TIPS = [
+  "💡 Your content sounds better because it's actually YOU",
+  "🎯 We're matching your exact writing style from your Echosystem",
+  "🔮 AI + Your Voice = Content that converts",
+  "📚 Drawing from your knowledge base to keep it authentic",
+  "✨ Quality over quantity - every Echo matters",
+  "🎤 Your voice, amplified across every platform",
+];
+
 export default function AppDashboard() {
   const { generating, results, error, voiceScore, qualityScore, generate, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
+
+  // Progress state for animated steps
+  const [progressStep, setProgressStep] = useState(0);
+  const [currentTip, setCurrentTip] = useState(0);
+
+  // Animate progress steps during generation
+  useEffect(() => {
+    if (!generating) {
+      setProgressStep(0);
+      return;
+    }
+
+    // Progress through steps
+    const stepTimings = [0, 3000, 8000, 15000]; // When each step starts
+    const timers: NodeJS.Timeout[] = [];
+
+    stepTimings.forEach((delay, index) => {
+      const timer = setTimeout(() => setProgressStep(index), delay);
+      timers.push(timer);
+    });
+
+    // Rotate tips every 5 seconds
+    const tipTimer = setInterval(() => {
+      setCurrentTip((prev) => (prev + 1) % ECHO_TIPS.length);
+    }, 5000);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      clearInterval(tipTimer);
+    };
+  }, [generating]);
 
   const handleGenerate = async (
     input: string,
@@ -56,28 +140,49 @@ export default function AppDashboard() {
           <div className="mb-8">
             <div className="w-20 h-20 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-6" />
             <h2 className="text-display text-3xl mb-2">
-              Creating your content...
+              Echoing your voice...
             </h2>
             <p className="text-body text-text-secondary">
-              This usually takes 30-60 seconds
+              Your Echosystem is working its magic ✨
             </p>
           </div>
 
-          {/* Progress Steps */}
+          {/* Progress Steps - Fun EchoMe Branded */}
           <div className="space-y-3 text-left max-w-md mx-auto">
-            <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg">
-              <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-              <span className="text-body">Analyzing your voice...</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg opacity-50">
-              <div className="w-5 h-5 border-2 border-border rounded-full" />
-              <span className="text-body">Generating for 6 platforms...</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg opacity-50">
-              <div className="w-5 h-5 border-2 border-border rounded-full" />
-              <span className="text-body">Optimizing content...</span>
-            </div>
+            <ProgressStep
+              icon="🎤"
+              text="Tuning into your unique voice patterns"
+              subtext="Reading your Echosystem DNA..."
+              active={progressStep === 0}
+              completed={progressStep > 0}
+            />
+            <ProgressStep
+              icon="🧠"
+              text="Channeling the TLL framework"
+              subtext="Teach • Learn • Lead"
+              active={progressStep === 1}
+              completed={progressStep > 1}
+            />
+            <ProgressStep
+              icon="🎨"
+              text="Crafting platform-perfect content"
+              subtext="Making each platform sing YOUR tune"
+              active={progressStep === 2}
+              completed={progressStep > 2}
+            />
+            <ProgressStep
+              icon="✨"
+              text="Polishing your Echo"
+              subtext="Quality check in progress..."
+              active={progressStep === 3}
+              completed={progressStep > 3}
+            />
           </div>
+
+          {/* Rotating fun tips */}
+          <p className="text-small text-text-secondary mt-8 italic transition-opacity duration-500">
+            {ECHO_TIPS[currentTip]}
+          </p>
         </div>
       )}
 
