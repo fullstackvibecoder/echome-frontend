@@ -42,7 +42,9 @@ export default function LibraryDetail() {
     try {
       setLoading(true);
       const response = await api.generation.getRequest(requestId);
-      setData(response.data);
+      if (response.data) {
+        setData(response.data as unknown as GenerationDetail);
+      }
     } catch (err) {
       setError('Failed to load content details');
       console.error(err);
