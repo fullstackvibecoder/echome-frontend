@@ -4,16 +4,8 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api-client';
 import { GenerationRequest } from '@/types';
 
-interface GenerationHistoryItem {
-  id: string;
-  status: string;
-  prompt?: string;
-  created_at: string;
-  platforms?: string[];
-}
-
 export default function ContentLibrary() {
-  const [history, setHistory] = useState<GenerationHistoryItem[]>([]);
+  const [history, setHistory] = useState<GenerationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,8 +26,8 @@ export default function ContentLibrary() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -107,10 +99,10 @@ export default function ContentLibrary() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-body font-medium mb-2 truncate">
-                    {item.prompt || 'Untitled generation'}
+                    {item.inputText || 'Untitled generation'}
                   </p>
                   <div className="flex items-center gap-3 text-small text-text-secondary">
-                    <span>{formatDate(item.created_at)}</span>
+                    <span>{formatDate(item.createdAt)}</span>
                     {item.platforms && item.platforms.length > 0 && (
                       <>
                         <span>•</span>
