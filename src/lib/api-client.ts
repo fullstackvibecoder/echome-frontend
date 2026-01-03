@@ -9,6 +9,11 @@ import type {
   GenerationRequest,
   KnowledgeBase,
   SocialIntegration,
+  GeneratedImage,
+  GeneratedCarousel,
+  ImageGenerationOptions,
+  BackgroundConfig,
+  BackgroundPreset,
 } from '../types';
 
 const API_BASE_URL =
@@ -260,6 +265,185 @@ export const api = {
       bio?: string;
     }) => {
       const response = await apiClient.patch('/profile', data);
+      return response.data;
+    },
+  },
+
+  // -------- IMAGE GENERATION --------
+  images: {
+    generateBlogHeader: async (
+      sourceContent: string,
+      options?: ImageGenerationOptions,
+      blogContent?: string
+    ) => {
+      const response = await apiClient.post<ApiResponse<{ image: GeneratedImage }>>(
+        '/images/blog-header',
+        { sourceContent, options, blogContent },
+        { timeout: 60000 } // 60 seconds for image generation
+      );
+      return response.data;
+    },
+
+    generateCarousel: async (
+      contentId: string,
+      slides: Array<{ text: string; type?: string }>,
+      options?: {
+        background?: BackgroundConfig;
+        config?: {
+          primaryColor?: string;
+          accentColor?: string;
+          textColor?: string;
+          backgroundColor?: string;
+        };
+        contentSummary?: string;
+      }
+    ) => {
+      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
+        '/images/carousel',
+        {
+          contentId,
+          slides,
+          background: options?.background,
+          config: options?.config,
+          contentSummary: options?.contentSummary,
+        },
+        { timeout: 120000 } // 2 minutes for carousel generation
+      );
+      return response.data;
+    },
+
+    generateCarouselWithUpload: async (
+      contentId: string,
+      slides: Array<{ text: string; type?: string }>,
+      backgroundImage: File,
+      options?: {
+        config?: Record<string, string>;
+        overlay?: { color: string; opacity: number };
+      }
+    ) => {
+      const formData = new FormData();
+      formData.append('backgroundImage', backgroundImage);
+      formData.append('contentId', contentId);
+      formData.append('slides', JSON.stringify(slides));
+      if (options?.config) {
+        formData.append('config', JSON.stringify(options.config));
+      }
+      if (options?.overlay) {
+        formData.append('overlay', JSON.stringify(options.overlay));
+      }
+
+      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
+        '/images/carousel/with-upload',
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 180000, // 3 minutes for upload + generation
+        }
+      );
+      return response.data;
+    },
+
+    /**
+     * Generate optimized carousel from Instagram content
+     * Automatically structures slides for maximum engagement
+     */
+    generateOptimizedCarousel: async (
+      contentId: string,
+      instagramContent: string,
+      userInput: string,
+      options?: {
+        background?: BackgroundConfig;
+        config?: Record<string, string>;
+      }
+    ) => {
+      const response = await apiClient.post<
+        ApiResponse<{
+          carousel: GeneratedCarousel;
+          quality?: { score: number };
+        }>
+      >(
+        '/images/carousel',
+        {
+          contentId,
+          instagramContent,
+          userInput,
+          background: options?.background,
+          config: options?.config,
+        },
+        { timeout: 120000 }
+      );
+      return response.data;
+    },
+
+    /**
+     * Generate optimized carousel with uploaded background
+     */
+    generateOptimizedCarouselWithUpload: async (
+      contentId: string,
+      instagramContent: string,
+      userInput: string,
+      backgroundImage: File
+    ) => {
+      const formData = new FormData();
+      formData.append('backgroundImage', backgroundImage);
+      formData.append('contentId', contentId);
+      formData.append('instagramContent', instagramContent);
+      formData.append('userInput', userInput);
+
+      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
+        '/images/carousel/with-upload',
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 180000,
+        }
+      );
+      return response.data;
+    },
+
+    uploadBackground: async (image: File, contentId?: string) => {
+      const formData = new FormData();
+      formData.append('image', image);
+      if (contentId) {
+        formData.append('contentId', contentId);
+      }
+
+      const response = await apiClient.post<
+        ApiResponse<{ background: { publicUrl: string; processed: boolean } }>
+      >('/images/background/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000,
+      });
+      return response.data;
+    },
+
+    getBackgroundPresets: async () => {
+      const response = await apiClient.get<
+        ApiResponse<{ presets: BackgroundPreset[] }>
+      >('/images/backgrounds/presets');
+      return response.data;
+    },
+
+    deleteCarousel: async (contentId: string) => {
+      const response = await apiClient.delete<ApiResponse>(
+        `/images/carousel/${contentId}`
+      );
+      return response.data;
+    },
+
+    getHealth: async () => {
+      const response = await apiClient.get<
+        ApiResponse<{
+          status: string;
+          services: {
+            blogHeader: string;
+            carousel: string;
+            aiBackground: string;
+            presets: string;
+            upload: string;
+          };
+        }>
+      >('/images/health');
       return response.data;
     },
   },

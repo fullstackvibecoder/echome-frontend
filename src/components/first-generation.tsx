@@ -1,11 +1,34 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { InputType, Platform } from '@/types';
+import { InputType, Platform, BackgroundConfig, PresetBackground } from '@/types';
 import { api } from '@/lib/api-client';
 
+// Carousel background options for the dropdown
+type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
+
+const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] = [
+  { value: 'dark-minimal', label: 'Dark Minimal' },
+  { value: 'ocean-blue', label: 'Ocean Blue' },
+  { value: 'sunset-warm', label: 'Sunset Warm' },
+  { value: 'purple-glow', label: 'Purple Glow' },
+  { value: 'forest-green', label: 'Forest Green' },
+  { value: 'midnight', label: 'Midnight' },
+  { value: 'rose-gold', label: 'Rose Gold' },
+  { value: 'neon-cyber', label: 'Neon Cyber' },
+  { value: 'earth-tones', label: 'Earth Tones' },
+  { value: 'ai', label: 'AI Generated' },
+  { value: 'upload', label: 'Upload Custom' },
+];
+
 interface FirstGenerationProps {
-  onGenerate: (input: string, inputType: InputType, platforms: Platform[]) => void;
+  onGenerate: (
+    input: string,
+    inputType: InputType,
+    platforms: Platform[],
+    carouselBackground?: BackgroundConfig,
+    carouselBackgroundFile?: File
+  ) => void;
   generating: boolean;
 }
 
@@ -30,6 +53,11 @@ export function FirstGeneration({
   const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  // Carousel background state
+  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('dark-minimal');
+  const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
+  const carouselBgInputRef = useRef<HTMLInputElement>(null);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -38,11 +66,48 @@ export function FirstGeneration({
     }
   };
 
+  const handleCarouselBgFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCarouselBgFile(file);
+    }
+  };
+
+  const handleCarouselBgChange = (value: CarouselBackgroundOption) => {
+    setCarouselBgOption(value);
+    // Clear file if not upload option
+    if (value !== 'upload') {
+      setCarouselBgFile(null);
+      if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+    }
+  };
+
+  // Build the BackgroundConfig based on selection
+  const buildBackgroundConfig = (): BackgroundConfig => {
+    if (carouselBgOption === 'ai') {
+      return { type: 'ai' };
+    }
+    if (carouselBgOption === 'upload') {
+      return { type: 'image' };
+    }
+    // Preset
+    return { type: 'preset', presetId: carouselBgOption as PresetBackground };
+  };
+
   const handleGenerate = async () => {
+    const bgConfig = buildBackgroundConfig();
+    const bgFile = carouselBgOption === 'upload' ? carouselBgFile : undefined;
+
+    // Validate upload option has a file
+    if (carouselBgOption === 'upload' && !carouselBgFile) {
+      setUploadError('Please select a background image');
+      return;
+    }
+
     // For text input
     if (inputType === 'text') {
       if (!input.trim()) return;
-      onGenerate(input, inputType, ALL_PLATFORMS);
+      onGenerate(input, inputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
       return;
     }
 
@@ -60,7 +125,7 @@ export function FirstGeneration({
       const uploadResponse = await api.files.upload('media-temp', selectedFile);
 
       if (uploadResponse.success && uploadResponse.data?.filePath) {
-        onGenerate(uploadResponse.data.filePath, inputType, ALL_PLATFORMS);
+        onGenerate(uploadResponse.data.filePath, inputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
       } else {
         throw new Error('Upload failed');
       }
@@ -240,6 +305,83 @@ export function FirstGeneration({
           )}
         </div>
       )}
+
+      {/* Carousel Background Option */}
+      <div className="mt-6 p-4 bg-bg-secondary rounded-lg border border-border">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <label className="text-body font-medium text-text-primary block mb-1">
+              Carousel Background
+            </label>
+            <p className="text-small text-text-secondary">
+              Choose a style for your Instagram carousel
+            </p>
+          </div>
+          <select
+            value={carouselBgOption}
+            onChange={(e) => handleCarouselBgChange(e.target.value as CarouselBackgroundOption)}
+            disabled={generating || uploading}
+            className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
+          >
+            {BACKGROUND_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Conditional Upload Field */}
+        {carouselBgOption === 'upload' && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <input
+              type="file"
+              ref={carouselBgInputRef}
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleCarouselBgFileSelect}
+              className="hidden"
+            />
+            {!carouselBgFile ? (
+              <button
+                onClick={() => carouselBgInputRef.current?.click()}
+                className="w-full py-3 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors"
+                disabled={generating || uploading}
+              >
+                Click to upload background image (JPEG, PNG, WebP)
+              </button>
+            ) : (
+              <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🖼️</span>
+                  <div>
+                    <p className="text-body font-medium">{carouselBgFile.name}</p>
+                    <p className="text-small text-text-secondary">
+                      {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setCarouselBgFile(null);
+                    if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+                  }}
+                  className="text-small text-error hover:underline"
+                  disabled={generating || uploading}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* AI hint for AI option */}
+        {carouselBgOption === 'ai' && (
+          <p className="mt-3 text-small text-accent">
+            ✨ AI will generate a background based on your content
+          </p>
+        )}
+      </div>
 
       {/* Upload Error */}
       {uploadError && (

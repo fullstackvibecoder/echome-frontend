@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
-import { InputType, Platform } from '@/types';
+import { CarouselPreview } from '@/components/carousel-preview';
+import { InputType, Platform, BackgroundConfig, CarouselSlide } from '@/types';
+import { api } from '@/lib/api-client';
 
 // Progress step component with EchoMe branding
 function ProgressStep({
@@ -67,6 +69,20 @@ export default function AppDashboard() {
   const [progressStep, setProgressStep] = useState(0);
   const [currentTip, setCurrentTip] = useState(0);
 
+  // Carousel state
+  const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[] | null>(null);
+  const [carouselGenerating, setCarouselGenerating] = useState(false);
+  const [carouselError, setCarouselError] = useState<string | null>(null);
+  const [carouselQuality, setCarouselQuality] = useState<{
+    isOptimal: boolean;
+    score: number;
+  } | null>(null);
+  const pendingCarouselRef = useRef<{
+    bgConfig: BackgroundConfig;
+    bgFile?: File;
+    userInput: string; // Store user input for TLL context
+  } | null>(null);
+
   // Animate progress steps during generation
   useEffect(() => {
     if (!generating) {
@@ -94,11 +110,97 @@ export default function AppDashboard() {
     };
   }, [generating]);
 
+  // Generate TLL-structured carousel after content generation completes
+  useEffect(() => {
+    const generateCarousel = async () => {
+      if (!results || !pendingCarouselRef.current) return;
+
+      // Find Instagram content
+      const instagramContent = results.find((r) => r.platform === 'instagram');
+      if (!instagramContent) return;
+
+      const { bgConfig, bgFile, userInput } = pendingCarouselRef.current;
+      pendingCarouselRef.current = null; // Clear pending
+
+      try {
+        setCarouselGenerating(true);
+        setCarouselError(null);
+        setCarouselQuality(null);
+
+        const contentId = `carousel-${Date.now()}`;
+
+        let response;
+        if (bgConfig.type === 'image' && bgFile) {
+          // For upload, we need to parse slides first then use upload endpoint
+          // TODO: Add TLL upload endpoint on backend
+          const slideTexts = instagramContent.content
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0 && !line.startsWith('#'))
+            .slice(0, 10);
+          const slides = slideTexts.map((text) => ({ text }));
+
+          response = await api.images.generateCarouselWithUpload(
+            contentId,
+            slides,
+            bgFile
+          );
+
+          if (response.success && response.data?.carousel?.slides) {
+            setCarouselSlides(response.data.carousel.slides);
+          } else {
+            throw new Error(response.error || 'Failed to generate carousel');
+          }
+        } else {
+          // Use optimized carousel endpoint for proper slide structure
+          response = await api.images.generateOptimizedCarousel(
+            contentId,
+            instagramContent.content,
+            userInput,
+            { background: bgConfig }
+          );
+
+          if (response.success && response.data?.carousel?.slides) {
+            setCarouselSlides(response.data.carousel.slides);
+            // Store quality score (internal validation)
+            if (response.data.quality) {
+              setCarouselQuality({
+                isOptimal: response.data.quality.score >= 70,
+                score: response.data.quality.score,
+              });
+            }
+          } else {
+            throw new Error(response.error || 'Failed to generate carousel');
+          }
+        }
+      } catch (err) {
+        setCarouselError(err instanceof Error ? err.message : 'Carousel generation failed');
+      } finally {
+        setCarouselGenerating(false);
+      }
+    };
+
+    generateCarousel();
+  }, [results]);
+
   const handleGenerate = async (
     input: string,
     inputType: InputType,
-    platforms: Platform[]
+    platforms: Platform[],
+    carouselBackground?: BackgroundConfig,
+    carouselBackgroundFile?: File
   ) => {
+    // Store carousel config and user input for TLL-structured generation
+    if (carouselBackground) {
+      pendingCarouselRef.current = {
+        bgConfig: carouselBackground,
+        bgFile: carouselBackgroundFile,
+        userInput: input, // Store for TLL context
+      };
+    }
+    setCarouselSlides(null);
+    setCarouselError(null);
+    setCarouselQuality(null);
     await generate(input, inputType, platforms);
   };
 
@@ -108,6 +210,14 @@ export default function AppDashboard() {
 
   const handleFeedback = (contentId: string, liked: boolean) => {
     sendFeedback(contentId, liked);
+  };
+
+  const handleReset = () => {
+    reset();
+    setCarouselSlides(null);
+    setCarouselQuality(null);
+    setCarouselError(null);
+    pendingCarouselRef.current = null;
   };
 
   return (
@@ -230,10 +340,35 @@ export default function AppDashboard() {
             onFeedback={handleFeedback}
           />
 
+          {/* Carousel Section */}
+          <div className="mt-12">
+            <h3 className="text-display text-2xl mb-6 text-center">Instagram Carousel</h3>
+
+            {carouselGenerating && (
+              <div className="text-center p-8 bg-bg-secondary rounded-lg border border-border">
+                <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-body text-text-secondary">Creating your carousel slides...</p>
+              </div>
+            )}
+
+            {carouselError && (
+              <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
+                {carouselError}
+              </div>
+            )}
+
+            {carouselSlides && carouselSlides.length > 0 && (
+              <CarouselPreview
+                slides={carouselSlides}
+                contentId={`carousel-${Date.now()}`}
+              />
+            )}
+          </div>
+
           {/* Create Another */}
           <div className="flex justify-center mt-12">
             <button
-              onClick={reset}
+              onClick={handleReset}
               className="btn-primary px-8 py-3"
             >
               Create Another

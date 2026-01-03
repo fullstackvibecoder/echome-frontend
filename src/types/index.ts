@@ -229,3 +229,108 @@ export interface AuthTokens {
   refreshToken?: string;
   expiresAt: number;
 }
+
+// ============================================
+// IMAGE GENERATION TYPES
+// ============================================
+
+export type ImageStyle = 'professional' | 'casual' | 'creative' | 'minimalist';
+export type ImageAspectRatio = '16:9' | '1:1' | '4:3';
+
+export interface ImageGenerationOptions {
+  style?: ImageStyle;
+  aspectRatio?: ImageAspectRatio;
+  brand?: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    logoText?: string;
+    watermark?: {
+      text: string;
+      position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+      opacity?: number;
+    };
+  };
+}
+
+export interface GeneratedImage {
+  url: string;
+  publicUrl: string;
+  prompt: string;
+  style: string;
+  aspectRatio: string;
+}
+
+export interface CarouselSlide {
+  slideNumber: number;
+  publicUrl: string;
+  storagePath: string;
+  slideType?: 'hook' | 'content' | 'list' | 'quote' | 'cta';
+}
+
+export interface GeneratedCarousel {
+  contentId: string;
+  slides: CarouselSlide[];
+  createdAt: string;
+}
+
+export interface BlogHeaderRequest {
+  sourceContent: string;
+  blogContent?: string;
+  options?: ImageGenerationOptions;
+}
+
+export interface CarouselRequest {
+  contentId: string;
+  slides: Array<{ text: string; type?: string }>;
+  options?: ImageGenerationOptions;
+}
+
+// ============================================
+// BACKGROUND TYPES
+// ============================================
+
+export type BackgroundType = 'solid' | 'gradient' | 'preset' | 'image' | 'ai';
+
+export type PresetBackground =
+  | 'dark-minimal'
+  | 'light-clean'
+  | 'purple-glow'
+  | 'ocean-blue'
+  | 'sunset-warm'
+  | 'forest-green'
+  | 'midnight'
+  | 'rose-gold'
+  | 'neon-cyber'
+  | 'earth-tones';
+
+export interface BackgroundConfig {
+  type: BackgroundType;
+  gradientColors?: string[];
+  gradientDirection?: 'horizontal' | 'vertical' | 'diagonal' | 'radial';
+  presetId?: PresetBackground;
+  imageUrl?: string;
+  aiPromptHint?: string;
+  overlay?: {
+    color: string;
+    opacity: number;
+  };
+}
+
+export interface BackgroundPreset {
+  id: PresetBackground;
+  name: string;
+  colors: string[];
+}
+
+export interface CarouselGenerationRequest {
+  contentId: string;
+  slides: Array<{ text: string; type?: string }>;
+  background?: BackgroundConfig;
+  config?: {
+    primaryColor?: string;
+    accentColor?: string;
+    textColor?: string;
+    backgroundColor?: string;
+  };
+  contentSummary?: string;
+}
