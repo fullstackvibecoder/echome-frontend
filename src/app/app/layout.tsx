@@ -4,5 +4,5 @@ import { ReactNode } from 'react';
 import { AppShell } from '@/components/app-shell';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return <AppShell kbChunks={245}>{children}</AppShell>;
+  return <AppShell>{children}</AppShell>;
 }

@@ -39,7 +39,9 @@ export default function KnowledgePage() {
         <div>
           <h1 className="text-display text-4xl mb-2">Your Echo</h1>
           <p className="text-body text-text-secondary">
-            Trained on {currentKb?.totalChunks || 0} chunks
+            {files.length > 0
+              ? `Trained on ${files.length} file${files.length !== 1 ? 's' : ''}`
+              : 'Upload files to train your voice'}
           </p>
         </div>
         <button

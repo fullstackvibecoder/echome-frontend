@@ -45,17 +45,11 @@ export function KBCard({ file, onDelete }: KBCardProps) {
       </div>
 
       {/* Metadata */}
-      <div className="grid grid-cols-2 gap-3 mb-3 p-3 bg-bg-secondary rounded-lg">
-        <div>
-          <p className="text-xs text-text-secondary">Chunks</p>
-          <p className="text-body font-semibold">{file.chunksCreated || 0}</p>
-        </div>
-        <div>
-          <p className="text-xs text-text-secondary">Uploaded</p>
-          <p className="text-body font-semibold">
-            {new Date(file.uploadedAt).toLocaleDateString()}
-          </p>
-        </div>
+      <div className="flex items-center gap-2 mb-3 p-3 bg-bg-secondary rounded-lg">
+        <p className="text-xs text-text-secondary">Uploaded</p>
+        <p className="text-body font-semibold">
+          {new Date(file.uploadedAt).toLocaleDateString()}
+        </p>
       </div>
 
       {/* Actions */}

@@ -3,11 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 
-interface AppHeaderProps {
-  kbChunks?: number;
-}
-
-export function AppHeader({ kbChunks = 0 }: AppHeaderProps) {
+export function AppHeader() {
   const { user } = useAuth();
   const { toggleMobileMenu } = useAppNavigation();
 
@@ -27,12 +23,7 @@ export function AppHeader({ kbChunks = 0 }: AppHeaderProps) {
           {/* KB Status */}
           <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-lg border border-border">
             <span className="text-primary">✓</span>
-            <span className="text-muted-foreground">
-              Echo trained{' '}
-              <span className="font-semibold text-foreground">
-                ({kbChunks} chunks)
-              </span>
-            </span>
+            <span className="text-muted-foreground">Echo trained</span>
           </div>
         </div>
 

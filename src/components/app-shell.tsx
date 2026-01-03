@@ -8,10 +8,9 @@ import { useAppNavigation } from '@/hooks/useAppNavigation';
 
 interface AppShellProps {
   children: ReactNode;
-  kbChunks?: number;
 }
 
-export function AppShell({ children, kbChunks }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const { isMobileMenuOpen, closeMobileMenu } = useAppNavigation();
 
   return (
@@ -26,7 +25,7 @@ export function AppShell({ children, kbChunks }: AppShellProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader kbChunks={kbChunks} />
+        <AppHeader />
         <main className="flex-1 overflow-y-auto bg-background">
           {children}
         </main>
