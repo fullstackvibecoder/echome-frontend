@@ -666,12 +666,12 @@ export default function FollowingPage() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
           onClick={(e) => e.target === e.currentTarget && !repurposing && !extracting && closeRepurposeModal()}
         >
-          <div className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-bg-primary z-10">
-              <h2 className="text-xl font-semibold">
+          <div className="bg-card text-card-foreground rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
+              <h2 className="text-xl font-semibold text-foreground">
                 {repurposeResults ? 'Generated Content' : 'Repurpose Content'}
               </h2>
-              <button onClick={closeRepurposeModal} disabled={repurposing} className="p-2 hover:bg-bg-secondary rounded-lg disabled:opacity-50">
+              <button onClick={closeRepurposeModal} disabled={repurposing} className="p-2 hover:bg-muted rounded-lg disabled:opacity-50 text-foreground">
                 ✕
               </button>
             </div>
@@ -680,15 +680,15 @@ export default function FollowingPage() {
               <div className="p-6 space-y-6">
                 <div className="text-center">
                   <div className="text-5xl mb-3">✨</div>
-                  <h3 className="text-lg font-semibold mb-1">Content Generated!</h3>
-                  <p className="text-small text-text-secondary">
+                  <h3 className="text-lg font-semibold mb-1 text-foreground">Content Generated!</h3>
+                  <p className="text-small text-muted-foreground">
                     Generated for {repurposeResults.length} platform{repurposeResults.length > 1 ? 's' : ''}
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   {repurposeResults.map((result) => (
-                    <div key={result.id} className="bg-bg-secondary rounded-lg overflow-hidden">
+                    <div key={result.id} className="bg-muted rounded-lg overflow-hidden">
                       <div className="flex items-center justify-between p-3 border-b border-border">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">
@@ -696,7 +696,7 @@ export default function FollowingPage() {
                              result.platform === 'blog' ? '📝' : result.platform === 'email' ? '📧' :
                              result.platform === 'tiktok' ? '🎵' : result.platform === 'video-script' ? '🎬' : '📄'}
                           </span>
-                          <span className="font-medium capitalize">{result.platform}</span>
+                          <span className="font-medium capitalize text-foreground">{result.platform}</span>
                         </div>
                         <button
                           onClick={() => copyToClipboard(result.content)}
@@ -706,7 +706,7 @@ export default function FollowingPage() {
                         </button>
                       </div>
                       <div className="p-4 max-h-48 overflow-y-auto">
-                        <pre className="whitespace-pre-wrap text-small font-sans">{result.content}</pre>
+                        <pre className="whitespace-pre-wrap text-small font-sans text-foreground">{result.content}</pre>
                       </div>
                     </div>
                   ))}
@@ -722,13 +722,13 @@ export default function FollowingPage() {
             ) : (
               <div className="p-6 space-y-6">
                 {/* Source Info */}
-                <div className="flex items-start gap-4 p-4 bg-bg-secondary rounded-lg">
+                <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
                   {selectedVideoForRepurpose.thumbnail_url && (
                     <img src={selectedVideoForRepurpose.thumbnail_url} alt="" className="w-32 h-20 object-cover rounded flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium line-clamp-2 mb-1">{selectedVideoForRepurpose.title || 'Untitled'}</p>
-                    <p className="text-small text-text-secondary line-clamp-2">{selectedVideoForRepurpose.description || 'No description'}</p>
+                    <p className="font-medium line-clamp-2 mb-1 text-foreground">{selectedVideoForRepurpose.title || 'Untitled'}</p>
+                    <p className="text-small text-muted-foreground line-clamp-2">{selectedVideoForRepurpose.description || 'No description'}</p>
                     {selectedVideoForRepurpose.extraction_status === 'completed' ? (
                       <p className="text-small text-green-500 mt-2">✓ Transcript available</p>
                     ) : selectedVideoForRepurpose.extraction_status === 'processing' || extracting ? (
@@ -747,13 +747,13 @@ export default function FollowingPage() {
                 {/* AI Summary */}
                 {selectedVideoForRepurpose.summary && (
                   <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
-                    <p className="text-small">💡 {selectedVideoForRepurpose.summary}</p>
+                    <p className="text-small text-foreground">💡 {selectedVideoForRepurpose.summary}</p>
                   </div>
                 )}
 
                 {/* Platform Selection */}
                 <div>
-                  <label className="block text-body font-medium mb-3">Select Platforms</label>
+                  <label className="block font-medium mb-3 text-foreground">Select Platforms</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {ALL_PLATFORMS.map((platform) => (
                       <button
@@ -761,7 +761,7 @@ export default function FollowingPage() {
                         onClick={() => togglePlatform(platform.id)}
                         disabled={repurposing}
                         className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
-                          selectedPlatforms.includes(platform.id) ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'
+                          selectedPlatforms.includes(platform.id) ? 'border-accent bg-accent/10 text-foreground' : 'border-border hover:border-accent/50 text-foreground'
                         } disabled:opacity-50`}
                       >
                         <span className="text-xl">{platform.icon}</span>
@@ -774,16 +774,16 @@ export default function FollowingPage() {
 
                 {/* Carousel Background */}
                 {selectedPlatforms.includes('instagram') && (
-                  <div className="p-4 bg-bg-secondary rounded-lg">
+                  <div className="p-4 bg-muted rounded-lg">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <label className="text-body font-medium">Carousel Background</label>
-                        <p className="text-small text-text-secondary">Style for Instagram carousel</p>
+                        <label className="font-medium text-foreground">Carousel Background</label>
+                        <p className="text-small text-muted-foreground">Style for Instagram carousel</p>
                       </div>
                       <select
                         value={carouselBgOption}
                         onChange={(e) => handleCarouselBgChange(e.target.value as CarouselBackgroundOption)}
-                        className="px-4 py-2 border border-border rounded-lg bg-bg-primary"
+                        className="px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                       >
                         {BACKGROUND_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -822,7 +822,7 @@ export default function FollowingPage() {
                   </button>
                 </div>
 
-                <p className="text-small text-center text-text-secondary">✨ Usually takes 30-60 seconds</p>
+                <p className="text-small text-center text-muted-foreground">✨ Usually takes 30-60 seconds</p>
               </div>
             )}
           </div>
