@@ -269,6 +269,165 @@ export const api = {
     },
   },
 
+  // -------- KB CONTENT (PASTE, VOICE, MBOX, SOCIAL) --------
+  kbContent: {
+    paste: async (data: {
+      text: string;
+      title?: string;
+      sourceType: 'writing_sample' | 'social_post' | 'email' | 'text';
+      knowledgeBaseId?: string;
+      metadata?: Record<string, unknown>;
+    }) => {
+      const response = await apiClient.post('/kb/content/paste', data);
+      return response.data;
+    },
+
+    pasteBulk: async (data: {
+      items: Array<{
+        text: string;
+        title?: string;
+        sourceType: 'writing_sample' | 'social_post' | 'email' | 'text';
+        metadata?: Record<string, unknown>;
+      }>;
+      knowledgeBaseId?: string;
+    }) => {
+      const response = await apiClient.post('/kb/content/paste/bulk', data);
+      return response.data;
+    },
+
+    deleteContent: async (contentId: string) => {
+      const response = await apiClient.delete(`/kb/content/${contentId}`);
+      return response.data;
+    },
+
+    getTypes: async () => {
+      const response = await apiClient.get('/kb/content/types');
+      return response.data;
+    },
+
+    // -------- VOICE RECORDING --------
+    /** Transcribe audio only (returns text, no ingestion) */
+    transcribeVoice: async (audioBlob: Blob) => {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+
+      const response = await apiClient.post('/kb/content/voice/transcribe', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // 60 seconds for transcription
+      });
+      return response.data as { success: boolean; text: string };
+    },
+
+    /** Transcribe and ingest voice content into KB */
+    ingestVoice: async (data: {
+      audioBlob: Blob;
+      title?: string;
+      knowledgeBaseId?: string;
+    }) => {
+      const formData = new FormData();
+      formData.append('audio', data.audioBlob, 'recording.webm');
+      if (data.title) formData.append('title', data.title);
+      if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
+
+      const response = await apiClient.post('/kb/content/voice', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 minutes for transcription + ingestion
+      });
+      return response.data as {
+        success: boolean;
+        contentId: string;
+        transcription: string;
+        chunksCreated: number;
+        embeddingsCreated: number;
+      };
+    },
+
+    // -------- MBOX EMAIL IMPORT --------
+    /** Upload and ingest MBOX email archive */
+    uploadMbox: async (
+      mboxFile: File,
+      options?: {
+        userEmail?: string;
+        knowledgeBaseId?: string;
+      },
+      onProgress?: (progress: number) => void
+    ) => {
+      const formData = new FormData();
+      formData.append('mbox', mboxFile);
+      if (options?.userEmail) formData.append('userEmail', options.userEmail);
+      if (options?.knowledgeBaseId) formData.append('knowledgeBaseId', options.knowledgeBaseId);
+
+      const response = await apiClient.post('/kb/content/mbox', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 600000, // 10 minutes for large mbox files
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(percentCompleted);
+          }
+        },
+      });
+      return response.data as {
+        success: boolean;
+        contentId: string;
+        emailsParsed: number;
+        emailsIngested: number;
+        chunksCreated: number;
+        embeddingsCreated: number;
+        skippedEmails: number;
+        parseErrors: number;
+      };
+    },
+
+    // -------- SOCIAL MEDIA IMPORT --------
+    /** Get available social platforms for import */
+    getSocialPlatforms: async () => {
+      const response = await apiClient.get('/kb/content/social/platforms');
+      return response.data as {
+        success: boolean;
+        platforms: Array<{
+          id: string;
+          name: string;
+          description: string;
+          requiresUrl: boolean;
+        }>;
+      };
+    },
+
+    /** Start a social media import job */
+    startSocialImport: async (data: {
+      platform: 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'facebook';
+      url: string;
+      knowledgeBaseId?: string;
+    }) => {
+      const response = await apiClient.post('/kb/content/social/import', data, {
+        timeout: 30000, // Just starts the job, doesn't wait
+      });
+      return response.data as {
+        success: boolean;
+        jobId: string;
+        status: 'pending' | 'processing' | 'completed' | 'failed';
+        platform: string;
+        message?: string;
+      };
+    },
+
+    /** Check social import job status */
+    getSocialImportStatus: async (jobId: string) => {
+      const response = await apiClient.get(`/kb/content/social/import/${jobId}`);
+      return response.data as {
+        success: boolean;
+        job: {
+          jobId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          platform: string;
+          contentCount?: number;
+          message?: string;
+        } | null;
+      };
+    },
+  },
+
   // -------- IMAGE GENERATION --------
   images: {
     generateBlogHeader: async (

@@ -92,6 +92,24 @@ export function ContentCards({
               </p>
             </div>
 
+            {/* Voice & Quality Scores */}
+            {(result.voiceScore > 0 || result.qualityScore > 0) && (
+              <div className="flex items-center gap-3 mb-3">
+                {result.voiceScore > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 text-accent text-small font-medium">
+                    <span>🎤</span>
+                    <span>Voice: {result.voiceScore}%</span>
+                  </div>
+                )}
+                {result.qualityScore > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 text-success text-small font-medium">
+                    <span>✓</span>
+                    <span>Quality: {result.qualityScore}%</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Metadata */}
             {result.metadata && (
               <div className="flex items-center gap-4 mb-3 text-small text-text-secondary">

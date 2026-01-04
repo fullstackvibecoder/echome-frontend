@@ -12,6 +12,7 @@ interface GenerationDetail {
     id: string;
     status: string;
     prompt?: string;
+    input_text?: string;
     created_at: string;
     completed_at?: string;
   };
@@ -19,6 +20,10 @@ interface GenerationDetail {
     id: string;
     platform: string;
     content: string;
+    voiceScore?: number;
+    qualityScore?: number;
+    voice_score?: number;  // snake_case from DB
+    quality_score?: number;  // snake_case from DB
     metadata?: Record<string, unknown>;
   }>;
 }
@@ -73,15 +78,19 @@ export default function LibraryDetail() {
   };
 
   // Transform content to match ContentCards expected format
-  const transformedResults = data?.content?.map((item) => ({
-    id: item.id,
-    requestId: requestId,
-    platform: item.platform as Platform,
-    content: item.content,
-    voiceScore: (item.metadata as { voiceScore?: number })?.voiceScore || 0,
-    qualityScore: (item.metadata as { qualityScore?: number })?.qualityScore || 0,
-    createdAt: new Date(data.request.created_at),
-  })) || [];
+  // Check multiple possible locations for scores (root level, snake_case, or metadata)
+  const transformedResults = data?.content?.map((item) => {
+    const metadata = item.metadata as { voiceScore?: number; qualityScore?: number; voice_score?: number; quality_score?: number } | undefined;
+    return {
+      id: item.id,
+      requestId: requestId,
+      platform: item.platform as Platform,
+      content: item.content,
+      voiceScore: item.voiceScore ?? item.voice_score ?? metadata?.voiceScore ?? metadata?.voice_score ?? 0,
+      qualityScore: item.qualityScore ?? item.quality_score ?? metadata?.qualityScore ?? metadata?.quality_score ?? 0,
+      createdAt: new Date(data.request.created_at),
+    };
+  }) || [];
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
@@ -114,7 +123,7 @@ export default function LibraryDetail() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-display text-3xl mb-2">
-              {data.request.prompt || 'Generated Content'}
+              {data.request.prompt || data.request.input_text || 'Generated Content'}
             </h1>
             <p className="text-body text-text-secondary">
               Created {formatDate(data.request.created_at)}
