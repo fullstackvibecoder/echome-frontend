@@ -12,6 +12,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/app' },
+  { id: 'following', label: 'Following', icon: '👥', path: '/app/following' },
   { id: 'knowledge', label: 'Knowledge Base', icon: '📚', path: '/app/knowledge' },
   { id: 'library', label: 'Content Library', icon: '📁', path: '/app/library' },
   { id: 'settings', label: 'Settings', icon: '⚙️', path: '/app/settings' },

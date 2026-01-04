@@ -62,7 +62,7 @@ const ECHO_TIPS = [
 ];
 
 export default function AppDashboard() {
-  const { generating, results, error, voiceScore, qualityScore, generate, reset } = useGeneration();
+  const { generating, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
 
   // Progress state for animated steps
@@ -204,6 +204,13 @@ export default function AppDashboard() {
     await generate(input, inputType, platforms);
   };
 
+  const handleRepurpose = async (contentId: string, platforms: Platform[]) => {
+    setCarouselSlides(null);
+    setCarouselError(null);
+    setCarouselQuality(null);
+    await repurpose(contentId, platforms);
+  };
+
   const handleCopy = async (content: string) => {
     await copyToClipboard(content);
   };
@@ -233,7 +240,7 @@ export default function AppDashboard() {
           </div>
 
           {/* Input Form */}
-          <FirstGeneration onGenerate={handleGenerate} generating={false} />
+          <FirstGeneration onGenerate={handleGenerate} onRepurpose={handleRepurpose} generating={false} />
 
           {/* Error */}
           {error && (

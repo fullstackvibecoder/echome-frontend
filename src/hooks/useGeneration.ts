@@ -15,6 +15,10 @@ interface UseGenerationReturn {
     inputType: InputType,
     platforms: Platform[]
   ) => Promise<void>;
+  repurpose: (
+    contentId: string,
+    platforms: Platform[]
+  ) => Promise<void>;
   reset: () => void;
 }
 
@@ -56,6 +60,41 @@ export function useGeneration(): UseGenerationReturn {
     []
   );
 
+  const repurpose = useCallback(
+    async (contentId: string, platforms: Platform[]) => {
+      try {
+        setGenerating(true);
+        setError(null);
+        setResults(null);
+
+        const response = await api.creators.repurpose(contentId, {
+          platforms: platforms as string[],
+        });
+
+        if (response.success && response.result.generatedContent) {
+          // Transform repurpose result to match GeneratedContent format
+          const generatedResults: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
+            id: `${contentId}-${r.platform}-${idx}`,
+            requestId: contentId,
+            platform: r.platform as Platform,
+            content: r.content,
+            voiceScore: 0, // Will be filled by backend in future
+            qualityScore: 0,
+            createdAt: new Date(),
+          }));
+          setResults(generatedResults);
+        } else {
+          throw new Error(response.result.error || 'Repurposing failed');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Repurposing failed');
+      } finally {
+        setGenerating(false);
+      }
+    },
+    []
+  );
+
   const reset = useCallback(() => {
     setResults(null);
     setError(null);
@@ -70,6 +109,7 @@ export function useGeneration(): UseGenerationReturn {
     voiceScore,
     qualityScore,
     generate,
+    repurpose,
     reset,
   };
 }

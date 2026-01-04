@@ -606,6 +606,241 @@ export const api = {
       return response.data;
     },
   },
+
+  // -------- CREATOR MONITORING & REPURPOSING --------
+  creators: {
+    /** Follow a new creator */
+    follow: async (data: {
+      platform: 'youtube' | 'instagram';
+      creatorUrl: string;
+      pollingIntervalSeconds?: number;
+      automationEnabled?: boolean;
+    }) => {
+      const response = await apiClient.post('/creators/follow', data);
+      return response.data as {
+        success: boolean;
+        creator: MonitoredCreator;
+        initialContentCount: number;
+      };
+    },
+
+    /** Unfollow a creator */
+    unfollow: async (creatorId: string) => {
+      const response = await apiClient.delete(`/creators/${creatorId}`);
+      return response.data as { success: boolean };
+    },
+
+    /** Get all followed creators */
+    list: async () => {
+      const response = await apiClient.get('/creators');
+      return response.data as {
+        success: boolean;
+        creators: MonitoredCreator[];
+        count: number;
+      };
+    },
+
+    /** Get a single creator */
+    get: async (creatorId: string) => {
+      const response = await apiClient.get(`/creators/${creatorId}`);
+      return response.data as {
+        success: boolean;
+        creator: MonitoredCreator;
+      };
+    },
+
+    /** Update creator settings */
+    update: async (creatorId: string, data: {
+      automationEnabled?: boolean;
+      pollingIntervalSeconds?: number;
+    }) => {
+      const response = await apiClient.patch(`/creators/${creatorId}`, data);
+      return response.data as {
+        success: boolean;
+        creator: MonitoredCreator;
+      };
+    },
+
+    /** Get content history for a creator */
+    getContent: async (creatorId: string, limit?: number) => {
+      const response = await apiClient.get(`/creators/${creatorId}/content`, {
+        params: { limit },
+      });
+      return response.data as {
+        success: boolean;
+        content: ContentHistoryEntry[];
+        count: number;
+      };
+    },
+
+    /** Manually trigger poll for a creator */
+    poll: async (creatorId: string) => {
+      const response = await apiClient.post(`/creators/${creatorId}/poll`);
+      return response.data as {
+        success: boolean;
+        newContentCount: number;
+        entries: ContentHistoryEntry[];
+      };
+    },
+
+    /** Get new content across all followed creators */
+    getNewContent: async (limit?: number) => {
+      const response = await apiClient.get('/creators/content/new', {
+        params: { limit },
+      });
+      return response.data as {
+        success: boolean;
+        content: ContentHistoryEntry[];
+        count: number;
+      };
+    },
+
+    /** Mark content as reviewed */
+    markReviewed: async (contentId: string) => {
+      const response = await apiClient.post(`/creators/content/${contentId}/reviewed`);
+      return response.data as { success: boolean };
+    },
+
+    /** Get pending content for repurposing */
+    getPendingRepurpose: async (limit?: number) => {
+      const response = await apiClient.get('/creators/repurpose/pending', {
+        params: { limit },
+      });
+      return response.data as {
+        success: boolean;
+        content: ContentHistoryEntry[];
+        count: number;
+      };
+    },
+
+    /** Repurpose content */
+    repurpose: async (contentId: string, data: {
+      platforms: string[];
+      knowledgeBaseId?: string;
+      tone?: string;
+      additionalInstructions?: string;
+      focusOnIdeas?: string[];
+      differentiationAngle?: string;
+    }) => {
+      const response = await apiClient.post(`/creators/repurpose/${contentId}`, data, {
+        timeout: GENERATION_TIMEOUT,
+      });
+      return response.data as {
+        success: boolean;
+        result: RepurposeResult;
+      };
+    },
+
+    /** Generate AI suggestions for repurposing */
+    getSuggestions: async (contentId: string) => {
+      const response = await apiClient.post(`/creators/repurpose/${contentId}/suggestions`);
+      return response.data as {
+        success: boolean;
+        suggestions: RepurposeSuggestion[];
+        count: number;
+      };
+    },
+
+    /** Get user's repurpose suggestions */
+    getUserSuggestions: async (status?: 'suggested' | 'accepted' | 'rejected' | 'completed') => {
+      const response = await apiClient.get('/creators/suggestions', {
+        params: { status },
+      });
+      return response.data as {
+        success: boolean;
+        suggestions: RepurposeSuggestion[];
+        count: number;
+      };
+    },
+
+    /** Accept suggestion and generate */
+    acceptSuggestion: async (suggestionId: string, knowledgeBaseId?: string) => {
+      const response = await apiClient.post(`/creators/suggestions/${suggestionId}/accept`, {
+        knowledgeBaseId,
+      }, { timeout: GENERATION_TIMEOUT });
+      return response.data as {
+        success: boolean;
+        result: RepurposeResult;
+      };
+    },
+
+    /** Extract transcript for content */
+    extractTranscript: async (contentId: string) => {
+      const response = await apiClient.post(`/creators/content/${contentId}/extract`);
+      return response.data as {
+        success: boolean;
+        content: ContentHistoryEntry;
+      };
+    },
+  },
 };
+
+// Types for creator monitoring
+export interface MonitoredCreator {
+  id: string;
+  user_id: string;
+  platform: 'youtube' | 'instagram';
+  creator_url: string;
+  creator_name?: string;
+  creator_username?: string;
+  creator_avatar_url?: string;
+  channel_id?: string;
+  automation_enabled: boolean;
+  polling_interval_seconds: number;
+  next_check_at: string;
+  last_checked_at?: string;
+  total_checks: number;
+  successful_checks: number;
+  new_content_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContentHistoryEntry {
+  id: string;
+  creator_id: string;
+  user_id: string;
+  platform: string;
+  content_url: string;
+  content_id?: string;
+  title?: string;
+  description?: string;
+  transcript?: string;
+  thumbnail_url?: string;
+  duration_seconds?: number;
+  view_count?: number;
+  published_at?: string;
+  extraction_status: 'pending' | 'processing' | 'completed' | 'failed';
+  repurpose_status: 'pending' | 'generating' | 'completed' | 'skipped';
+  is_new_content: boolean;
+  auto_repurpose: boolean;
+  user_reviewed: boolean;
+  created_at: string;
+}
+
+export interface RepurposeSuggestion {
+  id: string;
+  contentHistoryId: string;
+  suggestedAngle: string;
+  suggestedPlatforms: string[];
+  keyIdeas: string[];
+  differentiationNotes: string;
+  relevanceScore: number;
+  originalityPotential: number;
+}
+
+export interface RepurposeResult {
+  success: boolean;
+  contentHistoryId: string;
+  generatedContent: {
+    results: Array<{
+      platform: string;
+      content: string;
+    }>;
+  } | null;
+  extractedIdeas: string[];
+  originalTitle: string;
+  error?: string;
+}
 
 export default api;

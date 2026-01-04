@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { InputType, Platform, BackgroundConfig, PresetBackground } from '@/types';
-import { api } from '@/lib/api-client';
+import { api, ContentHistoryEntry } from '@/lib/api-client';
 
 // Carousel background options for the dropdown
 type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
@@ -29,6 +29,10 @@ interface FirstGenerationProps {
     carouselBackground?: BackgroundConfig,
     carouselBackgroundFile?: File
   ) => void;
+  onRepurpose?: (
+    contentId: string,
+    platforms: Platform[]
+  ) => void;
   generating: boolean;
 }
 
@@ -41,12 +45,16 @@ const ALL_PLATFORMS: Platform[] = [
   'video-script',
 ];
 
+// Extended input type to include repurpose
+type ExtendedInputType = InputType | 'repurpose';
+
 export function FirstGeneration({
   onGenerate,
+  onRepurpose,
   generating,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
-  const [inputType, setInputType] = useState<InputType>('text');
+  const [inputType, setInputType] = useState<ExtendedInputType>('text');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -57,6 +65,32 @@ export function FirstGeneration({
   const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('dark-minimal');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
+
+  // Repurpose state
+  const [pendingContent, setPendingContent] = useState<ContentHistoryEntry[]>([]);
+  const [selectedContent, setSelectedContent] = useState<ContentHistoryEntry | null>(null);
+  const [loadingContent, setLoadingContent] = useState(false);
+
+  // Load pending content when repurpose mode is selected
+  useEffect(() => {
+    if (inputType === 'repurpose') {
+      loadPendingContent();
+    }
+  }, [inputType]);
+
+  const loadPendingContent = async () => {
+    try {
+      setLoadingContent(true);
+      const response = await api.creators.getPendingRepurpose(10);
+      if (response.success) {
+        setPendingContent(response.content);
+      }
+    } catch (error) {
+      console.error('Failed to load pending content:', error);
+    } finally {
+      setLoadingContent(false);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,10 +138,17 @@ export function FirstGeneration({
       return;
     }
 
+    // For repurpose mode
+    if (inputType === 'repurpose') {
+      if (!selectedContent || !onRepurpose) return;
+      onRepurpose(selectedContent.id, ALL_PLATFORMS);
+      return;
+    }
+
     // For text input
     if (inputType === 'text') {
       if (!input.trim()) return;
-      onGenerate(input, inputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
+      onGenerate(input, inputType as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
       return;
     }
 
@@ -125,7 +166,7 @@ export function FirstGeneration({
       const uploadResponse = await api.files.upload('media-temp', selectedFile);
 
       if (uploadResponse.success && uploadResponse.data?.filePath) {
-        onGenerate(uploadResponse.data.filePath, inputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
+        onGenerate(uploadResponse.data.filePath, inputType as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
       } else {
         throw new Error('Upload failed');
       }
@@ -145,11 +186,16 @@ export function FirstGeneration({
   const clearFile = () => {
     setSelectedFile(null);
     setUploadError(null);
+    setSelectedContent(null);
     if (audioInputRef.current) audioInputRef.current.value = '';
     if (videoInputRef.current) videoInputRef.current.value = '';
   };
 
-  const isReady = inputType === 'text' ? input.trim().length > 0 : selectedFile !== null;
+  const isReady = inputType === 'text'
+    ? input.trim().length > 0
+    : inputType === 'repurpose'
+    ? selectedContent !== null
+    : selectedFile !== null;
 
   return (
     <div className="card max-w-3xl mx-auto">
@@ -201,6 +247,19 @@ export function FirstGeneration({
           `}
         >
           🎥 Video
+        </button>
+        <button
+          onClick={() => { setInputType('repurpose'); clearFile(); }}
+          className={`
+            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
+            ${
+              inputType === 'repurpose'
+                ? 'bg-accent text-white'
+                : 'text-text-secondary hover:text-text-primary'
+            }
+          `}
+        >
+          🔄 Repurpose
         </button>
       </div>
 
@@ -306,7 +365,82 @@ export function FirstGeneration({
         </div>
       )}
 
-      {/* Carousel Background Option */}
+      {inputType === 'repurpose' && (
+        <div className="border-2 border-border rounded-lg overflow-hidden">
+          {loadingContent ? (
+            <div className="p-8 text-center">
+              <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-body text-text-secondary">Loading content from followed creators...</p>
+            </div>
+          ) : pendingContent.length === 0 ? (
+            <div className="p-8 text-center">
+              <div className="text-5xl mb-4">👥</div>
+              <p className="text-body text-text-secondary mb-4">
+                No content available for repurposing yet
+              </p>
+              <p className="text-small text-text-secondary">
+                Follow creators in the Following page to see their content here
+              </p>
+            </div>
+          ) : (
+            <div className="max-h-80 overflow-y-auto">
+              {pendingContent.map((content) => (
+                <button
+                  key={content.id}
+                  onClick={() => setSelectedContent(content)}
+                  className={`
+                    w-full flex items-start gap-4 p-4 text-left transition-all border-b border-border last:border-b-0
+                    ${selectedContent?.id === content.id
+                      ? 'bg-accent/10 border-l-4 border-l-accent'
+                      : 'hover:bg-bg-secondary'}
+                  `}
+                >
+                  {content.thumbnail_url && (
+                    <img
+                      src={content.thumbnail_url}
+                      alt=""
+                      className="w-24 h-16 object-cover rounded flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body font-medium line-clamp-2 mb-1">
+                      {content.title || 'Untitled Content'}
+                    </p>
+                    <div className="flex items-center gap-2 text-small text-text-secondary">
+                      <span className={content.platform === 'youtube' ? 'text-red-500' : 'text-pink-500'}>
+                        {content.platform === 'youtube' ? '▶️' : '📷'}
+                      </span>
+                      <span className="capitalize">{content.platform}</span>
+                      {content.published_at && (
+                        <>
+                          <span>•</span>
+                          <span>{new Date(content.published_at).toLocaleDateString()}</span>
+                        </>
+                      )}
+                    </div>
+                    {content.extraction_status === 'completed' && content.transcript && (
+                      <p className="text-small text-text-secondary mt-1 line-clamp-2">
+                        {content.transcript.substring(0, 150)}...
+                      </p>
+                    )}
+                    {content.extraction_status === 'pending' && (
+                      <p className="text-small text-accent mt-1">
+                        ⏳ Transcript extraction pending
+                      </p>
+                    )}
+                  </div>
+                  {selectedContent?.id === content.id && (
+                    <span className="text-accent text-xl flex-shrink-0">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Carousel Background Option - only show for non-repurpose modes */}
+      {inputType !== 'repurpose' && (
       <div className="mt-6 p-4 bg-bg-secondary rounded-lg border border-border">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
@@ -382,6 +516,7 @@ export function FirstGeneration({
           </p>
         )}
       </div>
+      )}
 
       {/* Upload Error */}
       {uploadError && (
@@ -393,6 +528,9 @@ export function FirstGeneration({
       {/* Helper Text */}
       <p className="text-small text-text-secondary mt-2 mb-6">
         {inputType === 'text' && 'Press ⌘+Enter to generate'}
+        {inputType === 'repurpose' && selectedContent && (
+          <>Selected: {selectedContent.title || 'Content'}</>
+        )}
       </p>
 
       {/* Generate Button */}
@@ -409,8 +547,10 @@ export function FirstGeneration({
         ) : generating ? (
           <span className="flex items-center justify-center gap-2">
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Generating...
+            {inputType === 'repurpose' ? 'Repurposing...' : 'Generating...'}
           </span>
+        ) : inputType === 'repurpose' ? (
+          'Repurpose Content'
         ) : (
           'Generate Content'
         )}
