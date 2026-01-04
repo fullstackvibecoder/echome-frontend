@@ -579,10 +579,30 @@ export default function FollowingPage() {
                           </div>
 
                           {/* AI Summary */}
-                          {content.summary && (
+                          {content.summary ? (
                             <p className="mt-2 text-small text-text-primary bg-accent/5 p-2 rounded border-l-2 border-accent">
                               💡 {content.summary}
                             </p>
+                          ) : (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const response = await api.creators.generateSummary(content.id);
+                                  if (response.success && selectedCreator) {
+                                    const refreshed = await api.creators.getContent(selectedCreator.id);
+                                    if (refreshed.success) {
+                                      setCreatorContent(refreshed.content);
+                                    }
+                                  }
+                                } catch (err) {
+                                  console.error('Failed to generate summary:', err);
+                                }
+                              }}
+                              className="mt-2 text-small text-purple-500 hover:text-purple-600 flex items-center gap-1"
+                            >
+                              <span>💡</span> Generate AI Summary
+                            </button>
                           )}
 
                           {/* Status badges and Repurpose button */}
