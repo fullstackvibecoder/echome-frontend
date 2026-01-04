@@ -15,8 +15,8 @@
   --secondary-foreground: #1c1c1e; /* Graphite Black */
   --muted: oklch(0.95 0 0);
   --muted-foreground: #9b8baf; /* Slate Lavender */
-  --accent: oklch(0.95 0 0);
-  --accent-foreground: #1c1c1e; /* Graphite Black */
+  --accent: #00D4FF; /* Electric Cyan - Brand Primary */
+  --accent-foreground: #ffffff; /* White text on accent */
   --destructive: oklch(0.577 0.245 27.325);
   --border: #e5e5e5;
   --input: #ffffff;
@@ -57,8 +57,8 @@
   --secondary-foreground: #f3f1ec; /* Soft Ivory */
   --muted: oklch(0.269 0 0);
   --muted-foreground: #d5d2cc; /* Concrete Gray */
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: #f3f1ec; /* Soft Ivory */
+  --accent: #00D4FF; /* Electric Cyan - Brand Primary */
+  --accent-foreground: #ffffff; /* White text on accent */
   --destructive: oklch(0.704 0.191 22.216);
   --border: #d5d2cc; /* Concrete Gray */
   --input: #b4a398; /* Clay Taupe */
