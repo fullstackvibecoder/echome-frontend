@@ -315,7 +315,7 @@ export const api = {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60000, // 60 seconds for transcription
       });
-      return response.data as { success: boolean; text: string };
+      return response.data as { success: boolean; text: string; duration?: number };
     },
 
     /** Transcribe and ingest voice content into KB */
