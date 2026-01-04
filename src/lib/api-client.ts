@@ -396,7 +396,7 @@ export const api = {
 
     /** Start a social media import job */
     startSocialImport: async (data: {
-      platform: 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'facebook';
+      platform: 'youtube' | 'instagram';
       url: string;
       knowledgeBaseId?: string;
     }) => {
