@@ -3,11 +3,11 @@
 /**
  * Social Import Modal Component
  *
- * Modal for importing content from social media platforms via Apify.
- * Supports YouTube, Instagram, LinkedIn, TikTok, and Facebook.
+ * Modal for importing content from social media platforms.
+ * Supports YouTube (via yt-dlp) and Instagram (via Apify).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '@/lib/api-client';
 
 interface SocialImportModalProps {
@@ -21,7 +21,7 @@ interface SocialImportModalProps {
   knowledgeBaseId?: string;
 }
 
-type Platform = 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'facebook';
+type Platform = 'youtube' | 'instagram';
 type ImportStatus = 'idle' | 'importing' | 'polling' | 'success' | 'error';
 
 const PLATFORM_CONFIG: Record<Platform, {
@@ -44,27 +44,6 @@ const PLATFORM_CONFIG: Record<Platform, {
     placeholder: 'https://instagram.com/username or post URL',
     hint: 'Import captions from posts and reels',
     color: 'bg-gradient-to-br from-purple-500 to-pink-500',
-  },
-  linkedin: {
-    name: 'LinkedIn',
-    icon: '💼',
-    placeholder: 'https://linkedin.com/in/username',
-    hint: 'Import posts from your LinkedIn profile',
-    color: 'bg-blue-600',
-  },
-  tiktok: {
-    name: 'TikTok',
-    icon: '🎵',
-    placeholder: 'https://tiktok.com/@username/video/...',
-    hint: 'Import video transcripts from TikTok',
-    color: 'bg-black',
-  },
-  facebook: {
-    name: 'Facebook',
-    icon: '📘',
-    placeholder: 'https://facebook.com/page or post URL',
-    hint: 'Import posts from Facebook pages',
-    color: 'bg-blue-500',
   },
 };
 
@@ -197,7 +176,7 @@ export function SocialImportModal({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Select Platform
                 </label>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {(Object.keys(PLATFORM_CONFIG) as Platform[]).map((platform) => (
                     <button
                       key={platform}
