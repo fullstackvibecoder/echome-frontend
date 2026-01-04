@@ -1,9 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
+import { Platform, BackgroundConfig, PresetBackground, GeneratedContent } from '@/types';
 
-type Platform = 'youtube' | 'instagram';
+type CreatorPlatform = 'youtube' | 'instagram';
+
+// All available content platforms
+const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
+  { id: 'instagram', label: 'Instagram', icon: '📷' },
+  { id: 'linkedin', label: 'LinkedIn', icon: '💼' },
+  { id: 'blog', label: 'Blog', icon: '📝' },
+  { id: 'email', label: 'Email', icon: '📧' },
+  { id: 'tiktok', label: 'TikTok', icon: '🎵' },
+  { id: 'video-script', label: 'Video Script', icon: '🎬' },
+];
+
+// Carousel background options
+type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
+const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] = [
+  { value: 'dark-minimal', label: 'Dark Minimal' },
+  { value: 'ocean-blue', label: 'Ocean Blue' },
+  { value: 'sunset-warm', label: 'Sunset Warm' },
+  { value: 'purple-glow', label: 'Purple Glow' },
+  { value: 'forest-green', label: 'Forest Green' },
+  { value: 'midnight', label: 'Midnight' },
+  { value: 'rose-gold', label: 'Rose Gold' },
+  { value: 'neon-cyber', label: 'Neon Cyber' },
+  { value: 'earth-tones', label: 'Earth Tones' },
+  { value: 'ai', label: 'AI Generated' },
+  { value: 'upload', label: 'Upload Custom' },
+];
 
 export default function FollowingPage() {
   const [creators, setCreators] = useState<MonitoredCreator[]>([]);
@@ -13,7 +40,7 @@ export default function FollowingPage() {
   // Add creator modal state
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCreatorUrl, setNewCreatorUrl] = useState('');
-  const [newCreatorPlatform, setNewCreatorPlatform] = useState<Platform>('youtube');
+  const [newCreatorPlatform, setNewCreatorPlatform] = useState<CreatorPlatform>('youtube');
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
@@ -24,6 +51,17 @@ export default function FollowingPage() {
 
   // Polling state
   const [polling, setPolling] = useState<string | null>(null);
+
+  // Repurpose modal state
+  const [showRepurposeModal, setShowRepurposeModal] = useState(false);
+  const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentHistoryEntry | null>(null);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
+  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('dark-minimal');
+  const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
+  const carouselBgInputRef = useRef<HTMLInputElement>(null);
+  const [repurposing, setRepurposing] = useState(false);
+  const [repurposeError, setRepurposeError] = useState<string | null>(null);
+  const [repurposeResults, setRepurposeResults] = useState<GeneratedContent[] | null>(null);
 
   useEffect(() => {
     loadCreators();
@@ -189,6 +227,108 @@ export default function FollowingPage() {
     if (diffHours < 24) return `${diffHours}h ago`;
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays}d ago`;
+  };
+
+  // Repurpose handlers
+  const openRepurposeModal = (content: ContentHistoryEntry) => {
+    setSelectedVideoForRepurpose(content);
+    setShowRepurposeModal(true);
+    setRepurposeError(null);
+    setRepurposeResults(null);
+    setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
+    setCarouselBgOption('dark-minimal');
+    setCarouselBgFile(null);
+  };
+
+  const closeRepurposeModal = () => {
+    setShowRepurposeModal(false);
+    setSelectedVideoForRepurpose(null);
+    setRepurposeError(null);
+    setRepurposeResults(null);
+  };
+
+  const togglePlatform = (platform: Platform) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platform)
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
+  const handleCarouselBgChange = (value: CarouselBackgroundOption) => {
+    setCarouselBgOption(value);
+    if (value !== 'upload') {
+      setCarouselBgFile(null);
+      if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+    }
+  };
+
+  const handleCarouselBgFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCarouselBgFile(file);
+    }
+  };
+
+  const buildBackgroundConfig = (): BackgroundConfig => {
+    if (carouselBgOption === 'ai') {
+      return { type: 'ai' };
+    }
+    if (carouselBgOption === 'upload') {
+      return { type: 'image' };
+    }
+    return { type: 'preset', presetId: carouselBgOption as PresetBackground };
+  };
+
+  const handleRepurpose = async () => {
+    if (!selectedVideoForRepurpose || selectedPlatforms.length === 0) return;
+
+    // Validate carousel background file if upload selected
+    if (selectedPlatforms.includes('instagram') && carouselBgOption === 'upload' && !carouselBgFile) {
+      setRepurposeError('Please select a background image for the carousel');
+      return;
+    }
+
+    try {
+      setRepurposing(true);
+      setRepurposeError(null);
+
+      const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
+        platforms: selectedPlatforms as string[],
+      });
+
+      if (response.success && response.result.generatedContent) {
+        // Transform results to GeneratedContent format
+        const results: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
+          id: `${selectedVideoForRepurpose.id}-${r.platform}-${idx}`,
+          requestId: selectedVideoForRepurpose.id,
+          platform: r.platform as Platform,
+          content: r.content,
+          voiceScore: 0,
+          qualityScore: 0,
+          createdAt: new Date(),
+        }));
+        setRepurposeResults(results);
+      } else {
+        throw new Error(response.result.error || 'Repurposing failed');
+      }
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
+      const errorMessage = axiosError.response?.data?.error
+        || (err instanceof Error ? err.message : 'Repurposing failed');
+      setRepurposeError(errorMessage);
+    } finally {
+      setRepurposing(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // Could add a toast notification here
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   return (
@@ -377,7 +517,7 @@ export default function FollowingPage() {
                     {creatorContent.map((content) => (
                       <div
                         key={content.id}
-                        className="flex items-start gap-4 p-4 bg-bg-secondary rounded-lg"
+                        className="flex items-start gap-4 p-4 bg-bg-secondary rounded-lg hover:bg-bg-secondary/80 transition-colors"
                       >
                         {content.thumbnail_url && (
                           <img
@@ -410,33 +550,43 @@ export default function FollowingPage() {
                             )}
                           </div>
 
-                          {/* Status badges */}
-                          <div className="flex items-center gap-2 mt-3">
-                            <span className={`
-                              px-2 py-1 rounded text-xs
-                              ${content.extraction_status === 'completed'
-                                ? 'bg-success/10 text-success'
-                                : content.extraction_status === 'failed'
-                                ? 'bg-error/10 text-error'
-                                : 'bg-accent/10 text-accent'}
-                            `}>
-                              {content.extraction_status === 'completed' ? '✓ Extracted' :
-                               content.extraction_status === 'failed' ? '✗ Failed' :
-                               '⏳ Pending'}
-                            </span>
+                          {/* Status badges and Repurpose button */}
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`
+                                px-2 py-1 rounded text-xs
+                                ${content.extraction_status === 'completed'
+                                  ? 'bg-success/10 text-success'
+                                  : content.extraction_status === 'failed'
+                                  ? 'bg-error/10 text-error'
+                                  : 'bg-accent/10 text-accent'}
+                              `}>
+                                {content.extraction_status === 'completed' ? '✓ Extracted' :
+                                 content.extraction_status === 'failed' ? '✗ Failed' :
+                                 '⏳ Pending'}
+                              </span>
 
-                            <span className={`
-                              px-2 py-1 rounded text-xs
-                              ${content.repurpose_status === 'completed'
-                                ? 'bg-success/10 text-success'
-                                : content.repurpose_status === 'skipped'
-                                ? 'bg-text-secondary/10 text-text-secondary'
-                                : 'bg-accent/10 text-accent'}
-                            `}>
-                              {content.repurpose_status === 'completed' ? '✓ Repurposed' :
-                               content.repurpose_status === 'skipped' ? 'Skipped' :
-                               '📝 Ready'}
-                            </span>
+                              <span className={`
+                                px-2 py-1 rounded text-xs
+                                ${content.repurpose_status === 'completed'
+                                  ? 'bg-success/10 text-success'
+                                  : content.repurpose_status === 'skipped'
+                                  ? 'bg-text-secondary/10 text-text-secondary'
+                                  : 'bg-accent/10 text-accent'}
+                              `}>
+                                {content.repurpose_status === 'completed' ? '✓ Repurposed' :
+                                 content.repurpose_status === 'skipped' ? 'Skipped' :
+                                 '📝 Ready'}
+                              </span>
+                            </div>
+
+                            {/* Repurpose Button */}
+                            <button
+                              onClick={() => openRepurposeModal(content)}
+                              className="px-3 py-1.5 bg-accent text-white text-small rounded-lg hover:bg-accent/90 transition-colors flex items-center gap-1.5"
+                            >
+                              ✨ Repurpose
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -560,6 +710,271 @@ export default function FollowingPage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Repurpose Modal */}
+      {showRepurposeModal && selectedVideoForRepurpose && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={(e) => e.target === e.currentTarget && !repurposing && closeRepurposeModal()}
+        >
+          <div className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-bg-primary z-10">
+              <h2 className="text-xl font-semibold">
+                {repurposeResults ? 'Generated Content' : 'Repurpose Content'}
+              </h2>
+              <button
+                onClick={closeRepurposeModal}
+                disabled={repurposing}
+                className="p-2 hover:bg-bg-secondary rounded-lg transition-colors disabled:opacity-50"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Results View */}
+            {repurposeResults ? (
+              <div className="p-6 space-y-6">
+                {/* Success Header */}
+                <div className="text-center">
+                  <div className="text-5xl mb-3">✨</div>
+                  <h3 className="text-lg font-semibold mb-1">Content Generated!</h3>
+                  <p className="text-small text-text-secondary">
+                    Generated for {repurposeResults.length} platform{repurposeResults.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+
+                {/* Results */}
+                <div className="space-y-4">
+                  {repurposeResults.map((result) => (
+                    <div key={result.id} className="bg-bg-secondary rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between p-3 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">
+                            {result.platform === 'instagram' ? '📷' :
+                             result.platform === 'linkedin' ? '💼' :
+                             result.platform === 'blog' ? '📝' :
+                             result.platform === 'email' ? '📧' :
+                             result.platform === 'tiktok' ? '🎵' :
+                             result.platform === 'video-script' ? '🎬' : '📄'}
+                          </span>
+                          <span className="font-medium capitalize">{result.platform}</span>
+                        </div>
+                        <button
+                          onClick={() => copyToClipboard(result.content)}
+                          className="px-3 py-1 text-small bg-accent/10 text-accent rounded hover:bg-accent/20 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <div className="p-4 max-h-48 overflow-y-auto">
+                        <pre className="whitespace-pre-wrap text-small font-sans">
+                          {result.content}
+                        </pre>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={closeRepurposeModal}
+                    className="flex-1 btn-secondary py-3"
+                  >
+                    Done
+                  </button>
+                  <button
+                    onClick={() => {
+                      setRepurposeResults(null);
+                      setRepurposeError(null);
+                    }}
+                    className="flex-1 btn-primary py-3"
+                  >
+                    Generate Again
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Configuration View */
+              <div className="p-6 space-y-6">
+                {/* Source Video Info */}
+                <div className="flex items-start gap-4 p-4 bg-bg-secondary rounded-lg">
+                  {selectedVideoForRepurpose.thumbnail_url && (
+                    <img
+                      src={selectedVideoForRepurpose.thumbnail_url}
+                      alt=""
+                      className="w-32 h-20 object-cover rounded flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium line-clamp-2 mb-1">
+                      {selectedVideoForRepurpose.title || 'Untitled Video'}
+                    </p>
+                    <p className="text-small text-text-secondary line-clamp-2">
+                      {selectedVideoForRepurpose.description || 'No description'}
+                    </p>
+                    {selectedVideoForRepurpose.extraction_status !== 'completed' && (
+                      <p className="text-small text-accent mt-2">
+                        ⚠️ Transcript not yet extracted - content may be limited
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Platform Selection */}
+                <div>
+                  <label className="block text-body font-medium mb-3">
+                    Select Platforms
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {ALL_PLATFORMS.map((platform) => (
+                      <button
+                        key={platform.id}
+                        onClick={() => togglePlatform(platform.id)}
+                        disabled={repurposing}
+                        className={`
+                          p-3 rounded-lg border-2 transition-all flex items-center gap-2
+                          ${selectedPlatforms.includes(platform.id)
+                            ? 'border-accent bg-accent/10'
+                            : 'border-border hover:border-accent/50'}
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        `}
+                      >
+                        <span className="text-xl">{platform.icon}</span>
+                        <span className="text-small font-medium">{platform.label}</span>
+                        {selectedPlatforms.includes(platform.id) && (
+                          <span className="ml-auto text-accent">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedPlatforms.length === 0 && (
+                    <p className="text-small text-error mt-2">
+                      Select at least one platform
+                    </p>
+                  )}
+                </div>
+
+                {/* Carousel Background (only if Instagram selected) */}
+                {selectedPlatforms.includes('instagram') && (
+                  <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+                    <div className="flex items-center justify-between gap-4 mb-3">
+                      <div>
+                        <label className="text-body font-medium block">
+                          Carousel Background
+                        </label>
+                        <p className="text-small text-text-secondary">
+                          Style for your Instagram carousel
+                        </p>
+                      </div>
+                      <select
+                        value={carouselBgOption}
+                        onChange={(e) => handleCarouselBgChange(e.target.value as CarouselBackgroundOption)}
+                        disabled={repurposing}
+                        className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
+                      >
+                        {BACKGROUND_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Upload field if upload selected */}
+                    {carouselBgOption === 'upload' && (
+                      <div className="pt-3 border-t border-border">
+                        <input
+                          type="file"
+                          ref={carouselBgInputRef}
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleCarouselBgFileSelect}
+                          className="hidden"
+                        />
+                        {!carouselBgFile ? (
+                          <button
+                            onClick={() => carouselBgInputRef.current?.click()}
+                            disabled={repurposing}
+                            className="w-full py-3 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
+                          >
+                            Click to upload background image
+                          </button>
+                        ) : (
+                          <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">🖼️</span>
+                              <div>
+                                <p className="text-body font-medium">{carouselBgFile.name}</p>
+                                <p className="text-small text-text-secondary">
+                                  {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setCarouselBgFile(null);
+                                if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+                              }}
+                              disabled={repurposing}
+                              className="text-small text-error hover:underline disabled:opacity-50"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {carouselBgOption === 'ai' && (
+                      <p className="text-small text-accent">
+                        ✨ AI will generate a background based on the content
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Error */}
+                {repurposeError && (
+                  <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-small">
+                    {repurposeError}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={closeRepurposeModal}
+                    disabled={repurposing}
+                    className="flex-1 btn-secondary py-3 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRepurpose}
+                    disabled={repurposing || selectedPlatforms.length === 0}
+                    className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {repurposing ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Generating...
+                      </span>
+                    ) : (
+                      `Generate for ${selectedPlatforms.length} Platform${selectedPlatforms.length !== 1 ? 's' : ''}`
+                    )}
+                  </button>
+                </div>
+
+                {/* Info */}
+                <p className="text-small text-center text-text-secondary">
+                  ✨ This usually takes 30-60 seconds
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
