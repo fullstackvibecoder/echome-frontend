@@ -148,6 +148,24 @@ export const api = {
       );
       return response.data;
     },
+
+    /** Generate content from a video URL (YouTube/Instagram) */
+    generateFromUrl: async (
+      url: string,
+      platforms: string[],
+      carouselBackground?: { type: string; preset?: string }
+    ) => {
+      const response = await apiClient.post<ApiResponse<GenerationRequest>>(
+        '/generate/from-url',
+        {
+          url,
+          platforms,
+          carousel_background: carouselBackground,
+        },
+        { timeout: 180000 } // 3 min timeout for transcript extraction + generation
+      );
+      return response.data;
+    },
   },
 
   // -------- KNOWLEDGE BASE --------

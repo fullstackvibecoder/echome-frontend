@@ -45,8 +45,8 @@ const ALL_PLATFORMS: Platform[] = [
   'video-script',
 ];
 
-// Extended input type to include repurpose
-type ExtendedInputType = InputType | 'repurpose';
+// Extended input type to include repurpose and url
+type ExtendedInputType = InputType | 'repurpose' | 'url';
 
 export function FirstGeneration({
   onGenerate,
@@ -70,6 +70,11 @@ export function FirstGeneration({
   const [pendingContent, setPendingContent] = useState<ContentHistoryEntry[]>([]);
   const [selectedContent, setSelectedContent] = useState<ContentHistoryEntry | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
+
+  // URL state
+  const [videoUrl, setVideoUrl] = useState('');
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [processingUrl, setProcessingUrl] = useState(false);
 
   // Load pending content when repurpose mode is selected
   useEffect(() => {
@@ -145,6 +150,36 @@ export function FirstGeneration({
       return;
     }
 
+    // For URL input - process the video URL directly
+    if (inputType === 'url') {
+      const url = videoUrl.trim();
+      if (!url || !isValidUrl(url)) {
+        setUrlError('Please enter a valid YouTube or Instagram URL');
+        return;
+      }
+
+      try {
+        setProcessingUrl(true);
+        setUrlError(null);
+
+        // Call the new URL-based generation endpoint
+        const response = await api.generation.generateFromUrl(url, ALL_PLATFORMS, bgConfig);
+
+        if (response.success) {
+          // The parent component will handle the results
+          // For now we just notify success - results come through the normal flow
+          setVideoUrl('');
+        } else {
+          throw new Error(response.error || 'Failed to process video');
+        }
+      } catch (err) {
+        setUrlError(err instanceof Error ? err.message : 'Failed to process video URL');
+      } finally {
+        setProcessingUrl(false);
+      }
+      return;
+    }
+
     // For text input
     if (inputType === 'text') {
       if (!input.trim()) return;
@@ -191,8 +226,16 @@ export function FirstGeneration({
     if (videoInputRef.current) videoInputRef.current.value = '';
   };
 
+  const isValidUrl = (url: string) => {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)/;
+    const instagramRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//;
+    return youtubeRegex.test(url) || instagramRegex.test(url);
+  };
+
   const isReady = inputType === 'text'
     ? input.trim().length > 0
+    : inputType === 'url'
+    ? videoUrl.trim().length > 0 && isValidUrl(videoUrl.trim())
     : inputType === 'repurpose'
     ? selectedContent !== null
     : selectedFile !== null;
@@ -247,6 +290,19 @@ export function FirstGeneration({
           `}
         >
           🎥 Video
+        </button>
+        <button
+          onClick={() => { setInputType('url'); clearFile(); setVideoUrl(''); setUrlError(null); }}
+          className={`
+            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
+            ${
+              inputType === 'url'
+                ? 'bg-accent text-white'
+                : 'text-text-secondary hover:text-text-primary'
+            }
+          `}
+        >
+          🔗 URL
         </button>
         <button
           onClick={() => { setInputType('repurpose'); clearFile(); }}
@@ -362,6 +418,38 @@ export function FirstGeneration({
               </button>
             </>
           )}
+        </div>
+      )}
+
+      {inputType === 'url' && (
+        <div className="border-2 border-border rounded-lg p-6">
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-3">🔗</div>
+            <p className="text-body text-text-secondary">
+              Paste a YouTube or Instagram video URL
+            </p>
+          </div>
+          <div className="space-y-4">
+            <input
+              type="url"
+              value={videoUrl}
+              onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
+              placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..."
+              className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors text-body bg-background text-foreground"
+              disabled={generating || processingUrl}
+            />
+            {urlError && (
+              <p className="text-small text-error">{urlError}</p>
+            )}
+            <div className="flex items-center gap-4 text-small text-text-secondary">
+              <span className="flex items-center gap-1">
+                <span className="text-red-500">▶️</span> YouTube
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="text-pink-500">📷</span> Instagram Reels
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -536,13 +624,18 @@ export function FirstGeneration({
       {/* Generate Button */}
       <button
         onClick={handleGenerate}
-        disabled={generating || uploading || !isReady}
+        disabled={generating || uploading || processingUrl || !isReady}
         className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {uploading ? (
           <span className="flex items-center justify-center gap-2">
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             Uploading...
+          </span>
+        ) : processingUrl ? (
+          <span className="flex items-center justify-center gap-2">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            Extracting & Generating...
           </span>
         ) : generating ? (
           <span className="flex items-center justify-center gap-2">
@@ -551,6 +644,8 @@ export function FirstGeneration({
           </span>
         ) : inputType === 'repurpose' ? (
           'Repurpose Content'
+        ) : inputType === 'url' ? (
+          'Generate from Video'
         ) : (
           'Generate Content'
         )}
