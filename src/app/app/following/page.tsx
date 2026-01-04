@@ -32,10 +32,21 @@ const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] =
   { value: 'upload', label: 'Upload Custom' },
 ];
 
+// Extended content with creator info
+interface ContentWithCreator extends ContentHistoryEntry {
+  creator?: MonitoredCreator;
+}
+
 export default function FollowingPage() {
   const [creators, setCreators] = useState<MonitoredCreator[]>([]);
+  const [allContent, setAllContent] = useState<ContentWithCreator[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingContent, setLoadingContent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Filter state
+  const [filterCreatorId, setFilterCreatorId] = useState<string | null>(null);
+  const [showCreatorPanel, setShowCreatorPanel] = useState(false);
 
   // Add creator modal state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -44,17 +55,13 @@ export default function FollowingPage() {
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
-  // Content preview state
-  const [selectedCreator, setSelectedCreator] = useState<MonitoredCreator | null>(null);
-  const [creatorContent, setCreatorContent] = useState<ContentHistoryEntry[]>([]);
-  const [loadingContent, setLoadingContent] = useState(false);
-
   // Polling state
   const [polling, setPolling] = useState<string | null>(null);
+  const [pollingAll, setPollingAll] = useState(false);
 
   // Repurpose modal state
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
-  const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentHistoryEntry | null>(null);
+  const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
   const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('dark-minimal');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
@@ -65,22 +72,52 @@ export default function FollowingPage() {
   const [extracting, setExtracting] = useState(false);
 
   useEffect(() => {
-    loadCreators();
+    loadData();
   }, []);
 
-  const loadCreators = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.creators.list();
-      if (response.success) {
-        setCreators(response.creators);
+
+      // Load creators
+      const creatorsResponse = await api.creators.list();
+      if (creatorsResponse.success) {
+        setCreators(creatorsResponse.creators);
+
+        // Load all content from all creators
+        await loadAllContent(creatorsResponse.creators);
       }
     } catch (err) {
-      setError('Failed to load followed creators');
+      setError('Failed to load data');
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAllContent = async (creatorsList: MonitoredCreator[]) => {
+    try {
+      setLoadingContent(true);
+      const contentPromises = creatorsList.map(async (creator) => {
+        const response = await api.creators.getContent(creator.id, 10);
+        if (response.success) {
+          return response.content.map((c: ContentHistoryEntry) => ({ ...c, creator }));
+        }
+        return [];
+      });
+
+      const results = await Promise.all(contentPromises);
+      const flatContent = results.flat();
+
+      // Sort by created_at descending (newest first)
+      flatContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setAllContent(flatContent);
+    } catch (err) {
+      console.error('Failed to load content:', err);
+    } finally {
+      setLoadingContent(false);
     }
   };
 
@@ -96,16 +133,23 @@ export default function FollowingPage() {
       });
 
       if (response.success) {
-        setCreators([response.creator, ...creators]);
+        const newCreator = response.creator;
+        setCreators([newCreator, ...creators]);
         setShowAddModal(false);
         setNewCreatorUrl('');
+
+        // Load content for the new creator
+        const contentResponse = await api.creators.getContent(newCreator.id, 10);
+        if (contentResponse.success) {
+          const newContent = contentResponse.content.map((c: ContentHistoryEntry) => ({ ...c, creator: newCreator }));
+          setAllContent(prev => [...newContent, ...prev].sort((a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          ));
+        }
       }
     } catch (err: unknown) {
-      // Extract error message from Axios response
       const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
-      const errorMessage = axiosError.response?.data?.error
-        || axiosError.message
-        || 'Failed to follow creator';
+      const errorMessage = axiosError.response?.data?.error || axiosError.message || 'Failed to follow creator';
       setAddError(errorMessage);
     } finally {
       setAdding(false);
@@ -118,94 +162,48 @@ export default function FollowingPage() {
     try {
       await api.creators.unfollow(creatorId);
       setCreators(creators.filter(c => c.id !== creatorId));
-      if (selectedCreator?.id === creatorId) {
-        setSelectedCreator(null);
-        setCreatorContent([]);
+      setAllContent(allContent.filter(c => c.creator_id !== creatorId));
+      if (filterCreatorId === creatorId) {
+        setFilterCreatorId(null);
       }
     } catch (err) {
       console.error('Failed to unfollow:', err);
     }
   };
 
-  // Polling status message
-  const [pollStatus, setPollStatus] = useState<{ creatorId: string; message: string; type: 'success' | 'error' } | null>(null);
-
   const handlePoll = async (creatorId: string) => {
     try {
       setPolling(creatorId);
-      setPollStatus(null);
       const response = await api.creators.poll(creatorId);
-      if (response.success) {
-        // Always refresh creator to update last_checked_at
-        loadCreators();
-
-        if (response.newContentCount > 0) {
-          setPollStatus({
-            creatorId,
-            message: `Found ${response.newContentCount} new video${response.newContentCount > 1 ? 's' : ''}!`,
-            type: 'success'
-          });
-          // Refresh content if viewing this creator
-          if (selectedCreator?.id === creatorId) {
-            loadCreatorContent(creatorId);
-          }
-        } else {
-          setPollStatus({
-            creatorId,
-            message: 'No new content found',
-            type: 'success'
-          });
-        }
-
-        // Clear status after 3 seconds
-        setTimeout(() => setPollStatus(null), 3000);
+      if (response.success && response.newContentCount > 0) {
+        // Reload all content
+        await loadAllContent(creators);
       }
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
-      const errorMessage = axiosError.response?.data?.error || 'Failed to check for content';
-      setPollStatus({
-        creatorId,
-        message: errorMessage,
-        type: 'error'
-      });
+      // Update creator in list
+      const updatedCreators = await api.creators.list();
+      if (updatedCreators.success) {
+        setCreators(updatedCreators.creators);
+      }
+    } catch (err) {
       console.error('Failed to poll:', err);
     } finally {
       setPolling(null);
     }
   };
 
-  const handleToggleAutomation = async (creator: MonitoredCreator) => {
+  const handlePollAll = async () => {
     try {
-      const response = await api.creators.update(creator.id, {
-        automationEnabled: !creator.automation_enabled,
-      });
-      if (response.success) {
-        setCreators(creators.map(c =>
-          c.id === creator.id ? response.creator : c
-        ));
+      setPollingAll(true);
+      for (const creator of creators) {
+        await api.creators.poll(creator.id);
       }
+      // Reload all data
+      await loadData();
     } catch (err) {
-      console.error('Failed to update automation:', err);
-    }
-  };
-
-  const loadCreatorContent = async (creatorId: string) => {
-    try {
-      setLoadingContent(true);
-      const response = await api.creators.getContent(creatorId, 20);
-      if (response.success) {
-        setCreatorContent(response.content);
-      }
-    } catch (err) {
-      console.error('Failed to load content:', err);
+      console.error('Failed to poll all:', err);
     } finally {
-      setLoadingContent(false);
+      setPollingAll(false);
     }
-  };
-
-  const handleSelectCreator = (creator: MonitoredCreator) => {
-    setSelectedCreator(creator);
-    loadCreatorContent(creator.id);
   };
 
   const formatDate = (dateStr: string) => {
@@ -230,8 +228,13 @@ export default function FollowingPage() {
     return `${diffDays}d ago`;
   };
 
+  // Filtered content
+  const filteredContent = filterCreatorId
+    ? allContent.filter(c => c.creator_id === filterCreatorId)
+    : allContent;
+
   // Repurpose handlers
-  const openRepurposeModal = (content: ContentHistoryEntry) => {
+  const openRepurposeModal = (content: ContentWithCreator) => {
     setSelectedVideoForRepurpose(content);
     setShowRepurposeModal(true);
     setRepurposeError(null);
@@ -255,17 +258,13 @@ export default function FollowingPage() {
       setExtracting(true);
       await api.creators.extractTranscript(selectedVideoForRepurpose.id);
 
-      // Refresh the content to get updated status
-      if (selectedCreator) {
-        const response = await api.creators.getContent(selectedCreator.id);
-        if (response.success) {
-          setCreatorContent(response.content);
-          // Update the selected video with new data
-          const updated = response.content.find((c: ContentHistoryEntry) => c.id === selectedVideoForRepurpose.id);
-          if (updated) {
-            setSelectedVideoForRepurpose(updated);
-          }
-        }
+      // Refresh content
+      await loadAllContent(creators);
+
+      // Update selected video
+      const updated = allContent.find(c => c.id === selectedVideoForRepurpose.id);
+      if (updated) {
+        setSelectedVideoForRepurpose(updated);
       }
     } catch (err) {
       console.error('Failed to extract transcript:', err);
@@ -277,9 +276,7 @@ export default function FollowingPage() {
 
   const togglePlatform = (platform: Platform) => {
     setSelectedPlatforms(prev =>
-      prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
+      prev.includes(platform) ? prev.filter(p => p !== platform) : [...prev, platform]
     );
   };
 
@@ -291,27 +288,9 @@ export default function FollowingPage() {
     }
   };
 
-  const handleCarouselBgFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setCarouselBgFile(file);
-    }
-  };
-
-  const buildBackgroundConfig = (): BackgroundConfig => {
-    if (carouselBgOption === 'ai') {
-      return { type: 'ai' };
-    }
-    if (carouselBgOption === 'upload') {
-      return { type: 'image' };
-    }
-    return { type: 'preset', presetId: carouselBgOption as PresetBackground };
-  };
-
   const handleRepurpose = async () => {
     if (!selectedVideoForRepurpose || selectedPlatforms.length === 0) return;
 
-    // Validate carousel background file if upload selected
     if (selectedPlatforms.includes('instagram') && carouselBgOption === 'upload' && !carouselBgFile) {
       setRepurposeError('Please select a background image for the carousel');
       return;
@@ -326,7 +305,6 @@ export default function FollowingPage() {
       });
 
       if (response.success && response.result.generatedContent) {
-        // Transform results to GeneratedContent format
         const results: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
           id: `${selectedVideoForRepurpose.id}-${r.platform}-${idx}`,
           requestId: selectedVideoForRepurpose.id,
@@ -342,8 +320,7 @@ export default function FollowingPage() {
       }
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
-      const errorMessage = axiosError.response?.data?.error
-        || (err instanceof Error ? err.message : 'Repurposing failed');
+      const errorMessage = axiosError.response?.data?.error || (err instanceof Error ? err.message : 'Repurposing failed');
       setRepurposeError(errorMessage);
     } finally {
       setRepurposing(false);
@@ -353,29 +330,43 @@ export default function FollowingPage() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      // Could add a toast notification here
     } catch (err) {
       console.error('Failed to copy:', err);
     }
   };
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-7xl">
+    <div className="container mx-auto px-6 py-8 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-display text-3xl mb-2">Following</h1>
+          <h1 className="text-display text-3xl mb-1">Following</h1>
           <p className="text-body text-text-secondary">
-            Follow creators to repurpose their content in your voice
+            Content from creators you follow, ready to repurpose
           </p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn-primary px-6 py-3 flex items-center gap-2"
-        >
-          <span className="text-xl">+</span>
-          Follow Creator
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handlePollAll}
+            disabled={pollingAll || creators.length === 0}
+            className="btn-secondary px-4 py-2 flex items-center gap-2 disabled:opacity-50"
+          >
+            {pollingAll ? (
+              <>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>🔄 Check All</>
+            )}
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="btn-primary px-4 py-2 flex items-center gap-2"
+          >
+            <span>+</span> Follow Creator
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -393,272 +384,198 @@ export default function FollowingPage() {
           <div className="text-6xl mb-4">👥</div>
           <h2 className="text-display text-2xl mb-2">No creators followed yet</h2>
           <p className="text-body text-text-secondary mb-6">
-            Start following creators to see their content here and repurpose it in your voice
+            Follow creators to see their content and repurpose it in your voice
           </p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn-primary px-6 py-3"
-          >
+          <button onClick={() => setShowAddModal(true)} className="btn-primary px-6 py-3">
             Follow Your First Creator
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Creators List */}
-          <div className="lg:col-span-1 space-y-4">
-            <h3 className="text-subheading font-medium text-text-secondary mb-4">
-              Followed Creators ({creators.length})
-            </h3>
+        <>
+          {/* Creator Filter Chips */}
+          <div className="flex flex-wrap items-center gap-2 mb-6 pb-4 border-b border-border">
+            <button
+              onClick={() => setFilterCreatorId(null)}
+              className={`px-4 py-2 rounded-full text-small font-medium transition-all ${
+                filterCreatorId === null
+                  ? 'bg-accent text-white'
+                  : 'bg-bg-secondary hover:bg-bg-secondary/80'
+              }`}
+            >
+              All ({allContent.length})
+            </button>
+            {creators.map((creator) => {
+              const count = allContent.filter(c => c.creator_id === creator.id).length;
+              const newCount = allContent.filter(c => c.creator_id === creator.id && c.is_new_content).length;
+              return (
+                <button
+                  key={creator.id}
+                  onClick={() => setFilterCreatorId(filterCreatorId === creator.id ? null : creator.id)}
+                  className={`px-4 py-2 rounded-full text-small font-medium transition-all flex items-center gap-2 ${
+                    filterCreatorId === creator.id
+                      ? 'bg-accent text-white'
+                      : 'bg-bg-secondary hover:bg-bg-secondary/80'
+                  }`}
+                >
+                  {creator.creator_avatar_url ? (
+                    <img src={creator.creator_avatar_url} alt="" className="w-5 h-5 rounded-full" />
+                  ) : (
+                    <span>{creator.platform === 'youtube' ? '▶️' : '📷'}</span>
+                  )}
+                  <span className="truncate max-w-[120px]">
+                    {creator.creator_name || creator.creator_username || 'Creator'}
+                  </span>
+                  <span className="opacity-70">({count})</span>
+                  {newCount > 0 && (
+                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-xs">{newCount} new</span>
+                  )}
+                </button>
+              );
+            })}
 
-            {creators.map((creator) => (
-              <div
-                key={creator.id}
-                onClick={() => handleSelectCreator(creator)}
-                className={`
-                  card cursor-pointer transition-all hover:shadow-lg
-                  ${selectedCreator?.id === creator.id ? 'ring-2 ring-accent' : ''}
-                `}
-              >
-                <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0
-                    ${creator.platform === 'youtube' ? 'bg-red-100' : 'bg-pink-100'}
-                  `}>
-                    {creator.creator_avatar_url ? (
-                      <img
-                        src={creator.creator_avatar_url}
-                        alt=""
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      creator.platform === 'youtube' ? '▶️' : '📷'
-                    )}
-                  </div>
+            {/* Manage Creators Toggle */}
+            <button
+              onClick={() => setShowCreatorPanel(!showCreatorPanel)}
+              className="ml-auto px-3 py-2 text-small text-text-secondary hover:text-text-primary transition-colors"
+            >
+              {showCreatorPanel ? 'Hide' : 'Manage'} Creators
+            </button>
+          </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {creator.creator_name || creator.creator_username || 'Creator'}
-                    </p>
-                    <p className="text-small text-text-secondary capitalize">
-                      {creator.platform}
-                    </p>
-
-                    <div className="flex items-center gap-3 mt-2 text-small text-text-secondary">
-                      <span>{creator.new_content_count} new</span>
-                      <span>•</span>
-                      <span>Checked {formatTimeAgo(creator.last_checked_at)}</span>
+          {/* Creator Management Panel (collapsible) */}
+          {showCreatorPanel && (
+            <div className="mb-6 p-4 bg-bg-secondary rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {creators.map((creator) => (
+                  <div key={creator.id} className="flex items-center gap-3 p-3 bg-bg-primary rounded-lg">
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      {creator.creator_avatar_url ? (
+                        <img src={creator.creator_avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className={`w-full h-full flex items-center justify-center ${
+                          creator.platform === 'youtube' ? 'bg-red-100' : 'bg-pink-100'
+                        }`}>
+                          {creator.platform === 'youtube' ? '▶️' : '📷'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate text-small">
+                        {creator.creator_name || creator.creator_username}
+                      </p>
+                      <p className="text-xs text-text-secondary">
+                        Checked {formatTimeAgo(creator.last_checked_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handlePoll(creator.id)}
+                        disabled={polling === creator.id}
+                        className="p-2 hover:bg-bg-secondary rounded transition-colors disabled:opacity-50"
+                        title="Check for new content"
+                      >
+                        {polling === creator.id ? (
+                          <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          '🔄'
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleUnfollow(creator.id)}
+                        className="p-2 hover:bg-error/10 text-error rounded transition-colors"
+                        title="Unfollow"
+                      >
+                        ✕
+                      </button>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                  {/* Automation toggle */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleAutomation(creator);
-                    }}
-                    className={`
-                      p-2 rounded-lg transition-colors
-                      ${creator.automation_enabled
-                        ? 'text-success bg-success/10'
-                        : 'text-text-secondary bg-bg-secondary'}
-                    `}
-                    title={creator.automation_enabled ? 'Auto-monitoring ON' : 'Auto-monitoring OFF'}
-                  >
-                    {creator.automation_enabled ? '🔔' : '🔕'}
-                  </button>
-                </div>
-
-                {/* Poll Status Message */}
-                {pollStatus?.creatorId === creator.id && (
-                  <div className={`
-                    mt-3 p-2 rounded text-small text-center
-                    ${pollStatus.type === 'success' ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}
-                  `}>
-                    {pollStatus.message}
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePoll(creator.id);
-                    }}
-                    disabled={polling === creator.id}
-                    className="flex-1 btn-secondary py-2 text-small flex items-center justify-center gap-2"
-                  >
-                    {polling === creator.id ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Checking...
-                      </>
-                    ) : (
-                      <>🔄 Check Now</>
+          {/* Content Feed */}
+          {loadingContent ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : filteredContent.length === 0 ? (
+            <div className="card text-center py-12">
+              <p className="text-text-secondary">No content found. Try checking for new content.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredContent.map((content) => (
+                <div
+                  key={content.id}
+                  className="card hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex gap-4">
+                    {/* Thumbnail */}
+                    {content.thumbnail_url && (
+                      <img
+                        src={content.thumbnail_url}
+                        alt=""
+                        className="w-40 h-24 object-cover rounded-lg flex-shrink-0"
+                      />
                     )}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUnfollow(creator.id);
-                    }}
-                    className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors"
-                    title="Unfollow"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          {/* Content Preview */}
-          <div className="lg:col-span-2">
-            {selectedCreator ? (
-              <div className="card">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-subheading font-medium">
-                    Content from {selectedCreator.creator_name || selectedCreator.creator_username}
-                  </h3>
-                  <a
-                    href={selectedCreator.creator_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent text-small hover:underline"
-                  >
-                    View Channel →
-                  </a>
-                </div>
-
-                {loadingContent ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : creatorContent.length === 0 ? (
-                  <div className="text-center py-12 text-text-secondary">
-                    <p>No content found yet</p>
-                    <p className="text-small mt-2">Try checking for new content</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                    {creatorContent.map((content) => (
-                      <div
-                        key={content.id}
-                        className="flex items-start gap-4 p-4 bg-bg-secondary rounded-lg hover:bg-bg-secondary/80 transition-colors"
-                      >
-                        {content.thumbnail_url && (
-                          <img
-                            src={content.thumbnail_url}
-                            alt=""
-                            className="w-32 h-20 object-cover rounded flex-shrink-0"
-                          />
-                        )}
+                    <div className="flex-1 min-w-0">
+                      {/* Creator + Title Row */}
+                      <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-medium line-clamp-2">
-                              {content.title || 'Untitled'}
-                            </p>
+                          {/* Creator Badge */}
+                          <div className="flex items-center gap-2 mb-1">
+                            {content.creator?.creator_avatar_url ? (
+                              <img src={content.creator.creator_avatar_url} alt="" className="w-5 h-5 rounded-full" />
+                            ) : (
+                              <span className="text-sm">{content.platform === 'youtube' ? '▶️' : '📷'}</span>
+                            )}
+                            <span className="text-small text-text-secondary">
+                              {content.creator?.creator_name || content.creator?.creator_username || 'Creator'}
+                            </span>
                             {content.is_new_content && (
-                              <span className="px-2 py-0.5 bg-accent text-white text-xs rounded flex-shrink-0">
-                                NEW
-                              </span>
+                              <span className="px-2 py-0.5 bg-accent text-white text-xs rounded">NEW</span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-3 mt-2 text-small text-text-secondary">
-                            {content.published_at && (
-                              <span>{formatDate(content.published_at)}</span>
-                            )}
-                            {content.view_count && (
-                              <>
-                                <span>•</span>
-                                <span>{content.view_count.toLocaleString()} views</span>
-                              </>
-                            )}
-                          </div>
-
-                          {/* AI Summary */}
-                          {content.summary ? (
-                            <p className="mt-2 text-small text-text-primary bg-accent/5 p-2 rounded border-l-2 border-accent">
-                              💡 {content.summary}
-                            </p>
-                          ) : (
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  const response = await api.creators.generateSummary(content.id);
-                                  if (response.success && selectedCreator) {
-                                    const refreshed = await api.creators.getContent(selectedCreator.id);
-                                    if (refreshed.success) {
-                                      setCreatorContent(refreshed.content);
-                                    }
-                                  }
-                                } catch (err) {
-                                  console.error('Failed to generate summary:', err);
-                                }
-                              }}
-                              className="mt-2 text-small text-purple-500 hover:text-purple-600 flex items-center gap-1"
-                            >
-                              <span>💡</span> Generate AI Summary
-                            </button>
-                          )}
-
-                          {/* Status badges and Repurpose button */}
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex items-center gap-2">
-                              <span className={`
-                                px-2 py-1 rounded text-xs
-                                ${content.extraction_status === 'completed'
-                                  ? 'bg-success/10 text-success'
-                                  : content.extraction_status === 'failed'
-                                  ? 'bg-error/10 text-error'
-                                  : 'bg-accent/10 text-accent'}
-                              `}>
-                                {content.extraction_status === 'completed' ? '✓ Extracted' :
-                                 content.extraction_status === 'failed' ? '✗ Failed' :
-                                 '⏳ Pending'}
-                              </span>
-
-                              <span className={`
-                                px-2 py-1 rounded text-xs
-                                ${content.repurpose_status === 'completed'
-                                  ? 'bg-success/10 text-success'
-                                  : content.repurpose_status === 'skipped'
-                                  ? 'bg-text-secondary/10 text-text-secondary'
-                                  : 'bg-accent/10 text-accent'}
-                              `}>
-                                {content.repurpose_status === 'completed' ? '✓ Repurposed' :
-                                 content.repurpose_status === 'skipped' ? 'Skipped' :
-                                 '📝 Ready'}
-                              </span>
-                            </div>
-
-                            {/* Repurpose Button */}
-                            <button
-                              onClick={() => openRepurposeModal(content)}
-                              className="px-3 py-1.5 bg-accent text-white text-small rounded-lg hover:bg-accent/90 transition-colors flex items-center gap-1.5"
-                            >
-                              ✨ Repurpose
-                            </button>
-                          </div>
+                          {/* Title */}
+                          <h3 className="font-medium line-clamp-1">{content.title || 'Untitled'}</h3>
                         </div>
+
+                        {/* Repurpose Button */}
+                        <button
+                          onClick={() => openRepurposeModal(content)}
+                          className="px-4 py-2 bg-accent text-white text-small rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0"
+                        >
+                          ✨ Repurpose
+                        </button>
                       </div>
-                    ))}
+
+                      {/* Meta */}
+                      <div className="flex items-center gap-3 text-small text-text-secondary mb-2">
+                        {content.published_at && <span>{formatDate(content.published_at)}</span>}
+                        {content.view_count && (
+                          <>
+                            <span>•</span>
+                            <span>{content.view_count.toLocaleString()} views</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* AI Summary */}
+                      {content.summary && (
+                        <div className="p-3 bg-gradient-to-r from-purple-500/5 to-blue-500/5 rounded-lg border-l-2 border-purple-500">
+                          <p className="text-small">💡 {content.summary}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="card text-center py-16">
-                <div className="text-5xl mb-4">👈</div>
-                <p className="text-body text-text-secondary">
-                  Select a creator to view their content
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Add Creator Modal */}
@@ -668,43 +585,31 @@ export default function FollowingPage() {
           onClick={(e) => e.target === e.currentTarget && setShowAddModal(false)}
         >
           <div className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-semibold">Follow a Creator</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="p-2 hover:bg-bg-secondary rounded-lg transition-colors"
-              >
+              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-bg-secondary rounded-lg">
                 ✕
               </button>
             </div>
 
-            {/* Content */}
             <div className="p-6 space-y-6">
-              {/* Platform Selection */}
               <div>
                 <label className="block text-body font-medium mb-3">Platform</label>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setNewCreatorPlatform('youtube')}
-                    className={`
-                      flex-1 p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2
-                      ${newCreatorPlatform === 'youtube'
-                        ? 'border-red-500 bg-red-50'
-                        : 'border-border hover:border-red-300'}
-                    `}
+                    className={`flex-1 p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                      newCreatorPlatform === 'youtube' ? 'border-red-500 bg-red-50' : 'border-border hover:border-red-300'
+                    }`}
                   >
                     <span className="text-3xl">▶️</span>
                     <span className="font-medium">YouTube</span>
                   </button>
                   <button
                     onClick={() => setNewCreatorPlatform('instagram')}
-                    className={`
-                      flex-1 p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2
-                      ${newCreatorPlatform === 'instagram'
-                        ? 'border-pink-500 bg-pink-50'
-                        : 'border-border hover:border-pink-300'}
-                    `}
+                    className={`flex-1 p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                      newCreatorPlatform === 'instagram' ? 'border-pink-500 bg-pink-50' : 'border-border hover:border-pink-300'
+                    }`}
                   >
                     <span className="text-3xl">📷</span>
                     <span className="font-medium">Instagram</span>
@@ -712,7 +617,6 @@ export default function FollowingPage() {
                 </div>
               </div>
 
-              {/* URL Input */}
               <div>
                 <label className="block text-body font-medium mb-2">
                   {newCreatorPlatform === 'youtube' ? 'YouTube Channel URL' : 'Instagram Profile URL'}
@@ -721,18 +625,9 @@ export default function FollowingPage() {
                   type="url"
                   value={newCreatorUrl}
                   onChange={(e) => setNewCreatorUrl(e.target.value)}
-                  placeholder={
-                    newCreatorPlatform === 'youtube'
-                      ? 'https://youtube.com/@username or channel URL'
-                      : 'https://instagram.com/username'
-                  }
+                  placeholder={newCreatorPlatform === 'youtube' ? 'https://youtube.com/@username' : 'https://instagram.com/username'}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-accent"
                 />
-                <p className="text-small text-text-secondary mt-2">
-                  {newCreatorPlatform === 'youtube'
-                    ? 'We\'ll monitor their channel for new videos via RSS'
-                    : 'We\'ll monitor their profile for new posts'}
-                </p>
               </div>
 
               {addError && (
@@ -742,18 +637,14 @@ export default function FollowingPage() {
               )}
             </div>
 
-            {/* Footer */}
             <div className="flex gap-3 p-6 border-t border-border">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="flex-1 btn-secondary py-3"
-              >
+              <button onClick={() => setShowAddModal(false)} className="flex-1 btn-secondary py-3">
                 Cancel
               </button>
               <button
                 onClick={handleAddCreator}
                 disabled={!newCreatorUrl.trim() || adding}
-                className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 btn-primary py-3 disabled:opacity-50"
               >
                 {adding ? (
                   <span className="flex items-center justify-center gap-2">
@@ -776,24 +667,17 @@ export default function FollowingPage() {
           onClick={(e) => e.target === e.currentTarget && !repurposing && !extracting && closeRepurposeModal()}
         >
           <div className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-bg-primary z-10">
               <h2 className="text-xl font-semibold">
                 {repurposeResults ? 'Generated Content' : 'Repurpose Content'}
               </h2>
-              <button
-                onClick={closeRepurposeModal}
-                disabled={repurposing}
-                className="p-2 hover:bg-bg-secondary rounded-lg transition-colors disabled:opacity-50"
-              >
+              <button onClick={closeRepurposeModal} disabled={repurposing} className="p-2 hover:bg-bg-secondary rounded-lg disabled:opacity-50">
                 ✕
               </button>
             </div>
 
-            {/* Results View */}
             {repurposeResults ? (
               <div className="p-6 space-y-6">
-                {/* Success Header */}
                 <div className="text-center">
                   <div className="text-5xl mb-3">✨</div>
                   <h3 className="text-lg font-semibold mb-1">Content Generated!</h3>
@@ -802,281 +686,130 @@ export default function FollowingPage() {
                   </p>
                 </div>
 
-                {/* Results */}
                 <div className="space-y-4">
                   {repurposeResults.map((result) => (
                     <div key={result.id} className="bg-bg-secondary rounded-lg overflow-hidden">
                       <div className="flex items-center justify-between p-3 border-b border-border">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">
-                            {result.platform === 'instagram' ? '📷' :
-                             result.platform === 'linkedin' ? '💼' :
-                             result.platform === 'blog' ? '📝' :
-                             result.platform === 'email' ? '📧' :
-                             result.platform === 'tiktok' ? '🎵' :
-                             result.platform === 'video-script' ? '🎬' : '📄'}
+                            {result.platform === 'instagram' ? '📷' : result.platform === 'linkedin' ? '💼' :
+                             result.platform === 'blog' ? '📝' : result.platform === 'email' ? '📧' :
+                             result.platform === 'tiktok' ? '🎵' : result.platform === 'video-script' ? '🎬' : '📄'}
                           </span>
                           <span className="font-medium capitalize">{result.platform}</span>
                         </div>
                         <button
                           onClick={() => copyToClipboard(result.content)}
-                          className="px-3 py-1 text-small bg-accent/10 text-accent rounded hover:bg-accent/20 transition-colors"
+                          className="px-3 py-1 text-small bg-accent/10 text-accent rounded hover:bg-accent/20"
                         >
                           Copy
                         </button>
                       </div>
                       <div className="p-4 max-h-48 overflow-y-auto">
-                        <pre className="whitespace-pre-wrap text-small font-sans">
-                          {result.content}
-                        </pre>
+                        <pre className="whitespace-pre-wrap text-small font-sans">{result.content}</pre>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3">
-                  <button
-                    onClick={closeRepurposeModal}
-                    className="flex-1 btn-secondary py-3"
-                  >
-                    Done
-                  </button>
-                  <button
-                    onClick={() => {
-                      setRepurposeResults(null);
-                      setRepurposeError(null);
-                    }}
-                    className="flex-1 btn-primary py-3"
-                  >
+                  <button onClick={closeRepurposeModal} className="flex-1 btn-secondary py-3">Done</button>
+                  <button onClick={() => { setRepurposeResults(null); setRepurposeError(null); }} className="flex-1 btn-primary py-3">
                     Generate Again
                   </button>
                 </div>
               </div>
             ) : (
-              /* Configuration View */
               <div className="p-6 space-y-6">
-                {/* Source Video Info */}
+                {/* Source Info */}
                 <div className="flex items-start gap-4 p-4 bg-bg-secondary rounded-lg">
                   {selectedVideoForRepurpose.thumbnail_url && (
-                    <img
-                      src={selectedVideoForRepurpose.thumbnail_url}
-                      alt=""
-                      className="w-32 h-20 object-cover rounded flex-shrink-0"
-                    />
+                    <img src={selectedVideoForRepurpose.thumbnail_url} alt="" className="w-32 h-20 object-cover rounded flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium line-clamp-2 mb-1">
-                      {selectedVideoForRepurpose.title || 'Untitled Video'}
-                    </p>
-                    <p className="text-small text-text-secondary line-clamp-2">
-                      {selectedVideoForRepurpose.description || 'No description'}
-                    </p>
+                    <p className="font-medium line-clamp-2 mb-1">{selectedVideoForRepurpose.title || 'Untitled'}</p>
+                    <p className="text-small text-text-secondary line-clamp-2">{selectedVideoForRepurpose.description || 'No description'}</p>
                     {selectedVideoForRepurpose.extraction_status === 'completed' ? (
-                      <p className="text-small text-green-500 mt-2">
-                        ✓ Transcript available
-                      </p>
+                      <p className="text-small text-green-500 mt-2">✓ Transcript available</p>
                     ) : selectedVideoForRepurpose.extraction_status === 'processing' || extracting ? (
-                      <p className="text-small text-blue-500 mt-2 flex items-center gap-2">
-                        <span className="animate-spin">⏳</span> Extracting transcript...
-                      </p>
+                      <p className="text-small text-blue-500 mt-2">⏳ Extracting transcript...</p>
                     ) : (
                       <div className="mt-2 flex items-center gap-3">
-                        <p className="text-small text-amber-500">
-                          ⚠️ Transcript not extracted
-                        </p>
-                        <button
-                          onClick={handleExtractTranscript}
-                          disabled={extracting || repurposing}
-                          className="text-small px-3 py-1 bg-accent text-white rounded hover:bg-accent/80 transition-colors disabled:opacity-50"
-                        >
-                          Extract Now
+                        <p className="text-small text-amber-500">⚠️ No transcript</p>
+                        <button onClick={handleExtractTranscript} disabled={extracting} className="text-small px-3 py-1 bg-accent text-white rounded disabled:opacity-50">
+                          Extract
                         </button>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* AI Summary Section */}
-                {selectedVideoForRepurpose.summary ? (
+                {/* AI Summary */}
+                {selectedVideoForRepurpose.summary && (
                   <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
-                    <div className="flex items-start gap-2">
-                      <span className="text-lg">💡</span>
-                      <div>
-                        <p className="font-medium text-small text-purple-600 dark:text-purple-400 mb-1">AI Summary</p>
-                        <p className="text-small">{selectedVideoForRepurpose.summary}</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 bg-bg-secondary rounded-lg border border-dashed border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg opacity-50">💡</span>
-                        <p className="text-small text-text-secondary">No summary yet</p>
-                      </div>
-                      <button
-                        onClick={async () => {
-                          try {
-                            setExtracting(true);
-                            const response = await api.creators.generateSummary(selectedVideoForRepurpose.id);
-                            if (response.success && response.content) {
-                              setSelectedVideoForRepurpose(response.content);
-                              // Also update the content list
-                              if (selectedCreator) {
-                                const refreshed = await api.creators.getContent(selectedCreator.id);
-                                if (refreshed.success) {
-                                  setCreatorContent(refreshed.content);
-                                }
-                              }
-                            }
-                          } catch (err) {
-                            console.error('Failed to generate summary:', err);
-                          } finally {
-                            setExtracting(false);
-                          }
-                        }}
-                        disabled={extracting || repurposing}
-                        className="text-small px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors disabled:opacity-50"
-                      >
-                        {extracting ? 'Generating...' : 'Generate Summary'}
-                      </button>
-                    </div>
+                    <p className="text-small">💡 {selectedVideoForRepurpose.summary}</p>
                   </div>
                 )}
 
                 {/* Platform Selection */}
                 <div>
-                  <label className="block text-body font-medium mb-3">
-                    Select Platforms
-                  </label>
+                  <label className="block text-body font-medium mb-3">Select Platforms</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {ALL_PLATFORMS.map((platform) => (
                       <button
                         key={platform.id}
                         onClick={() => togglePlatform(platform.id)}
                         disabled={repurposing}
-                        className={`
-                          p-3 rounded-lg border-2 transition-all flex items-center gap-2
-                          ${selectedPlatforms.includes(platform.id)
-                            ? 'border-accent bg-accent/10'
-                            : 'border-border hover:border-accent/50'}
-                          disabled:opacity-50 disabled:cursor-not-allowed
-                        `}
+                        className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
+                          selectedPlatforms.includes(platform.id) ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'
+                        } disabled:opacity-50`}
                       >
                         <span className="text-xl">{platform.icon}</span>
                         <span className="text-small font-medium">{platform.label}</span>
-                        {selectedPlatforms.includes(platform.id) && (
-                          <span className="ml-auto text-accent">✓</span>
-                        )}
+                        {selectedPlatforms.includes(platform.id) && <span className="ml-auto text-accent">✓</span>}
                       </button>
                     ))}
                   </div>
-                  {selectedPlatforms.length === 0 && (
-                    <p className="text-small text-error mt-2">
-                      Select at least one platform
-                    </p>
-                  )}
                 </div>
 
-                {/* Carousel Background (only if Instagram selected) */}
+                {/* Carousel Background */}
                 {selectedPlatforms.includes('instagram') && (
-                  <div className="p-4 bg-bg-secondary rounded-lg border border-border">
-                    <div className="flex items-center justify-between gap-4 mb-3">
+                  <div className="p-4 bg-bg-secondary rounded-lg">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <label className="text-body font-medium block">
-                          Carousel Background
-                        </label>
-                        <p className="text-small text-text-secondary">
-                          Style for your Instagram carousel
-                        </p>
+                        <label className="text-body font-medium">Carousel Background</label>
+                        <p className="text-small text-text-secondary">Style for Instagram carousel</p>
                       </div>
                       <select
                         value={carouselBgOption}
                         onChange={(e) => handleCarouselBgChange(e.target.value as CarouselBackgroundOption)}
-                        disabled={repurposing}
-                        className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
+                        className="px-4 py-2 border border-border rounded-lg bg-bg-primary"
                       >
                         {BACKGROUND_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
-
-                    {/* Upload field if upload selected */}
-                    {carouselBgOption === 'upload' && (
-                      <div className="pt-3 border-t border-border">
-                        <input
-                          type="file"
-                          ref={carouselBgInputRef}
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={handleCarouselBgFileSelect}
-                          className="hidden"
-                        />
-                        {!carouselBgFile ? (
-                          <button
-                            onClick={() => carouselBgInputRef.current?.click()}
-                            disabled={repurposing}
-                            className="w-full py-3 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
-                          >
-                            Click to upload background image
-                          </button>
-                        ) : (
-                          <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <span className="text-2xl">🖼️</span>
-                              <div>
-                                <p className="text-body font-medium">{carouselBgFile.name}</p>
-                                <p className="text-small text-text-secondary">
-                                  {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setCarouselBgFile(null);
-                                if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-                              }}
-                              disabled={repurposing}
-                              className="text-small text-error hover:underline disabled:opacity-50"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
                     {carouselBgOption === 'ai' && (
-                      <p className="text-small text-accent">
-                        ✨ AI will generate a background based on the content
-                      </p>
+                      <p className="text-small text-accent mt-2">✨ AI will generate a background</p>
                     )}
                   </div>
                 )}
 
-                {/* Error */}
                 {repurposeError && (
                   <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-small">
                     {repurposeError}
                   </div>
                 )}
 
-                {/* Actions */}
                 <div className="flex gap-3">
-                  <button
-                    onClick={closeRepurposeModal}
-                    disabled={repurposing}
-                    className="flex-1 btn-secondary py-3 disabled:opacity-50"
-                  >
+                  <button onClick={closeRepurposeModal} disabled={repurposing} className="flex-1 btn-secondary py-3 disabled:opacity-50">
                     Cancel
                   </button>
                   <button
                     onClick={handleRepurpose}
                     disabled={repurposing || selectedPlatforms.length === 0}
-                    className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 btn-primary py-3 disabled:opacity-50"
                   >
                     {repurposing ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1089,10 +822,7 @@ export default function FollowingPage() {
                   </button>
                 </div>
 
-                {/* Info */}
-                <p className="text-small text-center text-text-secondary">
-                  ✨ This usually takes 30-60 seconds
-                </p>
+                <p className="text-small text-center text-text-secondary">✨ Usually takes 30-60 seconds</p>
               </div>
             )}
           </div>
