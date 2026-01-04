@@ -550,6 +550,13 @@ export default function FollowingPage() {
                             )}
                           </div>
 
+                          {/* AI Summary */}
+                          {content.summary && (
+                            <p className="mt-2 text-small text-text-primary bg-accent/5 p-2 rounded border-l-2 border-accent">
+                              💡 {content.summary}
+                            </p>
+                          )}
+
                           {/* Status badges and Repurpose button */}
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center gap-2">

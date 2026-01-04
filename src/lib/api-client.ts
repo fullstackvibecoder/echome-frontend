@@ -772,6 +772,37 @@ export const api = {
         content: ContentHistoryEntry;
       };
     },
+
+    /** Generate AI summary for content */
+    generateSummary: async (contentId: string) => {
+      const response = await apiClient.post(`/creators/content/${contentId}/summary`);
+      return response.data as {
+        success: boolean;
+        summary: {
+          summary: string;
+          keyIdea: string;
+          potentialAngles: string[];
+        };
+      };
+    },
+
+    /** Get notification preferences */
+    getNotificationPreferences: async () => {
+      const response = await apiClient.get('/creators/notifications/preferences');
+      return response.data as {
+        success: boolean;
+        preferences: NotificationPreferences;
+      };
+    },
+
+    /** Update notification preferences */
+    updateNotificationPreferences: async (updates: Partial<NotificationPreferences>) => {
+      const response = await apiClient.put('/creators/notifications/preferences', updates);
+      return response.data as {
+        success: boolean;
+        preferences: NotificationPreferences;
+      };
+    },
   },
 };
 
@@ -806,6 +837,8 @@ export interface ContentHistoryEntry {
   title?: string;
   description?: string;
   transcript?: string;
+  summary?: string;
+  summary_generated_at?: string;
   thumbnail_url?: string;
   duration_seconds?: number;
   view_count?: number;
@@ -816,6 +849,23 @@ export interface ContentHistoryEntry {
   auto_repurpose: boolean;
   user_reviewed: boolean;
   created_at: string;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  user_id: string;
+  email_enabled: boolean;
+  email_frequency: 'immediate' | 'daily' | 'weekly' | 'off';
+  email_new_content: boolean;
+  email_repurpose_complete: boolean;
+  sms_enabled: boolean;
+  sms_phone?: string;
+  sms_new_content: boolean;
+  push_enabled: boolean;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  timezone: string;
 }
 
 export interface RepurposeSuggestion {
