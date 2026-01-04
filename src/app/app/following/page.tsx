@@ -62,6 +62,7 @@ export default function FollowingPage() {
   const [repurposing, setRepurposing] = useState(false);
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
   const [repurposeResults, setRepurposeResults] = useState<GeneratedContent[] | null>(null);
+  const [extracting, setExtracting] = useState(false);
 
   useEffect(() => {
     loadCreators();
@@ -245,6 +246,33 @@ export default function FollowingPage() {
     setSelectedVideoForRepurpose(null);
     setRepurposeError(null);
     setRepurposeResults(null);
+  };
+
+  const handleExtractTranscript = async () => {
+    if (!selectedVideoForRepurpose) return;
+
+    try {
+      setExtracting(true);
+      await api.creators.extractTranscript(selectedVideoForRepurpose.id);
+
+      // Refresh the content to get updated status
+      if (selectedCreator) {
+        const response = await api.creators.getContent(selectedCreator.id);
+        if (response.success) {
+          setCreatorContent(response.content);
+          // Update the selected video with new data
+          const updated = response.content.find((c: ContentHistoryEntry) => c.id === selectedVideoForRepurpose.id);
+          if (updated) {
+            setSelectedVideoForRepurpose(updated);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to extract transcript:', err);
+      setRepurposeError('Failed to extract transcript. Please try again.');
+    } finally {
+      setExtracting(false);
+    }
   };
 
   const togglePlatform = (platform: Platform) => {
@@ -616,7 +644,7 @@ export default function FollowingPage() {
       {/* Add Creator Modal */}
       {showAddModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
           onClick={(e) => e.target === e.currentTarget && setShowAddModal(false)}
         >
           <div className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
@@ -724,8 +752,8 @@ export default function FollowingPage() {
       {/* Repurpose Modal */}
       {showRepurposeModal && selectedVideoForRepurpose && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={(e) => e.target === e.currentTarget && !repurposing && closeRepurposeModal()}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+          onClick={(e) => e.target === e.currentTarget && !repurposing && !extracting && closeRepurposeModal()}
         >
           <div className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             {/* Header */}
@@ -824,13 +852,78 @@ export default function FollowingPage() {
                     <p className="text-small text-text-secondary line-clamp-2">
                       {selectedVideoForRepurpose.description || 'No description'}
                     </p>
-                    {selectedVideoForRepurpose.extraction_status !== 'completed' && (
-                      <p className="text-small text-accent mt-2">
-                        ⚠️ Transcript not yet extracted - content may be limited
+                    {selectedVideoForRepurpose.extraction_status === 'completed' ? (
+                      <p className="text-small text-green-500 mt-2">
+                        ✓ Transcript available
                       </p>
+                    ) : selectedVideoForRepurpose.extraction_status === 'processing' || extracting ? (
+                      <p className="text-small text-blue-500 mt-2 flex items-center gap-2">
+                        <span className="animate-spin">⏳</span> Extracting transcript...
+                      </p>
+                    ) : (
+                      <div className="mt-2 flex items-center gap-3">
+                        <p className="text-small text-amber-500">
+                          ⚠️ Transcript not extracted
+                        </p>
+                        <button
+                          onClick={handleExtractTranscript}
+                          disabled={extracting || repurposing}
+                          className="text-small px-3 py-1 bg-accent text-white rounded hover:bg-accent/80 transition-colors disabled:opacity-50"
+                        >
+                          Extract Now
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
+
+                {/* AI Summary Section */}
+                {selectedVideoForRepurpose.summary ? (
+                  <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg">💡</span>
+                      <div>
+                        <p className="font-medium text-small text-purple-600 dark:text-purple-400 mb-1">AI Summary</p>
+                        <p className="text-small">{selectedVideoForRepurpose.summary}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-bg-secondary rounded-lg border border-dashed border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg opacity-50">💡</span>
+                        <p className="text-small text-text-secondary">No summary yet</p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          try {
+                            setExtracting(true);
+                            const response = await api.creators.generateSummary(selectedVideoForRepurpose.id);
+                            if (response.success && response.content) {
+                              setSelectedVideoForRepurpose(response.content);
+                              // Also update the content list
+                              if (selectedCreator) {
+                                const refreshed = await api.creators.getContent(selectedCreator.id);
+                                if (refreshed.success) {
+                                  setCreatorContent(refreshed.content);
+                                }
+                              }
+                            }
+                          } catch (err) {
+                            console.error('Failed to generate summary:', err);
+                          } finally {
+                            setExtracting(false);
+                          }
+                        }}
+                        disabled={extracting || repurposing}
+                        className="text-small px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors disabled:opacity-50"
+                      >
+                        {extracting ? 'Generating...' : 'Generate Summary'}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Platform Selection */}
                 <div>

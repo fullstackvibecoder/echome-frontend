@@ -775,7 +775,7 @@ export const api = {
 
     /** Generate AI summary for content */
     generateSummary: async (contentId: string) => {
-      const response = await apiClient.post(`/creators/content/${contentId}/summary`);
+      const response = await apiClient.post(`/creators/content/${contentId}/summarize`);
       return response.data as {
         success: boolean;
         summary: {
@@ -783,6 +783,7 @@ export const api = {
           keyIdea: string;
           potentialAngles: string[];
         };
+        content: ContentHistoryEntry;
       };
     },
 
