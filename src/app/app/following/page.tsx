@@ -61,8 +61,13 @@ export default function FollowingPage() {
         setShowAddModal(false);
         setNewCreatorUrl('');
       }
-    } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Failed to follow creator');
+    } catch (err: unknown) {
+      // Extract error message from Axios response
+      const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
+      const errorMessage = axiosError.response?.data?.error
+        || axiosError.message
+        || 'Failed to follow creator';
+      setAddError(errorMessage);
     } finally {
       setAdding(false);
     }
@@ -83,19 +88,47 @@ export default function FollowingPage() {
     }
   };
 
+  // Polling status message
+  const [pollStatus, setPollStatus] = useState<{ creatorId: string; message: string; type: 'success' | 'error' } | null>(null);
+
   const handlePoll = async (creatorId: string) => {
     try {
       setPolling(creatorId);
+      setPollStatus(null);
       const response = await api.creators.poll(creatorId);
-      if (response.success && response.newContentCount > 0) {
-        // Refresh creator to update count
+      if (response.success) {
+        // Always refresh creator to update last_checked_at
         loadCreators();
-        // Refresh content if viewing this creator
-        if (selectedCreator?.id === creatorId) {
-          loadCreatorContent(creatorId);
+
+        if (response.newContentCount > 0) {
+          setPollStatus({
+            creatorId,
+            message: `Found ${response.newContentCount} new video${response.newContentCount > 1 ? 's' : ''}!`,
+            type: 'success'
+          });
+          // Refresh content if viewing this creator
+          if (selectedCreator?.id === creatorId) {
+            loadCreatorContent(creatorId);
+          }
+        } else {
+          setPollStatus({
+            creatorId,
+            message: 'No new content found',
+            type: 'success'
+          });
         }
+
+        // Clear status after 3 seconds
+        setTimeout(() => setPollStatus(null), 3000);
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
+      const errorMessage = axiosError.response?.data?.error || 'Failed to check for content';
+      setPollStatus({
+        creatorId,
+        message: errorMessage,
+        type: 'error'
+      });
       console.error('Failed to poll:', err);
     } finally {
       setPolling(null);
@@ -267,6 +300,16 @@ export default function FollowingPage() {
                     {creator.automation_enabled ? '🔔' : '🔕'}
                   </button>
                 </div>
+
+                {/* Poll Status Message */}
+                {pollStatus?.creatorId === creator.id && (
+                  <div className={`
+                    mt-3 p-2 rounded text-small text-center
+                    ${pollStatus.type === 'success' ? 'bg-success/10 text-success' : 'bg-error/10 text-error'}
+                  `}>
+                    {pollStatus.message}
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
