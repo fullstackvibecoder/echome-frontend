@@ -300,6 +300,22 @@ export default function FollowingPage() {
       setRepurposing(true);
       setRepurposeError(null);
 
+      // Auto-extract transcript if not available
+      if (selectedVideoForRepurpose.extraction_status !== 'completed') {
+        setRepurposeError(null);
+        try {
+          await api.creators.extractTranscript(selectedVideoForRepurpose.id);
+          // Update the local state to reflect extraction is done
+          setSelectedVideoForRepurpose({
+            ...selectedVideoForRepurpose,
+            extraction_status: 'completed',
+          });
+        } catch (extractErr) {
+          console.error('Transcript extraction failed:', extractErr);
+          // Continue anyway - backend will use description if available
+        }
+      }
+
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
       });
@@ -802,24 +818,12 @@ export default function FollowingPage() {
                   </div>
                 )}
 
-                {/* Transcript Required Warning */}
-                {selectedVideoForRepurpose.extraction_status !== 'completed' && !extracting && (
-                  <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">⚠️</span>
-                      <div className="flex-1">
-                        <p className="font-medium text-amber-500 mb-1">Transcript Required</p>
-                        <p className="text-small text-muted-foreground mb-3">
-                          A transcript is needed to repurpose this content in your voice. Click below to extract it first.
-                        </p>
-                        <button
-                          onClick={handleExtractTranscript}
-                          className="px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors"
-                        >
-                          Extract Transcript Now
-                        </button>
-                      </div>
-                    </div>
+                {/* Info about transcript extraction */}
+                {selectedVideoForRepurpose.extraction_status !== 'completed' && (
+                  <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <p className="text-small text-blue-400">
+                      ℹ️ Transcript will be automatically extracted when you click Generate
+                    </p>
                   </div>
                 )}
 
@@ -829,21 +833,14 @@ export default function FollowingPage() {
                   </button>
                   <button
                     onClick={handleRepurpose}
-                    disabled={repurposing || selectedPlatforms.length === 0 || selectedVideoForRepurpose.extraction_status !== 'completed'}
+                    disabled={repurposing || selectedPlatforms.length === 0}
                     className="flex-1 btn-primary py-3 disabled:opacity-50"
                   >
                     {repurposing ? (
                       <span className="flex items-center justify-center gap-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Generating...
+                        {selectedVideoForRepurpose.extraction_status !== 'completed' ? 'Extracting & Generating...' : 'Generating...'}
                       </span>
-                    ) : extracting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Extracting...
-                      </span>
-                    ) : selectedVideoForRepurpose.extraction_status !== 'completed' ? (
-                      '⚠️ Extract Transcript First'
                     ) : (
                       `Generate for ${selectedPlatforms.length} Platform${selectedPlatforms.length !== 1 ? 's' : ''}`
                     )}
