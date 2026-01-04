@@ -802,13 +802,34 @@ export default function FollowingPage() {
                   </div>
                 )}
 
+                {/* Transcript Required Warning */}
+                {selectedVideoForRepurpose.extraction_status !== 'completed' && !extracting && (
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">⚠️</span>
+                      <div className="flex-1">
+                        <p className="font-medium text-amber-500 mb-1">Transcript Required</p>
+                        <p className="text-small text-muted-foreground mb-3">
+                          A transcript is needed to repurpose this content in your voice. Click below to extract it first.
+                        </p>
+                        <button
+                          onClick={handleExtractTranscript}
+                          className="px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors"
+                        >
+                          Extract Transcript Now
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <button onClick={closeRepurposeModal} disabled={repurposing} className="flex-1 btn-secondary py-3 disabled:opacity-50">
                     Cancel
                   </button>
                   <button
                     onClick={handleRepurpose}
-                    disabled={repurposing || selectedPlatforms.length === 0}
+                    disabled={repurposing || selectedPlatforms.length === 0 || selectedVideoForRepurpose.extraction_status !== 'completed'}
                     className="flex-1 btn-primary py-3 disabled:opacity-50"
                   >
                     {repurposing ? (
@@ -816,6 +837,13 @@ export default function FollowingPage() {
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         Generating...
                       </span>
+                    ) : extracting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Extracting...
+                      </span>
+                    ) : selectedVideoForRepurpose.extraction_status !== 'completed' ? (
+                      '⚠️ Extract Transcript First'
                     ) : (
                       `Generate for ${selectedPlatforms.length} Platform${selectedPlatforms.length !== 1 ? 's' : ''}`
                     )}
