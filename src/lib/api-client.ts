@@ -836,8 +836,9 @@ export const api = {
       focusOnIdeas?: string[];
       differentiationAngle?: string;
       carouselBackground?: {
-        type: 'preset' | 'ai';
+        type: 'preset' | 'ai' | 'image';
         presetId?: string;
+        imageUrl?: string;
       };
     }) => {
       const response = await apiClient.post(`/creators/repurpose/${contentId}`, data, {

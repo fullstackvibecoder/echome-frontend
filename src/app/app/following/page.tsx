@@ -310,11 +310,27 @@ export default function FollowingPage() {
       }
 
       // Build carousel background config based on selection
-      const carouselBackground = carouselBgOption === 'ai'
-        ? { type: 'ai' as const }
-        : carouselBgOption !== 'upload'
-          ? { type: 'preset' as const, presetId: carouselBgOption }
-          : undefined; // Upload handled separately
+      let carouselBackground: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string } | undefined;
+
+      if (carouselBgOption === 'ai') {
+        carouselBackground = { type: 'ai' };
+      } else if (carouselBgOption === 'upload' && carouselBgFile) {
+        // Upload the background image first
+        try {
+          const uploadResponse = await api.images.uploadBackground(carouselBgFile);
+          if (uploadResponse.success && uploadResponse.data?.background?.publicUrl) {
+            carouselBackground = { type: 'image', imageUrl: uploadResponse.data.background.publicUrl };
+          } else {
+            throw new Error('Failed to upload background image');
+          }
+        } catch (uploadError) {
+          setRepurposeError('Failed to upload background image. Please try again.');
+          setRepurposing(false);
+          return;
+        }
+      } else if (carouselBgOption !== 'upload') {
+        carouselBackground = { type: 'preset', presetId: carouselBgOption };
+      }
 
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
