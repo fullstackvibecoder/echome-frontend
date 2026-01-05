@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
-import { Platform, BackgroundConfig, PresetBackground, GeneratedContent } from '@/types';
+import { Platform, BackgroundConfig, PresetBackground } from '@/types';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -68,9 +69,8 @@ export default function FollowingPage() {
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
   const [repurposing, setRepurposing] = useState(false);
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
-  const [repurposeResults, setRepurposeResults] = useState<GeneratedContent[] | null>(null);
-  const [repurposeRequestId, setRepurposeRequestId] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     loadData();
@@ -239,7 +239,6 @@ export default function FollowingPage() {
     setSelectedVideoForRepurpose(content);
     setShowRepurposeModal(true);
     setRepurposeError(null);
-    setRepurposeResults(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
     setCarouselBgOption('dark-minimal');
     setCarouselBgFile(null);
@@ -249,8 +248,6 @@ export default function FollowingPage() {
     setShowRepurposeModal(false);
     setSelectedVideoForRepurpose(null);
     setRepurposeError(null);
-    setRepurposeResults(null);
-    setRepurposeRequestId(null);
   };
 
   const handleExtractTranscript = async () => {
@@ -322,26 +319,14 @@ export default function FollowingPage() {
         platforms: selectedPlatforms as string[],
       });
 
-      if (response.success && response.result.generatedContent) {
+      if (response.success && response.result.generatedContent && response.result.requestId) {
         const generatedResults = response.result.generatedContent.results || [];
         if (generatedResults.length === 0) {
-          // Handle case where generation returned success but no results
           throw new Error('No content was generated. Please try again.');
         }
-        const results: GeneratedContent[] = generatedResults.map((r, idx) => ({
-          id: `${selectedVideoForRepurpose.id}-${r.platform}-${idx}`,
-          requestId: response.result.requestId || selectedVideoForRepurpose.id,
-          platform: r.platform as Platform,
-          content: r.content,
-          voiceScore: 0,
-          qualityScore: 0,
-          createdAt: new Date(),
-        }));
-        setRepurposeResults(results);
-        // Store the requestId so we can link to Content Kit
-        if (response.result.requestId) {
-          setRepurposeRequestId(response.result.requestId);
-        }
+        // Navigate directly to Content Kit - no intermediate popup needed
+        closeRepurposeModal();
+        router.push(`/app/content-kit/${response.result.requestId}`);
       } else {
         throw new Error(response.result?.error || 'Repurposing failed');
       }
@@ -351,14 +336,6 @@ export default function FollowingPage() {
       setRepurposeError(errorMessage);
     } finally {
       setRepurposing(false);
-    }
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.error('Failed to copy:', err);
     }
   };
 
@@ -695,70 +672,13 @@ export default function FollowingPage() {
         >
           <div className="bg-card text-card-foreground rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
-              <h2 className="text-xl font-semibold text-foreground">
-                {repurposeResults ? 'Generated Content' : 'Repurpose Content'}
-              </h2>
+              <h2 className="text-xl font-semibold text-foreground">Repurpose Content</h2>
               <button onClick={closeRepurposeModal} disabled={repurposing} className="p-2 hover:bg-muted rounded-lg disabled:opacity-50 text-foreground">
                 ✕
               </button>
             </div>
 
-            {repurposeResults ? (
-              <div className="p-6 space-y-6">
-                <div className="text-center">
-                  <div className="text-5xl mb-3">✨</div>
-                  <h3 className="text-lg font-semibold mb-1 text-foreground">Content Generated!</h3>
-                  <p className="text-small text-muted-foreground">
-                    Generated for {repurposeResults.length} platform{repurposeResults.length > 1 ? 's' : ''}
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {repurposeResults.map((result) => (
-                    <div key={result.id} className="bg-muted rounded-lg overflow-hidden">
-                      <div className="flex items-center justify-between p-3 border-b border-border">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">
-                            {result.platform === 'instagram' ? '📷' : result.platform === 'linkedin' ? '💼' :
-                             result.platform === 'blog' ? '📝' : result.platform === 'email' ? '📧' :
-                             result.platform === 'tiktok' ? '🎵' : result.platform === 'video-script' ? '🎬' : '📄'}
-                          </span>
-                          <span className="font-medium capitalize text-foreground">{result.platform}</span>
-                        </div>
-                        <button
-                          onClick={() => copyToClipboard(result.content)}
-                          className="px-3 py-1 text-small bg-accent/10 text-accent rounded hover:bg-accent/20"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                      <div className="p-4 max-h-48 overflow-y-auto">
-                        <pre className="whitespace-pre-wrap text-small font-sans text-foreground">{result.content}</pre>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  {repurposeRequestId && (
-                    <a
-                      href={`/app/content-kit/${repurposeRequestId}`}
-                      className="w-full btn-primary py-3 text-center flex items-center justify-center gap-2"
-                    >
-                      <span>📦</span>
-                      <span>View in Content Kit</span>
-                    </a>
-                  )}
-                  <div className="flex gap-3">
-                    <button onClick={closeRepurposeModal} className="flex-1 btn-secondary py-3">Done</button>
-                    <button onClick={() => { setRepurposeResults(null); setRepurposeError(null); setRepurposeRequestId(null); }} className="flex-1 btn-primary py-3">
-                      Generate Again
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6">
                 {/* Source Info */}
                 <div className="flex items-start gap-4 p-4 bg-muted rounded-lg">
                   {selectedVideoForRepurpose.thumbnail_url && (
@@ -871,7 +791,6 @@ export default function FollowingPage() {
 
                 <p className="text-small text-center text-muted-foreground">✨ Usually takes 30-60 seconds</p>
               </div>
-            )}
           </div>
         </div>
       )}
