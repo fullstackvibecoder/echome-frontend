@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { ContentCards } from '@/components/content-cards';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
+import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { Platform } from '@/types';
 
 interface VideoClip {
@@ -70,7 +71,6 @@ export default function LibraryDetail() {
   const [data, setData] = useState<GenerationDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
 
   const requestId = params.id as string;
@@ -98,12 +98,6 @@ export default function LibraryDetail() {
 
   const handleCopy = async (content: string) => {
     await copyToClipboard(content);
-  };
-
-  const handleCopyContentKit = async (platform: string, content: string) => {
-    await copyToClipboard(content);
-    setCopiedPlatform(platform);
-    setTimeout(() => setCopiedPlatform(null), 2000);
   };
 
   const handleFeedback = (contentId: string, liked: boolean) => {
@@ -293,16 +287,10 @@ export default function LibraryDetail() {
                             <span className="text-xl">{config.icon}</span>
                             <h4 className="font-semibold">{config.label}</h4>
                           </div>
-                          <button
-                            onClick={() => handleCopyContentKit(platform, content)}
-                            className={`text-small px-3 py-1.5 rounded-full font-medium transition-all ${
-                              copiedPlatform === platform
-                                ? 'bg-success text-white scale-105'
-                                : 'bg-white/80 text-text-primary hover:bg-white shadow-sm'
-                            }`}
-                          >
-                            {copiedPlatform === platform ? '✓ Copied!' : '📋 Copy'}
-                          </button>
+                          <ShareDropdown
+                            content={content}
+                            platform={platform}
+                          />
                         </div>
                       </div>
                       {/* Content Preview */}
@@ -315,6 +303,14 @@ export default function LibraryDetail() {
                             Show more...
                           </button>
                         )}
+                      </div>
+                      {/* Quick Post Button */}
+                      <div className="px-4 pb-4 pt-2 border-t border-border/50">
+                        <QuickShareButton
+                          content={content}
+                          platformKey={platform}
+                          className="w-full justify-center"
+                        />
                       </div>
                     </div>
                   );
