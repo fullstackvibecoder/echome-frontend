@@ -5,9 +5,10 @@
  *
  * Unified card for displaying content items in the list view.
  * Handles video, text, carousel, and mixed content types.
+ * Note: Failed items are filtered out at the API level.
  */
 
-import { UnifiedContentItem, Platform } from '@/types';
+import { UnifiedContentItem } from '@/types';
 import { CONTENT_TYPE_CONFIG, PLATFORM_CONFIG } from '@/lib/content-kit-utils';
 
 interface ContentKitCardProps {
@@ -18,11 +19,13 @@ interface ContentKitCardProps {
 export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
   const typeConfig = CONTENT_TYPE_CONFIG[item.type];
   const isProcessing = item.status === 'processing' || item.status === 'pending';
-  const isFailed = item.status === 'failed';
 
   // Get first few platforms for display
   const displayPlatforms = item.platforms.slice(0, 4);
   const extraPlatforms = item.platforms.length - 4;
+
+  // Use thumbnail, carousel image, or fallback to icon
+  const displayImage = item.thumbnailUrl || item.carouselImageUrl;
 
   return (
     <div
@@ -30,14 +33,14 @@ export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
       className={`
         group relative bg-bg-secondary rounded-xl border overflow-hidden cursor-pointer
         transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5
-        ${isProcessing ? 'border-accent/50 animate-pulse' : isFailed ? 'border-error/30' : 'border-border hover:border-accent/50'}
+        ${isProcessing ? 'border-accent/50' : 'border-border hover:border-accent/50'}
       `}
     >
       {/* Thumbnail / Preview Area */}
       <div className="relative aspect-video bg-bg-tertiary overflow-hidden">
-        {item.thumbnailUrl ? (
+        {displayImage ? (
           <img
-            src={item.thumbnailUrl}
+            src={displayImage}
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -59,6 +62,13 @@ export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
           </div>
         )}
 
+        {/* Carousel Slide Count Badge */}
+        {item.carouselSlideCount > 0 && item.clipCount === 0 && (
+          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-medium bg-black/70 text-white">
+            {item.carouselSlideCount} slides
+          </div>
+        )}
+
         {/* Processing Overlay */}
         {isProcessing && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -70,16 +80,6 @@ export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
               {item.progressPercent !== undefined && (
                 <p className="text-white/70 text-xs mt-1">{item.progressPercent}%</p>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Failed Overlay */}
-        {isFailed && (
-          <div className="absolute inset-0 bg-error/20 flex items-center justify-center">
-            <div className="text-center">
-              <span className="text-3xl">❌</span>
-              <p className="text-error text-sm font-medium mt-1">Failed</p>
             </div>
           </div>
         )}

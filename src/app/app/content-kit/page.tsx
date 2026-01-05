@@ -85,14 +85,6 @@ function ContentKitPageContent() {
             </div>
           </>
         )}
-        {stats.failed > 0 && (
-          <button
-            onClick={() => setFilter('all')}
-            className="text-error hover:underline"
-          >
-            Show {stats.failed} failed
-          </button>
-        )}
       </div>
 
       {/* Filters */}

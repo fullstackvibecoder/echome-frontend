@@ -97,7 +97,9 @@ export function useContentKit(options: UseContentKitOptions = {}): UseContentKit
         }
       }
 
-      setAllItems(items);
+      // Filter out failed items (extra safety - backend should already filter these)
+      const validItems = items.filter(item => item.status !== 'failed');
+      setAllItems(validItems);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load content');
     } finally {

@@ -31,28 +31,65 @@ export function determineContentType(
 }
 
 /**
- * Generate a clean title from input text or filename
+ * Generate a clean, descriptive title from input text or filename
+ * Creates meaningful topic summaries for at-a-glance viewing
  */
 export function generateTitle(text?: string, filename?: string): string {
   if (filename) {
-    // Remove file extension and clean up
+    // Remove file extension and clean up filename
     return filename
       .replace(/\.[^/.]+$/, '')
       .replace(/_/g, ' ')
       .replace(/-/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
   if (text) {
-    // Clean up transcript-based titles
-    if (text.startsWith('Create content based on this video transcript:')) {
-      return 'Video Content Kit';
+    // Remove common prefixes that don't add value
+    let cleanText = text
+      .replace(/^Create content based on this video transcript:\s*/i, '')
+      .replace(/^Based on the following:\s*/i, '')
+      .replace(/^Generate content about:\s*/i, '')
+      .trim();
+
+    // If it's a transcript-based title, generate a descriptive one
+    if (cleanText.length > 200 || cleanText.includes('\n')) {
+      // Extract first meaningful sentence or phrase
+      const firstSentence = cleanText.split(/[.!?\n]/)[0].trim();
+      if (firstSentence.length > 10 && firstSentence.length < 100) {
+        return firstSentence;
+      }
+      // Otherwise use first 50 chars with smart truncation
+      return cleanText.slice(0, 50).trim() + '...';
     }
-    // Truncate long text
-    return text.length > 60 ? text.slice(0, 57) + '...' : text;
+
+    // For shorter text, use as-is with max length
+    return cleanText.length > 70 ? cleanText.slice(0, 67).trim() + '...' : cleanText;
   }
 
   return 'Untitled Content';
+}
+
+/**
+ * Extract a topic summary suitable for card preview
+ */
+export function generatePreviewText(text?: string, maxLength: number = 120): string {
+  if (!text) return '';
+
+  // Clean up the text
+  let cleanText = text
+    .replace(/^Create content based on this video transcript:\s*/i, '')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleanText.length <= maxLength) return cleanText;
+
+  // Smart truncate at word boundary
+  const truncated = cleanText.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  return (lastSpace > 50 ? truncated.slice(0, lastSpace) : truncated) + '...';
 }
 
 /**
@@ -112,7 +149,7 @@ export function transformGenerationRequest(
     status: req.status,
     createdAt: typeof req.createdAt === 'string' ? req.createdAt : req.createdAt.toISOString(),
     inputType: req.inputType,
-    previewText: req.inputText?.slice(0, 150),
+    previewText: generatePreviewText(req.inputText),
   };
 }
 
@@ -152,6 +189,7 @@ export function transformVideoUpload(
 
 /**
  * Calculate stats from unified items
+ * Note: Failed items are filtered out at the API level
  */
 export function calculateStats(items: UnifiedContentItem[]): ContentKitStats {
   const now = new Date();
@@ -164,7 +202,7 @@ export function calculateStats(items: UnifiedContentItem[]): ContentKitStats {
     carousels: items.filter(i => i.carouselSlideCount > 0).length,
     processing: items.filter(i => i.status === 'processing' || i.status === 'pending').length,
     thisWeek: items.filter(i => new Date(i.createdAt) >= weekAgo).length,
-    failed: items.filter(i => i.status === 'failed').length,
+    failed: 0, // Failed items are filtered out at the API level
   };
 }
 

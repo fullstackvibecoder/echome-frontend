@@ -445,6 +445,7 @@ export interface UnifiedContentItem {
 
   // Preview data
   thumbnailUrl?: string;
+  carouselImageUrl?: string; // First carousel slide image
   previewText?: string;
   platforms: Platform[];
 
