@@ -75,8 +75,70 @@ export interface GenerationRequest {
   results?: GeneratedContent[];
   voiceScore?: number;
   qualityScore?: number;
-  createdAt: Date;
-  completedAt?: Date;
+  createdAt: Date | string;
+  completedAt?: Date | string;
+  errorMessage?: string;
+}
+
+/**
+ * Detailed generation request with content kit and clips
+ * Used for Content Library detail view
+ */
+export interface GenerationRequestDetail {
+  request: GenerationRequest;
+  content?: GeneratedContentItem[];
+  contentKit?: ContentKitDetail;
+  clips?: VideoClipDetail[];
+}
+
+export interface GeneratedContentItem {
+  id: string;
+  platform: string;
+  content: string;
+  voiceScore?: number;
+  qualityScore?: number;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+}
+
+export interface ContentKitDetail {
+  id: string;
+  userId: string;
+  videoUploadId: string;
+  title: string;
+  contentLinkedin?: string;
+  contentTwitter?: string;
+  contentInstagram?: string;
+  contentBlog?: string;
+  contentEmail?: string;
+  contentTiktok?: string;
+  generationRequestId?: string;
+  contentGenerated: boolean;
+  clipsGenerated: number;
+  createdAt: string;
+}
+
+export interface VideoClipDetail {
+  id: string;
+  videoUploadId: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+  title?: string;
+  transcriptText?: string;
+  viralityScore?: number;
+  selectionReason?: string;
+  format: 'portrait' | 'landscape' | 'square';
+  hasCaptions?: boolean;
+  thumbnailUrl?: string;
+  exports: Array<{
+    format: string;
+    quality: string;
+    url: string;
+    storagePath?: string;
+  }>;
+  status: string;
+  createdAt: string;
 }
 
 // ============================================

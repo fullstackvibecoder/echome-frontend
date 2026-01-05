@@ -7,6 +7,7 @@ import axios, { AxiosInstance } from 'axios';
 import type {
   ApiResponse,
   GenerationRequest,
+  GenerationRequestDetail,
   KnowledgeBase,
   SocialIntegration,
   GeneratedImage,
@@ -126,10 +127,83 @@ export const api = {
     },
 
     getRequest: async (id: string) => {
-      const response = await apiClient.get<ApiResponse<GenerationRequest>>(
+      const response = await apiClient.get<ApiResponse<any>>(
         `/generate/${id}`
       );
-      return response.data;
+
+      // Transform snake_case to camelCase
+      const rawData = response.data.data;
+      const transformedData: GenerationRequestDetail = {
+        request: rawData.request ? {
+          id: rawData.request.id,
+          userId: rawData.request.user_id,
+          inputType: rawData.request.input_type || 'text',
+          inputText: rawData.request.input_text,
+          inputVideoPath: rawData.request.input_video_path,
+          inputAudioPath: rawData.request.input_audio_path,
+          knowledgeBaseId: rawData.request.knowledge_base_id,
+          platforms: rawData.request.platforms || [],
+          tone: rawData.request.tone,
+          additionalInstructions: rawData.request.additional_instructions,
+          status: rawData.request.status,
+          results: rawData.request.results,
+          createdAt: rawData.request.created_at,
+          completedAt: rawData.request.completed_at,
+          errorMessage: rawData.request.error_message,
+        } : rawData.request,
+        content: rawData.content?.map((item: any) => ({
+          id: item.id,
+          platform: item.platform,
+          content: item.content,
+          voiceScore: item.voice_score,
+          qualityScore: item.quality_score,
+          metadata: item.metadata,
+          createdAt: item.created_at,
+        })),
+        contentKit: rawData.contentKit ? {
+          id: rawData.contentKit.id,
+          userId: rawData.contentKit.user_id,
+          videoUploadId: rawData.contentKit.video_upload_id,
+          title: rawData.contentKit.title,
+          contentLinkedin: rawData.contentKit.content_linkedin,
+          contentTwitter: rawData.contentKit.content_twitter,
+          contentInstagram: rawData.contentKit.content_instagram,
+          contentBlog: rawData.contentKit.content_blog,
+          contentEmail: rawData.contentKit.content_email,
+          contentTiktok: rawData.contentKit.content_tiktok,
+          generationRequestId: rawData.contentKit.generation_request_id,
+          contentGenerated: rawData.contentKit.content_generated,
+          clipsGenerated: rawData.contentKit.clips_generated,
+          createdAt: rawData.contentKit.created_at,
+        } : undefined,
+        clips: rawData.clips?.map((clip: any) => ({
+          id: clip.id,
+          videoUploadId: clip.video_upload_id,
+          startTime: clip.start_time,
+          endTime: clip.end_time,
+          duration: clip.duration,
+          title: clip.title || clip.topic,
+          transcriptText: clip.transcript_text,
+          viralityScore: clip.virality_score || clip.quality_score,
+          selectionReason: clip.selection_reason || clip.metadata?.reason,
+          format: clip.format,
+          hasCaptions: clip.has_captions,
+          thumbnailUrl: clip.thumbnail_url,
+          exports: clip.exports?.map((exp: any) => ({
+            format: exp.format,
+            quality: exp.quality,
+            url: exp.url || exp.storage_path,
+            storagePath: exp.storage_path,
+          })) || [],
+          status: clip.status,
+          createdAt: clip.created_at,
+        })),
+      };
+
+      return {
+        ...response.data,
+        data: transformedData,
+      } as ApiResponse<GenerationRequestDetail>;
     },
 
     listRequests: async (params?: { limit?: number; offset?: number }) => {

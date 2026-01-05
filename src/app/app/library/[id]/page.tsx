@@ -6,55 +6,12 @@ import { api } from '@/lib/api-client';
 import { ContentCards } from '@/components/content-cards';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
-import { Platform } from '@/types';
-
-interface VideoClip {
-  id: string;
-  title?: string;
-  start_time: number;
-  end_time: number;
-  duration: number;
-  format: string;
-  virality_score?: number;
-  selection_reason?: string;
-  has_captions?: boolean;
-  thumbnail_url?: string;
-  exports?: Array<{ url: string; quality: string }>;
-}
-
-interface ContentKitData {
-  id: string;
-  title: string;
-  content_linkedin?: string;
-  content_twitter?: string;
-  content_instagram?: string;
-  content_blog?: string;
-  content_email?: string;
-  content_tiktok?: string;
-}
-
-interface GenerationDetail {
-  request: {
-    id: string;
-    status: string;
-    prompt?: string;
-    input_text?: string;
-    created_at: string;
-    completed_at?: string;
-  };
-  content: Array<{
-    id: string;
-    platform: string;
-    content: string;
-    voiceScore?: number;
-    qualityScore?: number;
-    voice_score?: number;
-    quality_score?: number;
-    metadata?: Record<string, unknown>;
-  }>;
-  contentKit?: ContentKitData;
-  clips?: VideoClip[];
-}
+import type {
+  GenerationRequestDetail,
+  VideoClipDetail,
+  ContentKitDetail,
+  Platform,
+} from '@/types';
 
 const PLATFORM_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
   linkedin: { label: 'LinkedIn', icon: '💼', color: 'bg-blue-500/10 text-blue-600' },
@@ -68,7 +25,7 @@ const PLATFORM_CONFIG: Record<string, { label: string; icon: string; color: stri
 export default function LibraryDetail() {
   const params = useParams();
   const router = useRouter();
-  const [data, setData] = useState<GenerationDetail | null>(null);
+  const [data, setData] = useState<GenerationRequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
@@ -86,7 +43,7 @@ export default function LibraryDetail() {
       setLoading(true);
       const response = await api.generation.getRequest(requestId);
       if (response.data) {
-        setData(response.data as unknown as GenerationDetail);
+        setData(response.data);
       }
     } catch (err) {
       setError('Failed to load content details');
@@ -104,7 +61,7 @@ export default function LibraryDetail() {
     sendFeedback(contentId, liked);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
@@ -115,27 +72,24 @@ export default function LibraryDetail() {
   };
 
   // Transform content to match ContentCards expected format
-  const transformedResults = data?.content?.map((item) => {
-    const metadata = item.metadata as { voiceScore?: number; qualityScore?: number; voice_score?: number; quality_score?: number } | undefined;
-    return {
-      id: item.id,
-      requestId: requestId,
-      platform: item.platform as Platform,
-      content: item.content,
-      voiceScore: item.voiceScore ?? item.voice_score ?? metadata?.voiceScore ?? metadata?.voice_score ?? 0,
-      qualityScore: item.qualityScore ?? item.quality_score ?? metadata?.qualityScore ?? metadata?.quality_score ?? 0,
-      createdAt: new Date(data.request.created_at),
-    };
-  }) || [];
+  const transformedResults = data?.content?.map((item) => ({
+    id: item.id,
+    requestId: requestId,
+    platform: item.platform as Platform,
+    content: item.content,
+    voiceScore: item.voiceScore ?? 0,
+    qualityScore: item.qualityScore ?? 0,
+    createdAt: new Date(item.createdAt || data.request.createdAt),
+  })) || [];
 
   // Get content kit platform content for display
   const contentKitPlatforms = data?.contentKit ? [
-    { platform: 'linkedin', content: data.contentKit.content_linkedin },
-    { platform: 'twitter', content: data.contentKit.content_twitter },
-    { platform: 'instagram', content: data.contentKit.content_instagram },
-    { platform: 'tiktok', content: data.contentKit.content_tiktok },
-    { platform: 'blog', content: data.contentKit.content_blog },
-    { platform: 'email', content: data.contentKit.content_email },
+    { platform: 'linkedin', content: data.contentKit.contentLinkedin },
+    { platform: 'twitter', content: data.contentKit.contentTwitter },
+    { platform: 'instagram', content: data.contentKit.contentInstagram },
+    { platform: 'tiktok', content: data.contentKit.contentTiktok },
+    { platform: 'blog', content: data.contentKit.contentBlog },
+    { platform: 'email', content: data.contentKit.contentEmail },
   ].filter(p => p.content) : [];
 
   const hasClips = data?.clips && data.clips.length > 0;
@@ -145,9 +99,8 @@ export default function LibraryDetail() {
   // Determine title
   const getTitle = () => {
     if (data?.contentKit?.title) return data.contentKit.title;
-    if (data?.request?.prompt) return data.request.prompt;
-    if (data?.request?.input_text) {
-      const text = data.request.input_text;
+    if (data?.request?.inputText) {
+      const text = data.request.inputText;
       // Clean up transcript-based titles
       if (text.startsWith('Create content based on this video transcript:')) {
         return 'Video Content Kit';
@@ -189,7 +142,7 @@ export default function LibraryDetail() {
           <div className="mb-8">
             <h1 className="text-display text-3xl mb-2">{getTitle()}</h1>
             <p className="text-body text-text-secondary">
-              Created {formatDate(data.request.created_at)}
+              Created {formatDate(data.request.createdAt)}
               {hasClips && ` • ${data.clips!.length} video clips`}
             </p>
           </div>
@@ -211,14 +164,14 @@ export default function LibraryDetail() {
                       {clip.exports && clip.exports[0]?.url ? (
                         <video
                           src={clip.exports[0].url}
-                          poster={clip.thumbnail_url}
+                          poster={clip.thumbnailUrl}
                           controls
                           className="w-full h-full object-contain"
                           preload="metadata"
                         />
-                      ) : clip.thumbnail_url ? (
+                      ) : clip.thumbnailUrl ? (
                         <img
-                          src={clip.thumbnail_url}
+                          src={clip.thumbnailUrl}
                           alt={clip.title || `Clip ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -228,9 +181,9 @@ export default function LibraryDetail() {
                         </div>
                       )}
                       {/* Virality score badge */}
-                      {clip.virality_score && (
+                      {clip.viralityScore && (
                         <div className="absolute top-3 left-3 bg-gradient-to-r from-accent to-accent/80 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg">
-                          🔥 {clip.virality_score}% viral
+                          🔥 {clip.viralityScore}% viral
                         </div>
                       )}
                       {/* Duration badge */}
@@ -243,16 +196,16 @@ export default function LibraryDetail() {
                       <h4 className="font-semibold text-body mb-2 line-clamp-2">
                         {clip.title || `Clip ${index + 1}`}
                       </h4>
-                      {clip.selection_reason && (
+                      {clip.selectionReason && (
                         <p className="text-small text-text-secondary line-clamp-2 mb-3">
-                          {clip.selection_reason}
+                          {clip.selectionReason}
                         </p>
                       )}
                       <div className="flex items-center gap-2">
                         <span className="text-xs bg-accent/10 text-accent px-2.5 py-1 rounded-full font-medium">
                           {clip.format === 'portrait' ? '📱 Vertical' : clip.format === 'landscape' ? '🖥️ Horizontal' : '⬜ Square'}
                         </span>
-                        {clip.has_captions && (
+                        {clip.hasCaptions && (
                           <span className="text-xs bg-success/10 text-success px-2.5 py-1 rounded-full font-medium">
                             CC ✓
                           </span>
