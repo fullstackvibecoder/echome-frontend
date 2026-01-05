@@ -383,54 +383,64 @@ export default function AppDashboard() {
           {/* Video Clips Section - Show if we have clips */}
           {videoClips.length > 0 && (
             <div className="mb-12">
-              <h3 className="text-display text-2xl mb-6">Extracted Clips</h3>
+              <h3 className="text-display text-2xl mb-6">
+                🎬 Video Clips <span className="text-text-secondary text-lg font-normal">({videoClips.length} ready to share)</span>
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {videoClips.map((clip, index) => (
                   <div
                     key={clip.id}
-                    className="bg-bg-secondary rounded-lg border border-border overflow-hidden"
+                    className="bg-bg-secondary rounded-xl border border-border overflow-hidden hover:border-accent/50 transition-colors"
                   >
-                    {/* Clip Thumbnail */}
-                    <div className="aspect-video bg-black relative">
-                      {clip.thumbnailUrl ? (
+                    {/* Clip Video Player */}
+                    <div className="aspect-[9/16] bg-black relative">
+                      {clip.exports && clip.exports[0]?.url ? (
+                        <video
+                          src={clip.exports[0].url}
+                          poster={clip.thumbnailUrl}
+                          controls
+                          className="w-full h-full object-contain"
+                          preload="metadata"
+                        />
+                      ) : clip.thumbnailUrl ? (
                         <img
                           src={clip.thumbnailUrl}
                           alt={clip.title || `Clip ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-4xl">
+                        <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-accent/20 to-accent/5">
                           🎬
                         </div>
                       )}
-                      {/* Duration badge */}
-                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        {Math.floor(clip.duration / 60)}:{String(Math.floor(clip.duration % 60)).padStart(2, '0')}
-                      </div>
                       {/* Virality score badge */}
                       {clip.viralityScore && (
-                        <div className="absolute top-2 left-2 bg-accent text-white text-xs px-2 py-1 rounded">
-                          {clip.viralityScore}% viral potential
+                        <div className="absolute top-3 left-3 bg-gradient-to-r from-accent to-accent/80 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg">
+                          🔥 {clip.viralityScore}% viral
                         </div>
                       )}
+                      {/* Duration badge */}
+                      <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2.5 py-1 rounded-full font-mono">
+                        {Math.floor(clip.duration / 60)}:{String(Math.floor(clip.duration % 60)).padStart(2, '0')}
+                      </div>
                     </div>
                     {/* Clip Info */}
                     <div className="p-4">
-                      <h4 className="font-medium text-body mb-2 line-clamp-2">
+                      <h4 className="font-semibold text-body mb-2 line-clamp-2">
                         {clip.title || `Clip ${index + 1}`}
                       </h4>
                       {clip.selectionReason && (
-                        <p className="text-small text-text-secondary line-clamp-2">
+                        <p className="text-small text-text-secondary line-clamp-2 mb-3">
                           {clip.selectionReason}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-3">
-                        <span className="text-xs bg-bg-primary px-2 py-1 rounded border border-border">
-                          {clip.format}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-accent/10 text-accent px-2.5 py-1 rounded-full font-medium">
+                          {clip.format === 'portrait' ? '📱 Vertical' : clip.format === 'landscape' ? '🖥️ Horizontal' : '⬜ Square'}
                         </span>
                         {clip.hasCaptions && (
-                          <span className="text-xs bg-success/20 text-success px-2 py-1 rounded">
-                            CC
+                          <span className="text-xs bg-success/10 text-success px-2.5 py-1 rounded-full font-medium">
+                            CC ✓
                           </span>
                         )}
                       </div>
@@ -438,48 +448,58 @@ export default function AppDashboard() {
                   </div>
                 ))}
               </div>
-              <p className="text-small text-text-secondary mt-4 text-center">
-                Visit the <a href="/app/clips" className="text-accent hover:underline">Clip Finder</a> to download and manage your clips
-              </p>
             </div>
           )}
 
           {/* Content Kit Section - Show if we have a content kit */}
           {contentKit && (
             <div className="mb-12">
-              <h3 className="text-display text-2xl mb-6">Content Kit</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="text-display text-2xl mb-6">
+                ✍️ Written Content <span className="text-text-secondary text-lg font-normal">(ready to post)</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                  { platform: 'linkedin', label: 'LinkedIn', icon: '💼', content: contentKit.contentLinkedin },
-                  { platform: 'twitter', label: 'Twitter/X', icon: '🐦', content: contentKit.contentTwitter },
-                  { platform: 'instagram', label: 'Instagram', icon: '📷', content: contentKit.contentInstagram },
-                  { platform: 'tiktok', label: 'TikTok', icon: '🎵', content: contentKit.contentTiktok },
-                  { platform: 'blog', label: 'Blog', icon: '📝', content: contentKit.contentBlog },
-                  { platform: 'email', label: 'Email', icon: '✉️', content: contentKit.contentEmail },
-                ].filter(p => p.content).map(({ platform, label, icon, content }) => (
+                  { platform: 'linkedin', label: 'LinkedIn', icon: '💼', color: 'bg-blue-500/10 text-blue-600', content: contentKit.contentLinkedin },
+                  { platform: 'twitter', label: 'Twitter/X', icon: '𝕏', color: 'bg-slate-500/10 text-slate-700', content: contentKit.contentTwitter },
+                  { platform: 'instagram', label: 'Instagram', icon: '📸', color: 'bg-pink-500/10 text-pink-600', content: contentKit.contentInstagram },
+                  { platform: 'tiktok', label: 'TikTok', icon: '🎵', color: 'bg-slate-800/10 text-slate-800', content: contentKit.contentTiktok },
+                  { platform: 'blog', label: 'Blog Post', icon: '📝', color: 'bg-emerald-500/10 text-emerald-600', content: contentKit.contentBlog },
+                  { platform: 'email', label: 'Newsletter', icon: '✉️', color: 'bg-amber-500/10 text-amber-600', content: contentKit.contentEmail },
+                ].filter(p => p.content).map(({ platform, label, icon, color, content }) => (
                   <div
                     key={platform}
-                    className="bg-bg-secondary rounded-lg border border-border p-4"
+                    className="bg-bg-secondary rounded-xl border border-border overflow-hidden hover:border-accent/50 transition-colors group"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{icon}</span>
-                        <h4 className="font-medium">{label}</h4>
+                    {/* Platform Header */}
+                    <div className={`px-4 py-3 ${color} border-b border-border/50`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{icon}</span>
+                          <h4 className="font-semibold">{label}</h4>
+                        </div>
+                        <button
+                          onClick={() => handleCopyContentKit(platform, content!)}
+                          className={`text-small px-3 py-1.5 rounded-full font-medium transition-all ${
+                            copiedPlatform === platform
+                              ? 'bg-success text-white scale-105'
+                              : 'bg-white/80 text-text-primary hover:bg-white shadow-sm'
+                          }`}
+                        >
+                          {copiedPlatform === platform ? '✓ Copied!' : '📋 Copy'}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleCopyContentKit(platform, content!)}
-                        className={`text-small px-3 py-1 rounded transition-colors ${
-                          copiedPlatform === platform
-                            ? 'bg-success text-white'
-                            : 'bg-accent/10 text-accent hover:bg-accent/20'
-                        }`}
-                      >
-                        {copiedPlatform === platform ? 'Copied!' : 'Copy'}
-                      </button>
                     </div>
-                    <p className="text-small text-text-secondary line-clamp-4 whitespace-pre-wrap">
-                      {content}
-                    </p>
+                    {/* Content Preview */}
+                    <div className="p-4">
+                      <p className="text-small text-text-secondary line-clamp-6 whitespace-pre-wrap leading-relaxed">
+                        {content}
+                      </p>
+                      {content && content.length > 200 && (
+                        <button className="text-xs text-accent mt-2 hover:underline">
+                          Show more...
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
