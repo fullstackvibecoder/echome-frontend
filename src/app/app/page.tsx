@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { FirstGeneration } from '@/components/first-generation';
@@ -62,6 +63,7 @@ const ECHO_TIPS = [
 ];
 
 export default function AppDashboard() {
+  const router = useRouter();
   const { generating, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
 
@@ -223,6 +225,13 @@ export default function AppDashboard() {
     clips: VideoClip[];
     contentKit: ContentKit | null;
   }) => {
+    // If we have a generation request ID, redirect to Content Library
+    if (data.contentKit?.generationRequestId) {
+      router.push(`/app/library/${data.contentKit.generationRequestId}`);
+      return;
+    }
+
+    // Fallback: show results inline (for cases without generated content)
     setVideoUpload(data.upload);
     setVideoClips(data.clips);
     setContentKit(data.contentKit);
