@@ -1243,6 +1243,7 @@ export interface RepurposeSuggestion {
 export interface RepurposeResult {
   success: boolean;
   contentHistoryId: string;
+  requestId?: string; // ID of the generation_request record (for Content Kit)
   generatedContent: {
     results: Array<{
       platform: string;

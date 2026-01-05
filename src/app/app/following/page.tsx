@@ -69,6 +69,7 @@ export default function FollowingPage() {
   const [repurposing, setRepurposing] = useState(false);
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
   const [repurposeResults, setRepurposeResults] = useState<GeneratedContent[] | null>(null);
+  const [repurposeRequestId, setRepurposeRequestId] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
 
   useEffect(() => {
@@ -249,6 +250,7 @@ export default function FollowingPage() {
     setSelectedVideoForRepurpose(null);
     setRepurposeError(null);
     setRepurposeResults(null);
+    setRepurposeRequestId(null);
   };
 
   const handleExtractTranscript = async () => {
@@ -328,7 +330,7 @@ export default function FollowingPage() {
         }
         const results: GeneratedContent[] = generatedResults.map((r, idx) => ({
           id: `${selectedVideoForRepurpose.id}-${r.platform}-${idx}`,
-          requestId: selectedVideoForRepurpose.id,
+          requestId: response.result.requestId || selectedVideoForRepurpose.id,
           platform: r.platform as Platform,
           content: r.content,
           voiceScore: 0,
@@ -336,6 +338,10 @@ export default function FollowingPage() {
           createdAt: new Date(),
         }));
         setRepurposeResults(results);
+        // Store the requestId so we can link to Content Kit
+        if (response.result.requestId) {
+          setRepurposeRequestId(response.result.requestId);
+        }
       } else {
         throw new Error(response.result?.error || 'Repurposing failed');
       }
@@ -733,11 +739,22 @@ export default function FollowingPage() {
                   ))}
                 </div>
 
-                <div className="flex gap-3">
-                  <button onClick={closeRepurposeModal} className="flex-1 btn-secondary py-3">Done</button>
-                  <button onClick={() => { setRepurposeResults(null); setRepurposeError(null); }} className="flex-1 btn-primary py-3">
-                    Generate Again
-                  </button>
+                <div className="flex flex-col gap-3">
+                  {repurposeRequestId && (
+                    <a
+                      href={`/app/content-kit/${repurposeRequestId}`}
+                      className="w-full btn-primary py-3 text-center flex items-center justify-center gap-2"
+                    >
+                      <span>📦</span>
+                      <span>View in Content Kit</span>
+                    </a>
+                  )}
+                  <div className="flex gap-3">
+                    <button onClick={closeRepurposeModal} className="flex-1 btn-secondary py-3">Done</button>
+                    <button onClick={() => { setRepurposeResults(null); setRepurposeError(null); setRepurposeRequestId(null); }} className="flex-1 btn-primary py-3">
+                      Generate Again
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
