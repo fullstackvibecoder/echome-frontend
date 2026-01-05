@@ -324,10 +324,7 @@ export default function FollowingPage() {
         const generatedResults = response.result.generatedContent.results || [];
         if (generatedResults.length === 0) {
           // Handle case where generation returned success but no results
-          const errorMsg = response.result.generatedContent.errors?.length > 0
-            ? response.result.generatedContent.errors.map((e: { error: string }) => e.error).join('; ')
-            : 'No content was generated. Please try again.';
-          throw new Error(errorMsg);
+          throw new Error('No content was generated. Please try again.');
         }
         const results: GeneratedContent[] = generatedResults.map((r, idx) => ({
           id: `${selectedVideoForRepurpose.id}-${r.platform}-${idx}`,
