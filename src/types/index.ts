@@ -371,7 +371,7 @@ export interface CarouselRequest {
 // BACKGROUND TYPES
 // ============================================
 
-export type BackgroundType = 'solid' | 'gradient' | 'preset' | 'image' | 'ai';
+export type BackgroundType = 'preset' | 'image' | 'ai';
 
 export type PresetBackground =
   | 'tweet-style'      // Twitter/X post box style
@@ -380,15 +380,9 @@ export type PresetBackground =
 
 export interface BackgroundConfig {
   type: BackgroundType;
-  gradientColors?: string[];
-  gradientDirection?: 'horizontal' | 'vertical' | 'diagonal' | 'radial';
   presetId?: PresetBackground;
   imageUrl?: string;
   aiPromptHint?: string;
-  overlay?: {
-    color: string;
-    opacity: number;
-  };
 }
 
 export interface BackgroundPreset {
@@ -401,12 +395,6 @@ export interface CarouselGenerationRequest {
   contentId: string;
   slides: Array<{ text: string; type?: string }>;
   background?: BackgroundConfig;
-  config?: {
-    primaryColor?: string;
-    accentColor?: string;
-    textColor?: string;
-    backgroundColor?: string;
-  };
   contentSummary?: string;
 }
 

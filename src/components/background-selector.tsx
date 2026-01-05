@@ -1,8 +1,7 @@
 /**
  * Background Selector Component
  * Allows users to select carousel background type:
- * - Solid colors
- * - Gradient presets
+ * - Preset styles (tweet-style, simple-black, simple-white)
  * - Upload custom image
  * - AI-generated background
  */
@@ -85,7 +84,6 @@ export function BackgroundSelector({
         onChange({
           type: 'image',
           imageUrl: response.data.background.publicUrl,
-          overlay: { color: '#000000', opacity: 0.4 },
         });
       }
     } catch (error) {
@@ -103,10 +101,6 @@ export function BackgroundSelector({
       aiPromptHint: aiPrompt || undefined,
     });
     setGeneratingAI(false);
-  };
-
-  const handleSolidSelect = () => {
-    onChange({ type: 'solid' });
   };
 
   const tabs = [
@@ -144,27 +138,8 @@ export function BackgroundSelector({
         {/* Presets Tab */}
         {activeTab === 'presets' && (
           <div className="space-y-3">
-            {/* Solid color option */}
-            <button
-              onClick={handleSolidSelect}
-              className={`w-full p-3 rounded-lg border-2 transition-colors flex items-center gap-3 ${
-                value.type === 'solid'
-                  ? 'border-purple-500 bg-zinc-800'
-                  : 'border-zinc-700 hover:border-zinc-600'
-              }`}
-            >
-              <div className="w-12 h-12 rounded bg-zinc-900 border border-zinc-700" />
-              <div className="text-left">
-                <div className="font-medium text-white">Solid Dark</div>
-                <div className="text-xs text-zinc-400">Simple dark background</div>
-              </div>
-              {value.type === 'solid' && (
-                <Check className="ml-auto text-purple-500" size={20} />
-              )}
-            </button>
-
             {/* Preset grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {Object.entries(PRESET_PREVIEWS).map(([id, preview]) => (
                 <button
                   key={id}
@@ -243,29 +218,9 @@ export function BackgroundSelector({
 
             {value.type === 'image' && (
               <div className="p-3 bg-zinc-800 rounded-lg">
-                <label className="block text-xs text-zinc-400 mb-2">
-                  Overlay Opacity
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={(value.overlay?.opacity || 0.4) * 100}
-                  onChange={(e) =>
-                    onChange({
-                      ...value,
-                      overlay: {
-                        color: value.overlay?.color || '#000000',
-                        opacity: parseInt(e.target.value) / 100,
-                      },
-                    })
-                  }
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-zinc-500 mt-1">
-                  <span>Light</span>
-                  <span>Dark</span>
-                </div>
+                <p className="text-xs text-zinc-400">
+                  A dark overlay will be applied automatically to ensure text readability.
+                </p>
               </div>
             )}
           </div>
@@ -337,11 +292,9 @@ export function BackgroundSelector({
       <div className="text-xs text-zinc-500 pt-2 border-t border-zinc-800">
         Selected:{' '}
         <span className="text-zinc-300">
-          {value.type === 'solid' && 'Solid Dark'}
           {value.type === 'preset' && PRESET_PREVIEWS[value.presetId!]?.label}
           {value.type === 'image' && 'Custom Upload'}
           {value.type === 'ai' && 'AI Generated'}
-          {value.type === 'gradient' && 'Custom Gradient'}
         </span>
       </div>
     </div>

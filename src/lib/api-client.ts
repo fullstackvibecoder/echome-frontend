@@ -581,12 +581,6 @@ export const api = {
       slides: Array<{ text: string; type?: string }>,
       options?: {
         background?: BackgroundConfig;
-        config?: {
-          primaryColor?: string;
-          accentColor?: string;
-          textColor?: string;
-          backgroundColor?: string;
-        };
         contentSummary?: string;
       }
     ) => {
@@ -596,7 +590,6 @@ export const api = {
           contentId,
           slides,
           background: options?.background,
-          config: options?.config,
           contentSummary: options?.contentSummary,
         },
         { timeout: 120000 } // 2 minutes for carousel generation
@@ -607,22 +600,12 @@ export const api = {
     generateCarouselWithUpload: async (
       contentId: string,
       slides: Array<{ text: string; type?: string }>,
-      backgroundImage: File,
-      options?: {
-        config?: Record<string, string>;
-        overlay?: { color: string; opacity: number };
-      }
+      backgroundImage: File
     ) => {
       const formData = new FormData();
       formData.append('backgroundImage', backgroundImage);
       formData.append('contentId', contentId);
       formData.append('slides', JSON.stringify(slides));
-      if (options?.config) {
-        formData.append('config', JSON.stringify(options.config));
-      }
-      if (options?.overlay) {
-        formData.append('overlay', JSON.stringify(options.overlay));
-      }
 
       const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
         '/images/carousel/with-upload',
@@ -645,7 +628,6 @@ export const api = {
       userInput: string,
       options?: {
         background?: BackgroundConfig;
-        config?: Record<string, string>;
       }
     ) => {
       const response = await apiClient.post<
@@ -660,7 +642,6 @@ export const api = {
           instagramContent,
           userInput,
           background: options?.background,
-          config: options?.config,
         },
         { timeout: 120000 }
       );
