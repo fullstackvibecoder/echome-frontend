@@ -321,7 +321,15 @@ export default function FollowingPage() {
       });
 
       if (response.success && response.result.generatedContent) {
-        const results: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
+        const generatedResults = response.result.generatedContent.results || [];
+        if (generatedResults.length === 0) {
+          // Handle case where generation returned success but no results
+          const errorMsg = response.result.generatedContent.errors?.length > 0
+            ? response.result.generatedContent.errors.map((e: { error: string }) => e.error).join('; ')
+            : 'No content was generated. Please try again.';
+          throw new Error(errorMsg);
+        }
+        const results: GeneratedContent[] = generatedResults.map((r, idx) => ({
           id: `${selectedVideoForRepurpose.id}-${r.platform}-${idx}`,
           requestId: selectedVideoForRepurpose.id,
           platform: r.platform as Platform,
@@ -332,7 +340,7 @@ export default function FollowingPage() {
         }));
         setRepurposeResults(results);
       } else {
-        throw new Error(response.result.error || 'Repurposing failed');
+        throw new Error(response.result?.error || 'Repurposing failed');
       }
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
