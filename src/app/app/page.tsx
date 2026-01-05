@@ -243,9 +243,9 @@ export default function AppDashboard() {
     clips: VideoClip[];
     contentKit: ContentKit | null;
   }) => {
-    // If we have a generation request ID, redirect to Content Library
+    // If we have a generation request ID, redirect to Content Kit
     if (data.contentKit?.generationRequestId) {
-      router.push(`/app/library/${data.contentKit.generationRequestId}`);
+      router.push(`/app/content-kit/${data.contentKit.generationRequestId}`);
       return;
     }
 

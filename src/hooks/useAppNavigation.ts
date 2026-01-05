@@ -14,8 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/app' },
   { id: 'following', label: 'Following', icon: '👥', path: '/app/following' },
   { id: 'knowledge', label: 'Knowledge Base', icon: '📚', path: '/app/knowledge' },
-  { id: 'library', label: 'Content Library', icon: '📁', path: '/app/library' },
-  { id: 'clips', label: 'Clip Finder', icon: '🎬', path: '/app/clips' },
+  { id: 'content-kit', label: 'Content Kit', icon: '📦', path: '/app/content-kit' },
   { id: 'settings', label: 'Settings', icon: '⚙️', path: '/app/settings' },
   { id: 'profile', label: 'Profile', icon: '👤', path: '/app/profile' },
 ];

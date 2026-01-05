@@ -416,3 +416,62 @@ export interface CarouselGenerationRequest {
   };
   contentSummary?: string;
 }
+
+// ============================================
+// UNIFIED CONTENT KIT TYPES
+// ============================================
+
+export type ContentKitType = 'video' | 'text' | 'carousel' | 'mixed';
+
+/**
+ * Unified content item that normalizes data from both
+ * generation requests and clip finder uploads
+ */
+export interface UnifiedContentItem {
+  id: string;
+  type: ContentKitType;
+  title: string;
+  description?: string;
+
+  // Source tracking
+  sourceType: 'generation' | 'clip-finder';
+  generationRequestId?: string;
+  videoUploadId?: string;
+
+  // Content counts
+  clipCount: number;
+  platformCount: number;
+  carouselSlideCount: number;
+
+  // Preview data
+  thumbnailUrl?: string;
+  previewText?: string;
+  platforms: Platform[];
+
+  // Scores
+  voiceScore?: number;
+  qualityScore?: number;
+  viralityScore?: number;
+
+  // Status
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progressPercent?: number;
+  statusMessage?: string;
+
+  // Metadata
+  createdAt: string;
+  inputType: InputType;
+}
+
+export interface ContentKitStats {
+  total: number;
+  videos: number;
+  written: number;
+  carousels: number;
+  processing: number;
+  thisWeek: number;
+  failed: number;
+}
+
+export type ContentKitFilter = 'all' | 'videos' | 'written' | 'carousels';
+export type ContentKitSort = 'recent' | 'voice-score' | 'status';
