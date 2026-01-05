@@ -132,10 +132,31 @@ export const api = {
     },
 
     listRequests: async (params?: { limit?: number; offset?: number }) => {
-      const response = await apiClient.get<
-        ApiResponse<GenerationRequest[]>
-      >('/generate', { params });
-      return response.data;
+      const response = await apiClient.get<ApiResponse<any[]>>('/generate', { params });
+
+      // Transform snake_case to camelCase for frontend consumption
+      const transformedData = response.data.data?.map((item: any) => ({
+        id: item.id,
+        userId: item.user_id,
+        inputType: item.input_type || 'text',
+        inputText: item.input_text,
+        inputVideoPath: item.input_video_path,
+        inputAudioPath: item.input_audio_path,
+        knowledgeBaseId: item.knowledge_base_id,
+        platforms: item.platforms || [],
+        tone: item.tone,
+        additionalInstructions: item.additional_instructions,
+        status: item.status,
+        results: item.results,
+        createdAt: item.created_at,
+        completedAt: item.completed_at,
+        errorMessage: item.error_message,
+      })) || [];
+
+      return {
+        ...response.data,
+        data: transformedData,
+      } as ApiResponse<GenerationRequest[]>;
     },
 
     provideFeedback: async (

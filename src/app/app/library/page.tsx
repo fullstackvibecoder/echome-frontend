@@ -54,99 +54,142 @@ function ContentCard({ item, onClick }: { item: GenerationRequest; onClick: () =
   const platforms = item.platforms || [];
   const inputTypeConfig = INPUT_TYPE_CONFIG[item.inputType] || INPUT_TYPE_CONFIG.text;
 
-  // Get preview text - prefer the first result's content, fall back to input text
-  const getPreviewText = () => {
+  // Generate a smart title from input text
+  const generateTitle = () => {
+    if (item.inputText && item.inputText.length > 0) {
+      // Clean up the text
+      const cleaned = item.inputText
+        .replace(/https?:\/\/[^\s]+/g, '') // Remove URLs
+        .replace(/[#@]\w+/g, '') // Remove hashtags/mentions
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleaned.length > 0) {
+        // Take first sentence or first ~50 chars
+        const firstSentence = cleaned.split(/[.!?]/)[0];
+        if (firstSentence && firstSentence.length > 10) {
+          return firstSentence.length > 60
+            ? firstSentence.slice(0, 57) + '...'
+            : firstSentence;
+        }
+        return cleaned.length > 60 ? cleaned.slice(0, 57) + '...' : cleaned;
+      }
+    }
+
+    // Fallback: generate title from platforms and date
+    if (platforms.length > 0) {
+      const platformNames = platforms.slice(0, 2).map(p => PLATFORM_CONFIG[p]?.name || p).join(' & ');
+      const dateStr = formatRelativeDate(item.createdAt);
+      return `${platformNames} Content`;
+    }
+
+    return 'Content Kit';
+  };
+
+  // Get preview/description text
+  const getDescription = () => {
     if (item.results && item.results.length > 0) {
       const firstResult = item.results[0];
       if (firstResult.content) {
-        // Strip markdown and clean up
         return firstResult.content
           .replace(/[#*_`~]/g, '')
           .replace(/\n+/g, ' ')
-          .trim();
+          .trim()
+          .slice(0, 120);
       }
     }
-    if (item.inputText) {
-      return item.inputText;
+    if (item.inputText && item.inputText.length > 60) {
+      return item.inputText.slice(60, 180).trim();
     }
-    return 'Generated content';
+    return null;
   };
 
-  const preview = getPreviewText().slice(0, 140);
-  const hasMoreText = getPreviewText().length > 140;
+  const title = generateTitle();
+  const description = getDescription();
 
   // Get voice/quality score if available
   const avgScore = item.results && item.results.length > 0
     ? Math.round(item.results.reduce((acc, r) => acc + (r.voiceScore || 0), 0) / item.results.length)
     : null;
 
+  // Format date nicely
+  const formatDate = (date: Date | string) => {
+    try {
+      const d = new Date(date);
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+      });
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <div
       onClick={onClick}
       className="group relative bg-card rounded-xl border border-border overflow-hidden hover:border-accent/50 hover:shadow-lg transition-all duration-200 cursor-pointer"
     >
-      {/* Top section with platforms */}
-      <div className="px-4 pt-4 pb-3 border-b border-border/50">
-        <div className="flex items-center justify-between mb-3">
-          {/* Platform pills */}
-          <div className="flex flex-wrap gap-1.5">
-            {platforms.slice(0, 3).map((platform) => {
+      <div className="p-4">
+        {/* Header with platforms */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          {/* Platform icons row */}
+          <div className="flex items-center gap-1.5">
+            {platforms.slice(0, 4).map((platform) => {
               const config = PLATFORM_CONFIG[platform];
               return (
-                <span
+                <div
                   key={platform}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted/50"
-                  style={{ color: config?.color }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
+                  style={{ backgroundColor: `${config?.color}20` }}
+                  title={config?.name}
                 >
-                  <span>{config?.icon}</span>
-                  <span className="text-foreground/70">{config?.name}</span>
-                </span>
+                  {config?.icon}
+                </div>
               );
             })}
-            {platforms.length > 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted/50 text-muted-foreground">
-                +{platforms.length - 3}
-              </span>
+            {platforms.length > 4 && (
+              <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                +{platforms.length - 4}
+              </div>
             )}
           </div>
 
-          {/* Voice score badge */}
+          {/* Voice score */}
           {avgScore !== null && avgScore > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-muted-foreground">Voice</span>
-              <span className={`font-medium ${avgScore >= 80 ? 'text-emerald-400' : avgScore >= 60 ? 'text-amber-400' : 'text-muted-foreground'}`}>
-                {avgScore}%
-              </span>
+            <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              avgScore >= 80 ? 'bg-emerald-500/20 text-emerald-400' :
+              avgScore >= 60 ? 'bg-amber-500/20 text-amber-400' :
+              'bg-muted text-muted-foreground'
+            }`}>
+              {avgScore}%
             </div>
           )}
         </div>
 
-        {/* Source type indicator */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>{inputTypeConfig.icon}</span>
-          <span>From {inputTypeConfig.label.toLowerCase()}</span>
-        </div>
-      </div>
+        {/* Title */}
+        <h3 className="font-medium text-foreground mb-1.5 line-clamp-2 leading-snug">
+          {title}
+        </h3>
 
-      {/* Content preview */}
-      <div className="px-4 py-3">
-        <p className="text-sm text-foreground leading-relaxed line-clamp-3">
-          {preview}{hasMoreText && '...'}
-        </p>
-      </div>
+        {/* Description */}
+        {description && (
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+            {description}...
+          </p>
+        )}
 
-      {/* Footer */}
-      <div className="px-4 pb-4 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {formatRelativeDate(item.createdAt)}
-        </span>
-
-        <div className="flex items-center gap-2">
-          {item.results && item.results.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {item.results.length} item{item.results.length !== 1 ? 's' : ''}
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              {inputTypeConfig.icon}
+              <span>{inputTypeConfig.label}</span>
             </span>
-          )}
+            <span>{formatDate(item.createdAt)}</span>
+          </div>
+
           <div className="w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-accent group-hover:text-white transition-colors text-xs">
             →
           </div>
