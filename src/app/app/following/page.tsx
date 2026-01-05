@@ -309,8 +309,16 @@ export default function FollowingPage() {
         }
       }
 
+      // Build carousel background config based on selection
+      const carouselBackground = carouselBgOption === 'ai'
+        ? { type: 'ai' as const }
+        : carouselBgOption !== 'upload'
+          ? { type: 'preset' as const, presetId: carouselBgOption }
+          : undefined; // Upload handled separately
+
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
+        carouselBackground,
       });
 
       if (response.success && response.result.generatedContent && response.result.requestId) {

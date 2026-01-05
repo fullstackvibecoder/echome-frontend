@@ -854,6 +854,10 @@ export const api = {
       additionalInstructions?: string;
       focusOnIdeas?: string[];
       differentiationAngle?: string;
+      carouselBackground?: {
+        type: 'preset' | 'ai';
+        presetId?: string;
+      };
     }) => {
       const response = await apiClient.post(`/creators/repurpose/${contentId}`, data, {
         timeout: GENERATION_TIMEOUT,
