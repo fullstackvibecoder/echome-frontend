@@ -977,6 +977,11 @@ export const api = {
       captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
       generateContent?: boolean;
       knowledgeBaseId?: string;
+      carouselBackground?: {
+        type: 'preset' | 'ai' | 'image';
+        presetId?: string;
+        imageUrl?: string;
+      };
     }) => {
       const response = await apiClient.post(`/clips/${uploadId}/process`, config || {});
       return response.data as {
