@@ -245,6 +245,14 @@ export const api = {
       } as ApiResponse<GenerationRequest[]>;
     },
 
+    /** Delete a generation request and all associated content */
+    deleteRequest: async (id: string) => {
+      const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+        `/generate/${id}`
+      );
+      return response.data;
+    },
+
     provideFeedback: async (
       contentId: string,
       feedback: 'good' | 'bad' | 'neutral'

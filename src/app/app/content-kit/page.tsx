@@ -7,11 +7,12 @@
  * in a unified, filterable view.
  */
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useContentKit } from '@/hooks/useContentKit';
 import { ContentKitCard, ContentKitFilters } from '@/components/content-kit';
 import { ContentKitFilter } from '@/types';
+import { api } from '@/lib/api-client';
 import Link from 'next/link';
 
 function ContentKitPageContent() {
@@ -40,10 +41,26 @@ function ContentKitPageContent() {
     }
   }, [urlFilter, activeFilter, setFilter]);
 
+  const [deleting, setDeleting] = useState<string | null>(null);
+
   const handleCardClick = (item: typeof items[0]) => {
     // Route to detail page
     const id = item.generationRequestId || item.videoUploadId || item.id;
     router.push(`/app/content-kit/${id}`);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      setDeleting(id);
+      await api.generation.deleteRequest(id);
+      // Refresh the list after deletion
+      await refresh();
+    } catch (err) {
+      console.error('Failed to delete:', err);
+      alert('Failed to delete content kit. Please try again.');
+    } finally {
+      setDeleting(null);
+    }
   };
 
   return (
@@ -140,6 +157,7 @@ function ContentKitPageContent() {
               key={item.id}
               item={item}
               onClick={() => handleCardClick(item)}
+              onDelete={handleDelete}
             />
           ))}
         </div>

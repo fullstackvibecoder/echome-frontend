@@ -41,20 +41,39 @@ export default function ContentKitDetailPage() {
     });
   };
 
-  // Get platform content from content kit
+  // Get platform content from content kit or generated_content table
   const getPlatformContent = () => {
-    if (!detail?.contentKit) return [];
-    const kit = detail.contentKit;
-    return [
-      { platform: 'linkedin', content: kit.contentLinkedin },
-      { platform: 'twitter', content: kit.contentTwitter },
-      { platform: 'instagram', content: kit.contentInstagram },
-      { platform: 'tiktok', content: kit.contentTiktok },
-      { platform: 'blog', content: kit.contentBlog },
-      { platform: 'email', content: kit.contentEmail },
-      { platform: 'youtube', content: kit.contentYoutube },
-      { platform: 'video-script', content: kit.contentVideoScript },
-    ].filter(p => p.content);
+    const results: { platform: string; content: string }[] = [];
+
+    // First try contentKit (unified content_kits table)
+    if (detail?.contentKit) {
+      const kit = detail.contentKit;
+      const kitContent = [
+        { platform: 'linkedin', content: kit.contentLinkedin },
+        { platform: 'twitter', content: kit.contentTwitter },
+        { platform: 'instagram', content: kit.contentInstagram },
+        { platform: 'tiktok', content: kit.contentTiktok },
+        { platform: 'blog', content: kit.contentBlog },
+        { platform: 'email', content: kit.contentEmail },
+        { platform: 'youtube', content: kit.contentYoutube },
+        { platform: 'video-script', content: kit.contentVideoScript },
+      ].filter(p => p.content);
+      results.push(...kitContent as { platform: string; content: string }[]);
+    }
+
+    // Fall back to content array (generated_content table)
+    if (results.length === 0 && detail?.content && detail.content.length > 0) {
+      for (const item of detail.content) {
+        if (item.content && item.platform) {
+          results.push({
+            platform: item.platform,
+            content: item.content,
+          });
+        }
+      }
+    }
+
+    return results;
   };
 
   const platformContent = getPlatformContent();

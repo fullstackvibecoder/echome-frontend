@@ -14,11 +14,25 @@ import { CONTENT_TYPE_CONFIG, PLATFORM_CONFIG } from '@/lib/content-kit-utils';
 interface ContentKitCardProps {
   item: UnifiedContentItem;
   onClick: () => void;
+  onDelete?: (id: string) => void;
 }
 
-export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
+export function ContentKitCard({ item, onClick, onDelete }: ContentKitCardProps) {
   const typeConfig = CONTENT_TYPE_CONFIG[item.type];
   const isProcessing = item.status === 'processing' || item.status === 'pending';
+
+  // Check if preview text is too similar to title (avoid duplication)
+  const shouldShowPreview = item.previewText &&
+    item.previewText.length > 0 &&
+    !item.title.toLowerCase().includes(item.previewText.slice(0, 30).toLowerCase()) &&
+    !item.previewText.toLowerCase().includes(item.title.toLowerCase());
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger onClick
+    if (onDelete && window.confirm('Delete this content kit? This cannot be undone.')) {
+      onDelete(item.generationRequestId || item.videoUploadId || item.id);
+    }
+  };
 
   // Get first few platforms for display
   const displayPlatforms = item.platforms.slice(0, 4);
@@ -113,8 +127,8 @@ export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
           {item.title}
         </h3>
 
-        {/* Preview Text */}
-        {item.previewText && (
+        {/* Preview Text - only show if different from title */}
+        {shouldShowPreview && (
           <p className="text-small text-text-secondary line-clamp-2 mb-3">
             {item.previewText}
           </p>
@@ -140,9 +154,18 @@ export function ContentKitCard({ item, onClick }: ContentKitCardProps) {
         </div>
       </div>
 
-      {/* Arrow indicator */}
-      <div className="absolute bottom-4 right-4 text-text-secondary group-hover:text-accent transition-colors">
-        →
+      {/* Delete button & Arrow indicator */}
+      <div className="absolute bottom-4 right-4 flex items-center gap-2">
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-error/10 text-text-secondary hover:text-error transition-all"
+            title="Delete"
+          >
+            🗑️
+          </button>
+        )}
+        <span className="text-text-secondary group-hover:text-accent transition-colors">→</span>
       </div>
     </div>
   );
