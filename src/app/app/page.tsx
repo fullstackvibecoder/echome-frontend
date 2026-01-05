@@ -4,9 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
+import { useGenerationProgress, GENERATION_STEPS, mapStepToIndex } from '@/hooks/useGenerationProgress';
 import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
+import { setActiveGeneration, clearActiveGeneration } from '@/components/generation-banner';
+import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
 import { InputType, Platform, BackgroundConfig, CarouselSlide } from '@/types';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
@@ -64,11 +67,14 @@ const ECHO_TIPS = [
 
 export default function AppDashboard() {
   const router = useRouter();
-  const { generating, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
+  const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
 
-  // Progress state for animated steps
-  const [progressStep, setProgressStep] = useState(0);
+  // Real-time progress from SSE
+  const { progress, isComplete: progressComplete, hasError: progressError } = useGenerationProgress(requestId);
+
+  // Derive progress step from real SSE events (fallback to 0 if not connected)
+  const progressStep = progress ? mapStepToIndex(progress.step) : 0;
   const [currentTip, setCurrentTip] = useState(0);
 
   // Carousel state
@@ -91,31 +97,43 @@ export default function AppDashboard() {
   const [contentKit, setContentKit] = useState<ContentKit | null>(null);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
 
-  // Animate progress steps during generation
+  // Set active generation for navigate-away banner
   useEffect(() => {
-    if (!generating) {
-      setProgressStep(0);
-      return;
+    if (requestId && generating) {
+      setActiveGeneration(requestId);
     }
+  }, [requestId, generating]);
 
-    // Progress through steps
-    const stepTimings = [0, 3000, 8000, 15000]; // When each step starts
-    const timers: NodeJS.Timeout[] = [];
+  // Clear active generation when complete or error
+  useEffect(() => {
+    if (progressComplete || progressError) {
+      clearActiveGeneration();
+    }
+  }, [progressComplete, progressError]);
 
-    stepTimings.forEach((delay, index) => {
-      const timer = setTimeout(() => setProgressStep(index), delay);
-      timers.push(timer);
-    });
+  // Show notification when complete (if tab hidden)
+  useEffect(() => {
+    if (progressComplete) {
+      showNotificationIfHidden('Content Ready!', 'Your content has been generated and is ready to view.');
+    }
+  }, [progressComplete]);
 
-    // Rotate tips every 5 seconds
+  // Request notification permission on first generation
+  useEffect(() => {
+    if (generating) {
+      requestNotificationPermission();
+    }
+  }, [generating]);
+
+  // Rotate tips every 5 seconds during generation
+  useEffect(() => {
+    if (!generating) return;
+
     const tipTimer = setInterval(() => {
       setCurrentTip((prev) => (prev + 1) % ECHO_TIPS.length);
     }, 5000);
 
-    return () => {
-      timers.forEach(clearTimeout);
-      clearInterval(tipTimer);
-    };
+    return () => clearInterval(tipTimer);
   }, [generating]);
 
   // Generate TLL-structured carousel after content generation completes
@@ -305,7 +323,20 @@ export default function AppDashboard() {
               Echoing your voice...
             </h2>
             <p className="text-body text-text-secondary">
-              Your Echosystem is working its magic ✨
+              {progress?.message || 'Your Echosystem is working its magic ✨'}
+            </p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="max-w-md mx-auto mb-8">
+            <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
+              <div
+                className="h-full bg-accent transition-all duration-500 ease-out"
+                style={{ width: `${progress?.percent || 5}%` }}
+              />
+            </div>
+            <p className="text-small text-text-secondary mt-2">
+              {progress?.percent || 5}% complete
             </p>
           </div>
 
@@ -314,28 +345,28 @@ export default function AppDashboard() {
             <ProgressStep
               icon="🎤"
               text="Tuning into your unique voice patterns"
-              subtext="Reading your Echosystem DNA..."
-              active={progressStep === 0}
-              completed={progressStep > 0}
+              subtext={progress?.step === 'init' || progress?.step === 'context' ? progress.message : 'Reading your Echosystem DNA...'}
+              active={progressStep === 0 || progressStep === 1}
+              completed={progressStep > 1}
             />
             <ProgressStep
               icon="🧠"
               text="Channeling the TLL framework"
-              subtext="Teach • Learn • Lead"
-              active={progressStep === 1}
+              subtext={progress?.step === 'voice' ? progress.message : 'Teach • Learn • Lead'}
+              active={progressStep === 1 && progress?.step === 'voice'}
               completed={progressStep > 1}
             />
             <ProgressStep
               icon="🎨"
               text="Crafting platform-perfect content"
-              subtext="Making each platform sing YOUR tune"
+              subtext={progress?.step === 'generate' ? progress.message : 'Making each platform sing YOUR tune'}
               active={progressStep === 2}
               completed={progressStep > 2}
             />
             <ProgressStep
               icon="✨"
               text="Polishing your Echo"
-              subtext="Quality check in progress..."
+              subtext={progress?.step === 'validate' || progress?.step === 'carousel' ? progress.message : 'Quality check in progress...'}
               active={progressStep === 3}
               completed={progressStep > 3}
             />

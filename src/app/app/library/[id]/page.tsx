@@ -10,6 +10,7 @@ import type {
   GenerationRequestDetail,
   VideoClipDetail,
   ContentKitDetail,
+  GeneratedCarouselDetail,
   Platform,
 } from '@/types';
 
@@ -95,6 +96,7 @@ export default function LibraryDetail() {
   const hasClips = data?.clips && data.clips.length > 0;
   const hasContentKitContent = contentKitPlatforms.length > 0;
   const hasGeneratedContent = transformedResults.length > 0;
+  const hasCarousel = data?.carousel && data.carousel.slides && data.carousel.slides.length > 0;
 
   // Determine title
   const getTitle = () => {
@@ -272,6 +274,63 @@ export default function LibraryDetail() {
             </div>
           )}
 
+          {/* Instagram Carousel Section */}
+          {hasCarousel && (
+            <div className="mb-12">
+              <h2 className="text-display text-2xl mb-6">
+                📸 Instagram Carousel <span className="text-text-secondary text-lg font-normal">({data.carousel!.slideCount} slides)</span>
+              </h2>
+              <div className="bg-bg-secondary rounded-xl border border-border p-6">
+                {/* Carousel Preview */}
+                <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+                  {data.carousel!.slides.map((slide, index) => (
+                    <div
+                      key={index}
+                      className="flex-shrink-0 w-64 snap-center"
+                    >
+                      <div className="aspect-square rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
+                        <img
+                          src={slide.publicUrl}
+                          alt={`Slide ${slide.slideNumber}: ${slide.text.slice(0, 30)}...`}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Slide type badge */}
+                        <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
+                          {slide.slideType}
+                        </div>
+                        {/* Slide number */}
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                          {slide.slideNumber}/{data.carousel!.slideCount}
+                        </div>
+                      </div>
+                      {/* Slide text preview */}
+                      <p className="mt-2 text-xs text-text-secondary line-clamp-2">
+                        {slide.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                {/* Download All Button */}
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+                  <div className="text-sm text-text-secondary">
+                    <span className="font-medium text-text-primary">{data.carousel!.slideCount} slides</span> • {data.carousel!.backgroundType} background
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={data.carousel!.slides[0]?.publicUrl}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
+                    >
+                      ⬇️ Download First Slide
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Regular Generated Content Cards (for non-clip-finder generations) */}
           {hasGeneratedContent && !hasContentKitContent && (
             <ContentCards
@@ -282,7 +341,7 @@ export default function LibraryDetail() {
           )}
 
           {/* No Content State */}
-          {!hasClips && !hasContentKitContent && !hasGeneratedContent && (
+          {!hasClips && !hasContentKitContent && !hasGeneratedContent && !hasCarousel && (
             <div className="text-center py-12 bg-bg-secondary rounded-xl border border-border">
               <p className="text-text-secondary">No content available</p>
             </div>

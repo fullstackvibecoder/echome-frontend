@@ -6,6 +6,7 @@ import { GeneratedContent, Platform, InputType } from '@/types';
 
 interface UseGenerationReturn {
   generating: boolean;
+  requestId: string | null;
   results: GeneratedContent[] | null;
   error: string | null;
   voiceScore?: number;
@@ -14,7 +15,7 @@ interface UseGenerationReturn {
     input: string,
     inputType: InputType,
     platforms: Platform[]
-  ) => Promise<void>;
+  ) => Promise<string | null>;
   repurpose: (
     contentId: string,
     platforms: Platform[]
@@ -24,17 +25,19 @@ interface UseGenerationReturn {
 
 export function useGeneration(): UseGenerationReturn {
   const [generating, setGenerating] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
   const [results, setResults] = useState<GeneratedContent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [voiceScore, setVoiceScore] = useState<number>();
   const [qualityScore, setQualityScore] = useState<number>();
 
   const generate = useCallback(
-    async (input: string, inputType: InputType, platforms: Platform[]) => {
+    async (input: string, inputType: InputType, platforms: Platform[]): Promise<string | null> => {
       try {
         setGenerating(true);
         setError(null);
         setResults(null);
+        setRequestId(null);
 
         const response = await api.generation.generate({
           inputType,
@@ -45,14 +48,21 @@ export function useGeneration(): UseGenerationReturn {
         });
 
         if (response.success && response.data) {
-          setResults(response.data.results || []);
-          setVoiceScore(response.data.voiceScore);
-          setQualityScore(response.data.qualityScore);
+          // Response data contains requestId at top level (from backend API)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const data = response.data as any;
+          const newRequestId = (data.requestId as string) || null;
+          setRequestId(newRequestId);
+          setResults(data.results || []);
+          setVoiceScore(data.voiceScore);
+          setQualityScore(data.qualityScore);
+          return newRequestId;
         } else {
           throw new Error(response.error || 'Generation failed');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Generation failed');
+        return null;
       } finally {
         setGenerating(false);
       }
@@ -96,6 +106,7 @@ export function useGeneration(): UseGenerationReturn {
   );
 
   const reset = useCallback(() => {
+    setRequestId(null);
     setResults(null);
     setError(null);
     setVoiceScore(undefined);
@@ -104,6 +115,7 @@ export function useGeneration(): UseGenerationReturn {
 
   return {
     generating,
+    requestId,
     results,
     error,
     voiceScore,

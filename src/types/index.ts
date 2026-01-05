@@ -81,7 +81,7 @@ export interface GenerationRequest {
 }
 
 /**
- * Detailed generation request with content kit and clips
+ * Detailed generation request with content kit, clips, and carousel
  * Used for Content Library detail view
  */
 export interface GenerationRequestDetail {
@@ -89,6 +89,7 @@ export interface GenerationRequestDetail {
   content?: GeneratedContentItem[];
   contentKit?: ContentKitDetail;
   clips?: VideoClipDetail[];
+  carousel?: GeneratedCarouselDetail;
 }
 
 export interface GeneratedContentItem {
@@ -138,6 +139,25 @@ export interface VideoClipDetail {
     storagePath?: string;
   }>;
   status: string;
+  createdAt: string;
+}
+
+export interface GeneratedCarouselSlide {
+  slideNumber: number;
+  text: string;
+  publicUrl: string;
+  slideType: 'hook' | 'content' | 'list' | 'quote' | 'cta';
+}
+
+export interface GeneratedCarouselDetail {
+  id: string;
+  userId: string;
+  generationRequestId?: string;
+  contentId: string;
+  slideCount: number;
+  backgroundType: string;
+  slides: GeneratedCarouselSlide[];
+  qualityScore?: number;
   createdAt: string;
 }
 

@@ -198,6 +198,17 @@ export const api = {
           status: clip.status,
           createdAt: clip.created_at,
         })),
+        carousel: rawData.carousel ? {
+          id: rawData.carousel.id,
+          userId: rawData.carousel.user_id,
+          generationRequestId: rawData.carousel.generation_request_id,
+          contentId: rawData.carousel.content_id,
+          slideCount: rawData.carousel.slide_count,
+          backgroundType: rawData.carousel.background_type,
+          slides: rawData.carousel.slides || [],
+          qualityScore: rawData.carousel.quality_score,
+          createdAt: rawData.carousel.created_at,
+        } : undefined,
       };
 
       return {

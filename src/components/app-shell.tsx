@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { Sidebar } from './sidebar';
 import { MobileSidebar } from './mobile-sidebar';
 import { AppHeader } from './app-header';
+import { GenerationBanner } from './generation-banner';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 
 interface AppShellProps {
@@ -30,6 +31,9 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </main>
       </div>
+
+      {/* Floating Generation Progress Banner */}
+      <GenerationBanner />
     </div>
   );
 }
