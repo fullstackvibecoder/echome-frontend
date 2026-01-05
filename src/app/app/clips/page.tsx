@@ -314,7 +314,7 @@ export default function ClipsPage() {
                           Drop your video here
                         </p>
                         <p className="text-xs text-stone-500">
-                          MP4, MOV, WebM up to 2GB
+                          MP4, MOV, WebM (max 50MB)
                         </p>
                       </>
                     )}
