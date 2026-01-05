@@ -7,7 +7,7 @@ import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
 import { InputType, Platform, BackgroundConfig, CarouselSlide } from '@/types';
-import { api } from '@/lib/api-client';
+import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Progress step component with EchoMe branding
 function ProgressStep({
@@ -82,6 +82,12 @@ export default function AppDashboard() {
     bgFile?: File;
     userInput: string; // Store user input for TLL context
   } | null>(null);
+
+  // Video processing results (Clip Finder)
+  const [videoUpload, setVideoUpload] = useState<VideoUpload | null>(null);
+  const [videoClips, setVideoClips] = useState<VideoClip[]>([]);
+  const [contentKit, setContentKit] = useState<ContentKit | null>(null);
+  const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
 
   // Animate progress steps during generation
   useEffect(() => {
@@ -211,8 +217,26 @@ export default function AppDashboard() {
     await repurpose(contentId, platforms);
   };
 
+  // Handle video processing results from Clip Finder
+  const handleVideoProcessing = (data: {
+    upload: VideoUpload;
+    clips: VideoClip[];
+    contentKit: ContentKit | null;
+  }) => {
+    setVideoUpload(data.upload);
+    setVideoClips(data.clips);
+    setContentKit(data.contentKit);
+  };
+
   const handleCopy = async (content: string) => {
     await copyToClipboard(content);
+  };
+
+  // Copy content kit platform content
+  const handleCopyContentKit = async (platform: string, content: string) => {
+    await copyToClipboard(content);
+    setCopiedPlatform(platform);
+    setTimeout(() => setCopiedPlatform(null), 2000);
   };
 
   const handleFeedback = (contentId: string, liked: boolean) => {
@@ -225,11 +249,18 @@ export default function AppDashboard() {
     setCarouselQuality(null);
     setCarouselError(null);
     pendingCarouselRef.current = null;
+    // Reset video processing state
+    setVideoUpload(null);
+    setVideoClips([]);
+    setContentKit(null);
   };
+
+  // Check if we have any results to display
+  const hasResults = results || contentKit || videoClips.length > 0;
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
-      {!results && !generating && (
+      {!hasResults && !generating && (
         <div className="animate-fade-in">
           {/* Welcome Header */}
           <div className="mb-8">
@@ -240,7 +271,12 @@ export default function AppDashboard() {
           </div>
 
           {/* Input Form */}
-          <FirstGeneration onGenerate={handleGenerate} onRepurpose={handleRepurpose} generating={false} />
+          <FirstGeneration
+            onGenerate={handleGenerate}
+            onRepurpose={handleRepurpose}
+            onVideoProcessing={handleVideoProcessing}
+            generating={false}
+          />
 
           {/* Error */}
           {error && (
@@ -303,14 +339,18 @@ export default function AppDashboard() {
         </div>
       )}
 
-      {results && !generating && (
+      {hasResults && !generating && (
         <div className="animate-fade-in">
           {/* Success Header */}
           <div className="text-center mb-12">
-            <div className="text-6xl mb-4">✨</div>
-            <h2 className="text-display text-4xl mb-2">Your Content is Ready!</h2>
+            <div className="text-6xl mb-4">{videoClips.length > 0 ? '🎬' : '✨'}</div>
+            <h2 className="text-display text-4xl mb-2">
+              {videoClips.length > 0 ? 'Your Content Kit is Ready!' : 'Your Content is Ready!'}
+            </h2>
             <p className="text-body text-text-secondary mb-6">
-              Generated content for {results.length} platforms
+              {videoClips.length > 0
+                ? `${videoClips.length} clips extracted • Content generated for 6 platforms`
+                : results ? `Generated content for ${results.length} platforms` : ''}
             </p>
 
             {/* Scores */}
@@ -340,37 +380,147 @@ export default function AppDashboard() {
             )}
           </div>
 
-          {/* Content Cards */}
-          <ContentCards
-            results={results}
-            onCopy={handleCopy}
-            onFeedback={handleFeedback}
-          />
+          {/* Video Clips Section - Show if we have clips */}
+          {videoClips.length > 0 && (
+            <div className="mb-12">
+              <h3 className="text-display text-2xl mb-6">Extracted Clips</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {videoClips.map((clip, index) => (
+                  <div
+                    key={clip.id}
+                    className="bg-bg-secondary rounded-lg border border-border overflow-hidden"
+                  >
+                    {/* Clip Thumbnail */}
+                    <div className="aspect-video bg-black relative">
+                      {clip.thumbnailUrl ? (
+                        <img
+                          src={clip.thumbnailUrl}
+                          alt={clip.title || `Clip ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl">
+                          🎬
+                        </div>
+                      )}
+                      {/* Duration badge */}
+                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {Math.floor(clip.duration / 60)}:{String(Math.floor(clip.duration % 60)).padStart(2, '0')}
+                      </div>
+                      {/* Virality score badge */}
+                      {clip.viralityScore && (
+                        <div className="absolute top-2 left-2 bg-accent text-white text-xs px-2 py-1 rounded">
+                          {clip.viralityScore}% viral potential
+                        </div>
+                      )}
+                    </div>
+                    {/* Clip Info */}
+                    <div className="p-4">
+                      <h4 className="font-medium text-body mb-2 line-clamp-2">
+                        {clip.title || `Clip ${index + 1}`}
+                      </h4>
+                      {clip.selectionReason && (
+                        <p className="text-small text-text-secondary line-clamp-2">
+                          {clip.selectionReason}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-3">
+                        <span className="text-xs bg-bg-primary px-2 py-1 rounded border border-border">
+                          {clip.format}
+                        </span>
+                        {clip.hasCaptions && (
+                          <span className="text-xs bg-success/20 text-success px-2 py-1 rounded">
+                            CC
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-small text-text-secondary mt-4 text-center">
+                Visit the <a href="/app/clips" className="text-accent hover:underline">Clip Finder</a> to download and manage your clips
+              </p>
+            </div>
+          )}
+
+          {/* Content Kit Section - Show if we have a content kit */}
+          {contentKit && (
+            <div className="mb-12">
+              <h3 className="text-display text-2xl mb-6">Content Kit</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { platform: 'linkedin', label: 'LinkedIn', icon: '💼', content: contentKit.contentLinkedin },
+                  { platform: 'twitter', label: 'Twitter/X', icon: '🐦', content: contentKit.contentTwitter },
+                  { platform: 'instagram', label: 'Instagram', icon: '📷', content: contentKit.contentInstagram },
+                  { platform: 'tiktok', label: 'TikTok', icon: '🎵', content: contentKit.contentTiktok },
+                  { platform: 'blog', label: 'Blog', icon: '📝', content: contentKit.contentBlog },
+                  { platform: 'email', label: 'Email', icon: '✉️', content: contentKit.contentEmail },
+                ].filter(p => p.content).map(({ platform, label, icon, content }) => (
+                  <div
+                    key={platform}
+                    className="bg-bg-secondary rounded-lg border border-border p-4"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{icon}</span>
+                        <h4 className="font-medium">{label}</h4>
+                      </div>
+                      <button
+                        onClick={() => handleCopyContentKit(platform, content!)}
+                        className={`text-small px-3 py-1 rounded transition-colors ${
+                          copiedPlatform === platform
+                            ? 'bg-success text-white'
+                            : 'bg-accent/10 text-accent hover:bg-accent/20'
+                        }`}
+                      >
+                        {copiedPlatform === platform ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                    <p className="text-small text-text-secondary line-clamp-4 whitespace-pre-wrap">
+                      {content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Regular Content Cards - Show if we have normal results */}
+          {results && (
+            <ContentCards
+              results={results}
+              onCopy={handleCopy}
+              onFeedback={handleFeedback}
+            />
+          )}
 
           {/* Carousel Section */}
-          <div className="mt-12">
-            <h3 className="text-display text-2xl mb-6 text-center">Instagram Carousel</h3>
+          {(carouselGenerating || carouselError || (carouselSlides && carouselSlides.length > 0)) && (
+            <div className="mt-12">
+              <h3 className="text-display text-2xl mb-6 text-center">Instagram Carousel</h3>
 
-            {carouselGenerating && (
-              <div className="text-center p-8 bg-bg-secondary rounded-lg border border-border">
-                <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-body text-text-secondary">Creating your carousel slides...</p>
-              </div>
-            )}
+              {carouselGenerating && (
+                <div className="text-center p-8 bg-bg-secondary rounded-lg border border-border">
+                  <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-body text-text-secondary">Creating your carousel slides...</p>
+                </div>
+              )}
 
-            {carouselError && (
-              <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
-                {carouselError}
-              </div>
-            )}
+              {carouselError && (
+                <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
+                  {carouselError}
+                </div>
+              )}
 
-            {carouselSlides && carouselSlides.length > 0 && (
-              <CarouselPreview
-                slides={carouselSlides}
-                contentId={`carousel-${Date.now()}`}
-              />
-            )}
-          </div>
+              {carouselSlides && carouselSlides.length > 0 && (
+                <CarouselPreview
+                  slides={carouselSlides}
+                  contentId={`carousel-${Date.now()}`}
+                />
+              )}
+            </div>
+          )}
 
           {/* Create Another */}
           <div className="flex justify-center mt-12">

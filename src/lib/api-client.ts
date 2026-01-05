@@ -847,6 +847,231 @@ export const api = {
       };
     },
   },
+
+  // -------- CLIP FINDER --------
+  clips: {
+    /** Upload a video file or URL for clip extraction */
+    upload: async (
+      data: {
+        file?: File;
+        sourceType?: 'upload' | 'youtube' | 'instagram';
+        sourceUrl?: string;
+        knowledgeBaseId?: string;
+        title?: string;
+      },
+      onProgress?: (progress: number) => void
+    ) => {
+      const formData = new FormData();
+      if (data.file) {
+        formData.append('video', data.file);
+      }
+      if (data.sourceType) formData.append('sourceType', data.sourceType);
+      if (data.sourceUrl) formData.append('sourceUrl', data.sourceUrl);
+      if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
+      if (data.title) formData.append('title', data.title);
+
+      const response = await apiClient.post('/clips/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 300000, // 5 minutes for large video uploads
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(percentCompleted);
+          }
+        },
+      });
+      return response.data as {
+        success: boolean;
+        data: {
+          upload: VideoUpload;
+          message: string;
+        };
+      };
+    },
+
+    /** Start processing pipeline for a video */
+    process: async (uploadId: string, config?: {
+      maxClips?: number;
+      minClipDuration?: number;
+      maxClipDuration?: number;
+      targetFormat?: 'portrait' | 'landscape' | 'square';
+      captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+      generateContent?: boolean;
+      knowledgeBaseId?: string;
+    }) => {
+      const response = await apiClient.post(`/clips/${uploadId}/process`, config || {});
+      return response.data as {
+        success: boolean;
+        data: {
+          jobId: string;
+          status: string;
+          message: string;
+        };
+      };
+    },
+
+    /** Get upload with clips and content kit */
+    get: async (uploadId: string) => {
+      const response = await apiClient.get(`/clips/${uploadId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          upload: VideoUpload;
+          clips: VideoClip[];
+          contentKit: ContentKit | null;
+        };
+      };
+    },
+
+    /** Get job status */
+    getJob: async (uploadId: string, jobId: string) => {
+      const response = await apiClient.get(`/clips/${uploadId}/job/${jobId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          job: ClipJob;
+        };
+      };
+    },
+
+    /** List user's video uploads */
+    list: async (limit?: number) => {
+      const response = await apiClient.get('/clips', { params: { limit } });
+      return response.data as {
+        success: boolean;
+        data: {
+          uploads: VideoUpload[];
+        };
+      };
+    },
+
+    /** Update a clip */
+    updateClip: async (uploadId: string, clipId: string, data: {
+      title?: string;
+      isSelected?: boolean;
+      captionStyle?: string;
+      startTime?: number;
+      endTime?: number;
+    }) => {
+      const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data);
+      return response.data as {
+        success: boolean;
+        data: {
+          clip: VideoClip;
+        };
+      };
+    },
+
+    /** Export a clip */
+    exportClip: async (uploadId: string, clipId: string, options?: {
+      format?: 'portrait' | 'landscape' | 'square';
+      quality?: '720p' | '1080p' | '4k';
+      captionStyle?: string;
+      addCaptions?: boolean;
+    }) => {
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {});
+      return response.data as {
+        success: boolean;
+        data: {
+          export: {
+            format: string;
+            quality: string;
+            url: string | null;
+            message?: string;
+          };
+        };
+      };
+    },
+
+    /** Delete an upload */
+    delete: async (uploadId: string) => {
+      const response = await apiClient.delete(`/clips/${uploadId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          message: string;
+        };
+      };
+    },
+  },
+
+  // -------- CONTENT KITS --------
+  contentKits: {
+    /** Get content kit with full data */
+    get: async (kitId: string) => {
+      const response = await apiClient.get(`/content-kits/${kitId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          kit: ContentKit;
+          upload: VideoUpload;
+          clips: VideoClip[];
+        };
+      };
+    },
+
+    /** List user's content kits */
+    list: async (limit?: number) => {
+      const response = await apiClient.get('/content-kits', { params: { limit } });
+      return response.data as {
+        success: boolean;
+        data: {
+          kits: ContentKit[];
+        };
+      };
+    },
+
+    /** Update content kit */
+    update: async (kitId: string, data: {
+      title?: string;
+      description?: string;
+      contentLinkedin?: string;
+      contentTwitter?: string;
+      contentInstagram?: string;
+      contentBlog?: string;
+      contentEmail?: string;
+      contentTiktok?: string;
+      contentYoutube?: string;
+    }) => {
+      const response = await apiClient.patch(`/content-kits/${kitId}`, data);
+      return response.data as {
+        success: boolean;
+        data: {
+          kit: ContentKit;
+        };
+      };
+    },
+
+    /** Regenerate written content */
+    regenerate: async (kitId: string, options?: {
+      platforms?: string[];
+      knowledgeBaseId?: string;
+      additionalInstructions?: string;
+    }) => {
+      const response = await apiClient.post(`/content-kits/${kitId}/regenerate`, options || {}, {
+        timeout: GENERATION_TIMEOUT,
+      });
+      return response.data as {
+        success: boolean;
+        data: {
+          kit: ContentKit;
+          regenerated: string[];
+          message: string;
+        };
+      };
+    },
+
+    /** Delete content kit */
+    delete: async (kitId: string) => {
+      const response = await apiClient.delete(`/content-kits/${kitId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          message: string;
+        };
+      };
+    },
+  },
 };
 
 // Types for creator monitoring
@@ -934,6 +1159,133 @@ export interface RepurposeResult {
   extractedIdeas: string[];
   originalTitle: string;
   error?: string;
+}
+
+// Types for clip finder
+export interface VideoUpload {
+  id: string;
+  userId: string;
+  knowledgeBaseId?: string;
+  sourceType: 'upload' | 'youtube' | 'instagram';
+  sourceUrl?: string;
+  originalFilename?: string;
+  storagePath?: string;
+  storageBucket?: string;
+  fileSizeBytes?: number;
+  mimeType?: string;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  fps?: number;
+  status: 'pending' | 'uploading' | 'transcribing' | 'analyzing' | 'extracting' | 'captioning' | 'generating' | 'completed' | 'failed';
+  statusMessage?: string;
+  progressPercent: number;
+  transcriptText?: string;
+  transcriptSegments?: TranscriptSegment[];
+  transcriptLanguage?: string;
+  minutesUsed: number;
+  createdAt: string;
+  updatedAt: string;
+  processedAt?: string;
+  deletedAt?: string;
+  thumbnailUrl?: string;
+}
+
+export interface VideoClip {
+  id: string;
+  userId: string;
+  videoUploadId: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+  title?: string;
+  transcriptText?: string;
+  viralityScore?: number;
+  qualityScore?: number;
+  engagementPotential?: number;
+  selectionReason?: string;
+  format: 'portrait' | 'landscape' | 'square';
+  width?: number;
+  height?: number;
+  captionStyle: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+  captionConfig?: Record<string, unknown>;
+  hasCaptions: boolean;
+  exports: ClipExport[];
+  thumbnailPath?: string;
+  thumbnailUrl?: string;
+  srtPath?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  sortOrder: number;
+  isSelected: boolean;
+  createdAt: string;
+  updatedAt: string;
+  exportedAt?: string;
+}
+
+export interface ClipExport {
+  format: 'portrait' | 'landscape' | 'square';
+  quality: '720p' | '1080p' | '4k';
+  storagePath: string;
+  url: string;
+  fileSizeBytes?: number;
+}
+
+export interface ContentKit {
+  id: string;
+  userId: string;
+  videoUploadId: string;
+  knowledgeBaseId?: string;
+  title: string;
+  description?: string;
+  contentLinkedin?: string;
+  contentTwitter?: string;
+  contentInstagram?: string;
+  contentBlog?: string;
+  contentEmail?: string;
+  contentTiktok?: string;
+  contentYoutube?: string;
+  contentVideoScript?: string;
+  generationRequestId?: string;
+  voiceSamplesUsed?: unknown;
+  clipsGenerated: number;
+  contentGenerated: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClipJob {
+  id: string;
+  userId: string;
+  videoUploadId: string;
+  jobType: 'full_process' | 'transcribe' | 'extract_clips' | 'add_captions' | 'export' | 'generate_content';
+  config: Record<string, unknown>;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progressPercent: number;
+  currentStep?: string;
+  stepsCompleted: string[];
+  result?: Record<string, unknown>;
+  errorMessage?: string;
+  errorDetails?: Record<string, unknown>;
+  startedAt?: string;
+  completedAt?: string;
+  processingTimeMs?: number;
+  attempts: number;
+  maxAttempts: number;
+  nextRetryAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TranscriptSegment {
+  text: string;
+  start: number;
+  end: number;
+  words?: Array<{
+    word: string;
+    start: number;
+    end: number;
+    confidence?: number;
+  }>;
 }
 
 export default api;

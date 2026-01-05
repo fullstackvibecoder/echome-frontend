@@ -706,37 +706,49 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-16">
-            {/* Echo Starter */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+            {/* Echo - $29 */}
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-8 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="mb-6">
                   <div className="w-14 h-14 bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                    <span className="text-3xl">🚀</span>
+                    <span className="text-3xl">🎬</span>
                   </div>
-                  <h3 className="text-3xl font-extrabold text-[#1C1C1E] mb-3">Echo Starter</h3>
-                  <p className="text-sm font-light text-stone-600 mb-6 leading-relaxed">Perfect for trying Echo with 1-2 videos per week</p>
-                  <div className="mb-6">
+                  <h3 className="text-3xl font-extrabold text-[#1C1C1E] mb-3">Echo</h3>
+                  <p className="text-sm font-light text-stone-600 mb-6 leading-relaxed">Turn raw videos into viral clips + voice-matched content</p>
+                  <div className="mb-4">
                     <div className="flex items-baseline gap-2">
                       <span className="text-5xl font-extrabold bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparent">
-                        ${billingPeriod === 'monthly' ? '19' : '190'}
+                        ${billingPeriod === 'monthly' ? '29' : '290'}
                       </span>
                       <span className="text-base font-light text-stone-500">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
                       <div className="mt-2 inline-block bg-gradient-to-r from-[#00D4FF]/10 to-[#0099CC]/10 border border-[#00D4FF]/30 rounded-lg px-3 py-1">
-                        <p className="text-xs font-semibold text-[#00D4FF]">Save $38/year 🎉</p>
+                        <p className="text-xs font-semibold text-[#00D4FF]">Save $58/year 🎉</p>
                       </div>
                     )}
                   </div>
+                  <div className="mb-6 inline-block bg-gradient-to-r from-[#FFD93D]/20 to-[#FF6B9D]/20 border border-[#FFD93D]/40 rounded-lg px-3 py-1.5">
+                    <p className="text-xs font-bold text-[#FF6B9D]">✨ 7-Day Free Trial</p>
+                  </div>
                   <Link href="/auth/signup" className="relative w-full px-6 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-2xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden group/btn block text-center">
-                    <span className="relative z-10">Start Free 🎯</span>
+                    <span className="relative z-10">Start Free Trial 🎯</span>
                   </Link>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-4 pt-6 border-t-2 border-stone-200">
-                    {['150 minutes of content per month', '10+ content formats', 'Echo learns your voice', 'Watch Echo work in real-time', 'Download as ZIP or copy individual posts'].map((feature, idx) => (
+                    {[
+                      '100 video minutes/month',
+                      'Up to 5 viral clips per video',
+                      'AI identifies best moments',
+                      'All 8 content platforms',
+                      '5 caption styles',
+                      'Voice-matched written content',
+                      '1080p export quality',
+                      'Monitor 3 creators'
+                    ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0099CC] flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-4 h-4 text-white" />
@@ -749,86 +761,58 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Echo Creator - Popular */}
+            {/* Echo Pro - $59 - Popular */}
             <div className="relative md:-mt-8 group">
               <div className="absolute -inset-1 bg-gradient-to-r from-[#FFD93D] via-[#FF6B9D] to-[#B794F6] rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 animate-pulse transition-opacity duration-500" />
               <div className="relative bg-gradient-to-br from-[#00D4FF] via-[#0099CC] to-[#00D4FF] rounded-3xl p-8 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(0,212,255,0.5)] hover:-translate-y-2 transition-all duration-300">
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FFD93D] to-[#FF6B9D] text-white text-xs font-extrabold px-6 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
-                  <span className="text-base">⭐</span> MOST POPULAR
+                  <span className="text-base">⭐</span> BEST VALUE
                 </div>
                 <div className="mb-6 mt-4">
                   <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                     <span className="text-3xl">💎</span>
                   </div>
-                  <h3 className="text-3xl font-extrabold text-white mb-3">Echo Creator</h3>
-                  <p className="text-sm font-light text-white/90 mb-6 leading-relaxed">Your personal content team. For serious creators.</p>
-                  <div className="mb-6">
+                  <h3 className="text-3xl font-extrabold text-white mb-3">Echo Pro</h3>
+                  <p className="text-sm font-light text-white/90 mb-6 leading-relaxed">Maximum clips, 4K quality, unlimited styles. For serious creators.</p>
+                  <div className="mb-4">
                     <div className="flex items-baseline gap-2">
                       <span className="text-5xl font-extrabold text-white drop-shadow-lg">
-                        ${billingPeriod === 'monthly' ? '49' : '490'}
+                        ${billingPeriod === 'monthly' ? '59' : '590'}
                       </span>
                       <span className="text-base font-light text-white/80">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
                       <div className="mt-2 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-1">
-                        <p className="text-xs font-semibold text-white">Save $98/year 🎉</p>
+                        <p className="text-xs font-semibold text-white">Save $118/year 🎉</p>
                       </div>
                     )}
                   </div>
+                  <div className="mb-6 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-1.5">
+                    <p className="text-xs font-bold text-white">✨ 7-Day Free Trial</p>
+                  </div>
                   <Link href="/auth/signup" className="relative w-full px-6 py-4 bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] text-white rounded-2xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden group/btn border-2 border-white/20 block text-center">
-                    <span className="relative z-10">Get Echo Creator 🚀</span>
+                    <span className="relative z-10">Start Free Trial 🚀</span>
                   </Link>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-4 pt-6 border-t-2 border-white/30">
-                    {['400 minutes of content per month', 'Everything in Starter, plus:', 'Auto-import from Instagram & Facebook', 'Make it sound exactly like you', 'Auto-create viral clips', 'Schedule posts with content calendar', 'Version history'].map((feature, idx) => (
+                    {[
+                      '500 video minutes/month',
+                      'Up to 15 viral clips per video',
+                      'Everything in Echo, plus:',
+                      'Unlimited caption styles',
+                      'Custom caption presets',
+                      '4K export quality',
+                      'Monitor 15 creators',
+                      'Virality predictions',
+                      'Priority processing',
+                      'Priority support'
+                    ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-sm font-medium text-white">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Echo Studio */}
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#B794F6]/20 to-[#FF6B9D]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-8 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#B794F6] to-[#FF6B9D] rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                    <span className="text-3xl">🌟</span>
-                  </div>
-                  <h3 className="text-3xl font-extrabold text-[#1C1C1E] mb-3">Echo Studio</h3>
-                  <p className="text-sm font-light text-stone-600 mb-6 leading-relaxed">Scale your content empire. For teams & agencies.</p>
-                  <div className="mb-6">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent">
-                        ${billingPeriod === 'monthly' ? '99' : '990'}
-                      </span>
-                      <span className="text-base font-light text-stone-500">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
-                    </div>
-                    {billingPeriod === 'annual' && (
-                      <div className="mt-2 inline-block bg-gradient-to-r from-[#B794F6]/10 to-[#FF6B9D]/10 border border-[#B794F6]/30 rounded-lg px-3 py-1">
-                        <p className="text-xs font-semibold text-[#B794F6]">Save $198/year 🎉</p>
-                      </div>
-                    )}
-                  </div>
-                  <Link href="/auth/signup" className="relative w-full px-6 py-4 bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] text-white rounded-2xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden group/btn block text-center">
-                    <span className="relative z-10">Go Studio 💪</span>
-                  </Link>
-                </div>
-                <div className="flex-1">
-                  <div className="space-y-4 pt-6 border-t-2 border-stone-200">
-                    {['1,000 minutes of content per month', 'Everything in Creator, plus:', 'Batch processing (10 videos → 100 posts)', 'Multi-brand voice profiles', 'Recreate any post until perfect', 'Priority processing', 'Priority support'].map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#B794F6] to-[#FF6B9D] flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-sm font-medium text-stone-700">{feature}</span>
                       </div>
                     ))}
                   </div>

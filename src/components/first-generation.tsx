@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { InputType, Platform, BackgroundConfig, PresetBackground } from '@/types';
-import { api, ContentHistoryEntry } from '@/lib/api-client';
+import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob } from '@/lib/api-client';
 
 // Carousel background options for the dropdown
 type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
@@ -33,6 +33,12 @@ interface FirstGenerationProps {
     contentId: string,
     platforms: Platform[]
   ) => void;
+  onVideoProcessing?: (data: {
+    upload: VideoUpload;
+    clips: VideoClip[];
+    contentKit: ContentKit | null;
+    job?: ClipJob;
+  }) => void;
   generating: boolean;
 }
 
@@ -51,6 +57,7 @@ type ExtendedInputType = InputType | 'repurpose' | 'url';
 export function FirstGeneration({
   onGenerate,
   onRepurpose,
+  onVideoProcessing,
   generating,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
@@ -58,6 +65,7 @@ export function FirstGeneration({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,6 +83,12 @@ export function FirstGeneration({
   const [videoUrl, setVideoUrl] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
   const [processingUrl, setProcessingUrl] = useState(false);
+
+  // Video processing state (Clip Finder)
+  const [videoProcessing, setVideoProcessing] = useState(false);
+  const [videoProcessingStatus, setVideoProcessingStatus] = useState<string | null>(null);
+  const [videoProcessingProgress, setVideoProcessingProgress] = useState(0);
+  const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load pending content when repurpose mode is selected
   useEffect(() => {
@@ -95,6 +109,146 @@ export function FirstGeneration({
     } finally {
       setLoadingContent(false);
     }
+  };
+
+  // Cleanup polling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (processingIntervalRef.current) {
+        clearInterval(processingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Process video through Clip Finder pipeline
+  const processVideoWithClipFinder = async (
+    file?: File,
+    sourceType?: 'upload' | 'youtube' | 'instagram',
+    sourceUrl?: string
+  ) => {
+    try {
+      setVideoProcessing(true);
+      setVideoProcessingStatus('Uploading video...');
+      setVideoProcessingProgress(0);
+      setUploadError(null);
+
+      // Step 1: Upload the video
+      const uploadResponse = await api.clips.upload(
+        {
+          file,
+          sourceType: sourceType || 'upload',
+          sourceUrl,
+        },
+        (progress) => {
+          setUploadProgress(progress);
+          setVideoProcessingProgress(Math.min(progress * 0.3, 30)); // Upload is 30% of progress
+        }
+      );
+
+      if (!uploadResponse.success || !uploadResponse.data?.upload) {
+        throw new Error('Failed to upload video');
+      }
+
+      const upload = uploadResponse.data.upload;
+      setVideoProcessingStatus('Starting clip extraction...');
+      setVideoProcessingProgress(35);
+
+      // Step 2: Start processing
+      const processResponse = await api.clips.process(upload.id, {
+        generateContent: true, // Generate content kit as part of processing
+      });
+
+      if (!processResponse.success || !processResponse.data?.jobId) {
+        throw new Error('Failed to start processing');
+      }
+
+      const jobId = processResponse.data.jobId;
+      setVideoProcessingStatus('Transcribing audio...');
+      setVideoProcessingProgress(40);
+
+      // Step 3: Poll for completion
+      await pollProcessingStatus(upload.id, jobId);
+
+    } catch (err) {
+      console.error('Video processing error:', err);
+      setUploadError(err instanceof Error ? err.message : 'Video processing failed');
+      setVideoProcessing(false);
+      setVideoProcessingStatus(null);
+    }
+  };
+
+  // Poll for processing status
+  const pollProcessingStatus = async (uploadId: string, jobId: string) => {
+    const statusMessages: Record<string, string> = {
+      pending: 'Waiting to process...',
+      uploading: 'Uploading video...',
+      transcribing: 'Transcribing audio...',
+      analyzing: 'Analyzing content for clips...',
+      extracting: 'Extracting best clips...',
+      captioning: 'Adding captions...',
+      generating: 'Generating content kit...',
+      completed: 'Processing complete!',
+      failed: 'Processing failed',
+    };
+
+    const progressByStatus: Record<string, number> = {
+      pending: 35,
+      uploading: 40,
+      transcribing: 50,
+      analyzing: 60,
+      extracting: 70,
+      captioning: 80,
+      generating: 90,
+      completed: 100,
+    };
+
+    return new Promise<void>((resolve, reject) => {
+      const checkStatus = async () => {
+        try {
+          const response = await api.clips.get(uploadId);
+
+          if (response.success && response.data) {
+            const { upload, clips, contentKit } = response.data;
+            const status = upload.status;
+
+            setVideoProcessingStatus(statusMessages[status] || `Processing: ${status}`);
+            setVideoProcessingProgress(progressByStatus[status] || 50);
+
+            if (status === 'completed') {
+              if (processingIntervalRef.current) {
+                clearInterval(processingIntervalRef.current);
+              }
+              setVideoProcessing(false);
+              setVideoProcessingStatus(null);
+
+              // Notify parent with results
+              if (onVideoProcessing) {
+                onVideoProcessing({
+                  upload,
+                  clips,
+                  contentKit,
+                });
+              }
+              resolve();
+            } else if (status === 'failed') {
+              if (processingIntervalRef.current) {
+                clearInterval(processingIntervalRef.current);
+              }
+              setVideoProcessing(false);
+              reject(new Error(upload.statusMessage || 'Processing failed'));
+            }
+          }
+        } catch (err) {
+          console.error('Status check error:', err);
+          // Continue polling on transient errors
+        }
+      };
+
+      // Start polling every 3 seconds
+      processingIntervalRef.current = setInterval(checkStatus, 3000);
+      // Initial check
+      checkStatus();
+    });
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +304,7 @@ export function FirstGeneration({
       return;
     }
 
-    // For URL input - process the video URL directly
+    // For URL input - process through Clip Finder
     if (inputType === 'url') {
       const url = videoUrl.trim();
       if (!url || !isValidUrl(url)) {
@@ -158,24 +312,16 @@ export function FirstGeneration({
         return;
       }
 
+      // Determine source type from URL
+      const isYouTube = /youtube\.com|youtu\.be/.test(url);
+      const sourceType = isYouTube ? 'youtube' : 'instagram';
+
       try {
-        setProcessingUrl(true);
-        setUrlError(null);
-
-        // Call the new URL-based generation endpoint
-        const response = await api.generation.generateFromUrl(url, ALL_PLATFORMS, bgConfig);
-
-        if (response.success) {
-          // The parent component will handle the results
-          // For now we just notify success - results come through the normal flow
-          setVideoUrl('');
-        } else {
-          throw new Error(response.error || 'Failed to process video');
-        }
+        await processVideoWithClipFinder(undefined, sourceType, url);
+        setVideoUrl('');
+        clearFile();
       } catch (err) {
         setUrlError(err instanceof Error ? err.message : 'Failed to process video URL');
-      } finally {
-        setProcessingUrl(false);
       }
       return;
     }
@@ -187,28 +333,47 @@ export function FirstGeneration({
       return;
     }
 
-    // For audio/video input - need to upload file first
-    if (!selectedFile) {
-      setUploadError('Please select a file first');
+    // For video input - process through Clip Finder
+    if (inputType === 'video') {
+      if (!selectedFile) {
+        setUploadError('Please select a video file first');
+        return;
+      }
+
+      try {
+        await processVideoWithClipFinder(selectedFile, 'upload');
+        clearFile();
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : 'Video processing failed');
+      }
       return;
     }
 
-    try {
-      setUploading(true);
-      setUploadError(null);
-
-      // Upload file (using a temporary KB for media processing)
-      const uploadResponse = await api.files.upload('media-temp', selectedFile);
-
-      if (uploadResponse.success && uploadResponse.data?.filePath) {
-        onGenerate(uploadResponse.data.filePath, inputType as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
-      } else {
-        throw new Error('Upload failed');
+    // For audio input - use original flow (just generates content, no clip extraction)
+    if (inputType === 'audio') {
+      if (!selectedFile) {
+        setUploadError('Please select an audio file first');
+        return;
       }
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Failed to upload file');
-    } finally {
-      setUploading(false);
+
+      try {
+        setUploading(true);
+        setUploadError(null);
+
+        // Upload file (using a temporary KB for media processing)
+        const uploadResponse = await api.files.upload('media-temp', selectedFile);
+
+        if (uploadResponse.success && uploadResponse.data?.filePath) {
+          onGenerate(uploadResponse.data.filePath, 'audio' as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
+        } else {
+          throw new Error('Upload failed');
+        }
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : 'Failed to upload file');
+      } finally {
+        setUploading(false);
+      }
+      return;
     }
   };
 
@@ -292,17 +457,12 @@ export function FirstGeneration({
           🎥 Video
         </button>
         <button
-          onClick={() => { setInputType('url'); clearFile(); setVideoUrl(''); setUrlError(null); }}
-          className={`
-            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
-            ${
-              inputType === 'url'
-                ? 'bg-accent text-white'
-                : 'text-text-secondary hover:text-text-primary'
-            }
-          `}
+          disabled
+          className="flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all text-text-secondary/50 cursor-not-allowed relative"
+          title="Coming Soon"
         >
           🔗 URL
+          <span className="absolute -top-1 -right-1 text-[10px] bg-accent/20 text-accent px-1 rounded">Soon</span>
         </button>
         <button
           onClick={() => { setInputType('repurpose'); clearFile(); }}
@@ -385,16 +545,28 @@ export function FirstGeneration({
             onChange={handleFileSelect}
             className="hidden"
           />
-          {!selectedFile ? (
+          {videoProcessing ? (
+            <>
+              <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-body font-medium mb-2">{videoProcessingStatus}</p>
+              <div className="w-full max-w-xs mx-auto bg-bg-secondary rounded-full h-2 mb-2">
+                <div
+                  className="bg-accent h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${videoProcessingProgress}%` }}
+                />
+              </div>
+              <p className="text-small text-text-secondary">{videoProcessingProgress}% complete</p>
+            </>
+          ) : !selectedFile ? (
             <>
               <div className="text-5xl mb-4">🎥</div>
               <p className="text-body text-text-secondary mb-4">
-                Upload a video file to extract content from
+                Upload a video to extract clips and generate a content kit
               </p>
               <button
                 onClick={() => videoInputRef.current?.click()}
                 className="btn-secondary px-6 py-2"
-                disabled={generating || uploading}
+                disabled={generating || uploading || videoProcessing}
               >
                 Select Video File
               </button>
@@ -423,33 +595,49 @@ export function FirstGeneration({
 
       {inputType === 'url' && (
         <div className="border-2 border-border rounded-lg p-6">
-          <div className="text-center mb-6">
-            <div className="text-5xl mb-3">🔗</div>
-            <p className="text-body text-text-secondary">
-              Paste a YouTube or Instagram video URL
-            </p>
-          </div>
-          <div className="space-y-4">
-            <input
-              type="url"
-              value={videoUrl}
-              onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
-              placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..."
-              className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors text-body bg-background text-foreground"
-              disabled={generating || processingUrl}
-            />
-            {urlError && (
-              <p className="text-small text-error">{urlError}</p>
-            )}
-            <div className="flex items-center gap-4 text-small text-text-secondary">
-              <span className="flex items-center gap-1">
-                <span className="text-red-500">▶️</span> YouTube
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="text-pink-500">📷</span> Instagram Reels
-              </span>
+          {videoProcessing ? (
+            <div className="text-center py-4">
+              <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-body font-medium mb-2">{videoProcessingStatus}</p>
+              <div className="w-full max-w-xs mx-auto bg-bg-secondary rounded-full h-2 mb-2">
+                <div
+                  className="bg-accent h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${videoProcessingProgress}%` }}
+                />
+              </div>
+              <p className="text-small text-text-secondary">{videoProcessingProgress}% complete</p>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-3">🔗</div>
+                <p className="text-body text-text-secondary">
+                  Paste a YouTube or Instagram video URL to extract clips
+                </p>
+              </div>
+              <div className="space-y-4">
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
+                  placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..."
+                  className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors text-body bg-background text-foreground"
+                  disabled={generating || videoProcessing}
+                />
+                {urlError && (
+                  <p className="text-small text-error">{urlError}</p>
+                )}
+                <div className="flex items-center gap-4 text-small text-text-secondary">
+                  <span className="flex items-center gap-1">
+                    <span className="text-red-500">▶️</span> YouTube
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="text-pink-500">📷</span> Instagram Reels
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -624,7 +812,7 @@ export function FirstGeneration({
       {/* Generate Button */}
       <button
         onClick={handleGenerate}
-        disabled={generating || uploading || processingUrl || !isReady}
+        disabled={generating || uploading || videoProcessing || !isReady}
         className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {uploading ? (
@@ -632,10 +820,10 @@ export function FirstGeneration({
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             Uploading...
           </span>
-        ) : processingUrl ? (
+        ) : videoProcessing ? (
           <span className="flex items-center justify-center gap-2">
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Extracting & Generating...
+            {videoProcessingStatus || 'Processing video...'}
           </span>
         ) : generating ? (
           <span className="flex items-center justify-center gap-2">
@@ -645,7 +833,9 @@ export function FirstGeneration({
         ) : inputType === 'repurpose' ? (
           'Repurpose Content'
         ) : inputType === 'url' ? (
-          'Generate from Video'
+          'Extract Clips & Generate Content'
+        ) : inputType === 'video' ? (
+          'Extract Clips & Generate Content'
         ) : (
           'Generate Content'
         )}
@@ -654,7 +844,9 @@ export function FirstGeneration({
       {/* Info */}
       <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
         <p className="text-small text-accent text-center">
-          ✨ This usually takes 30-60 seconds
+          {(inputType === 'video' || inputType === 'url')
+            ? '🎬 Video processing may take 2-5 minutes depending on length'
+            : '✨ This usually takes 30-60 seconds'}
         </p>
       </div>
     </div>
