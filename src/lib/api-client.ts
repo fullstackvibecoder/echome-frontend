@@ -28,8 +28,9 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000, // 30 seconds default
 });
 
-// Extended timeout for long-running operations like content generation
-const GENERATION_TIMEOUT = 90000; // 90 seconds for AI generation
+// Extended timeouts for long-running operations
+const GENERATION_TIMEOUT = 180000; // 3 minutes for AI generation (includes potential transcript extraction)
+const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (download + Whisper)
 
 // Request interceptor - add JWT token
 apiClient.interceptors.request.use(
@@ -805,7 +806,9 @@ export const api = {
 
     /** Extract transcript for content */
     extractTranscript: async (contentId: string) => {
-      const response = await apiClient.post(`/creators/content/${contentId}/extract`);
+      const response = await apiClient.post(`/creators/content/${contentId}/extract`, {}, {
+        timeout: TRANSCRIPTION_TIMEOUT, // Transcription can take 1-3 minutes
+      });
       return response.data as {
         success: boolean;
         content: ContentHistoryEntry;
