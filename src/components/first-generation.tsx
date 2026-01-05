@@ -8,15 +8,9 @@ import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob }
 type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
 
 const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] = [
-  { value: 'dark-minimal', label: 'Dark Minimal' },
-  { value: 'ocean-blue', label: 'Ocean Blue' },
-  { value: 'sunset-warm', label: 'Sunset Warm' },
-  { value: 'purple-glow', label: 'Purple Glow' },
-  { value: 'forest-green', label: 'Forest Green' },
-  { value: 'midnight', label: 'Midnight' },
-  { value: 'rose-gold', label: 'Rose Gold' },
-  { value: 'neon-cyber', label: 'Neon Cyber' },
-  { value: 'earth-tones', label: 'Earth Tones' },
+  { value: 'tweet-style', label: 'Tweet Style' },
+  { value: 'simple-black', label: 'Simple Black' },
+  { value: 'simple-white', label: 'Simple White' },
   { value: 'ai', label: 'AI Generated' },
   { value: 'upload', label: 'Upload Custom' },
 ];
@@ -70,7 +64,7 @@ export function FirstGeneration({
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Carousel background state
-  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('dark-minimal');
+  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
 

@@ -374,16 +374,9 @@ export interface CarouselRequest {
 export type BackgroundType = 'solid' | 'gradient' | 'preset' | 'image' | 'ai';
 
 export type PresetBackground =
-  | 'dark-minimal'
-  | 'light-clean'
-  | 'purple-glow'
-  | 'ocean-blue'
-  | 'sunset-warm'
-  | 'forest-green'
-  | 'midnight'
-  | 'rose-gold'
-  | 'neon-cyber'
-  | 'earth-tones';
+  | 'tweet-style'      // Twitter/X post box style
+  | 'simple-black'     // Pure black background
+  | 'simple-white';    // Pure white background
 
 export interface BackgroundConfig {
   type: BackgroundType;

@@ -17,20 +17,14 @@ const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
   { id: 'video-script', label: 'Video Script', icon: '🎬' },
 ];
 
-// Carousel background options
+// Carousel background options - Simplified
 type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
-const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] = [
-  { value: 'dark-minimal', label: 'Dark Minimal' },
-  { value: 'ocean-blue', label: 'Ocean Blue' },
-  { value: 'sunset-warm', label: 'Sunset Warm' },
-  { value: 'purple-glow', label: 'Purple Glow' },
-  { value: 'forest-green', label: 'Forest Green' },
-  { value: 'midnight', label: 'Midnight' },
-  { value: 'rose-gold', label: 'Rose Gold' },
-  { value: 'neon-cyber', label: 'Neon Cyber' },
-  { value: 'earth-tones', label: 'Earth Tones' },
-  { value: 'ai', label: 'AI Generated' },
-  { value: 'upload', label: 'Upload Custom' },
+const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string; description: string }[] = [
+  { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
+  { value: 'simple-black', label: 'Simple Black', description: 'Clean black background' },
+  { value: 'simple-white', label: 'Simple White', description: 'Clean white background' },
+  { value: 'ai', label: 'AI Generated', description: 'Contextual image from content' },
+  { value: 'upload', label: 'Upload Custom', description: 'Use your own image' },
 ];
 
 // Extended content with creator info
@@ -64,7 +58,7 @@ export default function FollowingPage() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
-  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('dark-minimal');
+  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
   const [repurposing, setRepurposing] = useState(false);
@@ -240,7 +234,7 @@ export default function FollowingPage() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
-    setCarouselBgOption('dark-minimal');
+    setCarouselBgOption('tweet-style');
     setCarouselBgFile(null);
   };
 

@@ -30,17 +30,10 @@ export interface BackgroundSelectorProps {
 
 type TabType = 'presets' | 'upload' | 'ai';
 
-const PRESET_PREVIEWS: Record<PresetBackground, { gradient: string; label: string }> = {
-  'dark-minimal': { gradient: 'from-zinc-900 to-zinc-800', label: 'Dark Minimal' },
-  'light-clean': { gradient: 'from-white to-gray-100', label: 'Light Clean' },
-  'purple-glow': { gradient: 'from-purple-950 to-purple-800', label: 'Purple Glow' },
-  'ocean-blue': { gradient: 'from-blue-950 to-blue-700', label: 'Ocean Blue' },
-  'sunset-warm': { gradient: 'from-purple-900 via-pink-800 to-orange-600', label: 'Sunset Warm' },
-  'forest-green': { gradient: 'from-green-950 to-green-800', label: 'Forest Green' },
-  'midnight': { gradient: 'from-slate-950 to-indigo-950', label: 'Midnight' },
-  'rose-gold': { gradient: 'from-rose-950 to-pink-900', label: 'Rose Gold' },
-  'neon-cyber': { gradient: 'from-black via-purple-950 to-cyan-950', label: 'Neon Cyber' },
-  'earth-tones': { gradient: 'from-amber-950 to-yellow-900', label: 'Earth Tones' },
+const PRESET_PREVIEWS: Record<PresetBackground, { gradient: string; label: string; description: string }> = {
+  'tweet-style': { gradient: 'from-black to-zinc-900', label: 'Tweet Style', description: 'Twitter/X post card' },
+  'simple-black': { gradient: 'from-black to-black', label: 'Simple Black', description: 'Clean black' },
+  'simple-white': { gradient: 'from-white to-gray-50', label: 'Simple White', description: 'Clean white' },
 };
 
 export function BackgroundSelector({
