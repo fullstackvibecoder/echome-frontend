@@ -95,6 +95,8 @@ function getSourceIcon(sourceType: ContentSourceType): string {
     mbox_import: '📥',
     youtube_import: '🎬',
     instagram_import: '📸',
+    generation: '✨',
+    'clip-finder': '🎥',
   };
   return icons[sourceType] || '📄';
 }

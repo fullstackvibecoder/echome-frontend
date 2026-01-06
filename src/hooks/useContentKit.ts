@@ -197,12 +197,16 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
               clipCount: data.clips?.length || 0,
               platformCount: data.content?.length || 0,
               carouselSlideCount: data.carousel?.slides?.length || 0,
+              chunkCount: 0,
               thumbnailUrl: data.clips?.[0]?.thumbnailUrl,
               platforms: data.request.platforms || [],
               voiceScore: data.request.voiceScore,
               qualityScore: data.request.qualityScore,
               status: data.request.status,
               createdAt: typeof data.request.createdAt === 'string'
+                ? data.request.createdAt
+                : data.request.createdAt.toString(),
+              updatedAt: typeof data.request.createdAt === 'string'
                 ? data.request.createdAt
                 : data.request.createdAt.toString(),
               inputType: data.request.inputType,

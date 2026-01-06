@@ -35,6 +35,8 @@ function getSourceIcon(sourceType: ContentSourceType): string {
     mbox_import: '📥',
     youtube_import: '🎬',
     instagram_import: '📸',
+    generation: '✨',
+    'clip-finder': '🎥',
   };
   return icons[sourceType] || '📄';
 }
@@ -52,6 +54,8 @@ function getSourceColor(sourceType: ContentSourceType): string {
     mbox_import: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     youtube_import: 'bg-red-500/10 text-red-400 border-red-500/20',
     instagram_import: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20',
+    generation: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    'clip-finder': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
   };
   return colors[sourceType] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
 }
@@ -64,6 +68,7 @@ export function ContentItemCard({ item, onDelete }: ContentItemCardProps) {
     completed: 'text-success',
     processing: 'text-warning',
     uploading: 'text-text-secondary',
+    pending: 'text-text-secondary',
     failed: 'text-error',
   }[item.status];
 
@@ -71,6 +76,7 @@ export function ContentItemCard({ item, onDelete }: ContentItemCardProps) {
     completed: 'bg-success/10 border-success/20',
     processing: 'bg-warning/10 border-warning/20',
     uploading: 'bg-bg-secondary border-border',
+    pending: 'bg-bg-secondary border-border',
     failed: 'bg-error/10 border-error/20',
   }[item.status];
 
@@ -78,6 +84,7 @@ export function ContentItemCard({ item, onDelete }: ContentItemCardProps) {
     completed: 'Trained',
     processing: 'Processing',
     uploading: 'Uploading',
+    pending: 'Pending',
     failed: 'Failed',
   }[item.status];
 
@@ -139,14 +146,14 @@ export function ContentItemCard({ item, onDelete }: ContentItemCardProps) {
         <div className="mb-3 p-2 bg-bg-secondary rounded-lg">
           {item.metadata.contentCount !== undefined && (
             <p className="text-xs text-text-secondary">
-              {item.metadata.contentCount} items imported
+              {String(item.metadata.contentCount)} items imported
             </p>
           )}
-          {item.metadata.sourceUrl && (
+          {item.metadata.sourceUrl ? (
             <p className="text-xs text-text-secondary truncate" title={String(item.metadata.sourceUrl)}>
               {String(item.metadata.sourceUrl)}
             </p>
-          )}
+          ) : null}
         </div>
       )}
 

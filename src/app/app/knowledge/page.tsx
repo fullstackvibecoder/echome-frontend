@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { KBStats } from '@/components/kb-stats';
-import { KBCard } from '@/components/kb-card';
+import { ContentItemCard } from '@/components/content-item-card';
 import { UploadZone } from '@/components/upload-zone';
 import { FileList } from '@/components/file-list';
 import { PasteContentModal } from '@/components/paste-content-modal';
@@ -13,13 +13,21 @@ import { SocialImportModal } from '@/components/social-import-modal';
 import { api } from '@/lib/api-client';
 
 export default function KnowledgePage() {
-  const { kbs, files, loading, selectedKb, deleteFile, refresh } = useKnowledgeBase();
+  const {
+    kbs,
+    contentItems,
+    contentStats,
+    loading,
+    selectedKb,
+    deleteContent,
+    refresh,
+  } = useKnowledgeBase();
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
-  const [showMboxUpload, setShowMboxUpload] = useState(false);
+  const [showMboxInstructions, setShowMboxInstructions] = useState(false);
   const [mboxUploading, setMboxUploading] = useState(false);
   const [mboxProgress, setMboxProgress] = useState(0);
   const [mboxResult, setMboxResult] = useState<{ emailsIngested: number; chunksCreated: number } | null>(null);
@@ -28,9 +36,9 @@ export default function KnowledgePage() {
 
   const currentKb = kbs.find((kb) => kb.id === selectedKb);
 
-  const handleDelete = async (fileId: string) => {
-    if (confirm('Are you sure you want to delete this file? This cannot be undone.')) {
-      await deleteFile(fileId);
+  const handleDelete = async (contentId: string) => {
+    if (confirm('Are you sure you want to delete this content? This cannot be undone.')) {
+      await deleteContent(contentId);
     }
   };
 
@@ -40,8 +48,9 @@ export default function KnowledgePage() {
     await refresh();
   };
 
-  const filteredFiles = files.filter((file) =>
-    file.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredContent = contentItems.filter((item) =>
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleMboxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +60,7 @@ export default function KnowledgePage() {
     setMboxUploading(true);
     setMboxProgress(0);
     setMboxResult(null);
+    setShowMboxInstructions(false);
 
     try {
       const result = await api.kbContent.uploadMbox(
@@ -92,9 +102,9 @@ export default function KnowledgePage() {
         <div>
           <h1 className="text-display text-4xl mb-2">Your Echo</h1>
           <p className="text-body text-text-secondary">
-            {files.length > 0
-              ? `Trained on ${files.length} file${files.length !== 1 ? 's' : ''}`
-              : 'Upload files to train your voice'}
+            {contentStats && contentStats.totalItems > 0
+              ? `${contentStats.totalItems} content item${contentStats.totalItems !== 1 ? 's' : ''} with ${contentStats.totalChunks} training chunks`
+              : 'Train your voice by adding your writing'}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap justify-end">
@@ -115,7 +125,7 @@ export default function KnowledgePage() {
             <span className="hidden sm:inline">Social</span>
           </button>
           <button
-            onClick={() => mboxInputRef.current?.click()}
+            onClick={() => setShowMboxInstructions(true)}
             disabled={mboxUploading}
             className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2 disabled:opacity-50"
             title="Import email archive"
@@ -194,18 +204,20 @@ export default function KnowledgePage() {
       )}
 
       {/* Stats */}
-      <KBStats kb={currentKb} totalFiles={files.length} />
+      <KBStats stats={contentStats} kbName={currentKb?.name} />
 
       {/* Search */}
-      <div className="mb-6">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search files..."
-          className="w-full max-w-md px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
-        />
-      </div>
+      {contentItems.length > 0 && (
+        <div className="mb-6">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search content..."
+            className="w-full max-w-md px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+          />
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (
@@ -214,40 +226,97 @@ export default function KnowledgePage() {
         </div>
       )}
 
-      {/* File Grid */}
-      {!loading && filteredFiles.length > 0 && (
+      {/* Content Grid */}
+      {!loading && filteredContent.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFiles.map((file) => (
-            <KBCard
-              key={file.id}
-              file={file}
-              onDelete={() => handleDelete(file.id)}
+          {filteredContent.map((item) => (
+            <ContentItemCard
+              key={item.id}
+              item={item}
+              onDelete={() => handleDelete(item.id)}
             />
           ))}
         </div>
       )}
 
-      {/* Empty State */}
-      {!loading && filteredFiles.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-subheading text-2xl mb-2">No content yet</h3>
-          <p className="text-body text-text-secondary mb-6">
-            Add your writing to train your Echo
-          </p>
-          <div className="flex justify-center gap-3">
-            <button
-              onClick={() => setShowPasteModal(true)}
-              className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
-            >
-              Paste Content
-            </button>
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="btn-primary"
-            >
-              Upload Files
-            </button>
+      {/* Empty State with Instructions */}
+      {!loading && contentItems.length === 0 && (
+        <div className="space-y-8">
+          {/* Hero empty state */}
+          <div className="text-center py-12 card bg-gradient-to-br from-accent/5 to-transparent border-accent/20">
+            <div className="text-6xl mb-4">🎯</div>
+            <h3 className="text-subheading text-2xl mb-2">Train Your Echo</h3>
+            <p className="text-body text-text-secondary mb-2 max-w-xl mx-auto">
+              Your Echo learns from YOUR writing style. The more authentic content you add, the more accurately it can generate content that sounds like you.
+            </p>
+            <p className="text-sm text-text-secondary mb-6 max-w-xl mx-auto">
+              Best sources: emails you&apos;ve written, LinkedIn posts, blog articles, social captions
+            </p>
+            <div className="flex justify-center gap-3 flex-wrap">
+              <button
+                onClick={() => setShowPasteModal(true)}
+                className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
+              >
+                ✍️ Paste Content
+              </button>
+              <button
+                onClick={() => setShowSocialModal(true)}
+                className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
+              >
+                📱 Import Social
+              </button>
+              <button
+                onClick={() => setShowMboxInstructions(true)}
+                className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
+              >
+                📧 Import Emails
+              </button>
+            </div>
+          </div>
+
+          {/* Quick start cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="card p-5">
+              <div className="text-3xl mb-3">✍️</div>
+              <h4 className="font-semibold mb-2">Paste Text</h4>
+              <p className="text-sm text-text-secondary mb-3">
+                Copy-paste emails, LinkedIn posts, or articles you&apos;ve written. Works great for quick additions.
+              </p>
+              <button
+                onClick={() => setShowPasteModal(true)}
+                className="text-sm text-accent hover:underline"
+              >
+                Add content →
+              </button>
+            </div>
+
+            <div className="card p-5">
+              <div className="text-3xl mb-3">🎤</div>
+              <h4 className="font-semibold mb-2">Voice Recording</h4>
+              <p className="text-sm text-text-secondary mb-3">
+                Record yourself speaking naturally. We&apos;ll transcribe it and learn your conversational style.
+              </p>
+              <button
+                onClick={() => setShowVoiceModal(true)}
+                className="text-sm text-accent hover:underline"
+              >
+                Record now →
+              </button>
+            </div>
+
+            <div className="card p-5">
+              <div className="text-3xl mb-3">🎬</div>
+              <h4 className="font-semibold mb-2">YouTube Import</h4>
+              <p className="text-sm text-text-secondary mb-3">
+                Import transcripts from your YouTube videos or your entire channel.
+              </p>
+              <button
+                onClick={() => setShowSocialModal(true)}
+                className="text-sm text-accent hover:underline"
+              >
+                Import videos →
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -293,6 +362,98 @@ export default function KnowledgePage() {
                 >
                   {uploading ? 'Uploading...' : 'Upload'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MBOX Instructions Modal */}
+      {showMboxInstructions && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowMboxInstructions(false)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-subheading text-2xl">Import Email Archive</h2>
+                <button
+                  onClick={() => setShowMboxInstructions(false)}
+                  className="text-text-secondary hover:text-text-primary text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <p className="text-body text-text-secondary">
+                  Import your sent emails to help Echo learn your writing style. We only extract YOUR sent emails from the archive.
+                </p>
+
+                {/* Gmail instructions */}
+                <div className="p-4 bg-bg-secondary rounded-lg">
+                  <h3 className="font-semibold flex items-center gap-2 mb-2">
+                    <span>📧</span> Gmail (Google Takeout)
+                  </h3>
+                  <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
+                    <li>Go to <a href="https://takeout.google.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">takeout.google.com</a></li>
+                    <li>Click &quot;Deselect all&quot;, then scroll down and select only &quot;Mail&quot;</li>
+                    <li>Click &quot;All Mail data included&quot; and select only &quot;Sent&quot; (optional but recommended)</li>
+                    <li>Click &quot;Next step&quot; and create export</li>
+                    <li>Download and extract the ZIP file</li>
+                    <li>Upload the .mbox file from the Mail folder</li>
+                  </ol>
+                </div>
+
+                {/* Outlook instructions */}
+                <div className="p-4 bg-bg-secondary rounded-lg">
+                  <h3 className="font-semibold flex items-center gap-2 mb-2">
+                    <span>📬</span> Outlook
+                  </h3>
+                  <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
+                    <li>Open Outlook and go to File → Open & Export → Import/Export</li>
+                    <li>Select &quot;Export to a file&quot; → Next</li>
+                    <li>Choose &quot;Outlook Data File (.pst)&quot;</li>
+                    <li>Select your Sent folder and export</li>
+                    <li>Convert PST to MBOX using a free converter tool</li>
+                  </ol>
+                </div>
+
+                {/* Apple Mail instructions */}
+                <div className="p-4 bg-bg-secondary rounded-lg">
+                  <h3 className="font-semibold flex items-center gap-2 mb-2">
+                    <span>🍎</span> Apple Mail
+                  </h3>
+                  <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
+                    <li>Open Mail and select your &quot;Sent&quot; mailbox</li>
+                    <li>Go to Mailbox → Export Mailbox...</li>
+                    <li>Choose a location to save the .mbox file</li>
+                    <li>Upload the exported file</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    <strong>Privacy note:</strong> We filter to only extract emails YOU sent. Received emails are ignored. Max file size: 500MB, up to 500 emails processed.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowMboxInstructions(false)}
+                    className="flex-1 px-4 py-3 border-2 border-border rounded-lg text-body hover:border-accent transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => mboxInputRef.current?.click()}
+                    className="flex-1 btn-primary py-3"
+                  >
+                    Select MBOX File
+                  </button>
+                </div>
               </div>
             </div>
           </div>

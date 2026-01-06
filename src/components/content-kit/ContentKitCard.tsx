@@ -19,7 +19,7 @@ interface ContentKitCardProps {
 
 export function ContentKitCard({ item, onClick, onDelete }: ContentKitCardProps) {
   const typeConfig = CONTENT_TYPE_CONFIG[item.type];
-  const isProcessing = item.status === 'processing' || item.status === 'pending';
+  const isProcessing = item.status === 'processing' || (item.status as string) === 'pending';
 
   // Check if preview text is too similar to title (avoid duplication)
   const shouldShowPreview = item.previewText &&

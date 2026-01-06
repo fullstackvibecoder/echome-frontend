@@ -134,6 +134,7 @@ export function transformGenerationRequest(
 ): UnifiedContentItem {
   const platforms = req.platforms || [];
 
+  const createdAtStr = typeof req.createdAt === 'string' ? req.createdAt : req.createdAt.toISOString();
   return {
     id: req.id,
     type: determineContentType(0, platforms.length, 0),
@@ -143,11 +144,13 @@ export function transformGenerationRequest(
     clipCount: 0,
     platformCount: platforms.length,
     carouselSlideCount: 0,
+    chunkCount: 0,
     platforms,
     voiceScore: req.voiceScore,
     qualityScore: req.qualityScore,
     status: req.status,
-    createdAt: typeof req.createdAt === 'string' ? req.createdAt : req.createdAt.toISOString(),
+    createdAt: createdAtStr,
+    updatedAt: createdAtStr,
     inputType: req.inputType,
     previewText: generatePreviewText(req.inputText),
   };
@@ -175,12 +178,14 @@ export function transformVideoUpload(
     clipCount,
     platformCount,
     carouselSlideCount: 0,
+    chunkCount: 0,
     thumbnailUrl: upload.thumbnailUrl,
     platforms,
     status: upload.status as UnifiedContentItem['status'],
     progressPercent: upload.progressPercent,
     statusMessage: upload.statusMessage,
     createdAt: upload.createdAt,
+    updatedAt: upload.createdAt,
     inputType: 'video',
     previewText: contentKit?.contentLinkedin?.slice(0, 150) ||
                  contentKit?.contentTwitter?.slice(0, 150),
@@ -219,8 +224,8 @@ export function sortItems(
         return (b.voiceScore || 0) - (a.voiceScore || 0);
       case 'status':
         // Processing first, then completed, then failed
-        const statusOrder = { processing: 0, pending: 1, completed: 2, failed: 3 };
-        return statusOrder[a.status] - statusOrder[b.status];
+        const statusOrder: Record<string, number> = { processing: 0, uploading: 0, pending: 1, completed: 2, failed: 3 };
+        return (statusOrder[a.status] ?? 2) - (statusOrder[b.status] ?? 2);
       case 'recent':
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();

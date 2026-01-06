@@ -226,12 +226,15 @@ export type ContentSourceType =
   | 'voice_recording'  // Voice recordings
   | 'mbox_import'      // MBOX email archive import
   | 'youtube_import'   // YouTube transcript import
-  | 'instagram_import'; // Instagram caption import
+  | 'instagram_import' // Instagram caption import
+  | 'generation'       // AI generation request
+  | 'clip-finder';     // Video clip finder upload
 
 /**
  * Processing status for content items
  */
 export type ContentProcessingStatus =
+  | 'pending'
   | 'uploading'
   | 'processing'
   | 'completed'
@@ -329,6 +332,18 @@ export const CONTENT_SOURCE_CONFIG: Record<ContentSourceType, {
     icon: 'instagram',
     color: 'fuchsia',
     description: 'Instagram post captions',
+  },
+  generation: {
+    label: 'Generated',
+    icon: 'sparkles',
+    color: 'cyan',
+    description: 'AI-generated content',
+  },
+  'clip-finder': {
+    label: 'Video Clip',
+    icon: 'video',
+    color: 'teal',
+    description: 'Extracted video clip',
   },
 };
 
@@ -546,7 +561,7 @@ export interface UnifiedContentItem {
   description?: string;
 
   // Source tracking
-  sourceType: 'generation' | 'clip-finder';
+  sourceType: ContentSourceType;
   generationRequestId?: string;
   videoUploadId?: string;
 
@@ -567,7 +582,7 @@ export interface UnifiedContentItem {
   viralityScore?: number;
 
   // Status
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: ContentProcessingStatus;
   progressPercent?: number;
   statusMessage?: string;
 

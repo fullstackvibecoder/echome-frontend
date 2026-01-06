@@ -80,7 +80,7 @@ export default function ContentKitDetailPage() {
   const hasClips = detail?.clips && detail.clips.length > 0;
   const hasWrittenContent = platformContent.length > 0;
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
-  const isProcessing = item?.status === 'processing' || item?.status === 'pending';
+  const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
   const typeConfig = item ? CONTENT_TYPE_CONFIG[item.type] : null;
 
   return (
