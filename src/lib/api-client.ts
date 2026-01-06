@@ -1110,11 +1110,38 @@ export const api = {
         params: { limit, offset },
         timeout: LIST_TIMEOUT,
       });
-      return response.data as {
-        success: boolean;
+
+      // Transform snake_case to camelCase for frontend consumption
+      const transformedKits = (response.data.data?.kits || []).map((kit: any) => ({
+        id: kit.id,
+        userId: kit.user_id,
+        videoUploadId: kit.video_upload_id,
+        knowledgeBaseId: kit.knowledge_base_id,
+        title: kit.title,
+        description: kit.description,
+        contentLinkedin: kit.content_linkedin,
+        contentTwitter: kit.content_twitter,
+        contentInstagram: kit.content_instagram,
+        contentBlog: kit.content_blog,
+        contentEmail: kit.content_email,
+        contentTiktok: kit.content_tiktok,
+        contentYoutube: kit.content_youtube,
+        contentVideoScript: kit.content_video_script,
+        generationRequestId: kit.generation_request_id,
+        voiceSamplesUsed: kit.voice_samples_used,
+        clipsGenerated: kit.clips_generated || 0,
+        contentGenerated: kit.content_generated || false,
+        createdAt: kit.created_at,
+        updatedAt: kit.updated_at,
+        // Include joined video_uploads data if present
+        video_uploads: kit.video_uploads,
+      }));
+
+      return {
+        success: response.data.success,
         data: {
-          kits: ContentKit[];
-        };
+          kits: transformedKits as ContentKit[],
+        },
       };
     },
 
