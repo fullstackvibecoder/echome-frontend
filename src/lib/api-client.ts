@@ -347,6 +347,7 @@ export const api = {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          timeout: 300000, // 5 minutes for large file uploads
           onUploadProgress: (progressEvent) => {
             if (onProgress && progressEvent.total) {
               const percentCompleted = Math.round(
