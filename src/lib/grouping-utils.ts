@@ -281,9 +281,6 @@ export function filterItems(
           case 'processing':
             if (item.status === 'processing' || item.status === 'pending') return true;
             break;
-          case 'failed':
-            if (item.status === 'failed') return true;
-            break;
         }
       }
       return false;

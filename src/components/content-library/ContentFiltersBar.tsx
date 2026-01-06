@@ -12,21 +12,29 @@ import type {
   ViewMode,
   GroupBy,
   SortBy,
-  FilterPreset,
-  FILTER_PRESET_CONFIG,
-  GROUP_BY_CONFIG,
-  SORT_BY_CONFIG,
+  ContentTypeFilter,
+  PlatformFilter,
 } from './types';
 
-// Config moved to component for tree shaking
-const FILTER_PRESETS: Record<FilterPreset, { label: string; icon?: string }> = {
-  all: { label: 'All' },
-  videos: { label: 'Videos', icon: '🎬' },
-  written: { label: 'Written', icon: '📝' },
-  carousels: { label: 'Carousels', icon: '📸' },
-  processing: { label: 'Processing', icon: '⏳' },
-  failed: { label: 'Failed', icon: '❌' },
-};
+// Content type filter config
+const CONTENT_TYPE_FILTERS: { id: ContentTypeFilter; label: string; icon?: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'videos', label: 'Videos', icon: '🎬' },
+  { id: 'written', label: 'Written', icon: '📝' },
+  { id: 'carousels', label: 'Carousels', icon: '📸' },
+  { id: 'processing', label: 'Processing', icon: '⏳' },
+];
+
+// Platform filter config
+const PLATFORM_FILTERS: { id: PlatformFilter; label: string; icon: string }[] = [
+  { id: 'linkedin', label: 'LinkedIn', icon: '💼' },
+  { id: 'twitter', label: 'X', icon: '𝕏' },
+  { id: 'instagram', label: 'Instagram', icon: '📷' },
+  { id: 'tiktok', label: 'TikTok', icon: '🎵' },
+  { id: 'youtube', label: 'YouTube', icon: '📺' },
+  { id: 'blog', label: 'Blog', icon: '📝' },
+  { id: 'email', label: 'Email', icon: '✉️' },
+];
 
 const GROUP_OPTIONS: Record<GroupBy, { label: string }> = {
   none: { label: 'None' },
@@ -48,12 +56,14 @@ export function ContentFiltersBar({
   groupBy,
   sortBy,
   searchQuery,
-  activeFilters,
+  contentTypeFilter,
+  platformFilters,
   onViewModeChange,
   onGroupByChange,
   onSortByChange,
   onSearchChange,
-  onFilterChange,
+  onContentTypeFilterChange,
+  onPlatformFilterToggle,
 }: ContentFiltersBarProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,22 +83,6 @@ export function ContentFiltersBar({
       }
     };
   }, [localSearch, onSearchChange]);
-
-  const handleFilterClick = (filter: FilterPreset) => {
-    if (filter === 'all') {
-      onFilterChange(['all']);
-      return;
-    }
-
-    const newFilters = [...activeFilters].filter(f => f !== 'all');
-
-    if (newFilters.includes(filter)) {
-      const updated = newFilters.filter(f => f !== filter);
-      onFilterChange(updated.length ? updated : ['all']);
-    } else {
-      onFilterChange([...newFilters, filter]);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -159,24 +153,46 @@ export function ContentFiltersBar({
         </div>
       </div>
 
-      {/* Filter Chips */}
+      {/* Content Type Filter Chips */}
       <div className="flex flex-wrap gap-2">
-        {(Object.keys(FILTER_PRESETS) as FilterPreset[]).map((filter) => {
-          const config = FILTER_PRESETS[filter];
-          const isActive = activeFilters.includes(filter);
+        {CONTENT_TYPE_FILTERS.map((filter) => {
+          const isActive = contentTypeFilter === filter.id;
 
           return (
             <button
-              key={filter}
-              onClick={() => handleFilterClick(filter)}
+              key={filter.id}
+              onClick={() => onContentTypeFilterChange(filter.id)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                 isActive
                   ? 'bg-accent text-white'
                   : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary border border-border'
               }`}
             >
-              {config.icon && <span className="mr-1">{config.icon}</span>}
-              {config.label}
+              {filter.icon && <span className="mr-1">{filter.icon}</span>}
+              {filter.label}
+            </button>
+          );
+        })}
+
+        {/* Separator */}
+        <div className="w-px h-8 bg-border self-center mx-1" />
+
+        {/* Platform Filters */}
+        {PLATFORM_FILTERS.map((platform) => {
+          const isActive = platformFilters.includes(platform.id);
+
+          return (
+            <button
+              key={platform.id}
+              onClick={() => onPlatformFilterToggle(platform.id)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-accent text-white'
+                  : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary border border-border'
+              }`}
+              title={platform.label}
+            >
+              <span>{platform.icon}</span>
             </button>
           );
         })}

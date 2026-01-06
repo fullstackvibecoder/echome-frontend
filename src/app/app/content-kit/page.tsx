@@ -37,7 +37,8 @@ function ContentLibraryContent() {
     setGroupBy,
     setSortBy,
     setSearchQuery,
-    setFilters,
+    setContentTypeFilter,
+    togglePlatformFilter,
     toggleSelection,
     selectAll,
     clearSelection,
@@ -118,12 +119,14 @@ function ContentLibraryContent() {
           groupBy={state.groupBy}
           sortBy={state.sortBy}
           searchQuery={state.searchQuery}
-          activeFilters={state.activeFilters}
+          contentTypeFilter={state.contentTypeFilter}
+          platformFilters={state.platformFilters}
           onViewModeChange={setViewMode}
           onGroupByChange={setGroupBy}
           onSortByChange={setSortBy}
           onSearchChange={setSearchQuery}
-          onFilterChange={setFilters}
+          onContentTypeFilterChange={setContentTypeFilter}
+          onPlatformFilterToggle={togglePlatformFilter}
         />
       </div>
 
@@ -167,7 +170,7 @@ function ContentLibraryContent() {
           <div className="text-6xl mb-4">📦</div>
           <h3 className="text-xl font-semibold mb-2">No content yet</h3>
           <p className="text-text-secondary mb-6">
-            {state.searchQuery || state.activeFilters[0] !== 'all'
+            {state.searchQuery || state.contentTypeFilter !== 'all' || state.platformFilters.length > 0
               ? 'No content matches your filters. Try adjusting your search.'
               : 'Start creating content from your knowledge base or upload a video'}
           </p>

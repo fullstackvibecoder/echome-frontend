@@ -3,19 +3,14 @@
 /**
  * useContentLibrary Hook
  *
- * Comprehensive state management for the Content Library page.
- * Handles data fetching, pagination, filtering, sorting, grouping, and selection.
+ * Fetches and manages Content Kits for the Content Library page.
+ * Handles pagination, filtering, sorting, grouping, and selection.
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { api } from '@/lib/api-client';
-import {
-  NormalizedContent,
-  normalizeGenerationRequest,
-  normalizeVideoUpload,
-  normalizeClip,
-} from '@/lib/content-normalizer';
-import { processItems, calculateStats } from '@/lib/grouping-utils';
+import { api, ContentKit } from '@/lib/api-client';
+import type { NormalizedContent } from '@/lib/content-normalizer';
+import { normalizeKit } from '@/lib/content-normalizer';
 import type {
   ContentLibraryState,
   PaginationState,
@@ -23,11 +18,12 @@ import type {
   ViewMode,
   GroupBy,
   SortBy,
-  FilterPreset,
+  ContentTypeFilter,
+  PlatformFilter,
   ContentLibraryStats,
   UseContentLibraryReturn,
-  DEFAULT_PAGE_SIZE,
 } from '@/components/content-library/types';
+import type { Platform } from '@/types';
 
 // ============================================
 // CONSTANTS
@@ -65,6 +61,189 @@ function savePreferences(prefs: StoredPreferences) {
   }
 }
 
+/**
+ * Get platforms that have content in a kit
+ */
+function getKitPlatforms(kit: ContentKit): Platform[] {
+  const platforms: Platform[] = [];
+  if (kit.contentLinkedin) platforms.push('linkedin');
+  if (kit.contentTwitter) platforms.push('twitter');
+  if (kit.contentInstagram) platforms.push('instagram');
+  if (kit.contentTiktok) platforms.push('tiktok');
+  if (kit.contentYoutube) platforms.push('youtube');
+  if (kit.contentBlog) platforms.push('blog');
+  if (kit.contentEmail) platforms.push('email');
+  if (kit.contentVideoScript) platforms.push('video-script');
+  return platforms;
+}
+
+/**
+ * Transform ContentKit to NormalizedContent
+ */
+function transformKit(kit: ContentKit & { video_uploads?: any }): NormalizedContent {
+  const platforms = getKitPlatforms(kit);
+  const upload = kit.video_uploads;
+
+  return {
+    id: kit.id,
+    type: 'kit',
+    title: kit.title || upload?.original_filename || 'Untitled Kit',
+    description: kit.description,
+    status: kit.contentGenerated ? 'completed' : 'processing',
+    platforms,
+    thumbnailUrl: upload?.thumbnail_url,
+    createdAt: new Date(kit.createdAt),
+    sourceId: kit.id,
+    videoUploadId: kit.videoUploadId,
+    generationRequestId: kit.generationRequestId,
+    clipCount: kit.clipsGenerated || 0,
+    platformCount: platforms.length,
+    raw: kit,
+  };
+}
+
+/**
+ * Calculate stats from content kits
+ */
+function calculateKitStats(items: NormalizedContent[]): ContentLibraryStats {
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  return {
+    total: items.length,
+    videos: items.filter(i => (i.clipCount || 0) > 0).length,
+    written: items.filter(i => (i.platformCount || 0) > 0).length,
+    carousels: 0, // TODO: Track carousel count
+    processing: items.filter(i => i.status === 'processing' || i.status === 'pending').length,
+    thisWeek: items.filter(i => i.createdAt >= weekAgo).length,
+    linkedin: items.filter(i => i.platforms.includes('linkedin')).length,
+    twitter: items.filter(i => i.platforms.includes('twitter')).length,
+    instagram: items.filter(i => i.platforms.includes('instagram')).length,
+    tiktok: items.filter(i => i.platforms.includes('tiktok')).length,
+    youtube: items.filter(i => i.platforms.includes('youtube')).length,
+    blog: items.filter(i => i.platforms.includes('blog')).length,
+    email: items.filter(i => i.platforms.includes('email')).length,
+  };
+}
+
+/**
+ * Filter items by content type and platforms
+ */
+function filterItems(
+  items: NormalizedContent[],
+  contentTypeFilter: ContentTypeFilter,
+  platformFilters: PlatformFilter[],
+  searchQuery: string
+): NormalizedContent[] {
+  let filtered = items;
+
+  // Content type filter
+  if (contentTypeFilter !== 'all') {
+    switch (contentTypeFilter) {
+      case 'videos':
+        filtered = filtered.filter(i => (i.clipCount || 0) > 0);
+        break;
+      case 'written':
+        filtered = filtered.filter(i => (i.platformCount || 0) > 0 && (i.clipCount || 0) === 0);
+        break;
+      case 'carousels':
+        filtered = filtered.filter(i => (i.slideCount || 0) > 0);
+        break;
+      case 'processing':
+        filtered = filtered.filter(i => i.status === 'processing' || i.status === 'pending');
+        break;
+    }
+  }
+
+  // Platform filters (OR logic - show if has ANY of selected platforms)
+  if (platformFilters.length > 0) {
+    filtered = filtered.filter(item =>
+      platformFilters.some(platform => item.platforms.includes(platform as Platform))
+    );
+  }
+
+  // Search query
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(item =>
+      item.title.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query) ||
+      item.platforms.some(p => p.toLowerCase().includes(query))
+    );
+  }
+
+  return filtered;
+}
+
+/**
+ * Sort items
+ */
+function sortItems(items: NormalizedContent[], sortBy: SortBy): NormalizedContent[] {
+  const sorted = [...items];
+
+  switch (sortBy) {
+    case 'recent':
+      sorted.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      break;
+    case 'oldest':
+      sorted.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      break;
+    case 'voice-score':
+      sorted.sort((a, b) => (b.score || 0) - (a.score || 0));
+      break;
+    case 'status':
+      const statusOrder = { processing: 0, pending: 1, completed: 2, failed: 3 };
+      sorted.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+      break;
+  }
+
+  return sorted;
+}
+
+/**
+ * Group items by date
+ */
+function groupByDate(items: NormalizedContent[]): ContentGroup[] {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+  const startOfWeek = new Date(startOfToday.getTime() - startOfToday.getDay() * 24 * 60 * 60 * 1000);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const groups: Record<string, NormalizedContent[]> = {
+    today: [],
+    yesterday: [],
+    'this-week': [],
+    'this-month': [],
+    older: [],
+  };
+
+  items.forEach(item => {
+    if (item.createdAt >= startOfToday) groups.today.push(item);
+    else if (item.createdAt >= startOfYesterday) groups.yesterday.push(item);
+    else if (item.createdAt >= startOfWeek) groups['this-week'].push(item);
+    else if (item.createdAt >= startOfMonth) groups['this-month'].push(item);
+    else groups.older.push(item);
+  });
+
+  const labels: Record<string, string> = {
+    today: 'Today',
+    yesterday: 'Yesterday',
+    'this-week': 'This Week',
+    'this-month': 'This Month',
+    older: 'Older',
+  };
+
+  return Object.entries(groups)
+    .filter(([_, items]) => items.length > 0)
+    .map(([id, items]) => ({
+      id,
+      title: labels[id],
+      items,
+      collapsed: false,
+    }));
+}
+
 // ============================================
 // HOOK
 // ============================================
@@ -79,7 +258,8 @@ export function useContentLibrary(): UseContentLibraryReturn {
     groupBy: storedPrefs.groupBy || 'date',
     sortBy: storedPrefs.sortBy || 'recent',
     searchQuery: '',
-    activeFilters: ['all'],
+    contentTypeFilter: 'all',
+    platformFilters: [],
     selectedIds: new Set(),
     isSelectionMode: false,
   });
@@ -119,39 +299,14 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
       const currentOffset = reset ? 0 : pagination.offset;
 
-      // Fetch from both endpoints in parallel
-      const [generationResult, clipsResult] = await Promise.all([
-        api.generation.listRequests({ limit: PAGE_SIZE, offset: currentOffset })
-          .catch(() => ({ success: false, data: null })),
-        api.clips.list(PAGE_SIZE, currentOffset)
-          .catch(() => ({ success: false, data: null })),
-      ]);
+      // Fetch content kits
+      const result = await api.contentKits.list(PAGE_SIZE, currentOffset);
 
-      const newItems: NormalizedContent[] = [];
-      let totalCount = 0;
-
-      // Transform generation requests
-      if (generationResult.success && generationResult.data) {
-        for (const req of generationResult.data) {
-          newItems.push(normalizeGenerationRequest(req));
-        }
-        // Estimate total from pagination if available
-        totalCount += (generationResult as any).pagination?.total || generationResult.data.length;
+      if (!result.success) {
+        throw new Error('Failed to fetch content kits');
       }
 
-      // Transform clip finder uploads
-      if (clipsResult.success && clipsResult.data?.uploads) {
-        for (const upload of clipsResult.data.uploads) {
-          // Skip if already added via generation request
-          const alreadyAdded = newItems.some(i =>
-            i.videoUploadId === upload.id
-          );
-          if (alreadyAdded) continue;
-
-          newItems.push(normalizeVideoUpload(upload, null, 0));
-        }
-        totalCount += clipsResult.data.uploads.length;
-      }
+      const newItems = (result.data.kits || []).map(transformKit);
 
       // Merge with existing items if not resetting
       if (reset) {
@@ -172,7 +327,6 @@ export function useContentLibrary(): UseContentLibraryReturn {
       setPagination(prev => ({
         ...prev,
         offset: nextOffset,
-        total: Math.max(totalCount, prev.total),
         hasMore,
         isLoadingMore: false,
       }));
@@ -194,22 +348,31 @@ export function useContentLibrary(): UseContentLibraryReturn {
   // PROCESSED DATA
   // ============================================
 
-  const { items: processedItems, groups } = useMemo(() => {
-    return processItems(
+  const processedItems = useMemo(() => {
+    let items = filterItems(
       allItems,
-      state.activeFilters,
-      state.searchQuery,
-      state.sortBy,
-      state.groupBy
+      state.contentTypeFilter,
+      state.platformFilters,
+      state.searchQuery
     );
-  }, [allItems, state.activeFilters, state.searchQuery, state.sortBy, state.groupBy]);
+    items = sortItems(items, state.sortBy);
+    return items;
+  }, [allItems, state.contentTypeFilter, state.platformFilters, state.searchQuery, state.sortBy]);
 
-  const stats = useMemo(() => calculateStats(allItems), [allItems]);
+  const groups = useMemo(() => {
+    if (state.groupBy === 'date') {
+      return groupByDate(processedItems);
+    }
+    // For 'none' or other groupBy values, return all items in one group
+    return [{
+      id: 'all',
+      title: 'All Content',
+      items: processedItems,
+      collapsed: false,
+    }];
+  }, [processedItems, state.groupBy]);
 
-  // Update pagination items
-  useEffect(() => {
-    setPagination(prev => ({ ...prev, items: processedItems }));
-  }, [processedItems]);
+  const stats = useMemo(() => calculateKitStats(allItems), [allItems]);
 
   // ============================================
   // STATE SETTERS
@@ -234,34 +397,24 @@ export function useContentLibrary(): UseContentLibraryReturn {
     setState(prev => ({ ...prev, searchQuery: query }));
   }, []);
 
-  const toggleFilter = useCallback((filter: FilterPreset) => {
+  const setContentTypeFilter = useCallback((filter: ContentTypeFilter) => {
+    setState(prev => ({ ...prev, contentTypeFilter: filter }));
+  }, []);
+
+  const togglePlatformFilter = useCallback((platform: PlatformFilter) => {
     setState(prev => {
-      const filters = new Set(prev.activeFilters);
-
-      if (filter === 'all') {
-        // 'All' clears other filters
-        return { ...prev, activeFilters: ['all'] };
-      }
-
-      // Remove 'all' when selecting specific filter
-      filters.delete('all');
-
-      if (filters.has(filter)) {
-        filters.delete(filter);
-        // If no filters left, default to 'all'
-        if (filters.size === 0) {
-          return { ...prev, activeFilters: ['all'] };
-        }
+      const filters = new Set(prev.platformFilters);
+      if (filters.has(platform)) {
+        filters.delete(platform);
       } else {
-        filters.add(filter);
+        filters.add(platform);
       }
-
-      return { ...prev, activeFilters: Array.from(filters) };
+      return { ...prev, platformFilters: Array.from(filters) };
     });
   }, []);
 
-  const setFilters = useCallback((filters: FilterPreset[]) => {
-    setState(prev => ({ ...prev, activeFilters: filters.length ? filters : ['all'] }));
+  const clearPlatformFilters = useCallback(() => {
+    setState(prev => ({ ...prev, platformFilters: [] }));
   }, []);
 
   // ============================================
@@ -349,29 +502,11 @@ export function useContentLibrary(): UseContentLibraryReturn {
   const deleteSelected = useCallback(async () => {
     const selectedItems = processedItems.filter(item => state.selectedIds.has(item.id));
 
-    // Group by source type for deletion
-    const generationIds: string[] = [];
-    const uploadIds: string[] = [];
-
-    for (const item of selectedItems) {
-      if (item.generationRequestId) {
-        generationIds.push(item.generationRequestId);
-      } else if (item.videoUploadId) {
-        uploadIds.push(item.videoUploadId);
-      }
-    }
-
     try {
-      // Delete in parallel
-      const deletePromises: Promise<any>[] = [];
-
-      for (const id of generationIds) {
-        deletePromises.push(api.generation.deleteRequest(id).catch(() => null));
-      }
-
-      for (const id of uploadIds) {
-        deletePromises.push(api.clips.delete(id).catch(() => null));
-      }
+      // Delete content kits
+      const deletePromises = selectedItems.map(item =>
+        api.contentKits.delete(item.sourceId).catch(() => null)
+      );
 
       await Promise.all(deletePromises);
 
@@ -413,8 +548,9 @@ export function useContentLibrary(): UseContentLibraryReturn {
     setGroupBy,
     setSortBy,
     setSearchQuery,
-    toggleFilter,
-    setFilters,
+    setContentTypeFilter,
+    togglePlatformFilter,
+    clearPlatformFilters,
 
     // Selection
     selectItem,

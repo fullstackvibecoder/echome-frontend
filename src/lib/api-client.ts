@@ -1104,8 +1104,8 @@ export const api = {
     },
 
     /** List user's content kits */
-    list: async (limit?: number) => {
-      const response = await apiClient.get('/content-kits', { params: { limit } });
+    list: async (limit?: number, offset?: number) => {
+      const response = await apiClient.get('/content-kits', { params: { limit, offset } });
       return response.data as {
         success: boolean;
         data: {

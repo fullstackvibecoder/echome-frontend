@@ -17,7 +17,14 @@ export type GroupBy = 'none' | 'date' | 'platform' | 'status' | 'type';
 
 export type SortBy = 'recent' | 'oldest' | 'voice-score' | 'status';
 
-export type FilterPreset = 'all' | 'videos' | 'written' | 'carousels' | 'processing' | 'failed';
+// Content type filters
+export type ContentTypeFilter = 'all' | 'videos' | 'written' | 'carousels' | 'processing';
+
+// Platform filters
+export type PlatformFilter = 'linkedin' | 'twitter' | 'instagram' | 'tiktok' | 'youtube' | 'blog' | 'email';
+
+// Combined filter type
+export type FilterPreset = ContentTypeFilter | PlatformFilter;
 
 // ============================================
 // STATE TYPES
@@ -31,7 +38,8 @@ export interface ContentLibraryState {
 
   // Filtering
   searchQuery: string;
-  activeFilters: FilterPreset[];
+  contentTypeFilter: ContentTypeFilter;
+  platformFilters: PlatformFilter[];
 
   // Selection
   selectedIds: Set<string>;
@@ -113,12 +121,14 @@ export interface ContentFiltersBarProps {
   groupBy: GroupBy;
   sortBy: SortBy;
   searchQuery: string;
-  activeFilters: FilterPreset[];
+  contentTypeFilter: ContentTypeFilter;
+  platformFilters: PlatformFilter[];
   onViewModeChange: (mode: ViewMode) => void;
   onGroupByChange: (groupBy: GroupBy) => void;
   onSortByChange: (sortBy: SortBy) => void;
   onSearchChange: (query: string) => void;
-  onFilterChange: (filters: FilterPreset[]) => void;
+  onContentTypeFilterChange: (filter: ContentTypeFilter) => void;
+  onPlatformFilterToggle: (platform: PlatformFilter) => void;
 }
 
 export interface BulkActionsBarProps {
@@ -155,8 +165,9 @@ export interface UseContentLibraryReturn {
   setGroupBy: (groupBy: GroupBy) => void;
   setSortBy: (sortBy: SortBy) => void;
   setSearchQuery: (query: string) => void;
-  toggleFilter: (filter: FilterPreset) => void;
-  setFilters: (filters: FilterPreset[]) => void;
+  setContentTypeFilter: (filter: ContentTypeFilter) => void;
+  togglePlatformFilter: (platform: PlatformFilter) => void;
+  clearPlatformFilters: () => void;
 
   // Selection
   selectItem: (id: string) => void;
@@ -185,8 +196,15 @@ export interface ContentLibraryStats {
   written: number;
   carousels: number;
   processing: number;
-  failed: number;
   thisWeek: number;
+  // Platform counts
+  linkedin: number;
+  twitter: number;
+  instagram: number;
+  tiktok: number;
+  youtube: number;
+  blog: number;
+  email: number;
 }
 
 // ============================================
@@ -195,13 +213,24 @@ export interface ContentLibraryStats {
 
 export const DEFAULT_PAGE_SIZE = 20;
 
-export const FILTER_PRESET_CONFIG: Record<FilterPreset, { label: string; icon?: string }> = {
+// Content type filter config
+export const CONTENT_TYPE_FILTER_CONFIG: Record<ContentTypeFilter, { label: string; icon?: string }> = {
   all: { label: 'All' },
   videos: { label: 'Videos', icon: '🎬' },
   written: { label: 'Written', icon: '📝' },
   carousels: { label: 'Carousels', icon: '📸' },
   processing: { label: 'Processing', icon: '⏳' },
-  failed: { label: 'Failed', icon: '❌' },
+};
+
+// Platform filter config
+export const PLATFORM_FILTER_CONFIG: Record<PlatformFilter, { label: string; icon: string }> = {
+  linkedin: { label: 'LinkedIn', icon: '💼' },
+  twitter: { label: 'Twitter/X', icon: '𝕏' },
+  instagram: { label: 'Instagram', icon: '📸' },
+  tiktok: { label: 'TikTok', icon: '🎵' },
+  youtube: { label: 'YouTube', icon: '📺' },
+  blog: { label: 'Blog', icon: '📝' },
+  email: { label: 'Email', icon: '✉️' },
 };
 
 export const GROUP_BY_CONFIG: Record<GroupBy, { label: string }> = {
