@@ -301,7 +301,7 @@ export default function KnowledgePage() {
                   <input
                     type="checkbox"
                     checked={allSelected}
-                    ref={(el) => el && (el.indeterminate = someSelected)}
+                    ref={(el) => { if (el) el.indeterminate = someSelected; }}
                     onChange={handleSelectAll}
                     className="w-5 h-5 rounded border-2 border-accent text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer"
                   />
