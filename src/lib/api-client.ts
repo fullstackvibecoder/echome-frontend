@@ -15,6 +15,7 @@ import type {
   ImageGenerationOptions,
   BackgroundConfig,
   BackgroundPreset,
+  UnifiedContentResponse,
 } from '../types';
 
 const API_BASE_URL =
@@ -318,6 +319,17 @@ export const api = {
 
     delete: async (id: string) => {
       const response = await apiClient.delete<ApiResponse>(`/kb/${id}`);
+      return response.data;
+    },
+
+    /**
+     * Get unified content for a knowledge base
+     * Returns all content items (files, paste, voice, social) with stats
+     */
+    getContent: async (kbId: string) => {
+      const response = await apiClient.get<ApiResponse<UnifiedContentResponse>>(
+        `/kb/${kbId}/content`
+      );
       return response.data;
     },
   },

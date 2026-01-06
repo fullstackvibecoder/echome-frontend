@@ -211,6 +211,128 @@ export interface UploadedFile {
 export type KBFile = UploadedFile;
 
 // ============================================
+// UNIFIED CONTENT TYPES
+// ============================================
+
+/**
+ * Source type for unified content items
+ * Identifies where the content came from
+ */
+export type ContentSourceType =
+  | 'file_upload'      // Direct file uploads (PDF, video, audio)
+  | 'paste_text'       // Pasted writing samples
+  | 'paste_social'     // Pasted social posts
+  | 'paste_email'      // Pasted individual emails
+  | 'voice_recording'  // Voice recordings
+  | 'mbox_import'      // MBOX email archive import
+  | 'youtube_import'   // YouTube transcript import
+  | 'instagram_import'; // Instagram caption import
+
+/**
+ * Processing status for content items
+ */
+export type ContentProcessingStatus =
+  | 'uploading'
+  | 'processing'
+  | 'completed'
+  | 'failed';
+
+/**
+ * Unified content item that represents any type of KB content
+ */
+export interface UnifiedContentItem {
+  id: string;
+  sourceType: ContentSourceType;
+  title: string;
+  description?: string;
+  status: ContentProcessingStatus;
+  fileSize?: number;
+  fileType?: string;
+  chunkCount: number;
+  errorMessage?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Statistics for knowledge base content
+ */
+export interface KBContentStats {
+  totalItems: number;
+  totalChunks: number;
+  totalSize: number;
+  bySourceType: Record<string, number>;
+}
+
+/**
+ * Response from the unified content endpoint
+ */
+export interface UnifiedContentResponse {
+  items: UnifiedContentItem[];
+  stats: KBContentStats;
+}
+
+/**
+ * Display configuration for content source types
+ */
+export const CONTENT_SOURCE_CONFIG: Record<ContentSourceType, {
+  label: string;
+  icon: string;
+  color: string;
+  description: string;
+}> = {
+  file_upload: {
+    label: 'File',
+    icon: 'file',
+    color: 'blue',
+    description: 'Uploaded document or media file',
+  },
+  paste_text: {
+    label: 'Writing',
+    icon: 'edit-3',
+    color: 'purple',
+    description: 'Pasted writing sample',
+  },
+  paste_social: {
+    label: 'Social',
+    icon: 'share-2',
+    color: 'pink',
+    description: 'Pasted social media post',
+  },
+  paste_email: {
+    label: 'Email',
+    icon: 'mail',
+    color: 'orange',
+    description: 'Pasted email content',
+  },
+  voice_recording: {
+    label: 'Voice',
+    icon: 'mic',
+    color: 'green',
+    description: 'Voice recording transcript',
+  },
+  mbox_import: {
+    label: 'Email Archive',
+    icon: 'inbox',
+    color: 'amber',
+    description: 'Imported MBOX email archive',
+  },
+  youtube_import: {
+    label: 'YouTube',
+    icon: 'youtube',
+    color: 'red',
+    description: 'YouTube video transcripts',
+  },
+  instagram_import: {
+    label: 'Instagram',
+    icon: 'instagram',
+    color: 'fuchsia',
+    description: 'Instagram post captions',
+  },
+};
+
+// ============================================
 // SOCIAL INTEGRATION TYPES
 // ============================================
 

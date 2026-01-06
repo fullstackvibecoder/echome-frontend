@@ -300,13 +300,24 @@ export function useContentLibrary(): UseContentLibraryReturn {
       const currentOffset = reset ? 0 : pagination.offset;
 
       // Fetch content kits
+      console.log('[ContentLibrary] Fetching kits...', { PAGE_SIZE, currentOffset });
       const result = await api.contentKits.list(PAGE_SIZE, currentOffset);
+      console.log('[ContentLibrary] API Response:', result);
 
       if (!result.success) {
         throw new Error('Failed to fetch content kits');
       }
 
-      const newItems = (result.data.kits || []).map(transformKit);
+      console.log('[ContentLibrary] Kits received:', result.data.kits?.length || 0);
+      const newItems = (result.data.kits || []).map((kit, i) => {
+        try {
+          return transformKit(kit);
+        } catch (err) {
+          console.error(`[ContentLibrary] Failed to transform kit ${i}:`, kit, err);
+          throw err;
+        }
+      });
+      console.log('[ContentLibrary] Transformed items:', newItems.length);
 
       // Merge with existing items if not resetting
       if (reset) {
