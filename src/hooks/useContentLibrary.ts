@@ -299,25 +299,59 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
       const currentOffset = reset ? 0 : pagination.offset;
 
-      // Fetch content kits
-      console.log('[ContentLibrary] Fetching kits...', { PAGE_SIZE, currentOffset });
-      const result = await api.contentKits.list(PAGE_SIZE, currentOffset);
-      console.log('[ContentLibrary] API Response:', result);
+      // Fetch from both endpoints in parallel (proven working approach)
+      const [generationResult, clipsResult] = await Promise.all([
+        api.generation.listRequests({ limit: PAGE_SIZE, offset: currentOffset })
+          .catch(() => ({ success: false, data: null })),
+        api.clips.list(PAGE_SIZE, currentOffset)
+          .catch(() => ({ success: false, data: null })),
+      ]);
 
-      if (!result.success) {
-        throw new Error('Failed to fetch content kits');
+      const newItems: NormalizedContent[] = [];
+
+      // Transform generation requests into kit-like items
+      if (generationResult.success && generationResult.data) {
+        for (const req of generationResult.data) {
+          newItems.push({
+            id: req.id,
+            type: 'kit',
+            title: req.inputText?.slice(0, 50) || 'Generated Content',
+            description: req.inputText?.slice(0, 200),
+            status: req.status === 'completed' ? 'completed' : req.status === 'failed' ? 'failed' : 'processing',
+            platforms: (req.platforms || []) as Platform[],
+            createdAt: new Date(req.createdAt),
+            sourceId: req.id,
+            generationRequestId: req.id,
+            clipCount: 0,
+            platformCount: req.platforms?.length || 0,
+            raw: req,
+          });
+        }
       }
 
-      console.log('[ContentLibrary] Kits received:', result.data.kits?.length || 0);
-      const newItems = (result.data.kits || []).map((kit, i) => {
-        try {
-          return transformKit(kit);
-        } catch (err) {
-          console.error(`[ContentLibrary] Failed to transform kit ${i}:`, kit, err);
-          throw err;
+      // Transform clip finder uploads
+      if (clipsResult.success && clipsResult.data?.uploads) {
+        for (const upload of clipsResult.data.uploads) {
+          // Skip if already added via generation request
+          const alreadyAdded = newItems.some(i => i.videoUploadId === upload.id);
+          if (alreadyAdded) continue;
+
+          newItems.push({
+            id: upload.id,
+            type: 'kit',
+            title: upload.originalFilename || 'Video Upload',
+            status: upload.status === 'completed' ? 'completed' : upload.status === 'failed' ? 'failed' : 'processing',
+            platforms: [],
+            thumbnailUrl: upload.thumbnailUrl,
+            createdAt: new Date(upload.createdAt),
+            sourceId: upload.id,
+            videoUploadId: upload.id,
+            clipCount: 0,
+            platformCount: 0,
+            raw: upload,
+          });
         }
-      });
-      console.log('[ContentLibrary] Transformed items:', newItems.length);
+      }
 
       // Merge with existing items if not resetting
       if (reset) {
