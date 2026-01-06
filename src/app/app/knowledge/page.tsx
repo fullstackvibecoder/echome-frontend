@@ -34,7 +34,70 @@ export default function KnowledgePage() {
   const mboxInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
   const currentKb = kbs.find((kb) => kb.id === selectedKb);
+
+  // Filter content based on search term
+  const filteredContent = contentItems.filter((item) =>
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Selection helpers
+  const selectedCount = selectedIds.size;
+  const allSelected = filteredContent.length > 0 && selectedIds.size === filteredContent.length;
+  const someSelected = selectedIds.size > 0 && !allSelected;
+
+  const handleSelectItem = (itemId: string, selected: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(itemId);
+      } else {
+        next.delete(itemId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredContent.map((item) => item.id)));
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+
+    const confirmMsg = `Are you sure you want to delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`;
+    if (!confirm(confirmMsg)) return;
+
+    setBulkDeleting(true);
+    try {
+      // Delete items sequentially to avoid overwhelming the server
+      for (const id of selectedIds) {
+        await deleteContent(id);
+      }
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+    } catch (err) {
+      console.error('Bulk delete error:', err);
+      alert('Some items failed to delete. Please try again.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   const handleDelete = async (contentId: string) => {
     if (confirm('Are you sure you want to delete this content? This cannot be undone.')) {
@@ -47,11 +110,6 @@ export default function KnowledgePage() {
     setShowUploadModal(false);
     await refresh();
   };
-
-  const filteredContent = contentItems.filter((item) =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleMboxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -206,16 +264,75 @@ export default function KnowledgePage() {
       {/* Stats */}
       <KBStats stats={contentStats} kbName={currentKb?.name} />
 
-      {/* Search */}
+      {/* Search and Bulk Actions */}
       {contentItems.length > 0 && (
-        <div className="mb-6">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search content..."
-            className="w-full max-w-md px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
-          />
+        <div className="mb-6 space-y-4">
+          {/* Search bar row */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search content..."
+              className="flex-1 max-w-md px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+            />
+            {!selectionMode ? (
+              <button
+                onClick={() => setSelectionMode(true)}
+                className="px-4 py-2.5 border-2 border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors"
+              >
+                Select
+              </button>
+            ) : (
+              <button
+                onClick={handleCancelSelection}
+                className="px-4 py-2.5 border-2 border-border rounded-lg text-text-secondary hover:border-error hover:text-error transition-colors"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+
+          {/* Bulk action toolbar - only visible in selection mode */}
+          {selectionMode && (
+            <div className="flex items-center justify-between p-4 bg-accent/5 border-2 border-accent/20 rounded-lg">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(el) => el && (el.indeterminate = someSelected)}
+                    onChange={handleSelectAll}
+                    className="w-5 h-5 rounded border-2 border-accent text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer"
+                  />
+                  <span className="text-sm font-medium">
+                    {allSelected ? 'Deselect all' : 'Select all'}
+                  </span>
+                </label>
+                <span className="text-sm text-text-secondary">
+                  {selectedCount} of {filteredContent.length} selected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selectedCount === 0 || bulkDeleting}
+                  className="px-4 py-2 bg-error/10 border border-error/30 text-error rounded-lg hover:bg-error/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {bulkDeleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-error border-t-transparent rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      🗑️ Delete ({selectedCount})
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -234,6 +351,9 @@ export default function KnowledgePage() {
               key={item.id}
               item={item}
               onDelete={() => handleDelete(item.id)}
+              selected={selectedIds.has(item.id)}
+              onSelect={(selected) => handleSelectItem(item.id, selected)}
+              selectionMode={selectionMode}
             />
           ))}
         </div>

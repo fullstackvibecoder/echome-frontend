@@ -9,6 +9,9 @@ import {
 interface ContentItemCardProps {
   item: UnifiedContentItem;
   onDelete: () => void;
+  selected?: boolean;
+  onSelect?: (selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
 /**
@@ -60,9 +63,17 @@ function getSourceColor(sourceType: ContentSourceType): string {
   return colors[sourceType] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
 }
 
-export function ContentItemCard({ item, onDelete }: ContentItemCardProps) {
+export function ContentItemCard({ item, onDelete, selected, onSelect, selectionMode }: ContentItemCardProps) {
   const config = CONTENT_SOURCE_CONFIG[item.sourceType];
   const sourceColor = getSourceColor(item.sourceType);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If in selection mode, toggle selection on card click
+    if (selectionMode && onSelect) {
+      e.preventDefault();
+      onSelect(!selected);
+    }
+  };
 
   const statusColor = {
     completed: 'text-success',
@@ -89,10 +100,31 @@ export function ContentItemCard({ item, onDelete }: ContentItemCardProps) {
   }[item.status];
 
   return (
-    <div className="card hover:shadow-lg transition-all border border-border">
+    <div
+      className={`card hover:shadow-lg transition-all border ${
+        selected
+          ? 'border-accent ring-2 ring-accent/30 bg-accent/5'
+          : 'border-border'
+      } ${selectionMode ? 'cursor-pointer' : ''}`}
+      onClick={handleCardClick}
+    >
       {/* Header with icon and title */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Selection checkbox */}
+          {selectionMode && (
+            <div
+              className="flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={(e) => onSelect?.(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-border text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer"
+              />
+            </div>
+          )}
           <span className="text-3xl flex-shrink-0">
             {getSourceIcon(item.sourceType)}
           </span>
