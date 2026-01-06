@@ -26,12 +26,13 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds default
+  timeout: 15000, // 15 seconds default for simple operations
 });
 
 // Extended timeouts for long-running operations
 const GENERATION_TIMEOUT = 180000; // 3 minutes for AI generation (includes potential transcript extraction)
 const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (download + Whisper)
+const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
 
 // Request interceptor - add JWT token
 apiClient.interceptors.request.use(
@@ -1105,7 +1106,10 @@ export const api = {
 
     /** List user's content kits */
     list: async (limit?: number, offset?: number) => {
-      const response = await apiClient.get('/content-kits', { params: { limit, offset } });
+      const response = await apiClient.get('/content-kits', {
+        params: { limit, offset },
+        timeout: LIST_TIMEOUT,
+      });
       return response.data as {
         success: boolean;
         data: {

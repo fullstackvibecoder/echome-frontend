@@ -331,8 +331,18 @@ export function useContentLibrary(): UseContentLibraryReturn {
         isLoadingMore: false,
       }));
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load content');
+    } catch (err: any) {
+      console.error('Content Library fetch error:', err);
+      // Better error messages
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        setError('Request timed out. Please try again.');
+      } else if (err.response?.status === 401) {
+        setError('Please log in to view your content.');
+      } else if (err.response?.status >= 500) {
+        setError('Server error. Please try again later.');
+      } else {
+        setError(err.message || 'Failed to load content');
+      }
     } finally {
       setIsLoading(false);
       fetchingRef.current = false;
