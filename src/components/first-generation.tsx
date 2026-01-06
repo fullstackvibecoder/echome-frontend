@@ -147,9 +147,30 @@ export function FirstGeneration({
       setVideoProcessingStatus('Starting clip extraction...');
       setVideoProcessingProgress(35);
 
+      // Build carousel background config
+      let carouselBackground: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string } | undefined;
+
+      if (carouselBgOption === 'ai') {
+        carouselBackground = { type: 'ai' };
+      } else if (carouselBgOption === 'upload' && carouselBgFile) {
+        // Upload the background image first
+        try {
+          const bgUploadResponse = await api.images.uploadBackground(carouselBgFile);
+          if (bgUploadResponse.success && bgUploadResponse.data?.background?.publicUrl) {
+            carouselBackground = { type: 'image', imageUrl: bgUploadResponse.data.background.publicUrl };
+          }
+        } catch (bgErr) {
+          console.warn('Failed to upload carousel background, using default:', bgErr);
+        }
+      } else if (carouselBgOption !== 'upload') {
+        // Preset (tweet-style, simple-black, simple-white)
+        carouselBackground = { type: 'preset', presetId: carouselBgOption };
+      }
+
       // Step 2: Start processing
       const processResponse = await api.clips.process(upload.id, {
         generateContent: true, // Generate content kit as part of processing
+        carouselBackground,
       });
 
       if (!processResponse.success || !processResponse.data?.jobId) {
