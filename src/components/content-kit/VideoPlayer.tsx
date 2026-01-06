@@ -33,7 +33,7 @@ export function VideoPlayer({
   poster,
   aspectRatio = '9:16',
   autoPlay = false,
-  muted = true,
+  muted: initialMuted = false, // Default to unmuted so audio plays
   loop = false,
   showControls = true,
   viralityScore,
@@ -45,6 +45,7 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(initialMuted);
   const [currentTime, setCurrentTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(duration || 0);
   const [showOverlay, setShowOverlay] = useState(true);
@@ -102,6 +103,15 @@ export function VideoPlayer({
     }
   };
 
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
     if (!video) return;
@@ -123,7 +133,7 @@ export function VideoPlayer({
         src={src}
         poster={poster}
         autoPlay={autoPlay}
-        muted={muted}
+        muted={isMuted}
         loop={loop}
         playsInline
         preload="metadata"
@@ -188,12 +198,29 @@ export function VideoPlayer({
             />
           </div>
 
-          {/* Time Display */}
+          {/* Time Display and Controls */}
           <div className="flex items-center justify-between text-white text-xs">
             <span>{formatDuration(currentTime)}</span>
+            <button
+              onClick={toggleMute}
+              className="p-1 hover:bg-white/20 rounded transition-colors"
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? '🔇' : '🔊'}
+            </button>
             <span>{formatDuration(videoDuration)}</span>
           </div>
         </div>
+      )}
+
+      {/* Mute indicator when video is muted */}
+      {isMuted && isPlaying && (
+        <button
+          onClick={toggleMute}
+          className="absolute top-3 right-3 bg-black/70 text-white text-sm px-2 py-1 rounded-full z-10 hover:bg-black/90 transition-colors"
+        >
+          🔇 Tap for sound
+        </button>
       )}
     </div>
   );
