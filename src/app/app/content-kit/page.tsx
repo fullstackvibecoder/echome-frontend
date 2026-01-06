@@ -1,83 +1,80 @@
 'use client';
 
 /**
- * Unified Content Kit Page
+ * Content Library Page
  *
- * Displays all content kits from both generation requests and clip finder
- * in a unified, filterable view.
+ * Redesigned unified view for all content with:
+ * - Dual-view system (list/grid toggle)
+ * - Smart grouping (date, platform, status, type)
+ * - Search + quick filters
+ * - Bulk actions
  */
 
-import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useContentKit } from '@/hooks/useContentKit';
-import { ContentKitCard, ContentKitFilters } from '@/components/content-kit';
-import { ContentKitFilter } from '@/types';
-import { api } from '@/lib/api-client';
+import { Suspense, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useContentLibrary } from '@/hooks/useContentLibrary';
+import {
+  ContentFiltersBar,
+  ContentListView,
+  ContentGridView,
+  BulkActionsBar,
+} from '@/components/content-library';
+import type { NormalizedContent } from '@/lib/content-normalizer';
 
-function ContentKitPageContent() {
+function ContentLibraryContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const urlFilter = searchParams.get('filter') as ContentKitFilter | null;
 
   const {
     items,
-    loading,
-    error,
+    groups,
     stats,
+    state,
+    pagination,
+    isLoading,
+    error,
+    setViewMode,
+    setGroupBy,
+    setSortBy,
+    setSearchQuery,
+    setFilters,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    loadMore,
     refresh,
-    setFilter,
-    activeFilter,
-  } = useContentKit({
-    autoRefresh: true,
-    refreshInterval: 30000,
-    filter: urlFilter || 'all',
-  });
+    deleteSelected,
+    downloadSelected,
+  } = useContentLibrary();
 
-  // Sync URL filter param with state
-  useEffect(() => {
-    if (urlFilter && urlFilter !== activeFilter) {
-      setFilter(urlFilter);
-    }
-  }, [urlFilter, activeFilter, setFilter]);
-
-  const [deleting, setDeleting] = useState<string | null>(null);
-
-  const handleCardClick = (item: typeof items[0]) => {
-    // Route to detail page
-    const id = item.generationRequestId || item.videoUploadId || item.id;
+  const handleItemClick = useCallback((item: NormalizedContent) => {
+    // Route to detail page using the source ID
+    const id = item.generationRequestId || item.videoUploadId || item.sourceId;
     router.push(`/app/content-kit/${id}`);
-  };
+  }, [router]);
 
-  const handleDelete = async (id: string) => {
-    try {
-      setDeleting(id);
-      await api.generation.deleteRequest(id);
-      // Refresh the list after deletion
-      await refresh();
-    } catch (err) {
-      console.error('Failed to delete:', err);
-      alert('Failed to delete content kit. Please try again.');
-    } finally {
-      setDeleting(null);
-    }
-  };
+  const handleSelect = useCallback((id: string, selected: boolean) => {
+    toggleSelection(id);
+  }, [toggleSelection]);
+
+  const selectedCount = state.selectedIds.size;
+  const showBulkActions = selectedCount > 0;
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-display text-3xl mb-2">Content Kit</h1>
+          <h1 className="text-display text-3xl mb-2">Content Library</h1>
           <p className="text-body text-text-secondary">
-            Your generated content, ready to copy and share
+            Your generated content, clips, and carousels
           </p>
         </div>
         <Link
           href="/app"
           className="btn-primary flex items-center gap-2"
         >
-          <span>✨</span>
+          <span>+</span>
           <span>Create New</span>
         </Link>
       </div>
@@ -86,40 +83,61 @@ function ContentKitPageContent() {
       <div className="flex items-center gap-6 mb-6 text-sm">
         <div>
           <span className="text-2xl font-semibold text-text-primary">{stats.total}</span>
-          <span className="text-text-secondary ml-2">Total generated</span>
+          <span className="text-text-secondary ml-2">Total</span>
         </div>
-        <div className="text-text-secondary">•</div>
-        <div>
-          <span className="text-2xl font-semibold text-text-primary">{stats.thisWeek}</span>
-          <span className="text-text-secondary ml-2">This week</span>
+        <div className="text-text-secondary">|</div>
+        <div className="flex items-center gap-4 text-text-secondary">
+          <span>{stats.videos} videos</span>
+          <span>{stats.written} written</span>
+          <span>{stats.carousels} carousels</span>
         </div>
         {stats.processing > 0 && (
           <>
-            <div className="text-text-secondary">•</div>
+            <div className="text-text-secondary">|</div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-accent rounded-full animate-pulse" />
               <span className="text-accent font-medium">{stats.processing} processing</span>
             </div>
           </>
         )}
+        <div className="flex-1" />
+        <button
+          onClick={refresh}
+          disabled={isLoading}
+          className="flex items-center gap-2 text-text-secondary hover:text-accent transition-colors"
+        >
+          <span className={isLoading ? 'animate-spin' : ''}>↻</span>
+          <span className="hidden sm:inline">Refresh</span>
+        </button>
       </div>
 
-      {/* Filters */}
+      {/* Filters Bar */}
       <div className="mb-6">
-        <ContentKitFilters
-          activeFilter={activeFilter}
-          onFilterChange={setFilter}
-          stats={stats}
+        <ContentFiltersBar
+          viewMode={state.viewMode}
+          groupBy={state.groupBy}
+          sortBy={state.sortBy}
+          searchQuery={state.searchQuery}
+          activeFilters={state.activeFilters}
+          onViewModeChange={setViewMode}
+          onGroupByChange={setGroupBy}
+          onSortByChange={setSortBy}
+          onSearchChange={setSearchQuery}
+          onFilterChange={setFilters}
         />
       </div>
 
-      {/* Loading State */}
-      {loading && items.length === 0 && (
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-text-secondary">Loading your content...</p>
-          </div>
+      {/* Bulk Actions Bar */}
+      {showBulkActions && (
+        <div className="mb-6">
+          <BulkActionsBar
+            selectedCount={selectedCount}
+            totalCount={items.length}
+            onSelectAll={selectAll}
+            onClearSelection={clearSelection}
+            onDelete={deleteSelected}
+            onDownload={downloadSelected}
+          />
         </div>
       )}
 
@@ -133,15 +151,25 @@ function ContentKitPageContent() {
         </div>
       )}
 
+      {/* Loading State */}
+      {isLoading && items.length === 0 && (
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-text-secondary">Loading your content...</p>
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
-      {!loading && items.length === 0 && !error && (
+      {!isLoading && items.length === 0 && !error && (
         <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
           <div className="text-6xl mb-4">📦</div>
           <h3 className="text-xl font-semibold mb-2">No content yet</h3>
           <p className="text-text-secondary mb-6">
-            {activeFilter === 'all'
-              ? 'Start creating content from your knowledge base or upload a video'
-              : `No ${activeFilter} content found. Try a different filter.`}
+            {state.searchQuery || state.activeFilters[0] !== 'all'
+              ? 'No content matches your filters. Try adjusting your search.'
+              : 'Start creating content from your knowledge base or upload a video'}
           </p>
           <Link href="/app" className="btn-primary">
             Create Your First Content
@@ -149,49 +177,50 @@ function ContentKitPageContent() {
         </div>
       )}
 
-      {/* Content Grid */}
+      {/* Content View */}
       {items.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <ContentKitCard
-              key={item.id}
-              item={item}
-              onClick={() => handleCardClick(item)}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Refresh Button */}
-      {items.length > 0 && (
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={refresh}
-            disabled={loading}
-            className="flex items-center gap-2 text-text-secondary hover:text-accent transition-colors"
-          >
-            <span className={loading ? 'animate-spin' : ''}>↻</span>
-            <span>Refresh</span>
-          </button>
-        </div>
+        state.viewMode === 'list' ? (
+          <ContentListView
+            items={items}
+            groups={groups}
+            selectedIds={state.selectedIds}
+            onSelect={handleSelect}
+            onSelectAll={selectAll}
+            onItemClick={handleItemClick}
+            isSelectionMode={state.isSelectionMode}
+            isLoading={pagination.isLoadingMore}
+            hasMore={pagination.hasMore}
+            onLoadMore={loadMore}
+          />
+        ) : (
+          <ContentGridView
+            items={items}
+            selectedIds={state.selectedIds}
+            onSelect={handleSelect}
+            onItemClick={handleItemClick}
+            isSelectionMode={state.isSelectionMode}
+            isLoading={pagination.isLoadingMore}
+            hasMore={pagination.hasMore}
+            onLoadMore={loadMore}
+          />
+        )
       )}
     </div>
   );
 }
 
-// Wrap in Suspense for useSearchParams
-export default function ContentKitPage() {
+// Wrap in Suspense for router
+export default function ContentLibraryPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-text-secondary">Loading content...</p>
+          <p className="text-text-secondary">Loading content library...</p>
         </div>
       </div>
     }>
-      <ContentKitPageContent />
+      <ContentLibraryContent />
     </Suspense>
   );
 }
