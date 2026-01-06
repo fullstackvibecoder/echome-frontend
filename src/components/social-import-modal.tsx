@@ -34,15 +34,15 @@ const PLATFORM_CONFIG: Record<Platform, {
   youtube: {
     name: 'YouTube',
     icon: '▶️',
-    placeholder: 'https://youtube.com/watch?v=... or channel URL',
-    hint: 'Paste a video URL or channel URL to import transcripts',
+    placeholder: 'Paste any YouTube link',
+    hint: 'Works with any link format - videos, channels, playlists, or share links',
     color: 'bg-red-500',
   },
   instagram: {
     name: 'Instagram',
     icon: '📷',
-    placeholder: 'https://instagram.com/username or post URL',
-    hint: 'Import captions from posts and reels',
+    placeholder: 'Paste any Instagram link',
+    hint: 'Works with profile links or individual post/reel URLs',
     color: 'bg-gradient-to-br from-purple-500 to-pink-500',
   },
 };
@@ -98,11 +98,12 @@ export function SocialImportModal({
 
         setPollCount(prev => prev + 1);
 
-        // Stop polling after 2 minutes (24 polls at 5 second intervals)
-        if (pollCount > 24) {
+        // Stop polling after 5 minutes (60 polls at 5 second intervals)
+        // Channel imports with 20 videos can take several minutes
+        if (pollCount > 60) {
           clearInterval(pollInterval);
           setStatus('error');
-          setError('Import is taking longer than expected. Check back later.');
+          setError('Import is taking longer than expected. The job is still processing in the background - check your Knowledge Base in a few minutes.');
         }
       } catch (err) {
         console.error('Poll error:', err);
@@ -289,13 +290,17 @@ export function SocialImportModal({
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 {status === 'polling'
-                  ? 'This may take a few minutes. Please wait...'
+                  ? 'Analyzing content and extracting transcripts...'
                   : 'Connecting to ' + (selectedPlatform ? PLATFORM_CONFIG[selectedPlatform].name : 'platform')}
               </p>
 
               {status === 'polling' && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                  Checking status... ({pollCount}/24)
+                  {pollCount < 12
+                    ? 'This usually takes 1-2 minutes for single videos'
+                    : pollCount < 36
+                    ? 'Processing... channels and playlists take longer'
+                    : 'Still working... almost there'}
                 </p>
               )}
             </div>
