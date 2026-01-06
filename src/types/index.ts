@@ -128,9 +128,15 @@ export interface VideoClipDetail {
   title?: string;
   transcriptText?: string;
   viralityScore?: number;
+  qualityScore?: number;
+  engagementPotential?: number;
   selectionReason?: string;
   suggestedCaption?: string; // AI-generated caption for social media posting
   format: 'portrait' | 'landscape' | 'square';
+  width?: number;
+  height?: number;
+  faceCropApplied?: boolean; // Whether GPT-4 Vision face detection was used
+  faceCropCenter?: { x: number; y: number }; // Face center coordinates (0-1)
   hasCaptions?: boolean;
   thumbnailUrl?: string;
   exports: Array<{
@@ -140,6 +146,8 @@ export interface VideoClipDetail {
     storagePath?: string;
   }>;
   status: string;
+  sortOrder?: number;
+  isSelected?: boolean;
   createdAt: string;
 }
 

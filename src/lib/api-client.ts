@@ -178,25 +178,34 @@ export const api = {
         } : undefined,
         clips: rawData.clips?.map((clip: any) => ({
           id: clip.id,
-          videoUploadId: clip.video_upload_id,
-          startTime: clip.start_time,
-          endTime: clip.end_time,
+          videoUploadId: clip.video_upload_id || clip.videoUploadId,
+          startTime: clip.start_time ?? clip.startTime,
+          endTime: clip.end_time ?? clip.endTime,
           duration: clip.duration,
           title: clip.title || clip.topic,
-          transcriptText: clip.transcript_text,
-          viralityScore: clip.virality_score || clip.quality_score,
-          selectionReason: clip.selection_reason || clip.metadata?.reason,
+          transcriptText: clip.transcript_text || clip.transcriptText,
+          viralityScore: clip.virality_score ?? clip.viralityScore ?? clip.quality_score,
+          qualityScore: clip.quality_score ?? clip.qualityScore,
+          engagementPotential: clip.engagement_potential ?? clip.engagementPotential,
+          selectionReason: clip.selection_reason || clip.selectionReason || clip.metadata?.reason,
+          suggestedCaption: clip.suggested_caption || clip.suggestedCaption,
           format: clip.format,
-          hasCaptions: clip.has_captions,
-          thumbnailUrl: clip.thumbnail_url,
+          width: clip.width,
+          height: clip.height,
+          faceCropApplied: clip.face_crop_applied ?? clip.faceCropApplied,
+          faceCropCenter: clip.face_crop_center || clip.faceCropCenter,
+          hasCaptions: clip.has_captions ?? clip.hasCaptions,
+          thumbnailUrl: clip.thumbnail_url || clip.thumbnailUrl,
           exports: clip.exports?.map((exp: any) => ({
             format: exp.format,
             quality: exp.quality,
             url: exp.url || exp.storage_path,
-            storagePath: exp.storage_path,
+            storagePath: exp.storage_path || exp.storagePath,
           })) || [],
           status: clip.status,
-          createdAt: clip.created_at,
+          sortOrder: clip.sort_order ?? clip.sortOrder ?? 0,
+          isSelected: clip.is_selected ?? clip.isSelected ?? true,
+          createdAt: clip.created_at || clip.createdAt,
         })),
         carousel: rawData.carousel ? {
           id: rawData.carousel.id,
@@ -1289,9 +1298,12 @@ export interface VideoClip {
   qualityScore?: number;
   engagementPotential?: number;
   selectionReason?: string;
+  suggestedCaption?: string; // AI-generated caption for social media posting
   format: 'portrait' | 'landscape' | 'square';
   width?: number;
   height?: number;
+  faceCropApplied?: boolean; // Whether GPT-4 Vision face detection was used
+  faceCropCenter?: { x: number; y: number }; // Face center coordinates (0-1)
   captionStyle: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
   captionConfig?: Record<string, unknown>;
   hasCaptions: boolean;
