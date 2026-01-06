@@ -129,6 +129,7 @@ export interface VideoClipDetail {
   transcriptText?: string;
   viralityScore?: number;
   selectionReason?: string;
+  suggestedCaption?: string; // AI-generated caption for social media posting
   format: 'portrait' | 'landscape' | 'square';
   hasCaptions?: boolean;
   thumbnailUrl?: string;

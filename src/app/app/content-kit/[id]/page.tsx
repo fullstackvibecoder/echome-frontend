@@ -249,6 +249,31 @@ export default function ContentKitDetailPage() {
                             </a>
                           )}
                         </div>
+
+                        {/* Suggested Caption */}
+                        {detail.clips[activeClipIndex].suggestedCaption && (
+                          <div className="mt-4 pt-4 border-t border-border/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-text-secondary">📝 Suggested Caption</span>
+                              <button
+                                onClick={() => handleCopy(
+                                  detail.clips[activeClipIndex].suggestedCaption || '',
+                                  `clip-caption-${detail.clips[activeClipIndex].id}`
+                                )}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                  copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
+                                    ? 'bg-success/10 text-success'
+                                    : 'bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                                }`}
+                              >
+                                {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓ Copied!' : '📋 Copy'}
+                              </button>
+                            </div>
+                            <p className="text-sm text-text-secondary whitespace-pre-wrap bg-bg-tertiary rounded-lg p-3 leading-relaxed">
+                              {detail.clips[activeClipIndex].suggestedCaption}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
