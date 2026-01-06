@@ -123,7 +123,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
       const [generationResult, clipsResult] = await Promise.all([
         api.generation.listRequests({ limit: PAGE_SIZE, offset: currentOffset })
           .catch(() => ({ success: false, data: null })),
-        api.clips.list(PAGE_SIZE)
+        api.clips.list(PAGE_SIZE, currentOffset)
           .catch(() => ({ success: false, data: null })),
       ]);
 
