@@ -554,6 +554,7 @@ export const api = {
       platform: 'youtube' | 'instagram';
       url: string;
       knowledgeBaseId?: string;
+      useForVoiceMatching?: boolean; // Include in voice matching (default true for user's own content)
     }) => {
       const response = await apiClient.post('/kb/content/social/import', data, {
         timeout: 30000, // Just starts the job, doesn't wait

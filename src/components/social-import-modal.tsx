@@ -59,6 +59,7 @@ export function SocialImportModal({
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [pollCount, setPollCount] = useState(0);
+  const [isOwnContent, setIsOwnContent] = useState(true); // For voice matching toggle
 
   // Reset state when modal closes
   useEffect(() => {
@@ -69,6 +70,7 @@ export function SocialImportModal({
       setError(null);
       setJobId(null);
       setPollCount(0);
+      setIsOwnContent(true);
     }
   }, [isOpen]);
 
@@ -124,6 +126,7 @@ export function SocialImportModal({
         platform: selectedPlatform,
         url: url.trim(),
         knowledgeBaseId,
+        useForVoiceMatching: isOwnContent,
       });
 
       if (result.success) {
@@ -216,6 +219,42 @@ export function SocialImportModal({
                   <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     {PLATFORM_CONFIG[selectedPlatform].hint}
                   </p>
+                </div>
+              )}
+
+              {/* Content Type Toggle */}
+              {selectedPlatform && (
+                <div className="mb-6">
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsOwnContent(!isOwnContent)}
+                      className={`
+                        relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full
+                        border-2 border-transparent transition-colors duration-200 ease-in-out
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                        ${isOwnContent ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'}
+                      `}
+                    >
+                      <span
+                        className={`
+                          pointer-events-none inline-block h-5 w-5 transform rounded-full
+                          bg-white shadow ring-0 transition duration-200 ease-in-out
+                          ${isOwnContent ? 'translate-x-5' : 'translate-x-0'}
+                        `}
+                      />
+                    </button>
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        This is my own content
+                      </label>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {isOwnContent
+                          ? 'Content will be used for voice matching when generating new content'
+                          : 'Content will be stored as reference material only'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
