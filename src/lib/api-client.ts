@@ -566,9 +566,10 @@ export const api = {
     }) => {
       const { emails, knowledgeBaseId, fileName, parseStats, onBatchProgress } = data;
 
-      // Split into batches of 20 emails for more frequent progress updates
-      // Each batch can take 2-5 minutes depending on email size (chunking + embedding)
-      const BATCH_SIZE = 20;
+      // Split into batches of 10 emails to stay under server chunk limits
+      // Large emails with long threads can produce 100+ chunks each
+      // Server caps at 2000 chunks per request to prevent timeouts
+      const BATCH_SIZE = 10;
       const batches: typeof emails[] = [];
       for (let i = 0; i < emails.length; i += BATCH_SIZE) {
         batches.push(emails.slice(i, i + BATCH_SIZE));
