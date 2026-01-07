@@ -96,12 +96,10 @@ export function MboxProgressUI({ progress, status }: MboxProgressUIProps) {
 
           {/* Upload phase: show patience message */}
           {isUploadPhase && (
-            <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
-                <span className="font-semibold">Please keep this tab open.</span>{' '}
-                Large archives can take several minutes. You can work in other tabs, just don&apos;t close this one.
-              </p>
-            </div>
+            <p className="mt-2 text-sm text-text-secondary bg-bg-secondary rounded px-2 py-1">
+              <span className="font-semibold">Please keep this tab open.</span>{' '}
+              Large archives can take several minutes. You can work in other tabs, just don&apos;t close this one.
+            </p>
           )}
 
           {/* Parsing phase tip */}
