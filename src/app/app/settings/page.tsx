@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api-client';
 import { UserProfile, UserProfileUpdate } from '@/types';
@@ -20,6 +20,10 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
+
+  // Image upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   // Profile form state
   const [displayName, setDisplayName] = useState('');
@@ -81,6 +85,45 @@ export default function SettingsPage() {
       setProfileError(error.response?.data?.error?.message || 'Failed to save profile');
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setProfileError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileError('Image must be less than 5MB');
+      return;
+    }
+
+    try {
+      setImageUploading(true);
+      setProfileError(null);
+
+      const response = await api.auth.uploadProfileImage(file);
+      if (response.success && response.data?.profile_image_url) {
+        const imageUrl = response.data.profile_image_url;
+        setProfile(prev => prev ? { ...prev, profile_image_url: imageUrl } : null);
+        setProfileSuccess(true);
+        setTimeout(() => setProfileSuccess(false), 3000);
+      }
+    } catch (error: any) {
+      console.error('Failed to upload image:', error);
+      setProfileError(error.response?.data?.error?.message || 'Failed to upload image');
+    } finally {
+      setImageUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -312,72 +355,34 @@ export default function SettingsPage() {
                 <p className="text-body text-text-secondary mb-3">
                   Your profile image appears on carousel slides and content attribution.
                 </p>
-                <button className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors">
-                  Upload Image
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={imageUploading}
+                  className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {imageUploading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload Image'
+                  )}
                 </button>
                 <p className="text-xs text-text-secondary mt-2">
-                  Recommended: Square image, at least 200x200px
+                  Recommended: Square image, at least 200x200px. Max 5MB.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Social Connections Card */}
-          <div className="card">
-            <h3 className="text-subheading text-xl mb-2">Social Connections</h3>
-            <p className="text-small text-text-secondary mb-4">
-              Connect your social accounts for automatic content importing
-            </p>
-
-            <div className="space-y-3">
-              {/* Instagram */}
-              <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">📸</span>
-                  <div>
-                    <p className="font-medium">Instagram</p>
-                    <p className="text-sm text-text-secondary">Import posts and captions</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 bg-warning/10 text-warning text-sm rounded-lg">
-                  Requires App Review
-                </span>
-              </div>
-
-              {/* Facebook */}
-              <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">📘</span>
-                  <div>
-                    <p className="font-medium">Facebook</p>
-                    <p className="text-sm text-text-secondary">Import posts from your page</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 bg-warning/10 text-warning text-sm rounded-lg">
-                  Requires App Review
-                </span>
-              </div>
-
-              {/* YouTube - Already available */}
-              <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🎬</span>
-                  <div>
-                    <p className="font-medium">YouTube</p>
-                    <p className="text-sm text-text-secondary">Import video transcripts</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 bg-success/10 text-success text-sm rounded-lg">
-                  Available via URL
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs text-text-secondary mt-4">
-              Instagram and Facebook connections require Meta app review approval.
-              For now, you can manually import content via the Knowledge Base.
-            </p>
-          </div>
         </div>
       )}
 

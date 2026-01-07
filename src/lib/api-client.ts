@@ -115,6 +115,17 @@ export const api = {
       const response = await apiClient.patch('/auth/profile/extended', data);
       return response.data;
     },
+
+    uploadProfileImage: async (file: File): Promise<ApiResponse<{ profile_image_url: string }>> => {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await apiClient.post('/auth/profile/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
   },
 
   // -------- CONTENT GENERATION --------
