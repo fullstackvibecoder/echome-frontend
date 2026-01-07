@@ -22,9 +22,7 @@ export default function KnowledgePage() {
     deleteContent,
     refresh,
   } = useKnowledgeBase();
-  const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload({
-    knowledgeBaseId: selectedKb ?? undefined,
-  });
+  const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
@@ -119,7 +117,11 @@ export default function KnowledgePage() {
   };
 
   const handleUpload = async () => {
-    await doUpload();
+    if (!selectedKb) {
+      console.error('No knowledge base selected');
+      return;
+    }
+    await doUpload(selectedKb);
     setShowUploadModal(false);
     await refresh();
   };

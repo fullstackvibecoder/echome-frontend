@@ -8,22 +8,17 @@ import {
   generateFileId,
 } from '@/lib/file-utils';
 
-interface UseFileUploadOptions {
-  knowledgeBaseId?: string;
-}
-
 interface UseFileUploadReturn {
   files: FileWithProgress[];
   uploading: boolean;
   addFiles: (newFiles: File[]) => void;
   removeFile: (fileId: string) => void;
-  uploadFiles: () => Promise<void>;
+  uploadFiles: (knowledgeBaseId: string) => Promise<void>;
   clearFiles: () => void;
   totalSize: number;
 }
 
-export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
-  const { knowledgeBaseId } = options;
+export function useFileUpload(): UseFileUploadReturn {
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -59,7 +54,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
 
-  const uploadFiles = useCallback(async () => {
+  const uploadFiles = useCallback(async (knowledgeBaseId: string) => {
     if (!knowledgeBaseId) {
       console.error('No knowledge base ID provided for upload');
       return;
@@ -120,7 +115,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     }
 
     setUploading(false);
-  }, [files, knowledgeBaseId]);
+  }, [files]);
 
   const clearFiles = useCallback(() => {
     setFiles([]);
