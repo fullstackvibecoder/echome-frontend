@@ -566,8 +566,9 @@ export const api = {
     }) => {
       const { emails, knowledgeBaseId, fileName, parseStats, onBatchProgress } = data;
 
-      // Split into batches of 50 emails (~20MB each) to avoid proxy limits
-      const BATCH_SIZE = 50;
+      // Split into batches of 20 emails for more frequent progress updates
+      // Each batch can take 2-5 minutes depending on email size (chunking + embedding)
+      const BATCH_SIZE = 20;
       const batches: typeof emails[] = [];
       for (let i = 0; i < emails.length; i += BATCH_SIZE) {
         batches.push(emails.slice(i, i + BATCH_SIZE));
@@ -581,6 +582,8 @@ export const api = {
       let totalChunks = 0;
       let totalEmbeddings = 0;
       let contentId = '';
+      let batchesCompleted = 0;
+      let lastError: Error | null = null;
 
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
@@ -590,34 +593,54 @@ export const api = {
           onBatchProgress(i + 1, batches.length);
         }
 
-        const response = await apiClient.post('/kb/content/emails/batch', {
-          emails: batch,
-          knowledgeBaseId,
-          fileName: i === 0 ? fileName : `${fileName} (batch ${i + 1})`,
-          parseStats: i === 0 ? parseStats : undefined, // Only include stats on first batch
-        }, {
-          timeout: 180000, // 3 minutes per batch
-        });
+        try {
+          const response = await apiClient.post('/kb/content/emails/batch', {
+            emails: batch,
+            knowledgeBaseId,
+            fileName: i === 0 ? fileName : `${fileName} (batch ${i + 1})`,
+            parseStats: i === 0 ? parseStats : undefined, // Only include stats on first batch
+          }, {
+            timeout: 300000, // 5 minutes per batch (embedding large emails takes time)
+          });
 
-        const result = response.data;
-        totalIngested += result.emailsIngested || 0;
-        totalDuplicate += result.emailsDuplicate || 0;
-        totalChunks += result.chunksCreated || 0;
-        totalEmbeddings += result.embeddingsCreated || 0;
-        if (!contentId && result.contentId) {
-          contentId = result.contentId;
+          const result = response.data;
+          totalIngested += result.emailsIngested || 0;
+          totalDuplicate += result.emailsDuplicate || 0;
+          totalChunks += result.chunksCreated || 0;
+          totalEmbeddings += result.embeddingsCreated || 0;
+          if (!contentId && result.contentId) {
+            contentId = result.contentId;
+          }
+          batchesCompleted++;
+
+          console.log(`[Email Upload] Batch ${i + 1} complete: ${result.emailsIngested} ingested, ${result.chunksCreated} chunks`);
+        } catch (err) {
+          console.error(`[Email Upload] Batch ${i + 1} failed:`, err);
+          lastError = err instanceof Error ? err : new Error(String(err));
+
+          // If we've completed at least half the batches, continue and return partial success
+          // Otherwise, if this is an early failure, throw the error
+          if (batchesCompleted < batches.length / 2) {
+            throw lastError;
+          }
+          // Break out of loop but don't throw - we'll return partial success
+          console.log(`[Email Upload] Partial success: ${batchesCompleted}/${batches.length} batches completed`);
+          break;
         }
-
-        console.log(`[Email Upload] Batch ${i + 1} complete: ${result.emailsIngested} ingested, ${result.chunksCreated} chunks`);
       }
 
+      // Return results (even if partial)
+      const isPartial = batchesCompleted < batches.length;
       return {
         success: true,
+        partial: isPartial,
         contentId,
         emailsIngested: totalIngested,
         emailsDuplicate: totalDuplicate,
         chunksCreated: totalChunks,
         embeddingsCreated: totalEmbeddings,
+        batchesCompleted,
+        totalBatches: batches.length,
       };
     },
 

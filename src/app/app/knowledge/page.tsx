@@ -13,6 +13,7 @@ import { SocialImportModal } from '@/components/social-import-modal';
 import { api } from '@/lib/api-client';
 import { parseMboxFile, estimateUploadSize, formatBytes } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
+import { MboxProgressUI } from '@/components/mbox-progress-ui';
 
 export default function KnowledgePage() {
   const {
@@ -33,7 +34,13 @@ export default function KnowledgePage() {
   const [mboxUploading, setMboxUploading] = useState(false);
   const [mboxProgress, setMboxProgress] = useState(0);
   const [mboxStatus, setMboxStatus] = useState<string>('');
-  const [mboxResult, setMboxResult] = useState<{ emailsIngested: number; chunksCreated: number } | null>(null);
+  const [mboxResult, setMboxResult] = useState<{
+    emailsIngested: number;
+    chunksCreated: number;
+    partial?: boolean;
+    batchesCompleted?: number;
+    totalBatches?: number;
+  } | null>(null);
   const mboxInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -211,10 +218,13 @@ export default function KnowledgePage() {
       });
 
       setMboxProgress(100);
-      setMboxStatus('Complete!');
+      setMboxStatus(result.partial ? 'Partially complete' : 'Complete!');
       setMboxResult({
         emailsIngested: result.emailsIngested,
         chunksCreated: result.chunksCreated,
+        partial: result.partial,
+        batchesCompleted: result.batchesCompleted,
+        totalBatches: result.totalBatches,
       });
     } catch (err) {
       console.error('MBOX upload error:', err);
@@ -303,10 +313,13 @@ export default function KnowledgePage() {
       });
 
       setMboxProgress(100);
-      setMboxStatus('Complete!');
+      setMboxStatus(result.partial ? 'Partially complete' : 'Complete!');
       setMboxResult({
         emailsIngested: result.emailsIngested,
         chunksCreated: result.chunksCreated,
+        partial: result.partial,
+        batchesCompleted: result.batchesCompleted,
+        totalBatches: result.totalBatches,
       });
 
       await refresh();
@@ -397,57 +410,48 @@ export default function KnowledgePage() {
 
       {/* MBOX Upload Progress */}
       {mboxUploading && (
-        <div className="mb-6 p-4 bg-accent/10 border-2 border-accent rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-            <div className="flex-1">
-              <p className="text-text-primary font-semibold text-lg">
-                {mboxStatus || 'Processing email archive...'}
-              </p>
-              <div className="mt-2 h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent transition-all duration-300"
-                  style={{ width: `${mboxProgress}%` }}
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-sm text-text-secondary">
-                <span>
-                  {mboxProgress < 30
-                    ? '📖 Reading file into browser memory...'
-                    : mboxProgress < 70
-                    ? '🔍 Scanning emails & extracting text...'
-                    : '📤 Uploading extracted content to server...'}
-                </span>
-                <span className="font-mono font-semibold text-text-primary">{mboxProgress}%</span>
-              </div>
-              {mboxProgress < 70 && (
-                <p className="mt-2 text-sm text-text-secondary bg-bg-secondary rounded px-2 py-1">
-                  💡 Streaming in 50MB chunks - works with any file size, even on low-RAM devices.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+        <MboxProgressUI
+          progress={mboxProgress}
+          status={mboxStatus}
+        />
       )}
 
       {/* MBOX Upload Result */}
       {mboxResult && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+        <div className={`mb-6 p-4 rounded-lg border ${
+          mboxResult.partial
+            ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+            : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+        }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">✅</span>
+              <span className="text-2xl">{mboxResult.partial ? '⚠️' : '✅'}</span>
               <div>
-                <p className="text-green-700 dark:text-green-300 font-medium">
-                  Email archive imported successfully!
+                <p className={`font-medium ${
+                  mboxResult.partial
+                    ? 'text-amber-700 dark:text-amber-300'
+                    : 'text-green-700 dark:text-green-300'
+                }`}>
+                  {mboxResult.partial
+                    ? `Email import partially complete (${mboxResult.batchesCompleted}/${mboxResult.totalBatches} batches)`
+                    : 'Email archive imported successfully!'}
                 </p>
-                <p className="text-green-600 dark:text-green-400 text-sm">
+                <p className={`text-sm ${
+                  mboxResult.partial
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
                   {mboxResult.emailsIngested} emails processed, {mboxResult.chunksCreated} chunks created
+                  {mboxResult.partial && ' - remaining emails can be uploaded again'}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setMboxResult(null)}
-              className="text-green-600 hover:text-green-800 dark:text-green-400"
+              className={mboxResult.partial
+                ? 'text-amber-600 hover:text-amber-800 dark:text-amber-400'
+                : 'text-green-600 hover:text-green-800 dark:text-green-400'
+              }
             >
               ✕
             </button>
