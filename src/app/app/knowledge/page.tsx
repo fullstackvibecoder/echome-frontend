@@ -586,8 +586,15 @@ export default function KnowledgePage() {
 
               <div className="space-y-6">
                 <p className="text-body text-text-secondary">
-                  Import your sent emails to help Echo learn your writing style. We only extract YOUR sent emails from the archive.
+                  Import your sent emails to help Echo learn your writing style. Files of any size are supported - we parse them locally in your browser.
                 </p>
+
+                {/* How it works */}
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    <strong>How it works:</strong> Your email file is parsed entirely in your browser. Only the extracted text from emails you sent is uploaded - attachments and received emails are discarded locally.
+                  </p>
+                </div>
 
                 {/* Gmail instructions */}
                 <div className="p-4 bg-bg-secondary rounded-lg">
@@ -597,7 +604,7 @@ export default function KnowledgePage() {
                   <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
                     <li>Go to <a href="https://takeout.google.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">takeout.google.com</a></li>
                     <li>Click &quot;Deselect all&quot;, then scroll down and select only &quot;Mail&quot;</li>
-                    <li>Click &quot;All Mail data included&quot; and select only &quot;Sent&quot; (optional but recommended)</li>
+                    <li>Click &quot;All Mail data included&quot; and select only &quot;Sent&quot; (recommended)</li>
                     <li>Click &quot;Next step&quot; and create export</li>
                     <li>Download and extract the ZIP file</li>
                     <li>Upload the .mbox file from the Mail folder</li>
@@ -634,7 +641,7 @@ export default function KnowledgePage() {
 
                 <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                   <p className="text-sm text-amber-600 dark:text-amber-400">
-                    <strong>Privacy note:</strong> Your email archive is parsed locally in your browser - only the extracted text is uploaded. We filter to only keep emails YOU sent. Up to 500 emails processed.
+                    <strong>Note:</strong> Up to 500 of your most recent sent emails will be processed for voice matching.
                   </p>
                 </div>
 
