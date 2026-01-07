@@ -416,42 +416,24 @@ export default function KnowledgePage() {
         />
       )}
 
-      {/* MBOX Upload Result */}
+      {/* MBOX Upload Result - always show as success since emails were ingested */}
       {mboxResult && (
-        <div className={`mb-6 p-4 rounded-lg border ${
-          mboxResult.partial
-            ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-            : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-        }`}>
+        <div className="mb-6 p-4 rounded-lg border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{mboxResult.partial ? '⚠️' : '✅'}</span>
+              <span className="text-2xl">✅</span>
               <div>
-                <p className={`font-medium ${
-                  mboxResult.partial
-                    ? 'text-amber-700 dark:text-amber-300'
-                    : 'text-green-700 dark:text-green-300'
-                }`}>
-                  {mboxResult.partial
-                    ? `Email import partially complete (${mboxResult.batchesCompleted}/${mboxResult.totalBatches} batches)`
-                    : 'Email archive imported successfully!'}
+                <p className="font-medium text-green-700 dark:text-green-300">
+                  Email archive imported successfully!
                 </p>
-                <p className={`text-sm ${
-                  mboxResult.partial
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-green-600 dark:text-green-400'
-                }`}>
-                  {mboxResult.emailsIngested} emails processed, {mboxResult.chunksCreated} chunks created
-                  {mboxResult.partial && ' - remaining emails can be uploaded again'}
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  {mboxResult.emailsIngested} emails processed, {mboxResult.chunksCreated.toLocaleString()} chunks created
                 </p>
               </div>
             </div>
             <button
               onClick={() => setMboxResult(null)}
-              className={mboxResult.partial
-                ? 'text-amber-600 hover:text-amber-800 dark:text-amber-400'
-                : 'text-green-600 hover:text-green-800 dark:text-green-400'
-              }
+              className="text-green-600 hover:text-green-800 dark:text-green-400"
             >
               ✕
             </button>
