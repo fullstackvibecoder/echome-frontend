@@ -384,20 +384,20 @@ export default function KnowledgePage() {
 
       {/* MBOX Upload Progress */}
       {mboxUploading && (
-        <div className="mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-300 dark:border-indigo-700 rounded-lg">
+        <div className="mb-6 p-4 bg-accent/10 border-2 border-accent rounded-lg">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin" />
             <div className="flex-1">
-              <p className="text-indigo-900 dark:text-indigo-100 font-semibold text-lg">
+              <p className="text-text-primary font-semibold text-lg">
                 {mboxStatus || 'Processing email archive...'}
               </p>
-              <div className="mt-2 h-3 bg-indigo-200 dark:bg-indigo-800 rounded-full overflow-hidden">
+              <div className="mt-2 h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-300"
+                  className="h-full bg-accent transition-all duration-300"
                   style={{ width: `${mboxProgress}%` }}
                 />
               </div>
-              <div className="mt-2 flex items-center justify-between text-sm text-indigo-800 dark:text-indigo-200">
+              <div className="mt-2 flex items-center justify-between text-sm text-text-secondary">
                 <span>
                   {mboxProgress < 30
                     ? '📖 Reading file into browser memory...'
@@ -405,10 +405,10 @@ export default function KnowledgePage() {
                     ? '🔍 Scanning emails & extracting text...'
                     : '📤 Uploading extracted content to server...'}
                 </span>
-                <span className="font-mono font-semibold">{mboxProgress}%</span>
+                <span className="font-mono font-semibold text-text-primary">{mboxProgress}%</span>
               </div>
               {mboxProgress < 70 && (
-                <p className="mt-2 text-sm text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/50 rounded px-2 py-1">
+                <p className="mt-2 text-sm text-text-secondary bg-bg-secondary rounded px-2 py-1">
                   💡 Streaming in 50MB chunks - works with any file size, even on low-RAM devices.
                 </p>
               )}
