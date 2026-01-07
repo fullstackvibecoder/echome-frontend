@@ -29,13 +29,6 @@ export function AppHeader() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-3">
-          <button
-            className="px-4 py-2 border-2 border-border rounded-lg hover:border-primary transition-colors hidden md:block text-foreground"
-            onClick={() => {/* Navigate to upload */}}
-          >
-            📤 Upload
-          </button>
-
           {/* User Avatar (mobile) */}
           <div className="lg:hidden w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
             {user?.name?.charAt(0).toUpperCase() || 'U'}
