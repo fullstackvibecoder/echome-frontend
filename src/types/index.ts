@@ -18,6 +18,37 @@ export interface User {
   updatedAt: Date;
 }
 
+/**
+ * Extended user profile with social handles and branding info
+ * Used for carousel customization and public profile
+ */
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  display_name?: string;
+  twitter_handle?: string;
+  instagram_handle?: string;
+  profile_image_url?: string;
+  bio?: string;
+  website_url?: string;
+  subscription_tier: string;
+  credits_remaining: number;
+}
+
+/**
+ * Input for updating user profile
+ */
+export interface UserProfileUpdate {
+  full_name?: string;
+  display_name?: string;
+  twitter_handle?: string | null;
+  instagram_handle?: string | null;
+  profile_image_url?: string | null;
+  bio?: string | null;
+  website_url?: string | null;
+}
+
 // ============================================
 // CONTENT GENERATION TYPES
 // ============================================

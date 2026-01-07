@@ -16,6 +16,8 @@ import type {
   BackgroundConfig,
   BackgroundPreset,
   UnifiedContentResponse,
+  UserProfile,
+  UserProfileUpdate,
 } from '../types';
 
 const API_BASE_URL =
@@ -100,6 +102,17 @@ export const api = {
 
     getCurrentUser: async () => {
       const response = await apiClient.get('/auth/me');
+      return response.data;
+    },
+
+    // Extended profile methods (stored in users table)
+    getProfile: async (): Promise<ApiResponse<UserProfile>> => {
+      const response = await apiClient.get('/auth/profile/extended');
+      return response.data;
+    },
+
+    updateProfile: async (data: UserProfileUpdate): Promise<ApiResponse<UserProfile>> => {
+      const response = await apiClient.patch('/auth/profile/extended', data);
       return response.data;
     },
   },
