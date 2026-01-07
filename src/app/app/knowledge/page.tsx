@@ -209,7 +209,7 @@ export default function KnowledgePage() {
           <input
             ref={mboxInputRef}
             type="file"
-            accept=".mbox"
+            accept=".mbox,application/mbox,application/octet-stream,text/plain"
             onChange={handleMboxUpload}
             className="hidden"
           />
@@ -564,8 +564,9 @@ export default function KnowledgePage() {
                   <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
                     <li>Open Mail and select your &quot;Sent&quot; mailbox</li>
                     <li>Go to Mailbox → Export Mailbox...</li>
-                    <li>Choose a location to save the .mbox file</li>
-                    <li>Upload the exported file</li>
+                    <li>Choose a location to save the .mbox folder</li>
+                    <li>Right-click the .mbox folder → &quot;Show Package Contents&quot;</li>
+                    <li>Upload the <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">mbox</code> file inside (no extension)</li>
                   </ol>
                 </div>
 
