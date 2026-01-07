@@ -94,13 +94,13 @@ export function MboxProgressUI({ progress, status }: MboxProgressUIProps) {
             <span className="font-mono font-semibold text-text-primary">{progress}%</span>
           </div>
 
-          {/* Upload phase: show "you can navigate away" message */}
+          {/* Upload phase: show patience message */}
           {isUploadPhase && (
             <div className="mt-3 p-2 bg-bg-secondary rounded-lg border border-border">
               <p className="text-sm text-text-secondary">
                 <span className="text-accent font-medium">Taking a while?</span>{' '}
                 Large email archives can take several minutes to process.
-                You can safely navigate away - processing will continue in the background.
+                Please keep this tab open until complete. The current batch will finish even if connection drops.
               </p>
             </div>
           )}
