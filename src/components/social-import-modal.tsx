@@ -21,7 +21,8 @@ interface SocialImportModalProps {
   knowledgeBaseId?: string;
 }
 
-type Platform = 'youtube' | 'instagram';
+type Platform = 'youtube';
+type AllPlatforms = 'youtube' | 'instagram';
 type ImportStatus = 'idle' | 'importing' | 'polling' | 'success' | 'error';
 
 const PLATFORM_CONFIG: Record<Platform, {
@@ -38,14 +39,20 @@ const PLATFORM_CONFIG: Record<Platform, {
     hint: 'Works with any link format - videos, channels, playlists, or share links',
     color: 'bg-red-500',
   },
-  instagram: {
+};
+
+// Platforms coming soon (shown but disabled)
+const COMING_SOON_PLATFORMS: Array<{
+  id: AllPlatforms;
+  name: string;
+  icon: string;
+}> = [
+  {
+    id: 'instagram',
     name: 'Instagram',
     icon: '📷',
-    placeholder: 'Paste any Instagram link',
-    hint: 'Works with profile links or individual post/reel URLs',
-    color: 'bg-gradient-to-br from-purple-500 to-pink-500',
   },
-};
+];
 
 export function SocialImportModal({
   isOpen,
@@ -197,6 +204,21 @@ export function SocialImportModal({
                         {PLATFORM_CONFIG[platform].name}
                       </span>
                     </button>
+                  ))}
+                  {/* Coming Soon Platforms */}
+                  {COMING_SOON_PLATFORMS.map((platform) => (
+                    <div
+                      key={platform.id}
+                      className="p-3 rounded-xl flex flex-col items-center gap-1 opacity-50 cursor-not-allowed relative"
+                    >
+                      <span className="text-2xl grayscale">{platform.icon}</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {platform.name}
+                      </span>
+                      <span className="absolute top-1 right-1 text-[10px] bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full">
+                        Soon
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
