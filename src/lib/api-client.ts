@@ -340,25 +340,33 @@ export const api = {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await apiClient.post(
-        `/files/upload?kbId=${kbId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': undefined, // Let axios set multipart boundary automatically
-          },
-          timeout: 300000, // 5 minutes for large file uploads
-          onUploadProgress: (progressEvent) => {
-            if (onProgress && progressEvent.total) {
-              const percentCompleted = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-              onProgress(percentCompleted);
-            }
-          },
-        }
-      );
-      return response.data;
+      console.log('[api-client] Starting file upload to KB:', kbId);
+      try {
+        const response = await apiClient.post(
+          `/files/upload?kbId=${kbId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            timeout: 300000, // 5 minutes for large file uploads
+            onUploadProgress: (progressEvent) => {
+              if (onProgress && progressEvent.total) {
+                const percentCompleted = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                );
+                console.log('[api-client] Upload progress:', percentCompleted);
+                onProgress(percentCompleted);
+              }
+            },
+          }
+        );
+        console.log('[api-client] Upload response received:', response.status, response.data);
+        return response.data;
+      } catch (error) {
+        console.error('[api-client] Upload error:', error);
+        throw error;
+      }
     },
 
     list: async (kbId: string) => {
