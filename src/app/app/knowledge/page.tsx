@@ -12,6 +12,7 @@ import { VoiceRecorder } from '@/components/voice-recorder';
 import { SocialImportModal } from '@/components/social-import-modal';
 import { api } from '@/lib/api-client';
 import { parseMboxFile, estimateUploadSize, formatBytes } from '@/lib/mbox-parser';
+import { isMboxFile } from '@/lib/file-utils';
 
 export default function KnowledgePage() {
   const {
@@ -123,9 +124,100 @@ export default function KnowledgePage() {
       console.error('No knowledge base selected');
       return;
     }
-    await doUpload(selectedKb);
-    setShowUploadModal(false);
+
+    // Check if any files are MBOX - they need client-side parsing
+    const mboxFiles = uploadFiles.filter(f => f.status === 'pending' && isMboxFile(f.file));
+    const otherFiles = uploadFiles.filter(f => f.status === 'pending' && !isMboxFile(f.file));
+
+    // Process MBOX files with client-side parsing
+    if (mboxFiles.length > 0) {
+      setShowUploadModal(false);
+      for (const fileWithProgress of mboxFiles) {
+        await processMboxFile(fileWithProgress.file);
+      }
+    }
+
+    // Process other files with normal upload
+    if (otherFiles.length > 0) {
+      await doUpload(selectedKb);
+      setShowUploadModal(false);
+    } else if (mboxFiles.length === 0) {
+      setShowUploadModal(false);
+    }
+
     await refresh();
+  };
+
+  // Helper function to process MBOX file with client-side parsing
+  const processMboxFile = async (file: File) => {
+    const fileSizeGB = file.size / (1024 * 1024 * 1024);
+    if (fileSizeGB > 2) {
+      const confirmed = confirm(
+        `This file is ${fileSizeGB.toFixed(1)}GB. Parsing may take several minutes.\n\nFor faster processing, consider exporting only your "Sent" folder.\n\nContinue?`
+      );
+      if (!confirmed) return;
+    }
+
+    setMboxUploading(true);
+    setMboxProgress(0);
+    setMboxStatus('Reading file...');
+    setMboxResult(null);
+
+    try {
+      const parseResult = await parseMboxFile(file, {
+        maxEmails: 500,
+        minContentLength: 50,
+        onProgress: ({ percent, emailsFound, status }) => {
+          setMboxProgress(Math.round(percent * 0.7));
+          setMboxStatus(status || `Found ${emailsFound} emails...`);
+        },
+      });
+
+      if (parseResult.emails.length === 0) {
+        const reasons = Object.entries(parseResult.skippedReasons)
+          .map(([reason, count]) => `${reason}: ${count}`)
+          .join(', ');
+        alert(
+          `No emails found to import.\n\n` +
+          `Total emails scanned: ${parseResult.totalEmailsFound}\n` +
+          `Filtered out: ${parseResult.emailsFiltered}\n` +
+          `Parse errors: ${parseResult.parseErrors}\n\n` +
+          (reasons ? `Skip reasons: ${reasons}` : '') +
+          `\n\nTip: Make sure you're uploading your "Sent" folder MBOX file.`
+        );
+        return;
+      }
+
+      const uploadSize = estimateUploadSize(parseResult.emails);
+      setMboxProgress(70);
+      setMboxStatus(`Uploading ${parseResult.emails.length} emails (${formatBytes(uploadSize)})...`);
+
+      const result = await api.kbContent.ingestParsedEmails({
+        emails: parseResult.emails,
+        knowledgeBaseId: selectedKb ?? undefined,
+        fileName: file.name,
+        parseStats: {
+          totalEmailsFound: parseResult.totalEmailsFound,
+          emailsParsed: parseResult.emailsParsed,
+          emailsFiltered: parseResult.emailsFiltered,
+          parseErrors: parseResult.parseErrors,
+        },
+      });
+
+      setMboxProgress(100);
+      setMboxStatus('Complete!');
+      setMboxResult({
+        emailsIngested: result.emailsIngested,
+        chunksCreated: result.chunksCreated,
+      });
+    } catch (err) {
+      console.error('MBOX upload error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert(`Failed to import emails: ${errorMessage}`);
+    } finally {
+      setMboxUploading(false);
+      setMboxStatus('');
+    }
   };
 
   const handleMboxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

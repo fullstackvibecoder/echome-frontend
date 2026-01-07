@@ -123,7 +123,7 @@ export function UploadZone({ onFilesAdded, disabled }: UploadZoneProps) {
       <div className="mt-6 text-small text-text-secondary text-center">
         <p className="mb-1">Supported files:</p>
         <p className="text-xs">PDF, MP4, MOV, TXT, MBOX, JPG, PNG, WAV, MP3</p>
-        <p className="text-xs mt-1">Max size: 500MB per file</p>
+        <p className="text-xs mt-1">Max size: 500MB (MBOX files: any size)</p>
       </div>
     </div>
   );
