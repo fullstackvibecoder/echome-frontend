@@ -85,10 +85,21 @@ export default function KnowledgePage() {
 
     setBulkDeleting(true);
     try {
-      // Delete items sequentially to avoid overwhelming the server
-      for (const id of selectedIds) {
-        await deleteContent(id);
+      // Delete items in parallel for speed
+      const deletePromises = Array.from(selectedIds).map(id =>
+        deleteContent(id).catch(err => {
+          console.error(`Failed to delete ${id}:`, err);
+          return { error: true, id };
+        })
+      );
+
+      const results = await Promise.all(deletePromises);
+      const failures = results.filter(r => r && typeof r === 'object' && 'error' in r);
+
+      if (failures.length > 0) {
+        alert(`${failures.length} item(s) failed to delete.`);
       }
+
       setSelectedIds(new Set());
       setSelectionMode(false);
     } catch (err) {
@@ -279,16 +290,16 @@ export default function KnowledgePage() {
             {!selectionMode ? (
               <button
                 onClick={() => setSelectionMode(true)}
-                className="px-4 py-2.5 border-2 border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors"
+                className="px-4 py-2.5 bg-accent/10 border-2 border-accent text-accent rounded-lg hover:bg-accent/20 transition-colors font-medium flex items-center gap-2"
               >
-                Select
+                <span>☑️</span> Select
               </button>
             ) : (
               <button
                 onClick={handleCancelSelection}
-                className="px-4 py-2.5 border-2 border-border rounded-lg text-text-secondary hover:border-error hover:text-error transition-colors"
+                className="px-4 py-2.5 border-2 border-error/50 text-error rounded-lg hover:bg-error/10 transition-colors font-medium"
               >
-                Cancel
+                ✕ Cancel
               </button>
             )}
           </div>
