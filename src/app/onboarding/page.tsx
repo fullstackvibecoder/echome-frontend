@@ -2,18 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { UploadZone } from '@/components/upload-zone';
 import { FileList } from '@/components/file-list';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { selectedKb } = useKnowledgeBase();
   const { files, uploading, addFiles, removeFile, uploadFiles, totalSize } =
     useFileUpload();
 
   const handleNext = async () => {
     // Upload any pending files
-    if (files.some((f) => f.status === 'pending')) {
-      await uploadFiles();
+    if (files.some((f) => f.status === 'pending') && selectedKb) {
+      await uploadFiles(selectedKb);
     }
 
     // Navigate to next step
