@@ -1166,6 +1166,9 @@ export const api = {
       },
       onProgress?: (progress: number) => void
     ) => {
+      // Dynamically import Supabase client to avoid circular deps
+      const { supabase } = await import('./supabase');
+
       // Step 1: Initialize the upload and get signed URL
       console.log('[api-client] Initializing direct upload for large file:', {
         filename: file.name,
@@ -1185,45 +1188,31 @@ export const api = {
         throw new Error('Failed to initialize upload');
       }
 
-      const { uploadId, signedUrl, storagePath, token } = initResponse.data.data;
+      const { uploadId, storagePath, token } = initResponse.data.data;
       console.log('[api-client] Got signed URL for upload:', uploadId);
 
-      // Step 2: Upload directly to Supabase using the signed URL
-      // Use XMLHttpRequest for progress tracking
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+      // Step 2: Upload directly to Supabase using uploadToSignedUrl
+      // This handles the request format properly
+      console.log('[api-client] Uploading to Supabase storage...');
 
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable && onProgress) {
-            const percentCompleted = Math.round((event.loaded * 100) / event.total);
-            onProgress(percentCompleted);
-          }
+      // For progress tracking, we'll use XHR but with the correct Supabase approach
+      // Supabase's uploadToSignedUrl doesn't support progress, so we track upload start/end
+      if (onProgress) onProgress(5); // Starting upload
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('video-uploads')
+        .uploadToSignedUrl(storagePath, token, file, {
+          contentType: file.type || 'video/mp4',
+          upsert: true,
         });
 
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            console.log('[api-client] Direct upload to storage complete');
-            resolve();
-          } else {
-            console.error('[api-client] Direct upload failed:', xhr.status, xhr.statusText);
-            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
-          }
-        });
+      if (uploadError) {
+        console.error('[api-client] Supabase upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
 
-        xhr.addEventListener('error', () => {
-          console.error('[api-client] Direct upload error');
-          reject(new Error('Upload failed due to network error'));
-        });
-
-        xhr.addEventListener('abort', () => {
-          reject(new Error('Upload aborted'));
-        });
-
-        // Supabase signed URL expects PUT with the file body
-        xhr.open('PUT', signedUrl, true);
-        xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
-        xhr.send(file);
-      });
+      console.log('[api-client] Direct upload to storage complete:', uploadData);
+      if (onProgress) onProgress(90); // Upload complete
 
       // Step 3: Complete the upload on our backend
       console.log('[api-client] Completing upload:', uploadId);
@@ -1237,6 +1226,8 @@ export const api = {
       if (!completeResponse.data.success) {
         throw new Error('Failed to complete upload');
       }
+
+      if (onProgress) onProgress(100);
 
       return completeResponse.data as {
         success: boolean;
