@@ -5,6 +5,7 @@ import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { KBStats } from '@/components/kb-stats';
 import { ContentItemCard } from '@/components/content-item-card';
+import { GroupedContentCard } from '@/components/grouped-content-card';
 import { UploadZone } from '@/components/upload-zone';
 import { FileList } from '@/components/file-list';
 import { PasteContentModal } from '@/components/paste-content-modal';
@@ -56,6 +57,27 @@ export default function KnowledgePage() {
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Group MBOX items by base filename (removing " (batch N)" suffix)
+  const groupedContent = (() => {
+    const groups: Map<string, typeof filteredContent> = new Map();
+    const ungrouped: typeof filteredContent = [];
+
+    for (const item of filteredContent) {
+      // Group MBOX imports by base filename
+      if (item.sourceType === 'mbox_import') {
+        // Extract base name: "Sent-008.mbox (batch 2)" -> "Sent-008.mbox"
+        const baseName = item.title.replace(/\s*\(batch\s*\d+\)\s*$/, '').trim();
+        const existing = groups.get(baseName) || [];
+        existing.push(item);
+        groups.set(baseName, existing);
+      } else {
+        ungrouped.push(item);
+      }
+    }
+
+    return { groups, ungrouped };
+  })();
 
   // Selection helpers
   const selectedCount = selectedIds.size;
@@ -526,7 +548,23 @@ export default function KnowledgePage() {
       {/* Content Grid */}
       {!loading && filteredContent.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredContent.map((item) => (
+          {/* Grouped MBOX items */}
+          {Array.from(groupedContent.groups.entries()).map(([groupName, items]) => (
+            <GroupedContentCard
+              key={`group-${groupName}`}
+              items={items}
+              sourceType="mbox_import"
+              groupTitle={groupName}
+              onDelete={handleDelete}
+              selected={items.every((item) => selectedIds.has(item.id))}
+              onSelect={(selected) => {
+                items.forEach((item) => handleSelectItem(item.id, selected));
+              }}
+              selectionMode={selectionMode}
+            />
+          ))}
+          {/* Ungrouped items */}
+          {groupedContent.ungrouped.map((item) => (
             <ContentItemCard
               key={item.id}
               item={item}

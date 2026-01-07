@@ -158,10 +158,10 @@ export function ContentItemCard({ item, onDelete, selected, onSelect, selectionM
           </span>
         )}
 
-        {item.chunkCount > 0 && (
+        {item.chunkCount !== undefined && item.chunkCount > 0 && (
           <span className="text-xs text-text-secondary flex items-center gap-1">
             <span className="inline-block w-1.5 h-1.5 bg-success rounded-full"></span>
-            {item.chunkCount} chunks
+            {item.chunkCount.toLocaleString()} chunks
           </span>
         )}
       </div>
