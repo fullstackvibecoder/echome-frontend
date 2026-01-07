@@ -1,8 +1,184 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { InputType, Platform, BackgroundConfig, PresetBackground } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob } from '@/lib/api-client';
+
+// ============================================
+// VOICE INPUT PANEL - Direct voice recording
+// ============================================
+
+type VoiceState = 'idle' | 'recording' | 'transcribing';
+
+function VoiceInputPanel({
+  onTranscribed,
+  disabled,
+}: {
+  onTranscribed: (text: string) => void;
+  disabled?: boolean;
+}) {
+  const [state, setState] = useState<VoiceState>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const [duration, setDuration] = useState(0);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const startRecording = useCallback(async () => {
+    setError(null);
+    audioChunksRef.current = [];
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : 'audio/webm',
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        stream.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+
+        // Transcribe
+        setState('transcribing');
+        try {
+          const result = await api.kbContent.transcribeVoice(audioBlob);
+          if (result.success && result.text) {
+            onTranscribed(result.text);
+            setState('idle');
+            setDuration(0);
+          } else {
+            throw new Error('No transcription returned');
+          }
+        } catch (err) {
+          console.error('Transcription error:', err);
+          setError('Failed to transcribe. Please try again.');
+          setState('idle');
+        }
+      };
+
+      mediaRecorder.start(100);
+      setState('recording');
+
+      setDuration(0);
+      timerRef.current = setInterval(() => {
+        setDuration(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Microphone error:', err);
+      setError('Could not access microphone. Please check permissions.');
+    }
+  }, [onTranscribed]);
+
+  const stopRecording = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+  }, [state]);
+
+  return (
+    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+      {state === 'idle' && (
+        <>
+          <button
+            onClick={startRecording}
+            disabled={disabled}
+            className="w-20 h-20 rounded-full bg-accent hover:bg-accent/90 flex items-center justify-center mx-auto mb-4 transition-all shadow-lg disabled:opacity-50"
+          >
+            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+            </svg>
+          </button>
+          <p className="text-body text-text-secondary mb-2">
+            Click to start recording
+          </p>
+          <p className="text-small text-text-secondary">
+            Speak your content idea and we'll transcribe it
+          </p>
+        </>
+      )}
+
+      {state === 'recording' && (
+        <>
+          <button
+            onClick={stopRecording}
+            className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center mx-auto mb-4 transition-all shadow-lg animate-pulse"
+          >
+            <span className="w-8 h-8 bg-white rounded-md" />
+          </button>
+          <p className="text-2xl font-bold text-red-500 mb-1">
+            {formatDuration(duration)}
+          </p>
+          <p className="text-body text-text-secondary">
+            Recording... Click to stop
+          </p>
+          <div className="flex justify-center gap-1 mt-3">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="w-1 bg-red-500 rounded-full animate-pulse"
+                style={{
+                  height: `${Math.random() * 20 + 10}px`,
+                  animationDelay: `${i * 0.1}s`,
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {state === 'transcribing' && (
+        <>
+          <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-body text-text-secondary">
+            Transcribing your voice...
+          </p>
+        </>
+      )}
+
+      {error && (
+        <div className="mt-4 p-3 bg-error/10 border border-error/20 rounded-lg">
+          <p className="text-small text-error">{error}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Carousel background options for the dropdown
 type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
@@ -60,7 +236,6 @@ export function FirstGeneration({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Carousel background state
@@ -364,32 +539,8 @@ export function FirstGeneration({
       return;
     }
 
-    // For audio input - use original flow (just generates content, no clip extraction)
-    if (inputType === 'audio') {
-      if (!selectedFile) {
-        setUploadError('Please select an audio file first');
-        return;
-      }
-
-      try {
-        setUploading(true);
-        setUploadError(null);
-
-        // Upload file (using a temporary KB for media processing)
-        const uploadResponse = await api.files.upload('media-temp', selectedFile);
-
-        if (uploadResponse.success && uploadResponse.data?.filePath) {
-          onGenerate(uploadResponse.data.filePath, 'audio' as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
-        } else {
-          throw new Error('Upload failed');
-        }
-      } catch (err) {
-        setUploadError(err instanceof Error ? err.message : 'Failed to upload file');
-      } finally {
-        setUploading(false);
-      }
-      return;
-    }
+    // Note: Audio input is handled by VoiceInputPanel which transcribes
+    // and switches to text mode, so audio case never reaches here
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -402,7 +553,6 @@ export function FirstGeneration({
     setSelectedFile(null);
     setUploadError(null);
     setSelectedContent(null);
-    if (audioInputRef.current) audioInputRef.current.value = '';
     if (videoInputRef.current) videoInputRef.current.value = '';
   };
 
@@ -412,8 +562,11 @@ export function FirstGeneration({
     return youtubeRegex.test(url) || instagramRegex.test(url);
   };
 
+  // Voice mode always shows ready since user can click to record
   const isReady = inputType === 'text'
     ? input.trim().length > 0
+    : inputType === 'audio'
+    ? true // Voice recording handles its own flow
     : inputType === 'url'
     ? videoUrl.trim().length > 0 && isValidUrl(videoUrl.trim())
     : inputType === 'repurpose'
@@ -507,48 +660,13 @@ export function FirstGeneration({
       )}
 
       {inputType === 'audio' && (
-        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-          <input
-            type="file"
-            ref={audioInputRef}
-            accept="audio/*,.mp3,.wav,.m4a,.ogg"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          {!selectedFile ? (
-            <>
-              <div className="text-5xl mb-4">🎤</div>
-              <p className="text-body text-text-secondary mb-4">
-                Upload a voice recording or audio file
-              </p>
-              <button
-                onClick={() => audioInputRef.current?.click()}
-                className="btn-secondary px-6 py-2"
-                disabled={generating || uploading}
-              >
-                Select Audio File
-              </button>
-              <p className="text-small text-text-secondary mt-4">
-                Supports MP3, WAV, M4A, OGG
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="text-5xl mb-4">✅</div>
-              <p className="text-body font-medium mb-2">{selectedFile.name}</p>
-              <p className="text-small text-text-secondary mb-4">
-                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-              <button
-                onClick={clearFile}
-                className="text-small text-error hover:underline"
-                disabled={generating || uploading}
-              >
-                Remove file
-              </button>
-            </>
-          )}
-        </div>
+        <VoiceInputPanel
+          onTranscribed={(text) => {
+            setInput(text);
+            setInputType('text'); // Switch to text mode with transcription
+          }}
+          disabled={generating || uploading}
+        />
       )}
 
       {inputType === 'video' && (
