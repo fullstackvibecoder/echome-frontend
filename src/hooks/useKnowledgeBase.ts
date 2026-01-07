@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api-client';
 import {
   KnowledgeBase,
@@ -32,6 +32,11 @@ interface UseKnowledgeBaseReturn {
   refresh: () => Promise<void>;
 }
 
+// Polling interval for processing items (3 seconds)
+const POLLING_INTERVAL = 3000;
+// Max polling duration (2 minutes)
+const MAX_POLLING_DURATION = 120000;
+
 const DEFAULT_STATS: KBContentStats = {
   totalItems: 0,
   totalChunks: 0,
@@ -47,6 +52,10 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedKb, setSelectedKb] = useState<string | null>(null);
+
+  // Polling refs
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingStartTimeRef = useRef<number | null>(null);
 
   const fetchKBs = useCallback(async () => {
     try {
@@ -120,6 +129,77 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
       fetchContent(selectedKb);
     }
   }, [selectedKb, fetchContent]);
+
+  // Polling effect: auto-refresh while items are processing
+  useEffect(() => {
+    const hasProcessingItems = contentItems.some(
+      (item) => item.status === 'processing' || item.status === 'uploading'
+    );
+
+    // Start polling if there are processing items
+    if (hasProcessingItems && selectedKb && !pollingIntervalRef.current) {
+      pollingStartTimeRef.current = Date.now();
+      console.log('[useKnowledgeBase] Starting polling for processing items');
+
+      pollingIntervalRef.current = setInterval(async () => {
+        // Check if we've exceeded max polling duration
+        if (
+          pollingStartTimeRef.current &&
+          Date.now() - pollingStartTimeRef.current > MAX_POLLING_DURATION
+        ) {
+          console.log('[useKnowledgeBase] Polling timeout reached, stopping');
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          return;
+        }
+
+        // Fetch latest content (silently, without setting loading state)
+        try {
+          const response = await api.kb.getContent(selectedKb);
+          if (response.success && response.data) {
+            setContentItems(response.data.items);
+            setContentStats(response.data.stats);
+
+            // Check if all items are done processing
+            const stillProcessing = response.data.items.some(
+              (item: UnifiedContentItem) =>
+                item.status === 'processing' || item.status === 'uploading'
+            );
+
+            if (!stillProcessing) {
+              console.log('[useKnowledgeBase] All items processed, stopping polling');
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+            }
+          }
+        } catch (err) {
+          console.error('[useKnowledgeBase] Polling error:', err);
+        }
+      }, POLLING_INTERVAL);
+    }
+
+    // Cleanup on unmount or when no longer needed
+    return () => {
+      if (pollingIntervalRef.current && !hasProcessingItems) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [contentItems, selectedKb]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   const selectKb = useCallback((kbId: string) => {
     setSelectedKb(kbId);
