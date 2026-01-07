@@ -39,7 +39,7 @@ export interface MboxParseOptions {
 }
 
 const DEFAULT_OPTIONS: Required<Omit<MboxParseOptions, 'onlyFromEmail' | 'onProgress'>> = {
-  maxEmails: 500,
+  maxEmails: 100, // Start with 100 emails - enough for voice matching, can expand later
   minContentLength: 50,
 };
 
