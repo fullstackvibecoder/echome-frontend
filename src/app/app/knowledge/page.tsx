@@ -264,7 +264,7 @@ export default function KnowledgePage() {
     try {
       // Step 1: Parse MBOX file client-side
       const parseResult = await parseMboxFile(file, {
-        maxEmails: 500,
+        maxEmails: 100,
         minContentLength: 50,
         onProgress: ({ percent, emailsFound, status }) => {
           setMboxProgress(Math.round(percent * 0.7)); // First 70% is parsing
