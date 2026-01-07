@@ -22,7 +22,9 @@ export default function KnowledgePage() {
     deleteContent,
     refresh,
   } = useKnowledgeBase();
-  const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
+  const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload({
+    knowledgeBaseId: selectedKb ?? undefined,
+  });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);

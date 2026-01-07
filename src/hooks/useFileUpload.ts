@@ -8,6 +8,10 @@ import {
   generateFileId,
 } from '@/lib/file-utils';
 
+interface UseFileUploadOptions {
+  knowledgeBaseId?: string;
+}
+
 interface UseFileUploadReturn {
   files: FileWithProgress[];
   uploading: boolean;
@@ -18,7 +22,8 @@ interface UseFileUploadReturn {
   totalSize: number;
 }
 
-export function useFileUpload(): UseFileUploadReturn {
+export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
+  const { knowledgeBaseId } = options;
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -55,6 +60,11 @@ export function useFileUpload(): UseFileUploadReturn {
   }, []);
 
   const uploadFiles = useCallback(async () => {
+    if (!knowledgeBaseId) {
+      console.error('No knowledge base ID provided for upload');
+      return;
+    }
+
     setUploading(true);
 
     // Get only pending files
@@ -69,10 +79,9 @@ export function useFileUpload(): UseFileUploadReturn {
           )
         );
 
-        // Upload file
-        // Note: Using 'default' as kbId - in production, this should come from user context
+        // Upload file to the specified knowledge base
         await api.files.upload(
-          'default',
+          knowledgeBaseId,
           fileWithProgress.file,
           (progress) => {
             setFiles((prev) =>
@@ -111,7 +120,7 @@ export function useFileUpload(): UseFileUploadReturn {
     }
 
     setUploading(false);
-  }, [files]);
+  }, [files, knowledgeBaseId]);
 
   const clearFiles = useCallback(() => {
     setFiles([]);
