@@ -344,9 +344,7 @@ export const api = {
         `/files/upload?kbId=${kbId}`,
         formData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          // Don't set Content-Type manually - axios sets it with boundary for FormData
           timeout: 300000, // 5 minutes for large file uploads
           onUploadProgress: (progressEvent) => {
             if (onProgress && progressEvent.total) {
