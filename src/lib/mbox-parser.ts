@@ -77,6 +77,7 @@ export async function parseMboxFile(
   const lines = text.split(/\r?\n/);
   let currentMessage: string[] = [];
   let messageCount = 0;
+  let lastProgressUpdate = Date.now();
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -85,6 +86,11 @@ export async function parseMboxFile(
     if (isSeparator && currentMessage.length > 0) {
       // Process accumulated message
       if (result.emails.length >= opts.maxEmails) {
+        opts.onProgress?.({
+          percent: 70,
+          emailsFound: result.emailsParsed,
+          status: `Found ${result.emailsParsed} emails (reached ${opts.maxEmails} limit)`,
+        });
         break;
       }
 
@@ -112,13 +118,20 @@ export async function parseMboxFile(
 
       currentMessage = [];
 
-      // Update progress
-      const parseProgress = 30 + (i / lines.length) * 70;
-      opts.onProgress?.({
-        percent: Math.round(parseProgress),
-        emailsFound: result.emailsParsed,
-        status: `Found ${result.emailsParsed} emails...`,
-      });
+      // Update progress every 200ms to keep UI responsive
+      const now = Date.now();
+      if (now - lastProgressUpdate > 200) {
+        const parseProgress = 30 + (i / lines.length) * 40; // 30-70% range
+        opts.onProgress?.({
+          percent: Math.round(parseProgress),
+          emailsFound: result.emailsParsed,
+          status: `Scanned ${messageCount.toLocaleString()} emails, kept ${result.emailsParsed}...`,
+        });
+        lastProgressUpdate = now;
+
+        // Yield to browser to keep UI responsive
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
     }
 
     currentMessage.push(line);

@@ -386,20 +386,32 @@ export default function KnowledgePage() {
       {mboxUploading && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <div className="flex-1">
-              <p className="text-blue-700 dark:text-blue-300 font-medium">
+              <p className="text-blue-700 dark:text-blue-300 font-medium text-lg">
                 {mboxStatus || 'Processing email archive...'}
               </p>
-              <div className="mt-2 h-2 bg-blue-100 dark:bg-blue-800 rounded-full overflow-hidden">
+              <div className="mt-2 h-3 bg-blue-100 dark:bg-blue-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
                   style={{ width: `${mboxProgress}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                {mboxProgress < 70 ? 'Parsing emails locally (no upload yet)...' : 'Sending to server...'}
-              </p>
+              <div className="mt-2 flex items-center justify-between text-xs text-blue-600 dark:text-blue-400">
+                <span>
+                  {mboxProgress < 30
+                    ? '📖 Reading file into browser memory...'
+                    : mboxProgress < 70
+                    ? '🔍 Scanning emails & extracting text (this may take a while for large files)...'
+                    : '📤 Uploading extracted content to server...'}
+                </span>
+                <span className="font-mono">{mboxProgress}%</span>
+              </div>
+              {mboxProgress < 70 && (
+                <p className="mt-2 text-xs text-blue-500 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 rounded px-2 py-1">
+                  💡 Your file never leaves your browser until parsing is complete. Large files (10GB+) can take 5-10 minutes to process.
+                </p>
+              )}
             </div>
           </div>
         </div>
