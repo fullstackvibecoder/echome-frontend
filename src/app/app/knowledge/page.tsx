@@ -189,8 +189,9 @@ export default function KnowledgePage() {
       }
 
       const uploadSize = estimateUploadSize(parseResult.emails);
+      const totalBatches = Math.ceil(parseResult.emails.length / 50);
       setMboxProgress(70);
-      setMboxStatus(`Uploading ${parseResult.emails.length} emails (${formatBytes(uploadSize)})...`);
+      setMboxStatus(`Uploading ${parseResult.emails.length} emails in ${totalBatches} batches...`);
 
       const result = await api.kbContent.ingestParsedEmails({
         emails: parseResult.emails,
@@ -201,6 +202,11 @@ export default function KnowledgePage() {
           emailsParsed: parseResult.emailsParsed,
           emailsFiltered: parseResult.emailsFiltered,
           parseErrors: parseResult.parseErrors,
+        },
+        onBatchProgress: (batchNum, totalBatches) => {
+          const uploadProgress = 70 + Math.round((batchNum / totalBatches) * 30);
+          setMboxProgress(uploadProgress);
+          setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
         },
       });
 
@@ -271,12 +277,13 @@ export default function KnowledgePage() {
         return;
       }
 
-      // Show parsing complete, now uploading
+      // Show parsing complete, now uploading in batches
       const uploadSize = estimateUploadSize(parseResult.emails);
+      const totalBatches = Math.ceil(parseResult.emails.length / 50);
       setMboxProgress(70);
-      setMboxStatus(`Uploading ${parseResult.emails.length} emails (${formatBytes(uploadSize)})...`);
+      setMboxStatus(`Uploading ${parseResult.emails.length} emails in ${totalBatches} batches...`);
 
-      // Step 2: Upload pre-parsed emails as JSON
+      // Step 2: Upload pre-parsed emails as JSON (in batches of 50)
       const result = await api.kbContent.ingestParsedEmails({
         emails: parseResult.emails,
         knowledgeBaseId: selectedKb ?? undefined,
@@ -286,6 +293,12 @@ export default function KnowledgePage() {
           emailsParsed: parseResult.emailsParsed,
           emailsFiltered: parseResult.emailsFiltered,
           parseErrors: parseResult.parseErrors,
+        },
+        onBatchProgress: (batchNum, totalBatches) => {
+          // Progress from 70% to 100% during upload phase
+          const uploadProgress = 70 + Math.round((batchNum / totalBatches) * 30);
+          setMboxProgress(uploadProgress);
+          setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
         },
       });
 

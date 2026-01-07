@@ -562,17 +562,62 @@ export const api = {
         emailsFiltered: number;
         parseErrors: number;
       };
+      onBatchProgress?: (batchNum: number, totalBatches: number) => void;
     }) => {
-      const response = await apiClient.post('/kb/content/emails/batch', data, {
-        timeout: 300000, // 5 minutes for chunking + embedding
-      });
-      return response.data as {
-        success: boolean;
-        contentId: string;
-        emailsIngested: number;
-        emailsDuplicate: number;
-        chunksCreated: number;
-        embeddingsCreated: number;
+      const { emails, knowledgeBaseId, fileName, parseStats, onBatchProgress } = data;
+
+      // Split into batches of 50 emails (~20MB each) to avoid proxy limits
+      const BATCH_SIZE = 50;
+      const batches: typeof emails[] = [];
+      for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+        batches.push(emails.slice(i, i + BATCH_SIZE));
+      }
+
+      console.log(`[Email Upload] Splitting ${emails.length} emails into ${batches.length} batches of ${BATCH_SIZE}`);
+
+      // Upload each batch and accumulate results
+      let totalIngested = 0;
+      let totalDuplicate = 0;
+      let totalChunks = 0;
+      let totalEmbeddings = 0;
+      let contentId = '';
+
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`[Email Upload] Uploading batch ${i + 1}/${batches.length} (${batch.length} emails)`);
+
+        if (onBatchProgress) {
+          onBatchProgress(i + 1, batches.length);
+        }
+
+        const response = await apiClient.post('/kb/content/emails/batch', {
+          emails: batch,
+          knowledgeBaseId,
+          fileName: i === 0 ? fileName : `${fileName} (batch ${i + 1})`,
+          parseStats: i === 0 ? parseStats : undefined, // Only include stats on first batch
+        }, {
+          timeout: 180000, // 3 minutes per batch
+        });
+
+        const result = response.data;
+        totalIngested += result.emailsIngested || 0;
+        totalDuplicate += result.emailsDuplicate || 0;
+        totalChunks += result.chunksCreated || 0;
+        totalEmbeddings += result.embeddingsCreated || 0;
+        if (!contentId && result.contentId) {
+          contentId = result.contentId;
+        }
+
+        console.log(`[Email Upload] Batch ${i + 1} complete: ${result.emailsIngested} ingested, ${result.chunksCreated} chunks`);
+      }
+
+      return {
+        success: true,
+        contentId,
+        emailsIngested: totalIngested,
+        emailsDuplicate: totalDuplicate,
+        chunksCreated: totalChunks,
+        embeddingsCreated: totalEmbeddings,
       };
     },
 
