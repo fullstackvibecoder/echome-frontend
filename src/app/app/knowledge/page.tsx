@@ -11,6 +11,7 @@ import { PasteContentModal } from '@/components/paste-content-modal';
 import { VoiceRecorder } from '@/components/voice-recorder';
 import { SocialImportModal } from '@/components/social-import-modal';
 import { api } from '@/lib/api-client';
+import { parseMboxFile, estimateUploadSize, formatBytes } from '@/lib/mbox-parser';
 
 export default function KnowledgePage() {
   const {
@@ -30,6 +31,7 @@ export default function KnowledgePage() {
   const [showMboxInstructions, setShowMboxInstructions] = useState(false);
   const [mboxUploading, setMboxUploading] = useState(false);
   const [mboxProgress, setMboxProgress] = useState(0);
+  const [mboxStatus, setMboxStatus] = useState<string>('');
   const [mboxResult, setMboxResult] = useState<{ emailsIngested: number; chunksCreated: number } | null>(null);
   const mboxInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -130,29 +132,73 @@ export default function KnowledgePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (500MB limit)
-    const MAX_MBOX_SIZE = 500 * 1024 * 1024;
-    if (file.size > MAX_MBOX_SIZE) {
-      const fileSizeMB = Math.round(file.size / (1024 * 1024));
-      alert(`File is too large (${fileSizeMB}MB). Maximum size is 500MB.\n\nTip: Export only your "Sent" folder instead of your entire mailbox.`);
-      if (mboxInputRef.current) {
-        mboxInputRef.current.value = '';
+    // No strict file size limit anymore - we parse client-side
+    // But warn for very large files (over 2GB) that may be slow
+    const fileSizeGB = file.size / (1024 * 1024 * 1024);
+    if (fileSizeGB > 2) {
+      const confirmed = confirm(
+        `This file is ${fileSizeGB.toFixed(1)}GB. Parsing may take several minutes.\n\nFor faster processing, consider exporting only your "Sent" folder.\n\nContinue?`
+      );
+      if (!confirmed) {
+        if (mboxInputRef.current) {
+          mboxInputRef.current.value = '';
+        }
+        return;
       }
-      return;
     }
 
     setMboxUploading(true);
     setMboxProgress(0);
+    setMboxStatus('Reading file...');
     setMboxResult(null);
     setShowMboxInstructions(false);
 
     try {
-      const result = await api.kbContent.uploadMbox(
-        file,
-        { knowledgeBaseId: selectedKb ?? undefined },
-        (progress) => setMboxProgress(progress)
-      );
+      // Step 1: Parse MBOX file client-side
+      const parseResult = await parseMboxFile(file, {
+        maxEmails: 500,
+        minContentLength: 50,
+        onProgress: ({ percent, emailsFound, status }) => {
+          setMboxProgress(Math.round(percent * 0.7)); // First 70% is parsing
+          setMboxStatus(status || `Found ${emailsFound} emails...`);
+        },
+      });
 
+      if (parseResult.emails.length === 0) {
+        const reasons = Object.entries(parseResult.skippedReasons)
+          .map(([reason, count]) => `${reason}: ${count}`)
+          .join(', ');
+        alert(
+          `No emails found to import.\n\n` +
+          `Total emails scanned: ${parseResult.totalEmailsFound}\n` +
+          `Filtered out: ${parseResult.emailsFiltered}\n` +
+          `Parse errors: ${parseResult.parseErrors}\n\n` +
+          (reasons ? `Skip reasons: ${reasons}` : '') +
+          `\n\nTip: Make sure you're uploading your "Sent" folder MBOX file.`
+        );
+        return;
+      }
+
+      // Show parsing complete, now uploading
+      const uploadSize = estimateUploadSize(parseResult.emails);
+      setMboxProgress(70);
+      setMboxStatus(`Uploading ${parseResult.emails.length} emails (${formatBytes(uploadSize)})...`);
+
+      // Step 2: Upload pre-parsed emails as JSON
+      const result = await api.kbContent.ingestParsedEmails({
+        emails: parseResult.emails,
+        knowledgeBaseId: selectedKb ?? undefined,
+        fileName: file.name,
+        parseStats: {
+          totalEmailsFound: parseResult.totalEmailsFound,
+          emailsParsed: parseResult.emailsParsed,
+          emailsFiltered: parseResult.emailsFiltered,
+          parseErrors: parseResult.parseErrors,
+        },
+      });
+
+      setMboxProgress(100);
+      setMboxStatus('Complete!');
       setMboxResult({
         emailsIngested: result.emailsIngested,
         chunksCreated: result.chunksCreated,
@@ -162,15 +208,10 @@ export default function KnowledgePage() {
     } catch (err) {
       console.error('MBOX upload error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      if (errorMessage.includes('413') || errorMessage.includes('too large')) {
-        alert('File is too large. Maximum size is 500MB.');
-      } else if (errorMessage.includes('Invalid file type')) {
-        alert('Invalid file type. Please upload a .mbox file.');
-      } else {
-        alert(`Failed to upload MBOX file: ${errorMessage}`);
-      }
+      alert(`Failed to import emails: ${errorMessage}`);
     } finally {
       setMboxUploading(false);
+      setMboxStatus('');
       if (mboxInputRef.current) {
         mboxInputRef.current.value = '';
       }
@@ -256,7 +297,7 @@ export default function KnowledgePage() {
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <div className="flex-1">
               <p className="text-blue-700 dark:text-blue-300 font-medium">
-                Uploading email archive...
+                {mboxStatus || 'Processing email archive...'}
               </p>
               <div className="mt-2 h-2 bg-blue-100 dark:bg-blue-800 rounded-full overflow-hidden">
                 <div
@@ -264,6 +305,9 @@ export default function KnowledgePage() {
                   style={{ width: `${mboxProgress}%` }}
                 />
               </div>
+              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                {mboxProgress < 70 ? 'Parsing emails locally (no upload yet)...' : 'Sending to server...'}
+              </p>
             </div>
           </div>
         </div>
@@ -590,7 +634,7 @@ export default function KnowledgePage() {
 
                 <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                   <p className="text-sm text-amber-600 dark:text-amber-400">
-                    <strong>Privacy note:</strong> We filter to only extract emails YOU sent. Received emails are ignored. Max file size: 500MB, up to 500 emails processed.
+                    <strong>Privacy note:</strong> Your email archive is parsed locally in your browser - only the extracted text is uploaded. We filter to only keep emails YOU sent. Up to 500 emails processed.
                   </p>
                 </div>
 

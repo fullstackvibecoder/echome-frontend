@@ -507,7 +507,7 @@ export const api = {
     },
 
     // -------- MBOX EMAIL IMPORT --------
-    /** Upload and ingest MBOX email archive */
+    /** Upload and ingest MBOX email archive (legacy - uploads raw file) */
     uploadMbox: async (
       mboxFile: File,
       options?: {
@@ -540,6 +540,39 @@ export const api = {
         embeddingsCreated: number;
         skippedEmails: number;
         parseErrors: number;
+      };
+    },
+
+    /** Ingest pre-parsed emails (client-side parsing for large files) */
+    ingestParsedEmails: async (data: {
+      emails: Array<{
+        messageId: string;
+        from: string;
+        to: string;
+        subject: string;
+        date: string;
+        textContent: string;
+        contentHash: string;
+      }>;
+      knowledgeBaseId?: string;
+      fileName?: string;
+      parseStats?: {
+        totalEmailsFound: number;
+        emailsParsed: number;
+        emailsFiltered: number;
+        parseErrors: number;
+      };
+    }) => {
+      const response = await apiClient.post('/kb/content/emails/batch', data, {
+        timeout: 300000, // 5 minutes for chunking + embedding
+      });
+      return response.data as {
+        success: boolean;
+        contentId: string;
+        emailsIngested: number;
+        emailsDuplicate: number;
+        chunksCreated: number;
+        embeddingsCreated: number;
       };
     },
 
