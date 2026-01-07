@@ -409,7 +409,7 @@ export default function KnowledgePage() {
               </div>
               {mboxProgress < 70 && (
                 <p className="mt-2 text-xs text-blue-500 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 rounded px-2 py-1">
-                  💡 Your file never leaves your browser until parsing is complete. Large files (10GB+) can take 5-10 minutes to process.
+                  💡 Streaming in 50MB chunks - works with any file size, even on low-RAM devices. Only extracted text is uploaded.
                 </p>
               )}
             </div>

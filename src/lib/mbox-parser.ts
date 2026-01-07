@@ -1,16 +1,15 @@
 /**
- * Client-Side MBOX Parser
+ * Client-Side MBOX Parser (Streaming)
  *
  * Parses MBOX email archives in the browser before uploading.
- * This allows handling multi-GB files by extracting only the text content
- * needed for voice matching, drastically reducing upload size.
+ * Uses streaming to handle files larger than available RAM.
  *
  * Key features:
+ * - Streams file in 50MB chunks (works with limited RAM)
  * - Parses MBOX format (RFC 5322)
  * - Extracts only sent emails (filters by user email)
  * - Strips attachments and HTML, keeps only plain text
  * - Creates content hashes for deduplication
- * - Streams file in chunks to handle large files
  */
 
 export interface ParsedEmail {
@@ -44,11 +43,14 @@ const DEFAULT_OPTIONS: Required<Omit<MboxParseOptions, 'onlyFromEmail' | 'onProg
   minContentLength: 50,
 };
 
-// RFC 5322 mbox format: line must start with "From " followed by email
-const MBOX_SEPARATOR_REGEX = /^From [^\s]+/;
+// RFC 5322 mbox format: line must start with "From " followed by email/date
+const MBOX_SEPARATOR_REGEX = /^From \S+/;
+
+// Chunk size for streaming (50MB - works well with limited RAM)
+const CHUNK_SIZE = 50 * 1024 * 1024;
 
 /**
- * Parse MBOX file in browser with progress tracking
+ * Parse MBOX file in browser using streaming (low memory usage)
  */
 export async function parseMboxFile(
   file: File,
@@ -66,49 +68,155 @@ export async function parseMboxFile(
 
   const seenHashes = new Set<string>();
   const startTime = Date.now();
+  const fileSize = file.size;
+  const fileSizeGB = (fileSize / 1024 / 1024 / 1024).toFixed(2);
 
-  console.log(`[MBOX Parser] Starting parse of ${file.name} (${(file.size / 1024 / 1024 / 1024).toFixed(2)} GB)`);
+  console.log(`[MBOX Parser] Starting STREAMING parse of ${file.name} (${fileSizeGB} GB)`);
+  console.log(`[MBOX Parser] Using ${CHUNK_SIZE / 1024 / 1024}MB chunks to conserve memory`);
 
-  // Read file as text (handles large files better than readAsText)
-  const text = await readFileAsText(file, (percent) => {
-    opts.onProgress?.({ percent: percent * 0.3, emailsFound: 0, status: 'Reading file...' });
-    if (Math.round(percent * 100) % 10 === 0) {
-      console.log(`[MBOX Parser] File read progress: ${Math.round(percent * 100)}%`);
-    }
-  });
-
-  const readTime = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(`[MBOX Parser] File read complete in ${readTime}s. Text length: ${(text.length / 1024 / 1024).toFixed(1)} MB`);
-
-  opts.onProgress?.({ percent: 30, emailsFound: 0, status: 'Splitting into lines...' });
-
-  // Split by mbox separator
-  console.log(`[MBOX Parser] Splitting text into lines...`);
-  const splitStart = Date.now();
-  const lines = text.split(/\r?\n/);
-  console.log(`[MBOX Parser] Split complete: ${lines.length.toLocaleString()} lines in ${((Date.now() - splitStart) / 1000).toFixed(1)}s`);
-
-  opts.onProgress?.({ percent: 35, emailsFound: 0, status: `Scanning ${lines.length.toLocaleString()} lines...` });
-
-  let currentMessage: string[] = [];
+  let buffer = ''; // Holds incomplete data between chunks
+  let bytesRead = 0;
   let messageCount = 0;
   let lastProgressUpdate = Date.now();
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const isSeparator = MBOX_SEPARATOR_REGEX.test(line);
+  // Process file in chunks
+  let offset = 0;
+  while (offset < fileSize) {
+    // Check if we have enough emails
+    if (result.emails.length >= opts.maxEmails) {
+      console.log(`[MBOX Parser] Reached ${opts.maxEmails} email limit, stopping early`);
+      break;
+    }
 
-    if (isSeparator && currentMessage.length > 0) {
-      // Process accumulated message
-      if (result.emails.length >= opts.maxEmails) {
-        opts.onProgress?.({
-          percent: 70,
-          emailsFound: result.emailsParsed,
-          status: `Found ${result.emailsParsed} emails (reached ${opts.maxEmails} limit)`,
-        });
+    // Read next chunk
+    const chunkEnd = Math.min(offset + CHUNK_SIZE, fileSize);
+    const chunk = await readFileSlice(file, offset, chunkEnd);
+    bytesRead = chunkEnd;
+    offset = chunkEnd;
+
+    // Combine with leftover buffer
+    buffer += chunk;
+
+    // Find all complete emails in buffer (separated by "From " lines)
+    const lines = buffer.split(/\r?\n/);
+
+    // Keep last partial line in buffer (might be incomplete)
+    // Also keep content after last "From " separator
+    let lastSeparatorIndex = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (MBOX_SEPARATOR_REGEX.test(lines[i])) {
+        lastSeparatorIndex = i;
         break;
       }
+    }
 
+    // If no separator found in this chunk, keep accumulating
+    if (lastSeparatorIndex === -1) {
+      // Keep entire buffer, continue to next chunk
+      // But if buffer is getting too large (>200MB), we have a problem
+      if (buffer.length > 200 * 1024 * 1024) {
+        console.warn(`[MBOX Parser] Buffer exceeded 200MB without finding email separator, skipping chunk`);
+        buffer = '';
+      }
+      continue;
+    }
+
+    // Process all complete emails (everything before the last separator)
+    const linesToProcess = lines.slice(0, lastSeparatorIndex);
+    buffer = lines.slice(lastSeparatorIndex).join('\n');
+
+    // Parse emails from these lines
+    let currentMessage: string[] = [];
+    for (const line of linesToProcess) {
+      const isSeparator = MBOX_SEPARATOR_REGEX.test(line);
+
+      if (isSeparator && currentMessage.length > 0) {
+        // Process this email
+        messageCount++;
+        result.totalEmailsFound = messageCount;
+
+        if (result.emails.length < opts.maxEmails) {
+          try {
+            const rawMessage = currentMessage.join('\n');
+            const email = parseEmail(rawMessage);
+
+            if (email) {
+              const skipReason = shouldSkipEmail(email, opts, seenHashes);
+              if (skipReason) {
+                result.emailsFiltered++;
+                result.skippedReasons[skipReason] = (result.skippedReasons[skipReason] || 0) + 1;
+              } else {
+                seenHashes.add(email.contentHash);
+                result.emails.push(email);
+                result.emailsParsed++;
+              }
+            }
+          } catch {
+            result.parseErrors++;
+          }
+        }
+
+        currentMessage = [line];
+      } else {
+        currentMessage.push(line);
+      }
+    }
+
+    // Update progress
+    const now = Date.now();
+    if (now - lastProgressUpdate > 100) {
+      const percent = Math.round((bytesRead / fileSize) * 70); // 0-70% for parsing
+      opts.onProgress?.({
+        percent,
+        emailsFound: result.emailsParsed,
+        status: `Scanned ${(bytesRead / 1024 / 1024).toFixed(0)}MB, found ${messageCount.toLocaleString()} emails, kept ${result.emailsParsed}...`,
+      });
+      lastProgressUpdate = now;
+
+      // Yield to browser
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+
+  // Process any remaining buffer content (last email)
+  if (buffer.length > 0 && result.emails.length < opts.maxEmails) {
+    const lines = buffer.split(/\r?\n/);
+    let currentMessage: string[] = [];
+
+    for (const line of lines) {
+      const isSeparator = MBOX_SEPARATOR_REGEX.test(line);
+
+      if (isSeparator && currentMessage.length > 0) {
+        messageCount++;
+        result.totalEmailsFound = messageCount;
+
+        try {
+          const rawMessage = currentMessage.join('\n');
+          const email = parseEmail(rawMessage);
+
+          if (email) {
+            const skipReason = shouldSkipEmail(email, opts, seenHashes);
+            if (skipReason) {
+              result.emailsFiltered++;
+              result.skippedReasons[skipReason] = (result.skippedReasons[skipReason] || 0) + 1;
+            } else {
+              seenHashes.add(email.contentHash);
+              result.emails.push(email);
+              result.emailsParsed++;
+            }
+          }
+        } catch {
+          result.parseErrors++;
+        }
+
+        currentMessage = [line];
+      } else {
+        currentMessage.push(line);
+      }
+    }
+
+    // Final email
+    if (currentMessage.length > 0) {
       messageCount++;
       result.totalEmailsFound = messageCount;
 
@@ -130,50 +238,6 @@ export async function parseMboxFile(
       } catch {
         result.parseErrors++;
       }
-
-      currentMessage = [];
-
-      // Update progress every 200ms to keep UI responsive
-      const now = Date.now();
-      if (now - lastProgressUpdate > 200) {
-        const parseProgress = 35 + (i / lines.length) * 35; // 35-70% range
-        opts.onProgress?.({
-          percent: Math.round(parseProgress),
-          emailsFound: result.emailsParsed,
-          status: `Scanned ${messageCount.toLocaleString()} emails, kept ${result.emailsParsed}...`,
-        });
-        lastProgressUpdate = now;
-
-        // Yield to browser to keep UI responsive
-        await new Promise(resolve => setTimeout(resolve, 0));
-      }
-    }
-
-    currentMessage.push(line);
-  }
-
-  // Process final message
-  if (currentMessage.length > 0 && result.emails.length < opts.maxEmails) {
-    messageCount++;
-    result.totalEmailsFound = messageCount;
-
-    try {
-      const rawMessage = currentMessage.join('\n');
-      const email = parseEmail(rawMessage);
-
-      if (email) {
-        const skipReason = shouldSkipEmail(email, opts, seenHashes);
-        if (skipReason) {
-          result.emailsFiltered++;
-          result.skippedReasons[skipReason] = (result.skippedReasons[skipReason] || 0) + 1;
-        } else {
-          seenHashes.add(email.contentHash);
-          result.emails.push(email);
-          result.emailsParsed++;
-        }
-      }
-    } catch {
-      result.parseErrors++;
     }
   }
 
@@ -187,39 +251,31 @@ export async function parseMboxFile(
   });
 
   opts.onProgress?.({
-    percent: 100,
+    percent: 70,
     emailsFound: result.emailsParsed,
-    status: 'Complete',
+    status: 'Parsing complete',
   });
 
   return result;
 }
 
 /**
- * Read file as text with progress tracking
+ * Read a slice of a file as text
  */
-async function readFileAsText(
-  file: File,
-  onProgress?: (percent: number) => void
-): Promise<string> {
+async function readFileSlice(file: File, start: number, end: number): Promise<string> {
   return new Promise((resolve, reject) => {
+    const slice = file.slice(start, end);
     const reader = new FileReader();
-
-    reader.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(event.loaded / event.total);
-      }
-    };
 
     reader.onload = () => {
       resolve(reader.result as string);
     };
 
     reader.onerror = () => {
-      reject(new Error('Failed to read file'));
+      reject(new Error(`Failed to read file slice ${start}-${end}`));
     };
 
-    reader.readAsText(file);
+    reader.readAsText(slice);
   });
 }
 
