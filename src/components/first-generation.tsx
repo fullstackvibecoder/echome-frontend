@@ -704,7 +704,7 @@ export function FirstGeneration({
                 Select Video File
               </button>
               <p className="text-small text-text-secondary mt-4">
-                Supports MP4, MOV, AVI, WebM (max 50MB)
+                Supports MP4, MOV, AVI, WebM (up to 5GB)
               </p>
             </>
           ) : (

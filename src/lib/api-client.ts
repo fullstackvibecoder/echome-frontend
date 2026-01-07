@@ -1076,7 +1076,10 @@ export const api = {
 
   // -------- CLIP FINDER --------
   clips: {
-    /** Upload a video file or URL for clip extraction */
+    /**
+     * Upload a video file or URL for clip extraction
+     * Uses direct-to-storage upload for files > 50MB for better reliability
+     */
     upload: async (
       data: {
         file?: File;
@@ -1087,18 +1090,54 @@ export const api = {
       },
       onProgress?: (progress: number) => void
     ) => {
-      const formData = new FormData();
-      if (data.file) {
-        formData.append('video', data.file);
+      // For URL imports or no file, use regular endpoint
+      if (!data.file || data.sourceType !== 'upload') {
+        const formData = new FormData();
+        if (data.file) {
+          formData.append('video', data.file);
+        }
+        if (data.sourceType) formData.append('sourceType', data.sourceType);
+        if (data.sourceUrl) formData.append('sourceUrl', data.sourceUrl);
+        if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
+        if (data.title) formData.append('title', data.title);
+
+        const response = await apiClient.post('/clips/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 300000,
+          onUploadProgress: (progressEvent) => {
+            if (onProgress && progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              onProgress(percentCompleted);
+            }
+          },
+        });
+        return response.data as {
+          success: boolean;
+          data: {
+            upload: VideoUpload;
+            message: string;
+          };
+        };
       }
-      if (data.sourceType) formData.append('sourceType', data.sourceType);
-      if (data.sourceUrl) formData.append('sourceUrl', data.sourceUrl);
+
+      // For large files (>50MB), use direct upload to storage
+      const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
+      if (data.file.size > LARGE_FILE_THRESHOLD) {
+        return api.clips.uploadDirect(data.file, {
+          knowledgeBaseId: data.knowledgeBaseId,
+          title: data.title,
+        }, onProgress);
+      }
+
+      // For smaller files, use the regular multer-based upload
+      const formData = new FormData();
+      formData.append('video', data.file);
       if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
       if (data.title) formData.append('title', data.title);
 
       const response = await apiClient.post('/clips/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 300000, // 5 minutes for large video uploads
+        timeout: 300000, // 5 minutes for video uploads
         onUploadProgress: (progressEvent) => {
           if (onProgress && progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -1107,6 +1146,99 @@ export const api = {
         },
       });
       return response.data as {
+        success: boolean;
+        data: {
+          upload: VideoUpload;
+          message: string;
+        };
+      };
+    },
+
+    /**
+     * Direct upload to Supabase storage for large files
+     * Uses signed URL to bypass server memory limits
+     */
+    uploadDirect: async (
+      file: File,
+      options?: {
+        knowledgeBaseId?: string;
+        title?: string;
+      },
+      onProgress?: (progress: number) => void
+    ) => {
+      // Step 1: Initialize the upload and get signed URL
+      console.log('[api-client] Initializing direct upload for large file:', {
+        filename: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      const initResponse = await apiClient.post('/clips/upload/init', {
+        filename: file.name,
+        mimeType: file.type || 'video/mp4',
+        fileSizeBytes: file.size,
+        knowledgeBaseId: options?.knowledgeBaseId,
+        title: options?.title,
+      });
+
+      if (!initResponse.data.success || !initResponse.data.data) {
+        throw new Error('Failed to initialize upload');
+      }
+
+      const { uploadId, signedUrl, storagePath, token } = initResponse.data.data;
+      console.log('[api-client] Got signed URL for upload:', uploadId);
+
+      // Step 2: Upload directly to Supabase using the signed URL
+      // Use XMLHttpRequest for progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable && onProgress) {
+            const percentCompleted = Math.round((event.loaded * 100) / event.total);
+            onProgress(percentCompleted);
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            console.log('[api-client] Direct upload to storage complete');
+            resolve();
+          } else {
+            console.error('[api-client] Direct upload failed:', xhr.status, xhr.statusText);
+            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          console.error('[api-client] Direct upload error');
+          reject(new Error('Upload failed due to network error'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('Upload aborted'));
+        });
+
+        // Supabase signed URL expects PUT with the file body
+        xhr.open('PUT', signedUrl, true);
+        xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+        xhr.send(file);
+      });
+
+      // Step 3: Complete the upload on our backend
+      console.log('[api-client] Completing upload:', uploadId);
+      const completeResponse = await apiClient.post(`/clips/upload/${uploadId}/complete`, {
+        storagePath,
+        fileSizeBytes: file.size,
+        mimeType: file.type || 'video/mp4',
+        originalFilename: file.name,
+      });
+
+      if (!completeResponse.data.success) {
+        throw new Error('Failed to complete upload');
+      }
+
+      return completeResponse.data as {
         success: boolean;
         data: {
           upload: VideoUpload;
