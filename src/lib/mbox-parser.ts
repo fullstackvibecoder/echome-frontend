@@ -65,16 +65,31 @@ export async function parseMboxFile(
   };
 
   const seenHashes = new Set<string>();
+  const startTime = Date.now();
+
+  console.log(`[MBOX Parser] Starting parse of ${file.name} (${(file.size / 1024 / 1024 / 1024).toFixed(2)} GB)`);
 
   // Read file as text (handles large files better than readAsText)
   const text = await readFileAsText(file, (percent) => {
     opts.onProgress?.({ percent: percent * 0.3, emailsFound: 0, status: 'Reading file...' });
+    if (Math.round(percent * 100) % 10 === 0) {
+      console.log(`[MBOX Parser] File read progress: ${Math.round(percent * 100)}%`);
+    }
   });
 
-  opts.onProgress?.({ percent: 30, emailsFound: 0, status: 'Parsing emails...' });
+  const readTime = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`[MBOX Parser] File read complete in ${readTime}s. Text length: ${(text.length / 1024 / 1024).toFixed(1)} MB`);
+
+  opts.onProgress?.({ percent: 30, emailsFound: 0, status: 'Splitting into lines...' });
 
   // Split by mbox separator
+  console.log(`[MBOX Parser] Splitting text into lines...`);
+  const splitStart = Date.now();
   const lines = text.split(/\r?\n/);
+  console.log(`[MBOX Parser] Split complete: ${lines.length.toLocaleString()} lines in ${((Date.now() - splitStart) / 1000).toFixed(1)}s`);
+
+  opts.onProgress?.({ percent: 35, emailsFound: 0, status: `Scanning ${lines.length.toLocaleString()} lines...` });
+
   let currentMessage: string[] = [];
   let messageCount = 0;
   let lastProgressUpdate = Date.now();
@@ -121,7 +136,7 @@ export async function parseMboxFile(
       // Update progress every 200ms to keep UI responsive
       const now = Date.now();
       if (now - lastProgressUpdate > 200) {
-        const parseProgress = 30 + (i / lines.length) * 40; // 30-70% range
+        const parseProgress = 35 + (i / lines.length) * 35; // 35-70% range
         opts.onProgress?.({
           percent: Math.round(parseProgress),
           emailsFound: result.emailsParsed,
@@ -161,6 +176,15 @@ export async function parseMboxFile(
       result.parseErrors++;
     }
   }
+
+  const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`[MBOX Parser] Complete in ${totalTime}s:`, {
+    totalEmailsFound: result.totalEmailsFound,
+    emailsParsed: result.emailsParsed,
+    emailsFiltered: result.emailsFiltered,
+    parseErrors: result.parseErrors,
+    skippedReasons: result.skippedReasons,
+  });
 
   opts.onProgress?.({
     percent: 100,
