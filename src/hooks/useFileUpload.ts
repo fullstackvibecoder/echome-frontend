@@ -56,14 +56,16 @@ export function useFileUpload(): UseFileUploadReturn {
 
   const uploadFiles = useCallback(async (knowledgeBaseId: string) => {
     if (!knowledgeBaseId) {
-      console.error('No knowledge base ID provided for upload');
+      console.error('useFileUpload: No knowledge base ID provided');
       return;
     }
 
+    console.log('useFileUpload: Starting upload', { knowledgeBaseId, fileCount: files.length });
     setUploading(true);
 
     // Get only pending files
     const pendingFiles = files.filter((f) => f.status === 'pending');
+    console.log('useFileUpload: Pending files', { count: pendingFiles.length });
 
     for (const fileWithProgress of pendingFiles) {
       try {
@@ -75,7 +77,8 @@ export function useFileUpload(): UseFileUploadReturn {
         );
 
         // Upload file to the specified knowledge base
-        await api.files.upload(
+        console.log('useFileUpload: Uploading file', { fileName: fileWithProgress.file.name, size: fileWithProgress.file.size });
+        const result = await api.files.upload(
           knowledgeBaseId,
           fileWithProgress.file,
           (progress) => {
@@ -86,6 +89,7 @@ export function useFileUpload(): UseFileUploadReturn {
             );
           }
         );
+        console.log('useFileUpload: Upload completed', { fileName: fileWithProgress.file.name, result });
 
         // Mark as completed
         setFiles((prev) =>
@@ -96,6 +100,7 @@ export function useFileUpload(): UseFileUploadReturn {
           )
         );
       } catch (error) {
+        console.error('useFileUpload: Upload failed', { fileName: fileWithProgress.file.name, error });
         // Mark as error
         setFiles((prev) =>
           prev.map((f) =>
