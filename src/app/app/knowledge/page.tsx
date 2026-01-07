@@ -130,6 +130,17 @@ export default function KnowledgePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (500MB limit)
+    const MAX_MBOX_SIZE = 500 * 1024 * 1024;
+    if (file.size > MAX_MBOX_SIZE) {
+      const fileSizeMB = Math.round(file.size / (1024 * 1024));
+      alert(`File is too large (${fileSizeMB}MB). Maximum size is 500MB.\n\nTip: Export only your "Sent" folder instead of your entire mailbox.`);
+      if (mboxInputRef.current) {
+        mboxInputRef.current.value = '';
+      }
+      return;
+    }
+
     setMboxUploading(true);
     setMboxProgress(0);
     setMboxResult(null);
@@ -150,7 +161,14 @@ export default function KnowledgePage() {
       await refresh();
     } catch (err) {
       console.error('MBOX upload error:', err);
-      alert('Failed to upload MBOX file. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+        alert('File is too large. Maximum size is 500MB.');
+      } else if (errorMessage.includes('Invalid file type')) {
+        alert('Invalid file type. Please upload a .mbox file.');
+      } else {
+        alert(`Failed to upload MBOX file: ${errorMessage}`);
+      }
     } finally {
       setMboxUploading(false);
       if (mboxInputRef.current) {
