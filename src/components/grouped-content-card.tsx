@@ -25,20 +25,55 @@ function formatBytes(bytes: number): string {
 }
 
 /**
+ * Get friendly title based on source type
+ */
+function getFriendlyTitle(sourceType: ContentSourceType, originalTitle: string): string {
+  if (sourceType === 'mbox_import') {
+    return 'Email Writing Samples';
+  }
+  if (sourceType === 'voice_recording') {
+    return 'Voice Recording';
+  }
+  if (sourceType === 'youtube_import') {
+    return 'YouTube Content';
+  }
+  if (sourceType === 'instagram_import') {
+    return 'Instagram Posts';
+  }
+  if (sourceType === 'paste_text') {
+    return 'Writing Sample';
+  }
+  if (sourceType === 'paste_social') {
+    return 'Social Media Posts';
+  }
+  if (sourceType === 'paste_email') {
+    return 'Email Sample';
+  }
+  if (sourceType === 'generation') {
+    return 'AI-Generated Content';
+  }
+  if (sourceType === 'clip-finder') {
+    return 'Video Clip';
+  }
+  // For file uploads, clean up the title
+  return originalTitle.replace(/\.(mbox|pdf|txt|mp3|wav|mp4|mov)$/i, '').replace(/\s*\(batch\s*\d+\)$/i, '');
+}
+
+/**
  * Get description based on source type
  */
 function getSourceDescription(sourceType: ContentSourceType, itemCount: number, totalChunks: number): string {
   const descriptions: Record<ContentSourceType, string> = {
-    mbox_import: `${itemCount} email batches processed for voice training`,
-    file_upload: `${itemCount} files uploaded`,
-    paste_text: `${itemCount} writing samples for voice matching`,
-    paste_social: `${itemCount} social posts added`,
-    paste_email: `${itemCount} emails added`,
-    voice_recording: `${itemCount} voice recordings`,
-    youtube_import: `${itemCount} YouTube videos imported`,
-    instagram_import: `${itemCount} Instagram posts imported`,
-    generation: `${itemCount} generated items`,
-    'clip-finder': `${itemCount} clips found`,
+    mbox_import: `${totalChunks.toLocaleString()} text snippets from your sent emails`,
+    file_upload: `${itemCount} documents uploaded for training`,
+    paste_text: `${totalChunks.toLocaleString()} snippets from your writing`,
+    paste_social: `${totalChunks.toLocaleString()} snippets from social posts`,
+    paste_email: `${totalChunks.toLocaleString()} snippets from emails`,
+    voice_recording: `${totalChunks.toLocaleString()} snippets transcribed from audio`,
+    youtube_import: `${totalChunks.toLocaleString()} snippets from video transcripts`,
+    instagram_import: `${totalChunks.toLocaleString()} snippets from Instagram`,
+    generation: `${itemCount} AI-generated pieces`,
+    'clip-finder': `${itemCount} video clips extracted`,
   };
   return descriptions[sourceType] || `${itemCount} items`;
 }
@@ -143,8 +178,8 @@ export function GroupedContentCard({
           )}
           <span className="text-3xl flex-shrink-0">{getSourceIcon(sourceType)}</span>
           <div className="min-w-0 flex-1">
-            <h4 className="text-body font-semibold truncate" title={groupTitle}>
-              {groupTitle}
+            <h4 className="text-body font-semibold truncate" title={getFriendlyTitle(sourceType, groupTitle)}>
+              {getFriendlyTitle(sourceType, groupTitle)}
             </h4>
             <p className="text-small text-text-secondary">
               {getSourceDescription(sourceType, items.length, totalChunks)}

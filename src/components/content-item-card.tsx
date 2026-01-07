@@ -63,6 +63,41 @@ function getSourceColor(sourceType: ContentSourceType): string {
   return colors[sourceType] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
 }
 
+/**
+ * Get friendly title based on source type
+ */
+function getFriendlyTitle(sourceType: ContentSourceType, originalTitle: string): string {
+  if (sourceType === 'mbox_import') {
+    return 'Email Writing Samples';
+  }
+  if (sourceType === 'voice_recording') {
+    return 'Voice Recording';
+  }
+  if (sourceType === 'youtube_import') {
+    return 'YouTube Content';
+  }
+  if (sourceType === 'instagram_import') {
+    return 'Instagram Posts';
+  }
+  if (sourceType === 'paste_text') {
+    return 'Writing Sample';
+  }
+  if (sourceType === 'paste_social') {
+    return 'Social Media Posts';
+  }
+  if (sourceType === 'paste_email') {
+    return 'Email Sample';
+  }
+  if (sourceType === 'generation') {
+    return 'AI-Generated Content';
+  }
+  if (sourceType === 'clip-finder') {
+    return 'Video Clip';
+  }
+  // For file uploads, clean up the title
+  return originalTitle.replace(/\.(mbox|pdf|txt|mp3|wav|mp4|mov)$/i, '');
+}
+
 export function ContentItemCard({ item, onDelete, selected, onSelect, selectionMode }: ContentItemCardProps) {
   const config = CONTENT_SOURCE_CONFIG[item.sourceType];
   const sourceColor = getSourceColor(item.sourceType);
@@ -129,8 +164,8 @@ export function ContentItemCard({ item, onDelete, selected, onSelect, selectionM
             {getSourceIcon(item.sourceType)}
           </span>
           <div className="min-w-0 flex-1">
-            <h4 className="text-body font-semibold truncate" title={item.title}>
-              {item.title}
+            <h4 className="text-body font-semibold truncate" title={getFriendlyTitle(item.sourceType, item.title)}>
+              {getFriendlyTitle(item.sourceType, item.title)}
             </h4>
             {item.description && (
               <p className="text-small text-text-secondary truncate" title={item.description}>
