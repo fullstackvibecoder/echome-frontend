@@ -312,10 +312,12 @@ export function useContentLibrary(): UseContentLibraryReturn {
       // Transform generation requests into kit-like items
       if (generationResult.success && generationResult.data) {
         for (const req of generationResult.data) {
+          // Use generated_title if available, otherwise fall back to truncated input_text
+          const title = req.generatedTitle || req.inputText?.slice(0, 60) || 'Generated Content';
           newItems.push({
             id: req.id,
             type: 'kit',
-            title: req.inputText?.slice(0, 50) || 'Generated Content',
+            title,
             description: req.inputText?.slice(0, 200),
             status: req.status === 'completed' ? 'completed' : req.status === 'failed' ? 'failed' : 'processing',
             platforms: (req.platforms || []) as Platform[],

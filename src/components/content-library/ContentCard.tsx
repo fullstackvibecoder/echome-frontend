@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 import { STATUS_CONFIG, CONTENT_TYPE_CONFIG } from '@/lib/content-normalizer';
-import { PLATFORM_CONFIG } from '@/lib/content-kit-utils';
+import { PlatformIcon, type Platform } from '@/components/shared/PlatformIcon';
 
 interface ContentCardProps {
   item: NormalizedContent;
@@ -135,18 +135,15 @@ export function ContentCard({
         {/* Platform Icons */}
         {item.platforms.length > 0 && (
           <div className="flex items-center gap-1.5 mb-2">
-            {displayPlatforms.map((platform) => {
-              const config = PLATFORM_CONFIG[platform];
-              return (
-                <span
-                  key={platform}
-                  className="w-6 h-6 rounded-full bg-bg-tertiary flex items-center justify-center text-sm"
-                  title={config?.label || platform}
-                >
-                  {config?.icon || '📄'}
-                </span>
-              );
-            })}
+            {displayPlatforms.map((platform) => (
+              <span
+                key={platform}
+                className="w-6 h-6 rounded-full bg-bg-tertiary flex items-center justify-center"
+                title={platform}
+              >
+                <PlatformIcon platform={platform as Platform} size={14} />
+              </span>
+            ))}
             {extraPlatforms > 0 && (
               <span className="w-6 h-6 rounded-full bg-bg-tertiary flex items-center justify-center text-xs text-text-secondary font-medium">
                 +{extraPlatforms}
@@ -206,15 +203,11 @@ export function ContentCard({
 // ============================================
 
 function formatRelativeDate(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  // Format as dd/mm/yyyy
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 function formatDuration(seconds: number): string {

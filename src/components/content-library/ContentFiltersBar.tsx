@@ -7,6 +7,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { PlatformIcon, type Platform } from '@/components/shared/PlatformIcon';
 import type {
   ContentFiltersBarProps,
   ViewMode,
@@ -25,15 +26,15 @@ const CONTENT_TYPE_FILTERS: { id: ContentTypeFilter; label: string; icon?: strin
   { id: 'processing', label: 'Processing', icon: '⏳' },
 ];
 
-// Platform filter config
-const PLATFORM_FILTERS: { id: PlatformFilter; label: string; icon: string }[] = [
-  { id: 'linkedin', label: 'LinkedIn', icon: '💼' },
-  { id: 'twitter', label: 'X', icon: '𝕏' },
-  { id: 'instagram', label: 'Instagram', icon: '📷' },
-  { id: 'tiktok', label: 'TikTok', icon: '🎵' },
-  { id: 'youtube', label: 'YouTube', icon: '📺' },
-  { id: 'blog', label: 'Blog', icon: '📝' },
-  { id: 'email', label: 'Email', icon: '✉️' },
+// Platform filter config with brand icons
+const PLATFORM_FILTERS: { id: PlatformFilter; label: string }[] = [
+  { id: 'linkedin', label: 'LinkedIn' },
+  { id: 'twitter', label: 'X' },
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'tiktok', label: 'TikTok' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'blog', label: 'Blog' },
+  { id: 'email', label: 'Email' },
 ];
 
 const GROUP_OPTIONS: Record<GroupBy, { label: string }> = {
@@ -185,14 +186,14 @@ export function ContentFiltersBar({
             <button
               key={platform.id}
               onClick={() => onPlatformFilterToggle(platform.id)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center justify-center ${
                 isActive
                   ? 'bg-accent text-white'
                   : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary border border-border'
               }`}
               title={platform.label}
             >
-              <span>{platform.icon}</span>
+              <PlatformIcon platform={platform.id as Platform} size={16} />
             </button>
           );
         })}

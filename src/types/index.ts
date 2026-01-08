@@ -114,6 +114,7 @@ export interface GenerationRequest {
   results?: GeneratedContent[];
   voiceScore?: number;
   qualityScore?: number;
+  generatedTitle?: string; // AI-generated concise title
   createdAt: Date | string;
   completedAt?: Date | string;
   errorMessage?: string;
