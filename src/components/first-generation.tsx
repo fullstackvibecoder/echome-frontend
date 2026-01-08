@@ -201,7 +201,8 @@ interface FirstGenerationProps {
   ) => void;
   onRepurpose?: (
     contentId: string,
-    platforms: Platform[]
+    platforms: Platform[],
+    carouselBackground?: BackgroundConfig
   ) => void;
   onVideoProcessing?: (data: {
     upload: VideoUpload;
@@ -490,7 +491,7 @@ export function FirstGeneration({
     // For repurpose mode
     if (inputType === 'repurpose') {
       if (!selectedContent || !onRepurpose) return;
-      onRepurpose(selectedContent.id, ALL_PLATFORMS);
+      onRepurpose(selectedContent.id, ALL_PLATFORMS, bgConfig);
       return;
     }
 
@@ -848,8 +849,7 @@ export function FirstGeneration({
         </div>
       )}
 
-      {/* Carousel Background Option - only show for non-repurpose modes */}
-      {inputType !== 'repurpose' && (
+      {/* Carousel Background Option */}
       <div className="mt-6 p-4 bg-bg-secondary rounded-lg border border-border">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
@@ -925,7 +925,6 @@ export function FirstGeneration({
           </p>
         )}
       </div>
-      )}
 
       {/* Upload Error */}
       {uploadError && (

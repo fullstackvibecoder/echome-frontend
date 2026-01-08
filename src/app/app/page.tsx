@@ -230,11 +230,11 @@ export default function AppDashboard() {
     await generate(input, inputType, platforms);
   };
 
-  const handleRepurpose = async (contentId: string, platforms: Platform[]) => {
+  const handleRepurpose = async (contentId: string, platforms: Platform[], carouselBackground?: BackgroundConfig) => {
     setCarouselSlides(null);
     setCarouselError(null);
     setCarouselQuality(null);
-    await repurpose(contentId, platforms);
+    await repurpose(contentId, platforms, carouselBackground);
   };
 
   // Handle video processing results from Clip Finder

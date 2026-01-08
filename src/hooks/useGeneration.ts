@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
-import { GeneratedContent, Platform, InputType } from '@/types';
+import { GeneratedContent, Platform, InputType, BackgroundConfig } from '@/types';
 
 interface UseGenerationReturn {
   generating: boolean;
@@ -18,7 +18,8 @@ interface UseGenerationReturn {
   ) => Promise<string | null>;
   repurpose: (
     contentId: string,
-    platforms: Platform[]
+    platforms: Platform[],
+    carouselBackground?: BackgroundConfig
   ) => Promise<void>;
   reset: () => void;
 }
@@ -71,14 +72,22 @@ export function useGeneration(): UseGenerationReturn {
   );
 
   const repurpose = useCallback(
-    async (contentId: string, platforms: Platform[]) => {
+    async (contentId: string, platforms: Platform[], carouselBackground?: BackgroundConfig) => {
       try {
         setGenerating(true);
         setError(null);
         setResults(null);
 
+        // Build carousel background for API
+        const carouselBg = carouselBackground ? {
+          type: carouselBackground.type,
+          presetId: carouselBackground.presetId,
+          imageUrl: carouselBackground.imageUrl,
+        } : { type: 'preset' as const, presetId: 'tweet-style' };
+
         const response = await api.creators.repurpose(contentId, {
           platforms: platforms as string[],
+          carouselBackground: carouselBg,
         });
 
         if (response.success && response.result.generatedContent) {
