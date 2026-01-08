@@ -269,6 +269,7 @@ export const api = {
         additionalInstructions: item.additional_instructions,
         status: item.status,
         results: item.results,
+        generatedTitle: item.generated_title,
         createdAt: item.created_at,
         completedAt: item.completed_at,
         errorMessage: item.error_message,
