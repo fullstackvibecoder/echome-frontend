@@ -180,6 +180,98 @@ function VoiceInputPanel({
   );
 }
 
+// ============================================
+// VIDEO PROCESSING TIPS - Engaging messages per stage
+// ============================================
+
+const VIDEO_PROCESSING_STAGES: Record<string, {
+  icon: string;
+  title: string;
+  tips: string[];
+}> = {
+  uploading: {
+    icon: '📤',
+    title: 'Uploading your video',
+    tips: [
+      'Preparing your video for the magic to begin...',
+      'Great content starts with great source material!',
+      'Your video is on its way to our processing servers...',
+      'Almost there! Getting your video ready for analysis...',
+    ],
+  },
+  transcribing: {
+    icon: '🎧',
+    title: 'Transcribing audio',
+    tips: [
+      'Listening carefully to every word...',
+      'Our AI is picking up all the nuances in your speech',
+      'Converting your voice into text with precision',
+      'Fun fact: We can detect multiple speakers automatically!',
+      'Capturing timestamps for perfect caption sync...',
+    ],
+  },
+  analyzing: {
+    icon: '🧠',
+    title: 'Analyzing content',
+    tips: [
+      'Looking for those viral-worthy moments...',
+      'Finding the hooks that will grab attention',
+      'Identifying your most engaging segments',
+      'Scoring clips for engagement potential',
+      'Our AI is learning what makes your content unique!',
+    ],
+  },
+  extracting: {
+    icon: '✂️',
+    title: 'Extracting clips',
+    tips: [
+      'Cutting out the best parts for you...',
+      'Creating clips optimized for social media',
+      'Quality over quantity - selecting only the best moments',
+      'Each clip is crafted to stand on its own',
+      'Adding smart face-tracking for vertical formats...',
+    ],
+  },
+  captioning: {
+    icon: '💬',
+    title: 'Adding captions',
+    tips: [
+      'Making your content accessible to everyone!',
+      '85% of social media videos are watched without sound',
+      'Word-by-word timing for that professional look',
+      'Captions boost engagement by up to 80%',
+      'Styling your captions for maximum impact...',
+    ],
+  },
+  generating: {
+    icon: '✨',
+    title: 'Generating content kit',
+    tips: [
+      'Writing captions that match your voice...',
+      'Creating platform-optimized versions',
+      'Crafting LinkedIn posts with authority',
+      'Building Instagram carousels that pop',
+      'Your content kit is almost ready!',
+    ],
+  },
+  pending: {
+    icon: '⏳',
+    title: 'Queued for processing',
+    tips: [
+      'Your video is in line for the spotlight!',
+      'Preparing processing resources...',
+    ],
+  },
+  completed: {
+    icon: '🎉',
+    title: 'Processing complete',
+    tips: [
+      'Your clips are ready to shine!',
+      'Time to share your best moments with the world!',
+    ],
+  },
+};
+
 // Carousel background options for the dropdown
 type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
 
@@ -258,7 +350,10 @@ export function FirstGeneration({
   const [videoProcessing, setVideoProcessing] = useState(false);
   const [videoProcessingStatus, setVideoProcessingStatus] = useState<string | null>(null);
   const [videoProcessingProgress, setVideoProcessingProgress] = useState(0);
+  const [videoProcessingStage, setVideoProcessingStage] = useState<string>('uploading');
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const tipRotationRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load pending content when repurpose mode is selected
   useEffect(() => {
@@ -281,14 +376,50 @@ export function FirstGeneration({
     }
   };
 
-  // Cleanup polling interval on unmount
+  // Cleanup polling and tip rotation intervals on unmount
   useEffect(() => {
     return () => {
       if (processingIntervalRef.current) {
         clearInterval(processingIntervalRef.current);
       }
+      if (tipRotationRef.current) {
+        clearInterval(tipRotationRef.current);
+      }
     };
   }, []);
+
+  // Rotate tips during video processing
+  useEffect(() => {
+    if (videoProcessing && videoProcessingStage) {
+      // Reset tip index when stage changes
+      setCurrentTipIndex(0);
+
+      // Clear any existing rotation
+      if (tipRotationRef.current) {
+        clearInterval(tipRotationRef.current);
+      }
+
+      // Start rotating tips every 4 seconds
+      tipRotationRef.current = setInterval(() => {
+        const stageTips = VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips || [];
+        if (stageTips.length > 1) {
+          setCurrentTipIndex(prev => (prev + 1) % stageTips.length);
+        }
+      }, 4000);
+    } else {
+      // Clear rotation when not processing
+      if (tipRotationRef.current) {
+        clearInterval(tipRotationRef.current);
+        tipRotationRef.current = null;
+      }
+    }
+
+    return () => {
+      if (tipRotationRef.current) {
+        clearInterval(tipRotationRef.current);
+      }
+    };
+  }, [videoProcessing, videoProcessingStage]);
 
   // Process video through Clip Finder pipeline
   const processVideoWithClipFinder = async (
@@ -298,8 +429,10 @@ export function FirstGeneration({
   ) => {
     try {
       setVideoProcessing(true);
+      setVideoProcessingStage('uploading');
       setVideoProcessingStatus('Uploading video...');
       setVideoProcessingProgress(0);
+      setCurrentTipIndex(0);
       setUploadError(null);
 
       // Step 1: Upload the video
@@ -370,18 +503,6 @@ export function FirstGeneration({
 
   // Poll for processing status
   const pollProcessingStatus = async (uploadId: string, jobId: string) => {
-    const statusMessages: Record<string, string> = {
-      pending: 'Waiting to process...',
-      uploading: 'Uploading video...',
-      transcribing: 'Transcribing audio...',
-      analyzing: 'Analyzing content for clips...',
-      extracting: 'Extracting best clips...',
-      captioning: 'Adding captions...',
-      generating: 'Generating content kit...',
-      completed: 'Processing complete!',
-      failed: 'Processing failed',
-    };
-
     const progressByStatus: Record<string, number> = {
       pending: 35,
       uploading: 40,
@@ -402,7 +523,10 @@ export function FirstGeneration({
             const { upload, clips, contentKit } = response.data;
             const status = upload.status;
 
-            setVideoProcessingStatus(statusMessages[status] || `Processing: ${status}`);
+            // Update stage and progress
+            setVideoProcessingStage(status);
+            const stageInfo = VIDEO_PROCESSING_STAGES[status];
+            setVideoProcessingStatus(stageInfo?.title || `Processing: ${status}`);
             setVideoProcessingProgress(progressByStatus[status] || 50);
 
             if (status === 'completed') {
@@ -680,17 +804,58 @@ export function FirstGeneration({
             className="hidden"
           />
           {videoProcessing ? (
-            <>
-              <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-body font-medium mb-2">{videoProcessingStatus}</p>
-              <div className="w-full max-w-xs mx-auto bg-bg-secondary rounded-full h-2 mb-2">
-                <div
-                  className="bg-accent h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${videoProcessingProgress}%` }}
-                />
+            <div className="py-4">
+              {/* Stage Icon & Title */}
+              <div className="text-5xl mb-3 animate-bounce">
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}
               </div>
-              <p className="text-small text-text-secondary">{videoProcessingProgress}% complete</p>
-            </>
+              <p className="text-body font-semibold mb-1">
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || videoProcessingStatus}
+              </p>
+
+              {/* Rotating Tip */}
+              <p className="text-small text-text-secondary mb-4 min-h-[40px] transition-opacity duration-500">
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips[currentTipIndex] || 'Processing...'}
+              </p>
+
+              {/* Progress Bar */}
+              <div className="w-full max-w-sm mx-auto mb-3">
+                <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
+                    style={{ width: `${videoProcessingProgress}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Percentage */}
+              <p className="text-small text-text-secondary font-medium">
+                {videoProcessingProgress}% complete
+              </p>
+
+              {/* Stage indicators */}
+              <div className="flex justify-center gap-2 mt-4">
+                {['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'].map((stage, idx) => {
+                  const stageOrder = ['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'];
+                  const currentIdx = stageOrder.indexOf(videoProcessingStage);
+                  const isComplete = idx < currentIdx;
+                  const isCurrent = stage === videoProcessingStage;
+                  return (
+                    <div
+                      key={stage}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        isComplete ? 'bg-accent' :
+                        isCurrent ? 'bg-accent animate-pulse scale-125' :
+                        'bg-bg-secondary'
+                      }`}
+                      title={VIDEO_PROCESSING_STAGES[stage]?.title}
+                    />
+                  );
+                })}
+              </div>
+            </div>
           ) : !selectedFile ? (
             <>
               <div className="text-5xl mb-4">🎥</div>
@@ -731,15 +896,56 @@ export function FirstGeneration({
         <div className="border-2 border-border rounded-lg p-6">
           {videoProcessing ? (
             <div className="text-center py-4">
-              <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-body font-medium mb-2">{videoProcessingStatus}</p>
-              <div className="w-full max-w-xs mx-auto bg-bg-secondary rounded-full h-2 mb-2">
-                <div
-                  className="bg-accent h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${videoProcessingProgress}%` }}
-                />
+              {/* Stage Icon & Title */}
+              <div className="text-5xl mb-3 animate-bounce">
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}
               </div>
-              <p className="text-small text-text-secondary">{videoProcessingProgress}% complete</p>
+              <p className="text-body font-semibold mb-1">
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || videoProcessingStatus}
+              </p>
+
+              {/* Rotating Tip */}
+              <p className="text-small text-text-secondary mb-4 min-h-[40px] transition-opacity duration-500">
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips[currentTipIndex] || 'Processing...'}
+              </p>
+
+              {/* Progress Bar */}
+              <div className="w-full max-w-sm mx-auto mb-3">
+                <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
+                    style={{ width: `${videoProcessingProgress}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Percentage */}
+              <p className="text-small text-text-secondary font-medium">
+                {videoProcessingProgress}% complete
+              </p>
+
+              {/* Stage indicators */}
+              <div className="flex justify-center gap-2 mt-4">
+                {['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'].map((stage, idx) => {
+                  const stageOrder = ['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'];
+                  const currentIdx = stageOrder.indexOf(videoProcessingStage);
+                  const isComplete = idx < currentIdx;
+                  const isCurrent = stage === videoProcessingStage;
+                  return (
+                    <div
+                      key={stage}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        isComplete ? 'bg-accent' :
+                        isCurrent ? 'bg-accent animate-pulse scale-125' :
+                        'bg-bg-secondary'
+                      }`}
+                      title={VIDEO_PROCESSING_STAGES[stage]?.title}
+                    />
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <>
@@ -954,8 +1160,8 @@ export function FirstGeneration({
           </span>
         ) : videoProcessing ? (
           <span className="flex items-center justify-center gap-2">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            {videoProcessingStatus || 'Processing video...'}
+            <span className="text-lg">{VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}</span>
+            {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || 'Processing video...'}
           </span>
         ) : generating ? (
           <span className="flex items-center justify-center gap-2">
