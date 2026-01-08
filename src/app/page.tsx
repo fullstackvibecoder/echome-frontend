@@ -124,127 +124,199 @@ export default function Home() {
       <section className="min-h-screen flex items-center px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900" />
 
-        {/* Animated echo rings effect */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            <div className="absolute w-96 h-96 border border-[#00D4FF]/20 rounded-full animate-ping" />
-            <div className="absolute w-96 h-96 border border-[#00D4FF]/20 rounded-full animate-ping animation-delay-1000" />
-            <div className="absolute w-96 h-96 border border-[#00D4FF]/20 rounded-full animate-ping animation-delay-2000" />
+        {/* Animated voice wave effect */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-30">
+          <div className="flex items-end gap-1 h-64">
+            {[...Array(40)].map((_, i) => (
+              <div
+                key={i}
+                className="w-1 bg-gradient-to-t from-[#00D4FF] to-[#B794F6] rounded-full animate-pulse"
+                style={{
+                  height: `${20 + Math.sin(i * 0.3) * 60 + Math.random() * 40}%`,
+                  animationDelay: `${i * 50}ms`,
+                  animationDuration: `${1000 + Math.random() * 500}ms`
+                }}
+              />
+            ))}
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto py-20 w-full relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* AI Context Badge */}
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur
-                            border border-white/20 rounded-full mb-8 animate-fade-in">
-              <Sparkles className="w-5 h-5 text-[#00D4FF]" />
-              <span className="text-white font-medium">Your AI-Powered Content Echosystem</span>
-              <Sparkles className="w-5 h-5 text-[#FF6B9D]" />
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Messaging */}
+            <div className="text-center lg:text-left">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur
+                              border border-white/20 rounded-full mb-8 animate-fade-in">
+                <Brain className="w-4 h-4 text-[#00D4FF]" />
+                <span className="text-white/90 font-medium text-sm">AI That Learns Your Voice</span>
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-[1.1]">
+                <span className="text-white">Content That</span>
+                <br />
+                <span className="text-white">Sounds Like </span>
+                <span className="bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D]
+                               bg-clip-text text-transparent">
+                  You.
+                </span>
+              </h1>
+
+              {/* Subheadline */}
+              <p className="text-xl md:text-2xl text-gray-300 mb-4 font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
+                Stop sounding like every other AI tool.
+              </p>
+              <p className="text-lg md:text-xl text-white/90 mb-8 font-medium max-w-xl mx-auto lg:mx-0">
+                EchoMe learns your unique voice from your existing content, then creates posts,
+                threads, and articles that are unmistakably you.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-10">
+                <Link
+                  href="/auth/signup"
+                  className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
+                             rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
+                             shadow-lg text-lg flex items-center gap-2 group"
+                >
+                  Start Building Your Voice
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <button
+                  className="px-8 py-4 bg-white/10 backdrop-blur border border-white/20
+                             text-white rounded-xl font-bold hover:bg-white/20 transition-all
+                             text-lg flex items-center gap-2"
+                >
+                  <Play className="w-5 h-5" />
+                  Watch Demo
+                </button>
+              </div>
+
+              {/* Social Proof */}
+              <div className="flex items-center justify-center lg:justify-start gap-6 text-white/70">
+                <div className="text-center lg:text-left">
+                  <p className="text-2xl font-bold text-white"><NumberCounter end={12847} /></p>
+                  <p className="text-xs">Unique Voices</p>
+                </div>
+                <div className="w-px h-10 bg-white/20" />
+                <div className="text-center lg:text-left">
+                  <p className="text-2xl font-bold text-white"><NumberCounter end={94} suffix="%" /></p>
+                  <p className="text-xs">Voice Match Rate</p>
+                </div>
+                <div className="w-px h-10 bg-white/20" />
+                <div className="text-center lg:text-left">
+                  <p className="text-2xl font-bold text-white"><NumberCounter end={8} /></p>
+                  <p className="text-xs">Platforms</p>
+                </div>
+              </div>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight">
-              <span className="text-white">Unmute</span>
-              <br />
-              <span className="bg-gradient-to-r from-[#00D4FF] via-[#FF6B9D] to-[#FFD93D]
-                             bg-clip-text text-transparent animate-gradient">
-                Yourself.
-              </span>
-            </h1>
+            {/* Right Column - Voice Profile Preview */}
+            <div className="relative">
+              {/* Glow effect */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#00D4FF]/20 via-[#B794F6]/20 to-[#FF6B9D]/20 rounded-3xl blur-2xl" />
 
-            {/* Clear Explanation */}
-            <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light leading-relaxed">
-              Your voice has been trapped in one piece of content.
-            </p>
-            <p className="text-xl md:text-2xl text-white mb-12 font-medium">
-              Echo sets it free across every platform.
-            </p>
-
-            {/* Visual Process */}
-            <div className="flex items-center justify-center gap-8 mb-12 flex-wrap">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-3 mx-auto">
-                  <Video className="w-10 h-10 text-[#00D4FF]" />
+              {/* Voice Profile Card */}
+              <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Your Voice Profile</p>
+                      <p className="text-white/50 text-sm">Learned from 47 samples</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[#00D4FF] font-bold text-lg">87%</p>
+                    <p className="text-white/50 text-xs">Confidence</p>
+                  </div>
                 </div>
-                <p className="text-white font-medium">One Video</p>
+
+                {/* Confidence Bar */}
+                <div className="mb-6">
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full transition-all duration-1000"
+                      style={{ width: '87%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Signature Phrases */}
+                <div className="mb-5">
+                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-3">Signature Phrases</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["Here's the thing...", "Let me tell you", "The secret is", "What do you think?"].map((phrase, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1.5 bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded-lg text-[#00D4FF] text-sm font-medium"
+                      >
+                        "{phrase}"
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tone Markers */}
+                <div className="mb-5">
+                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-3">Your Tone</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: "Conversational", color: "from-purple-500/20 to-purple-500/10 border-purple-500/30 text-purple-400" },
+                      { label: "Direct", color: "from-pink-500/20 to-pink-500/10 border-pink-500/30 text-pink-400" },
+                      { label: "Encouraging", color: "from-green-500/20 to-green-500/10 border-green-500/30 text-green-400" }
+                    ].map((tone, i) => (
+                      <span
+                        key={i}
+                        className={`px-3 py-1.5 bg-gradient-to-r ${tone.color} border rounded-lg text-sm font-medium`}
+                      >
+                        {tone.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Things You Avoid */}
+                <div>
+                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-3">Things You Never Say</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["Corporate jargon", "Generic AI phrases", "Passive voice"].map((avoid, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400/80 text-sm font-medium line-through decoration-red-500/50"
+                      >
+                        {avoid}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Floating elements for visual interest */}
+                <div className="absolute -top-3 -right-3 w-20 h-20 bg-gradient-to-br from-[#FFD93D] to-[#FF6B9D] rounded-2xl flex items-center justify-center shadow-lg transform rotate-12">
+                  <span className="text-3xl">🎯</span>
+                </div>
               </div>
 
-              <ArrowRight className="w-8 h-8 text-white/50" />
-
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#FF6B9D] rounded-2xl blur-xl opacity-50" />
-                <div className="relative w-20 h-20 bg-gradient-to-r from-[#00D4FF] to-[#FF6B9D] rounded-2xl flex items-center justify-center">
-                  <Brain className="w-10 h-10 text-white" />
-                </div>
-                <p className="text-white font-bold mt-3">Echo AI</p>
-              </div>
-
-              <ArrowRight className="w-8 h-8 text-white/50" />
-
-              <div className="flex -space-x-4">
+              {/* Platform icons floating */}
+              <div className="absolute -bottom-4 -left-4 flex gap-2">
                 {[
-                  { icon: <FileText />, color: 'from-purple-500 to-purple-600' },
-                  { icon: <MessageSquare />, color: 'from-pink-500 to-pink-600' },
-                  { icon: <Hash />, color: 'from-blue-500 to-blue-600' },
-                  { icon: <Mail />, color: 'from-green-500 to-green-600' }
-                ].map((item, i) => (
-                  <div key={i} className={`w-16 h-16 bg-gradient-to-r ${item.color} rounded-xl flex items-center justify-center transform hover:scale-110 transition-transform`}>
-                    <div className="w-8 h-8 text-white">{item.icon}</div>
+                  { icon: 'in', bg: 'from-blue-600 to-blue-700' },
+                  { icon: '𝕏', bg: 'from-gray-700 to-gray-800' },
+                  { icon: '📸', bg: 'from-pink-500 to-purple-600' },
+                  { icon: '📧', bg: 'from-green-500 to-green-600' }
+                ].map((platform, i) => (
+                  <div
+                    key={i}
+                    className={`w-10 h-10 bg-gradient-to-br ${platform.bg} rounded-xl flex items-center justify-center shadow-lg text-white text-sm font-bold`}
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    {platform.icon}
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* The Echosystem Explanation */}
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 mb-12 max-w-3xl mx-auto">
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Welcome to Your Echosystem™
-              </h3>
-              <p className="text-gray-300 text-lg leading-relaxed">
-                Upload once. Echo learns your voice. Then watch as your content
-                multiplies across blogs, social posts, emails, and more - all
-                sounding exactly like you. One voice, infinite reach.
-              </p>
-            </div>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-4 justify-center mb-12">
-              <Link
-                href="/auth/signup"
-                className="px-10 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
-                           rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all
-                           shadow-lg text-lg flex items-center gap-2 group"
-              >
-                Enter Your Echosystem
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <button
-                className="px-10 py-4 bg-white/10 backdrop-blur border border-white/20
-                           text-white rounded-xl font-bold hover:bg-white/20 transition-all
-                           text-lg flex items-center gap-2"
-              >
-                <Play className="w-5 h-5" />
-                See Echo in Action
-                <span className="text-sm opacity-75">(45s)</span>
-              </button>
-            </div>
-
-            {/* Social Proof */}
-            <div className="flex items-center justify-center gap-8 text-white/70">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-white"><NumberCounter end={12847} /></p>
-                <p className="text-sm">Voices Amplified</p>
-              </div>
-              <div className="w-px h-12 bg-white/20" />
-              <div className="text-center">
-                <p className="text-3xl font-bold text-white"><NumberCounter end={2} suffix=".3M+" /></p>
-                <p className="text-sm">Echoes Created</p>
-              </div>
-              <div className="w-px h-12 bg-white/20" />
-              <div className="text-center">
-                <p className="text-3xl font-bold text-white"><NumberCounter end={47} suffix="min" /></p>
-                <p className="text-sm">Saved Per Echo</p>
               </div>
             </div>
           </div>

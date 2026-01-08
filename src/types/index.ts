@@ -34,6 +34,10 @@ export interface UserProfile {
   website_url?: string;
   subscription_tier: string;
   credits_remaining: number;
+  // Preferences
+  email_notifications?: boolean;
+  weekly_digest?: boolean;
+  theme?: 'light' | 'dark' | 'auto';
 }
 
 /**
@@ -47,6 +51,10 @@ export interface UserProfileUpdate {
   profile_image_url?: string | null;
   bio?: string | null;
   website_url?: string | null;
+  // Preferences
+  email_notifications?: boolean;
+  weekly_digest?: boolean;
+  theme?: 'light' | 'dark' | 'auto';
 }
 
 // ============================================

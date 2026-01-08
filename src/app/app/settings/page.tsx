@@ -33,6 +33,12 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
 
+  // Preferences state
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+
   // Load profile on mount
   useEffect(() => {
     loadProfile();
@@ -50,6 +56,10 @@ export default function SettingsPage() {
         setInstagramHandle(response.data.instagram_handle || '');
         setBio(response.data.bio || '');
         setWebsiteUrl(response.data.website_url || '');
+        // Load preferences
+        setEmailNotifications(response.data.email_notifications ?? true);
+        setWeeklyDigest(response.data.weekly_digest ?? false);
+        setTheme(response.data.theme ?? 'light');
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -124,6 +134,32 @@ export default function SettingsPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handlePreferenceChange = async (key: 'email_notifications' | 'weekly_digest' | 'theme', value: boolean | string) => {
+    try {
+      setPreferencesSaving(true);
+
+      const updates: Record<string, boolean | string> = { [key]: value };
+      const response = await api.auth.updateProfile(updates);
+
+      if (response.success && response.data) {
+        // Update local state
+        if (key === 'email_notifications') {
+          setEmailNotifications(value as boolean);
+        } else if (key === 'weekly_digest') {
+          setWeeklyDigest(value as boolean);
+        } else if (key === 'theme') {
+          setTheme(value as 'light' | 'dark' | 'auto');
+        }
+        setProfile(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to save preference:', error);
+      setProfileError('Failed to save preference');
+    } finally {
+      setPreferencesSaving(false);
     }
   };
 
@@ -446,7 +482,15 @@ export default function SettingsPage() {
       {/* Preferences Tab */}
       {activeTab === 'preferences' && (
         <div className="card">
-          <h3 className="text-subheading text-xl mb-6">Preferences</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-subheading text-xl">Preferences</h3>
+            {preferencesSaving && (
+              <span className="text-small text-text-secondary flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </span>
+            )}
+          </div>
           <div className="space-y-6">
             {/* Theme */}
             <div>
@@ -454,40 +498,75 @@ export default function SettingsPage() {
                 Theme
               </label>
               <div className="flex gap-3">
-                <button className="px-4 py-2 border-2 border-accent bg-accent/10 text-accent rounded-lg">
+                <button
+                  onClick={() => handlePreferenceChange('theme', 'light')}
+                  className={`px-4 py-2 border-2 rounded-lg transition-colors ${
+                    theme === 'light'
+                      ? 'border-accent bg-accent/10 text-accent'
+                      : 'border-border text-text-secondary hover:border-accent'
+                  }`}
+                >
                   Light
                 </button>
-                <button className="px-4 py-2 border-2 border-border rounded-lg text-text-secondary hover:border-accent transition-colors">
+                <button
+                  onClick={() => handlePreferenceChange('theme', 'dark')}
+                  className={`px-4 py-2 border-2 rounded-lg transition-colors ${
+                    theme === 'dark'
+                      ? 'border-accent bg-accent/10 text-accent'
+                      : 'border-border text-text-secondary hover:border-accent'
+                  }`}
+                >
                   Dark
                 </button>
-                <button className="px-4 py-2 border-2 border-border rounded-lg text-text-secondary hover:border-accent transition-colors">
+                <button
+                  onClick={() => handlePreferenceChange('theme', 'auto')}
+                  className={`px-4 py-2 border-2 rounded-lg transition-colors ${
+                    theme === 'auto'
+                      ? 'border-accent bg-accent/10 text-accent'
+                      : 'border-border text-text-secondary hover:border-accent'
+                  }`}
+                >
                   Auto
                 </button>
               </div>
+              <p className="text-xs text-text-secondary mt-2">
+                Choose your preferred color theme
+              </p>
             </div>
 
-            {/* Notifications */}
+            {/* Email Notifications */}
             <div>
               <label className="flex items-center justify-between p-4 border-2 border-border rounded-lg hover:border-accent transition-colors cursor-pointer">
                 <div>
                   <p className="text-body font-medium">Email Notifications</p>
                   <p className="text-small text-text-secondary">
-                    Receive updates about your generations
+                    Receive updates when your content is ready
                   </p>
                 </div>
-                <input type="checkbox" className="w-5 h-5" defaultChecked />
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 accent-accent"
+                  checked={emailNotifications}
+                  onChange={(e) => handlePreferenceChange('email_notifications', e.target.checked)}
+                />
               </label>
             </div>
 
+            {/* Weekly Summary */}
             <div>
               <label className="flex items-center justify-between p-4 border-2 border-border rounded-lg hover:border-accent transition-colors cursor-pointer">
                 <div>
                   <p className="text-body font-medium">Weekly Summary</p>
                   <p className="text-small text-text-secondary">
-                    Get a weekly report of your content
+                    Get a weekly email digest of your content activity
                   </p>
                 </div>
-                <input type="checkbox" className="w-5 h-5" />
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 accent-accent"
+                  checked={weeklyDigest}
+                  onChange={(e) => handlePreferenceChange('weekly_digest', e.target.checked)}
+                />
               </label>
             </div>
           </div>

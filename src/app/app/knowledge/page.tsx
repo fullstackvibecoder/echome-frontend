@@ -466,6 +466,42 @@ export default function KnowledgePage() {
       {/* Stats */}
       <KBStats stats={contentStats} kbName={currentKb?.name} />
 
+      {/* Voice Learning Info */}
+      {contentStats && contentStats.totalItems > 0 && contentStats.totalItems < 10 && (
+        <div className="mb-6 p-4 bg-accent/5 border-2 border-accent/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🎯</span>
+            <div>
+              <p className="font-medium text-text-primary mb-1">
+                Keep adding content to improve your voice match
+              </p>
+              <p className="text-sm text-text-secondary">
+                Your voice profile automatically updates when you add 3+ new pieces of content.
+                The more diverse samples you add (emails, posts, articles), the better Echo can match your unique style.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Voice Profile Updated Notice */}
+      {contentStats && contentStats.totalItems >= 10 && (
+        <div className="mb-6 p-4 bg-green-500/5 border border-green-500/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✨</span>
+            <div>
+              <p className="font-medium text-green-700 dark:text-green-400 mb-1">
+                Strong voice profile
+              </p>
+              <p className="text-sm text-text-secondary">
+                With {contentStats.totalItems} content samples, Echo has a good understanding of your writing style.
+                Your voice profile will continue to improve as you add more content.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search and Bulk Actions */}
       {contentItems.length > 0 && (
         <div className="mb-6 space-y-4">
@@ -585,7 +621,8 @@ export default function KnowledgePage() {
             <div className="text-6xl mb-4">🎯</div>
             <h3 className="text-subheading text-2xl mb-2">Train Your Echo</h3>
             <p className="text-body text-text-secondary mb-2 max-w-xl mx-auto">
-              Your Echo learns from YOUR writing style. The more authentic content you add, the more accurately it can generate content that sounds like you.
+              Your Echo learns from YOUR writing style. Add at least 3 content samples to start,
+              and your voice profile will automatically improve each time you add more.
             </p>
             <p className="text-sm text-text-secondary mb-6 max-w-xl mx-auto">
               Best sources: emails you&apos;ve written, LinkedIn posts, blog articles, social captions
