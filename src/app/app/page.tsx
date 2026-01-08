@@ -351,8 +351,8 @@ export default function AppDashboard() {
             />
             <ProgressStep
               icon="🧠"
-              text="Channeling the TLL framework"
-              subtext={progress?.step === 'voice' ? progress.message : 'Teach • Learn • Lead'}
+              text="Applying your voice DNA"
+              subtext={progress?.step === 'voice' ? progress.message : 'Matching your unique style'}
               active={progressStep === 1 && progress?.step === 'voice'}
               completed={progressStep > 1}
             />
