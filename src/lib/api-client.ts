@@ -1467,6 +1467,32 @@ export const api = {
         };
       };
     },
+
+    /** Resize carousel to different aspect ratio */
+    resizeCarousel: async (kitId: string, aspectRatio: '1:1' | '9:16') => {
+      const response = await apiClient.post(
+        `/content-kits/${kitId}/resize-carousel`,
+        { aspectRatio },
+        { timeout: GENERATION_TIMEOUT }
+      );
+      return response.data as {
+        success: boolean;
+        data: {
+          carousel: {
+            id: string;
+            slideCount: number;
+            backgroundType: string;
+            aspectRatio: '1:1' | '9:16';
+            slides: Array<{
+              slideNumber: number;
+              text: string;
+              publicUrl: string;
+              slideType: string;
+            }>;
+          };
+        };
+      };
+    },
   },
 };
 

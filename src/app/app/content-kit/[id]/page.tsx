@@ -14,6 +14,7 @@ import { useContentKitDetail } from '@/hooks/useContentKit';
 import { VideoPlayer } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
+import api from '@/lib/api-client';
 
 export default function ContentKitDetailPage() {
   const params = useParams();
@@ -24,11 +25,34 @@ export default function ContentKitDetailPage() {
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [resizing, setResizing] = useState(false);
+  const [resizedCarousel, setResizedCarousel] = useState<{
+    aspectRatio: '1:1' | '9:16';
+    slides: Array<{ slideNumber: number; publicUrl: string; text: string; slideType: string }>;
+  } | null>(null);
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
     setCopiedId(contentId);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleResizeCarousel = async (targetAspectRatio: '1:1' | '9:16') => {
+    if (resizing) return;
+    setResizing(true);
+    try {
+      const response = await api.contentKits.resizeCarousel(id, targetAspectRatio);
+      if (response.success && response.data?.carousel) {
+        setResizedCarousel({
+          aspectRatio: response.data.carousel.aspectRatio,
+          slides: response.data.carousel.slides,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to resize carousel:', err);
+    } finally {
+      setResizing(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -415,15 +439,25 @@ export default function ContentKitDetailPage() {
                 </span>
               </h2>
 
-              <div className="bg-bg-secondary rounded-xl border border-border p-6">
-                {/* Carousel Preview */}
+              {/* Portrait (9:16) Carousel - Original */}
+              <div className="bg-bg-secondary rounded-xl border border-border p-6 mb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium bg-accent/10 text-accent px-3 py-1 rounded-full">
+                      📱 Portrait (9:16)
+                    </span>
+                    <span className="text-xs text-text-secondary">Stories/Reels format</span>
+                  </div>
+                </div>
+
+                {/* Carousel Preview - Portrait */}
                 <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
                   {detail.carousel.slides.map((slide: any, index: number) => (
                     <div
                       key={index}
-                      className="flex-shrink-0 w-72 snap-center"
+                      className="flex-shrink-0 w-48 snap-center"
                     >
-                      <div className="aspect-square rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
+                      <div className="aspect-[9/16] rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
                         <img
                           src={slide.publicUrl}
                           alt={`Slide ${slide.slideNumber}: ${slide.text?.slice(0, 30)}...`}
@@ -458,7 +492,7 @@ export default function ContentKitDetailPage() {
                   ))}
                 </div>
 
-                {/* Carousel Footer */}
+                {/* Carousel Footer - Portrait */}
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
                   <div className="text-sm text-text-secondary">
                     <span className="font-medium text-text-primary">
@@ -471,11 +505,10 @@ export default function ContentKitDetailPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={async () => {
-                        // Download all slides
                         for (const slide of detail.carousel.slides) {
                           const link = document.createElement('a');
                           link.href = slide.publicUrl;
-                          link.download = `slide-${slide.slideNumber}.png`;
+                          link.download = `portrait-slide-${slide.slideNumber}.png`;
                           link.click();
                           await new Promise(r => setTimeout(r, 500));
                         }
@@ -486,6 +519,118 @@ export default function ContentKitDetailPage() {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* Square (1:1) Carousel - Generated on demand */}
+              <div className="bg-bg-secondary rounded-xl border border-border p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full">
+                      ⬜ Square (1:1)
+                    </span>
+                    <span className="text-xs text-text-secondary">Feed post format</span>
+                  </div>
+                  {!resizedCarousel && (
+                    <button
+                      onClick={() => handleResizeCarousel('1:1')}
+                      disabled={resizing}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        resizing
+                          ? 'bg-bg-tertiary text-text-secondary cursor-wait'
+                          : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
+                      }`}
+                    >
+                      {resizing ? (
+                        <>
+                          <span className="animate-spin">⏳</span>
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>🔄</span>
+                          <span>Generate Square Version</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {resizedCarousel ? (
+                  <>
+                    {/* Carousel Preview - Square */}
+                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
+                      {resizedCarousel.slides.map((slide, index) => (
+                        <div
+                          key={index}
+                          className="flex-shrink-0 w-72 snap-center"
+                        >
+                          <div className="aspect-square rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
+                            <img
+                              src={slide.publicUrl}
+                              alt={`Square Slide ${slide.slideNumber}`}
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Slide type badge */}
+                            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
+                              {slide.slideType}
+                            </div>
+                            {/* Slide number */}
+                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                              {slide.slideNumber}/{resizedCarousel.slides.length}
+                            </div>
+                            {/* Download hover button */}
+                            <a
+                              href={slide.publicUrl}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                            >
+                              <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
+                                ⬇️ Download
+                              </span>
+                            </a>
+                          </div>
+                          {/* Slide text preview */}
+                          <p className="mt-2 text-xs text-text-secondary line-clamp-2">
+                            {slide.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Carousel Footer - Square */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+                      <div className="text-sm text-text-secondary">
+                        <span className="font-medium text-text-primary">
+                          {resizedCarousel.slides.length} slides
+                        </span>
+                        <span> • Square format</span>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          for (const slide of resizedCarousel.slides) {
+                            const link = document.createElement('a');
+                            link.href = slide.publicUrl;
+                            link.download = `square-slide-${slide.slideNumber}.png`;
+                            link.click();
+                            await new Promise(r => setTimeout(r, 500));
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-500 text-white hover:bg-purple-500/90 transition-colors"
+                      >
+                        ⬇️ Download All
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12 text-text-secondary">
+                    <div className="text-4xl mb-3">⬜</div>
+                    <p className="text-sm">
+                      Click &quot;Generate Square Version&quot; to create 1:1 slides for feed posts
+                    </p>
+                  </div>
+                )}
               </div>
             </section>
           )}
