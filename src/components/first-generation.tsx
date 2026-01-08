@@ -283,6 +283,17 @@ const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] =
   { value: 'upload', label: 'Upload Custom' },
 ];
 
+// Caption style options for video clips
+type CaptionStyleOption = 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+
+const CAPTION_STYLE_OPTIONS: { value: CaptionStyleOption; label: string; description: string }[] = [
+  { value: 'modern', label: 'Modern', description: 'Bold white text with shadow - TikTok/Reels style' },
+  { value: 'bold', label: 'Bold', description: 'Large yellow text - maximum impact' },
+  { value: 'highlight', label: 'Highlight', description: 'Word-by-word emphasis - trending style' },
+  { value: 'classic', label: 'Classic', description: 'White text on dark box - traditional subtitles' },
+  { value: 'minimal', label: 'Minimal', description: 'Clean subtle styling - professional look' },
+];
+
 interface FirstGenerationProps {
   onGenerate: (
     input: string,
@@ -335,6 +346,9 @@ export function FirstGeneration({
   const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
+
+  // Caption style state
+  const [captionStyle, setCaptionStyle] = useState<CaptionStyleOption>('modern');
 
   // Repurpose state
   const [pendingContent, setPendingContent] = useState<ContentHistoryEntry[]>([]);
@@ -480,6 +494,7 @@ export function FirstGeneration({
       const processResponse = await api.clips.process(upload.id, {
         generateContent: true, // Generate content kit as part of processing
         carouselBackground,
+        captionStyle, // Pass selected caption style
       });
 
       if (!processResponse.success || !processResponse.data?.jobId) {
@@ -1131,6 +1146,38 @@ export function FirstGeneration({
           </p>
         )}
       </div>
+
+      {/* Caption Style Option - Only show for video/URL input */}
+      {(inputType === 'video' || inputType === 'url') && (
+        <div className="mt-4 p-4 bg-bg-secondary rounded-lg border border-border">
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="flex-1">
+              <label className="text-body font-medium text-text-primary block mb-1">
+                Caption Style
+              </label>
+              <p className="text-small text-text-secondary">
+                Choose how captions appear on your video clips
+              </p>
+            </div>
+            <select
+              value={captionStyle}
+              onChange={(e) => setCaptionStyle(e.target.value as CaptionStyleOption)}
+              disabled={generating || uploading || videoProcessing}
+              className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[140px]"
+            >
+              {CAPTION_STYLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {/* Style description */}
+          <p className="text-small text-text-secondary">
+            {CAPTION_STYLE_OPTIONS.find(opt => opt.value === captionStyle)?.description}
+          </p>
+        </div>
+      )}
 
       {/* Upload Error */}
       {uploadError && (
