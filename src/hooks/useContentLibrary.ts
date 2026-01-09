@@ -337,7 +337,8 @@ export function useContentLibrary(): UseContentLibraryReturn {
       if (clipsResult.success && clipsResult.data?.uploads) {
         for (const upload of clipsResult.data.uploads) {
           // Skip if this upload has a content kit - it will be shown via the kit instead
-          if (upload.contentKitId || upload.contentKitTitle) continue;
+          // contentKitTitle is set when there's an associated content kit
+          if (upload.contentKitTitle) continue;
 
           // Skip if already added via generation request
           const alreadyAdded = newItems.some(i => i.videoUploadId === upload.id);
