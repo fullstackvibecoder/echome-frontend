@@ -29,12 +29,16 @@ export type ProgressStep =
   | 'generate'
   | 'validate'
   | 'carousel'
+  | 'carousel_complete'
+  | 'carousel_failed'
   | 'complete'
   | 'error';
 
 interface UseGenerationProgressOptions {
   onComplete?: (event: ProgressEvent) => void;
   onError?: (event: ProgressEvent) => void;
+  onCarouselComplete?: (event: ProgressEvent) => void;
+  onCarouselFailed?: (event: ProgressEvent) => void;
 }
 
 interface UseGenerationProgressReturn {
@@ -42,6 +46,8 @@ interface UseGenerationProgressReturn {
   isConnected: boolean;
   isComplete: boolean;
   hasError: boolean;
+  carouselReady: boolean;
+  carouselFailed: boolean;
   reconnect: () => void;
 }
 
@@ -55,6 +61,8 @@ export function useGenerationProgress(
   const [isConnected, setIsConnected] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [carouselReady, setCarouselReady] = useState(false);
+  const [carouselFailed, setCarouselFailed] = useState(false);
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectAttempts = useRef(0);
@@ -93,10 +101,20 @@ export function useGenerationProgress(
           if (data.step === 'complete') {
             setIsComplete(true);
             options?.onComplete?.(data);
-            eventSource.close();
+            // Don't close yet - carousel may still be generating in background
           } else if (data.step === 'error') {
             setHasError(true);
             options?.onError?.(data);
+            eventSource.close();
+          } else if (data.step === 'carousel_complete') {
+            setCarouselReady(true);
+            options?.onCarouselComplete?.(data);
+            // Now we can close - everything is done
+            eventSource.close();
+          } else if (data.step === 'carousel_failed') {
+            setCarouselFailed(true);
+            options?.onCarouselFailed?.(data);
+            // Close on carousel failure too
             eventSource.close();
           }
         } catch {
@@ -128,6 +146,8 @@ export function useGenerationProgress(
       setProgress(null);
       setIsComplete(false);
       setHasError(false);
+      setCarouselReady(false);
+      setCarouselFailed(false);
       reconnectAttempts.current = 0;
       connect();
     }
@@ -150,6 +170,8 @@ export function useGenerationProgress(
     isConnected,
     isComplete,
     hasError,
+    carouselReady,
+    carouselFailed,
     reconnect,
   };
 }
@@ -165,6 +187,8 @@ export function mapStepToIndex(step: ProgressStep | string): number {
     generate: 2,
     validate: 3,
     carousel: 3,
+    carousel_complete: 4,
+    carousel_failed: -1,
     complete: 4,
     error: -1,
   };

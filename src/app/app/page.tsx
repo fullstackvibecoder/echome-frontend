@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
-import { useGenerationProgress, GENERATION_STEPS, mapStepToIndex } from '@/hooks/useGenerationProgress';
+import { useGenerationProgress, mapStepToIndex } from '@/hooks/useGenerationProgress';
 import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
@@ -70,26 +70,18 @@ export default function AppDashboard() {
   const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
 
-  // Real-time progress from SSE
-  const { progress, isComplete: progressComplete, hasError: progressError } = useGenerationProgress(requestId);
+  // Real-time progress from SSE (including carousel status)
+  const { progress, isComplete: progressComplete, hasError: progressError, carouselReady, carouselFailed } = useGenerationProgress(requestId);
 
   // Derive progress step from real SSE events (fallback to 0 if not connected)
   const progressStep = progress ? mapStepToIndex(progress.step) : 0;
   const [currentTip, setCurrentTip] = useState(0);
 
-  // Carousel state
+  // Carousel state - now handled by backend background job
   const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[] | null>(null);
-  const [carouselGenerating, setCarouselGenerating] = useState(false);
+  const [carouselLoading, setCarouselLoading] = useState(false);
   const [carouselError, setCarouselError] = useState<string | null>(null);
-  const [carouselQuality, setCarouselQuality] = useState<{
-    isOptimal: boolean;
-    score: number;
-  } | null>(null);
-  const pendingCarouselRef = useRef<{
-    bgConfig: BackgroundConfig;
-    bgFile?: File;
-    userInput: string; // Store user input for TLL context
-  } | null>(null);
+  const [expectingCarousel, setExpectingCarousel] = useState(false);
 
   // Video processing results (Clip Finder)
   const [videoUpload, setVideoUpload] = useState<VideoUpload | null>(null);
@@ -136,78 +128,49 @@ export default function AppDashboard() {
     return () => clearInterval(tipTimer);
   }, [generating]);
 
-  // Generate TLL-structured carousel after content generation completes
+  // Handle carousel loading when Instagram platform is selected
+  // Backend generates carousel in background and notifies via SSE
   useEffect(() => {
-    const generateCarousel = async () => {
-      if (!results || !pendingCarouselRef.current) return;
+    if (expectingCarousel && !carouselSlides && !carouselReady && !carouselFailed) {
+      setCarouselLoading(true);
+    }
+  }, [expectingCarousel, carouselSlides, carouselReady, carouselFailed]);
 
-      // Find Instagram content
-      const instagramContent = results.find((r) => r.platform === 'instagram');
-      if (!instagramContent) return;
-
-      const { bgConfig, bgFile, userInput } = pendingCarouselRef.current;
-      pendingCarouselRef.current = null; // Clear pending
+  // Fetch carousel from backend when SSE notifies it's ready
+  useEffect(() => {
+    const fetchCarousel = async () => {
+      if (!carouselReady || !requestId) return;
 
       try {
-        setCarouselGenerating(true);
-        setCarouselError(null);
-        setCarouselQuality(null);
-
-        const contentId = `carousel-${Date.now()}`;
-
-        let response;
-        if (bgConfig.type === 'image' && bgFile) {
-          // For upload, we need to parse slides first then use upload endpoint
-          // TODO: Add TLL upload endpoint on backend
-          const slideTexts = instagramContent.content
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0 && !line.startsWith('#'))
-            .slice(0, 10);
-          const slides = slideTexts.map((text) => ({ text }));
-
-          response = await api.images.generateCarouselWithUpload(
-            contentId,
-            slides,
-            bgFile
-          );
-
-          if (response.success && response.data?.carousel?.slides) {
-            setCarouselSlides(response.data.carousel.slides);
-          } else {
-            throw new Error(response.error || 'Failed to generate carousel');
-          }
-        } else {
-          // Use optimized carousel endpoint for proper slide structure
-          response = await api.images.generateOptimizedCarousel(
-            contentId,
-            instagramContent.content,
-            userInput,
-            { background: bgConfig }
-          );
-
-          if (response.success && response.data?.carousel?.slides) {
-            setCarouselSlides(response.data.carousel.slides);
-            // Store quality score (internal validation)
-            if (response.data.quality) {
-              setCarouselQuality({
-                isOptimal: response.data.quality.score >= 70,
-                score: response.data.quality.score,
-              });
-            }
-          } else {
-            throw new Error(response.error || 'Failed to generate carousel');
-          }
+        const response = await api.generation.getRequest(requestId);
+        if (response.success && response.data?.carousel?.slides) {
+          // Map GeneratedCarouselSlide to CarouselSlide
+          const slides: CarouselSlide[] = response.data.carousel.slides.map((s) => ({
+            slideNumber: s.slideNumber,
+            publicUrl: s.publicUrl,
+            storagePath: s.publicUrl, // Use publicUrl as storagePath fallback
+            template: s.template,
+          }));
+          setCarouselSlides(slides);
         }
       } catch (err) {
-        setCarouselError(err instanceof Error ? err.message : 'Carousel generation failed');
+        console.error('Failed to fetch carousel:', err);
+        setCarouselError('Failed to load carousel images');
       } finally {
-        setCarouselGenerating(false);
+        setCarouselLoading(false);
       }
     };
 
-    generateCarousel();
-  }, [results]);
+    fetchCarousel();
+  }, [carouselReady, requestId]);
+
+  // Handle carousel generation failure
+  useEffect(() => {
+    if (carouselFailed) {
+      setCarouselLoading(false);
+      setCarouselError('Carousel generation failed. Try regenerating.');
+    }
+  }, [carouselFailed]);
 
   const handleGenerate = async (
     input: string,
@@ -216,24 +179,21 @@ export default function AppDashboard() {
     carouselBackground?: BackgroundConfig,
     carouselBackgroundFile?: File
   ) => {
-    // Store carousel config and user input for TLL-structured generation
-    if (carouselBackground) {
-      pendingCarouselRef.current = {
-        bgConfig: carouselBackground,
-        bgFile: carouselBackgroundFile,
-        userInput: input, // Store for TLL context
-      };
-    }
+    // Track if we should expect a carousel from the backend
+    const hasInstagram = platforms.includes('instagram');
+    setExpectingCarousel(hasInstagram);
     setCarouselSlides(null);
     setCarouselError(null);
-    setCarouselQuality(null);
+    setCarouselLoading(hasInstagram);
     await generate(input, inputType, platforms);
   };
 
   const handleRepurpose = async (contentId: string, platforms: Platform[], carouselBackground?: BackgroundConfig) => {
+    const hasInstagram = platforms.includes('instagram');
+    setExpectingCarousel(hasInstagram);
     setCarouselSlides(null);
     setCarouselError(null);
-    setCarouselQuality(null);
+    setCarouselLoading(hasInstagram);
     // Pass carouselBackground in the new options format
     await repurpose(contentId, platforms, carouselBackground ? { carouselBackground } : undefined);
   };
@@ -274,9 +234,9 @@ export default function AppDashboard() {
   const handleReset = () => {
     reset();
     setCarouselSlides(null);
-    setCarouselQuality(null);
     setCarouselError(null);
-    pendingCarouselRef.current = null;
+    setCarouselLoading(false);
+    setExpectingCarousel(false);
     // Reset video processing state
     setVideoUpload(null);
     setVideoClips([]);
@@ -556,19 +516,20 @@ export default function AppDashboard() {
             />
           )}
 
-          {/* Carousel Section */}
-          {(carouselGenerating || carouselError || (carouselSlides && carouselSlides.length > 0)) && (
+          {/* Carousel Section - shows when expecting carousel from backend */}
+          {(carouselLoading || carouselError || (carouselSlides && carouselSlides.length > 0)) && (
             <div className="mt-12">
               <h3 className="text-display text-2xl mb-6 text-center">Instagram Carousel</h3>
 
-              {carouselGenerating && (
+              {carouselLoading && !carouselSlides && (
                 <div className="text-center p-8 bg-bg-secondary rounded-lg border border-border">
                   <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                   <p className="text-body text-text-secondary">Creating your carousel slides...</p>
+                  <p className="text-small text-text-tertiary mt-2">This runs in the background - your content is ready above!</p>
                 </div>
               )}
 
-              {carouselError && (
+              {carouselError && !carouselSlides && (
                 <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
                   {carouselError}
                 </div>
@@ -577,7 +538,7 @@ export default function AppDashboard() {
               {carouselSlides && carouselSlides.length > 0 && (
                 <CarouselPreview
                   slides={carouselSlides}
-                  contentId={`carousel-${Date.now()}`}
+                  contentId={requestId || `carousel-${Date.now()}`}
                 />
               )}
             </div>
