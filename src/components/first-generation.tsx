@@ -279,6 +279,7 @@ const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; descr
   { value: 'default', label: 'Default', description: 'Modern navy with cyan accent' },
   { value: 'minimal', label: 'Minimal', description: 'Clean white background' },
   { value: 'bold', label: 'Bold', description: 'Dark with orange accent' },
+  { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
   { value: 'upload', label: 'Upload Custom', description: 'Use your own background' },
 ];
 

@@ -33,6 +33,7 @@ const DESIGN_PRESET_PREVIEWS: Record<DesignPreset, { gradient: string; label: st
   'default': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Default', description: 'Modern navy with cyan accent' },
   'minimal': { gradient: 'from-white to-gray-100', label: 'Minimal', description: 'Clean white background' },
   'bold': { gradient: 'from-[#0a0a0a] to-[#1a1a1a]', label: 'Bold', description: 'Dark with orange accent' },
+  'tweet-style': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Tweet Style', description: 'Twitter/X post card look' },
 };
 
 export function BackgroundSelector({

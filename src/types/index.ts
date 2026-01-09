@@ -200,7 +200,7 @@ export type TemplateType =
   | 'list-steps'
   | 'tweet-style';
 
-export type DesignPreset = 'default' | 'minimal' | 'bold';
+export type DesignPreset = 'default' | 'minimal' | 'bold' | 'tweet-style';
 
 export interface GeneratedCarouselSlide {
   slideNumber: number;
