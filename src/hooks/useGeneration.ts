@@ -81,6 +81,7 @@ export function useGeneration(): UseGenerationReturn {
         setGenerating(true);
         setError(null);
         setResults(null);
+        setRequestId(null);
 
         // Build API options - prefer new designPreset, fall back to legacy carouselBackground
         const apiOptions: Parameters<typeof api.creators.repurpose>[1] = {
@@ -103,24 +104,32 @@ export function useGeneration(): UseGenerationReturn {
 
         const response = await api.creators.repurpose(contentId, apiOptions);
 
-        if (response.success && response.result.generatedContent) {
-          // Transform repurpose result to match GeneratedContent format
-          const generatedResults: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
-            id: `${contentId}-${r.platform}-${idx}`,
-            requestId: contentId,
-            platform: r.platform as Platform,
-            content: r.content,
-            voiceScore: 0, // Will be filled by backend in future
-            qualityScore: 0,
-            createdAt: new Date(),
-          }));
-          setResults(generatedResults);
+        if (response.success && response.result.requestId) {
+          // Set requestId immediately for SSE progress tracking
+          setRequestId(response.result.requestId);
+
+          // If we have generatedContent immediately (sync response), use it
+          if (response.result.generatedContent) {
+            const reqId = response.result.requestId;
+            const generatedResults: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
+              id: `${reqId}-${r.platform}-${idx}`,
+              requestId: reqId,
+              platform: r.platform as Platform,
+              content: r.content,
+              voiceScore: 0,
+              qualityScore: 0,
+              createdAt: new Date(),
+            }));
+            setResults(generatedResults);
+            setGenerating(false);
+          }
+          // Otherwise, async flow - SSE will track progress, results fetched on complete
+          // Keep generating=true, results will be fetched when SSE completes
         } else {
-          throw new Error(response.result.error || 'Repurposing failed');
+          throw new Error(response.result?.error || 'Repurposing failed');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Repurposing failed');
-      } finally {
         setGenerating(false);
       }
     },

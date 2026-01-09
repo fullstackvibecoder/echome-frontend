@@ -110,6 +110,14 @@ export default function AppDashboard() {
     }
   }, [progressComplete]);
 
+  // Redirect to content kit page when SSE completes (for async flows like repurpose)
+  useEffect(() => {
+    if (progressComplete && requestId && !results) {
+      // Async flow completed - redirect to content kit page
+      router.push(`/app/content-kit/${requestId}`);
+    }
+  }, [progressComplete, requestId, results, router]);
+
   // Request notification permission on first generation
   useEffect(() => {
     if (generating) {
