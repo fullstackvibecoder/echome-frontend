@@ -197,7 +197,8 @@ export type TemplateType =
   | 'insight-card'
   | 'story-lesson'
   | 'action-cta'
-  | 'list-steps';
+  | 'list-steps'
+  | 'tweet-style';
 
 export type DesignPreset = 'default' | 'minimal' | 'bold';
 
