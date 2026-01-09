@@ -1592,18 +1592,24 @@ export interface RepurposeSuggestion {
 }
 
 export interface RepurposeResult {
-  success: boolean;
+  // Common fields
+  requestId: string; // ID of the generation_request record (for Content Kit)
   contentHistoryId: string;
-  requestId?: string; // ID of the generation_request record (for Content Kit)
-  generatedContent: {
+  error?: string;
+
+  // Async response fields
+  status?: 'processing' | 'completed' | 'failed';
+
+  // Sync response fields (legacy - when content is returned immediately)
+  success?: boolean;
+  generatedContent?: {
     results: Array<{
       platform: string;
       content: string;
     }>;
   } | null;
-  extractedIdeas: string[];
-  originalTitle: string;
-  error?: string;
+  extractedIdeas?: string[];
+  originalTitle?: string;
 }
 
 // Types for clip finder

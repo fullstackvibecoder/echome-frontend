@@ -129,7 +129,23 @@ export function useGeneration(): UseGenerationReturn {
           throw new Error(response.result?.error || 'Repurposing failed');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Repurposing failed');
+        // Extract error message from axios error response if available
+        let errorMessage = 'Repurposing failed';
+        if (err && typeof err === 'object') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const axiosError = err as any;
+          if (axiosError.response?.data?.error?.message) {
+            errorMessage = axiosError.response.data.error.message;
+          } else if (axiosError.response?.data?.error) {
+            errorMessage = typeof axiosError.response.data.error === 'string'
+              ? axiosError.response.data.error
+              : 'Repurposing failed';
+          } else if (err instanceof Error) {
+            errorMessage = err.message;
+          }
+        }
+        console.error('Repurpose error:', err);
+        setError(errorMessage);
         setGenerating(false);
       }
     },
