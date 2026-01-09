@@ -341,7 +341,8 @@ export function useContentLibrary(): UseContentLibraryReturn {
           newItems.push({
             id: upload.id,
             type: 'kit',
-            title: upload.originalFilename || 'Video Upload',
+            // Use content kit title (smart title from transcript) if available, otherwise filename
+            title: upload.contentKitTitle || upload.originalFilename || 'Video Upload',
             status: upload.status === 'completed' ? 'completed' : upload.status === 'failed' ? 'failed' : 'processing',
             platforms: [],
             thumbnailUrl: upload.thumbnailUrl,

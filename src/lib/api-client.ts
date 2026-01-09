@@ -1623,6 +1623,7 @@ export interface VideoUpload {
   processedAt?: string;
   deletedAt?: string;
   thumbnailUrl?: string;
+  contentKitTitle?: string; // Smart title from linked content kit
 }
 
 export interface VideoClip {
