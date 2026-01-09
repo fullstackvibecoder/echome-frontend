@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
-import { GeneratedContent, Platform, InputType, BackgroundConfig } from '@/types';
+import { GeneratedContent, Platform, InputType, BackgroundConfig, DesignPreset } from '@/types';
 
 interface UseGenerationReturn {
   generating: boolean;
@@ -19,7 +19,7 @@ interface UseGenerationReturn {
   repurpose: (
     contentId: string,
     platforms: Platform[],
-    carouselBackground?: BackgroundConfig
+    options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
   ) => Promise<void>;
   reset: () => void;
 }
@@ -72,23 +72,36 @@ export function useGeneration(): UseGenerationReturn {
   );
 
   const repurpose = useCallback(
-    async (contentId: string, platforms: Platform[], carouselBackground?: BackgroundConfig) => {
+    async (
+      contentId: string,
+      platforms: Platform[],
+      options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
+    ) => {
       try {
         setGenerating(true);
         setError(null);
         setResults(null);
 
-        // Build carousel background for API
-        const carouselBg = carouselBackground ? {
-          type: carouselBackground.type,
-          presetId: carouselBackground.presetId,
-          imageUrl: carouselBackground.imageUrl,
-        } : { type: 'preset' as const, presetId: 'tweet-style' };
-
-        const response = await api.creators.repurpose(contentId, {
+        // Build API options - prefer new designPreset, fall back to legacy carouselBackground
+        const apiOptions: Parameters<typeof api.creators.repurpose>[1] = {
           platforms: platforms as string[],
-          carouselBackground: carouselBg,
-        });
+        };
+
+        if (options?.designPreset) {
+          apiOptions.designPreset = options.designPreset;
+        } else if (options?.carouselBackground) {
+          // Legacy support
+          apiOptions.carouselBackground = {
+            type: options.carouselBackground.type,
+            presetId: options.carouselBackground.presetId,
+            imageUrl: options.carouselBackground.imageUrl,
+          };
+        } else {
+          // Default to 'default' design preset
+          apiOptions.designPreset = 'default';
+        }
+
+        const response = await api.creators.repurpose(contentId, apiOptions);
 
         if (response.success && response.result.generatedContent) {
           // Transform repurpose result to match GeneratedContent format

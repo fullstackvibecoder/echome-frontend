@@ -234,7 +234,8 @@ export default function AppDashboard() {
     setCarouselSlides(null);
     setCarouselError(null);
     setCarouselQuality(null);
-    await repurpose(contentId, platforms, carouselBackground);
+    // Pass carouselBackground in the new options format
+    await repurpose(contentId, platforms, carouselBackground ? { carouselBackground } : undefined);
   };
 
   // Handle video processing results from Clip Finder

@@ -191,11 +191,23 @@ export interface VideoClipDetail {
   createdAt: string;
 }
 
+export type TemplateType =
+  | 'bold-statement'
+  | 'data-point'
+  | 'insight-card'
+  | 'story-lesson'
+  | 'action-cta'
+  | 'list-steps';
+
+export type DesignPreset = 'default' | 'minimal' | 'bold';
+
 export interface GeneratedCarouselSlide {
   slideNumber: number;
   text: string;
   publicUrl: string;
-  slideType: 'hook' | 'content' | 'list' | 'quote' | 'cta';
+  template: TemplateType;
+  /** @deprecated Use template instead */
+  slideType?: 'hook' | 'content' | 'list' | 'quote' | 'cta';
 }
 
 export interface GeneratedCarouselDetail {
@@ -204,7 +216,9 @@ export interface GeneratedCarouselDetail {
   generationRequestId?: string;
   contentId: string;
   slideCount: number;
-  backgroundType: string;
+  designPreset: DesignPreset;
+  /** @deprecated Use designPreset instead */
+  backgroundType?: string;
   slides: GeneratedCarouselSlide[];
   qualityScore?: number;
   createdAt: string;
@@ -532,6 +546,8 @@ export interface CarouselSlide {
   slideNumber: number;
   publicUrl: string;
   storagePath: string;
+  template?: TemplateType;
+  /** @deprecated Use template instead */
   slideType?: 'hook' | 'content' | 'list' | 'quote' | 'cta';
 }
 
@@ -554,16 +570,19 @@ export interface CarouselRequest {
 }
 
 // ============================================
-// BACKGROUND TYPES
+// BACKGROUND / DESIGN PRESET TYPES
 // ============================================
 
+/** @deprecated Use DesignPreset instead */
 export type BackgroundType = 'preset' | 'image' | 'ai';
 
+/** @deprecated Use DesignPreset instead */
 export type PresetBackground =
-  | 'tweet-style'      // Twitter/X post box style
-  | 'simple-black'     // Pure black background
-  | 'simple-white';    // Pure white background
+  | 'tweet-style'      // Maps to 'default'
+  | 'simple-black'     // Maps to 'default'
+  | 'simple-white';    // Maps to 'minimal'
 
+/** @deprecated Use designPreset in CarouselGenerationRequest instead */
 export interface BackgroundConfig {
   type: BackgroundType;
   presetId?: PresetBackground;
@@ -577,11 +596,25 @@ export interface BackgroundPreset {
   colors: string[];
 }
 
+export interface DesignPresetConfig {
+  id: DesignPreset;
+  name: string;
+  description: string;
+  colors: { bg: string; accent: string };
+}
+
 export interface CarouselGenerationRequest {
   contentId: string;
-  slides: Array<{ text: string; type?: string }>;
-  background?: BackgroundConfig;
+  slides: Array<{ text: string }>;
+  designPreset?: DesignPreset;
+  brandColors?: {
+    primary?: string;
+    accent?: string;
+    warmAccent?: string;
+  };
   contentSummary?: string;
+  /** @deprecated Use designPreset instead */
+  background?: BackgroundConfig;
 }
 
 // ============================================

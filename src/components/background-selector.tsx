@@ -1,14 +1,14 @@
 /**
  * Background Selector Component
- * Allows users to select carousel background type:
- * - Preset styles (tweet-style, simple-black, simple-white)
- * - Upload custom image
- * - AI-generated background
+ * Allows users to select carousel design preset:
+ * - Design presets (default, minimal, bold)
+ * - Upload custom image (deprecated but supported)
+ * - AI-generated background (deprecated but supported)
  */
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Palette,
   Image,
@@ -18,21 +18,21 @@ import {
   Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
-import type { BackgroundConfig, BackgroundPreset, PresetBackground } from '@/types';
+import type { DesignPreset, BackgroundConfig } from '@/types';
 
 export interface BackgroundSelectorProps {
-  value: BackgroundConfig;
-  onChange: (config: BackgroundConfig) => void;
+  value: { designPreset?: DesignPreset; type?: string; imageUrl?: string };
+  onChange: (config: { designPreset: DesignPreset } | BackgroundConfig) => void;
   contentSummary?: string;
   className?: string;
 }
 
 type TabType = 'presets' | 'upload' | 'ai';
 
-const PRESET_PREVIEWS: Record<PresetBackground, { gradient: string; label: string; description: string }> = {
-  'tweet-style': { gradient: 'from-black to-zinc-900', label: 'Tweet Style', description: 'Twitter/X post card' },
-  'simple-black': { gradient: 'from-black to-black', label: 'Simple Black', description: 'Clean black' },
-  'simple-white': { gradient: 'from-white to-gray-50', label: 'Simple White', description: 'Clean white' },
+const DESIGN_PRESET_PREVIEWS: Record<DesignPreset, { gradient: string; label: string; description: string }> = {
+  'default': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Default', description: 'Modern navy with cyan accent' },
+  'minimal': { gradient: 'from-white to-gray-100', label: 'Minimal', description: 'Clean white background' },
+  'bold': { gradient: 'from-[#0a0a0a] to-[#1a1a1a]', label: 'Bold', description: 'Dark with orange accent' },
 };
 
 export function BackgroundSelector({
@@ -42,34 +42,26 @@ export function BackgroundSelector({
   className = '',
 }: BackgroundSelectorProps) {
   const [activeTab, setActiveTab] = useState<TabType>('presets');
-  const [presets, setPresets] = useState<BackgroundPreset[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [generatingAI, setGeneratingAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load presets on mount
-  useEffect(() => {
-    loadPresets();
-  }, []);
-
-  const loadPresets = async () => {
-    try {
-      const response = await api.images.getBackgroundPresets();
-      if (response.success && response.data?.presets) {
-        setPresets(response.data.presets);
-      }
-    } catch (error) {
-      console.error('Failed to load presets:', error);
+  // Get current design preset (map legacy values)
+  const getCurrentPreset = (): DesignPreset => {
+    if (value.designPreset) return value.designPreset;
+    // Map legacy presetId to designPreset
+    if (value.type === 'preset') {
+      const legacyPreset = (value as BackgroundConfig).presetId;
+      if (legacyPreset === 'simple-white') return 'minimal';
+      return 'default'; // tweet-style, simple-black -> default
     }
+    return 'default';
   };
 
-  const handlePresetSelect = (presetId: PresetBackground) => {
-    onChange({
-      type: 'preset',
-      presetId,
-    });
+  const handlePresetSelect = (preset: DesignPreset) => {
+    onChange({ designPreset: preset });
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,12 +132,12 @@ export function BackgroundSelector({
           <div className="space-y-3">
             {/* Preset grid */}
             <div className="grid grid-cols-3 gap-2">
-              {Object.entries(PRESET_PREVIEWS).map(([id, preview]) => (
+              {Object.entries(DESIGN_PRESET_PREVIEWS).map(([id, preview]) => (
                 <button
                   key={id}
-                  onClick={() => handlePresetSelect(id as PresetBackground)}
+                  onClick={() => handlePresetSelect(id as DesignPreset)}
                   className={`p-2 rounded-lg border-2 transition-colors ${
-                    value.type === 'preset' && value.presetId === id
+                    getCurrentPreset() === id
                       ? 'border-purple-500'
                       : 'border-zinc-700 hover:border-zinc-600'
                   }`}
@@ -154,6 +146,7 @@ export function BackgroundSelector({
                     className={`w-full h-16 rounded bg-gradient-to-br ${preview.gradient} mb-2`}
                   />
                   <div className="text-xs text-zinc-300">{preview.label}</div>
+                  <div className="text-[10px] text-zinc-500">{preview.description}</div>
                 </button>
               ))}
             </div>
@@ -292,9 +285,9 @@ export function BackgroundSelector({
       <div className="text-xs text-zinc-500 pt-2 border-t border-zinc-800">
         Selected:{' '}
         <span className="text-zinc-300">
-          {value.type === 'preset' && PRESET_PREVIEWS[value.presetId!]?.label}
-          {value.type === 'image' && 'Custom Upload'}
-          {value.type === 'ai' && 'AI Generated'}
+          {value.type === 'image' ? 'Custom Upload' :
+           value.type === 'ai' ? 'AI Generated' :
+           DESIGN_PRESET_PREVIEWS[getCurrentPreset()]?.label}
         </span>
       </div>
     </div>

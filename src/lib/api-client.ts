@@ -239,8 +239,13 @@ export const api = {
           generationRequestId: rawData.carousel.generation_request_id,
           contentId: rawData.carousel.content_id,
           slideCount: rawData.carousel.slide_count,
-          backgroundType: rawData.carousel.background_type,
-          slides: rawData.carousel.slides || [],
+          // New API uses designPreset, fallback to background_type for backwards compat
+          designPreset: rawData.carousel.design_preset || rawData.carousel.background_type || 'default',
+          backgroundType: rawData.carousel.background_type, // Keep for backwards compat
+          slides: (rawData.carousel.slides || []).map((s: any) => ({
+            ...s,
+            template: s.template || s.slideType, // Map old slideType to new template
+          })),
           qualityScore: rawData.carousel.quality_score,
           createdAt: rawData.carousel.created_at,
         } : undefined,
@@ -994,6 +999,9 @@ export const api = {
       additionalInstructions?: string;
       focusOnIdeas?: string[];
       differentiationAngle?: string;
+      /** New: use designPreset for carousel styling */
+      designPreset?: 'default' | 'minimal' | 'bold';
+      /** @deprecated Use designPreset instead */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
         presetId?: string;
@@ -1259,6 +1267,9 @@ export const api = {
       captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
       generateContent?: boolean;
       knowledgeBaseId?: string;
+      /** New: use designPreset for carousel styling */
+      designPreset?: 'default' | 'minimal' | 'bold';
+      /** @deprecated Use designPreset instead */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
         presetId?: string;

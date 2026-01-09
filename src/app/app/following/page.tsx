@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
-import { Platform, BackgroundConfig, PresetBackground } from '@/types';
+import { Platform, BackgroundConfig, DesignPreset } from '@/types';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -17,14 +17,13 @@ const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
   { id: 'video-script', label: 'Video Script', icon: '🎬' },
 ];
 
-// Carousel background options - Simplified
-type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
-const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string; description: string }[] = [
-  { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
-  { value: 'simple-black', label: 'Simple Black', description: 'Clean black background' },
-  { value: 'simple-white', label: 'Simple White', description: 'Clean white background' },
-  { value: 'ai', label: 'AI Generated', description: 'Contextual image from content' },
-  { value: 'upload', label: 'Upload Custom', description: 'Use your own image' },
+// Carousel design preset options
+type CarouselDesignOption = DesignPreset | 'upload';
+const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string }[] = [
+  { value: 'default', label: 'Default', description: 'Modern navy with cyan accent' },
+  { value: 'minimal', label: 'Minimal', description: 'Clean white background' },
+  { value: 'bold', label: 'Bold', description: 'Dark with orange accent' },
+  { value: 'upload', label: 'Upload Custom', description: 'Use your own background' },
 ];
 
 // Extended content with creator info
@@ -58,7 +57,7 @@ export default function FollowingPage() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
-  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('tweet-style');
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('default');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
   const [repurposing, setRepurposing] = useState(false);
@@ -234,7 +233,7 @@ export default function FollowingPage() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
-    setCarouselBgOption('tweet-style');
+    setCarouselDesignOption('default');
     setCarouselBgFile(null);
   };
 
@@ -273,8 +272,8 @@ export default function FollowingPage() {
     );
   };
 
-  const handleCarouselBgChange = (value: CarouselBackgroundOption) => {
-    setCarouselBgOption(value);
+  const handleDesignOptionChange = (value: CarouselDesignOption) => {
+    setCarouselDesignOption(value);
     if (value !== 'upload') {
       setCarouselBgFile(null);
       if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
@@ -284,7 +283,7 @@ export default function FollowingPage() {
   const handleRepurpose = async () => {
     if (!selectedVideoForRepurpose || selectedPlatforms.length === 0) return;
 
-    if (selectedPlatforms.includes('instagram') && carouselBgOption === 'upload' && !carouselBgFile) {
+    if (selectedPlatforms.includes('instagram') && carouselDesignOption === 'upload' && !carouselBgFile) {
       setRepurposeError('Please select a background image for the carousel');
       return;
     }
@@ -309,12 +308,11 @@ export default function FollowingPage() {
         }
       }
 
-      // Build carousel background config based on selection
-      let carouselBackground: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string } | undefined;
+      // Build design preset config
+      let designPreset: DesignPreset = carouselDesignOption === 'upload' ? 'default' : carouselDesignOption;
+      let carouselBackground: { type: 'image'; imageUrl: string } | undefined;
 
-      if (carouselBgOption === 'ai') {
-        carouselBackground = { type: 'ai' };
-      } else if (carouselBgOption === 'upload' && carouselBgFile) {
+      if (carouselDesignOption === 'upload' && carouselBgFile) {
         // Upload the background image first
         try {
           const uploadResponse = await api.images.uploadBackground(carouselBgFile);
@@ -328,12 +326,11 @@ export default function FollowingPage() {
           setRepurposing(false);
           return;
         }
-      } else if (carouselBgOption !== 'upload') {
-        carouselBackground = { type: 'preset', presetId: carouselBgOption };
       }
 
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
+        designPreset,
         carouselBackground,
       });
 
@@ -748,26 +745,28 @@ export default function FollowingPage() {
                   </div>
                 </div>
 
-                {/* Carousel Background */}
+                {/* Carousel Design Preset */}
                 {selectedPlatforms.includes('instagram') && (
                   <div className="p-4 bg-muted rounded-lg">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <label className="font-medium text-foreground">Carousel Background</label>
-                        <p className="text-small text-muted-foreground">Style for Instagram carousel</p>
+                        <label className="font-medium text-foreground">Carousel Style</label>
+                        <p className="text-small text-muted-foreground">Design preset for Instagram carousel</p>
                       </div>
                       <select
-                        value={carouselBgOption}
-                        onChange={(e) => handleCarouselBgChange(e.target.value as CarouselBackgroundOption)}
+                        value={carouselDesignOption}
+                        onChange={(e) => handleDesignOptionChange(e.target.value as CarouselDesignOption)}
                         className="px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                       >
-                        {BACKGROUND_OPTIONS.map((opt) => (
+                        {DESIGN_PRESET_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
-                    {carouselBgOption === 'ai' && (
-                      <p className="text-small text-accent mt-2">✨ AI will generate a background</p>
+                    {carouselDesignOption !== 'upload' && (
+                      <p className="text-small text-muted-foreground mt-2">
+                        {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
+                      </p>
                     )}
                   </div>
                 )}

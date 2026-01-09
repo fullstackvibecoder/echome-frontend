@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { InputType, Platform, BackgroundConfig, PresetBackground } from '@/types';
+import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob } from '@/lib/api-client';
 
 // ============================================
@@ -272,15 +272,14 @@ const VIDEO_PROCESSING_STAGES: Record<string, {
   },
 };
 
-// Carousel background options for the dropdown
-type CarouselBackgroundOption = PresetBackground | 'ai' | 'upload';
+// Carousel design preset options for the dropdown
+type CarouselDesignOption = DesignPreset | 'upload';
 
-const BACKGROUND_OPTIONS: { value: CarouselBackgroundOption; label: string }[] = [
-  { value: 'tweet-style', label: 'Tweet Style' },
-  { value: 'simple-black', label: 'Simple Black' },
-  { value: 'simple-white', label: 'Simple White' },
-  { value: 'ai', label: 'AI Generated' },
-  { value: 'upload', label: 'Upload Custom' },
+const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string }[] = [
+  { value: 'default', label: 'Default', description: 'Modern navy with cyan accent' },
+  { value: 'minimal', label: 'Minimal', description: 'Clean white background' },
+  { value: 'bold', label: 'Bold', description: 'Dark with orange accent' },
+  { value: 'upload', label: 'Upload Custom', description: 'Use your own background' },
 ];
 
 // Caption style options for video clips
@@ -342,8 +341,8 @@ export function FirstGeneration({
   const [uploadProgress, setUploadProgress] = useState(0);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  // Carousel background state
-  const [carouselBgOption, setCarouselBgOption] = useState<CarouselBackgroundOption>('tweet-style');
+  // Carousel design preset state
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('default');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
 
@@ -470,12 +469,11 @@ export function FirstGeneration({
       setVideoProcessingStatus('Starting clip extraction...');
       setVideoProcessingProgress(35);
 
-      // Build carousel background config
-      let carouselBackground: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string } | undefined;
+      // Build carousel design config
+      let designPreset: DesignPreset = getDesignPreset();
+      let carouselBackground: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string } | undefined;
 
-      if (carouselBgOption === 'ai') {
-        carouselBackground = { type: 'ai' };
-      } else if (carouselBgOption === 'upload' && carouselBgFile) {
+      if (carouselDesignOption === 'upload' && carouselBgFile) {
         // Upload the background image first
         try {
           const bgUploadResponse = await api.images.uploadBackground(carouselBgFile);
@@ -485,15 +483,13 @@ export function FirstGeneration({
         } catch (bgErr) {
           console.warn('Failed to upload carousel background, using default:', bgErr);
         }
-      } else if (carouselBgOption !== 'upload') {
-        // Preset (tweet-style, simple-black, simple-white)
-        carouselBackground = { type: 'preset', presetId: carouselBgOption };
       }
 
       // Step 2: Start processing
       const processResponse = await api.clips.process(upload.id, {
         generateContent: true, // Generate content kit as part of processing
-        carouselBackground,
+        designPreset, // New design preset system
+        carouselBackground, // Legacy/custom image support
         captionStyle, // Pass selected caption style
       });
 
@@ -596,8 +592,8 @@ export function FirstGeneration({
     }
   };
 
-  const handleCarouselBgChange = (value: CarouselBackgroundOption) => {
-    setCarouselBgOption(value);
+  const handleDesignOptionChange = (value: CarouselDesignOption) => {
+    setCarouselDesignOption(value);
     // Clear file if not upload option
     if (value !== 'upload') {
       setCarouselBgFile(null);
@@ -607,22 +603,26 @@ export function FirstGeneration({
 
   // Build the BackgroundConfig based on selection
   const buildBackgroundConfig = (): BackgroundConfig => {
-    if (carouselBgOption === 'ai') {
-      return { type: 'ai' };
-    }
-    if (carouselBgOption === 'upload') {
+    if (carouselDesignOption === 'upload') {
       return { type: 'image' };
     }
-    // Preset
-    return { type: 'preset', presetId: carouselBgOption as PresetBackground };
+    // Use new designPreset system - map to legacy format for now
+    // The backend will handle both formats
+    return { type: 'preset', presetId: carouselDesignOption === 'minimal' ? 'simple-white' : 'tweet-style' };
+  };
+
+  // Get current design preset for new API
+  const getDesignPreset = (): DesignPreset => {
+    if (carouselDesignOption === 'upload') return 'default';
+    return carouselDesignOption;
   };
 
   const handleGenerate = async () => {
     const bgConfig = buildBackgroundConfig();
-    const bgFile = carouselBgOption === 'upload' ? carouselBgFile : undefined;
+    const bgFile = carouselDesignOption === 'upload' ? carouselBgFile : undefined;
 
     // Validate upload option has a file
-    if (carouselBgOption === 'upload' && !carouselBgFile) {
+    if (carouselDesignOption === 'upload' && !carouselBgFile) {
       setUploadError('Please select a background image');
       return;
     }
@@ -1070,24 +1070,24 @@ export function FirstGeneration({
         </div>
       )}
 
-      {/* Carousel Background Option */}
+      {/* Carousel Design Preset Option */}
       <div className="mt-6 p-4 bg-bg-secondary rounded-lg border border-border">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <label className="text-body font-medium text-text-primary block mb-1">
-              Carousel Background
+              Carousel Style
             </label>
             <p className="text-small text-text-secondary">
-              Choose a style for your Instagram carousel
+              Choose a design preset for your Instagram carousel
             </p>
           </div>
           <select
-            value={carouselBgOption}
-            onChange={(e) => handleCarouselBgChange(e.target.value as CarouselBackgroundOption)}
+            value={carouselDesignOption}
+            onChange={(e) => handleDesignOptionChange(e.target.value as CarouselDesignOption)}
             disabled={generating || uploading}
             className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
           >
-            {BACKGROUND_OPTIONS.map((opt) => (
+            {DESIGN_PRESET_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -1095,8 +1095,15 @@ export function FirstGeneration({
           </select>
         </div>
 
+        {/* Show description for selected preset */}
+        {carouselDesignOption !== 'upload' && (
+          <p className="mt-2 text-small text-text-secondary">
+            {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
+          </p>
+        )}
+
         {/* Conditional Upload Field */}
-        {carouselBgOption === 'upload' && (
+        {carouselDesignOption === 'upload' && (
           <div className="mt-4 pt-4 border-t border-border">
             <input
               type="file"
@@ -1137,13 +1144,6 @@ export function FirstGeneration({
               </div>
             )}
           </div>
-        )}
-
-        {/* AI hint for AI option */}
-        {carouselBgOption === 'ai' && (
-          <p className="mt-3 text-small text-accent">
-            ✨ AI will generate a background based on your content
-          </p>
         )}
       </div>
 

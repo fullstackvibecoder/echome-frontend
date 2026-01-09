@@ -28,7 +28,7 @@ export default function ContentKitDetailPage() {
   const [resizing, setResizing] = useState(false);
   const [resizedCarousel, setResizedCarousel] = useState<{
     aspectRatio: '1:1' | '9:16';
-    slides: Array<{ slideNumber: number; publicUrl: string; text: string; slideType: string }>;
+    slides: Array<{ slideNumber: number; publicUrl: string; text: string; template: string }>;
   } | null>(null);
 
   const handleCopy = async (content: string, contentId: string) => {
@@ -43,9 +43,16 @@ export default function ContentKitDetailPage() {
     try {
       const response = await api.contentKits.resizeCarousel(id, targetAspectRatio);
       if (response.success && response.data?.carousel) {
+        // Map API response to use 'template' (supports both old slideType and new template)
+        const mappedSlides = response.data.carousel.slides.map((slide: any) => ({
+          slideNumber: slide.slideNumber,
+          publicUrl: slide.publicUrl,
+          text: slide.text,
+          template: slide.template || slide.slideType || 'content',
+        }));
         setResizedCarousel({
           aspectRatio: response.data.carousel.aspectRatio,
-          slides: response.data.carousel.slides,
+          slides: mappedSlides,
         });
       }
     } catch (err) {
@@ -463,9 +470,9 @@ export default function ContentKitDetailPage() {
                           alt={`Slide ${slide.slideNumber}: ${slide.text?.slice(0, 30)}...`}
                           className="w-full h-full object-cover"
                         />
-                        {/* Slide type badge */}
+                        {/* Slide template badge */}
                         <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
-                          {slide.slideType}
+                          {slide.template || slide.slideType}
                         </div>
                         {/* Slide number */}
                         <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
@@ -498,8 +505,8 @@ export default function ContentKitDetailPage() {
                     <span className="font-medium text-text-primary">
                       {detail.carousel.slides.length} slides
                     </span>
-                    {detail.carousel.backgroundType && (
-                      <span> • {detail.carousel.backgroundType} background</span>
+                    {(detail.carousel.designPreset || detail.carousel.backgroundType) && (
+                      <span> • {detail.carousel.designPreset || detail.carousel.backgroundType} style</span>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -570,9 +577,9 @@ export default function ContentKitDetailPage() {
                               alt={`Square Slide ${slide.slideNumber}`}
                               className="w-full h-full object-cover"
                             />
-                            {/* Slide type badge */}
+                            {/* Slide template badge */}
                             <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
-                              {slide.slideType}
+                              {slide.template}
                             </div>
                             {/* Slide number */}
                             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
