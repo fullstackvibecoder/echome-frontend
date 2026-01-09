@@ -332,8 +332,13 @@ export function useContentLibrary(): UseContentLibraryReturn {
       }
 
       // Transform clip finder uploads
+      // Only show video uploads that DON'T have an associated content kit
+      // (Content kits are the primary view - raw videos would be duplicates)
       if (clipsResult.success && clipsResult.data?.uploads) {
         for (const upload of clipsResult.data.uploads) {
+          // Skip if this upload has a content kit - it will be shown via the kit instead
+          if (upload.contentKitId || upload.contentKitTitle) continue;
+
           // Skip if already added via generation request
           const alreadyAdded = newItems.some(i => i.videoUploadId === upload.id);
           if (alreadyAdded) continue;
@@ -343,8 +348,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
           newItems.push({
             id: upload.id,
             type: 'kit',
-            // Use content kit title (smart title from transcript) if available, otherwise filename
-            title: upload.contentKitTitle || upload.originalFilename || 'Video Upload',
+            title: upload.originalFilename || 'Video Upload',
             status: upload.status === 'completed' ? 'completed' : upload.status === 'failed' ? 'failed' : 'processing',
             platforms,
             thumbnailUrl: upload.thumbnailUrl,
