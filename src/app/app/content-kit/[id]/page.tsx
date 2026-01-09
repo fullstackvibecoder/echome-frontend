@@ -7,14 +7,50 @@
  * written content, carousels, and share options.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
+import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS } from '@/hooks/useGenerationProgress';
 import { VideoPlayer } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
+
+// Progress step component
+function ProgressStep({
+  icon,
+  text,
+  subtext,
+  active,
+  completed,
+}: {
+  icon: string;
+  text: string;
+  subtext: string;
+  active: boolean;
+  completed?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-start gap-3 p-4 rounded-lg transition-all duration-300 ${
+        active
+          ? 'bg-accent/10 border border-accent/30'
+          : completed
+          ? 'bg-success/10 border border-success/30'
+          : 'bg-bg-secondary border border-transparent opacity-50'
+      }`}
+    >
+      <span className="text-2xl">{completed ? '✓' : icon}</span>
+      <div>
+        <p className={`font-medium ${active || completed ? 'text-text-primary' : 'text-text-secondary'}`}>
+          {text}
+        </p>
+        <p className="text-sm text-text-secondary">{subtext}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function ContentKitDetailPage() {
   const params = useParams();
@@ -30,6 +66,26 @@ export default function ContentKitDetailPage() {
     aspectRatio: '1:1' | '9:16';
     slides: Array<{ slideNumber: number; publicUrl: string; text: string; template: string }>;
   } | null>(null);
+
+  // Determine if we're in processing state
+  const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
+
+  // Connect to SSE for real-time progress when processing
+  const { progress, isComplete: progressComplete, hasError: progressError } = useGenerationProgress(
+    isProcessing ? id : null
+  );
+  const progressStep = progress ? mapStepToIndex(progress.step) : 0;
+
+  // Auto-refresh when SSE signals completion
+  useEffect(() => {
+    if (progressComplete && !progressError) {
+      // Small delay to ensure backend has saved everything
+      const timer = setTimeout(() => {
+        refresh();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [progressComplete, progressError, refresh]);
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
@@ -111,7 +167,6 @@ export default function ContentKitDetailPage() {
   const hasClips = detail?.clips && detail.clips.length > 0;
   const hasWrittenContent = platformContent.length > 0;
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
-  const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
   const typeConfig = item ? CONTENT_TYPE_CONFIG[item.type] : null;
 
   return (
@@ -198,29 +253,43 @@ export default function ContentKitDetailPage() {
               </button>
             </div>
 
-            {/* Processing State */}
+            {/* Processing State with Step Progress */}
             {isProcessing && (
-              <div className="mt-6 bg-accent/5 border border-accent/20 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
-                  <div className="flex-1">
-                    <p className="font-medium text-text-primary">
-                      {item.statusMessage || 'Processing your content...'}
+              <div className="mt-6 bg-bg-tertiary rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+                  <div>
+                    <p className="font-medium text-text-primary text-lg">
+                      {progress?.message || item.statusMessage || 'Processing your content...'}
                     </p>
-                    {item.progressPercent !== undefined && (
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex-1 h-2 bg-bg-tertiary rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-accent transition-all duration-300"
-                            style={{ width: `${item.progressPercent}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-accent font-medium">
-                          {item.progressPercent}%
-                        </span>
-                      </div>
-                    )}
+                    <p className="text-sm text-text-secondary">
+                      This usually takes 30-60 seconds
+                    </p>
                   </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mb-6">
+                  <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent transition-all duration-500 ease-out"
+                      style={{ width: `${progress?.percent || 5}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Step indicators */}
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                  {GENERATION_STEPS.map((step, index) => (
+                    <ProgressStep
+                      key={step.id}
+                      icon={step.icon}
+                      text={step.label}
+                      subtext={step.description}
+                      active={index === progressStep}
+                      completed={index < progressStep}
+                    />
+                  ))}
                 </div>
               </div>
             )}
