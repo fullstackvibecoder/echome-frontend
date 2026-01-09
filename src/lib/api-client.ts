@@ -36,6 +36,7 @@ export const apiClient: AxiosInstance = axios.create({
 const GENERATION_TIMEOUT = 180000; // 3 minutes for AI generation (includes potential transcript extraction)
 const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (download + Whisper)
 const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
+const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 
 // Request interceptor - add JWT token
 apiClient.interceptors.request.use(
@@ -289,7 +290,8 @@ export const api = {
     /** Delete a generation request and all associated content */
     deleteRequest: async (id: string) => {
       const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-        `/generate/${id}`
+        `/generate/${id}`,
+        { timeout: DELETE_TIMEOUT }
       );
       return response.data;
     },
@@ -348,7 +350,9 @@ export const api = {
     },
 
     delete: async (id: string) => {
-      const response = await apiClient.delete<ApiResponse>(`/kb/${id}`);
+      const response = await apiClient.delete<ApiResponse>(`/kb/${id}`, {
+        timeout: DELETE_TIMEOUT,
+      });
       return response.data;
     },
 
@@ -490,7 +494,9 @@ export const api = {
     },
 
     deleteContent: async (contentId: string) => {
-      const response = await apiClient.delete(`/kb/content/${contentId}`);
+      const response = await apiClient.delete(`/kb/content/${contentId}`, {
+        timeout: DELETE_TIMEOUT,
+      });
       return response.data;
     },
 
@@ -863,7 +869,8 @@ export const api = {
 
     deleteCarousel: async (contentId: string) => {
       const response = await apiClient.delete<ApiResponse>(
-        `/images/carousel/${contentId}`
+        `/images/carousel/${contentId}`,
+        { timeout: DELETE_TIMEOUT }
       );
       return response.data;
     },
@@ -1362,7 +1369,9 @@ export const api = {
 
     /** Delete an upload */
     delete: async (uploadId: string) => {
-      const response = await apiClient.delete(`/clips/${uploadId}`);
+      const response = await apiClient.delete(`/clips/${uploadId}`, {
+        timeout: DELETE_TIMEOUT,
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -1470,7 +1479,9 @@ export const api = {
 
     /** Delete content kit */
     delete: async (kitId: string) => {
-      const response = await apiClient.delete(`/content-kits/${kitId}`);
+      const response = await apiClient.delete(`/content-kits/${kitId}`, {
+        timeout: DELETE_TIMEOUT,
+      });
       return response.data as {
         success: boolean;
         data: {
