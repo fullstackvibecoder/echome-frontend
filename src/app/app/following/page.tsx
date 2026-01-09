@@ -339,12 +339,9 @@ export default function FollowingPage() {
         carouselBackground,
       });
 
-      if (response.success && response.result.generatedContent && response.result.requestId) {
-        const generatedResults = response.result.generatedContent.results || [];
-        if (generatedResults.length === 0) {
-          throw new Error('No content was generated. Please try again.');
-        }
-        // Navigate directly to Content Kit - no intermediate popup needed
+      if (response.success && response.result.requestId) {
+        // Close modal and navigate to Content Kit page
+        // The content kit page will show SSE progress for async processing
         closeRepurposeModal();
         router.push(`/app/content-kit/${response.result.requestId}`);
       } else {
