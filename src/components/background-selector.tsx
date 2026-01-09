@@ -30,10 +30,14 @@ export interface BackgroundSelectorProps {
 type TabType = 'presets' | 'upload' | 'ai';
 
 const DESIGN_PRESET_PREVIEWS: Record<DesignPreset, { gradient: string; label: string; description: string }> = {
-  'default': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Default', description: 'Modern navy with cyan accent' },
-  'minimal': { gradient: 'from-white to-gray-100', label: 'Minimal', description: 'Clean white background' },
-  'bold': { gradient: 'from-[#0a0a0a] to-[#1a1a1a]', label: 'Bold', description: 'Dark with orange accent' },
-  'tweet-style': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Tweet Style', description: 'Twitter/X post card look' },
+  'auto': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Auto (Smart)', description: 'Auto-select best template per slide' },
+  'bold-statement': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Bold Statement', description: 'Minimal, punchy hooks' },
+  'data-point': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Data Point', description: 'Stats + context' },
+  'insight-card': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Insight Card', description: 'Quotable insights' },
+  'story-lesson': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Story/Lesson', description: 'Personal moments' },
+  'action-cta': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Action CTA', description: 'Calls to action' },
+  'list-steps': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'List/Steps', description: 'Numbered steps' },
+  'tweet-style': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Tweet Style', description: 'Twitter/X post card' },
 };
 
 export function BackgroundSelector({
@@ -55,10 +59,10 @@ export function BackgroundSelector({
     // Map legacy presetId to designPreset
     if (value.type === 'preset') {
       const legacyPreset = (value as BackgroundConfig).presetId;
-      if (legacyPreset === 'simple-white') return 'minimal';
-      return 'default'; // tweet-style, simple-black -> default
+      if (legacyPreset === 'tweet-style') return 'tweet-style';
+      return 'auto';
     }
-    return 'default';
+    return 'auto';
   };
 
   const handlePresetSelect = (preset: DesignPreset) => {

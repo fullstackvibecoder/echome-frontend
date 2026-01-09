@@ -200,7 +200,15 @@ export type TemplateType =
   | 'list-steps'
   | 'tweet-style';
 
-export type DesignPreset = 'default' | 'minimal' | 'bold' | 'tweet-style';
+export type DesignPreset =
+  | 'auto'           // Auto-select templates per slide
+  | 'bold-statement' // All slides use bold-statement
+  | 'data-point'     // All slides use data-point
+  | 'insight-card'   // All slides use insight-card
+  | 'story-lesson'   // All slides use story-lesson
+  | 'action-cta'     // All slides use action-cta
+  | 'list-steps'     // All slides use list-steps
+  | 'tweet-style';   // All slides use tweet-style
 
 export interface GeneratedCarouselSlide {
   slideNumber: number;

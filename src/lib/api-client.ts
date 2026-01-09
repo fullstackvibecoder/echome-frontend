@@ -1000,7 +1000,7 @@ export const api = {
       focusOnIdeas?: string[];
       differentiationAngle?: string;
       /** New: use designPreset for carousel styling */
-      designPreset?: 'default' | 'minimal' | 'bold' | 'tweet-style';
+      designPreset?: 'auto' | 'bold-statement' | 'data-point' | 'insight-card' | 'story-lesson' | 'action-cta' | 'list-steps' | 'tweet-style';
       /** @deprecated Use designPreset instead */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
@@ -1268,7 +1268,7 @@ export const api = {
       generateContent?: boolean;
       knowledgeBaseId?: string;
       /** New: use designPreset for carousel styling */
-      designPreset?: 'default' | 'minimal' | 'bold' | 'tweet-style';
+      designPreset?: 'auto' | 'bold-statement' | 'data-point' | 'insight-card' | 'story-lesson' | 'action-cta' | 'list-steps' | 'tweet-style';
       /** @deprecated Use designPreset instead */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';

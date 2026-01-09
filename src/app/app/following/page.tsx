@@ -20,9 +20,13 @@ const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
 // Carousel design preset options
 type CarouselDesignOption = DesignPreset | 'upload';
 const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string }[] = [
-  { value: 'default', label: 'Default', description: 'Modern navy with cyan accent' },
-  { value: 'minimal', label: 'Minimal', description: 'Clean white background' },
-  { value: 'bold', label: 'Bold', description: 'Dark with orange accent' },
+  { value: 'auto', label: 'Auto (Smart)', description: 'Auto-select best template per slide' },
+  { value: 'bold-statement', label: 'Bold Statement', description: 'Minimal, punchy hooks - pattern interrupt' },
+  { value: 'data-point', label: 'Data Point', description: 'Stats + context with visual hierarchy' },
+  { value: 'insight-card', label: 'Insight Card', description: 'Quotable, memorable insights' },
+  { value: 'story-lesson', label: 'Story/Lesson', description: 'Personal, vulnerable moments' },
+  { value: 'action-cta', label: 'Action CTA', description: 'High-energy calls to action' },
+  { value: 'list-steps', label: 'List/Steps', description: 'Numbered actionable steps' },
   { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
   { value: 'upload', label: 'Upload Custom', description: 'Use your own background' },
 ];
@@ -58,7 +62,7 @@ export default function FollowingPage() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('default');
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
   const [repurposing, setRepurposing] = useState(false);
@@ -234,7 +238,7 @@ export default function FollowingPage() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
-    setCarouselDesignOption('default');
+    setCarouselDesignOption('auto');
     setCarouselBgFile(null);
   };
 
@@ -310,7 +314,7 @@ export default function FollowingPage() {
       }
 
       // Build design preset config
-      let designPreset: DesignPreset = carouselDesignOption === 'upload' ? 'default' : carouselDesignOption;
+      let designPreset: DesignPreset = carouselDesignOption === 'upload' ? 'auto' : carouselDesignOption;
       let carouselBackground: { type: 'image'; imageUrl: string } | undefined;
 
       if (carouselDesignOption === 'upload' && carouselBgFile) {

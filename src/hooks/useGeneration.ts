@@ -97,8 +97,8 @@ export function useGeneration(): UseGenerationReturn {
             imageUrl: options.carouselBackground.imageUrl,
           };
         } else {
-          // Default to 'default' design preset
-          apiOptions.designPreset = 'default';
+          // Default to 'auto' design preset
+          apiOptions.designPreset = 'auto';
         }
 
         const response = await api.creators.repurpose(contentId, apiOptions);
