@@ -574,7 +574,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
           case 'kit':
             // Content kit - delete the kit
             return api.contentKits.delete(item.sourceId).catch(() => null);
-          case 'video_upload':
+          case 'video-upload':
             // Video upload - delete the upload (which soft-deletes)
             return api.clips.delete(item.sourceId).catch(() => null);
           case 'clip':
@@ -583,9 +583,9 @@ export function useContentLibrary(): UseContentLibraryReturn {
           case 'carousel':
             // Carousel - delete via images API
             return api.images.deleteCarousel(item.sourceId).catch(() => null);
-          case 'generation':
-            // Generation request - delete via generation API
-            return api.generation.deleteRequest(item.sourceId).catch(() => null);
+          case 'generated':
+            // Generated content - delete via generation API
+            return api.generation.deleteRequest(item.generationRequestId || item.sourceId).catch(() => null);
           default:
             // Fallback to content kit delete
             return api.contentKits.delete(item.sourceId).catch(() => null);
