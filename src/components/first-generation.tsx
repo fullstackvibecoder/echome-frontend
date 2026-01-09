@@ -1105,6 +1105,19 @@ export function FirstGeneration({
           </p>
         )}
 
+        {/* Link to examples page */}
+        <a
+          href="/examples#carousel-templates"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 text-small text-accent hover:underline inline-flex items-center gap-1"
+        >
+          See all template examples
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+
         {/* Conditional Upload Field */}
         {carouselDesignOption === 'upload' && (
           <div className="mt-4 pt-4 border-t border-border">

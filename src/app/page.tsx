@@ -182,14 +182,15 @@ export default function Home() {
                   Start Building Your Voice
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <button
+                <Link
+                  href="/examples"
                   className="px-8 py-4 bg-white/10 backdrop-blur border border-white/20
                              text-white rounded-xl font-bold hover:bg-white/20 transition-all
                              text-lg flex items-center gap-2"
                 >
-                  <Play className="w-5 h-5" />
-                  Watch Demo
-                </button>
+                  <Sparkles className="w-5 h-5" />
+                  See Examples
+                </Link>
               </div>
 
               {/* Social Proof */}
