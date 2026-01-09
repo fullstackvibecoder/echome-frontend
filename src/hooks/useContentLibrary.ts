@@ -568,10 +568,29 @@ export function useContentLibrary(): UseContentLibraryReturn {
     const selectedItems = processedItems.filter(item => state.selectedIds.has(item.id));
 
     try {
-      // Delete content kits
-      const deletePromises = selectedItems.map(item =>
-        api.contentKits.delete(item.sourceId).catch(() => null)
-      );
+      // Delete based on item type - route to correct API
+      const deletePromises = selectedItems.map(item => {
+        switch (item.type) {
+          case 'kit':
+            // Content kit - delete the kit
+            return api.contentKits.delete(item.sourceId).catch(() => null);
+          case 'video_upload':
+            // Video upload - delete the upload (which soft-deletes)
+            return api.clips.delete(item.sourceId).catch(() => null);
+          case 'clip':
+            // Individual clip - delete via clips API
+            return api.clips.delete(item.videoUploadId || item.sourceId).catch(() => null);
+          case 'carousel':
+            // Carousel - delete via images API
+            return api.images.deleteCarousel(item.sourceId).catch(() => null);
+          case 'generation':
+            // Generation request - delete via generation API
+            return api.generation.deleteRequest(item.sourceId).catch(() => null);
+          default:
+            // Fallback to content kit delete
+            return api.contentKits.delete(item.sourceId).catch(() => null);
+        }
+      });
 
       await Promise.all(deletePromises);
 
