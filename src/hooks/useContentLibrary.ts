@@ -338,19 +338,21 @@ export function useContentLibrary(): UseContentLibraryReturn {
           const alreadyAdded = newItems.some(i => i.videoUploadId === upload.id);
           if (alreadyAdded) continue;
 
+          // Get platforms from content kit if available
+          const platforms = (upload.platforms || []) as Platform[];
           newItems.push({
             id: upload.id,
             type: 'kit',
             // Use content kit title (smart title from transcript) if available, otherwise filename
             title: upload.contentKitTitle || upload.originalFilename || 'Video Upload',
             status: upload.status === 'completed' ? 'completed' : upload.status === 'failed' ? 'failed' : 'processing',
-            platforms: [],
+            platforms,
             thumbnailUrl: upload.thumbnailUrl,
             createdAt: new Date(upload.createdAt),
             sourceId: upload.id,
             videoUploadId: upload.id,
             clipCount: 0,
-            platformCount: 0,
+            platformCount: platforms.length,
             raw: upload,
           });
         }

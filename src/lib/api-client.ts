@@ -1624,6 +1624,7 @@ export interface VideoUpload {
   deletedAt?: string;
   thumbnailUrl?: string;
   contentKitTitle?: string; // Smart title from linked content kit
+  platforms?: string[]; // Platforms with content from linked content kit
 }
 
 export interface VideoClip {
