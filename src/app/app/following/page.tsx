@@ -756,7 +756,7 @@ export default function FollowingPage() {
 
                 {/* Carousel Design Preset */}
                 {selectedPlatforms.includes('instagram') && (
-                  <div className="p-4 bg-muted rounded-lg">
+                  <div className="p-4 bg-muted rounded-lg space-y-3">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <label className="font-medium text-foreground">Carousel Style</label>
@@ -772,8 +772,49 @@ export default function FollowingPage() {
                         ))}
                       </select>
                     </div>
-                    {carouselDesignOption !== 'upload' && (
-                      <p className="text-small text-muted-foreground mt-2">
+                    {carouselDesignOption === 'upload' ? (
+                      <div className="space-y-2">
+                        <input
+                          ref={carouselBgInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setCarouselBgFile(e.target.files?.[0] || null)}
+                          className="hidden"
+                          id="carousel-bg-upload"
+                        />
+                        <label
+                          htmlFor="carousel-bg-upload"
+                          className="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-accent hover:bg-accent/5 transition-all"
+                        >
+                          {carouselBgFile ? (
+                            <div className="flex items-center gap-3">
+                              <span className="text-accent">✓</span>
+                              <span className="text-foreground font-medium truncate max-w-[200px]">{carouselBgFile.name}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCarouselBgFile(null);
+                                  if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+                                }}
+                                className="text-error hover:text-error/80"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-2xl">📷</span>
+                              <span className="text-foreground">Click to upload background image</span>
+                            </>
+                          )}
+                        </label>
+                        <p className="text-small text-muted-foreground">
+                          Your text will be overlaid on this image. Recommended: 1080x1080px
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-small text-muted-foreground">
                         {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
                       </p>
                     )}
