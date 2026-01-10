@@ -333,6 +333,13 @@ export default function FollowingPage() {
         }
       }
 
+      // Debug log what we're sending
+      console.log('Repurpose request:', {
+        designPreset,
+        carouselBackground,
+        hasImageUrl: carouselBackground?.imageUrl ? 'yes' : 'no',
+      });
+
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
         designPreset,
