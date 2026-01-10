@@ -198,6 +198,8 @@ export const api = {
           contentBlog: rawData.contentKit.content_blog,
           contentEmail: rawData.contentKit.content_email,
           contentTiktok: rawData.contentKit.content_tiktok,
+          contentYoutube: rawData.contentKit.content_youtube,
+          contentVideoScript: rawData.contentKit.content_video_script,
           generationRequestId: rawData.contentKit.generation_request_id,
           contentGenerated: rawData.contentKit.content_generated,
           clipsGenerated: rawData.contentKit.clips_generated,

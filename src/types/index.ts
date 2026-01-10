@@ -153,6 +153,8 @@ export interface ContentKitDetail {
   contentBlog?: string;
   contentEmail?: string;
   contentTiktok?: string;
+  contentYoutube?: string;
+  contentVideoScript?: string;
   generationRequestId?: string;
   contentGenerated: boolean;
   clipsGenerated: number;
