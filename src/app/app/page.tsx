@@ -10,7 +10,7 @@ import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
 import { setActiveGeneration, clearActiveGeneration } from '@/components/generation-banner';
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
-import { InputType, Platform, BackgroundConfig, CarouselSlide } from '@/types';
+import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Progress step component with EchoMe branding
@@ -196,14 +196,18 @@ export default function AppDashboard() {
     await generate(input, inputType, platforms);
   };
 
-  const handleRepurpose = async (contentId: string, platforms: Platform[], carouselBackground?: BackgroundConfig) => {
+  const handleRepurpose = async (
+    contentId: string,
+    platforms: Platform[],
+    options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
+  ) => {
     const hasInstagram = platforms.includes('instagram');
     setExpectingCarousel(hasInstagram);
     setCarouselSlides(null);
     setCarouselError(null);
     setCarouselLoading(hasInstagram);
-    // Pass carouselBackground in the new options format
-    await repurpose(contentId, platforms, carouselBackground ? { carouselBackground } : undefined);
+    // Pass options through to repurpose
+    await repurpose(contentId, platforms, options);
   };
 
   // Handle video processing results from Clip Finder

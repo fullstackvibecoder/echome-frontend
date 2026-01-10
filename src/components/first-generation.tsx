@@ -309,7 +309,7 @@ interface FirstGenerationProps {
   onRepurpose?: (
     contentId: string,
     platforms: Platform[],
-    carouselBackground?: BackgroundConfig
+    options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
   ) => void;
   onVideoProcessing?: (data: {
     upload: VideoUpload;
@@ -633,7 +633,38 @@ export function FirstGeneration({
     // For repurpose mode
     if (inputType === 'repurpose') {
       if (!selectedContent || !onRepurpose) return;
-      onRepurpose(selectedContent.id, ALL_PLATFORMS, bgConfig);
+
+      // Build options with designPreset and carouselBackground
+      const repurposeOptions: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig } = {
+        designPreset: getDesignPreset(),
+      };
+
+      // If upload option selected, upload the file first
+      if (carouselDesignOption === 'upload' && carouselBgFile) {
+        try {
+          setUploading(true);
+          const uploadResponse = await api.images.uploadBackground(carouselBgFile);
+          if (uploadResponse.success && uploadResponse.data?.background?.publicUrl) {
+            repurposeOptions.carouselBackground = {
+              type: 'image',
+              imageUrl: uploadResponse.data.background.publicUrl
+            };
+          } else {
+            setUploadError('Failed to upload background image');
+            setUploading(false);
+            return;
+          }
+        } catch (uploadErr) {
+          console.error('Failed to upload carousel background:', uploadErr);
+          setUploadError('Failed to upload background image');
+          setUploading(false);
+          return;
+        } finally {
+          setUploading(false);
+        }
+      }
+
+      onRepurpose(selectedContent.id, ALL_PLATFORMS, repurposeOptions);
       return;
     }
 
