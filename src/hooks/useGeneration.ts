@@ -83,23 +83,20 @@ export function useGeneration(): UseGenerationReturn {
         setResults(null);
         setRequestId(null);
 
-        // Build API options - prefer new designPreset, fall back to legacy carouselBackground
+        // Build API options - send both designPreset and carouselBackground
+        // Backend's resolveCarouselDesign() handles the priority logic
         const apiOptions: Parameters<typeof api.creators.repurpose>[1] = {
           platforms: platforms as string[],
+          designPreset: options?.designPreset || 'auto',
         };
 
-        if (options?.designPreset) {
-          apiOptions.designPreset = options.designPreset;
-        } else if (options?.carouselBackground) {
-          // Legacy support
+        // Always send carouselBackground if present (for image uploads)
+        if (options?.carouselBackground) {
           apiOptions.carouselBackground = {
             type: options.carouselBackground.type,
             presetId: options.carouselBackground.presetId,
             imageUrl: options.carouselBackground.imageUrl,
           };
-        } else {
-          // Default to 'auto' design preset
-          apiOptions.designPreset = 'auto';
         }
 
         const response = await api.creators.repurpose(contentId, apiOptions);
