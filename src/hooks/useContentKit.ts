@@ -263,6 +263,30 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
     }
   }, [id, fetchData]);
 
+  // Retry logic: If request exists and is completed but no contentKit, retry a few times
+  // This handles race condition where page loads before content_kit is fully committed
+  useEffect(() => {
+    if (item && item.status === 'completed' && !detail?.contentKit && !loading) {
+      let retryCount = 0;
+      const maxRetries = 3;
+      const retryDelay = 1500; // 1.5 seconds
+
+      const retryFetch = () => {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying content kit fetch (attempt ${retryCount}/${maxRetries})...`);
+          setTimeout(() => {
+            fetchData();
+          }, retryDelay);
+        }
+      };
+
+      // Start retry timer
+      const timer = setTimeout(retryFetch, retryDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [item, detail?.contentKit, loading, fetchData]);
+
   return {
     item,
     detail,
