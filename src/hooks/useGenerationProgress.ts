@@ -70,8 +70,9 @@ export function useGenerationProgress(
   const maxReconnectAttempts = 3;
   const isCompleteRef = useRef(false);
   const hasErrorRef = useRef(false);
+  const optionsRef = useRef(options);
 
-  // Keep refs in sync with state
+  // Keep refs in sync with state/props
   useEffect(() => {
     isCompleteRef.current = isComplete;
   }, [isComplete]);
@@ -79,6 +80,10 @@ export function useGenerationProgress(
   useEffect(() => {
     hasErrorRef.current = hasError;
   }, [hasError]);
+
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   const connect = useCallback(() => {
     if (!requestId) return;
@@ -123,23 +128,23 @@ export function useGenerationProgress(
           if (data.step === 'complete') {
             setIsComplete(true);
             isCompleteRef.current = true;
-            options?.onComplete?.(data);
+            optionsRef.current?.onComplete?.(data);
             // Don't close yet - carousel may still be generating in background
           } else if (data.step === 'error') {
             setHasError(true);
             hasErrorRef.current = true;
-            options?.onError?.(data);
+            optionsRef.current?.onError?.(data);
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.step === 'carousel_complete') {
             setCarouselReady(true);
-            options?.onCarouselComplete?.(data);
+            optionsRef.current?.onCarouselComplete?.(data);
             // Now we can close - everything is done
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.step === 'carousel_failed') {
             setCarouselFailed(true);
-            options?.onCarouselFailed?.(data);
+            optionsRef.current?.onCarouselFailed?.(data);
             // Close on carousel failure too
             eventSource.close();
             eventSourceRef.current = null;
@@ -169,7 +174,7 @@ export function useGenerationProgress(
       console.error('Failed to create EventSource:', err);
       setIsConnected(false);
     }
-  }, [requestId, options]);
+  }, [requestId]);
 
   // Connect when requestId changes
   useEffect(() => {
