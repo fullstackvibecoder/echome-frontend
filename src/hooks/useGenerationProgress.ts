@@ -66,14 +66,36 @@ export function useGenerationProgress(
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectAttempts = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const maxReconnectAttempts = 3;
+  const isCompleteRef = useRef(false);
+  const hasErrorRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    isCompleteRef.current = isComplete;
+  }, [isComplete]);
+
+  useEffect(() => {
+    hasErrorRef.current = hasError;
+  }, [hasError]);
 
   const connect = useCallback(() => {
     if (!requestId) return;
 
+    // Don't reconnect if already complete or has error
+    if (isCompleteRef.current || hasErrorRef.current) return;
+
+    // Clear any pending reconnect
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
     // Close existing connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
+      eventSourceRef.current = null;
     }
 
     const url = `${API_BASE_URL}/progress/generate/${requestId}/stream`;
@@ -100,22 +122,27 @@ export function useGenerationProgress(
 
           if (data.step === 'complete') {
             setIsComplete(true);
+            isCompleteRef.current = true;
             options?.onComplete?.(data);
             // Don't close yet - carousel may still be generating in background
           } else if (data.step === 'error') {
             setHasError(true);
+            hasErrorRef.current = true;
             options?.onError?.(data);
             eventSource.close();
+            eventSourceRef.current = null;
           } else if (data.step === 'carousel_complete') {
             setCarouselReady(true);
             options?.onCarouselComplete?.(data);
             // Now we can close - everything is done
             eventSource.close();
+            eventSourceRef.current = null;
           } else if (data.step === 'carousel_failed') {
             setCarouselFailed(true);
             options?.onCarouselFailed?.(data);
             // Close on carousel failure too
             eventSource.close();
+            eventSourceRef.current = null;
           }
         } catch {
           console.warn('Failed to parse SSE event:', event.data);
@@ -125,19 +152,24 @@ export function useGenerationProgress(
       eventSource.onerror = () => {
         setIsConnected(false);
         eventSource.close();
+        eventSourceRef.current = null;
 
-        // Attempt reconnection if not complete and under limit
-        if (!isComplete && !hasError && reconnectAttempts.current < maxReconnectAttempts) {
+        // Attempt reconnection if not complete, no error, and under limit
+        if (!isCompleteRef.current && !hasErrorRef.current && reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
-          setTimeout(connect, delay);
+          // Exponential backoff: 2s, 4s, 8s
+          const delay = Math.min(2000 * Math.pow(2, reconnectAttempts.current - 1), 10000);
+          console.log(`SSE reconnecting in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
+          reconnectTimeoutRef.current = setTimeout(connect, delay);
+        } else if (reconnectAttempts.current >= maxReconnectAttempts) {
+          console.warn('SSE max reconnect attempts reached, stopping');
         }
       };
     } catch (err) {
       console.error('Failed to create EventSource:', err);
       setIsConnected(false);
     }
-  }, [requestId, isComplete, hasError, options]);
+  }, [requestId, options]);
 
   // Connect when requestId changes
   useEffect(() => {
@@ -148,11 +180,17 @@ export function useGenerationProgress(
       setHasError(false);
       setCarouselReady(false);
       setCarouselFailed(false);
+      isCompleteRef.current = false;
+      hasErrorRef.current = false;
       reconnectAttempts.current = 0;
       connect();
     }
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;
@@ -162,6 +200,8 @@ export function useGenerationProgress(
 
   const reconnect = useCallback(() => {
     reconnectAttempts.current = 0;
+    isCompleteRef.current = false;
+    hasErrorRef.current = false;
     connect();
   }, [connect]);
 
