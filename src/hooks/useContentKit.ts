@@ -7,7 +7,7 @@
  * generation requests and clip finder uploads.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api-client';
 import {
   transformGenerationRequest,
@@ -171,6 +171,7 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
   const [detail, setDetail] = useState<UseContentKitDetailReturn['detail']>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const retryCountRef = useRef(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -263,29 +264,29 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
     }
   }, [id, fetchData]);
 
-  // Retry logic: If request exists and is completed but no contentKit, retry a few times
+  // Retry logic: If request is completed but no content data, retry a few times
   // This handles race condition where page loads before content_kit is fully committed
+  // Uses ref to track retries across renders to prevent infinite loops
   useEffect(() => {
-    if (item && item.status === 'completed' && !detail?.contentKit && !loading) {
-      let retryCount = 0;
-      const maxRetries = 3;
-      const retryDelay = 1500; // 1.5 seconds
+    const hasContentData = detail?.contentKit || detail?.carousel || (detail?.content && detail.content.length > 0);
+    const shouldRetry = item && item.status === 'completed' && !hasContentData && !loading;
+    const maxRetries = 3;
+    const retryDelay = 1500;
 
-      const retryFetch = () => {
-        if (retryCount < maxRetries) {
-          retryCount++;
-          console.log(`Retrying content kit fetch (attempt ${retryCount}/${maxRetries})...`);
-          setTimeout(() => {
-            fetchData();
-          }, retryDelay);
-        }
-      };
-
-      // Start retry timer
-      const timer = setTimeout(retryFetch, retryDelay);
+    if (shouldRetry && retryCountRef.current < maxRetries) {
+      const timer = setTimeout(() => {
+        retryCountRef.current += 1;
+        console.log(`Retrying content fetch (attempt ${retryCountRef.current}/${maxRetries})...`);
+        fetchData();
+      }, retryDelay);
       return () => clearTimeout(timer);
     }
-  }, [item, detail?.contentKit, loading, fetchData]);
+
+    // Reset retry count when we get content or when id changes
+    if (hasContentData) {
+      retryCountRef.current = 0;
+    }
+  }, [item, detail?.contentKit, detail?.carousel, detail?.content, loading, fetchData]);
 
   return {
     item,
