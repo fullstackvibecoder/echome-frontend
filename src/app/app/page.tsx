@@ -110,14 +110,6 @@ export default function AppDashboard() {
     }
   }, [progressComplete]);
 
-  // Redirect to content kit detail when generation starts (for async flows like repurpose)
-  // This allows user to see real-time progress via SSE on the detail page
-  useEffect(() => {
-    if (requestId && !results && generating) {
-      // Redirect immediately to detail page so user sees progress
-      router.push(`/app/content-kit/${requestId}`);
-    }
-  }, [requestId, results, generating, router]);
 
   // Request notification permission on first generation
   useEffect(() => {
@@ -208,7 +200,11 @@ export default function AppDashboard() {
     setCarouselError(null);
     setCarouselLoading(hasInstagram);
     // Pass options through to repurpose
-    await repurpose(contentId, platforms, options);
+    const reqId = await repurpose(contentId, platforms, options);
+    // Redirect immediately to detail page - prevents flash of dashboard progress UI
+    if (reqId) {
+      router.push(`/app/content-kit/${reqId}`);
+    }
   };
 
   // Handle video processing results from Clip Finder

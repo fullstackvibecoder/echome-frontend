@@ -20,7 +20,7 @@ interface UseGenerationReturn {
     contentId: string,
     platforms: Platform[],
     options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
-  ) => Promise<void>;
+  ) => Promise<string | null>;
   reset: () => void;
 }
 
@@ -76,9 +76,8 @@ export function useGeneration(): UseGenerationReturn {
       contentId: string,
       platforms: Platform[],
       options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
-    ) => {
+    ): Promise<string | null> => {
       try {
-        setGenerating(true);
         setError(null);
         setResults(null);
         setRequestId(null);
@@ -102,12 +101,13 @@ export function useGeneration(): UseGenerationReturn {
         const response = await api.creators.repurpose(contentId, apiOptions);
 
         if (response.success && response.result.requestId) {
-          // Set requestId immediately for SSE progress tracking
-          setRequestId(response.result.requestId);
+          const reqId = response.result.requestId;
+
+          // Set requestId for SSE progress tracking
+          setRequestId(reqId);
 
           // If we have generatedContent immediately (sync response), use it
           if (response.result.generatedContent) {
-            const reqId = response.result.requestId;
             const generatedResults: GeneratedContent[] = response.result.generatedContent.results.map((r, idx) => ({
               id: `${reqId}-${r.platform}-${idx}`,
               requestId: reqId,
@@ -118,10 +118,13 @@ export function useGeneration(): UseGenerationReturn {
               createdAt: new Date(),
             }));
             setResults(generatedResults);
-            setGenerating(false);
+          } else {
+            // Async flow - set generating so SSE tracking works
+            setGenerating(true);
           }
-          // Otherwise, async flow - SSE will track progress, results fetched on complete
-          // Keep generating=true, results will be fetched when SSE completes
+
+          // Return requestId so caller can redirect immediately
+          return reqId;
         } else {
           throw new Error(response.result?.error || 'Repurposing failed');
         }
@@ -144,6 +147,7 @@ export function useGeneration(): UseGenerationReturn {
         console.error('Repurpose error:', err);
         setError(errorMessage);
         setGenerating(false);
+        return null;
       }
     },
     []

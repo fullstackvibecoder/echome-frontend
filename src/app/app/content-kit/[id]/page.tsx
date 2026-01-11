@@ -169,12 +169,6 @@ export default function ContentKitDetailPage() {
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
   const typeConfig = item ? CONTENT_TYPE_CONFIG[item.type] : null;
 
-  // Detect if carousel is still generating (has content but no carousel yet, or SSE says carousel step)
-  const carouselGenerating = (
-    (progress?.step === 'carousel') ||
-    (hasWrittenContent && !hasCarousel && item?.status === 'processing')
-  );
-
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Back Button */}
@@ -438,7 +432,7 @@ export default function ContentKitDetailPage() {
 
           {/* Written Content Section */}
           {hasWrittenContent && (
-            <section>
+            <section id="written-content-section">
               <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
                 <span>✍️</span>
                 <span>Written Content</span>
@@ -510,23 +504,42 @@ export default function ContentKitDetailPage() {
             </section>
           )}
 
-          {/* Instagram Carousel Loading State */}
-          {carouselGenerating && !hasCarousel && (
-            <section>
+          {/* Instagram Carousel Loading State - only show when actively generating carousel */}
+          {hasWrittenContent && !hasCarousel && (progress?.step === 'carousel' || (isProcessing && progress?.step === 'complete')) && (
+            <section id="carousel-section">
               <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
                 <span>📸</span>
                 <span>Instagram Carousel</span>
                 <span className="text-text-secondary text-lg font-normal">
-                  (generating...)
+                  (generating in background...)
                 </span>
               </h2>
-              <div className="bg-bg-secondary rounded-xl border border-border p-8">
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4" />
-                  <p className="text-text-primary font-medium mb-2">Generating carousel images...</p>
-                  <p className="text-text-secondary text-sm text-center max-w-md">
-                    This may take 30-60 seconds. Your carousel slides are being designed and rendered.
+              <div className="bg-gradient-to-br from-accent/5 to-purple-500/5 rounded-xl border border-accent/20 p-8">
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mb-5" />
+                  <p className="text-text-primary font-semibold text-lg mb-2">Creating your carousel slides...</p>
+                  <p className="text-text-secondary text-sm text-center max-w-lg mb-6">
+                    Carousel images take a bit longer to render. Your written content is ready to use now!
                   </p>
+                  {hasWrittenContent && (
+                    <button
+                      onClick={() => {
+                        const section = document.getElementById('written-content-section');
+                        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors"
+                    >
+                      <span>↑</span>
+                      <span>View Written Content</span>
+                      <span>✍️</span>
+                    </button>
+                  )}
+                </div>
+                <div className="mt-4 pt-4 border-t border-border/30">
+                  <div className="flex items-center justify-center gap-2 text-xs text-text-secondary">
+                    <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+                    <span>This page will update automatically when carousel is ready</span>
+                  </div>
                 </div>
               </div>
             </section>
