@@ -110,14 +110,14 @@ export default function AppDashboard() {
     }
   }, [progressComplete]);
 
-  // Redirect to content kit list when SSE completes (for async flows like repurpose)
+  // Redirect to content kit detail when generation starts (for async flows like repurpose)
+  // This allows user to see real-time progress via SSE on the detail page
   useEffect(() => {
-    if (progressComplete && requestId && !results) {
-      // Async flow completed - redirect to content kit list
-      // User can click through to see the newly created kit
-      router.push('/app/content-kit');
+    if (requestId && !results && generating) {
+      // Redirect immediately to detail page so user sees progress
+      router.push(`/app/content-kit/${requestId}`);
     }
-  }, [progressComplete, requestId, results, router]);
+  }, [requestId, results, generating, router]);
 
   // Request notification permission on first generation
   useEffect(() => {
@@ -217,9 +217,9 @@ export default function AppDashboard() {
     clips: VideoClip[];
     contentKit: ContentKit | null;
   }) => {
-    // If we have a generation request ID, redirect to Content Kit list
+    // If we have a generation request ID, redirect to Content Kit detail
     if (data.contentKit?.generationRequestId) {
-      router.push('/app/content-kit');
+      router.push(`/app/content-kit/${data.contentKit.generationRequestId}`);
       return;
     }
 

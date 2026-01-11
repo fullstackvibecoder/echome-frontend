@@ -347,10 +347,10 @@ export default function FollowingPage() {
       });
 
       if (response.success && response.result.requestId) {
-        // Close modal and navigate to Content Kit list
-        // User can see the new item appear and click through when ready
+        // Close modal and navigate to Content Kit detail page
+        // User sees real-time progress via SSE
         closeRepurposeModal();
-        router.push('/app/content-kit');
+        router.push(`/app/content-kit/${response.result.requestId}`);
       } else {
         throw new Error(response.result?.error || 'Repurposing failed');
       }

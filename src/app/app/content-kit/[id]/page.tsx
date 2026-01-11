@@ -169,6 +169,12 @@ export default function ContentKitDetailPage() {
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
   const typeConfig = item ? CONTENT_TYPE_CONFIG[item.type] : null;
 
+  // Detect if carousel is still generating (has content but no carousel yet, or SSE says carousel step)
+  const carouselGenerating = (
+    (progress?.step === 'carousel') ||
+    (hasWrittenContent && !hasCarousel && item?.status === 'processing')
+  );
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Back Button */}
@@ -500,6 +506,28 @@ export default function ContentKitDetailPage() {
                     </div>
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {/* Instagram Carousel Loading State */}
+          {carouselGenerating && !hasCarousel && (
+            <section>
+              <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
+                <span>📸</span>
+                <span>Instagram Carousel</span>
+                <span className="text-text-secondary text-lg font-normal">
+                  (generating...)
+                </span>
+              </h2>
+              <div className="bg-bg-secondary rounded-xl border border-border p-8">
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-text-primary font-medium mb-2">Generating carousel images...</p>
+                  <p className="text-text-secondary text-sm text-center max-w-md">
+                    This may take 30-60 seconds. Your carousel slides are being designed and rendered.
+                  </p>
+                </div>
               </div>
             </section>
           )}
