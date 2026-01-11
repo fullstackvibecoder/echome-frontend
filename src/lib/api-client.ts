@@ -160,6 +160,19 @@ export const api = {
 
       // Transform snake_case to camelCase
       const rawData = response.data.data;
+
+      // Debug: log raw API response
+      console.log('API getRequest raw response:', {
+        hasContentKit: !!rawData.contentKit,
+        contentKitFields: rawData.contentKit ? {
+          id: rawData.contentKit.id,
+          content_linkedin: !!rawData.contentKit.content_linkedin,
+          content_instagram: !!rawData.contentKit.content_instagram,
+          content_blog: !!rawData.contentKit.content_blog,
+        } : null,
+        hasCarousel: !!rawData.carousel,
+        contentLength: rawData.content?.length || 0,
+      });
       const transformedData: GenerationRequestDetail = {
         request: rawData.request ? {
           id: rawData.request.id,
