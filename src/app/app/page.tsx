@@ -110,11 +110,12 @@ export default function AppDashboard() {
     }
   }, [progressComplete]);
 
-  // Redirect to content kit page when SSE completes (for async flows like repurpose)
+  // Redirect to content kit list when SSE completes (for async flows like repurpose)
   useEffect(() => {
     if (progressComplete && requestId && !results) {
-      // Async flow completed - redirect to content kit page
-      router.push(`/app/content-kit/${requestId}`);
+      // Async flow completed - redirect to content kit list
+      // User can click through to see the newly created kit
+      router.push('/app/content-kit');
     }
   }, [progressComplete, requestId, results, router]);
 
@@ -216,9 +217,9 @@ export default function AppDashboard() {
     clips: VideoClip[];
     contentKit: ContentKit | null;
   }) => {
-    // If we have a generation request ID, redirect to Content Kit
+    // If we have a generation request ID, redirect to Content Kit list
     if (data.contentKit?.generationRequestId) {
-      router.push(`/app/content-kit/${data.contentKit.generationRequestId}`);
+      router.push('/app/content-kit');
       return;
     }
 

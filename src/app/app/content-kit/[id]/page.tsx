@@ -132,20 +132,6 @@ export default function ContentKitDetailPage() {
   const getPlatformContent = () => {
     const results: { platform: string; content: string }[] = [];
 
-    // Debug: log what we received
-    console.log('Content Kit Detail Debug:', {
-      hasContentKit: !!detail?.contentKit,
-      contentKitId: detail?.contentKit?.id,
-      contentKitFields: detail?.contentKit ? {
-        linkedin: !!detail.contentKit.contentLinkedin,
-        twitter: !!detail.contentKit.contentTwitter,
-        instagram: !!detail.contentKit.contentInstagram,
-        blog: !!detail.contentKit.contentBlog,
-      } : null,
-      hasContent: detail?.content?.length || 0,
-      hasCarousel: !!detail?.carousel,
-    });
-
     // First try contentKit (unified content_kits table)
     if (detail?.contentKit) {
       const kit = detail.contentKit;
