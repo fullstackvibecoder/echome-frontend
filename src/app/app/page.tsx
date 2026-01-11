@@ -203,6 +203,8 @@ export default function AppDashboard() {
     const reqId = await repurpose(contentId, platforms, options);
     // Redirect immediately to detail page - prevents flash of dashboard progress UI
     if (reqId) {
+      // Clear the banner since detail page has its own progress UI
+      clearActiveGeneration();
       router.push(`/app/content-kit/${reqId}`);
     }
   };

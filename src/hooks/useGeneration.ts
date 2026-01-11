@@ -118,10 +118,11 @@ export function useGeneration(): UseGenerationReturn {
               createdAt: new Date(),
             }));
             setResults(generatedResults);
-          } else {
-            // Async flow - set generating so SSE tracking works
-            setGenerating(true);
           }
+          // Note: We don't set generating=true for repurpose flows because
+          // the caller redirects immediately to the detail page which has
+          // its own progress UI. This also prevents the generation banner
+          // from appearing and persisting after redirect.
 
           // Return requestId so caller can redirect immediately
           return reqId;
