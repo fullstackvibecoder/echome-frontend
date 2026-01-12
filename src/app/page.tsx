@@ -854,54 +854,53 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
             {/* Echo - $29 */}
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-8 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                    <span className="text-3xl">🎯</span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                    <span className="text-2xl">🎯</span>
                   </div>
-                  <h3 className="text-3xl font-extrabold text-[#1C1C1E] mb-3">Echo</h3>
-                  <p className="text-sm font-light text-stone-600 mb-6 leading-relaxed">Build your voice profile + create content that sounds like you</p>
-                  <div className="mb-4">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-extrabold bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparent">
+                  <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo</h3>
+                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For creators getting started with AI-powered content</p>
+                  <div className="mb-3">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-extrabold bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparent">
                         ${billingPeriod === 'monthly' ? '29' : '290'}
                       </span>
-                      <span className="text-base font-light text-stone-500">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
+                      <span className="text-sm font-light text-stone-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
-                      <div className="mt-2 inline-block bg-gradient-to-r from-[#00D4FF]/10 to-[#0099CC]/10 border border-[#00D4FF]/30 rounded-lg px-3 py-1">
-                        <p className="text-xs font-semibold text-[#00D4FF]">Save $58/year 🎉</p>
+                      <div className="mt-2 inline-block bg-gradient-to-r from-[#00D4FF]/10 to-[#0099CC]/10 border border-[#00D4FF]/30 rounded-lg px-2 py-0.5">
+                        <p className="text-[10px] font-semibold text-[#00D4FF]">2 months free</p>
                       </div>
                     )}
                   </div>
-                  <div className="mb-6 inline-block bg-gradient-to-r from-[#FFD93D]/20 to-[#FF6B9D]/20 border border-[#FFD93D]/40 rounded-lg px-3 py-1.5">
-                    <p className="text-xs font-bold text-[#FF6B9D]">✨ 7-Day Free Trial</p>
+                  <div className="mb-4 inline-block bg-gradient-to-r from-[#FFD93D]/20 to-[#FF6B9D]/20 border border-[#FFD93D]/40 rounded-lg px-2 py-1">
+                    <p className="text-[10px] font-bold text-[#FF6B9D]">7-Day Free Trial</p>
                   </div>
-                  <Link href="/auth/signup" className="relative w-full px-6 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-2xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden group/btn block text-center">
-                    <span className="relative z-10">Start Free Trial 🎯</span>
+                  <Link href="/auth/signup?plan=echo" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                    Start Free Trial
                   </Link>
                 </div>
                 <div className="flex-1">
-                  <div className="space-y-4 pt-6 border-t-2 border-stone-200">
+                  <div className="space-y-3 pt-4 border-t-2 border-stone-200">
                     {[
-                      'Build your voice profile',
-                      '100 generations/month',
-                      'All 8 content platforms',
-                      'Voice learning from uploads',
-                      'Video clip extraction (5/video)',
-                      'Caption generation',
-                      '1080p export quality',
-                      'Import from social platforms'
+                      '100 video minutes/month',
+                      '5 clips per video',
+                      '1 Knowledge Base',
+                      '3 Creator Radar slots',
+                      'Standard carousel templates',
+                      '1080p exports',
+                      'Manual document upload only'
                     ].map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0099CC] flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-4 h-4 text-white" />
+                      <div key={idx} className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0099CC] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-sm font-medium text-stone-700">{feature}</span>
+                        <span className="text-xs font-medium text-stone-700">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -909,64 +908,127 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Echo Pro - $59 - Popular */}
-            <div className="relative md:-mt-8 group">
+            {/* Echo Studio - $49 - Popular */}
+            <div className="relative md:-mt-6 group">
               <div className="absolute -inset-1 bg-gradient-to-r from-[#FFD93D] via-[#FF6B9D] to-[#B794F6] rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 animate-pulse transition-opacity duration-500" />
-              <div className="relative bg-gradient-to-br from-[#00D4FF] via-[#0099CC] to-[#00D4FF] rounded-3xl p-8 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(0,212,255,0.5)] hover:-translate-y-2 transition-all duration-300">
-                <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FFD93D] to-[#FF6B9D] text-white text-xs font-extrabold px-6 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
-                  <span className="text-base">⭐</span> BEST VALUE
+              <div className="relative bg-gradient-to-br from-[#00D4FF] via-[#0099CC] to-[#00D4FF] rounded-3xl p-6 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(0,212,255,0.5)] hover:-translate-y-2 transition-all duration-300 h-full">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FFD93D] to-[#FF6B9D] text-white text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                  <span className="text-sm">⭐</span> MOST POPULAR
                 </div>
-                <div className="mb-6 mt-4">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                    <span className="text-3xl">💎</span>
+                <div className="mb-6 mt-3">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                    <span className="text-2xl">🎬</span>
                   </div>
-                  <h3 className="text-3xl font-extrabold text-white mb-3">Echo Pro</h3>
-                  <p className="text-sm font-light text-white/90 mb-6 leading-relaxed">Advanced voice learning, priority processing, unlimited style customization.</p>
-                  <div className="mb-4">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-extrabold text-white drop-shadow-lg">
-                        ${billingPeriod === 'monthly' ? '59' : '590'}
+                  <h3 className="text-2xl font-extrabold text-white mb-2">Echo Studio</h3>
+                  <p className="text-xs font-light text-white/90 mb-4 leading-relaxed">For professional creators and small content teams</p>
+                  <div className="mb-3">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-extrabold text-white drop-shadow-lg">
+                        ${billingPeriod === 'monthly' ? '49' : '490'}
                       </span>
-                      <span className="text-base font-light text-white/80">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
+                      <span className="text-sm font-light text-white/80">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
-                      <div className="mt-2 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-1">
-                        <p className="text-xs font-semibold text-white">Save $118/year 🎉</p>
+                      <div className="mt-2 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-0.5">
+                        <p className="text-[10px] font-semibold text-white">2 months free</p>
                       </div>
                     )}
                   </div>
-                  <div className="mb-6 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-1.5">
-                    <p className="text-xs font-bold text-white">✨ 7-Day Free Trial</p>
+                  <div className="mb-4 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-1">
+                    <p className="text-[10px] font-bold text-white">7-Day Free Trial</p>
                   </div>
-                  <Link href="/auth/signup" className="relative w-full px-6 py-4 bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] text-white rounded-2xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden group/btn border-2 border-white/20 block text-center">
-                    <span className="relative z-10">Start Free Trial 🚀</span>
+                  <Link href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
+                    Start Free Trial
                   </Link>
                 </div>
                 <div className="flex-1">
-                  <div className="space-y-4 pt-6 border-t-2 border-white/30">
+                  <div className="space-y-3 pt-4 border-t-2 border-white/30">
                     {[
-                      'Everything in Echo, plus:',
-                      '500 generations/month',
-                      'Priority voice analysis',
-                      'Unlimited clips per video',
-                      'Advanced style customization',
-                      'Custom caption presets',
-                      '4K export quality',
-                      'Virality predictions',
-                      'Priority processing',
-                      'Priority support'
+                      '300 video minutes/month',
+                      '10 clips per video',
+                      '3 Knowledge Bases',
+                      '10 Creator Radar slots',
+                      'All templates + custom colors',
+                      '1080p exports',
+                      'Email import (25MB limit)',
+                      'Priority processing queue'
                     ].map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-4 h-4 text-white" />
+                      <div key={idx} className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-sm font-medium text-white">{feature}</span>
+                        <span className="text-xs font-medium text-white">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Echo Pro - $99 */}
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#B794F6]/30 to-[#FF6B9D]/30 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-[#B794F6]/40 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                <div className="mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#B794F6] to-[#FF6B9D] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                    <span className="text-2xl">💎</span>
+                  </div>
+                  <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo Pro</h3>
+                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For agencies and power users who need unlimited capacity</p>
+                  <div className="mb-3">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent">
+                        ${billingPeriod === 'monthly' ? '99' : '990'}
+                      </span>
+                      <span className="text-sm font-light text-stone-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                    </div>
+                    {billingPeriod === 'annual' && (
+                      <div className="mt-2 inline-block bg-gradient-to-r from-[#B794F6]/10 to-[#FF6B9D]/10 border border-[#B794F6]/30 rounded-lg px-2 py-0.5">
+                        <p className="text-[10px] font-semibold text-[#B794F6]">2 months free</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mb-4 inline-block bg-gradient-to-r from-[#B794F6]/20 to-[#FF6B9D]/20 border border-[#B794F6]/40 rounded-lg px-2 py-1">
+                    <p className="text-[10px] font-bold text-[#B794F6]">7-Day Free Trial</p>
+                  </div>
+                  <Link href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                    Start Free Trial
+                  </Link>
+                </div>
+                <div className="flex-1">
+                  <div className="space-y-3 pt-4 border-t-2 border-stone-200">
+                    {[
+                      'Unlimited video minutes',
+                      '15 clips per video',
+                      'Unlimited Knowledge Bases',
+                      'Unlimited Creator Radar',
+                      'Custom carousel design system',
+                      '1080p exports',
+                      'Email import (100MB limit)',
+                      'Priority processing queue',
+                      'Priority support'
+                    ].map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B794F6] to-[#FF6B9D] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-stone-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Enterprise CTA */}
+          <div className="max-w-3xl mx-auto text-center mt-12 p-8 bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] rounded-3xl">
+            <h3 className="text-2xl font-bold text-white mb-2">Need Enterprise Features?</h3>
+            <p className="text-white/70 mb-4 text-sm">API access, 4K exports, team collaboration, white-label options, and custom integrations.</p>
+            <a href="mailto:enterprise@tryechome.com" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#1C1C1E] rounded-xl font-bold hover:bg-gray-100 transition-all">
+              <Mail className="w-4 h-4" />
+              Contact Sales
+            </a>
           </div>
         </div>
       </section>

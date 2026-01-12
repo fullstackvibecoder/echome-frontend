@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { useGenerationProgress, mapStepToIndex } from '@/hooks/useGenerationProgress';
+import { usePendingCheckout } from '@/hooks/usePendingCheckout';
 import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
@@ -70,12 +71,27 @@ export default function AppDashboard() {
   const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
 
+  // Check for pending checkout from signup flow
+  const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
+
   // Real-time progress from SSE (including carousel status)
   const { progress, isComplete: progressComplete, hasError: progressError, carouselReady, carouselFailed } = useGenerationProgress(requestId);
 
   // Derive progress step from real SSE events (fallback to 0 if not connected)
   const progressStep = progress ? mapStepToIndex(progress.step) : 0;
   const [currentTip, setCurrentTip] = useState(0);
+
+  // Show loading state while checking/redirecting for pending checkout
+  if (checkingPendingPlan || checkoutLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+        <p className="text-text-secondary">
+          {checkoutLoading ? 'Redirecting to checkout...' : 'Loading...'}
+        </p>
+      </div>
+    );
+  }
 
   // Carousel state - now handled by backend background job
   const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[] | null>(null);

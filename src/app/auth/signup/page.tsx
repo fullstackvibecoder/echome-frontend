@@ -1,14 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, signupSchema } from '@/hooks/useAuthForm';
 import { OAuthButtons } from '@/components/oauth-buttons';
 
-export default function SignupPage() {
+function SignupContent() {
   const { signup } = useAuth();
   const [password, setPassword] = useState('');
+  const searchParams = useSearchParams();
+
+  // Store plan selection in sessionStorage for checkout after signup
+  useEffect(() => {
+    const plan = searchParams.get('plan');
+    if (plan && ['echo', 'echo-studio', 'echo-pro'].includes(plan)) {
+      sessionStorage.setItem('pendingPlan', plan);
+    }
+  }, [searchParams]);
 
   const { errors, isLoading, generalError, handleSubmit, getPasswordStrength } =
     useAuthForm({
@@ -194,5 +204,22 @@ export default function SignupPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="card animate-fade-in">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2 text-foreground">Create Your Echo</h1>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <SignupContent />
+    </Suspense>
   );
 }

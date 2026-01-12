@@ -1518,6 +1518,49 @@ export const api = {
       };
     },
   },
+
+  // -------- STRIPE / BILLING --------
+  stripe: {
+    /** Get available pricing plans */
+    getPlans: async (): Promise<StripePlansResponse> => {
+      const response = await apiClient.get('/stripe/plans');
+      return response.data;
+    },
+
+    /** Get current subscription status */
+    getSubscription: async (): Promise<StripeSubscriptionResponse> => {
+      const response = await apiClient.get('/stripe/subscription');
+      return response.data;
+    },
+
+    /** Create checkout session and get redirect URL */
+    createCheckoutSession: async (
+      planId: 'echo' | 'echo-studio' | 'echo-pro',
+      billingInterval: 'month' | 'year'
+    ): Promise<StripeCheckoutResponse> => {
+      const response = await apiClient.post('/stripe/checkout', {
+        planId,
+        billingInterval,
+        successUrl: `${window.location.origin}/app/billing?success=true`,
+        cancelUrl: `${window.location.origin}/app/billing?canceled=true`,
+      });
+      return response.data;
+    },
+
+    /** Get customer portal URL for managing subscription */
+    getPortalUrl: async (): Promise<StripePortalResponse> => {
+      const response = await apiClient.post('/stripe/portal', {
+        returnUrl: `${window.location.origin}/app/billing`,
+      });
+      return response.data;
+    },
+
+    /** Get usage limits for current tier */
+    getUsageLimits: async (): Promise<StripeUsageLimitsResponse> => {
+      const response = await apiClient.get('/stripe/usage');
+      return response.data;
+    },
+  },
 };
 
 // Types for creator monitoring
@@ -1744,6 +1787,88 @@ export interface TranscriptSegment {
     end: number;
     confidence?: number;
   }>;
+}
+
+// ============================================
+// STRIPE / BILLING TYPES
+// ============================================
+
+export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise';
+export type BillingInterval = 'month' | 'year';
+export type PlanId = 'echo' | 'echo-studio' | 'echo-pro';
+
+export interface StripePlan {
+  id: PlanId;
+  name: string;
+  tier: SubscriptionTier;
+  monthlyPriceId: string;
+  annualPriceId: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  features: string[];
+  limits: {
+    videoMinutesPerMonth: number;
+    clipsPerVideo: number;
+    knowledgeBases: number;
+    creatorRadar: number;
+    exportQuality: string;
+    emailImportMaxMB: number;
+  };
+  trialDays?: number;
+}
+
+export interface StripePlansResponse {
+  success: boolean;
+  data: {
+    plans: StripePlan[];
+  };
+}
+
+export interface StripeSubscriptionStatus {
+  isSubscribed: boolean;
+  tier: SubscriptionTier;
+  status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete' | null;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd?: boolean;
+  trialEnd?: string;
+}
+
+export interface StripeSubscriptionResponse {
+  success: boolean;
+  data: StripeSubscriptionStatus;
+}
+
+export interface StripeCheckoutResponse {
+  success: boolean;
+  data: {
+    sessionId: string;
+    url: string;
+  };
+}
+
+export interface StripePortalResponse {
+  success: boolean;
+  data: {
+    url: string;
+  };
+}
+
+export interface StripeUsageLimits {
+  generationsPerMonth: number;
+  knowledgeBases: number;
+  monitoredCreators: number;
+  videoMinutesPerMonth: number;
+  clipsPerVideo: number;
+  exportQuality: string;
+  emailImportMaxMB: number;
+}
+
+export interface StripeUsageLimitsResponse {
+  success: boolean;
+  data: {
+    tier: SubscriptionTier;
+    limits: StripeUsageLimits;
+  };
 }
 
 export default api;
