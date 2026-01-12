@@ -11,6 +11,7 @@ import { FileList } from '@/components/file-list';
 import { PasteContentModal } from '@/components/paste-content-modal';
 import { VoiceRecorder } from '@/components/voice-recorder';
 import { SocialImportModal } from '@/components/social-import-modal';
+import { BlogImportModal } from '@/components/blog-import-modal';
 import { api } from '@/lib/api-client';
 import { parseMboxFile, estimateUploadSize, formatBytes } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
@@ -31,6 +32,7 @@ export default function KnowledgePage() {
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
+  const [showBlogModal, setShowBlogModal] = useState(false);
   const [showMboxInstructions, setShowMboxInstructions] = useState(false);
   const [mboxUploading, setMboxUploading] = useState(false);
   const [mboxProgress, setMboxProgress] = useState(0);
@@ -395,6 +397,14 @@ export default function KnowledgePage() {
           >
             <span>📱</span>
             <span className="hidden sm:inline">Social</span>
+          </button>
+          <button
+            onClick={() => setShowBlogModal(true)}
+            className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2"
+            title="Import from blog"
+          >
+            <span>📝</span>
+            <span className="hidden sm:inline">Blog</span>
           </button>
           <button
             onClick={() => setShowMboxInstructions(true)}
@@ -886,6 +896,14 @@ export default function KnowledgePage() {
       <SocialImportModal
         isOpen={showSocialModal}
         onClose={() => setShowSocialModal(false)}
+        onImportComplete={handleSocialImportComplete}
+        knowledgeBaseId={selectedKb ?? undefined}
+      />
+
+      {/* Blog Import Modal */}
+      <BlogImportModal
+        isOpen={showBlogModal}
+        onClose={() => setShowBlogModal(false)}
         onImportComplete={handleSocialImportComplete}
         knowledgeBaseId={selectedKb ?? undefined}
       />
