@@ -700,7 +700,7 @@ export const api = {
 
     /** Start a social media import job */
     startSocialImport: async (data: {
-      platform: 'youtube' | 'instagram';
+      platform: 'youtube' | 'instagram' | 'blog';
       url: string;
       knowledgeBaseId?: string;
       useForVoiceMatching?: boolean; // Include in voice matching (default true for user's own content)

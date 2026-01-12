@@ -21,8 +21,8 @@ interface SocialImportModalProps {
   knowledgeBaseId?: string;
 }
 
-type Platform = 'youtube';
-type AllPlatforms = 'youtube' | 'instagram';
+type Platform = 'youtube' | 'blog';
+type AllPlatforms = 'youtube' | 'instagram' | 'blog';
 type ImportStatus = 'idle' | 'importing' | 'polling' | 'success' | 'error';
 
 const PLATFORM_CONFIG: Record<Platform, {
@@ -38,6 +38,13 @@ const PLATFORM_CONFIG: Record<Platform, {
     placeholder: 'Paste any YouTube link',
     hint: 'Works with any link format - videos, channels, playlists, or share links',
     color: 'bg-red-500',
+  },
+  blog: {
+    name: 'Blog',
+    icon: '📝',
+    placeholder: 'https://yourblog.com or RSS feed URL',
+    hint: 'Auto-discovers RSS/Atom feeds or sitemaps. Imports up to 100 posts.',
+    color: 'bg-orange-500',
   },
 };
 
@@ -351,17 +358,25 @@ export function SocialImportModal({
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 {status === 'polling'
-                  ? 'Analyzing content and extracting transcripts...'
+                  ? selectedPlatform === 'blog'
+                    ? 'Discovering feed and fetching blog posts...'
+                    : 'Analyzing content and extracting transcripts...'
                   : 'Connecting to ' + (selectedPlatform ? PLATFORM_CONFIG[selectedPlatform].name : 'platform')}
               </p>
 
               {status === 'polling' && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                  {pollCount < 12
-                    ? 'This usually takes 1-2 minutes for single videos'
-                    : pollCount < 36
-                    ? 'Processing... channels and playlists take longer'
-                    : 'Still working... almost there'}
+                  {selectedPlatform === 'blog'
+                    ? pollCount < 12
+                      ? 'This usually takes 1-2 minutes'
+                      : pollCount < 36
+                      ? 'Processing... blogs with many posts take longer'
+                      : 'Still working... almost there'
+                    : pollCount < 12
+                      ? 'This usually takes 1-2 minutes for single videos'
+                      : pollCount < 36
+                      ? 'Processing... channels and playlists take longer'
+                      : 'Still working... almost there'}
                 </p>
               )}
             </div>
