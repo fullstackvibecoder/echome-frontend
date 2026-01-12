@@ -81,18 +81,6 @@ export default function AppDashboard() {
   const progressStep = progress ? mapStepToIndex(progress.step) : 0;
   const [currentTip, setCurrentTip] = useState(0);
 
-  // Show loading state while checking/redirecting for pending checkout
-  if (checkingPendingPlan || checkoutLoading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-        <p className="text-text-secondary">
-          {checkoutLoading ? 'Redirecting to checkout...' : 'Loading...'}
-        </p>
-      </div>
-    );
-  }
-
   // Carousel state - now handled by backend background job
   const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[] | null>(null);
   const [carouselLoading, setCarouselLoading] = useState(false);
@@ -125,7 +113,6 @@ export default function AppDashboard() {
       showNotificationIfHidden('Content Ready!', 'Your content has been generated and is ready to view.');
     }
   }, [progressComplete]);
-
 
   // Request notification permission on first generation
   useEffect(() => {
@@ -188,6 +175,19 @@ export default function AppDashboard() {
       setCarouselError('Carousel generation failed. Try regenerating.');
     }
   }, [carouselFailed]);
+
+  // Show loading state while checking/redirecting for pending checkout
+  // (Must be AFTER all hooks to follow rules of hooks)
+  if (checkingPendingPlan || checkoutLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+        <p className="text-text-secondary">
+          {checkoutLoading ? 'Redirecting to checkout...' : 'Loading...'}
+        </p>
+      </div>
+    );
+  }
 
   const handleGenerate = async (
     input: string,
