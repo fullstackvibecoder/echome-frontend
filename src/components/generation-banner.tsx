@@ -7,7 +7,7 @@
  * Allows users to navigate away and still see progress.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useGenerationProgress, GENERATION_STEPS, mapStepToIndex } from '@/hooks/useGenerationProgress';
 import {
@@ -98,11 +98,44 @@ interface GenerationBannerProps {
   className?: string;
 }
 
+// Max age for a generation before we consider it stale (3 minutes)
+const MAX_GENERATION_AGE_MS = 3 * 60 * 1000;
+// Time to wait for SSE connection before clearing (10 seconds)
+const SSE_CONNECTION_TIMEOUT_MS = 10 * 1000;
+
 export function GenerationBanner({ className = '' }: GenerationBannerProps) {
   const { activeGeneration, clearActiveGeneration: clearActive } = useActiveGeneration();
   const { progress, isConnected, isComplete, hasError } = useGenerationProgress(
     activeGeneration?.requestId ?? null
   );
+  const [shouldHide, setShouldHide] = useState(false);
+
+  // Auto-clear stale generations (older than MAX_GENERATION_AGE_MS)
+  useEffect(() => {
+    if (activeGeneration && activeGeneration.startedAt) {
+      const age = Date.now() - activeGeneration.startedAt;
+      if (age > MAX_GENERATION_AGE_MS) {
+        console.log('Clearing stale generation banner (too old)');
+        clearActive();
+        setShouldHide(true);
+      }
+    }
+  }, [activeGeneration, clearActive]);
+
+  // Auto-clear if SSE doesn't connect within timeout
+  useEffect(() => {
+    if (!activeGeneration) return;
+
+    const timer = setTimeout(() => {
+      if (!isConnected && !progress) {
+        console.log('Clearing generation banner (SSE connection timeout)');
+        clearActive();
+        setShouldHide(true);
+      }
+    }, SSE_CONNECTION_TIMEOUT_MS);
+
+    return () => clearTimeout(timer);
+  }, [activeGeneration, isConnected, progress, clearActive]);
 
   // Show notification when complete (if tab is hidden)
   useEffect(() => {
@@ -125,8 +158,8 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     }
   }, [hasError, clearActive]);
 
-  // Don't render if no active generation or if complete/error
-  if (!activeGeneration || isComplete || hasError) {
+  // Don't render if no active generation, complete, error, or manually hidden
+  if (!activeGeneration || isComplete || hasError || shouldHide) {
     return null;
   }
 
