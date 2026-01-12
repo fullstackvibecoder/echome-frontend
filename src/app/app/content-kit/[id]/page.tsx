@@ -169,6 +169,35 @@ export default function ContentKitDetailPage() {
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
   const typeConfig = item ? CONTENT_TYPE_CONFIG[item.type] : null;
 
+  // Check if Instagram content was generated (means carousel should be coming)
+  const hasInstagramContent = platformContent.some(p => p.platform === 'instagram') ||
+    detail?.contentKit?.contentInstagram;
+
+  // Show carousel loading when: Instagram content exists, no carousel yet, and item was created recently
+  const itemCreatedRecently = item?.createdAt &&
+    (Date.now() - new Date(item.createdAt).getTime()) < 5 * 60 * 1000; // 5 minutes
+  const carouselExpected = hasInstagramContent && !hasCarousel && itemCreatedRecently;
+
+  // Poll for carousel completion when carousel is expected but not ready
+  useEffect(() => {
+    if (!carouselExpected) return;
+
+    // Poll every 5 seconds for up to 3 minutes
+    const pollInterval = setInterval(() => {
+      refresh();
+    }, 5000);
+
+    // Stop polling after 3 minutes
+    const timeout = setTimeout(() => {
+      clearInterval(pollInterval);
+    }, 3 * 60 * 1000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
+    };
+  }, [carouselExpected, refresh]);
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Back Button */}
@@ -504,8 +533,8 @@ export default function ContentKitDetailPage() {
             </section>
           )}
 
-          {/* Instagram Carousel Loading State - only show when actively generating carousel */}
-          {hasWrittenContent && !hasCarousel && (progress?.step === 'carousel' || (isProcessing && progress?.step === 'complete')) && (
+          {/* Instagram Carousel Loading State - show when carousel is expected but not ready */}
+          {carouselExpected && (
             <section id="carousel-section">
               <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
                 <span>📸</span>
