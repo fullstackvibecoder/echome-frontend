@@ -1285,7 +1285,9 @@ export const api = {
         imageUrl?: string;
       };
     }) => {
-      const response = await apiClient.post(`/clips/${uploadId}/process`, config || {});
+      const response = await apiClient.post(`/clips/${uploadId}/process`, config || {}, {
+        timeout: 300000, // 5 minutes for video processing
+      });
       return response.data as {
         success: boolean;
         data: {
