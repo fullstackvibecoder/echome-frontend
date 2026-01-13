@@ -888,7 +888,7 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-stone-200">
                     {[
-                      '100 video minutes/month',
+                      '2 hours of video processing',
                       '5 clips per video',
                       '1 Knowledge Base',
                       '3 Creator Radar slots',
@@ -944,13 +944,13 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-white/30">
                     {[
-                      '300 video minutes/month',
+                      '5 hours of video processing',
                       '10 clips per video',
                       '3 Knowledge Bases',
                       '10 Creator Radar slots',
                       'All templates + custom colors',
                       '1080p exports',
-                      'Email import (25MB limit)',
+                      'Email import (50 emails)',
                       'Priority processing queue'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
@@ -998,13 +998,13 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-stone-200">
                     {[
-                      'Unlimited video minutes',
+                      'Unlimited video processing',
                       '15 clips per video',
                       'Unlimited Knowledge Bases',
                       'Unlimited Creator Radar',
                       'Custom carousel design system',
                       '1080p exports',
-                      'Email import (100MB limit)',
+                      'Email import (100 emails)',
                       'Priority processing queue',
                       'Priority support'
                     ].map((feature, idx) => (

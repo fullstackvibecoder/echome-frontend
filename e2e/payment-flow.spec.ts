@@ -10,7 +10,7 @@ import { testStripe } from './fixtures/test-data';
 
 test.describe('Payment & Subscription Flow', () => {
   test.describe('Pricing Page', () => {
-    test('Displays both pricing tiers', async ({ page }) => {
+    test('Displays all three pricing tiers', async ({ page }) => {
       await page.goto('/');
 
       // Scroll to pricing section
@@ -24,30 +24,31 @@ test.describe('Payment & Subscription Flow', () => {
 
       // Check Echo tier ($29)
       await expect(page.locator('body')).toContainText('$29');
-      await expect(page.locator('body')).toContainText(/echo(?!\s*pro)/i);
+      await expect(page.locator('body')).toContainText(/echo(?!\s*(studio|pro))/i);
 
-      // Check Echo Pro tier ($59)
-      await expect(page.locator('body')).toContainText('$59');
+      // Check Echo Studio tier ($49)
+      await expect(page.locator('body')).toContainText('$49');
+      await expect(page.locator('body')).toContainText(/echo\s*studio/i);
+
+      // Check Echo Pro tier ($99)
+      await expect(page.locator('body')).toContainText('$99');
       await expect(page.locator('body')).toContainText(/echo\s*pro/i);
     });
 
     test('Echo tier shows correct features', async ({ page }) => {
       await page.goto('/');
 
-      // Find Echo tier card
-      const echoCard = page.locator('[data-tier="echo"], .pricing-card').first();
-
       // Should mention key features
-      await expect(page.locator('body')).toContainText(/video minutes/i);
-      await expect(page.locator('body')).toContainText(/clips/i);
+      await expect(page.locator('body')).toContainText(/hours of video processing/i);
+      await expect(page.locator('body')).toContainText(/clips per video/i);
     });
 
     test('Echo Pro tier shows correct features', async ({ page }) => {
       await page.goto('/');
 
       // Should show pro features
-      await expect(page.locator('body')).toContainText(/unlimited|500.*minutes/i);
-      await expect(page.locator('body')).toContainText(/4k/i);
+      await expect(page.locator('body')).toContainText(/unlimited video processing/i);
+      await expect(page.locator('body')).toContainText(/email import/i);
     });
 
     test('CTA buttons exist for both tiers', async ({ page }) => {

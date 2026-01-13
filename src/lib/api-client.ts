@@ -1812,7 +1812,7 @@ export interface StripePlan {
     knowledgeBases: number;
     creatorRadar: number;
     exportQuality: string;
-    emailImportMaxMB: number;
+    emailImportMaxEmails: number;
   };
   trialDays?: number;
 }
@@ -1860,7 +1860,7 @@ export interface StripeUsageLimits {
   videoMinutesPerMonth: number;
   clipsPerVideo: number;
   exportQuality: string;
-  emailImportMaxMB: number;
+  emailImportMaxEmails: number;
 }
 
 export interface StripeUsageLimitsResponse {
