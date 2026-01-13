@@ -23,10 +23,13 @@ export function useFileUpload(): UseFileUploadReturn {
   const [uploading, setUploading] = useState(false);
 
   const addFiles = useCallback((newFiles: File[]) => {
+    console.log('[useFileUpload] addFiles called with', newFiles.length, 'files');
     const validatedFiles: FileWithProgress[] = [];
 
     newFiles.forEach((file) => {
+      console.log('[useFileUpload] Processing file:', { name: file.name, type: file.type, size: file.size });
       const validation = validateFile(file);
+      console.log('[useFileUpload] Validation result:', validation);
 
       if (validation.valid) {
         validatedFiles.push({
@@ -47,6 +50,7 @@ export function useFileUpload(): UseFileUploadReturn {
       }
     });
 
+    console.log('[useFileUpload] Adding', validatedFiles.length, 'validated files to state');
     setFiles((prev) => [...prev, ...validatedFiles]);
   }, []);
 

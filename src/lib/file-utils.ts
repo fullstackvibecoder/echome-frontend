@@ -43,12 +43,21 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
     return { valid: true };
   }
 
-  // Check file type
+  // Check file type - also check by extension for edge cases where MIME type is wrong
   const acceptedTypes = Object.keys(ACCEPTED_FILE_TYPES);
-  if (!acceptedTypes.includes(file.type)) {
+  const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+  const acceptedExtensions = Object.values(ACCEPTED_FILE_TYPES).flat();
+
+  // PDF files can have various MIME types depending on OS/browser
+  const isPdf = file.name.toLowerCase().endsWith('.pdf') ||
+                file.type === 'application/pdf' ||
+                file.type === 'application/x-pdf';
+
+  if (!acceptedTypes.includes(file.type) && !acceptedExtensions.includes(fileExtension) && !isPdf) {
+    console.log('[file-utils] Rejected file:', { name: file.name, type: file.type, extension: fileExtension });
     return {
       valid: false,
-      error: 'File type not supported',
+      error: `File type not supported: ${file.type || 'unknown'}`,
     };
   }
 
