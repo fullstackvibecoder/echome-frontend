@@ -46,7 +46,7 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
   // Check file type - also check by extension for edge cases where MIME type is wrong
   const acceptedTypes = Object.keys(ACCEPTED_FILE_TYPES);
   const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-  const acceptedExtensions = Object.values(ACCEPTED_FILE_TYPES).flat();
+  const acceptedExtensions: string[] = Object.values(ACCEPTED_FILE_TYPES).flat();
 
   // PDF files can have various MIME types depending on OS/browser
   const isPdf = file.name.toLowerCase().endsWith('.pdf') ||
