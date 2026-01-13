@@ -14,8 +14,10 @@ import { useContentKitDetail } from '@/hooks/useContentKit';
 import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS } from '@/hooks/useGenerationProgress';
 import { VideoPlayer } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
+import { ScheduleModal } from '@/components/scheduling';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
+import { ContentCategory } from '@/types';
 
 // Progress step component
 function ProgressStep({
@@ -66,6 +68,8 @@ export default function ContentKitDetailPage() {
     aspectRatio: '1:1' | '9:16';
     slides: Array<{ slideNumber: number; publicUrl: string; text: string; template: string }>;
   } | null>(null);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -115,6 +119,31 @@ export default function ContentKitDetailPage() {
       console.error('Failed to resize carousel:', err);
     } finally {
       setResizing(false);
+    }
+  };
+
+  const handleScheduleSave = async (data: {
+    contentKitId: string;
+    scheduledFor: string;
+    platforms: string[];
+    contentCategory?: ContentCategory;
+    notes?: string;
+  }) => {
+    setScheduling(true);
+    try {
+      await api.scheduling.create({
+        contentKitId: data.contentKitId,
+        scheduledFor: data.scheduledFor,
+        platforms: data.platforms,
+        contentCategory: data.contentCategory,
+        notes: data.notes,
+      });
+      setScheduleModalOpen(false);
+    } catch (err) {
+      console.error('Failed to schedule content:', err);
+      throw err;
+    } finally {
+      setScheduling(false);
     }
   };
 
@@ -272,14 +301,25 @@ export default function ContentKitDetailPage() {
                   )}
                 </div>
               </div>
-              <button
-                onClick={refresh}
-                disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-accent bg-bg-tertiary rounded-lg transition-colors"
-              >
-                <span className={loading ? 'animate-spin' : ''}>↻</span>
-                <span>Refresh</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={refresh}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-accent bg-bg-tertiary rounded-lg transition-colors"
+                >
+                  <span className={loading ? 'animate-spin' : ''}>↻</span>
+                  <span>Refresh</span>
+                </button>
+                {!isProcessing && item?.status === 'completed' && (
+                  <button
+                    onClick={() => setScheduleModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <span>📅</span>
+                    <span>Schedule</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Processing State with Step Progress */}
@@ -811,6 +851,21 @@ export default function ContentKitDetailPage() {
             </Link>
           </div>
         </div>
+      )}
+
+      {/* Schedule Modal */}
+      {item && (
+        <ScheduleModal
+          isOpen={scheduleModalOpen}
+          onClose={() => setScheduleModalOpen(false)}
+          onSave={handleScheduleSave}
+          unscheduledContent={[{
+            id: item.id,
+            title: item.title,
+            thumbnailUrl: detail?.clips?.[0]?.thumbnailUrl || detail?.carousel?.slides?.[0]?.publicUrl,
+            createdAt: item.createdAt,
+          }]}
+        />
       )}
     </div>
   );

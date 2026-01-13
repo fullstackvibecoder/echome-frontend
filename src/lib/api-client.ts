@@ -1563,6 +1563,160 @@ export const api = {
       return response.data;
     },
   },
+
+  // -------- CONTENT SCHEDULING --------
+  scheduling: {
+    /** List scheduled posts for a date range */
+    list: async (filters?: {
+      startDate?: string;
+      endDate?: string;
+      status?: 'scheduled' | 'posted' | 'skipped';
+      contentCategory?: string;
+    }) => {
+      const response = await apiClient.get('/scheduling', { params: filters });
+      // Transform snake_case to camelCase
+      const posts = (response.data.data?.posts || []).map((post: any) => ({
+        id: post.id,
+        contentKitId: post.content_kit_id,
+        generatedContentId: post.generated_content_id,
+        scheduledFor: post.scheduled_for,
+        platforms: post.platforms,
+        contentCategory: post.content_category,
+        status: post.status,
+        postedAt: post.posted_at,
+        notes: post.notes,
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+        contentKit: post.content_kit ? {
+          id: post.content_kit.id,
+          title: post.content_kit.title,
+          description: post.content_kit.description,
+          thumbnailUrl: post.content_kit.thumbnail_url,
+        } : undefined,
+      }));
+      return {
+        success: response.data.success,
+        data: { posts },
+        timestamp: response.data.timestamp,
+      };
+    },
+
+    /** Get AI-suggested schedule for a week */
+    getSuggestions: async (weekStart?: string) => {
+      const response = await apiClient.get('/scheduling/suggestions', {
+        params: { weekStart },
+      });
+      return response.data;
+    },
+
+    /** Get content kits that haven't been scheduled */
+    getUnscheduled: async () => {
+      const response = await apiClient.get('/scheduling/unscheduled');
+      // Transform snake_case to camelCase
+      const content = (response.data.data?.content || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        thumbnailUrl: item.thumbnailUrl || item.thumbnail_url,
+        createdAt: item.createdAt || item.created_at,
+      }));
+      return {
+        success: response.data.success,
+        data: { content },
+        timestamp: response.data.timestamp,
+      };
+    },
+
+    /** Get available content categories */
+    getCategories: async () => {
+      const response = await apiClient.get('/scheduling/categories');
+      return response.data;
+    },
+
+    /** Create a scheduled post */
+    create: async (data: {
+      contentKitId?: string;
+      generatedContentId?: string;
+      scheduledFor: string;
+      platforms: string[];
+      contentCategory?: string;
+      notes?: string;
+    }) => {
+      const response = await apiClient.post('/scheduling', data);
+      const post = response.data.data?.post;
+      return {
+        success: response.data.success,
+        data: {
+          post: post ? {
+            id: post.id,
+            contentKitId: post.content_kit_id,
+            generatedContentId: post.generated_content_id,
+            scheduledFor: post.scheduled_for,
+            platforms: post.platforms,
+            contentCategory: post.content_category,
+            status: post.status,
+            postedAt: post.posted_at,
+            notes: post.notes,
+            createdAt: post.created_at,
+            updatedAt: post.updated_at,
+          } : undefined,
+        },
+        timestamp: response.data.timestamp,
+      };
+    },
+
+    /** Update a scheduled post */
+    update: async (
+      id: string,
+      data: {
+        scheduledFor?: string;
+        platforms?: string[];
+        contentCategory?: string;
+        status?: 'scheduled' | 'posted' | 'skipped';
+        notes?: string;
+      }
+    ) => {
+      const response = await apiClient.patch(`/scheduling/${id}`, data);
+      const post = response.data.data?.post;
+      return {
+        success: response.data.success,
+        data: {
+          post: post ? {
+            id: post.id,
+            contentKitId: post.content_kit_id,
+            generatedContentId: post.generated_content_id,
+            scheduledFor: post.scheduled_for,
+            platforms: post.platforms,
+            contentCategory: post.content_category,
+            status: post.status,
+            postedAt: post.posted_at,
+            notes: post.notes,
+            createdAt: post.created_at,
+            updatedAt: post.updated_at,
+          } : undefined,
+        },
+        timestamp: response.data.timestamp,
+      };
+    },
+
+    /** Delete a scheduled post */
+    delete: async (id: string) => {
+      const response = await apiClient.delete(`/scheduling/${id}`);
+      return response.data;
+    },
+
+    /** Mark a scheduled post as posted */
+    markPosted: async (id: string) => {
+      const response = await apiClient.post(`/scheduling/${id}/mark-posted`);
+      return response.data;
+    },
+
+    /** Mark a scheduled post as skipped */
+    skip: async (id: string) => {
+      const response = await apiClient.post(`/scheduling/${id}/skip`);
+      return response.data;
+    },
+  },
 };
 
 // Types for creator monitoring

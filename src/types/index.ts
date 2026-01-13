@@ -687,3 +687,153 @@ export interface ContentKitStats {
 
 export type ContentKitFilter = 'all' | 'videos' | 'written' | 'carousels';
 export type ContentKitSort = 'recent' | 'voice-score' | 'status';
+
+// ============================================
+// CONTENT SCHEDULING TYPES (TLL Methodology)
+// ============================================
+
+/**
+ * Content category based on TLL content methodology
+ */
+export type ContentCategory =
+  | 'authority'        // Educational/expert content
+  | 'personal_story'   // Personal/lifestyle content
+  | 'pain_problem'     // Pain point content
+  | 'testimonial';     // Case study/results content
+
+/**
+ * Status of a scheduled post
+ */
+export type ScheduleStatus = 'scheduled' | 'posted' | 'skipped';
+
+/**
+ * Time slots for posting based on TLL methodology
+ */
+export type TimeSlot = 'morning' | 'lunch' | 'evening';
+
+/**
+ * A scheduled post entry in the content calendar
+ */
+export interface ScheduledPost {
+  id: string;
+  contentKitId?: string;
+  generatedContentId?: string;
+  scheduledFor: string;
+  platforms: string[];
+  contentCategory?: ContentCategory;
+  status: ScheduleStatus;
+  postedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Joined data
+  contentKit?: {
+    id: string;
+    title?: string;
+    description?: string;
+    thumbnailUrl?: string;
+  };
+}
+
+/**
+ * Input for creating a scheduled post
+ */
+export interface ScheduledPostInput {
+  contentKitId?: string;
+  generatedContentId?: string;
+  scheduledFor: string;
+  platforms: string[];
+  contentCategory?: ContentCategory;
+  notes?: string;
+}
+
+/**
+ * Input for updating a scheduled post
+ */
+export interface ScheduledPostUpdate {
+  scheduledFor?: string;
+  platforms?: string[];
+  contentCategory?: ContentCategory;
+  status?: ScheduleStatus;
+  notes?: string;
+}
+
+/**
+ * AI-generated scheduling suggestion based on TLL methodology
+ */
+export interface ScheduleSuggestion {
+  date: string;
+  timeSlot: TimeSlot;
+  suggestedTime: string;
+  suggestedCategory: ContentCategory;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+/**
+ * Recommendation for content category mix
+ */
+export interface CategoryRecommendation {
+  category: ContentCategory;
+  needed: number;
+  message: string;
+}
+
+/**
+ * Weekly analysis from the scheduling suggestions service
+ */
+export interface WeeklyAnalysis {
+  weekStart: string;
+  weekEnd: string;
+  currentStats: Record<ContentCategory, number>;
+  recommendations: CategoryRecommendation[];
+  suggestions: ScheduleSuggestion[];
+  totalScheduled: number;
+  isBalanced: boolean;
+}
+
+/**
+ * Content category display configuration
+ */
+export const CONTENT_CATEGORY_CONFIG: Record<ContentCategory, {
+  label: string;
+  description: string;
+  color: string;
+  icon: string;
+}> = {
+  authority: {
+    label: 'Authority/Educational',
+    description: 'Expert tips, how-to content, industry insights',
+    color: 'blue',
+    icon: 'graduation-cap',
+  },
+  personal_story: {
+    label: 'Personal Story/Lifestyle',
+    description: 'Behind the scenes, personal experiences, daily life',
+    color: 'purple',
+    icon: 'user',
+  },
+  pain_problem: {
+    label: 'Pain/Problem',
+    description: 'Address challenges, speak to struggles, empathize',
+    color: 'orange',
+    icon: 'alert-circle',
+  },
+  testimonial: {
+    label: 'Testimonial/Case Study',
+    description: 'Success stories, client results, social proof',
+    color: 'green',
+    icon: 'star',
+  },
+};
+
+/**
+ * Unscheduled content item (content kit without a scheduled post)
+ */
+export interface UnscheduledContent {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string;
+  createdAt: string;
+}
