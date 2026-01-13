@@ -73,7 +73,9 @@ export function useAuth(): UseAuthReturn {
       if (response.success && response.data) {
         localStorage.setItem('authToken', response.data.token);
         setUser(response.data.user);
-        router.push('/onboarding');
+        // Skip onboarding for now - send users straight to dashboard
+        // TODO: Re-enable onboarding once improved
+        router.push('/app');
       } else {
         throw new Error(response.error || 'Signup failed');
       }
