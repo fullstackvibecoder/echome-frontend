@@ -63,10 +63,26 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
       setError(null);
       const response = await api.kb.list();
       if (response.success && response.data) {
-        setKbs(response.data);
+        let kbList = response.data;
+
+        // Auto-create default KB if user has none
+        if (kbList.length === 0) {
+          console.log('[useKnowledgeBase] No KBs found, creating default');
+          try {
+            const createResponse = await api.kb.create('My Knowledge Base');
+            if (createResponse.success && createResponse.data) {
+              kbList = [createResponse.data];
+              console.log('[useKnowledgeBase] Created default KB:', createResponse.data.id);
+            }
+          } catch (createErr) {
+            console.error('[useKnowledgeBase] Failed to create default KB:', createErr);
+          }
+        }
+
+        setKbs(kbList);
         // Auto-select first KB if none selected
-        if (response.data.length > 0 && !selectedKb) {
-          setSelectedKb(response.data[0].id);
+        if (kbList.length > 0 && !selectedKb) {
+          setSelectedKb(kbList[0].id);
         }
       }
     } catch (err) {
