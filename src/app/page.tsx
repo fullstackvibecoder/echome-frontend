@@ -1187,6 +1187,8 @@ export default function Home() {
               <ul className="space-y-3 text-white/70 font-light">
                 <li><Link href="/auth/login" className="hover:text-[#B794F6] transition-colors duration-200">Sign In</Link></li>
                 <li><Link href="/auth/signup" className="hover:text-[#B794F6] transition-colors duration-200">Sign Up</Link></li>
+                <li><Link href="/privacy" className="hover:text-[#B794F6] transition-colors duration-200">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-[#B794F6] transition-colors duration-200">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
@@ -1198,7 +1200,7 @@ export default function Home() {
           <div className="text-center text-white/60 text-sm font-light flex flex-col md:flex-row items-center justify-center gap-3">
             <div className="flex items-center gap-2">
               <Image src="/media/echo-mini.svg" alt="" aria-hidden="true" width={20} height={20} className="echo-wave-hover inline-block" />
-              <span>© 2024 EchoMe Inc. All rights reserved.</span>
+              <span>© 2025 EchoMe Inc. All rights reserved.</span>
             </div>
             <span className="hidden md:inline text-white/30">•</span>
             <span className="bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent font-medium">

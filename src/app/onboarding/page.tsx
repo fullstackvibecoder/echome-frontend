@@ -7,6 +7,10 @@ import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { UploadZone } from '@/components/upload-zone';
 
+// TEMPORARY: Onboarding disabled while being improved
+// Set to false to re-enable onboarding
+const ONBOARDING_DISABLED = true;
+
 type InputMethod = 'paste' | 'upload' | 'youtube' | null;
 type ContentStatus = 'processing' | 'completed' | 'error';
 
@@ -24,6 +28,13 @@ const MIN_CONTENT_ITEMS = 3;
 export default function OnboardingPage() {
   const router = useRouter();
   const { kbs, loading: kbLoading, refresh } = useKnowledgeBase();
+
+  // Redirect to dashboard if onboarding is disabled
+  useEffect(() => {
+    if (ONBOARDING_DISABLED) {
+      router.replace('/app');
+    }
+  }, [router]);
 
   const [activeMethod, setActiveMethod] = useState<InputMethod>(null);
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
@@ -211,6 +222,15 @@ export default function OnboardingPage() {
   if (kbLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show loading while redirecting (onboarding disabled)
+  if (ONBOARDING_DISABLED) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
