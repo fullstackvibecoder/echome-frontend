@@ -116,9 +116,9 @@ export default function CalendarPage() {
           />
         </div>
 
-        {/* Sidebar - TLL balance and tips */}
+        {/* Sidebar - content balance and tips */}
         <div className="space-y-6">
-          {/* TLL Balance */}
+          {/* Content Mix Balance */}
           <WeekSuggestions
             analysis={weeklyAnalysis}
             loading={loading}

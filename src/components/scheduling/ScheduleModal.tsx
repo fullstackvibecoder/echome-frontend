@@ -319,7 +319,7 @@ export function ScheduleModal({
             {/* Content Category */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Content Category (TLL Methodology)
+                Content Category
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map(

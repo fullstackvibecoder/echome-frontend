@@ -38,7 +38,7 @@ const TLL_TARGETS: Record<ContentCategory, { min: number; max: number }> = {
 };
 
 /**
- * Panel showing TLL methodology-based scheduling suggestions
+ * Panel showing content mix scheduling suggestions
  */
 export function WeekSuggestions({
   analysis,
@@ -75,10 +75,10 @@ export function WeekSuggestions({
       <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
         <div className="flex items-center gap-2">
           <Lightbulb className="w-5 h-5 text-purple-600" />
-          <h3 className="font-semibold text-gray-900">TLL Content Mix</h3>
+          <h3 className="font-semibold text-gray-900">Weekly Content Mix</h3>
         </div>
         <p className="text-xs text-gray-600 mt-1">
-          Based on The Listings Lab methodology for optimal engagement
+          Balanced content categories for optimal engagement
         </p>
       </div>
 
@@ -238,10 +238,10 @@ export function WeekSuggestions({
         </div>
       )}
 
-      {/* TLL Methodology Info */}
+      {/* Methodology Info */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
         <p className="text-xs text-gray-500 text-center">
-          Based on The Listings Lab weekly posting mix:
+          Recommended weekly posting mix:
           <br />
           2-3 Authority • 2-3 Personal • 1-2 Pain/Problem • 1-2 Testimonial
         </p>
