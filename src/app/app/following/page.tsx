@@ -18,17 +18,11 @@ const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
 ];
 
 // Carousel design preset options
-type CarouselDesignOption = DesignPreset | 'upload';
-const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string }[] = [
-  { value: 'auto', label: 'Auto (Smart)', description: 'Auto-select best template per slide' },
-  { value: 'bold-statement', label: 'Bold Statement', description: 'Minimal, punchy hooks - pattern interrupt' },
-  { value: 'data-point', label: 'Data Point', description: 'Stats + context with visual hierarchy' },
-  { value: 'insight-card', label: 'Insight Card', description: 'Quotable, memorable insights' },
-  { value: 'story-lesson', label: 'Story/Lesson', description: 'Personal, vulnerable moments' },
-  { value: 'action-cta', label: 'Action CTA', description: 'High-energy calls to action' },
-  { value: 'list-steps', label: 'List/Steps', description: 'Numbered actionable steps' },
+type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
+const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
   { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
-  { value: 'upload', label: 'Upload Custom', description: 'Use your own background' },
+  { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
+  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Coming soon - frames from your video', disabled: true },
 ];
 
 // Extended content with creator info
@@ -62,7 +56,7 @@ export default function FollowingPage() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
   const [repurposing, setRepurposing] = useState(false);
@@ -314,7 +308,10 @@ export default function FollowingPage() {
       }
 
       // Build design preset config
-      let designPreset: DesignPreset = carouselDesignOption === 'upload' ? 'auto' : carouselDesignOption;
+      // video-snapshot is coming soon and disabled, so default to tweet-style if somehow selected
+      let designPreset: DesignPreset = (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot')
+        ? 'tweet-style'
+        : carouselDesignOption;
       let carouselBackground: { type: 'image'; imageUrl: string } | undefined;
 
       if (carouselDesignOption === 'upload' && carouselBgFile) {
@@ -768,7 +765,9 @@ export default function FollowingPage() {
                         className="px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                       >
                         {DESIGN_PRESET_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                            {opt.label}{opt.disabled ? ' (Coming Soon)' : ''}
+                          </option>
                         ))}
                       </select>
                     </div>

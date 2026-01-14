@@ -273,18 +273,12 @@ const VIDEO_PROCESSING_STAGES: Record<string, {
 };
 
 // Carousel design preset options for the dropdown
-type CarouselDesignOption = DesignPreset | 'upload';
+type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
 
-const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string }[] = [
-  { value: 'auto', label: 'Auto (Smart)', description: 'Auto-select best template per slide' },
-  { value: 'bold-statement', label: 'Bold Statement', description: 'Minimal, punchy hooks - pattern interrupt' },
-  { value: 'data-point', label: 'Data Point', description: 'Stats + context with visual hierarchy' },
-  { value: 'insight-card', label: 'Insight Card', description: 'Quotable, memorable insights' },
-  { value: 'story-lesson', label: 'Story/Lesson', description: 'Personal, vulnerable moments' },
-  { value: 'action-cta', label: 'Action CTA', description: 'High-energy calls to action' },
-  { value: 'list-steps', label: 'List/Steps', description: 'Numbered actionable steps' },
+const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
   { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
-  { value: 'upload', label: 'Upload Custom', description: 'Use your own background' },
+  { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
+  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Coming soon - frames from your video', disabled: true },
 ];
 
 // Caption style options for video clips
@@ -347,7 +341,7 @@ export function FirstGeneration({
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Carousel design preset state
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
 
@@ -616,7 +610,9 @@ export function FirstGeneration({
 
   // Get current design preset for new API
   const getDesignPreset = (): DesignPreset => {
-    if (carouselDesignOption === 'upload') return 'auto';
+    if (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot') {
+      return 'tweet-style';
+    }
     return carouselDesignOption;
   };
 
@@ -1122,32 +1118,17 @@ export function FirstGeneration({
             className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
           >
             {DESIGN_PRESET_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+              <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                {opt.label}{opt.disabled ? ' (Coming Soon)' : ''}
               </option>
             ))}
           </select>
         </div>
 
         {/* Show description for selected preset */}
-        {carouselDesignOption !== 'upload' && (
-          <p className="mt-2 text-small text-text-secondary">
-            {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
-          </p>
-        )}
-
-        {/* Link to examples page */}
-        <a
-          href="/examples#carousel-templates"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 text-small text-accent hover:underline inline-flex items-center gap-1"
-        >
-          See all template examples
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
+        <p className="mt-2 text-small text-text-secondary">
+          {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
+        </p>
 
         {/* Conditional Upload Field */}
         {carouselDesignOption === 'upload' && (
