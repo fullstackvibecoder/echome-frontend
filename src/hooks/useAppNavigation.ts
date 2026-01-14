@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useNavigationContext } from '@/contexts/navigation-context';
 
 export interface NavItem {
   id: string;
@@ -18,7 +18,6 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'calendar', label: 'Calendar', icon: '📅', path: '/app/calendar' },
   { id: 'billing', label: 'Billing', icon: '💳', path: '/app/billing' },
   { id: 'settings', label: 'Settings', icon: '⚙️', path: '/app/settings' },
-  // Profile removed - consolidated into Settings page
 ];
 
 interface UseAppNavigationReturn {
@@ -32,7 +31,7 @@ interface UseAppNavigationReturn {
 export function useAppNavigation(): UseAppNavigationReturn {
   const pathname = usePathname();
   const router = useRouter();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useNavigationContext();
 
   // Determine active nav item based on current path
   const activeItem = NAV_ITEMS.find((item) => {
@@ -44,21 +43,8 @@ export function useAppNavigation(): UseAppNavigationReturn {
 
   const navigate = (path: string) => {
     router.push(path);
-    setIsMobileMenuOpen(false);
+    closeMobileMenu();
   };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((prev) => !prev);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
 
   return {
     activeItem,
