@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Star,
   CalendarPlus,
+  Music2,
 } from 'lucide-react';
 import { ContentCategory, CONTENT_CATEGORY_CONFIG } from '@/types';
 
@@ -31,11 +32,15 @@ interface QuickScheduleModalProps {
   }) => Promise<void>;
   contentKitId: string;
   contentTitle: string;
+  /** Single platform to pre-select */
   defaultPlatform?: string;
+  /** Multiple platforms to pre-select (takes precedence over defaultPlatform) */
+  defaultPlatforms?: string[];
 }
 
 const PLATFORMS = [
   { id: 'instagram', label: 'Instagram', icon: Instagram },
+  { id: 'tiktok', label: 'TikTok', icon: Music2 },
   { id: 'linkedin', label: 'LinkedIn', icon: Linkedin },
   { id: 'twitter', label: 'Twitter/X', icon: Twitter },
   { id: 'facebook', label: 'Facebook', icon: Facebook },
@@ -67,6 +72,7 @@ export function QuickScheduleModal({
   contentKitId,
   contentTitle,
   defaultPlatform,
+  defaultPlatforms,
 }: QuickScheduleModalProps) {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('12:30');
@@ -84,12 +90,19 @@ export function QuickScheduleModal({
       tomorrow.setDate(tomorrow.getDate() + 1);
       setSelectedDate(tomorrow.toISOString().split('T')[0]);
       setSelectedTime('12:30');
-      setSelectedPlatforms(defaultPlatform ? [defaultPlatform] : ['linkedin']);
+      // Use defaultPlatforms array if provided, otherwise fall back to single defaultPlatform
+      if (defaultPlatforms && defaultPlatforms.length > 0) {
+        setSelectedPlatforms(defaultPlatforms);
+      } else if (defaultPlatform) {
+        setSelectedPlatforms([defaultPlatform]);
+      } else {
+        setSelectedPlatforms(['linkedin']);
+      }
       setSelectedCategory('');
       setNotes('');
       setError(null);
     }
-  }, [isOpen, defaultPlatform]);
+  }, [isOpen, defaultPlatform, defaultPlatforms]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

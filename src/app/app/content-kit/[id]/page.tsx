@@ -71,7 +71,10 @@ export default function ContentKitDetailPage() {
   } | null>(null);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
-  const [quickSchedulePlatform, setQuickSchedulePlatform] = useState<string | null>(null);
+  const [quickScheduleConfig, setQuickScheduleConfig] = useState<{
+    type: 'platform' | 'clips' | 'carousel';
+    platform?: string;
+  } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
   // Determine if we're in processing state
@@ -435,15 +438,24 @@ export default function ContentKitDetailPage() {
                               CC ✓
                             </span>
                           )}
-                          {detail.clips[activeClipIndex].exports?.[0]?.url && (
-                            <a
-                              href={detail.clips[activeClipIndex].exports[0].url}
-                              download
-                              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors"
+                          <div className="ml-auto flex items-center gap-2">
+                            {detail.clips[activeClipIndex].exports?.[0]?.url && (
+                              <a
+                                href={detail.clips[activeClipIndex].exports[0].url}
+                                download
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors"
+                              >
+                                ⬇️ Download
+                              </a>
+                            )}
+                            <button
+                              onClick={() => setQuickScheduleConfig({ type: 'clips' })}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700 transition-colors"
                             >
-                              ⬇️ Download
-                            </a>
-                          )}
+                              <CalendarPlus className="w-3.5 h-3.5" />
+                              Schedule
+                            </button>
+                          </div>
                         </div>
 
                         {/* Suggested Caption */}
@@ -595,7 +607,7 @@ export default function ContentKitDetailPage() {
                           />
                         </div>
                         <button
-                          onClick={() => setQuickSchedulePlatform(platform)}
+                          onClick={() => setQuickScheduleConfig({ type: 'platform', platform })}
                           className="w-full py-2 px-3 rounded-lg text-sm font-medium bg-purple-600/10 text-purple-600 hover:bg-purple-600/20 transition-all flex items-center justify-center gap-2"
                         >
                           <CalendarPlus className="w-4 h-4" />
@@ -726,6 +738,13 @@ export default function ContentKitDetailPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => setQuickScheduleConfig({ type: 'carousel' })}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                    >
+                      <CalendarPlus className="w-4 h-4" />
+                      Add to Calendar
+                    </button>
+                    <button
                       onClick={async () => {
                         for (const slide of detail.carousel.slides) {
                           const link = document.createElement('a');
@@ -829,20 +848,29 @@ export default function ContentKitDetailPage() {
                         </span>
                         <span> • Square format</span>
                       </div>
-                      <button
-                        onClick={async () => {
-                          for (const slide of resizedCarousel.slides) {
-                            const link = document.createElement('a');
-                            link.href = slide.publicUrl;
-                            link.download = `square-slide-${slide.slideNumber}.png`;
-                            link.click();
-                            await new Promise(r => setTimeout(r, 500));
-                          }
-                        }}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-500 text-white hover:bg-purple-500/90 transition-colors"
-                      >
-                        ⬇️ Download All
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setQuickScheduleConfig({ type: 'carousel' })}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                        >
+                          <CalendarPlus className="w-4 h-4" />
+                          Add to Calendar
+                        </button>
+                        <button
+                          onClick={async () => {
+                            for (const slide of resizedCarousel.slides) {
+                              const link = document.createElement('a');
+                              link.href = slide.publicUrl;
+                              link.download = `square-slide-${slide.slideNumber}.png`;
+                              link.click();
+                              await new Promise(r => setTimeout(r, 500));
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
+                        >
+                          ⬇️ Download All
+                        </button>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -907,12 +935,19 @@ export default function ContentKitDetailPage() {
       {/* Quick Schedule Modal (for individual content) */}
       {item && (
         <QuickScheduleModal
-          isOpen={!!quickSchedulePlatform}
-          onClose={() => setQuickSchedulePlatform(null)}
+          isOpen={!!quickScheduleConfig}
+          onClose={() => setQuickScheduleConfig(null)}
           onSchedule={handleQuickSchedule}
           contentKitId={id}
           contentTitle={item.title}
-          defaultPlatform={quickSchedulePlatform || undefined}
+          defaultPlatform={quickScheduleConfig?.type === 'platform' ? quickScheduleConfig.platform : undefined}
+          defaultPlatforms={
+            quickScheduleConfig?.type === 'clips'
+              ? ['tiktok', 'instagram', 'youtube']
+              : quickScheduleConfig?.type === 'carousel'
+              ? ['instagram']
+              : undefined
+          }
         />
       )}
 
