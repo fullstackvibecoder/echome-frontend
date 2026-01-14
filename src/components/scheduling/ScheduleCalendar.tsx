@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ReactElement } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -337,7 +337,7 @@ export function ScheduleCalendar({
                 0
               ).getDate();
 
-              const cells: JSX.Element[] = [];
+              const cells: ReactElement[] = [];
 
               // Empty cells before month starts
               for (let i = 0; i < offset; i++) {
