@@ -1,25 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, Plus, RefreshCw } from 'lucide-react';
+import { Calendar, RefreshCw, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { useScheduling } from '@/hooks/useScheduling';
 import {
   ScheduleCalendar,
   ScheduleModal,
   WeekSuggestions,
 } from '@/components/scheduling';
-import { ScheduledPost, ScheduleSuggestion, ContentCategory } from '@/types';
+import { ScheduledPost, ContentCategory } from '@/types';
 
 export default function CalendarPage() {
   const {
     scheduledPosts,
     weeklyAnalysis,
-    unscheduledContent,
     loading,
     error,
     currentWeekStart,
     setCurrentWeekStart,
-    schedulePost,
     updateSchedule,
     deleteSchedule,
     markAsPosted,
@@ -30,44 +29,16 @@ export default function CalendarPage() {
   const [view, setView] = useState<'month' | 'week'>('week');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
-  const [defaultDate, setDefaultDate] = useState<Date | undefined>();
 
-  // Handle clicking on a scheduled post
+  // Handle clicking on a scheduled post (opens edit modal)
   const handlePostClick = (post: ScheduledPost) => {
     setEditingPost(post);
-    setDefaultDate(undefined);
     setModalOpen(true);
   };
 
-  // Handle clicking on an empty slot
-  const handleSlotClick = (date: Date) => {
-    setEditingPost(null);
-    setDefaultDate(date);
-    setModalOpen(true);
-  };
-
-  // Handle applying a suggestion
-  const handleApplySuggestion = (suggestion: ScheduleSuggestion) => {
-    setEditingPost(null);
-    setDefaultDate(new Date(suggestion.suggestedTime));
-    setModalOpen(true);
-  };
-
-  // Handle saving a scheduled post
-  const handleSave = async (data: {
-    contentKitId: string;
-    scheduledFor: string;
-    platforms: string[];
-    contentCategory?: ContentCategory;
-    notes?: string;
-  }) => {
-    await schedulePost(
-      data.contentKitId,
-      data.scheduledFor,
-      data.platforms,
-      data.contentCategory,
-      data.notes
-    );
+  // Empty slots are not interactive - users schedule from content kits
+  const handleSlotClick = () => {
+    // No-op - scheduling happens from content kit pages
   };
 
   // Handle updating a scheduled post
@@ -99,7 +70,7 @@ export default function CalendarPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Content Calendar</h1>
             <p className="text-sm text-gray-600">
-              Plan and schedule your content posts
+              View and manage your scheduled content
             </p>
           </div>
         </div>
@@ -113,17 +84,13 @@ export default function CalendarPage() {
           >
             <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <button
-            onClick={() => {
-              setEditingPost(null);
-              setDefaultDate(undefined);
-              setModalOpen(true);
-            }}
+          <Link
+            href="/app"
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            Schedule Content
-          </button>
+            <Sparkles className="w-4 h-4" />
+            Create Content
+          </Link>
         </div>
       </div>
 
@@ -149,105 +116,53 @@ export default function CalendarPage() {
           />
         </div>
 
-        {/* Sidebar - suggestions and unscheduled */}
+        {/* Sidebar - TLL balance and tips */}
         <div className="space-y-6">
-          {/* TLL Suggestions */}
+          {/* TLL Balance */}
           <WeekSuggestions
             analysis={weeklyAnalysis}
             loading={loading}
-            onApplySuggestion={handleApplySuggestion}
           />
 
-          {/* Unscheduled Content */}
+          {/* How to Schedule */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Ready to Schedule</h3>
-              <p className="text-xs text-gray-500">
-                Content kits waiting to be scheduled
+              <h3 className="font-semibold text-gray-900">How to Schedule</h3>
+            </div>
+            <div className="p-4 space-y-3 text-sm text-gray-600">
+              <p>
+                To add content to your calendar:
+              </p>
+              <ol className="list-decimal list-inside space-y-2">
+                <li>Go to your <Link href="/app" className="text-blue-600 hover:underline">Content Kits</Link></li>
+                <li>Open a content kit</li>
+                <li>Click &quot;Add to Calendar&quot; on any content piece</li>
+              </ol>
+              <p className="text-xs text-gray-500 mt-3">
+                This ensures every scheduled post is linked to actual content you&apos;ve created.
               </p>
             </div>
-
-            <div className="max-h-[400px] overflow-y-auto">
-              {loading ? (
-                <div className="p-4 space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-16 bg-gray-100 rounded" />
-                    </div>
-                  ))}
-                </div>
-              ) : unscheduledContent.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 text-sm">
-                  All your content has been scheduled!
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100">
-                  {unscheduledContent.map(content => (
-                    <div
-                      key={content.id}
-                      className="p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => {
-                        setEditingPost(null);
-                        setDefaultDate(undefined);
-                        setModalOpen(true);
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        {content.thumbnailUrl ? (
-                          <img
-                            src={content.thumbnailUrl}
-                            alt=""
-                            className="w-12 h-12 rounded object-cover flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded bg-gray-200 flex-shrink-0" />
-                        )}
-                        <div className="min-w-0">
-                          <div className="font-medium text-gray-900 text-sm truncate">
-                            {content.title}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {new Date(content.createdAt).toLocaleDateString(
-                              'en-US',
-                              { month: 'short', day: 'numeric' }
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {unscheduledContent.length > 0 && (
-              <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
-                <p className="text-xs text-gray-500 text-center">
-                  Click on a content item or calendar slot to schedule
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Schedule Modal */}
-      <ScheduleModal
-        isOpen={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingPost(null);
-          setDefaultDate(undefined);
-        }}
-        onSave={handleSave}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-        onMarkPosted={markAsPosted}
-        onMarkSkipped={markAsSkipped}
-        unscheduledContent={unscheduledContent}
-        editingPost={editingPost}
-        defaultDate={defaultDate}
-      />
+      {/* Edit Modal - only for editing existing posts */}
+      {editingPost && (
+        <ScheduleModal
+          isOpen={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setEditingPost(null);
+          }}
+          onSave={async () => {}} // Not used for edit-only modal
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+          onMarkPosted={markAsPosted}
+          onMarkSkipped={markAsSkipped}
+          unscheduledContent={[]}
+          editingPost={editingPost}
+        />
+      )}
     </div>
   );
 }

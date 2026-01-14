@@ -108,6 +108,7 @@ export default function ContentKitDetailPage() {
   }) => {
     const response = await api.scheduling.create({
       contentKitId: id,
+      title: item?.title || 'Scheduled Content', // Store title for calendar display
       scheduledFor: data.scheduledFor,
       platforms: data.platforms,
       contentCategory: data.contentCategory,

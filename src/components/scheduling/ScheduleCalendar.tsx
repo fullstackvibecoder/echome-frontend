@@ -281,7 +281,7 @@ export function ScheduleCalendar({
                           {getStatusIcon(post.status)}
                         </div>
                         <div className="text-xs truncate font-medium">
-                          {post.contentKit?.title || 'Scheduled Post'}
+                          {post.title || 'Scheduled Post'}
                         </div>
                         {post.platforms.length > 0 && (
                           <div className="flex gap-1 mt-1 flex-wrap">
@@ -382,7 +382,7 @@ export function ScheduleCalendar({
                                 ? getCategoryColor(post.contentCategory).split(' ')[0]
                                 : 'bg-gray-300'
                             }`}
-                            title={post.contentKit?.title || 'Scheduled'}
+                            title={post.title || 'Scheduled'}
                           />
                         ))}
                         {dayPosts.length > 3 && (

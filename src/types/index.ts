@@ -718,6 +718,7 @@ export interface ScheduledPost {
   id: string;
   contentKitId?: string;
   generatedContentId?: string;
+  title?: string; // Denormalized title for display
   scheduledFor: string;
   platforms: string[];
   contentCategory?: ContentCategory;
@@ -726,13 +727,6 @@ export interface ScheduledPost {
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  // Joined data
-  contentKit?: {
-    id: string;
-    title?: string;
-    description?: string;
-    thumbnailUrl?: string;
-  };
 }
 
 /**
@@ -741,6 +735,7 @@ export interface ScheduledPost {
 export interface ScheduledPostInput {
   contentKitId?: string;
   generatedContentId?: string;
+  title?: string;
   scheduledFor: string;
   platforms: string[];
   contentCategory?: ContentCategory;

@@ -240,16 +240,11 @@ export function ScheduleModal({
             )}
 
             {/* Content Preview (edit mode) */}
-            {isEditMode && editingPost?.contentKit && (
+            {isEditMode && editingPost?.title && (
               <div className="p-3 bg-gray-50 rounded-lg">
                 <div className="text-sm font-medium text-gray-900">
-                  {editingPost.contentKit.title}
+                  {editingPost.title}
                 </div>
-                {editingPost.contentKit.description && (
-                  <div className="text-xs text-gray-500 mt-1 truncate">
-                    {editingPost.contentKit.description}
-                  </div>
-                )}
               </div>
             )}
 
