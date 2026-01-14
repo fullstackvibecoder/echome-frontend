@@ -689,11 +689,11 @@ export type ContentKitFilter = 'all' | 'videos' | 'written' | 'carousels';
 export type ContentKitSort = 'recent' | 'voice-score' | 'status';
 
 // ============================================
-// CONTENT SCHEDULING TYPES (TLL Methodology)
+// CONTENT SCHEDULING TYPES
 // ============================================
 
 /**
- * Content category based on TLL content methodology
+ * Content category for balanced content mix
  */
 export type ContentCategory =
   | 'authority'        // Educational/expert content
@@ -707,9 +707,33 @@ export type ContentCategory =
 export type ScheduleStatus = 'scheduled' | 'posted' | 'skipped';
 
 /**
- * Time slots for posting based on TLL methodology
+ * Type of content being scheduled
+ */
+export type ScheduledContentType = 'written' | 'clips' | 'carousel';
+
+/**
+ * Time slots for posting
  */
 export type TimeSlot = 'morning' | 'lunch' | 'evening';
+
+/**
+ * Content snapshot for scheduled posts - stores actual content for quick access
+ */
+export interface ContentSnapshot {
+  type: ScheduledContentType;
+  // For written content
+  text?: string;
+  // For video clips
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  suggestedCaption?: string;
+  // For carousels
+  carouselSlides?: Array<{
+    slideNumber: number;
+    imageUrl: string;
+    text?: string;
+  }>;
+}
 
 /**
  * A scheduled post entry in the content calendar
@@ -722,6 +746,8 @@ export interface ScheduledPost {
   scheduledFor: string;
   platforms: string[];
   contentCategory?: ContentCategory;
+  contentType?: ScheduledContentType;
+  contentSnapshot?: ContentSnapshot;
   status: ScheduleStatus;
   postedAt?: string;
   notes?: string;
@@ -739,6 +765,8 @@ export interface ScheduledPostInput {
   scheduledFor: string;
   platforms: string[];
   contentCategory?: ContentCategory;
+  contentType?: ScheduledContentType;
+  contentSnapshot?: ContentSnapshot;
   notes?: string;
 }
 
@@ -754,7 +782,7 @@ export interface ScheduledPostUpdate {
 }
 
 /**
- * AI-generated scheduling suggestion based on TLL methodology
+ * AI-generated scheduling suggestion for content mix balance
  */
 export interface ScheduleSuggestion {
   date: string;

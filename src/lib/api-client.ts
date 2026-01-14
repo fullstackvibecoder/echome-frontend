@@ -1583,6 +1583,8 @@ export const api = {
         scheduledFor: post.scheduled_for,
         platforms: post.platforms,
         contentCategory: post.content_category,
+        contentType: post.content_type,
+        contentSnapshot: post.content_snapshot,
         status: post.status,
         postedAt: post.posted_at,
         notes: post.notes,
@@ -1642,6 +1644,19 @@ export const api = {
       scheduledFor: string;
       platforms: string[];
       contentCategory?: string;
+      contentType?: 'written' | 'clips' | 'carousel';
+      contentSnapshot?: {
+        type: 'written' | 'clips' | 'carousel';
+        text?: string;
+        videoUrl?: string;
+        thumbnailUrl?: string;
+        suggestedCaption?: string;
+        carouselSlides?: Array<{
+          slideNumber: number;
+          imageUrl: string;
+          text?: string;
+        }>;
+      };
       notes?: string;
     }) => {
       const response = await apiClient.post('/scheduling', data);
@@ -1657,6 +1672,8 @@ export const api = {
             scheduledFor: post.scheduled_for,
             platforms: post.platforms,
             contentCategory: post.content_category,
+            contentType: post.content_type,
+            contentSnapshot: post.content_snapshot,
             status: post.status,
             postedAt: post.posted_at,
             notes: post.notes,

@@ -109,12 +109,51 @@ export default function ContentKitDetailPage() {
     contentCategory?: ContentCategory;
     notes?: string;
   }) => {
+    // Build content snapshot based on what's being scheduled
+    let contentType: 'written' | 'clips' | 'carousel' | undefined;
+    let contentSnapshot: any = undefined;
+
+    if (quickScheduleConfig?.type === 'clips' && detail?.clips?.[activeClipIndex]) {
+      const clip = detail.clips[activeClipIndex];
+      contentType = 'clips';
+      contentSnapshot = {
+        type: 'clips',
+        videoUrl: clip.exports?.[0]?.url,
+        thumbnailUrl: clip.thumbnailUrl,
+        suggestedCaption: clip.suggestedCaption,
+      };
+    } else if (quickScheduleConfig?.type === 'carousel' && detail?.carousel?.slides) {
+      contentType = 'carousel';
+      contentSnapshot = {
+        type: 'carousel',
+        carouselSlides: detail.carousel.slides.map((slide: any) => ({
+          slideNumber: slide.slideNumber,
+          imageUrl: slide.publicUrl,
+          text: slide.text,
+        })),
+      };
+    } else if (quickScheduleConfig?.type === 'platform' && quickScheduleConfig.platform) {
+      // Get the text content for the specific platform
+      const platformContent = getPlatformContent().find(
+        p => p.platform === quickScheduleConfig.platform
+      );
+      if (platformContent) {
+        contentType = 'written';
+        contentSnapshot = {
+          type: 'written',
+          text: platformContent.content,
+        };
+      }
+    }
+
     const response = await api.scheduling.create({
       contentKitId: id,
-      title: item?.title || 'Scheduled Content', // Store title for calendar display
+      title: item?.title || 'Scheduled Content',
       scheduledFor: data.scheduledFor,
       platforms: data.platforms,
       contentCategory: data.contentCategory,
+      contentType,
+      contentSnapshot,
       notes: data.notes,
     });
 
