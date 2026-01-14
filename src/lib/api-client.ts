@@ -1579,6 +1579,7 @@ export const api = {
         id: post.id,
         contentKitId: post.content_kit_id,
         generatedContentId: post.generated_content_id,
+        title: post.title,
         scheduledFor: post.scheduled_for,
         platforms: post.platforms,
         contentCategory: post.content_category,
@@ -1637,6 +1638,7 @@ export const api = {
     create: async (data: {
       contentKitId?: string;
       generatedContentId?: string;
+      title?: string;
       scheduledFor: string;
       platforms: string[];
       contentCategory?: string;
@@ -1651,6 +1653,7 @@ export const api = {
             id: post.id,
             contentKitId: post.content_kit_id,
             generatedContentId: post.generated_content_id,
+            title: post.title,
             scheduledFor: post.scheduled_for,
             platforms: post.platforms,
             contentCategory: post.content_category,
@@ -1685,6 +1688,7 @@ export const api = {
             id: post.id,
             contentKitId: post.content_kit_id,
             generatedContentId: post.generated_content_id,
+            title: post.title,
             scheduledFor: post.scheduled_for,
             platforms: post.platforms,
             contentCategory: post.content_category,
