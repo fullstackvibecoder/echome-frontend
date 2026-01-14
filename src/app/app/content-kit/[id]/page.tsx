@@ -14,10 +14,11 @@ import { useContentKitDetail } from '@/hooks/useContentKit';
 import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS } from '@/hooks/useGenerationProgress';
 import { VideoPlayer } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
-import { ScheduleModal } from '@/components/scheduling';
+import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
 import { ContentCategory } from '@/types';
+import { CalendarPlus } from 'lucide-react';
 
 // Progress step component
 function ProgressStep({
@@ -70,6 +71,8 @@ export default function ContentKitDetailPage() {
   } | null>(null);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
+  const [quickSchedulePlatform, setQuickSchedulePlatform] = useState<string | null>(null);
+  const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -95,6 +98,29 @@ export default function ContentKitDetailPage() {
     await navigator.clipboard.writeText(content);
     setCopiedId(contentId);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleQuickSchedule = async (data: {
+    scheduledFor: string;
+    platforms: string[];
+    contentCategory?: ContentCategory;
+    notes?: string;
+  }) => {
+    const response = await api.scheduling.create({
+      contentKitId: id,
+      scheduledFor: data.scheduledFor,
+      platforms: data.platforms,
+      contentCategory: data.contentCategory,
+      notes: data.notes,
+    });
+
+    if (!response.success) {
+      throw new Error('Failed to schedule content');
+    }
+
+    // Show success message
+    setScheduleSuccess('Content scheduled successfully!');
+    setTimeout(() => setScheduleSuccess(null), 3000);
   };
 
   const handleResizeCarousel = async (targetAspectRatio: '1:1' | '9:16') => {
@@ -549,22 +575,31 @@ export default function ContentKitDetailPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="px-4 pb-4 pt-2 border-t border-border/50 flex items-center gap-2">
+                      <div className="px-4 pb-4 pt-2 border-t border-border/50 flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleCopy(content, contentId)}
+                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                              copiedId === contentId
+                                ? 'bg-success/10 text-success'
+                                : 'bg-bg-tertiary text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/80'
+                            }`}
+                          >
+                            {copiedId === contentId ? '✓ Copied!' : '📋 Copy'}
+                          </button>
+                          <QuickShareButton
+                            content={content}
+                            platformKey={platform}
+                            className="flex-1 justify-center"
+                          />
+                        </div>
                         <button
-                          onClick={() => handleCopy(content, contentId)}
-                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                            copiedId === contentId
-                              ? 'bg-success/10 text-success'
-                              : 'bg-bg-tertiary text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/80'
-                          }`}
+                          onClick={() => setQuickSchedulePlatform(platform)}
+                          className="w-full py-2 px-3 rounded-lg text-sm font-medium bg-purple-600/10 text-purple-600 hover:bg-purple-600/20 transition-all flex items-center justify-center gap-2"
                         >
-                          {copiedId === contentId ? '✓ Copied!' : '📋 Copy'}
+                          <CalendarPlus className="w-4 h-4" />
+                          Add to Calendar
                         </button>
-                        <QuickShareButton
-                          content={content}
-                          platformKey={platform}
-                          className="flex-1 justify-center"
-                        />
                       </div>
                     </div>
                   );
@@ -853,7 +888,7 @@ export default function ContentKitDetailPage() {
         </div>
       )}
 
-      {/* Schedule Modal */}
+      {/* Schedule Modal (for full kit) */}
       {item && (
         <ScheduleModal
           isOpen={scheduleModalOpen}
@@ -866,6 +901,28 @@ export default function ContentKitDetailPage() {
             createdAt: item.createdAt,
           }]}
         />
+      )}
+
+      {/* Quick Schedule Modal (for individual content) */}
+      {item && (
+        <QuickScheduleModal
+          isOpen={!!quickSchedulePlatform}
+          onClose={() => setQuickSchedulePlatform(null)}
+          onSchedule={handleQuickSchedule}
+          contentKitId={id}
+          contentTitle={item.title}
+          defaultPlatform={quickSchedulePlatform || undefined}
+        />
+      )}
+
+      {/* Success Toast */}
+      {scheduleSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+          <div className="bg-success text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <span className="text-xl">✓</span>
+            <span className="font-medium">{scheduleSuccess}</span>
+          </div>
+        </div>
       )}
     </div>
   );

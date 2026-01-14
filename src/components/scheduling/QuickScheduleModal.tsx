@@ -1,0 +1,321 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import {
+  X,
+  Calendar,
+  Clock,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Youtube,
+  Mail,
+  FileText,
+  GraduationCap,
+  User,
+  AlertCircle,
+  Star,
+  CalendarPlus,
+} from 'lucide-react';
+import { ContentCategory, CONTENT_CATEGORY_CONFIG } from '@/types';
+
+interface QuickScheduleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSchedule: (data: {
+    scheduledFor: string;
+    platforms: string[];
+    contentCategory?: ContentCategory;
+    notes?: string;
+  }) => Promise<void>;
+  contentKitId: string;
+  contentTitle: string;
+  defaultPlatform?: string;
+}
+
+const PLATFORMS = [
+  { id: 'instagram', label: 'Instagram', icon: Instagram },
+  { id: 'linkedin', label: 'LinkedIn', icon: Linkedin },
+  { id: 'twitter', label: 'Twitter/X', icon: Twitter },
+  { id: 'facebook', label: 'Facebook', icon: Facebook },
+  { id: 'youtube', label: 'YouTube', icon: Youtube },
+  { id: 'email', label: 'Email', icon: Mail },
+  { id: 'blog', label: 'Blog', icon: FileText },
+];
+
+const CATEGORY_ICONS: Record<ContentCategory, typeof GraduationCap> = {
+  authority: GraduationCap,
+  personal_story: User,
+  pain_problem: AlertCircle,
+  testimonial: Star,
+};
+
+const TIME_PRESETS = [
+  { label: 'Morning', time: '08:30', display: '8:30 AM' },
+  { label: 'Lunch', time: '12:30', display: '12:30 PM' },
+  { label: 'Evening', time: '17:30', display: '5:30 PM' },
+];
+
+/**
+ * Simplified modal for quickly scheduling content from within a content kit
+ */
+export function QuickScheduleModal({
+  isOpen,
+  onClose,
+  onSchedule,
+  contentKitId,
+  contentTitle,
+  defaultPlatform,
+}: QuickScheduleModalProps) {
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTime, setSelectedTime] = useState<string>('12:30');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<ContentCategory | ''>('');
+  const [notes, setNotes] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize with defaults when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Default to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setSelectedDate(tomorrow.toISOString().split('T')[0]);
+      setSelectedTime('12:30');
+      setSelectedPlatforms(defaultPlatform ? [defaultPlatform] : ['linkedin']);
+      setSelectedCategory('');
+      setNotes('');
+      setError(null);
+    }
+  }, [isOpen, defaultPlatform]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedDate || !selectedTime || selectedPlatforms.length === 0) {
+      setError('Please select a date, time, and at least one platform');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const scheduledFor = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
+
+      await onSchedule({
+        scheduledFor,
+        platforms: selectedPlatforms,
+        contentCategory: selectedCategory || undefined,
+        notes: notes || undefined,
+      });
+
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to schedule content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const togglePlatform = (platformId: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platformId)
+        ? prev.filter(p => p !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-bg-primary rounded-2xl border border-border shadow-xl w-full max-w-md animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+              <CalendarPlus className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-text-primary">Add to Calendar</h2>
+              <p className="text-sm text-text-secondary truncate max-w-[250px]">{contentTitle}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-text-secondary hover:text-text-primary hover:bg-bg-secondary rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Date Selection */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              <Calendar className="w-4 h-4 inline mr-2" />
+              Date
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+              required
+            />
+          </div>
+
+          {/* Time Selection */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              <Clock className="w-4 h-4 inline mr-2" />
+              Time
+            </label>
+            <div className="flex gap-2 mb-2">
+              {TIME_PRESETS.map((preset) => (
+                <button
+                  key={preset.time}
+                  type="button"
+                  onClick={() => setSelectedTime(preset.time)}
+                  className={`flex-1 py-2 px-3 text-sm rounded-lg border transition-all ${
+                    selectedTime === preset.time
+                      ? 'bg-accent text-white border-accent'
+                      : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/50'
+                  }`}
+                >
+                  {preset.display}
+                </button>
+              ))}
+            </div>
+            <input
+              type="time"
+              value={selectedTime}
+              onChange={(e) => setSelectedTime(e.target.value)}
+              className="w-full px-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+              required
+            />
+          </div>
+
+          {/* Platform Selection */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Platforms
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {PLATFORMS.map((platform) => {
+                const Icon = platform.icon;
+                const isSelected = selectedPlatforms.includes(platform.id);
+                return (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    onClick={() => togglePlatform(platform.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                      isSelected
+                        ? 'bg-accent text-white border-accent'
+                        : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {platform.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Category Selection */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Content Category (optional)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map((category) => {
+                const config = CONTENT_CATEGORY_CONFIG[category];
+                const Icon = CATEGORY_ICONS[category];
+                const isSelected = selectedCategory === category;
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setSelectedCategory(isSelected ? '' : category)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                      isSelected
+                        ? 'bg-accent/10 text-accent border-accent'
+                        : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {config.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Notes (optional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any notes for this post..."
+              rows={2}
+              maxLength={500}
+              className="w-full px-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-secondary focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
+            />
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 px-4 bg-bg-secondary border border-border text-text-primary rounded-lg hover:bg-bg-tertiary transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading || selectedPlatforms.length === 0}
+              className="flex-1 py-2.5 px-4 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                <>
+                  <CalendarPlus className="w-4 h-4" />
+                  Schedule
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

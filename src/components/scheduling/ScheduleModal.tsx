@@ -38,8 +38,8 @@ interface ScheduleModalProps {
     notes?: string;
   }) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
-  onMarkPosted?: (id: string) => Promise<void>;
-  onMarkSkipped?: (id: string) => Promise<void>;
+  onMarkPosted?: (id: string) => Promise<boolean | void>;
+  onMarkSkipped?: (id: string) => Promise<boolean | void>;
   unscheduledContent: UnscheduledContent[];
   editingPost?: ScheduledPost | null;
   defaultDate?: Date;
