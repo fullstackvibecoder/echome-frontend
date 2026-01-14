@@ -144,7 +144,7 @@ export function QuickScheduleModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -152,28 +152,28 @@ export function QuickScheduleModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-bg-primary rounded-2xl border border-border shadow-xl w-full max-w-md animate-fade-in">
+      <div className="relative bg-bg-primary rounded-2xl border border-border shadow-xl w-full max-w-md max-h-[95vh] overflow-y-auto animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border sticky top-0 bg-bg-primary z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
               <CalendarPlus className="w-5 h-5 text-accent" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-text-primary">Add to Calendar</h2>
-              <p className="text-sm text-text-secondary truncate max-w-[250px]">{contentTitle}</p>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-semibold text-text-primary">Add to Calendar</h2>
+              <p className="text-sm text-text-secondary truncate max-w-[200px] sm:max-w-[250px]">{contentTitle}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-text-secondary hover:text-text-primary hover:bg-bg-secondary rounded-lg transition-colors"
+            className="p-2.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-bg-secondary rounded-lg transition-colors touch-manipulation flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-5">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 sm:space-y-5">
           {/* Date Selection */}
           <div>
             <label className="block text-sm font-medium text-text-primary mb-2">
@@ -185,7 +185,7 @@ export function QuickScheduleModal({
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+              className="w-full px-4 py-3 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary text-base sm:text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
               required
             />
           </div>
@@ -196,13 +196,13 @@ export function QuickScheduleModal({
               <Clock className="w-4 h-4 inline mr-2" />
               Time
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               {TIME_PRESETS.map((preset) => (
                 <button
                   key={preset.time}
                   type="button"
                   onClick={() => setSelectedTime(preset.time)}
-                  className={`flex-1 py-2 px-3 text-sm rounded-lg border transition-all ${
+                  className={`flex-1 min-w-[80px] py-2.5 sm:py-2 px-3 text-sm rounded-lg border transition-all touch-manipulation ${
                     selectedTime === preset.time
                       ? 'bg-accent text-white border-accent'
                       : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/50'
@@ -216,7 +216,7 @@ export function QuickScheduleModal({
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full px-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+              className="w-full px-4 py-3 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary text-base sm:text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
               required
             />
           </div>
@@ -235,7 +235,7 @@ export function QuickScheduleModal({
                     key={platform.id}
                     type="button"
                     onClick={() => togglePlatform(platform.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                    className={`flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg border text-sm transition-all touch-manipulation ${
                       isSelected
                         ? 'bg-accent text-white border-accent'
                         : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/50'
@@ -254,7 +254,7 @@ export function QuickScheduleModal({
             <label className="block text-sm font-medium text-text-primary mb-2">
               Content Category (optional)
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map((category) => {
                 const config = CONTENT_CATEGORY_CONFIG[category];
                 const Icon = CATEGORY_ICONS[category];
@@ -264,7 +264,7 @@ export function QuickScheduleModal({
                     key={category}
                     type="button"
                     onClick={() => setSelectedCategory(isSelected ? '' : category)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
+                    className={`flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg border text-sm transition-all touch-manipulation ${
                       isSelected
                         ? 'bg-accent/10 text-accent border-accent'
                         : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/50'
@@ -289,7 +289,7 @@ export function QuickScheduleModal({
               placeholder="Add any notes for this post..."
               rows={2}
               maxLength={500}
-              className="w-full px-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-secondary focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
+              className="w-full px-4 py-3 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary text-base sm:text-sm placeholder:text-text-secondary focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
             />
           </div>
 
@@ -301,18 +301,18 @@ export function QuickScheduleModal({
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 sticky bottom-0 bg-bg-primary pb-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 px-4 bg-bg-secondary border border-border text-text-primary rounded-lg hover:bg-bg-tertiary transition-colors"
+              className="flex-1 py-3 sm:py-2.5 px-4 bg-bg-secondary border border-border text-text-primary rounded-lg hover:bg-bg-tertiary transition-colors touch-manipulation"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || selectedPlatforms.length === 0}
-              className="flex-1 py-2.5 px-4 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 sm:py-2.5 px-4 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
             >
               {loading ? (
                 <>

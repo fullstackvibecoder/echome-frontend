@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type ReactElement } from 'react';
+import { useState, useMemo, useEffect, type ReactElement } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,6 +8,7 @@ import {
   Check,
   X,
   Clock,
+  List,
 } from 'lucide-react';
 import {
   ScheduledPost,
@@ -23,6 +24,20 @@ interface ScheduleCalendarProps {
   onSlotClick?: (date: Date) => void;
   view?: 'month' | 'week';
   onViewChange?: (view: 'month' | 'week') => void;
+}
+
+// Hook to detect mobile viewport
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
 }
 
 // Days of the week
@@ -79,6 +94,7 @@ export function ScheduleCalendar({
   onViewChange,
 }: ScheduleCalendarProps) {
   const weekStart = new Date(currentWeekStart);
+  const isMobile = useIsMobile();
 
   // Generate days for the week
   const weekDays = useMemo(() => {
@@ -157,38 +173,39 @@ export function ScheduleCalendar({
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-b border-gray-200">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={goToPreviousWeek}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2.5 sm:p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
             aria-label="Previous week"
           >
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
           <button
             onClick={goToNextWeek}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2.5 sm:p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
             aria-label="Next week"
           >
             <ChevronRight className="w-5 h-5 text-gray-600" />
           </button>
-          <span className="font-medium text-gray-900 ml-2">{weekRangeStr}</span>
+          <span className="font-medium text-gray-900 ml-1 sm:ml-2 text-sm sm:text-base">{weekRangeStr}</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={goToToday}
-            className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
           >
             Today
           </button>
 
-          {onViewChange && (
-            <div className="flex items-center bg-gray-100 rounded-md p-0.5">
+          {/* View toggle - hidden on mobile since we auto-show list view */}
+          {onViewChange && !isMobile && (
+            <div className="hidden sm:flex items-center bg-gray-100 rounded-md p-0.5">
               <button
                 onClick={() => onViewChange('week')}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                   view === 'week'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -198,7 +215,7 @@ export function ScheduleCalendar({
               </button>
               <button
                 onClick={() => onViewChange('month')}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                   view === 'month'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -211,8 +228,94 @@ export function ScheduleCalendar({
         </div>
       </div>
 
-      {/* Week View */}
-      {view === 'week' && (
+      {/* Mobile List View - Shows agenda-style list on small screens */}
+      {isMobile && (
+        <div className="divide-y divide-gray-100">
+          {weekDays.map((day, dayIndex) => {
+            const dateKey = day.toISOString().split('T')[0];
+            const dayPosts = postsByDate[dateKey] || [];
+            const isTodayDate = isToday(day);
+
+            return (
+              <div key={dateKey} className={isTodayDate ? 'bg-blue-50/30' : ''}>
+                {/* Day Header */}
+                <div
+                  className={`flex items-center justify-between px-4 py-3 ${
+                    isTodayDate ? 'bg-blue-50' : 'bg-gray-50'
+                  }`}
+                  onClick={() => onSlotClick?.(day)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                        isTodayDate
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white border border-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {day.getDate()}
+                    </div>
+                    <div>
+                      <div className={`font-medium ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
+                        {FULL_DAYS[dayIndex]}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {day.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+                  {dayPosts.length === 0 && (
+                    <span className="text-sm text-gray-400">Tap to add</span>
+                  )}
+                </div>
+
+                {/* Day Posts */}
+                {dayPosts.length > 0 && (
+                  <div className="px-4 py-2 space-y-2">
+                    {dayPosts.map(post => (
+                      <div
+                        key={post.id}
+                        onClick={() => onPostClick?.(post)}
+                        className={`p-3 rounded-lg border cursor-pointer active:scale-[0.98] transition-transform ${getCategoryColor(
+                          post.contentCategory
+                        )} ${post.status === 'skipped' ? 'opacity-50' : ''}`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">
+                            {new Date(post.scheduledFor).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          {getStatusIcon(post.status)}
+                        </div>
+                        <div className="font-medium mb-2">
+                          {post.title || 'Scheduled Post'}
+                        </div>
+                        {post.platforms.length > 0 && (
+                          <div className="flex gap-1.5 flex-wrap">
+                            {post.platforms.map(p => (
+                              <span
+                                key={p}
+                                className="text-xs px-2 py-1 bg-white/60 rounded-full"
+                              >
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Week View - Hidden on mobile */}
+      {view === 'week' && !isMobile && (
         <div className="grid grid-cols-7 min-h-[500px]">
           {weekDays.map((day, dayIndex) => {
             const dateKey = day.toISOString().split('T')[0];
@@ -310,8 +413,8 @@ export function ScheduleCalendar({
         </div>
       )}
 
-      {/* Month View - Simplified */}
-      {view === 'month' && (
+      {/* Month View - Simplified, hidden on mobile */}
+      {view === 'month' && !isMobile && (
         <div className="p-4">
           <div className="grid grid-cols-7 gap-1">
             {/* Day headers */}
@@ -402,8 +505,8 @@ export function ScheduleCalendar({
         </div>
       )}
 
-      {/* Legend */}
-      <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
+      {/* Legend - Hidden on mobile for cleaner UI */}
+      <div className="hidden sm:block px-4 py-2 border-t border-gray-200 bg-gray-50">
         <div className="flex items-center justify-center gap-4 text-xs">
           {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map(
             category => (

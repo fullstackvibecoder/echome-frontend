@@ -146,7 +146,7 @@ function ContentPreview({
           </div>
           <button
             onClick={() => handleCopy(snapshot.text!)}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors touch-manipulation"
           >
             {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-500" />}
             {copied ? 'Copied!' : 'Copy Content'}
@@ -173,11 +173,11 @@ function ContentPreview({
               <p className="text-sm text-gray-700">{snapshot.suggestedCaption}</p>
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {snapshot.suggestedCaption && (
               <button
                 onClick={() => handleCopy(snapshot.suggestedCaption!)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors touch-manipulation"
               >
                 {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-500" />}
                 {copied ? 'Copied!' : 'Copy Caption'}
@@ -187,10 +187,10 @@ function ContentPreview({
               <a
                 href={snapshot.videoUrl}
                 download
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors touch-manipulation"
               >
                 <Video className="w-4 h-4" />
-                Download Video
+                Download
               </a>
             )}
           </div>
@@ -370,7 +370,7 @@ export function ScheduleModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-black/50 transition-opacity"
@@ -378,22 +378,22 @@ export function ScheduleModal({
         />
 
         {/* Modal */}
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg transform transition-all">
+        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg transform transition-all max-h-[95vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {isEditMode ? 'Edit Scheduled Post' : 'Schedule Content'}
             </h2>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
 
           {/* Body */}
-          <div className="px-6 py-4 space-y-5">
+          <div className="px-4 sm:px-6 py-4 space-y-4 sm:space-y-5">
             {/* Content Selection (only for new) */}
             {!isEditMode && (
               <div>
@@ -403,7 +403,7 @@ export function ScheduleModal({
                 <select
                   value={selectedContent}
                   onChange={e => setSelectedContent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
                 >
                   <option value="">Choose content to schedule...</option>
                   {unscheduledContent.map(content => (
@@ -426,7 +426,7 @@ export function ScheduleModal({
             )}
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar className="w-4 h-4 inline mr-1" />
@@ -436,7 +436,7 @@ export function ScheduleModal({
                   type="date"
                   value={selectedDate}
                   onChange={e => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
                 />
               </div>
               <div>
@@ -448,7 +448,7 @@ export function ScheduleModal({
                   type="time"
                   value={selectedTime}
                   onChange={e => setSelectedTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
                 />
               </div>
             </div>
@@ -459,7 +459,7 @@ export function ScheduleModal({
                 <button
                   key={preset.label}
                   onClick={() => handleTimePreset(preset.hour, preset.minute)}
-                  className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-gray-700"
+                  className="px-3 py-2 sm:py-1 text-sm sm:text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-gray-700 touch-manipulation"
                 >
                   {preset.label}
                 </button>
@@ -471,7 +471,7 @@ export function ScheduleModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Platforms
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {PLATFORMS.map(platform => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatforms.includes(platform.id);
@@ -479,14 +479,14 @@ export function ScheduleModal({
                     <button
                       key={platform.id}
                       onClick={() => togglePlatform(platform.id)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-all ${
+                      className={`flex items-center gap-2 px-3 py-3 sm:py-2 rounded-md border transition-all touch-manipulation ${
                         isSelected
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 hover:border-gray-400 text-gray-700'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-sm">{platform.label}</span>
+                      <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
+                      <span className="text-base sm:text-sm">{platform.label}</span>
                     </button>
                   );
                 })}
@@ -498,7 +498,7 @@ export function ScheduleModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Content Category
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map(
                   category => {
                     const config = CONTENT_CATEGORY_CONFIG[category];
@@ -510,18 +510,18 @@ export function ScheduleModal({
                         onClick={() =>
                           setSelectedCategory(isSelected ? '' : category)
                         }
-                        className={`flex items-start gap-2 px-3 py-2 rounded-md border transition-all text-left ${
+                        className={`flex items-start gap-2 px-3 py-3 sm:py-2 rounded-md border transition-all text-left touch-manipulation ${
                           isSelected
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
                       >
-                        <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <Icon className="w-5 h-5 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-base sm:text-sm font-medium text-gray-900">
                             {config.label.split('/')[0]}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-sm sm:text-xs text-gray-500">
                             {config.description.slice(0, 40)}...
                           </div>
                         </div>
@@ -542,63 +542,62 @@ export function ScheduleModal({
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Any reminders or notes for this post..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div>
-              {isEditMode && editingPost?.status === 'scheduled' && (
-                <div className="flex gap-2">
-                  {onMarkPosted && (
-                    <button
-                      onClick={() => onMarkPosted(editingPost.id).then(onClose)}
-                      disabled={loading}
-                      className="px-3 py-1.5 text-sm text-green-700 hover:bg-green-50 rounded-md transition-colors"
-                    >
-                      Mark as Posted
-                    </button>
-                  )}
-                  {onMarkSkipped && (
-                    <button
-                      onClick={() => onMarkSkipped(editingPost.id).then(onClose)}
-                      disabled={loading}
-                      className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                    >
-                      Skip
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={handleDelete}
-                      disabled={loading}
-                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 sticky bottom-0 bg-white">
+            {/* Edit mode actions - stack on mobile */}
+            {isEditMode && editingPost?.status === 'scheduled' && (
+              <div className="flex flex-wrap gap-2 mb-3 sm:mb-0 sm:float-left">
+                {onMarkPosted && (
+                  <button
+                    onClick={() => onMarkPosted(editingPost.id).then(onClose)}
+                    disabled={loading}
+                    className="px-3 py-2 text-sm text-green-700 hover:bg-green-50 rounded-md transition-colors touch-manipulation"
+                  >
+                    Mark as Posted
+                  </button>
+                )}
+                {onMarkSkipped && (
+                  <button
+                    onClick={() => onMarkSkipped(editingPost.id).then(onClose)}
+                    disabled={loading}
+                    className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+                  >
+                    Skip
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={handleDelete}
+                    disabled={loading}
+                    className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors touch-manipulation"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                className="px-4 py-2.5 sm:py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!canSave || loading}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               >
                 {loading
                   ? 'Saving...'
                   : isEditMode
-                  ? 'Update Schedule'
-                  : 'Schedule Post'}
+                  ? 'Update'
+                  : 'Schedule'}
               </button>
             </div>
           </div>
