@@ -3,9 +3,6 @@
 import { useState, useRef } from 'react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import { KBStats } from '@/components/kb-stats';
-import { ContentItemCard } from '@/components/content-item-card';
-import { GroupedContentCard } from '@/components/grouped-content-card';
 import { UploadZone } from '@/components/upload-zone';
 import { FileList } from '@/components/file-list';
 import { PasteContentModal } from '@/components/paste-content-modal';
@@ -13,9 +10,48 @@ import { VoiceRecorder } from '@/components/voice-recorder';
 import { SocialImportModal } from '@/components/social-import-modal';
 import { BlogImportModal } from '@/components/blog-import-modal';
 import { api } from '@/lib/api-client';
-import { parseMboxFile, estimateUploadSize, formatBytes } from '@/lib/mbox-parser';
+import { UnifiedContentItem } from '@/types';
+import { parseMboxFile } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
+import { CONTENT_SOURCE_CONFIG, ContentSourceType } from '@/types';
+
+// ============================================
+// HELPERS
+// ============================================
+
+function getVoiceStrength(chunks: number): { level: string; color: string; percent: number } {
+  if (chunks >= 5000) return { level: 'Excellent', color: 'text-emerald-500', percent: 100 };
+  if (chunks >= 2000) return { level: 'Strong', color: 'text-emerald-500', percent: 85 };
+  if (chunks >= 500) return { level: 'Good', color: 'text-accent', percent: 60 };
+  if (chunks >= 100) return { level: 'Building', color: 'text-amber-500', percent: 35 };
+  return { level: 'Getting started', color: 'text-text-secondary', percent: 10 };
+}
+
+function getSourceIcon(sourceType: ContentSourceType): string {
+  const icons: Record<ContentSourceType, string> = {
+    file_upload: '📄',
+    paste_text: '✍️',
+    paste_social: '📱',
+    paste_email: '📧',
+    voice_recording: '🎤',
+    mbox_import: '📥',
+    youtube_import: '🎬',
+    instagram_import: '📸',
+    generation: '✨',
+    'clip-finder': '🎥',
+  };
+  return icons[sourceType] || '📄';
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function KnowledgePage() {
   const {
@@ -40,9 +76,6 @@ export default function KnowledgePage() {
   const [mboxResult, setMboxResult] = useState<{
     emailsIngested: number;
     chunksCreated: number;
-    partial?: boolean;
-    batchesCompleted?: number;
-    totalBatches?: number;
   } | null>(null);
   const mboxInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,47 +85,37 @@ export default function KnowledgePage() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  const currentKb = kbs.find((kb) => kb.id === selectedKb);
+  // Derived state
+  const hasContent = contentItems.length > 0;
+  const totalChunks = contentStats?.totalChunks || 0;
+  const totalItems = contentStats?.totalItems || 0;
+  const voiceStrength = getVoiceStrength(totalChunks);
 
-  // Filter content based on search term
+  // Filter and group content
   const filteredContent = contentItems.filter((item) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Group MBOX items by base filename (removing " (batch N)" suffix)
-  const groupedContent = (() => {
-    const groups: Map<string, typeof filteredContent> = new Map();
-    const ungrouped: typeof filteredContent = [];
-
-    for (const item of filteredContent) {
-      // Group MBOX imports by base filename
-      if (item.sourceType === 'mbox_import') {
-        // Extract base name: "Sent-008.mbox (batch 2)" -> "Sent-008.mbox"
-        const baseName = item.title.replace(/\s*\(batch\s*\d+\)\s*$/, '').trim();
-        const existing = groups.get(baseName) || [];
-        existing.push(item);
-        groups.set(baseName, existing);
-      } else {
-        ungrouped.push(item);
-      }
-    }
-
-    return { groups, ungrouped };
-  })();
+  // Group by source type
+  const groupedByType = filteredContent.reduce((acc, item) => {
+    const type = item.sourceType as ContentSourceType;
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(item);
+    return acc;
+  }, {} as Record<ContentSourceType, typeof filteredContent>);
 
   // Selection helpers
   const selectedCount = selectedIds.size;
   const allSelected = filteredContent.length > 0 && selectedIds.size === filteredContent.length;
-  const someSelected = selectedIds.size > 0 && !allSelected;
 
-  const handleSelectItem = (itemId: string, selected: boolean) => {
+  const handleSelectItem = (itemId: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (selected) {
-        next.add(itemId);
-      } else {
+      if (next.has(itemId)) {
         next.delete(itemId);
+      } else {
+        next.add(itemId);
       }
       return next;
     });
@@ -106,61 +129,32 @@ export default function KnowledgePage() {
     }
   };
 
-  const handleCancelSelection = () => {
-    setSelectionMode(false);
-    setSelectedIds(new Set());
-  };
-
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-
-    const confirmMsg = `Are you sure you want to delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`;
-    if (!confirm(confirmMsg)) return;
+    if (!confirm(`Delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`)) return;
 
     setBulkDeleting(true);
     try {
-      // Delete items in parallel for speed
-      const deletePromises = Array.from(selectedIds).map(id =>
-        deleteContent(id).catch(err => {
-          console.error(`Failed to delete ${id}:`, err);
-          return { error: true, id };
-        })
-      );
-
-      const results = await Promise.all(deletePromises);
-      const failures = results.filter(r => r && typeof r === 'object' && 'error' in r);
-
-      if (failures.length > 0) {
-        alert(`${failures.length} item(s) failed to delete.`);
-      }
-
+      await Promise.all(Array.from(selectedIds).map(id => deleteContent(id).catch(() => {})));
       setSelectedIds(new Set());
       setSelectionMode(false);
-    } catch (err) {
-      console.error('Bulk delete error:', err);
-      alert('Some items failed to delete. Please try again.');
     } finally {
       setBulkDeleting(false);
     }
   };
 
   const handleDelete = async (contentId: string) => {
-    if (confirm('Are you sure you want to delete this content? This cannot be undone.')) {
+    if (confirm('Delete this content?')) {
       await deleteContent(contentId);
     }
   };
 
+  // File upload handlers
   const handleUpload = async () => {
-    if (!selectedKb) {
-      console.error('No knowledge base selected');
-      return;
-    }
-
-    // Check if any files are MBOX - they need client-side parsing
+    if (!selectedKb) return;
     const mboxFiles = uploadFiles.filter(f => f.status === 'pending' && isMboxFile(f.file));
     const otherFiles = uploadFiles.filter(f => f.status === 'pending' && !isMboxFile(f.file));
 
-    // Process MBOX files with client-side parsing
     if (mboxFiles.length > 0) {
       setShowUploadModal(false);
       for (const fileWithProgress of mboxFiles) {
@@ -168,7 +162,6 @@ export default function KnowledgePage() {
       }
     }
 
-    // Process other files with normal upload
     if (otherFiles.length > 0) {
       await doUpload(selectedKb);
       setShowUploadModal(false);
@@ -179,16 +172,7 @@ export default function KnowledgePage() {
     await refresh();
   };
 
-  // Helper function to process MBOX file with client-side parsing
   const processMboxFile = async (file: File) => {
-    const fileSizeGB = file.size / (1024 * 1024 * 1024);
-    if (fileSizeGB > 2) {
-      const confirmed = confirm(
-        `This file is ${fileSizeGB.toFixed(1)}GB. Parsing may take several minutes.\n\nFor faster processing, consider exporting only your "Sent" folder.\n\nContinue?`
-      );
-      if (!confirmed) return;
-    }
-
     setMboxUploading(true);
     setMboxProgress(0);
     setMboxStatus('Reading file...');
@@ -205,24 +189,13 @@ export default function KnowledgePage() {
       });
 
       if (parseResult.emails.length === 0) {
-        const reasons = Object.entries(parseResult.skippedReasons)
-          .map(([reason, count]) => `${reason}: ${count}`)
-          .join(', ');
-        alert(
-          `No emails found to import.\n\n` +
-          `Total emails scanned: ${parseResult.totalEmailsFound}\n` +
-          `Filtered out: ${parseResult.emailsFiltered}\n` +
-          `Parse errors: ${parseResult.parseErrors}\n\n` +
-          (reasons ? `Skip reasons: ${reasons}` : '') +
-          `\n\nTip: Make sure you're uploading your "Sent" folder MBOX file.`
-        );
+        alert('No emails found to import. Make sure you\'re uploading your "Sent" folder.');
         return;
       }
 
-      const uploadSize = estimateUploadSize(parseResult.emails);
       const totalBatches = Math.ceil(parseResult.emails.length / 50);
       setMboxProgress(70);
-      setMboxStatus(`Uploading ${parseResult.emails.length} emails in ${totalBatches} batches...`);
+      setMboxStatus(`Uploading ${parseResult.emails.length} emails...`);
 
       const result = await api.kbContent.ingestParsedEmails({
         emails: parseResult.emails,
@@ -235,25 +208,16 @@ export default function KnowledgePage() {
           parseErrors: parseResult.parseErrors,
         },
         onBatchProgress: (batchNum, totalBatches) => {
-          const uploadProgress = 70 + Math.round((batchNum / totalBatches) * 30);
-          setMboxProgress(uploadProgress);
+          setMboxProgress(70 + Math.round((batchNum / totalBatches) * 30));
           setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
         },
       });
 
       setMboxProgress(100);
-      setMboxStatus(result.partial ? 'Partially complete' : 'Complete!');
-      setMboxResult({
-        emailsIngested: result.emailsIngested,
-        chunksCreated: result.chunksCreated,
-        partial: result.partial,
-        batchesCompleted: result.batchesCompleted,
-        totalBatches: result.totalBatches,
-      });
+      setMboxResult({ emailsIngested: result.emailsIngested, chunksCreated: result.chunksCreated });
+      await refresh();
     } catch (err) {
-      console.error('MBOX upload error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      alert(`Failed to import emails: ${errorMessage}`);
+      alert(`Failed to import emails: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setMboxUploading(false);
       setMboxStatus('');
@@ -263,488 +227,311 @@ export default function KnowledgePage() {
   const handleMboxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // No strict file size limit anymore - we parse client-side
-    // But warn for very large files (over 2GB) that may be slow
-    const fileSizeGB = file.size / (1024 * 1024 * 1024);
-    if (fileSizeGB > 2) {
-      const confirmed = confirm(
-        `This file is ${fileSizeGB.toFixed(1)}GB. Parsing may take several minutes.\n\nFor faster processing, consider exporting only your "Sent" folder.\n\nContinue?`
-      );
-      if (!confirmed) {
-        if (mboxInputRef.current) {
-          mboxInputRef.current.value = '';
-        }
-        return;
-      }
-    }
-
-    setMboxUploading(true);
-    setMboxProgress(0);
-    setMboxStatus('Reading file...');
-    setMboxResult(null);
     setShowMboxInstructions(false);
-
-    try {
-      // Step 1: Parse MBOX file client-side
-      const parseResult = await parseMboxFile(file, {
-        maxEmails: 100,
-        minContentLength: 50,
-        onProgress: ({ percent, emailsFound, status }) => {
-          setMboxProgress(Math.round(percent * 0.7)); // First 70% is parsing
-          setMboxStatus(status || `Found ${emailsFound} emails...`);
-        },
-      });
-
-      if (parseResult.emails.length === 0) {
-        const reasons = Object.entries(parseResult.skippedReasons)
-          .map(([reason, count]) => `${reason}: ${count}`)
-          .join(', ');
-        alert(
-          `No emails found to import.\n\n` +
-          `Total emails scanned: ${parseResult.totalEmailsFound}\n` +
-          `Filtered out: ${parseResult.emailsFiltered}\n` +
-          `Parse errors: ${parseResult.parseErrors}\n\n` +
-          (reasons ? `Skip reasons: ${reasons}` : '') +
-          `\n\nTip: Make sure you're uploading your "Sent" folder MBOX file.`
-        );
-        return;
-      }
-
-      // Show parsing complete, now uploading in batches
-      const uploadSize = estimateUploadSize(parseResult.emails);
-      const totalBatches = Math.ceil(parseResult.emails.length / 50);
-      setMboxProgress(70);
-      setMboxStatus(`Uploading ${parseResult.emails.length} emails in ${totalBatches} batches...`);
-
-      // Step 2: Upload pre-parsed emails as JSON (in batches of 50)
-      const result = await api.kbContent.ingestParsedEmails({
-        emails: parseResult.emails,
-        knowledgeBaseId: selectedKb ?? undefined,
-        fileName: file.name,
-        parseStats: {
-          totalEmailsFound: parseResult.totalEmailsFound,
-          emailsParsed: parseResult.emailsParsed,
-          emailsFiltered: parseResult.emailsFiltered,
-          parseErrors: parseResult.parseErrors,
-        },
-        onBatchProgress: (batchNum, totalBatches) => {
-          // Progress from 70% to 100% during upload phase
-          const uploadProgress = 70 + Math.round((batchNum / totalBatches) * 30);
-          setMboxProgress(uploadProgress);
-          setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
-        },
-      });
-
-      setMboxProgress(100);
-      setMboxStatus(result.partial ? 'Partially complete' : 'Complete!');
-      setMboxResult({
-        emailsIngested: result.emailsIngested,
-        chunksCreated: result.chunksCreated,
-        partial: result.partial,
-        batchesCompleted: result.batchesCompleted,
-        totalBatches: result.totalBatches,
-      });
-
-      await refresh();
-    } catch (err) {
-      console.error('MBOX upload error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      alert(`Failed to import emails: ${errorMessage}`);
-    } finally {
-      setMboxUploading(false);
-      setMboxStatus('');
-      if (mboxInputRef.current) {
-        mboxInputRef.current.value = '';
-      }
-    }
+    await processMboxFile(file);
+    if (mboxInputRef.current) mboxInputRef.current.value = '';
   };
 
-  const handleVoiceSaved = async () => {
-    setShowVoiceModal(false);
-    await refresh();
-  };
-
-  const handleSocialImportComplete = async () => {
-    await refresh();
-  };
+  // Hidden file input
+  const mboxInput = (
+    <input
+      ref={mboxInputRef}
+      type="file"
+      accept=".mbox,application/mbox,application/octet-stream,text/plain"
+      onChange={handleMboxUpload}
+      className="hidden"
+    />
+  );
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-7xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-display text-4xl mb-2">Your Echo</h1>
-          <p className="text-body text-text-secondary">
-            {contentStats && contentStats.totalItems > 0
-              ? `${contentStats.totalItems} content item${contentStats.totalItems !== 1 ? 's' : ''} with ${contentStats.totalChunks} training chunks`
-              : 'Train your voice by adding your writing'}
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap justify-end">
-          <button
-            onClick={() => setShowVoiceModal(true)}
-            className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2"
-            title="Record voice sample"
-          >
-            <span>🎤</span>
-            <span className="hidden sm:inline">Voice</span>
-          </button>
-          <button
-            onClick={() => setShowSocialModal(true)}
-            className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2"
-            title="Import from social media"
-          >
-            <span>📱</span>
-            <span className="hidden sm:inline">Social</span>
-          </button>
-          <button
-            onClick={() => setShowBlogModal(true)}
-            className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2"
-            title="Import from blog"
-          >
-            <span>📝</span>
-            <span className="hidden sm:inline">Blog</span>
-          </button>
-          <button
-            onClick={() => setShowMboxInstructions(true)}
-            disabled={mboxUploading}
-            className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2 disabled:opacity-50"
-            title="Import email archive"
-          >
-            <span>📧</span>
-            <span className="hidden sm:inline">Email</span>
-          </button>
-          <input
-            ref={mboxInputRef}
-            type="file"
-            accept=".mbox,application/mbox,application/octet-stream,text/plain"
-            onChange={handleMboxUpload}
-            className="hidden"
-          />
-          <button
-            onClick={() => setShowPasteModal(true)}
-            className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors flex items-center gap-2"
-            title="Paste text content"
-          >
-            <span>✍️</span>
-            <span className="hidden sm:inline">Paste</span>
-          </button>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="btn-primary flex items-center gap-2"
-          >
-            <span>📤</span>
-            <span>Upload</span>
-          </button>
-        </div>
-      </div>
+    <div className="container mx-auto px-4 sm:px-6 py-8 max-w-5xl">
+      {mboxInput}
 
-      {/* MBOX Upload Progress */}
-      {mboxUploading && (
-        <MboxProgressUI
-          progress={mboxProgress}
-          status={mboxStatus}
-        />
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-24">
+          <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
       )}
 
-      {/* MBOX Upload Result - always show as success since emails were ingested */}
+      {/* MBOX Progress */}
+      {mboxUploading && <MboxProgressUI progress={mboxProgress} status={mboxStatus} />}
+
+      {/* MBOX Success */}
       {mboxResult && (
-        <div className="mb-6 p-4 rounded-lg border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">✅</span>
-              <div>
-                <p className="font-medium text-green-700 dark:text-green-300">
-                  Email archive imported successfully!
-                </p>
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  {mboxResult.emailsIngested} emails processed, {mboxResult.chunksCreated.toLocaleString()} chunks created
-                </p>
+        <div className="mb-6 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-600">✓</span>
+            <span className="text-sm text-emerald-700 dark:text-emerald-300">
+              {mboxResult.emailsIngested} emails imported
+            </span>
+          </div>
+          <button onClick={() => setMboxResult(null)} className="text-emerald-600 hover:text-emerald-800">✕</button>
+        </div>
+      )}
+
+      {!loading && (
+        <>
+          {/* Header with Guidance */}
+          <div className="mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2">Your Echosystem</h1>
+            <p className="text-text-secondary text-base max-w-2xl">
+              This is where Echo learns <span className="text-text-primary font-medium">your</span> voice.
+              The more you add, the better Echo writes like you.
+            </p>
+
+            {/* Quick Help */}
+            <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-xl">
+              <div className="flex items-start gap-3">
+                <span className="text-xl">💡</span>
+                <div className="flex-1">
+                  <p className="text-sm text-text-primary font-medium mb-1">
+                    What should I add?
+                  </p>
+                  <p className="text-sm text-text-secondary">
+                    Anything <span className="font-medium">you&apos;ve written</span> — emails, social posts, blog articles, scripts.
+                    Echo analyzes your word choices, tone, and style to generate content that sounds like you.
+                  </p>
+                </div>
               </div>
             </div>
-            <button
-              onClick={() => setMboxResult(null)}
-              className="text-green-600 hover:text-green-800 dark:text-green-400"
-            >
-              ✕
-            </button>
           </div>
-        </div>
-      )}
 
-      {/* Stats */}
-      <KBStats stats={contentStats} kbName={currentKb?.name} />
-
-      {/* Voice Learning Info */}
-      {contentStats && contentStats.totalItems > 0 && contentStats.totalItems < 10 && (
-        <div className="mb-6 p-4 bg-accent/5 border-2 border-accent/20 rounded-xl">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">🎯</span>
-            <div>
-              <p className="font-medium text-text-primary mb-1">
-                Keep adding content to improve your voice match
-              </p>
-              <p className="text-sm text-text-secondary">
-                Your voice profile automatically updates when you add 3+ new pieces of content.
-                The more diverse samples you add (emails, posts, articles), the better Echo can match your unique style.
-              </p>
+          {/* Add Content Section */}
+          <div className="mb-8">
+            <p className="text-xs uppercase tracking-wider text-text-secondary font-medium mb-3">
+              Add to your Echosystem
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setShowVoiceModal(true)}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Record yourself talking — we'll transcribe it"
+              >
+                <span>🎤</span> Voice
+              </button>
+              <button
+                onClick={() => setShowSocialModal(true)}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Import from YouTube or Instagram"
+              >
+                <span>📱</span> Social
+              </button>
+              <button
+                onClick={() => setShowBlogModal(true)}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Import articles from your blog"
+              >
+                <span>📝</span> Blog
+              </button>
+              <button
+                onClick={() => setShowMboxInstructions(true)}
+                disabled={mboxUploading}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium disabled:opacity-50"
+                title="Import emails you've sent"
+              >
+                <span>📧</span> Email
+              </button>
+              <button
+                onClick={() => setShowPasteModal(true)}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Copy & paste any text you've written"
+              >
+                <span>✍️</span> Paste
+              </button>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all text-sm font-medium"
+                title="Upload documents (PDF, Word, TXT)"
+              >
+                <span>📤</span> Upload
+              </button>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Voice Profile Updated Notice */}
-      {contentStats && contentStats.totalItems >= 10 && (
-        <div className="mb-6 p-4 bg-green-500/5 border border-green-500/20 rounded-xl">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✨</span>
-            <div>
-              <p className="font-medium text-green-700 dark:text-green-400 mb-1">
-                Strong voice profile
-              </p>
-              <p className="text-sm text-text-secondary">
-                With {contentStats.totalItems} content samples, Echo has a good understanding of your writing style.
-                Your voice profile will continue to improve as you add more content.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Search and Bulk Actions */}
-      {contentItems.length > 0 && (
-        <div className="mb-6 space-y-4">
-          {/* Search bar row */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search content..."
-              className="flex-1 max-w-md px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
-            />
-            {!selectionMode ? (
-              <button
-                onClick={() => setSelectionMode(true)}
-                className="px-4 py-2.5 bg-accent/10 border-2 border-accent text-accent rounded-lg hover:bg-accent/20 transition-colors font-medium flex items-center gap-2"
-              >
-                <span>☑️</span> Select
-              </button>
-            ) : (
-              <button
-                onClick={handleCancelSelection}
-                className="px-4 py-2.5 border-2 border-error/50 text-error rounded-lg hover:bg-error/10 transition-colors font-medium"
-              >
-                ✕ Cancel
-              </button>
-            )}
-          </div>
-
-          {/* Bulk action toolbar - only visible in selection mode */}
-          {selectionMode && (
-            <div className="flex items-center justify-between p-4 bg-accent/5 border-2 border-accent/20 rounded-lg">
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    ref={(el) => { if (el) el.indeterminate = someSelected; }}
-                    onChange={handleSelectAll}
-                    className="w-5 h-5 rounded border-2 border-accent text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer"
-                  />
-                  <span className="text-sm font-medium">
-                    {allSelected ? 'Deselect all' : 'Select all'}
-                  </span>
-                </label>
-                <span className="text-sm text-text-secondary">
-                  {selectedCount} of {filteredContent.length} selected
-                </span>
+          {/* Voice Strength Indicator */}
+          {hasContent && (
+            <div className="mb-6 p-4 bg-bg-secondary rounded-xl">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🎯</span>
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">Echo Training Progress</p>
+                    <p className="text-xs text-text-secondary">
+                      {totalItems} source{totalItems !== 1 ? 's' : ''} added • {totalChunks.toLocaleString()} passages learned
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className={`text-sm font-semibold ${voiceStrength.color}`}>{voiceStrength.level}</span>
+                  <button
+                    onClick={refresh}
+                    disabled={loading}
+                    className="ml-3 text-text-secondary hover:text-accent transition-colors text-sm"
+                  >
+                    ↻
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              {/* Progress Bar */}
+              <div className="w-full bg-bg-tertiary rounded-full h-2">
+                <div
+                  className="bg-accent h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${voiceStrength.percent}%` }}
+                />
+              </div>
+              {totalChunks < 500 && (
+                <p className="text-xs text-text-secondary mt-2">
+                  Keep adding content to improve voice accuracy. Aim for 500+ passages.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!hasContent && (
+            <div className="text-center py-10 px-6 bg-bg-secondary rounded-xl border border-border">
+              <div className="text-5xl mb-4">✨</div>
+              <h3 className="text-lg font-semibold mb-2">Your Echosystem is empty</h3>
+              <p className="text-text-secondary text-sm max-w-md mx-auto mb-4">
+                Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos — it only takes a minute!
+              </p>
+              <div className="flex justify-center gap-3">
                 <button
-                  onClick={handleBulkDelete}
-                  disabled={selectedCount === 0 || bulkDeleting}
-                  className="px-4 py-2 bg-error/10 border border-error/30 text-error rounded-lg hover:bg-error/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  onClick={() => setShowPasteModal(true)}
+                  className="px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 text-sm font-medium"
                 >
-                  {bulkDeleting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-error border-t-transparent rounded-full animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      🗑️ Delete ({selectedCount})
-                    </>
-                  )}
+                  Paste Text
+                </button>
+                <button
+                  onClick={() => setShowSocialModal(true)}
+                  className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 text-sm font-medium"
+                >
+                  Import YouTube
                 </button>
               </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Loading */}
-      {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-
-      {/* Content Grid */}
-      {!loading && filteredContent.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Grouped MBOX items */}
-          {Array.from(groupedContent.groups.entries()).map(([groupName, items]) => (
-            <GroupedContentCard
-              key={`group-${groupName}`}
-              items={items}
-              sourceType="mbox_import"
-              groupTitle={groupName}
-              onDelete={handleDelete}
-              selected={items.every((item) => selectedIds.has(item.id))}
-              onSelect={(selected) => {
-                items.forEach((item) => handleSelectItem(item.id, selected));
-              }}
-              selectionMode={selectionMode}
-            />
-          ))}
-          {/* Ungrouped items */}
-          {groupedContent.ungrouped.map((item) => (
-            <ContentItemCard
-              key={item.id}
-              item={item}
-              onDelete={() => handleDelete(item.id)}
-              selected={selectedIds.has(item.id)}
-              onSelect={(selected) => handleSelectItem(item.id, selected)}
-              selectionMode={selectionMode}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Empty State with Instructions */}
-      {!loading && contentItems.length === 0 && (
-        <div className="space-y-8">
-          {/* Hero empty state */}
-          <div className="text-center py-12 card bg-gradient-to-br from-accent/5 to-transparent border-accent/20">
-            <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-subheading text-2xl mb-2">Train Your Echo</h3>
-            <p className="text-body text-text-secondary mb-2 max-w-xl mx-auto">
-              Your Echo learns from YOUR writing style. Add at least 3 content samples to start,
-              and your voice profile will automatically improve each time you add more.
-            </p>
-            <p className="text-sm text-text-secondary mb-6 max-w-xl mx-auto">
-              Best sources: emails you&apos;ve written, LinkedIn posts, blog articles, social captions
-            </p>
-            <div className="flex justify-center gap-3 flex-wrap">
-              <button
-                onClick={() => setShowPasteModal(true)}
-                className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
-              >
-                ✍️ Paste Content
-              </button>
-              <button
-                onClick={() => setShowSocialModal(true)}
-                className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
-              >
-                📱 Import Social
-              </button>
-              <button
-                onClick={() => setShowMboxInstructions(true)}
-                className="px-6 py-3 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
-              >
-                📧 Import Emails
-              </button>
-            </div>
-          </div>
-
-          {/* Quick start cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="card p-5">
-              <div className="text-3xl mb-3">✍️</div>
-              <h4 className="font-semibold mb-2">Paste Text</h4>
-              <p className="text-sm text-text-secondary mb-3">
-                Copy-paste emails, LinkedIn posts, or articles you&apos;ve written. Works great for quick additions.
+          {/* Content List */}
+          {hasContent && (
+            <div className="space-y-4">
+              {/* Section Header */}
+              <p className="text-xs uppercase tracking-wider text-text-secondary font-medium">
+                Your Content Library
               </p>
-              <button
-                onClick={() => setShowPasteModal(true)}
-                className="text-sm text-accent hover:underline"
-              >
-                Add content →
-              </button>
-            </div>
 
-            <div className="card p-5">
-              <div className="text-3xl mb-3">🎤</div>
-              <h4 className="font-semibold mb-2">Voice Recording</h4>
-              <p className="text-sm text-text-secondary mb-3">
-                Record yourself speaking naturally. We&apos;ll transcribe it and learn your conversational style.
-              </p>
-              <button
-                onClick={() => setShowVoiceModal(true)}
-                className="text-sm text-accent hover:underline"
-              >
-                Record now →
-              </button>
-            </div>
+              {/* Search & Bulk Actions */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 max-w-xs">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search..."
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:border-accent"
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">🔍</span>
+                </div>
+                {!selectionMode ? (
+                  <button
+                    onClick={() => setSelectionMode(true)}
+                    className="px-3 py-2 text-sm border border-border rounded-lg hover:border-accent transition-colors"
+                  >
+                    Select
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={handleSelectAll}
+                        className="w-4 h-4 rounded border-accent text-accent focus:ring-accent"
+                      />
+                      All ({filteredContent.length})
+                    </label>
+                    <button
+                      onClick={handleBulkDelete}
+                      disabled={selectedCount === 0 || bulkDeleting}
+                      className="px-3 py-1.5 text-sm bg-error/10 text-error rounded-lg hover:bg-error/20 disabled:opacity-50"
+                    >
+                      {bulkDeleting ? '...' : `Delete (${selectedCount})`}
+                    </button>
+                    <button
+                      onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}
+                      className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            <div className="card p-5">
-              <div className="text-3xl mb-3">🎬</div>
-              <h4 className="font-semibold mb-2">YouTube Import</h4>
-              <p className="text-sm text-text-secondary mb-3">
-                Import transcripts from your YouTube videos or your entire channel.
-              </p>
-              <button
-                onClick={() => setShowSocialModal(true)}
-                className="text-sm text-accent hover:underline"
-              >
-                Import videos →
-              </button>
+              {/* Grouped List */}
+              {Object.entries(groupedByType).map(([type, items]) => {
+                const config = CONTENT_SOURCE_CONFIG[type as ContentSourceType];
+                const icon = getSourceIcon(type as ContentSourceType);
+                const totalChunksInGroup = items.reduce((sum, item) => sum + (item.chunkCount || 0), 0);
+
+                return (
+                  <div key={type} className="space-y-1">
+                    {/* Group Header */}
+                    <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
+                      <span>{icon}</span>
+                      <span className="font-medium text-text-primary">{config?.label || type}</span>
+                      <span className="text-text-secondary">({items.length})</span>
+                      <span className="text-text-tertiary">•</span>
+                      <span className="text-text-secondary text-xs">{totalChunksInGroup.toLocaleString()} chunks</span>
+                    </div>
+
+                    {/* Items */}
+                    <div className="space-y-1">
+                      {items.map((item) => (
+                        <KBListItem
+                          key={item.id}
+                          item={item}
+                          selectionMode={selectionMode}
+                          isSelected={selectedIds.has(item.id)}
+                          onSelect={() => handleSelectItem(item.id)}
+                          onDelete={() => handleDelete(item.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* No Results */}
+              {filteredContent.length === 0 && searchTerm && (
+                <div className="text-center py-8 text-text-secondary">
+                  No results for "{searchTerm}"
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
+
+      {/* ============================================ */}
+      {/* MODALS */}
+      {/* ============================================ */}
 
       {/* Upload Modal */}
       {showUploadModal && (
         <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowUploadModal(false)}
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-subheading text-2xl">Upload Files</h2>
-                <button
-                  onClick={() => setShowUploadModal(false)}
-                  className="text-text-secondary hover:text-text-primary text-2xl"
-                >
-                  ✕
-                </button>
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowUploadModal(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Upload Files</h2>
+                <button onClick={() => setShowUploadModal(false)} className="text-text-secondary hover:text-text-primary">✕</button>
               </div>
-
               <UploadZone onFilesAdded={addFiles} disabled={uploading} />
-
-              <FileList
-                files={uploadFiles}
-                onRemove={removeFile}
-                totalSize={totalSize}
-              />
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setShowUploadModal(false)}
-                  className="flex-1 px-4 py-3 border-2 border-border rounded-lg text-body hover:border-accent transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading || uploadFiles.length === 0}
-                  className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+              <FileList files={uploadFiles} onRemove={removeFile} totalSize={totalSize} />
+              <div className="flex gap-3 mt-4">
+                <button onClick={() => setShowUploadModal(false)} className="flex-1 px-4 py-2 border border-border rounded-lg hover:border-accent">Cancel</button>
+                <button onClick={handleUpload} disabled={uploading || uploadFiles.length === 0} className="flex-1 btn-primary py-2 disabled:opacity-50">
                   {uploading ? 'Uploading...' : 'Upload'}
                 </button>
               </div>
@@ -753,107 +540,39 @@ export default function KnowledgePage() {
         </>
       )}
 
-      {/* MBOX Instructions Modal */}
+      {/* MBOX Modal */}
       {showMboxInstructions && (
         <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowMboxInstructions(false)}
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-subheading text-2xl">Import Email Archive</h2>
-                <button
-                  onClick={() => setShowMboxInstructions(false)}
-                  className="text-text-secondary hover:text-text-primary text-2xl"
-                >
-                  ✕
-                </button>
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowMboxInstructions(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Import Emails</h2>
+                <button onClick={() => setShowMboxInstructions(false)} className="text-text-secondary hover:text-text-primary">✕</button>
               </div>
-
-              <div className="space-y-6">
-                <p className="text-body text-text-secondary">
-                  Import your sent emails to help Echo learn your writing style. Files of any size are supported - we parse them locally in your browser.
-                </p>
-
-                {/* How it works */}
-                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <p className="text-sm text-green-700 dark:text-green-400">
-                    <strong>How it works:</strong> Your email file is parsed entirely in your browser. Only the extracted text from emails you sent is uploaded - attachments and received emails are discarded locally.
-                  </p>
+              <p className="text-sm text-text-secondary mb-4">
+                Import your sent emails to train Echo on your writing style.
+              </p>
+              <div className="space-y-3 mb-4">
+                <div className="p-3 bg-bg-secondary rounded-lg text-xs">
+                  <p className="font-medium mb-1">📧 Gmail</p>
+                  <p className="text-text-secondary">Go to takeout.google.com → Export Mail → Sent folder</p>
                 </div>
-
-                {/* Gmail instructions */}
-                <div className="p-4 bg-bg-secondary rounded-lg">
-                  <h3 className="font-semibold flex items-center gap-2 mb-2">
-                    <span>📧</span> Gmail (Google Takeout)
-                  </h3>
-                  <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
-                    <li>Go to <a href="https://takeout.google.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">takeout.google.com</a></li>
-                    <li>Click &quot;Deselect all&quot;, then scroll down and select only &quot;Mail&quot;</li>
-                    <li>Click &quot;All Mail data included&quot; and select only &quot;Sent&quot; (recommended)</li>
-                    <li>Click &quot;Next step&quot; and create export</li>
-                    <li>Download and extract the ZIP file</li>
-                    <li>Upload the .mbox file from the Mail folder</li>
-                  </ol>
+                <div className="p-3 bg-bg-secondary rounded-lg text-xs">
+                  <p className="font-medium mb-1">🍎 Apple Mail</p>
+                  <p className="text-text-secondary">Mailbox → Export Mailbox → Upload .mbox file</p>
                 </div>
-
-                {/* Outlook instructions */}
-                <div className="p-4 bg-bg-secondary rounded-lg">
-                  <h3 className="font-semibold flex items-center gap-2 mb-2">
-                    <span>📬</span> Outlook
-                  </h3>
-                  <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
-                    <li>Open Outlook and go to File → Open & Export → Import/Export</li>
-                    <li>Select &quot;Export to a file&quot; → Next</li>
-                    <li>Choose &quot;Outlook Data File (.pst)&quot;</li>
-                    <li>Select your Sent folder and export</li>
-                    <li>Convert PST to MBOX using a free converter tool</li>
-                  </ol>
-                </div>
-
-                {/* Apple Mail instructions */}
-                <div className="p-4 bg-bg-secondary rounded-lg">
-                  <h3 className="font-semibold flex items-center gap-2 mb-2">
-                    <span>🍎</span> Apple Mail
-                  </h3>
-                  <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
-                    <li>Open Mail and select your &quot;Sent&quot; mailbox</li>
-                    <li>Go to Mailbox → Export Mailbox...</li>
-                    <li>Choose a location to save the .mbox folder</li>
-                    <li>Right-click the .mbox folder → &quot;Show Package Contents&quot;</li>
-                    <li>Upload the <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">mbox</code> file inside (no extension)</li>
-                  </ol>
-                </div>
-
-                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
-                    <strong>Note:</strong> Up to 500 of your most recent sent emails will be processed for voice matching.
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowMboxInstructions(false)}
-                    className="flex-1 px-4 py-3 border-2 border-border rounded-lg text-body hover:border-accent transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => mboxInputRef.current?.click()}
-                    className="flex-1 btn-primary py-3"
-                  >
-                    Select MBOX File
-                  </button>
-                </div>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowMboxInstructions(false)} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm">Cancel</button>
+                <button onClick={() => mboxInputRef.current?.click()} className="flex-1 btn-primary py-2 text-sm">Select File</button>
               </div>
             </div>
           </div>
         </>
       )}
 
-      {/* Paste Content Modal */}
+      {/* Paste Modal */}
       <PasteContentModal
         isOpen={showPasteModal}
         onClose={() => setShowPasteModal(false)}
@@ -861,52 +580,109 @@ export default function KnowledgePage() {
         knowledgeBaseId={selectedKb ?? undefined}
       />
 
-      {/* Voice Recording Modal */}
+      {/* Voice Modal */}
       {showVoiceModal && (
         <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowVoiceModal(false)}
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Record Voice Sample
-                </h2>
-                <button
-                  onClick={() => setShowVoiceModal(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
-                >
-                  ✕
-                </button>
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowVoiceModal(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h2 className="font-semibold">Record Voice</h2>
+                <button onClick={() => setShowVoiceModal(false)} className="text-text-secondary hover:text-text-primary">✕</button>
               </div>
-              <div className="p-6">
-                <VoiceRecorder
-                  onSaved={handleVoiceSaved}
-                  knowledgeBaseId={selectedKb ?? undefined}
-                />
+              <div className="p-4">
+                <VoiceRecorder onSaved={() => { setShowVoiceModal(false); refresh(); }} knowledgeBaseId={selectedKb ?? undefined} />
               </div>
             </div>
           </div>
         </>
       )}
 
-      {/* Social Import Modal */}
+      {/* Social Modal */}
       <SocialImportModal
         isOpen={showSocialModal}
         onClose={() => setShowSocialModal(false)}
-        onImportComplete={handleSocialImportComplete}
+        onImportComplete={refresh}
         knowledgeBaseId={selectedKb ?? undefined}
       />
 
-      {/* Blog Import Modal */}
+      {/* Blog Modal */}
       <BlogImportModal
         isOpen={showBlogModal}
         onClose={() => setShowBlogModal(false)}
-        onImportComplete={handleSocialImportComplete}
+        onImportComplete={refresh}
         knowledgeBaseId={selectedKb ?? undefined}
       />
+    </div>
+  );
+}
+
+// ============================================
+// KB LIST ITEM COMPONENT
+// ============================================
+
+interface KBListItemProps {
+  item: UnifiedContentItem;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+}
+
+function KBListItem({ item, selectionMode, isSelected, onSelect, onDelete }: KBListItemProps) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`
+        flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer
+        ${isSelected ? 'bg-accent/10 border border-accent/30' : 'hover:bg-bg-secondary border border-transparent'}
+      `}
+      onClick={selectionMode ? onSelect : undefined}
+    >
+      {/* Checkbox */}
+      {(selectionMode || hovered) && (
+        <div
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
+          className={`
+            w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 cursor-pointer
+            ${isSelected ? 'bg-accent border-accent text-white' : 'border-border hover:border-accent'}
+          `}
+        >
+          {isSelected && <span className="text-xs">✓</span>}
+        </div>
+      )}
+
+      {/* Title */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+        {item.description && (
+          <p className="text-xs text-text-secondary truncate">{item.description}</p>
+        )}
+      </div>
+
+      {/* Chunks */}
+      <div className="flex-shrink-0 text-xs text-text-secondary">
+        {item.chunkCount || 0} chunks
+      </div>
+
+      {/* Date */}
+      <div className="flex-shrink-0 text-xs text-text-tertiary w-16 text-right">
+        {formatDate(item.createdAt)}
+      </div>
+
+      {/* Delete */}
+      {hovered && !selectionMode && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="flex-shrink-0 p-1 text-text-tertiary hover:text-error transition-colors"
+          title="Delete"
+        >
+          🗑️
+        </button>
+      )}
     </div>
   );
 }

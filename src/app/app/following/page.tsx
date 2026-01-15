@@ -232,7 +232,7 @@ export default function FollowingPage() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
-    setCarouselDesignOption('auto');
+    setCarouselDesignOption('tweet-style'); // Default to tweet-style for better carousels
     setCarouselBgFile(null);
   };
 
