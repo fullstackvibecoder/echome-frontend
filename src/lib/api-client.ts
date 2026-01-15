@@ -1564,6 +1564,44 @@ export const api = {
     },
   },
 
+  // -------- VIDEO SNAPSHOTS --------
+  snapshots: {
+    /** Get all snapshots for a video upload */
+    getForUpload: async (uploadId: string) => {
+      const response = await apiClient.get(`/snapshots/${uploadId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          snapshots: VideoSnapshot[];
+        };
+      };
+    },
+
+    /** Get snapshots for a content kit's associated video */
+    getForContentKit: async (contentKitId: string) => {
+      const response = await apiClient.get(`/snapshots/by-content-kit/${contentKitId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          snapshots: VideoSnapshot[];
+          hasVideo: boolean;
+          videoUploadId?: string;
+        };
+      };
+    },
+
+    /** Get a single snapshot by ID */
+    get: async (snapshotId: string) => {
+      const response = await apiClient.get(`/snapshots/single/${snapshotId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          snapshot: VideoSnapshot;
+        };
+      };
+    },
+  },
+
   // -------- CONTENT SCHEDULING --------
   scheduling: {
     /** List scheduled posts for a date range */
@@ -1964,6 +2002,18 @@ export interface TranscriptSegment {
     end: number;
     confidence?: number;
   }>;
+}
+
+export interface VideoSnapshot {
+  id: string;
+  userId: string;
+  videoUploadId: string;
+  timeOffsetSeconds: number;
+  storagePath: string;
+  thumbnailUrl: string;
+  width: number;
+  height: number;
+  createdAt: string;
 }
 
 // ============================================

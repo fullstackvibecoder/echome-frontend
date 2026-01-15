@@ -22,7 +22,7 @@ type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
 const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
   { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
   { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
-  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Coming soon - frames from your video', disabled: true },
+  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Use a frame from your uploaded video' },
 ];
 
 // Extended content with creator info

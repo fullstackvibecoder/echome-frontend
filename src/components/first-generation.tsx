@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
-import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob } from '@/lib/api-client';
+import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot } from '@/lib/api-client';
+import { SnapshotPicker } from './SnapshotPicker';
 
 // ============================================
 // VOICE INPUT PANEL - Direct voice recording
@@ -278,7 +279,7 @@ type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
 const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
   { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
   { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
-  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Coming soon - frames from your video', disabled: true },
+  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Use a frame from your uploaded video' },
 ];
 
 // Caption style options for video clips
@@ -344,6 +345,10 @@ export function FirstGeneration({
   const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
+
+  // Video snapshot state
+  const [selectedSnapshot, setSelectedSnapshot] = useState<VideoSnapshot | null>(null);
+  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
 
   // Caption style state
   const [captionStyle, setCaptionStyle] = useState<CaptionStyleOption>('modern');
@@ -465,6 +470,7 @@ export function FirstGeneration({
       }
 
       const upload = uploadResponse.data.upload;
+      setCurrentUploadId(upload.id); // Save for snapshot picker
       setVideoProcessingStatus('Starting clip extraction...');
       setVideoProcessingProgress(35);
 
@@ -482,6 +488,9 @@ export function FirstGeneration({
         } catch (bgErr) {
           console.warn('Failed to upload carousel background, using default:', bgErr);
         }
+      } else if (carouselDesignOption === 'video-snapshot' && selectedSnapshot) {
+        // Use the selected video snapshot
+        carouselBackground = { type: 'image', imageUrl: selectedSnapshot.thumbnailUrl };
       }
 
       // Step 2: Start processing
@@ -598,12 +607,19 @@ export function FirstGeneration({
       setCarouselBgFile(null);
       if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
     }
+    // Clear snapshot if not video-snapshot option
+    if (value !== 'video-snapshot') {
+      setSelectedSnapshot(null);
+    }
   };
 
   // Build the BackgroundConfig based on selection (legacy support)
   const buildBackgroundConfig = (): BackgroundConfig => {
     if (carouselDesignOption === 'upload') {
       return { type: 'image' };
+    }
+    if (carouselDesignOption === 'video-snapshot' && selectedSnapshot) {
+      return { type: 'image', imageUrl: selectedSnapshot.thumbnailUrl };
     }
     return { type: 'preset', presetId: 'tweet-style' };
   };
@@ -723,6 +739,8 @@ export function FirstGeneration({
     setSelectedFile(null);
     setUploadError(null);
     setSelectedContent(null);
+    setSelectedSnapshot(null);
+    setCurrentUploadId(null);
     if (videoInputRef.current) videoInputRef.current.value = '';
   };
 
@@ -1169,6 +1187,30 @@ export function FirstGeneration({
                 >
                   Remove
                 </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Conditional Snapshot Picker */}
+        {carouselDesignOption === 'video-snapshot' && (
+          <div className="mt-4 pt-4 border-t border-border">
+            {currentUploadId ? (
+              <SnapshotPicker
+                uploadId={currentUploadId}
+                selectedUrl={selectedSnapshot?.thumbnailUrl}
+                onSelect={(snapshot) => setSelectedSnapshot(snapshot)}
+                disabled={generating || uploading || videoProcessing}
+              />
+            ) : (
+              <div className="p-4 text-center bg-bg-primary rounded-lg">
+                <div className="text-3xl mb-2">🎥</div>
+                <p className="text-body text-text-secondary">
+                  Upload a video first to see available snapshots
+                </p>
+                <p className="text-small text-text-secondary mt-1">
+                  Frames will be automatically extracted during processing
+                </p>
               </div>
             )}
           </div>
