@@ -147,6 +147,8 @@ export function useGenerationProgress(
   const maxReconnectAttempts = 3;
   const isCompleteRef = useRef(false);
   const hasErrorRef = useRef(false);
+  const carouselReadyRef = useRef(false);
+  const carouselFailedRef = useRef(false);
   const optionsRef = useRef(options);
 
   // Polling fallback refs
@@ -167,6 +169,14 @@ export function useGenerationProgress(
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
+
+  useEffect(() => {
+    carouselReadyRef.current = carouselReady;
+  }, [carouselReady]);
+
+  useEffect(() => {
+    carouselFailedRef.current = carouselFailed;
+  }, [carouselFailed]);
 
   // Stop polling
   const stopPolling = useCallback(() => {
@@ -355,6 +365,14 @@ export function useGenerationProgress(
         eventSource.close();
         eventSourceRef.current = null;
 
+        // If content is complete but we haven't received carousel status yet,
+        // SSE may have closed before carousel finished. Start polling to catch it.
+        if (isCompleteRef.current && !carouselReadyRef.current && !carouselFailedRef.current) {
+          console.log('SSE closed after content complete but carousel may still be pending, starting polling');
+          startPolling();
+          return;
+        }
+
         // Attempt reconnection if not complete, no error, and under limit
         if (!isCompleteRef.current && !hasErrorRef.current && reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
@@ -387,6 +405,8 @@ export function useGenerationProgress(
       setCarouselFailed(false);
       isCompleteRef.current = false;
       hasErrorRef.current = false;
+      carouselReadyRef.current = false;
+      carouselFailedRef.current = false;
       reconnectAttempts.current = 0;
       receivedSSEEvent.current = false;
       connect();
