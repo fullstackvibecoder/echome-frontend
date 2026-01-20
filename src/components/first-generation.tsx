@@ -1,9 +1,34 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { AxiosError } from 'axios';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot } from '@/lib/api-client';
 import { SnapshotPicker } from './SnapshotPicker';
+
+/**
+ * Extract error message from various error types (axios, standard Error, etc.)
+ * Backend returns errors in format: { success: false, error: { message: "..." } }
+ */
+function getErrorMessage(err: unknown): string {
+  // Check for axios error with response data
+  if (err && typeof err === 'object' && 'response' in err) {
+    const axiosErr = err as AxiosError<{ error?: { message?: string }; message?: string }>;
+    const responseData = axiosErr.response?.data;
+    if (responseData?.error?.message) {
+      return responseData.error.message;
+    }
+    if (responseData?.message) {
+      return responseData.message;
+    }
+  }
+  // Standard Error object
+  if (err instanceof Error) {
+    return err.message;
+  }
+  // Fallback
+  return 'An unexpected error occurred';
+}
 
 // ============================================
 // VOICE INPUT PANEL - Direct voice recording
@@ -517,7 +542,7 @@ export function FirstGeneration({
 
     } catch (err) {
       console.error('Video processing error:', err);
-      setUploadError(err instanceof Error ? err.message : 'Video processing failed');
+      setUploadError(getErrorMessage(err));
       setVideoProcessing(false);
       setVideoProcessingStatus(null);
     }
@@ -725,7 +750,7 @@ export function FirstGeneration({
         await processVideoWithClipFinder(selectedFile, 'upload');
         clearFile();
       } catch (err) {
-        setUploadError(err instanceof Error ? err.message : 'Video processing failed');
+        setUploadError(getErrorMessage(err));
       }
       return;
     }
