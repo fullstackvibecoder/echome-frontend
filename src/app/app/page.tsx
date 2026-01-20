@@ -14,57 +14,81 @@ import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/n
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
-// Progress step component with EchoMe branding
-function ProgressStep({
-  icon,
-  text,
-  subtext,
-  active,
-  completed,
-}: {
+// Text generation stages with icons, titles, and rotating tips (matching video processing style)
+const TEXT_GENERATION_STAGES: Record<string, {
   icon: string;
-  text: string;
-  subtext: string;
-  active: boolean;
-  completed?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-start gap-3 p-4 rounded-lg transition-all duration-300 ${
-        active
-          ? 'bg-accent/10 border border-accent/30'
-          : completed
-          ? 'bg-success/10 border border-success/30'
-          : 'bg-bg-secondary border border-transparent opacity-50'
-      }`}
-    >
-      <div className="text-2xl flex-shrink-0">
-        {completed ? '✅' : icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className={`text-body font-medium ${active ? 'text-accent' : ''}`}>
-            {text}
-          </span>
-          {active && (
-            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-          )}
-        </div>
-        <span className="text-small text-text-secondary">{subtext}</span>
-      </div>
-    </div>
-  );
-}
+  title: string;
+  tips: string[];
+}> = {
+  init: {
+    icon: '🚀',
+    title: 'Starting up',
+    tips: [
+      'Warming up the content engines...',
+      'Getting everything ready for you!',
+      'Preparing to create something amazing...',
+    ],
+  },
+  context: {
+    icon: '📚',
+    title: 'Reading your Echosystem',
+    tips: [
+      'Pulling context from your knowledge base...',
+      'Understanding your unique perspective...',
+      'Drawing from your authentic voice patterns...',
+      'Your Echosystem DNA is being analyzed...',
+    ],
+  },
+  voice: {
+    icon: '🎤',
+    title: 'Tuning into your voice',
+    tips: [
+      'Matching your exact writing style...',
+      'Your content sounds better because it\'s actually YOU',
+      'AI + Your Voice = Content that converts',
+      'Capturing your unique tone and rhythm...',
+    ],
+  },
+  generate: {
+    icon: '✨',
+    title: 'Crafting your content',
+    tips: [
+      'Making each platform sing YOUR tune...',
+      'Creating platform-perfect content...',
+      'Quality over quantity - every Echo matters',
+      'Tailoring content for maximum engagement...',
+    ],
+  },
+  validate: {
+    icon: '✅',
+    title: 'Polishing your Echo',
+    tips: [
+      'Running quality checks...',
+      'Ensuring everything sounds like you...',
+      'Final polish in progress...',
+      'Almost there! Perfecting the details...',
+    ],
+  },
+  carousel: {
+    icon: '🎨',
+    title: 'Creating carousel images',
+    tips: [
+      'Designing beautiful slides...',
+      'Making your content visual...',
+      'Crafting scroll-stopping graphics...',
+    ],
+  },
+  complete: {
+    icon: '🎉',
+    title: 'All done!',
+    tips: [
+      'Your content is ready!',
+    ],
+  },
+};
 
-// Fun tips that rotate during generation
-const ECHO_TIPS = [
-  "💡 Your content sounds better because it's actually YOU",
-  "🎯 We're matching your exact writing style from your Echosystem",
-  "🔮 AI + Your Voice = Content that converts",
-  "📚 Drawing from your knowledge base to keep it authentic",
-  "✨ Quality over quantity - every Echo matters",
-  "🎤 Your voice, amplified across every platform",
-];
+// Stage order for progress indicator dots
+const TEXT_GENERATION_STAGE_ORDER = ['init', 'context', 'voice', 'generate', 'validate', 'complete'];
 
 export default function AppDashboard() {
   const router = useRouter();
@@ -77,9 +101,10 @@ export default function AppDashboard() {
   // Real-time progress from SSE (including carousel status)
   const { progress, isComplete: progressComplete, hasError: progressError, carouselReady, carouselFailed } = useGenerationProgress(requestId);
 
-  // Derive progress step from real SSE events (fallback to 0 if not connected)
+  // Derive progress step and current stage from real SSE events
   const progressStep = progress ? mapStepToIndex(progress.step) : 0;
-  const [currentTip, setCurrentTip] = useState(0);
+  const currentStage = progress?.step || 'init';
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
 
   // Carousel state - now handled by backend background job
   const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[] | null>(null);
@@ -121,16 +146,27 @@ export default function AppDashboard() {
     }
   }, [generating]);
 
-  // Rotate tips every 5 seconds during generation
+  // Rotate tips every 4 seconds during generation (based on current stage)
   useEffect(() => {
-    if (!generating) return;
+    if (!generating) {
+      setCurrentTipIndex(0);
+      return;
+    }
+
+    const stageTips = TEXT_GENERATION_STAGES[currentStage]?.tips || [];
+    if (stageTips.length <= 1) return;
 
     const tipTimer = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % ECHO_TIPS.length);
-    }, 5000);
+      setCurrentTipIndex((prev) => (prev + 1) % stageTips.length);
+    }, 4000);
 
     return () => clearInterval(tipTimer);
-  }, [generating]);
+  }, [generating, currentStage]);
+
+  // Reset tip index when stage changes
+  useEffect(() => {
+    setCurrentTipIndex(0);
+  }, [currentStage]);
 
   // Handle carousel loading when Instagram platform is selected
   // Backend generates carousel in background and notifies via SSE
@@ -304,66 +340,55 @@ export default function AppDashboard() {
 
       {generating && (
         <div className="max-w-2xl mx-auto text-center animate-fade-in py-12">
-          {/* Loading Animation */}
-          <div className="mb-8">
-            <div className="w-20 h-20 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-            <h2 className="text-display text-3xl mb-2">
-              Echoing your voice...
-            </h2>
-            <p className="text-body text-text-secondary">
-              {progress?.message || 'Your Echosystem is working its magic ✨'}
-            </p>
+          {/* Stage Icon & Title */}
+          <div className="text-5xl mb-3 animate-bounce">
+            {TEXT_GENERATION_STAGES[currentStage]?.icon || '⏳'}
           </div>
-
-          {/* Progress Bar */}
-          <div className="max-w-md mx-auto mb-8">
-            <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
-              <div
-                className="h-full bg-accent transition-all duration-500 ease-out"
-                style={{ width: `${progress?.percent || 5}%` }}
-              />
-            </div>
-            <p className="text-small text-text-secondary mt-2">
-              {progress?.percent || 5}% complete
-            </p>
-          </div>
-
-          {/* Progress Steps - Fun EchoMe Branded */}
-          <div className="space-y-3 text-left max-w-md mx-auto">
-            <ProgressStep
-              icon="🎤"
-              text="Tuning into your unique voice patterns"
-              subtext={progress?.step === 'init' || progress?.step === 'context' ? progress.message : 'Reading your Echosystem DNA...'}
-              active={progressStep === 0 || progressStep === 1}
-              completed={progressStep > 1}
-            />
-            <ProgressStep
-              icon="🧠"
-              text="Applying your voice DNA"
-              subtext={progress?.step === 'voice' ? progress.message : 'Matching your unique style'}
-              active={progressStep === 1 && progress?.step === 'voice'}
-              completed={progressStep > 1}
-            />
-            <ProgressStep
-              icon="🎨"
-              text="Crafting platform-perfect content"
-              subtext={progress?.step === 'generate' ? progress.message : 'Making each platform sing YOUR tune'}
-              active={progressStep === 2}
-              completed={progressStep > 2}
-            />
-            <ProgressStep
-              icon="✨"
-              text="Polishing your Echo"
-              subtext={progress?.step === 'validate' || progress?.step === 'carousel' ? progress.message : 'Quality check in progress...'}
-              active={progressStep === 3}
-              completed={progressStep > 3}
-            />
-          </div>
-
-          {/* Rotating fun tips */}
-          <p className="text-small text-text-secondary mt-8 italic transition-opacity duration-500">
-            {ECHO_TIPS[currentTip]}
+          <p className="text-body font-semibold mb-1">
+            {TEXT_GENERATION_STAGES[currentStage]?.title || 'Processing...'}
           </p>
+
+          {/* Rotating Tip */}
+          <p className="text-small text-text-secondary mb-6 min-h-[40px] transition-opacity duration-500">
+            {TEXT_GENERATION_STAGES[currentStage]?.tips[currentTipIndex] || 'Working on it...'}
+          </p>
+
+          {/* Progress Bar - Gradient with pulse */}
+          <div className="w-full max-w-sm mx-auto mb-3">
+            <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
+                style={{ width: `${progress?.percent || 5}%` }}
+              >
+                <div className="absolute inset-0 bg-white/20 animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Percentage */}
+          <p className="text-small text-text-secondary font-medium mb-4">
+            {progress?.percent || 5}% complete
+          </p>
+
+          {/* Stage indicator dots */}
+          <div className="flex justify-center gap-2 mt-4">
+            {TEXT_GENERATION_STAGE_ORDER.map((stage, idx) => {
+              const currentIdx = TEXT_GENERATION_STAGE_ORDER.indexOf(currentStage);
+              const isComplete = idx < currentIdx;
+              const isCurrent = stage === currentStage || (currentStage === 'carousel' && stage === 'validate');
+              return (
+                <div
+                  key={stage}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    isComplete ? 'bg-accent' :
+                    isCurrent ? 'bg-accent animate-pulse scale-125' :
+                    'bg-bg-secondary'
+                  }`}
+                  title={TEXT_GENERATION_STAGES[stage]?.title}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
