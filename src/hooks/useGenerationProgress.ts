@@ -202,7 +202,7 @@ export function useGenerationProgress(
       if (!request) return;
 
       const status = request.status;
-      const hasCarouselData = carousel?.slides && carousel.slides.length > 0;
+      const hasCarouselData = !!(carousel?.slides && carousel.slides.length > 0);
 
       // Create synthetic progress event from status
       const syntheticProgress = statusToProgress(requestId, status, hasCarouselData);
