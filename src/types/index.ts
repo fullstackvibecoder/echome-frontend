@@ -194,23 +194,15 @@ export interface VideoClipDetail {
 }
 
 export type TemplateType =
-  | 'bold-statement'
-  | 'data-point'
-  | 'insight-card'
-  | 'story-lesson'
-  | 'action-cta'
-  | 'list-steps'
-  | 'tweet-style';
+  | 'tweet-style'    // Twitter/X style card
+  | 'text-box'       // Text box overlay
+  | 'photo-overlay'; // Photo with text overlay
 
 export type DesignPreset =
-  | 'auto'           // Auto-select templates per slide
-  | 'bold-statement' // All slides use bold-statement
-  | 'data-point'     // All slides use data-point
-  | 'insight-card'   // All slides use insight-card
-  | 'story-lesson'   // All slides use story-lesson
-  | 'action-cta'     // All slides use action-cta
-  | 'list-steps'     // All slides use list-steps
-  | 'tweet-style';   // All slides use tweet-style
+  | 'auto'           // Auto-select (defaults to tweet-style)
+  | 'tweet-style'    // Twitter/X style card for all slides
+  | 'text-box';      // Text box overlay for all slides
+  // Note: 'photo-overlay' is selected automatically when user uploads an image
 
 export interface GeneratedCarouselSlide {
   slideNumber: number;
@@ -422,18 +414,26 @@ export type SocialPlatform =
   | 'linkedin'
   | 'twitter'
   | 'tiktok'
-  | 'facebook';
+  | 'facebook'
+  | 'spotify'
+  | 'google';
 
 export interface SocialIntegration {
   id: string;
-  userId: string;
+  userId?: string;
+  user_id?: string;
   platform: SocialPlatform;
-  accountName: string;
-  accountId: string;
-  status: 'connected' | 'disconnected' | 'expired';
+  accountName?: string;
+  accountId?: string;
+  platform_username?: string;
+  platform_user_id?: string;
+  status: 'connected' | 'disconnected' | 'expired' | 'active' | 'inactive' | 'error' | 'pending';
   postsImported?: number;
   lastSynced?: Date;
-  createdAt: Date;
+  last_sync_at?: string;
+  createdAt?: Date;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // ============================================

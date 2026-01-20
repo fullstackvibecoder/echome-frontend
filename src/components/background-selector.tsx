@@ -30,14 +30,9 @@ export interface BackgroundSelectorProps {
 type TabType = 'presets' | 'upload' | 'ai';
 
 const DESIGN_PRESET_PREVIEWS: Record<DesignPreset, { gradient: string; label: string; description: string }> = {
-  'auto': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Auto (Smart)', description: 'Auto-select best template per slide' },
-  'bold-statement': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Bold Statement', description: 'Minimal, punchy hooks' },
-  'data-point': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Data Point', description: 'Stats + context' },
-  'insight-card': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Insight Card', description: 'Quotable insights' },
-  'story-lesson': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Story/Lesson', description: 'Personal moments' },
-  'action-cta': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Action CTA', description: 'Calls to action' },
-  'list-steps': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'List/Steps', description: 'Numbered steps' },
-  'tweet-style': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Tweet Style', description: 'Twitter/X post card' },
+  'auto': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Auto', description: 'Smart template selection' },
+  'tweet-style': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Tweet Style', description: 'Twitter/X post card look' },
+  'text-box': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Text Box', description: 'Clean text overlay' },
 };
 
 export function BackgroundSelector({

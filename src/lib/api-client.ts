@@ -450,6 +450,45 @@ export const api = {
       );
       return response.data;
     },
+
+    /** Start a Google sync job (syncs YouTube, Calendar, Contacts, Drive, Photos) */
+    syncGoogle: async (options?: {
+      knowledgeBaseId?: string;
+      syncOptions?: {
+        youtube?: boolean;
+        calendar?: boolean;
+        contacts?: boolean;
+        drive?: boolean;
+        photos?: boolean;
+      };
+    }) => {
+      const response = await apiClient.post('/social/google/sync', options || {});
+      return response.data as {
+        success: boolean;
+        data: {
+          jobId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          platform: 'google';
+          message?: string;
+        };
+      };
+    },
+
+    /** Check Google sync job status */
+    getGoogleSyncStatus: async (jobId: string) => {
+      const response = await apiClient.get(`/social/google/sync/${jobId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          jobId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          platform: 'google';
+          contentCount?: number;
+          chunksCreated?: number;
+          message?: string;
+        };
+      };
+    },
   },
 
   // -------- USER PROFILE --------
@@ -1008,9 +1047,9 @@ export const api = {
       additionalInstructions?: string;
       focusOnIdeas?: string[];
       differentiationAngle?: string;
-      /** New: use designPreset for carousel styling */
-      designPreset?: 'auto' | 'bold-statement' | 'data-point' | 'insight-card' | 'story-lesson' | 'action-cta' | 'list-steps' | 'tweet-style';
-      /** @deprecated Use designPreset instead */
+      /** Carousel template preset */
+      designPreset?: 'auto' | 'tweet-style' | 'text-box';
+      /** For custom background image uploads */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
         presetId?: string;
@@ -1276,9 +1315,9 @@ export const api = {
       captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
       generateContent?: boolean;
       knowledgeBaseId?: string;
-      /** New: use designPreset for carousel styling */
-      designPreset?: 'auto' | 'bold-statement' | 'data-point' | 'insight-card' | 'story-lesson' | 'action-cta' | 'list-steps' | 'tweet-style';
-      /** @deprecated Use designPreset instead */
+      /** Carousel template preset */
+      designPreset?: 'auto' | 'tweet-style' | 'text-box';
+      /** For custom background image uploads */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
         presetId?: string;

@@ -81,7 +81,7 @@ export default function ContentKitDetailPage() {
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
 
   // Check if we're still waiting for carousel (Instagram content but no carousel yet)
-  const hasInstagramContentCheck = detail?.contentKit?.content_instagram || detail?.contentKit?.contentInstagram;
+  const hasInstagramContentCheck = detail?.contentKit?.contentInstagram;
   const hasCarouselCheck = detail?.carousel?.slides && detail.carousel.slides.length > 0;
   const awaitingCarousel = hasInstagramContentCheck && !hasCarouselCheck;
 
