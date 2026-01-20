@@ -277,7 +277,9 @@ const VIDEO_PROCESSING_STAGES: Record<string, {
 type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
 
 const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
+  { value: 'auto', label: 'Auto', description: 'Smart template selection based on content' },
   { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
+  { value: 'text-box', label: 'Text Box', description: 'Clean text overlay on gradient' },
   { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
   { value: 'video-snapshot', label: 'Video Snapshots', description: 'Use a frame from your uploaded video' },
 ];
@@ -342,7 +344,7 @@ export function FirstGeneration({
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Carousel design preset state
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('tweet-style');
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
 
@@ -625,9 +627,11 @@ export function FirstGeneration({
   };
 
   // Get current design preset for new API
+  // When using custom images (upload/video-snapshot), the backend will
+  // automatically use photo-overlay template based on carouselBackground.imageUrl
   const getDesignPreset = (): DesignPreset => {
     if (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot') {
-      return 'tweet-style';
+      return 'auto'; // Backend decides based on image
     }
     return carouselDesignOption;
   };

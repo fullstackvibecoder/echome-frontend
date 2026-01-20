@@ -3,6 +3,9 @@
  *
  * SSE client hook for real-time generation progress updates.
  * Connects to the backend progress stream and provides live status.
+ *
+ * FALLBACK: If SSE doesn't receive events within 5 seconds, automatically
+ * falls back to polling the generation request status every 3 seconds.
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -53,6 +56,79 @@ interface UseGenerationProgressReturn {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
+// Polling configuration
+const POLLING_INTERVAL = 3000; // Poll every 3 seconds
+const SSE_FALLBACK_DELAY = 5000; // Start polling if no SSE event within 5 seconds
+
+// Map request status to synthetic progress event
+function statusToProgress(requestId: string, status: string, hasCarousel: boolean): ProgressEvent {
+  const now = Date.now();
+
+  switch (status) {
+    case 'pending':
+      return {
+        requestId,
+        step: 'init',
+        stepNumber: 1,
+        totalSteps: 6,
+        percent: 5,
+        message: 'Starting generation...',
+        timestamp: now,
+      };
+    case 'processing':
+      return {
+        requestId,
+        step: 'generate',
+        stepNumber: 4,
+        totalSteps: 6,
+        percent: 50,
+        message: 'Generating content...',
+        timestamp: now,
+      };
+    case 'completed':
+      if (hasCarousel) {
+        return {
+          requestId,
+          step: 'carousel_complete',
+          stepNumber: 6,
+          totalSteps: 6,
+          percent: 100,
+          message: 'Content ready!',
+          timestamp: now,
+        };
+      }
+      return {
+        requestId,
+        step: 'complete',
+        stepNumber: 6,
+        totalSteps: 6,
+        percent: 100,
+        message: 'Content ready!',
+        timestamp: now,
+      };
+    case 'failed':
+      return {
+        requestId,
+        step: 'error',
+        stepNumber: -1,
+        totalSteps: 6,
+        percent: 0,
+        message: 'Generation failed',
+        timestamp: now,
+      };
+    default:
+      return {
+        requestId,
+        step: 'init',
+        stepNumber: 1,
+        totalSteps: 6,
+        percent: 5,
+        message: 'Processing...',
+        timestamp: now,
+      };
+  }
+}
+
 export function useGenerationProgress(
   requestId: string | null,
   options?: UseGenerationProgressOptions
@@ -72,6 +148,12 @@ export function useGenerationProgress(
   const hasErrorRef = useRef(false);
   const optionsRef = useRef(options);
 
+  // Polling fallback refs
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const receivedSSEEvent = useRef(false);
+  const isPollingRef = useRef(false);
+
   // Keep refs in sync with state/props
   useEffect(() => {
     isCompleteRef.current = isComplete;
@@ -84,6 +166,97 @@ export function useGenerationProgress(
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
+
+  // Stop polling
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+    isPollingRef.current = false;
+  }, []);
+
+  // Poll for status
+  const pollStatus = useCallback(async () => {
+    if (!requestId || isCompleteRef.current || hasErrorRef.current) {
+      stopPolling();
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/generate/${requestId}`);
+      if (!response.ok) {
+        console.warn('Polling request failed:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      const request = data.data?.request;
+      const carousel = data.data?.carousel;
+
+      if (!request) return;
+
+      const status = request.status;
+      const hasCarouselData = carousel?.slides && carousel.slides.length > 0;
+
+      // Create synthetic progress event from status
+      const syntheticProgress = statusToProgress(requestId, status, hasCarouselData);
+      setProgress(syntheticProgress);
+
+      // Handle completion states
+      if (status === 'completed') {
+        if (hasCarouselData) {
+          setCarouselReady(true);
+          setIsComplete(true);
+          isCompleteRef.current = true;
+          optionsRef.current?.onCarouselComplete?.(syntheticProgress);
+          stopPolling();
+        } else {
+          // Content is complete, but carousel might still be generating
+          // Check if we expect a carousel (Instagram content exists)
+          const hasInstagram = data.data?.contentKit?.content_instagram || data.data?.contentKit?.contentInstagram;
+          if (!hasInstagram) {
+            // No carousel expected, we're done
+            setIsComplete(true);
+            isCompleteRef.current = true;
+            optionsRef.current?.onComplete?.(syntheticProgress);
+            stopPolling();
+          } else {
+            // Carousel expected but not ready yet - keep polling but mark content as complete
+            if (!isCompleteRef.current) {
+              setIsComplete(true);
+              isCompleteRef.current = true;
+              optionsRef.current?.onComplete?.(syntheticProgress);
+            }
+            // Keep polling for carousel
+          }
+        }
+      } else if (status === 'failed') {
+        setHasError(true);
+        hasErrorRef.current = true;
+        optionsRef.current?.onError?.(syntheticProgress);
+        stopPolling();
+      }
+    } catch (err) {
+      console.warn('Polling error:', err);
+    }
+  }, [requestId, stopPolling]);
+
+  // Start polling fallback
+  const startPolling = useCallback(() => {
+    if (isPollingRef.current || isCompleteRef.current || hasErrorRef.current) return;
+
+    console.log('Starting polling fallback for progress');
+    isPollingRef.current = true;
+
+    // Poll immediately, then every POLLING_INTERVAL
+    pollStatus();
+    pollingIntervalRef.current = setInterval(pollStatus, POLLING_INTERVAL);
+  }, [pollStatus]);
 
   const connect = useCallback(() => {
     if (!requestId) return;
@@ -103,6 +276,9 @@ export function useGenerationProgress(
       eventSourceRef.current = null;
     }
 
+    // Reset SSE event flag
+    receivedSSEEvent.current = false;
+
     const url = `${API_BASE_URL}/progress/generate/${requestId}/stream`;
 
     try {
@@ -112,6 +288,17 @@ export function useGenerationProgress(
       eventSource.onopen = () => {
         setIsConnected(true);
         reconnectAttempts.current = 0;
+
+        // Start fallback timer - if no SSE event within SSE_FALLBACK_DELAY, start polling
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+        }
+        fallbackTimerRef.current = setTimeout(() => {
+          if (!receivedSSEEvent.current && !isCompleteRef.current && !hasErrorRef.current) {
+            console.log('No SSE events received, starting polling fallback');
+            startPolling();
+          }
+        }, SSE_FALLBACK_DELAY);
       };
 
       eventSource.onmessage = (event) => {
@@ -122,6 +309,12 @@ export function useGenerationProgress(
           if ((data as unknown as { type: string }).type === 'connected') {
             return;
           }
+
+          // Mark that we received a real SSE event
+          receivedSSEEvent.current = true;
+
+          // Stop polling if it was started
+          stopPolling();
 
           setProgress(data);
 
@@ -167,14 +360,18 @@ export function useGenerationProgress(
           console.log(`SSE reconnecting in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
           reconnectTimeoutRef.current = setTimeout(connect, delay);
         } else if (reconnectAttempts.current >= maxReconnectAttempts) {
-          console.warn('SSE max reconnect attempts reached, stopping');
+          console.warn('SSE max reconnect attempts reached, starting polling fallback');
+          // Fall back to polling when SSE fails completely
+          startPolling();
         }
       };
     } catch (err) {
       console.error('Failed to create EventSource:', err);
       setIsConnected(false);
+      // Fall back to polling
+      startPolling();
     }
-  }, [requestId]);
+  }, [requestId, startPolling, stopPolling]);
 
   // Connect when requestId changes
   useEffect(() => {
@@ -188,10 +385,12 @@ export function useGenerationProgress(
       isCompleteRef.current = false;
       hasErrorRef.current = false;
       reconnectAttempts.current = 0;
+      receivedSSEEvent.current = false;
       connect();
     }
 
     return () => {
+      stopPolling();
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
@@ -201,14 +400,16 @@ export function useGenerationProgress(
         eventSourceRef.current = null;
       }
     };
-  }, [requestId, connect]);
+  }, [requestId, connect, stopPolling]);
 
   const reconnect = useCallback(() => {
     reconnectAttempts.current = 0;
     isCompleteRef.current = false;
     hasErrorRef.current = false;
+    receivedSSEEvent.current = false;
+    stopPolling();
     connect();
-  }, [connect]);
+  }, [connect, stopPolling]);
 
   return {
     progress,
