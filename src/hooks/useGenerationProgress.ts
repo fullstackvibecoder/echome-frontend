@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { api } from '@/lib/api-client';
 
 export interface ProgressEvent {
   requestId: string;
@@ -180,7 +181,7 @@ export function useGenerationProgress(
     isPollingRef.current = false;
   }, []);
 
-  // Poll for status
+  // Poll for status using authenticated API client
   const pollStatus = useCallback(async () => {
     if (!requestId || isCompleteRef.current || hasErrorRef.current) {
       stopPolling();
@@ -188,15 +189,15 @@ export function useGenerationProgress(
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/generate/${requestId}`);
-      if (!response.ok) {
-        console.warn('Polling request failed:', response.status);
+      // Use authenticated API client instead of raw fetch
+      const response = await api.generation.getRequest(requestId);
+      if (!response.success || !response.data) {
+        console.warn('Polling request failed:', response);
         return;
       }
 
-      const data = await response.json();
-      const request = data.data?.request;
-      const carousel = data.data?.carousel;
+      const request = response.data.request;
+      const carousel = response.data.carousel;
 
       if (!request) return;
 
@@ -218,7 +219,9 @@ export function useGenerationProgress(
         } else {
           // Content is complete, but carousel might still be generating
           // Check if we expect a carousel (Instagram content exists)
-          const hasInstagram = data.data?.contentKit?.content_instagram || data.data?.contentKit?.contentInstagram;
+          // Note: API client transforms to camelCase, so use contentInstagram
+          const contentKit = response.data.contentKit;
+          const hasInstagram = contentKit?.contentInstagram;
           if (!hasInstagram) {
             // No carousel expected, we're done
             setIsComplete(true);
