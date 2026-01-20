@@ -110,6 +110,9 @@ export interface GenerationRequest {
   tone?: ContentTone;
   additionalInstructions?: string;
   useTllValidator?: boolean;
+  // Carousel design options
+  designPreset?: DesignPreset;
+  carouselBackground?: BackgroundConfig;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   results?: GeneratedContent[];
   voiceScore?: number;

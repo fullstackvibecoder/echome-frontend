@@ -230,7 +230,8 @@ export default function AppDashboard() {
     inputType: InputType,
     platforms: Platform[],
     carouselBackground?: BackgroundConfig,
-    carouselBackgroundFile?: File
+    carouselBackgroundFile?: File,
+    designPreset?: DesignPreset
   ) => {
     // Track if we should expect a carousel from the backend
     const hasInstagram = platforms.includes('instagram');
@@ -239,7 +240,11 @@ export default function AppDashboard() {
     setCarouselError(null);
     setCarouselLoading(hasInstagram);
 
-    const reqId = await generate(input, inputType, platforms);
+    // Pass carousel design options to the generate function
+    const reqId = await generate(input, inputType, platforms, {
+      designPreset,
+      carouselBackground,
+    });
 
     // Redirect to content kit detail page for proper progress UI
     // This matches the behavior of handleRepurpose and handleVideoProcessing

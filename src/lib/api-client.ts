@@ -133,7 +133,7 @@ export const api = {
   generation: {
     generate: async (data: Partial<GenerationRequest>) => {
       // Transform camelCase to snake_case for API
-      const payload = {
+      const payload: Record<string, unknown> = {
         input_type: data.inputType,
         input_text: data.inputText,
         input_audio_path: data.inputAudioPath,
@@ -143,6 +143,13 @@ export const api = {
         tone: data.tone,
         additional_instructions: data.additionalInstructions,
         use_tll_validator: data.useTllValidator,
+        // Carousel design options
+        design_preset: data.designPreset,
+        carousel_background: data.carouselBackground ? {
+          type: data.carouselBackground.type,
+          preset_id: data.carouselBackground.presetId,
+          image_url: data.carouselBackground.imageUrl,
+        } : undefined,
       };
 
       const response = await apiClient.post<ApiResponse<GenerationRequest>>(

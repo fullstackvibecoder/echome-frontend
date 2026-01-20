@@ -301,7 +301,8 @@ interface FirstGenerationProps {
     inputType: InputType,
     platforms: Platform[],
     carouselBackground?: BackgroundConfig,
-    carouselBackgroundFile?: File
+    carouselBackgroundFile?: File,
+    designPreset?: DesignPreset
   ) => void;
   onRepurpose?: (
     contentId: string,
@@ -709,7 +710,7 @@ export function FirstGeneration({
     // For text input
     if (inputType === 'text') {
       if (!input.trim()) return;
-      onGenerate(input, inputType as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined);
+      onGenerate(input, inputType as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined, getDesignPreset());
       return;
     }
 

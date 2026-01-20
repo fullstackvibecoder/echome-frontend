@@ -4,6 +4,11 @@ import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
 import { GeneratedContent, Platform, InputType, BackgroundConfig, DesignPreset } from '@/types';
 
+interface GenerationOptions {
+  designPreset?: DesignPreset;
+  carouselBackground?: BackgroundConfig;
+}
+
 interface UseGenerationReturn {
   generating: boolean;
   requestId: string | null;
@@ -14,12 +19,13 @@ interface UseGenerationReturn {
   generate: (
     input: string,
     inputType: InputType,
-    platforms: Platform[]
+    platforms: Platform[],
+    options?: GenerationOptions
   ) => Promise<string | null>;
   repurpose: (
     contentId: string,
     platforms: Platform[],
-    options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
+    options?: GenerationOptions
   ) => Promise<string | null>;
   reset: () => void;
 }
@@ -33,7 +39,12 @@ export function useGeneration(): UseGenerationReturn {
   const [qualityScore, setQualityScore] = useState<number>();
 
   const generate = useCallback(
-    async (input: string, inputType: InputType, platforms: Platform[]): Promise<string | null> => {
+    async (
+      input: string,
+      inputType: InputType,
+      platforms: Platform[],
+      options?: GenerationOptions
+    ): Promise<string | null> => {
       try {
         setGenerating(true);
         setError(null);
@@ -46,6 +57,9 @@ export function useGeneration(): UseGenerationReturn {
           inputAudioPath: inputType === 'audio' ? input : undefined,
           inputVideoPath: inputType === 'video' ? input : undefined,
           platforms,
+          // Pass carousel design options
+          designPreset: options?.designPreset,
+          carouselBackground: options?.carouselBackground,
         });
 
         if (response.success && response.data) {
