@@ -80,13 +80,26 @@ export default function ContentKitDetailPage() {
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
 
-  // Connect to SSE for real-time progress when processing
-  const { progress, isComplete: progressComplete, hasError: progressError } = useGenerationProgress(
-    isProcessing ? id : null
-  );
+  // Check if we're still waiting for carousel (Instagram content but no carousel yet)
+  const hasInstagramContentCheck = detail?.contentKit?.content_instagram || detail?.contentKit?.contentInstagram;
+  const hasCarouselCheck = detail?.carousel?.slides && detail.carousel.slides.length > 0;
+  const awaitingCarousel = hasInstagramContentCheck && !hasCarouselCheck;
+
+  // Connect to SSE for:
+  // 1. Processing state (content generation in progress)
+  // 2. Awaiting carousel (content done but carousel still generating)
+  const shouldConnectSSE = isProcessing || (awaitingCarousel && item?.status === 'completed');
+
+  const {
+    progress,
+    isComplete: progressComplete,
+    hasError: progressError,
+    carouselReady,
+    carouselFailed,
+  } = useGenerationProgress(shouldConnectSSE ? id : null);
   const progressStep = progress ? mapStepToIndex(progress.step) : 0;
 
-  // Auto-refresh when SSE signals completion
+  // Auto-refresh when SSE signals content completion
   useEffect(() => {
     if (progressComplete && !progressError) {
       // Small delay to ensure backend has saved everything
@@ -96,6 +109,14 @@ export default function ContentKitDetailPage() {
       return () => clearTimeout(timer);
     }
   }, [progressComplete, progressError, refresh]);
+
+  // Auto-refresh when SSE signals carousel is ready (no more polling needed!)
+  useEffect(() => {
+    if (carouselReady) {
+      // Refresh to get the carousel data
+      refresh();
+    }
+  }, [carouselReady, refresh]);
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
@@ -276,25 +297,8 @@ export default function ContentKitDetailPage() {
     (Date.now() - new Date(item.createdAt).getTime()) < 5 * 60 * 1000; // 5 minutes
   const carouselExpected = hasInstagramContent && !hasCarousel && itemCreatedRecently;
 
-  // Poll for carousel completion when carousel is expected but not ready
-  useEffect(() => {
-    if (!carouselExpected) return;
-
-    // Poll every 5 seconds for up to 3 minutes
-    const pollInterval = setInterval(() => {
-      refresh();
-    }, 5000);
-
-    // Stop polling after 3 minutes
-    const timeout = setTimeout(() => {
-      clearInterval(pollInterval);
-    }, 3 * 60 * 1000);
-
-    return () => {
-      clearInterval(pollInterval);
-      clearTimeout(timeout);
-    };
-  }, [carouselExpected, refresh]);
+  // Carousel status is now tracked via SSE (carouselReady/carouselFailed)
+  // No polling needed - the useEffect above handles refresh when carousel_complete event arrives
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">

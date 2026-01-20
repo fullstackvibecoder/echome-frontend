@@ -238,7 +238,15 @@ export default function AppDashboard() {
     setCarouselSlides(null);
     setCarouselError(null);
     setCarouselLoading(hasInstagram);
-    await generate(input, inputType, platforms);
+
+    const reqId = await generate(input, inputType, platforms);
+
+    // Redirect to content kit detail page for proper progress UI
+    // This matches the behavior of handleRepurpose and handleVideoProcessing
+    if (reqId) {
+      clearActiveGeneration();
+      router.push(`/app/content-kit/${reqId}`);
+    }
   };
 
   const handleRepurpose = async (
