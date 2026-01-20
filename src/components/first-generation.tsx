@@ -1256,8 +1256,28 @@ export function FirstGeneration({
 
       {/* Upload Error */}
       {uploadError && (
-        <div className="mt-4 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-small text-center">
-          {uploadError}
+        <div className="mt-4 p-4 bg-error/10 border border-error/20 rounded-lg">
+          {uploadError.toLowerCase().includes('insufficient') || uploadError.toLowerCase().includes('minutes') ? (
+            // Quota exceeded - show upgrade prompt
+            <div className="text-center">
+              <div className="text-error font-medium mb-2">Video Minutes Exceeded</div>
+              <p className="text-text-secondary text-small mb-3">
+                You&apos;ve used all your video processing minutes for this month.
+              </p>
+              <a
+                href="/app/billing"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-small font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Upgrade for More Minutes
+              </a>
+            </div>
+          ) : (
+            // Regular error
+            <p className="text-error text-small text-center">{uploadError}</p>
+          )}
         </div>
       )}
 
