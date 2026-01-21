@@ -7,6 +7,84 @@ import api, { StripePlan, StripeSubscriptionStatus } from '@/lib/api-client';
 
 type BillingInterval = 'month' | 'year';
 
+// Fallback plans in case API fails
+const FALLBACK_PLANS: StripePlan[] = [
+  {
+    id: 'echo',
+    name: 'Echo',
+    tier: 'pro',
+    monthlyPrice: 29,
+    annualPrice: 290,
+    features: [
+      '2 hours of video processing',
+      '5 clips per video',
+      '1 Knowledge Base',
+      '3 Creator Radar slots',
+      'Standard carousel templates',
+      '1080p exports',
+    ],
+    limits: {
+      videoMinutesPerMonth: 120,
+      clipsPerVideo: 5,
+      knowledgeBases: 1,
+      creatorRadar: 3,
+      exportQuality: '1080p',
+      emailImportMaxEmails: 0,
+    },
+  },
+  {
+    id: 'echo-studio',
+    name: 'Echo Studio',
+    tier: 'studio',
+    monthlyPrice: 49,
+    annualPrice: 490,
+    features: [
+      '5 hours of video processing',
+      '10 clips per video',
+      '3 Knowledge Bases',
+      '10 Creator Radar slots',
+      'All carousel templates + custom colors',
+      '1080p exports',
+      'Email import (50 emails)',
+      'Priority processing queue',
+    ],
+    limits: {
+      videoMinutesPerMonth: 300,
+      clipsPerVideo: 10,
+      knowledgeBases: 3,
+      creatorRadar: 10,
+      exportQuality: '1080p',
+      emailImportMaxEmails: 50,
+    },
+  },
+  {
+    id: 'echo-pro',
+    name: 'Echo Pro',
+    tier: 'enterprise',
+    monthlyPrice: 99,
+    annualPrice: 990,
+    features: [
+      'Unlimited video processing',
+      '15 clips per video',
+      'Unlimited Knowledge Bases',
+      'Unlimited Creator Radar',
+      'Custom carousel design system',
+      '1080p exports',
+      'Email import (100 emails)',
+      'Priority processing queue',
+      'Priority support',
+    ],
+    limits: {
+      videoMinutesPerMonth: -1,
+      clipsPerVideo: 15,
+      knowledgeBases: -1,
+      creatorRadar: -1,
+      exportQuality: '1080p',
+      emailImportMaxEmails: 100,
+    },
+  },
+];
+
 function BillingContent() {
   const searchParams = useSearchParams();
   const [plans, setPlans] = useState<StripePlan[]>([]);
@@ -32,11 +110,11 @@ function BillingContent() {
       const tierName = searchParams.get('tierName');
       const reason = searchParams.get('reason');
       if (reason === 'subscription_required') {
-        setError('A subscription is required to access that feature. Start your 7-day free trial to get started!');
+        setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
       } else if (tierName) {
         setError(`This feature requires ${tierName} or higher. Please upgrade your plan to continue.`);
       } else {
-        setError('Please subscribe to access all features. Start with a 7-day free trial!');
+        setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
       }
       window.history.replaceState({}, '', '/app/billing');
     }
@@ -47,20 +125,44 @@ function BillingContent() {
     async function loadData() {
       try {
         setLoading(true);
-        const [plansRes, subRes] = await Promise.all([
+
+        // Try to load plans and subscription in parallel
+        const results = await Promise.allSettled([
           api.stripe.getPlans(),
           api.stripe.getSubscription(),
         ]);
 
-        if (plansRes.success) {
-          setPlans(plansRes.data.plans);
+        // Handle plans result
+        const plansResult = results[0];
+        if (plansResult.status === 'fulfilled' && plansResult.value.success) {
+          setPlans(plansResult.value.data.plans);
+        } else {
+          // Use fallback plans if API fails
+          console.warn('Using fallback plans - API unavailable');
+          setPlans(FALLBACK_PLANS);
         }
-        if (subRes.success) {
-          setSubscription(subRes.data);
+
+        // Handle subscription result
+        const subResult = results[1];
+        if (subResult.status === 'fulfilled' && subResult.value.success) {
+          setSubscription(subResult.value.data);
+        } else {
+          // Default to free tier if can't fetch subscription
+          setSubscription({
+            isSubscribed: false,
+            tier: 'free',
+            status: null,
+          });
         }
       } catch (err) {
         console.error('Failed to load billing data:', err);
-        setError('Failed to load billing information. Please try again.');
+        // Use fallback plans even on error
+        setPlans(FALLBACK_PLANS);
+        setSubscription({
+          isSubscribed: false,
+          tier: 'free',
+          status: null,
+        });
       } finally {
         setLoading(false);
       }
