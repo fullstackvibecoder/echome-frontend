@@ -240,10 +240,28 @@ export default function AppDashboard() {
     setCarouselError(null);
     setCarouselLoading(hasInstagram);
 
+    // If user selected image upload, upload the file first to get a URL
+    let finalCarouselBackground = carouselBackground;
+    if (carouselBackground?.type === 'image' && carouselBackgroundFile) {
+      try {
+        const uploadResponse = await api.images.uploadBackground(carouselBackgroundFile);
+        if (uploadResponse.success && uploadResponse.data?.background?.publicUrl) {
+          finalCarouselBackground = {
+            type: 'image',
+            imageUrl: uploadResponse.data.background.publicUrl,
+          };
+        } else {
+          console.error('Failed to upload carousel background image');
+        }
+      } catch (uploadErr) {
+        console.error('Error uploading carousel background:', uploadErr);
+      }
+    }
+
     // Pass carousel design options to the generate function
     const reqId = await generate(input, inputType, platforms, {
       designPreset,
-      carouselBackground,
+      carouselBackground: finalCarouselBackground,
     });
 
     // Redirect to content kit detail page for proper progress UI
