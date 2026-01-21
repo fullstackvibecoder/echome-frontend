@@ -9,7 +9,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useGenerationProgress, GENERATION_STEPS, mapStepToIndex } from '@/hooks/useGenerationProgress';
+import { useGenerationProgress, GENERATION_STEPS, VIDEO_GENERATION_STEPS, mapStepToIndex, isVideoStep } from '@/hooks/useGenerationProgress';
 import {
   showCompletionNotification,
   showErrorNotification,
@@ -163,8 +163,11 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     return null;
   }
 
-  const currentStepIndex = progress ? mapStepToIndex(progress.step) : 0;
-  const currentStep = GENERATION_STEPS[currentStepIndex] || GENERATION_STEPS[0];
+  // Detect if this is a video generation flow based on progress step
+  const isVideo = progress ? isVideoStep(progress.step) : false;
+  const steps = isVideo ? VIDEO_GENERATION_STEPS : GENERATION_STEPS;
+  const currentStepIndex = progress ? mapStepToIndex(progress.step, isVideo) : 0;
+  const currentStep = steps[currentStepIndex] || steps[0];
   const percent = progress?.percent ?? 5;
 
   return (
@@ -213,7 +216,7 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
 
         {/* Step indicators */}
         <div className="mt-3 flex gap-1.5">
-          {GENERATION_STEPS.map((step, index) => (
+          {steps.map((step, index) => (
             <div
               key={step.id}
               className={`h-1.5 flex-1 rounded-full transition-colors ${

@@ -23,6 +23,11 @@ export interface ProgressEvent {
     platformsCount?: number;
     currentPlatform?: string;
     tokensUsed?: number;
+    // Video-specific metadata
+    currentClip?: number;
+    totalClips?: number;
+    clipTitle?: string;
+    videoDuration?: number;
   };
 }
 
@@ -36,7 +41,13 @@ export type ProgressStep =
   | 'carousel_complete'
   | 'carousel_failed'
   | 'complete'
-  | 'error';
+  | 'error'
+  // Video-specific steps
+  | 'downloading'
+  | 'transcribing'
+  | 'finding_clips'
+  | 'extracting_clips'
+  | 'processing_clip';
 
 interface UseGenerationProgressOptions {
   onComplete?: (event: ProgressEvent) => void;
@@ -448,7 +459,26 @@ export function useGenerationProgress(
 /**
  * Map progress step to UI step index
  */
-export function mapStepToIndex(step: ProgressStep | string): number {
+export function mapStepToIndex(step: ProgressStep | string, isVideo = false): number {
+  if (isVideo) {
+    const videoMapping: Record<string, number> = {
+      init: 0,
+      downloading: 1,
+      transcribing: 2,
+      finding_clips: 3,
+      extracting_clips: 4,
+      processing_clip: 4,
+      context: 5,
+      generate: 5,
+      carousel: 6,
+      carousel_complete: 7,
+      carousel_failed: -1,
+      complete: 7,
+      error: -1,
+    };
+    return videoMapping[step] ?? 0;
+  }
+
   const mapping: Record<string, number> = {
     init: 0,
     context: 1,
@@ -499,3 +529,64 @@ export const GENERATION_STEPS = [
     description: 'Your content is ready!',
   },
 ];
+
+/**
+ * Video generation step configuration for UI display
+ */
+export const VIDEO_GENERATION_STEPS = [
+  {
+    id: 'init',
+    icon: '🚀',
+    label: 'Starting up',
+    description: 'Initializing video pipeline',
+  },
+  {
+    id: 'downloading',
+    icon: '📥',
+    label: 'Downloading',
+    description: 'Fetching video from YouTube',
+  },
+  {
+    id: 'transcribing',
+    icon: '🎙️',
+    label: 'Transcribing',
+    description: 'Converting speech to text',
+  },
+  {
+    id: 'finding_clips',
+    icon: '🔍',
+    label: 'Finding moments',
+    description: 'AI identifying the best clips',
+  },
+  {
+    id: 'extracting_clips',
+    icon: '✂️',
+    label: 'Extracting clips',
+    description: 'Cutting and captioning video segments',
+  },
+  {
+    id: 'generate',
+    icon: '✨',
+    label: 'Content creation',
+    description: 'Generating written content for clips',
+  },
+  {
+    id: 'carousel',
+    icon: '🖼️',
+    label: 'Creating images',
+    description: 'Generating carousel visuals',
+  },
+  {
+    id: 'complete',
+    icon: '🎉',
+    label: 'Complete',
+    description: 'Your clips are ready!',
+  },
+];
+
+/**
+ * Helper to detect if a progress step is from a video flow
+ */
+export function isVideoStep(step: ProgressStep | string): boolean {
+  return ['downloading', 'transcribing', 'finding_clips', 'extracting_clips', 'processing_clip'].includes(step);
+}

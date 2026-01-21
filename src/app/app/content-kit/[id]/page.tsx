@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
-import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS } from '@/hooks/useGenerationProgress';
+import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS, VIDEO_GENERATION_STEPS, isVideoStep } from '@/hooks/useGenerationProgress';
 import { VideoPlayer } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
@@ -97,7 +97,11 @@ export default function ContentKitDetailPage() {
     carouselReady,
     carouselFailed,
   } = useGenerationProgress(shouldConnectSSE ? id : null);
-  const progressStep = progress ? mapStepToIndex(progress.step) : 0;
+
+  // Detect if this is a video generation flow based on progress step
+  const isVideoFlow = progress ? isVideoStep(progress.step) : false;
+  const generationSteps = isVideoFlow ? VIDEO_GENERATION_STEPS : GENERATION_STEPS;
+  const progressStep = progress ? mapStepToIndex(progress.step, isVideoFlow) : 0;
 
   // Auto-refresh when SSE signals content completion
   useEffect(() => {
@@ -405,7 +409,9 @@ export default function ContentKitDetailPage() {
                       {progress?.message || item.statusMessage || 'Processing your content...'}
                     </p>
                     <p className="text-sm text-text-secondary">
-                      This usually takes 30-60 seconds
+                      {isVideoFlow
+                        ? `Processing video${progress?.metadata?.videoDuration ? ` (${Math.round(progress.metadata.videoDuration / 60)} min)` : ''}...`
+                        : 'This usually takes 30-60 seconds'}
                     </p>
                   </div>
                 </div>
@@ -422,7 +428,7 @@ export default function ContentKitDetailPage() {
 
                 {/* Step indicators */}
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  {GENERATION_STEPS.map((step, index) => (
+                  {generationSteps.map((step, index) => (
                     <ProgressStep
                       key={step.id}
                       icon={step.icon}
