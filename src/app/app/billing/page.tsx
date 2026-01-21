@@ -18,7 +18,7 @@ function BillingContent() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Handle success/cancel query params
+  // Handle success/cancel/upgrade query params
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
       setSuccessMessage('Your subscription has been activated! Welcome aboard.');
@@ -26,6 +26,18 @@ function BillingContent() {
       window.history.replaceState({}, '', '/app/billing');
     } else if (searchParams.get('canceled') === 'true') {
       setError('Checkout was canceled. No charges were made.');
+      window.history.replaceState({}, '', '/app/billing');
+    } else if (searchParams.get('upgrade') === 'true') {
+      // User was redirected here because they need a subscription
+      const tierName = searchParams.get('tierName');
+      const reason = searchParams.get('reason');
+      if (reason === 'subscription_required') {
+        setError('A subscription is required to access that feature. Start your 7-day free trial to get started!');
+      } else if (tierName) {
+        setError(`This feature requires ${tierName} or higher. Please upgrade your plan to continue.`);
+      } else {
+        setError('Please subscribe to access all features. Start with a 7-day free trial!');
+      }
       window.history.replaceState({}, '', '/app/billing');
     }
   }, [searchParams]);
