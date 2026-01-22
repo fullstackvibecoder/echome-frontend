@@ -1608,6 +1608,22 @@ export const api = {
       const response = await apiClient.get('/stripe/usage');
       return response.data;
     },
+
+    /** Sync subscription status from Stripe (for recovering from missed webhooks) */
+    syncSubscription: async (): Promise<{
+      success: boolean;
+      data: {
+        synced: boolean;
+        message: string;
+        tier: string;
+        status?: string;
+        isTrialing?: boolean;
+        currentPeriodEnd?: string;
+      };
+    }> => {
+      const response = await apiClient.post('/stripe/sync');
+      return response.data;
+    },
   },
 
   // -------- VIDEO SNAPSHOTS --------

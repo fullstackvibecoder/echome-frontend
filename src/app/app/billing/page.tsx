@@ -98,26 +98,53 @@ function BillingContent() {
 
   // Handle success/cancel/upgrade query params
   useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      setSuccessMessage('Your subscription has been activated! Welcome aboard.');
-      // Clear the URL params
-      window.history.replaceState({}, '', '/app/billing');
-    } else if (searchParams.get('canceled') === 'true') {
-      setError('Checkout was canceled. No charges were made.');
-      window.history.replaceState({}, '', '/app/billing');
-    } else if (searchParams.get('upgrade') === 'true') {
-      // User was redirected here because they need a subscription
-      const tierName = searchParams.get('tierName');
-      const reason = searchParams.get('reason');
-      if (reason === 'subscription_required') {
-        setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
-      } else if (tierName) {
-        setError(`This feature requires ${tierName} or higher. Please upgrade your plan to continue.`);
-      } else {
-        setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
+    async function handleRedirect() {
+      if (searchParams.get('success') === 'true') {
+        // Sync subscription from Stripe to ensure we have the latest status
+        try {
+          const syncResult = await api.stripe.syncSubscription();
+          if (syncResult.success && syncResult.data.synced) {
+            const tierName = syncResult.data.tier === 'pro' ? 'Echo' :
+                            syncResult.data.tier === 'studio' ? 'Echo Studio' :
+                            syncResult.data.tier === 'enterprise' ? 'Echo Pro' : 'your plan';
+            if (syncResult.data.isTrialing) {
+              setSuccessMessage(`Your 7-day free trial for ${tierName} has started! You won't be charged until the trial ends.`);
+            } else {
+              setSuccessMessage(`Your ${tierName} subscription has been activated! Welcome aboard.`);
+            }
+            // Reload subscription status
+            const subResult = await api.stripe.getSubscription();
+            if (subResult.success) {
+              setSubscription(subResult.data);
+            }
+          } else {
+            setSuccessMessage('Your subscription has been activated! Welcome aboard.');
+          }
+        } catch (err) {
+          console.error('Failed to sync subscription:', err);
+          setSuccessMessage('Your subscription has been activated! Welcome aboard.');
+        }
+        // Clear the URL params
+        window.history.replaceState({}, '', '/app/billing');
+      } else if (searchParams.get('canceled') === 'true') {
+        setError('Checkout was canceled. No charges were made.');
+        window.history.replaceState({}, '', '/app/billing');
+      } else if (searchParams.get('upgrade') === 'true') {
+        // User was redirected here because they need a subscription
+        const tierName = searchParams.get('tierName');
+        const reason = searchParams.get('reason');
+        if (reason === 'subscription_required') {
+          setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
+        } else if (tierName) {
+          setError(`This feature requires ${tierName} or higher. Please upgrade your plan to continue.`);
+        } else {
+          setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
+        }
+        window.history.replaceState({}, '', '/app/billing');
       }
-      window.history.replaceState({}, '', '/app/billing');
     }
+
+    handleRedirect();
   }, [searchParams]);
 
   // Load plans and subscription status
