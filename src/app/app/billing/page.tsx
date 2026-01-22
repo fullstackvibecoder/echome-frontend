@@ -13,6 +13,8 @@ const FALLBACK_PLANS: StripePlan[] = [
     id: 'echo',
     name: 'Echo',
     tier: 'pro',
+    monthlyPriceId: '',
+    annualPriceId: '',
     monthlyPrice: 29,
     annualPrice: 290,
     features: [
@@ -36,6 +38,8 @@ const FALLBACK_PLANS: StripePlan[] = [
     id: 'echo-studio',
     name: 'Echo Studio',
     tier: 'studio',
+    monthlyPriceId: '',
+    annualPriceId: '',
     monthlyPrice: 49,
     annualPrice: 490,
     features: [
@@ -61,6 +65,8 @@ const FALLBACK_PLANS: StripePlan[] = [
     id: 'echo-pro',
     name: 'Echo Pro',
     tier: 'enterprise',
+    monthlyPriceId: '',
+    annualPriceId: '',
     monthlyPrice: 99,
     annualPrice: 990,
     features: [
@@ -198,22 +204,43 @@ function BillingContent() {
     loadData();
   }, []);
 
-  // Handle checkout
-  const handleCheckout = async (planId: 'echo' | 'echo-studio' | 'echo-pro') => {
+  // Handle plan selection - either checkout for new users or switch for existing subscribers
+  const handlePlanSelect = async (planId: 'echo' | 'echo-studio' | 'echo-pro') => {
     try {
       setCheckoutLoading(planId);
       setError(null);
+      setSuccessMessage(null);
 
-      const response = await api.stripe.createCheckoutSession(planId, billingInterval);
+      // If user already has an active subscription, switch plans instead of checkout
+      if (subscription?.isSubscribed && (subscription.status === 'active' || subscription.status === 'trialing')) {
+        const response = await api.stripe.switchPlan(planId, billingInterval);
 
-      if (response.success && response.data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = response.data.url;
+        if (response.success) {
+          const planName = planId === 'echo' ? 'Echo' : planId === 'echo-studio' ? 'Echo Studio' : 'Echo Pro';
+          setSuccessMessage(`Successfully switched to ${planName}! Your billing will be prorated.`);
+
+          // Refresh subscription status
+          const subResult = await api.stripe.getSubscription();
+          if (subResult.success) {
+            setSubscription(subResult.data);
+          }
+          setCheckoutLoading(null);
+        } else {
+          throw new Error('Failed to switch plans');
+        }
       } else {
-        throw new Error('Failed to create checkout session');
+        // New user - create checkout session
+        const response = await api.stripe.createCheckoutSession(planId, billingInterval);
+
+        if (response.success && response.data.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = response.data.url;
+        } else {
+          throw new Error('Failed to create checkout session');
+        }
       }
     } catch (err: any) {
-      console.error('Checkout error:', err);
+      console.error('Plan selection error:', err);
 
       // Handle auth errors - redirect to login
       if (err.response?.status === 401) {
@@ -222,7 +249,7 @@ function BillingContent() {
         return;
       }
 
-      setError(err.response?.data?.error || 'Failed to start checkout. Please try again.');
+      setError(err.response?.data?.error || 'Failed to process your request. Please try again.');
       setCheckoutLoading(null);
     }
   };
@@ -433,7 +460,7 @@ function BillingContent() {
               </ul>
 
               <button
-                onClick={() => handleCheckout(plan.id)}
+                onClick={() => handlePlanSelect(plan.id)}
                 disabled={isCurrent || checkoutLoading !== null}
                 className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
                   isCurrent
@@ -446,7 +473,7 @@ function BillingContent() {
                 {checkoutLoading === plan.id ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Redirecting...
+                    {subscription?.isSubscribed ? 'Switching...' : 'Redirecting...'}
                   </span>
                 ) : isCurrent ? (
                   'Current Plan'

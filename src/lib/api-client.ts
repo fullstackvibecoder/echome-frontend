@@ -1624,6 +1624,25 @@ export const api = {
       const response = await apiClient.post('/stripe/sync');
       return response.data;
     },
+
+    /** Switch to a different plan (upgrade or downgrade) */
+    switchPlan: async (
+      planId: 'echo' | 'echo-studio' | 'echo-pro',
+      billingInterval: 'month' | 'year'
+    ): Promise<{
+      success: boolean;
+      data: {
+        success: boolean;
+        tier: string;
+        status: string;
+      };
+    }> => {
+      const response = await apiClient.post('/stripe/subscription/switch', {
+        planId,
+        billingInterval,
+      });
+      return response.data;
+    },
   },
 
   // -------- VIDEO SNAPSHOTS --------
