@@ -187,6 +187,14 @@ function BillingContent() {
       }
     } catch (err: any) {
       console.error('Checkout error:', err);
+
+      // Handle auth errors - redirect to login
+      if (err.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        window.location.href = '/auth/login?redirect=/app/billing';
+        return;
+      }
+
       setError(err.response?.data?.error || 'Failed to start checkout. Please try again.');
       setCheckoutLoading(null);
     }
@@ -207,6 +215,14 @@ function BillingContent() {
       }
     } catch (err: any) {
       console.error('Portal error:', err);
+
+      // Handle auth errors - redirect to login
+      if (err.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        window.location.href = '/auth/login?redirect=/app/billing';
+        return;
+      }
+
       setError(err.response?.data?.error || 'Failed to open billing portal. Please try again.');
       setPortalLoading(false);
     }
