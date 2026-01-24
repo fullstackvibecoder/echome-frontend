@@ -19,19 +19,27 @@ export function Sidebar() {
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
-            onClick={() => navigate(item.path)}
+            onClick={() => !item.comingSoon && navigate(item.path)}
+            disabled={item.comingSoon}
             className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-lg
               font-medium transition-all duration-200
               ${
-                activeItem === item.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                item.comingSoon
+                  ? 'text-muted-foreground/50 cursor-not-allowed'
+                  : activeItem === item.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
               }
             `}
           >
             <span className="text-xl">{item.icon}</span>
-            <span>{item.label}</span>
+            <span className="flex-1 text-left">{item.label}</span>
+            {item.comingSoon && (
+              <span className="text-[10px] font-semibold uppercase tracking-wide bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                Soon
+              </span>
+            )}
           </button>
         ))}
       </nav>
