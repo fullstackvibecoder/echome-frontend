@@ -211,8 +211,8 @@ function BillingContentInner() {
       setError(null);
       setSuccessMessage(null);
 
-      // If user already has an active subscription, switch plans instead of checkout
-      if (subscription?.isSubscribed && (subscription.status === 'active' || subscription.status === 'trialing')) {
+      // If user already has an active Stripe subscription (not admin-assigned), switch plans instead of checkout
+      if (subscription?.isSubscribed && !subscription?.isAdminAssigned && (subscription.status === 'active' || subscription.status === 'trialing')) {
         const response = await api.stripe.switchPlan(planId, billingInterval);
 
         if (response.success) {
@@ -473,11 +473,11 @@ function BillingContentInner() {
                 {checkoutLoading === plan.id ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {subscription?.isSubscribed ? 'Switching...' : 'Redirecting...'}
+                    {subscription?.isSubscribed && !subscription?.isAdminAssigned ? 'Switching...' : 'Redirecting...'}
                   </span>
                 ) : isCurrent ? (
                   'Current Plan'
-                ) : subscription?.isSubscribed ? (
+                ) : subscription?.isSubscribed && !subscription?.isAdminAssigned ? (
                   'Switch to this plan'
                 ) : (
                   'Start 7-day trial'

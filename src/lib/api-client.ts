@@ -2139,6 +2139,7 @@ export interface StripeSubscriptionStatus {
   currentPeriodEnd?: string;
   cancelAtPeriodEnd?: boolean;
   trialEnd?: string;
+  isAdminAssigned?: boolean;
 }
 
 export interface StripeSubscriptionResponse {
