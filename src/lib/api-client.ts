@@ -1857,6 +1857,150 @@ export const api = {
       return response.data;
     },
   },
+
+  // -------- TRENDS --------
+  trends: {
+    /** List trends with filters */
+    list: async (params?: {
+      page?: number;
+      limit?: number;
+      platform?: TrendPlatform;
+      lifecycle?: TrendLifecycleStatus;
+      curated?: boolean;
+      niche?: string;
+      tags?: string[];
+    }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set('page', params.page.toString());
+      if (params?.limit) queryParams.set('limit', params.limit.toString());
+      if (params?.platform) queryParams.set('platform', params.platform);
+      if (params?.lifecycle) queryParams.set('lifecycle', params.lifecycle);
+      if (params?.curated !== undefined) queryParams.set('curated', params.curated.toString());
+      if (params?.niche) queryParams.set('niche', params.niche);
+      if (params?.tags?.length) queryParams.set('tags', params.tags.join(','));
+
+      const response = await apiClient.get(`/trends?${queryParams.toString()}`);
+      return response.data as {
+        success: boolean;
+        trends: Trend[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      };
+    },
+
+    /** Get available niches */
+    getNiches: async () => {
+      const response = await apiClient.get('/trends/niches');
+      return response.data as { success: boolean; niches: string[] };
+    },
+
+    /** Get a single trend with analysis */
+    get: async (trendId: string) => {
+      const response = await apiClient.get(`/trends/${trendId}`);
+      return response.data as { success: boolean; trend: TrendWithAnalysis };
+    },
+
+    /** Submit a new trend URL */
+    submit: async (data: {
+      source_url: string;
+      source_platform?: TrendPlatform;
+      niche?: string;
+      tags?: string[];
+    }) => {
+      const response = await apiClient.post('/trends/submit', data);
+      return response.data as { success: boolean; trend: Trend; message: string };
+    },
+
+    /** Get user's submitted trends */
+    getMySubmissions: async (page?: number, limit?: number) => {
+      const queryParams = new URLSearchParams();
+      if (page) queryParams.set('page', page.toString());
+      if (limit) queryParams.set('limit', limit.toString());
+      const response = await apiClient.get(`/trends/my-submissions?${queryParams.toString()}`);
+      return response.data as {
+        success: boolean;
+        submissions: Trend[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      };
+    },
+
+    /** Trigger analysis for a trend */
+    analyze: async (trendId: string) => {
+      const response = await apiClient.post(`/trends/${trendId}/analyze`);
+      return response.data as { success: boolean; message: string; status: string };
+    },
+
+    /** Get analysis for a trend */
+    getAnalysis: async (trendId: string) => {
+      const response = await apiClient.get(`/trends/${trendId}/analysis`);
+      return response.data as { success: boolean; analysis: TrendAnalysis };
+    },
+
+    /** Get creative brief for a trend */
+    getBrief: async (trendId: string) => {
+      const response = await apiClient.get(`/trends/${trendId}/brief`);
+      return response.data as { success: boolean; brief: TrendCreativeBrief };
+    },
+
+    /** Create a copy of a trend */
+    createCopy: async (trendId: string, data?: { selected_niche?: string; user_notes?: string }) => {
+      const response = await apiClient.post(`/trends/${trendId}/copy`, data || {});
+      return response.data as { success: boolean; copy: TrendCopy };
+    },
+
+    /** Get user's trend copies */
+    getCopies: async (params?: { page?: number; limit?: number; status?: TrendGenerationStatus }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set('page', params.page.toString());
+      if (params?.limit) queryParams.set('limit', params.limit.toString());
+      if (params?.status) queryParams.set('status', params.status);
+      const response = await apiClient.get(`/trends/copies?${queryParams.toString()}`);
+      return response.data as {
+        success: boolean;
+        copies: TrendCopyWithTrend[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      };
+    },
+
+    /** Get a specific trend copy */
+    getCopy: async (copyId: string) => {
+      const response = await apiClient.get(`/trends/copies/${copyId}`);
+      return response.data as { success: boolean; copy: TrendCopyWithTrend };
+    },
+
+    /** Update a trend copy */
+    updateCopy: async (copyId: string, data: {
+      customized_script?: string;
+      customized_shot_list?: TrendShotListItem[];
+      user_notes?: string;
+      selected_niche?: string;
+    }) => {
+      const response = await apiClient.patch(`/trends/copies/${copyId}`, data);
+      return response.data as { success: boolean; copy: TrendCopy };
+    },
+
+    /** Delete a trend copy */
+    deleteCopy: async (copyId: string) => {
+      const response = await apiClient.delete(`/trends/copies/${copyId}`);
+      return response.data as { success: boolean };
+    },
+
+    /** Generate content from a trend copy */
+    generate: async (copyId: string, data: {
+      platforms: string[];
+      knowledge_base_id?: string;
+      tone?: string;
+      additional_instructions?: string;
+    }) => {
+      const response = await apiClient.post(`/trends/copies/${copyId}/generate`, data, { timeout: GENERATION_TIMEOUT });
+      return response.data as { success: boolean; requestId: string; message: string };
+    },
+
+    /** Adapt a copy to a specific niche */
+    adaptToNiche: async (copyId: string, niche: string) => {
+      const response = await apiClient.post(`/trends/copies/${copyId}/adapt`, { niche });
+      return response.data as { success: boolean; copy: TrendCopy };
+    },
+  },
 };
 
 // Types for creator monitoring
@@ -2178,6 +2322,124 @@ export interface StripeUsageLimitsResponse {
     tier: SubscriptionTier;
     limits: StripeUsageLimits;
   };
+}
+
+// ============================================
+// TRENDS TYPES
+// ============================================
+
+export type TrendPlatform = 'tiktok' | 'instagram' | 'youtube_shorts';
+export type TrendLifecycleStatus = 'emerging' | 'peaking' | 'declining' | 'archived';
+export type TrendAnalysisStatus = 'pending' | 'analyzing' | 'completed' | 'failed';
+export type TrendGenerationStatus = 'draft' | 'generating' | 'completed' | 'failed';
+export type TrendContentType = 'video' | 'static' | 'carousel';
+export type TrendVisualStyle = 'talking_head' | 'b_roll' | 'screen_share' | 'mixed' | 'text_overlay';
+export type TrendPacing = 'fast' | 'medium' | 'slow';
+
+export interface Trend {
+  id: string;
+  source_url: string;
+  source_platform: TrendPlatform;
+  normalized_url: string;
+  content_id: string;
+  title?: string;
+  description?: string;
+  thumbnail_url?: string;
+  duration_seconds?: number;
+  view_count?: number;
+  like_count?: number;
+  share_count?: number;
+  analysis_status: TrendAnalysisStatus;
+  lifecycle_status: TrendLifecycleStatus;
+  is_curated: boolean;
+  curator_notes?: string;
+  niche?: string;
+  tags?: string[];
+  submitted_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrendAnalysis {
+  id: string;
+  trend_id: string;
+  content_type: TrendContentType;
+  hook_type?: string;
+  hook_text?: string;
+  hook_duration_seconds?: number;
+  visual_style?: TrendVisualStyle;
+  pacing?: TrendPacing;
+  format_structure?: {
+    type: string;
+    segments: Array<{
+      name: string;
+      startSeconds: number;
+      endSeconds: number;
+      description?: string;
+    }>;
+  };
+  audio_type?: string;
+  has_voiceover?: boolean;
+  has_music?: boolean;
+  cta_type?: string;
+  cta_text?: string;
+  transcript?: string;
+  key_elements?: string[];
+  why_it_works?: string;
+  created_at: string;
+}
+
+export interface TrendWithAnalysis extends Trend {
+  analysis?: TrendAnalysis;
+}
+
+export interface TrendCreativeBrief {
+  id: string;
+  trend_id: string;
+  analysis_id: string;
+  script_template?: string;
+  shot_list?: TrendShotListItem[];
+  audio_recommendations?: {
+    type: string;
+    suggestions: string[];
+    mood?: string;
+  };
+  editing_notes?: string[];
+  recreation_checklist?: Array<{ item: string; required: boolean }>;
+  niche_adaptations?: Record<string, { hook_example?: string; script_variation?: string }>;
+  created_at: string;
+}
+
+export interface TrendShotListItem {
+  shot_number: number;
+  start_seconds: number;
+  end_seconds: number;
+  description: string;
+  camera?: string;
+  action?: string;
+  text_overlay?: string;
+}
+
+export interface TrendCopy {
+  id: string;
+  user_id: string;
+  trend_id: string;
+  creative_brief_id?: string;
+  customized_script?: string;
+  customized_shot_list?: TrendShotListItem[];
+  selected_niche?: string;
+  user_notes?: string;
+  generation_status: TrendGenerationStatus;
+  generation_request_id?: string;
+  generated_content_id?: string;
+  generation_error?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrendCopyWithTrend extends TrendCopy {
+  trend?: Trend;
+  creative_brief?: TrendCreativeBrief;
 }
 
 export default api;
