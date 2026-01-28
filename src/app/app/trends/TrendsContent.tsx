@@ -88,6 +88,9 @@ export default function TrendsContent() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
+  // Analyze state
+  const [analyzingTrendId, setAnalyzingTrendId] = useState<string | null>(null);
+
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -265,6 +268,49 @@ export default function TrendsContent() {
     );
   };
 
+  const handleAnalyze = async (e: React.MouseEvent, trendId: string) => {
+    e.stopPropagation(); // Prevent opening the trend detail modal
+
+    try {
+      setAnalyzingTrendId(trendId);
+
+      const response = await api.trends.analyze(trendId);
+
+      if (response.success) {
+        // Update the trend in the local state to show "analyzing" status
+        setTrends(prev =>
+          prev.map(t =>
+            t.id === trendId ? { ...t, analysis_status: 'analyzing' as const } : t
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to start analysis:', err);
+    } finally {
+      setAnalyzingTrendId(null);
+    }
+  };
+
+  const getAnalysisStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return null; // Don't show badge for completed
+      case 'analyzing':
+        return (
+          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded flex items-center gap-1">
+            <span className="w-2 h-2 border border-blue-700 border-t-transparent rounded-full animate-spin" />
+            Analyzing
+          </span>
+        );
+      case 'pending':
+        return <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">Pending</span>;
+      case 'failed':
+        return <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">Failed</span>;
+      default:
+        return null;
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
@@ -428,9 +474,12 @@ export default function TrendsContent() {
                   {/* Content */}
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-medium line-clamp-2 flex-1">{trend.title || 'Untitled'}</h3>
-                    {trend.is_curated && (
-                      <span className="px-2 py-0.5 bg-accent/10 text-accent text-xs rounded">Curated</span>
-                    )}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {getAnalysisStatusBadge(trend.analysis_status)}
+                      {trend.is_curated && (
+                        <span className="px-2 py-0.5 bg-accent/10 text-accent text-xs rounded">Curated</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Meta */}
@@ -457,6 +506,26 @@ export default function TrendsContent() {
                         </span>
                       ))}
                     </div>
+                  )}
+
+                  {/* Analyze Button for pending/failed trends */}
+                  {(trend.analysis_status === 'pending' || trend.analysis_status === 'failed') && (
+                    <button
+                      onClick={(e) => handleAnalyze(e, trend.id)}
+                      disabled={analyzingTrendId === trend.id}
+                      className="mt-3 w-full px-3 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {analyzingTrendId === trend.id ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Starting Analysis...
+                        </>
+                      ) : (
+                        <>
+                          🔍 Analyze Trend
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
               ))}
