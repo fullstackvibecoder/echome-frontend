@@ -2367,8 +2367,8 @@ export interface TrendAnalysis {
   hook_type?: string;
   hook_text?: string;
   hook_duration_seconds?: number;
-  visual_style?: TrendVisualStyle;
-  pacing?: TrendPacing;
+  visual_style?: TrendVisualStyle | { format?: string; camera_work?: string[]; transitions?: string[]; color_grading?: string; text_overlays?: Record<string, string> };
+  pacing?: TrendPacing | { tempo?: string; cut_frequency?: string; rhythm_pattern?: string };
   format_structure?: {
     type: string;
     segments: Array<{

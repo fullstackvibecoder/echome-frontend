@@ -801,13 +801,21 @@ export default function TrendsContent() {
                         {selectedTrend.analysis.visual_style && (
                           <div className="p-3 bg-muted rounded-lg">
                             <p className="text-small text-muted-foreground">Visual Style</p>
-                            <p className="font-medium">{selectedTrend.analysis.visual_style.replace('_', ' ')}</p>
+                            <p className="font-medium">
+                              {typeof selectedTrend.analysis.visual_style === 'string'
+                                ? selectedTrend.analysis.visual_style.replace('_', ' ')
+                                : (selectedTrend.analysis.visual_style as { format?: string })?.format?.replace('_', ' ') || 'Mixed'}
+                            </p>
                           </div>
                         )}
                         {selectedTrend.analysis.pacing && (
                           <div className="p-3 bg-muted rounded-lg">
                             <p className="text-small text-muted-foreground">Pacing</p>
-                            <p className="font-medium">{selectedTrend.analysis.pacing}</p>
+                            <p className="font-medium">
+                              {typeof selectedTrend.analysis.pacing === 'string'
+                                ? selectedTrend.analysis.pacing
+                                : (selectedTrend.analysis.pacing as { tempo?: string })?.tempo || 'Medium'}
+                            </p>
                           </div>
                         )}
                         {selectedTrend.analysis.audio_type && (
