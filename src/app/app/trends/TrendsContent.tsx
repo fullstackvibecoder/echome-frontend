@@ -57,7 +57,7 @@ export default function TrendsContent() {
   const [platformFilter, setPlatformFilter] = useState<TrendPlatform | 'all'>('all');
   const [lifecycleFilter, setLifecycleFilter] = useState<TrendLifecycleStatus | 'all'>('all');
   const [nicheFilter, setNicheFilter] = useState<string>('');
-  const [curatedOnly, setCuratedOnly] = useState(true);
+  const [curatedOnly, setCuratedOnly] = useState(false);
 
   // My copies state
   const [myCopies, setMyCopies] = useState<TrendCopyWithTrend[]>([]);
