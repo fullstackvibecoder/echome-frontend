@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Upload,
@@ -8,12 +8,12 @@ import {
   Check,
   Loader2,
   X,
-  ChevronDown,
   Instagram,
   Globe,
   Mic,
   Camera,
   ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
@@ -27,7 +27,7 @@ import { VoiceRecorder } from '@/components/voice-recorder';
 type ContentStatus = 'processing' | 'completed' | 'error';
 type ImportPlatform = 'youtube' | 'instagram' | 'blog';
 type ImportStatus = 'idle' | 'importing' | 'done' | 'error';
-type ExpandedCard = 'upload' | 'voice' | null;
+type Tab = 'import' | 'paste' | 'upload' | 'voice';
 
 interface ContentItem {
   id: string;
@@ -55,27 +55,26 @@ interface ProfileState {
 const MIN_CONTENT_ITEMS = 3;
 
 // ---------------------------------------------------------------------------
-// Voice Strength Ring SVG
+// Voice Strength Ring SVG (compact)
 // ---------------------------------------------------------------------------
 
-function VoiceStrengthRing({
+function VoiceRing({
   progress,
   isReady,
-  size = 200,
+  size = 48,
 }: {
   progress: number;
   isReady: boolean;
   size?: number;
 }) {
-  const strokeWidth = 8;
+  const strokeWidth = 4;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - progress * circumference;
 
   return (
-    <div className={`relative ${isReady ? 'animate-voice-burst' : ''}`}>
+    <div className={`relative inline-flex ${isReady ? 'animate-voice-burst' : ''}`}>
       <svg width={size} height={size} className="transform -rotate-90">
-        {/* Background track */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -83,40 +82,35 @@ function VoiceStrengthRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-muted/40"
+          className="text-border"
         />
-        {/* Progress arc */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="url(#ring-gradient)"
+          stroke="url(#ring-grad)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 1.5s ease-out' }}
+          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
         />
         <defs>
-          <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="var(--primary)" />
             <stop offset="100%" stopColor="var(--accent-purple, #B794F6)" />
           </linearGradient>
         </defs>
       </svg>
-      {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center">
         {isReady ? (
-          <Check className="w-12 h-12 text-primary" />
+          <Check className="w-4 h-4 text-primary" />
         ) : (
-          <span className="text-3xl font-bold text-foreground">
+          <span className="text-[10px] font-bold text-foreground">
             {Math.round(progress * 100)}%
           </span>
         )}
-        <span className="text-xs text-muted-foreground mt-1">
-          {isReady ? 'Voice Ready' : 'Voice Strength'}
-        </span>
       </div>
     </div>
   );
@@ -130,7 +124,7 @@ export default function OnboardingContent() {
   const router = useRouter();
   const { kbs, loading: kbLoading, contentItems: existingContent } = useKnowledgeBase();
 
-  // Profile state
+  // Profile
   const [profile, setProfile] = useState<ProfileState>({
     displayName: '',
     twitterHandle: '',
@@ -141,63 +135,43 @@ export default function OnboardingContent() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
-  // Content state
+  // Content
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('paste');
 
-  // Paste state
+  // Paste
   const [pasteText, setPasteText] = useState('');
 
-  // Import states
+  // Imports
   const [imports, setImports] = useState<Record<ImportPlatform, ImportState>>({
     youtube: { status: 'idle', url: '' },
     instagram: { status: 'idle', url: '' },
     blog: { status: 'idle', url: '' },
   });
 
-  // Expanded card for upload/voice
-  const [expandedCard, setExpandedCard] = useState<ExpandedCard>(null);
-
-  // Animation state
-  const [heroVisible, setHeroVisible] = useState(false);
-  const [celebrationShown, setCelebrationShown] = useState(false);
-
-  // Refs for scroll-into-view
-  const identityRef = useRef<HTMLDivElement>(null);
-  const connectRef = useRef<HTMLDivElement>(null);
-  const samplesRef = useRef<HTMLDivElement>(null);
-
   // KB
   const defaultKbId = kbs?.[0]?.id;
 
-  // Derived state
+  // Derived
   const totalCompleted =
     contentItems.filter((i) => i.status === 'completed').length +
     (existingContent?.filter((i) => i.status === 'completed').length ?? 0);
   const ringProgress = Math.min(totalCompleted / MIN_CONTENT_ITEMS, 1);
   const isReady = totalCompleted >= MIN_CONTENT_ITEMS;
 
-  // Hero entrance animation
+  // Redirect if already onboarded
   useEffect(() => {
-    const t = setTimeout(() => setHeroVisible(true), 100);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Celebration trigger
-  useEffect(() => {
-    if (isReady && !celebrationShown) {
-      setCelebrationShown(true);
-    }
-  }, [isReady, celebrationShown]);
-
-  // If user already has 3+ KB items, redirect to /app
-  useEffect(() => {
-    if (!kbLoading && existingContent && existingContent.filter((i) => i.status === 'completed').length >= MIN_CONTENT_ITEMS) {
+    if (
+      !kbLoading &&
+      existingContent &&
+      existingContent.filter((i) => i.status === 'completed').length >= MIN_CONTENT_ITEMS
+    ) {
       router.replace('/app');
     }
   }, [kbLoading, existingContent, router]);
 
-  // Load existing profile
+  // Load profile
   useEffect(() => {
     (async () => {
       try {
@@ -214,12 +188,12 @@ export default function OnboardingContent() {
           }
         }
       } catch {
-        // Profile not loaded — that's fine, user can fill it in
+        // fine
       }
     })();
   }, []);
 
-  // ------ Handlers ------
+  // --- Handlers ---
 
   const updateProfileField = (field: keyof ProfileState, value: string) => {
     setProfile((p) => ({ ...p, [field]: value }));
@@ -238,7 +212,7 @@ export default function OnboardingContent() {
       setProfileSaved(true);
       setProfileDirty(false);
     } catch {
-      // silently fail — non-blocking
+      // non-blocking
     } finally {
       setProfileSaving(false);
     }
@@ -259,20 +233,19 @@ export default function OnboardingContent() {
 
   const handlePasteSubmit = async () => {
     if (!pasteText.trim() || pasteText.length < 50) return;
-
     setIsSubmitting(true);
     const tempId = `paste-${Date.now()}`;
     const wordCount = pasteText.split(/\s+/).length;
 
     setContentItems((prev) => [
       ...prev,
-      { id: tempId, title: `Writing sample`, type: 'paste', status: 'processing', wordCount },
+      { id: tempId, title: 'Writing sample', type: 'paste', status: 'processing', wordCount },
     ]);
 
     try {
       const result = await api.kbContent.paste({
         text: pasteText,
-        title: `Writing sample`,
+        title: 'Writing sample',
         sourceType: 'writing_sample',
         knowledgeBaseId: defaultKbId,
       });
@@ -287,7 +260,9 @@ export default function OnboardingContent() {
     } catch {
       setContentItems((prev) =>
         prev.map((item) =>
-          item.id === tempId ? { ...item, status: 'error' as ContentStatus, error: 'Failed to save' } : item
+          item.id === tempId
+            ? { ...item, status: 'error' as ContentStatus, error: 'Failed to save' }
+            : item
         )
       );
     } finally {
@@ -342,7 +317,9 @@ export default function OnboardingContent() {
       }));
       setContentItems((prev) =>
         prev.map((item) =>
-          item.id === tempId ? { ...item, status: 'error' as ContentStatus, error: 'Import failed' } : item
+          item.id === tempId
+            ? { ...item, status: 'error' as ContentStatus, error: 'Import failed' }
+            : item
         )
       );
     }
@@ -350,14 +327,12 @@ export default function OnboardingContent() {
 
   const handleFilesAdded = async (files: File[]) => {
     if (!defaultKbId) return;
-
     for (const file of files) {
       const tempId = `file-${Date.now()}-${file.name}`;
       setContentItems((prev) => [
         ...prev,
         { id: tempId, title: file.name, type: 'file', status: 'processing' },
       ]);
-
       try {
         const result = await api.files.upload(defaultKbId, file);
         setContentItems((prev) =>
@@ -370,27 +345,30 @@ export default function OnboardingContent() {
       } catch {
         setContentItems((prev) =>
           prev.map((item) =>
-            item.id === tempId ? { ...item, status: 'error' as ContentStatus, error: 'Upload failed' } : item
+            item.id === tempId
+              ? { ...item, status: 'error' as ContentStatus, error: 'Upload failed' }
+              : item
           )
         );
       }
     }
-    setExpandedCard(null);
   };
 
-  const handleVoiceSaved = (result: { contentId: string; transcription: string; chunksCreated: number }) => {
+  const handleVoiceSaved = (result: {
+    contentId: string;
+    transcription: string;
+    chunksCreated: number;
+  }) => {
     setContentItems((prev) => [
       ...prev,
       { id: result.contentId, title: 'Voice recording', type: 'voice', status: 'completed' },
     ]);
-    setExpandedCard(null);
   };
 
   const handleSkip = () => router.push('/app');
   const handleStartCreating = () => router.push('/app');
 
-  // ------ Loading ------
-
+  // --- Loading ---
   if (kbLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -399,460 +377,379 @@ export default function OnboardingContent() {
     );
   }
 
-  // ------ Render ------
+  // --- Render ---
+  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
+    { key: 'paste', label: 'Paste Text', icon: <Sparkles className="w-4 h-4" /> },
+    { key: 'import', label: 'Import', icon: <Globe className="w-4 h-4" /> },
+    { key: 'upload', label: 'Upload', icon: <Upload className="w-4 h-4" /> },
+    { key: 'voice', label: 'Record', icon: <Mic className="w-4 h-4" /> },
+  ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* ========== STICKY HEADER ========== */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
+    <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8 md:py-12">
+      {/* Backdrop gradient */}
+      <div className="fixed inset-0 bg-gradient-to-b from-background via-background to-muted/30 -z-10" />
+
+      {/* ========== DIALOG CONTAINER ========== */}
+      <div className="w-full max-w-2xl animate-fade-in">
+        {/* --- Header bar --- */}
+        <div className="flex items-center justify-between mb-6">
           <span className="text-lg font-bold text-primary">EchoMe</span>
-          <div className="flex items-center gap-4">
-            {/* Mini ring in header */}
-            <VoiceStrengthRing progress={ringProgress} isReady={isReady} size={36} />
-            <button
-              onClick={handleSkip}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              I&apos;ll do this later
-            </button>
-          </div>
+          <button
+            onClick={handleSkip}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Skip for now
+          </button>
         </div>
-      </header>
 
-      {/* ========== SECTION 1: THE REVEAL ========== */}
-      <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden">
-        {/* Dark gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0f] via-[#111118] to-background" />
-
-        <div
-          className={`relative z-10 flex flex-col items-center text-center transition-all duration-1000 ${
-            heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            Content That Sounds Like{' '}
+        {/* --- Hero (compact) --- */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">
+            Teach EchoMe Your{' '}
             <span className="bg-gradient-to-r from-primary via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent animate-gradient-x bg-[length:200%_200%]">
-              You
+              Voice
             </span>
           </h1>
-
-          <p
-            className={`text-lg md:text-xl text-gray-400 max-w-xl mb-10 transition-all duration-1000 delay-500 ${
-              heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            EchoMe learns your voice from content you&apos;ve already created.
+          <p className="text-sm text-muted-foreground">
+            Add at least {MIN_CONTENT_ITEMS} writing samples so content sounds like you, not a robot.
           </p>
-
-          {/* Voice Ring */}
-          <div
-            className={`transition-all duration-1000 delay-700 ${
-              heroVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-            }`}
-          >
-            <VoiceStrengthRing progress={ringProgress} isReady={isReady} size={200} />
-          </div>
-
-          {/* Celebration state */}
-          {isReady && celebrationShown && (
-            <div className="mt-8 animate-fade-in">
-              <h2 className="text-2xl font-bold text-white mb-3">Your Voice is Ready</h2>
-              <button
-                onClick={handleStartCreating}
-                className="relative overflow-hidden px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold text-lg hover:bg-primary/90 transition-colors animate-shimmer-sweep"
-              >
-                Start Creating
-                <ArrowRight className="inline ml-2 w-5 h-5" />
-              </button>
-              <p className="text-sm text-gray-500 mt-3">Or keep adding for even better results</p>
-            </div>
-          )}
         </div>
 
-        {/* Scroll arrow */}
-        {!isReady && (
-          <div className="absolute bottom-8 z-10 animate-bounce-down">
-            <ChevronDown className="w-8 h-8 text-gray-500" />
+        {/* --- Progress bar --- */}
+        <div className="flex items-center gap-3 mb-8 bg-card border border-border rounded-xl px-4 py-3">
+          <VoiceRing progress={ringProgress} isReady={isReady} size={40} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium">
+                {isReady
+                  ? 'Voice ready!'
+                  : `${totalCompleted} of ${MIN_CONTENT_ITEMS} samples`}
+              </span>
+              {isReady && (
+                <button
+                  onClick={handleStartCreating}
+                  className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1"
+                >
+                  Start Creating <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${
+                  isReady ? 'bg-green-500' : 'bg-primary'
+                }`}
+                style={{ width: `${Math.max(ringProgress * 100, 2)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* --- Celebration banner --- */}
+        {isReady && (
+          <div className="mb-6 bg-primary/10 border border-primary/20 rounded-xl p-4 text-center animate-fade-in">
+            <p className="font-semibold text-primary mb-2">Your voice is ready!</p>
+            <button
+              onClick={handleStartCreating}
+              className="relative overflow-hidden px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors animate-shimmer-sweep"
+            >
+              Start Creating <ArrowRight className="inline ml-1 w-4 h-4" />
+            </button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Or keep adding for even better results
+            </p>
           </div>
         )}
-      </section>
 
-      {/* ========== SECTION 2: YOUR IDENTITY ========== */}
-      <section ref={identityRef} className="py-20 px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="animate-on-scroll">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Your Identity</h2>
-            <p className="text-muted-foreground mb-8">This appears on your carousel slides</p>
+        {/* ========== PROFILE CARD ========== */}
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-sm font-semibold">Your Profile</h2>
+            <span className="text-xs text-muted-foreground">- appears on carousel slides</span>
           </div>
-
-          <div className="bg-card border border-border rounded-2xl p-6 animate-on-scroll" style={{ animationDelay: '0.15s' }}>
-            <div className="flex items-start gap-6">
-              {/* Avatar */}
-              <label className="shrink-0 cursor-pointer group">
-                <div className="w-20 h-20 rounded-full bg-muted border-2 border-border group-hover:border-primary transition-colors overflow-hidden flex items-center justify-center">
-                  {profile.profileImageUrl ? (
-                    <img
-                      src={profile.profileImageUrl}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-2xl font-bold text-muted-foreground">
-                      {profile.displayName?.[0]?.toUpperCase() || '?'}
-                    </span>
-                  )}
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                <span className="block text-xs text-center text-muted-foreground mt-1 group-hover:text-primary transition-colors">
-                  <Camera className="inline w-3 h-3 mr-0.5" />
-                  Photo
-                </span>
-              </label>
-
-              {/* Fields */}
-              <div className="flex-1 space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">Display Name</label>
-                  <input
-                    type="text"
-                    value={profile.displayName}
-                    onChange={(e) => updateProfileField('displayName', e.target.value)}
-                    placeholder="Your name"
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <label className="shrink-0 cursor-pointer group">
+              <div className="w-14 h-14 rounded-full bg-muted border-2 border-border group-hover:border-primary transition-colors overflow-hidden flex items-center justify-center">
+                {profile.profileImageUrl ? (
+                  <img
+                    src={profile.profileImageUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">X / Twitter</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
-                      <input
-                        type="text"
-                        value={profile.twitterHandle}
-                        onChange={(e) => updateProfileField('twitterHandle', e.target.value)}
-                        placeholder="handle"
-                        className="w-full pl-7 pr-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">Instagram</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
-                      <input
-                        type="text"
-                        value={profile.instagramHandle}
-                        onChange={(e) => updateProfileField('instagramHandle', e.target.value)}
-                        placeholder="handle"
-                        className="w-full pl-7 pr-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Save button — appears on change */}
-                {profileDirty && (
-                  <div className="flex items-center gap-3 pt-1">
-                    <button
-                      onClick={handleSaveProfile}
-                      disabled={profileSaving}
-                      className="px-4 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      {profileSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                      Save
-                    </button>
-                    {profileSaved && (
-                      <span className="text-sm text-green-500 flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5" /> Saved
-                      </span>
-                    )}
-                  </div>
-                )}
-                {!profileDirty && profileSaved && (
-                  <span className="text-sm text-green-500 flex items-center gap-1 pt-1">
-                    <Check className="w-3.5 h-3.5" /> Profile saved
+                ) : (
+                  <span className="text-lg font-bold text-muted-foreground">
+                    {profile.displayName?.[0]?.toUpperCase() || '?'}
                   </span>
                 )}
               </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-6">
-            <button
-              onClick={handleSkip}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Skip to dashboard
-            </button>
-            <p className="text-xs text-muted-foreground mt-1">
-              Without voice training, content will sound generic
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== SECTION 3: CONNECT YOUR CONTENT ========== */}
-      <section ref={connectRef} className="py-20 px-6 bg-muted/20">
-        <div className="max-w-3xl mx-auto">
-          <div className="animate-on-scroll">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Connect Your Content</h2>
-            <p className="text-muted-foreground mb-8">
-              The easiest way to train your voice — import from platforms you already use
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* YouTube */}
-            <ImportCard
-              platform="youtube"
-              label="YouTube Channel"
-              icon={<Youtube className="w-6 h-6" />}
-              iconColor="text-red-500"
-              placeholder="youtube.com/c/yourchannel"
-              helperText="Imports transcripts from your videos"
-              state={imports.youtube}
-              onUrlChange={(url) =>
-                setImports((prev) => ({ ...prev, youtube: { ...prev.youtube, url } }))
-              }
-              onImport={() => handleImport('youtube')}
-            />
-            {/* Instagram */}
-            <ImportCard
-              platform="instagram"
-              label="Instagram"
-              icon={<Instagram className="w-6 h-6" />}
-              iconColor="text-pink-500"
-              placeholder="instagram.com/yourprofile"
-              helperText="Imports your captions"
-              state={imports.instagram}
-              onUrlChange={(url) =>
-                setImports((prev) => ({ ...prev, instagram: { ...prev.instagram, url } }))
-              }
-              onImport={() => handleImport('instagram')}
-            />
-            {/* Blog */}
-            <ImportCard
-              platform="blog"
-              label="Blog"
-              icon={<Globe className="w-6 h-6" />}
-              iconColor="text-primary"
-              placeholder="yourblog.com"
-              helperText="Imports your posts"
-              state={imports.blog}
-              onUrlChange={(url) =>
-                setImports((prev) => ({ ...prev, blog: { ...prev.blog, url } }))
-              }
-              onImport={() => handleImport('blog')}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ========== SECTION 4: ADD SAMPLES DIRECTLY ========== */}
-      <section ref={samplesRef} className="py-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="animate-on-scroll">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Add Samples Directly</h2>
-            <p className="text-muted-foreground mb-8">
-              Paste, upload, or record — anything you&apos;ve written or said
-            </p>
-          </div>
-
-          {/* Paste textarea — always visible */}
-          <div className="bg-card border border-border rounded-2xl p-6 mb-6 animate-on-scroll" style={{ animationDelay: '0.1s' }}>
-            <textarea
-              value={pasteText}
-              onChange={(e) => setPasteText(e.target.value)}
-              placeholder="Paste a blog post, email, LinkedIn post, or anything you've written..."
-              rows={5}
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
-            />
-            <div className="flex items-center justify-between mt-3">
-              <span
-                className={`text-xs ${
-                  pasteText.length > 0 && pasteText.length < 50
-                    ? 'text-amber-500'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {pasteText.length > 0 && pasteText.length < 50
-                  ? `${50 - pasteText.length} more characters needed`
-                  : pasteText.length > 0
-                  ? `${pasteText.length.toLocaleString()} characters`
-                  : ''}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+              <span className="block text-[10px] text-center text-muted-foreground mt-0.5 group-hover:text-primary transition-colors">
+                <Camera className="inline w-2.5 h-2.5" /> Photo
               </span>
-              <button
-                onClick={handlePasteSubmit}
-                disabled={pasteText.length < 50 || isSubmitting}
-                className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors flex items-center gap-1.5"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Check className="w-4 h-4" />
-                )}
-                Add to My Voice
-              </button>
-            </div>
-          </div>
+            </label>
 
-          {/* Upload & Voice cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-on-scroll" style={{ animationDelay: '0.2s' }}>
-            {/* Upload File Card */}
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <button
-                onClick={() => setExpandedCard(expandedCard === 'upload' ? null : 'upload')}
-                className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Upload className="w-5 h-5 text-primary" />
+            {/* Fields */}
+            <div className="flex-1 space-y-2">
+              <input
+                type="text"
+                value={profile.displayName}
+                onChange={(e) => updateProfileField('displayName', e.target.value)}
+                placeholder="Display name"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    value={profile.twitterHandle}
+                    onChange={(e) => updateProfileField('twitterHandle', e.target.value)}
+                    placeholder="twitter"
+                    className="w-full pl-6 pr-2 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  />
                 </div>
-                <div className="text-left">
-                  <p className="font-medium text-sm">Upload File</p>
-                  <p className="text-xs text-muted-foreground">PDF, DOCX, TXT documents</p>
-                </div>
-                <ChevronDown
-                  className={`ml-auto w-4 h-4 text-muted-foreground transition-transform ${
-                    expandedCard === 'upload' ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-              <div
-                className={`transition-all duration-300 overflow-hidden ${
-                  expandedCard === 'upload' ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-                }`}
-              >
-                <div className="p-4 pt-0">
-                  <UploadZone onFilesAdded={handleFilesAdded} disabled={isSubmitting} />
-                </div>
-              </div>
-            </div>
-
-            {/* Record Voice Card */}
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <button
-                onClick={() => setExpandedCard(expandedCard === 'voice' ? null : 'voice')}
-                className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Mic className="w-5 h-5 text-primary" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-sm">Record Voice</p>
-                  <p className="text-xs text-muted-foreground">Speak naturally for best results</p>
-                </div>
-                <ChevronDown
-                  className={`ml-auto w-4 h-4 text-muted-foreground transition-transform ${
-                    expandedCard === 'voice' ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-              <div
-                className={`transition-all duration-300 overflow-hidden ${
-                  expandedCard === 'voice' ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-                }`}
-              >
-                <div className="p-4 pt-0">
-                  <VoiceRecorder
-                    onSaved={handleVoiceSaved}
-                    knowledgeBaseId={defaultKbId}
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    value={profile.instagramHandle}
+                    onChange={(e) => updateProfileField('instagramHandle', e.target.value)}
+                    placeholder="instagram"
+                    className="w-full pl-6 pr-2 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
                 </div>
               </div>
+              {profileDirty && (
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={profileSaving}
+                  className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
+                >
+                  {profileSaving ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Check className="w-3 h-3" />
+                  )}
+                  Save
+                </button>
+              )}
+              {!profileDirty && profileSaved && (
+                <span className="text-xs text-green-500 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Saved
+                </span>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Content list */}
-          {contentItems.length > 0 && (
-            <div className="mt-8 bg-card border border-border rounded-2xl p-5">
-              <h3 className="font-semibold text-sm mb-3">
-                Added this session ({contentItems.length})
-              </h3>
-              <div className="space-y-2">
-                {contentItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 p-2.5 bg-muted/30 rounded-lg"
+        {/* ========== ADD CONTENT CARD ========== */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
+          <div className="px-4 pt-4 pb-0">
+            <h2 className="text-sm font-semibold mb-3">Train Your Voice</h2>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-border px-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                  activeTab === tab.key
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab content */}
+          <div className="p-4">
+            {/* Paste tab */}
+            {activeTab === 'paste' && (
+              <div>
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  placeholder="Paste a blog post, email, LinkedIn post, or anything you've written..."
+                  rows={4}
+                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <span
+                    className={`text-xs ${
+                      pasteText.length > 0 && pasteText.length < 50
+                        ? 'text-amber-500'
+                        : 'text-muted-foreground'
+                    }`}
                   >
-                    {item.status === 'processing' ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
-                    ) : item.status === 'completed' ? (
-                      <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                        <Check className="w-2.5 h-2.5 text-white" />
-                      </div>
+                    {pasteText.length > 0 && pasteText.length < 50
+                      ? `${50 - pasteText.length} more characters needed`
+                      : pasteText.length > 0
+                      ? `${pasteText.length.toLocaleString()} chars`
+                      : 'Min 50 characters'}
+                  </span>
+                  <button
+                    onClick={handlePasteSubmit}
+                    disabled={pasteText.length < 50 || isSubmitting}
+                    className="px-3 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg disabled:opacity-40 hover:bg-primary/90 transition-colors flex items-center gap-1.5"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <div className="w-4 h-4 rounded-full bg-destructive flex items-center justify-center shrink-0">
-                        <X className="w-2.5 h-2.5 text-white" />
-                      </div>
+                      <Check className="w-3.5 h-3.5" />
                     )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{item.title}</p>
-                      {item.error && (
-                        <p className="text-xs text-destructive">{item.error}</p>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground capitalize shrink-0">{item.type}</span>
-                  </div>
-                ))}
+                    Add to My Voice
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </section>
+            )}
 
-      {/* ========== BOTTOM CTA ========== */}
-      <section className="py-20 px-6 text-center">
-        <div className="max-w-md mx-auto">
-          {isReady ? (
-            <div className="animate-fade-in">
-              <VoiceStrengthRing progress={1} isReady size={120} />
-              <h2 className="text-2xl font-bold mt-6 mb-4">Your Voice is Ready</h2>
-              <button
-                onClick={handleStartCreating}
-                className="relative overflow-hidden w-full px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold text-lg hover:bg-primary/90 transition-colors animate-shimmer-sweep"
-              >
-                Start Creating
-                <ArrowRight className="inline ml-2 w-5 h-5" />
-              </button>
-              <p className="text-sm text-muted-foreground mt-3">
-                Or keep adding for even better results
-              </p>
+            {/* Import tab */}
+            {activeTab === 'import' && (
+              <div className="space-y-3">
+                <ImportRow
+                  platform="youtube"
+                  label="YouTube"
+                  icon={<Youtube className="w-4 h-4 text-red-500" />}
+                  placeholder="youtube.com/c/yourchannel"
+                  state={imports.youtube}
+                  onUrlChange={(url) =>
+                    setImports((p) => ({ ...p, youtube: { ...p.youtube, url } }))
+                  }
+                  onImport={() => handleImport('youtube')}
+                />
+                <ImportRow
+                  platform="instagram"
+                  label="Instagram"
+                  icon={<Instagram className="w-4 h-4 text-pink-500" />}
+                  placeholder="instagram.com/yourprofile"
+                  state={imports.instagram}
+                  onUrlChange={(url) =>
+                    setImports((p) => ({ ...p, instagram: { ...p.instagram, url } }))
+                  }
+                  onImport={() => handleImport('instagram')}
+                />
+                <ImportRow
+                  platform="blog"
+                  label="Blog"
+                  icon={<Globe className="w-4 h-4 text-primary" />}
+                  placeholder="yourblog.com"
+                  state={imports.blog}
+                  onUrlChange={(url) =>
+                    setImports((p) => ({ ...p, blog: { ...p.blog, url } }))
+                  }
+                  onImport={() => handleImport('blog')}
+                />
+                <p className="text-xs text-muted-foreground pt-1">
+                  Imports run in the background. You can continue while they process.
+                </p>
+              </div>
+            )}
+
+            {/* Upload tab */}
+            {activeTab === 'upload' && (
+              <UploadZone onFilesAdded={handleFilesAdded} disabled={isSubmitting} />
+            )}
+
+            {/* Voice tab */}
+            {activeTab === 'voice' && (
+              <VoiceRecorder onSaved={handleVoiceSaved} knowledgeBaseId={defaultKbId} />
+            )}
+          </div>
+        </div>
+
+        {/* ========== CONTENT LIST ========== */}
+        {contentItems.length > 0 && (
+          <div className="bg-card border border-border rounded-xl p-4 mb-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              Added ({contentItems.length})
+            </h3>
+            <div className="space-y-1.5">
+              {contentItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-2.5 py-1.5 px-2.5 bg-muted/30 rounded-lg"
+                >
+                  {item.status === 'processing' ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                  ) : item.status === 'completed' ? (
+                    <div className="w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                      <Check className="w-2 h-2 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-3.5 h-3.5 rounded-full bg-destructive flex items-center justify-center shrink-0">
+                      <X className="w-2 h-2 text-white" />
+                    </div>
+                  )}
+                  <span className="text-sm truncate flex-1">{item.title}</span>
+                  {item.error && (
+                    <span className="text-xs text-destructive shrink-0">{item.error}</span>
+                  )}
+                  <span className="text-[10px] text-muted-foreground capitalize shrink-0">
+                    {item.type}
+                  </span>
+                </div>
+              ))}
             </div>
-          ) : (
-            <div>
-              <p className="text-muted-foreground mb-4">
-                Add {MIN_CONTENT_ITEMS - totalCompleted} more sample{MIN_CONTENT_ITEMS - totalCompleted !== 1 ? 's' : ''} for best results
-              </p>
-              <button
-                onClick={handleSkip}
-                className="px-6 py-3 border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-              >
-                Skip to dashboard
-              </button>
-              <p className="text-xs text-muted-foreground mt-2">
-                Without voice training, content will sound generic
-              </p>
-            </div>
+          </div>
+        )}
+
+        {/* ========== BOTTOM CTA ========== */}
+        <div className="flex items-center justify-between py-4">
+          <button
+            onClick={handleSkip}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Skip to dashboard
+          </button>
+          {isReady && (
+            <button
+              onClick={handleStartCreating}
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center gap-1.5"
+            >
+              Start Creating <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+          {!isReady && (
+            <span className="text-xs text-muted-foreground">
+              {MIN_CONTENT_ITEMS - totalCompleted} more sample
+              {MIN_CONTENT_ITEMS - totalCompleted !== 1 ? 's' : ''} needed
+            </span>
           )}
         </div>
-      </section>
+
+        <p className="text-center text-xs text-muted-foreground pb-6">
+          Without voice training, content will sound generic
+        </p>
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Import Card Sub-component
+// Import Row Sub-component
 // ---------------------------------------------------------------------------
 
-function ImportCard({
+function ImportRow({
   platform,
   label,
   icon,
-  iconColor,
   placeholder,
-  helperText,
   state,
   onUrlChange,
   onImport,
@@ -860,76 +757,62 @@ function ImportCard({
   platform: ImportPlatform;
   label: string;
   icon: React.ReactNode;
-  iconColor: string;
   placeholder: string;
-  helperText: string;
   state: ImportState;
   onUrlChange: (url: string) => void;
   onImport: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  if (state.status === 'done') {
+    return (
+      <div className="flex items-center gap-2 py-2 px-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+        <Check className="w-4 h-4 text-green-500 shrink-0" />
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-xs text-muted-foreground ml-auto">
+          {state.message || 'Import started'}
+        </span>
+      </div>
+    );
+  }
+
+  if (state.status === 'importing') {
+    return (
+      <div className="flex items-center gap-2 py-2 px-3 bg-muted/30 rounded-lg">
+        <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-xs text-muted-foreground ml-auto">Importing...</span>
+      </div>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className="flex items-center gap-2 py-2 px-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+        <X className="w-4 h-4 text-destructive shrink-0" />
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-xs text-destructive ml-auto">
+          {state.message || 'Import failed'}
+        </span>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden animate-on-scroll" style={{ animationDelay: `${['youtube', 'instagram', 'blog'].indexOf(platform) * 0.1}s` }}>
+    <div className="flex items-center gap-2">
+      <div className="shrink-0">{icon}</div>
+      <input
+        type="text"
+        value={state.url}
+        onChange={(e) => onUrlChange(e.target.value)}
+        placeholder={placeholder}
+        className="flex-1 px-3 py-1.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+      />
       <button
-        onClick={() => state.status === 'idle' && setExpanded(!expanded)}
-        disabled={state.status !== 'idle'}
-        className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors disabled:hover:bg-transparent"
+        onClick={onImport}
+        disabled={!state.url.trim()}
+        className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium rounded-lg disabled:opacity-40 hover:bg-primary/90 transition-colors shrink-0"
       >
-        <div className={`w-10 h-10 rounded-full bg-muted flex items-center justify-center ${iconColor}`}>
-          {state.status === 'importing' ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : state.status === 'done' ? (
-            <Check className="w-5 h-5 text-green-500" />
-          ) : (
-            icon
-          )}
-        </div>
-        <div className="text-left flex-1">
-          <p className="font-medium text-sm">{label}</p>
-          <p className="text-xs text-muted-foreground">
-            {state.status === 'importing'
-              ? 'Importing...'
-              : state.status === 'done'
-              ? state.message || 'Import started'
-              : state.status === 'error'
-              ? state.message || 'Import failed'
-              : helperText}
-          </p>
-        </div>
-        {state.status === 'idle' && (
-          <ChevronDown
-            className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
-          />
-        )}
+        Import
       </button>
-
-      {/* Expanded URL input */}
-      <div
-        className={`transition-all duration-300 overflow-hidden ${
-          expanded ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-        }`}
-      >
-        <div className="px-4 pb-4 flex gap-2">
-          <input
-            type="text"
-            value={state.url}
-            onChange={(e) => onUrlChange(e.target.value)}
-            placeholder={placeholder}
-            className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <button
-            onClick={() => {
-              onImport();
-              setExpanded(false);
-            }}
-            disabled={!state.url.trim()}
-            className="px-3 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg disabled:opacity-40 hover:bg-primary/90 transition-colors"
-          >
-            Import
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
