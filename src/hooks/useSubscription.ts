@@ -28,8 +28,8 @@ interface UseSubscriptionReturn {
   tier: SubscriptionTier;
   /** Days remaining in trial (0 if not in trial) */
   trialDaysRemaining: number;
-  /** Refresh subscription status from server */
-  refresh: () => Promise<void>;
+  /** Refresh subscription status from server. Pass true to force sync from Stripe. */
+  refresh: (forceSync?: boolean) => Promise<void>;
   /** Check if user has access to a tier-gated feature */
   hasTierAccess: (requiredTier: SubscriptionTier) => boolean;
   /** Redirect to billing page if not subscribed */
@@ -50,7 +50,7 @@ export function useSubscription(): UseSubscriptionReturn {
   const [fetchError, setFetchError] = useState(false);
   const router = useRouter();
 
-  const fetchSubscription = useCallback(async () => {
+  const fetchSubscription = useCallback(async (justPaid?: boolean) => {
     try {
       setFetchError(false);
       const token = localStorage.getItem('authToken');
@@ -60,9 +60,16 @@ export function useSubscription(): UseSubscriptionReturn {
         return;
       }
 
-      const response = await api.stripe.getSubscription();
+      // If justPaid flag is set, call with the flag to trigger backend Stripe sync
+      // This handles the race condition where webhook hasn't processed yet
+      const response = await api.stripe.getSubscription(justPaid);
       if (response.success && response.data) {
         setSubscription(response.data);
+
+        // If we synced from Stripe, log it
+        if ((response.data as any).syncedFromStripe) {
+          console.log('Subscription synced from Stripe (just_paid recovery)');
+        }
       } else {
         // API returned but no subscription - user is genuinely not subscribed
         setSubscription(null);
@@ -79,8 +86,13 @@ export function useSubscription(): UseSubscriptionReturn {
   }, []);
 
   // Fetch subscription on mount
+  // Check URL params for checkout success indicator to handle webhook race condition
   useEffect(() => {
-    fetchSubscription();
+    // Check if user just completed checkout (success=true in URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const justPaid = urlParams.get('success') === 'true';
+
+    fetchSubscription(justPaid);
   }, [fetchSubscription]);
 
   // Computed values
@@ -117,6 +129,11 @@ export function useSubscription(): UseSubscriptionReturn {
     return true;
   }, [loading, isSubscribed, isTrial, router]);
 
+  // Wrap refresh to optionally force sync from Stripe
+  const refresh = useCallback(async (forceSync?: boolean) => {
+    await fetchSubscription(forceSync);
+  }, [fetchSubscription]);
+
   return {
     subscription,
     loading,
@@ -126,7 +143,7 @@ export function useSubscription(): UseSubscriptionReturn {
     isActive,
     tier,
     trialDaysRemaining,
-    refresh: fetchSubscription,
+    refresh,
     hasTierAccess,
     requireSubscription,
   };

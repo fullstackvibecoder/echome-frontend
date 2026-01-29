@@ -1575,9 +1575,12 @@ export const api = {
       return response.data;
     },
 
-    /** Get current subscription status */
-    getSubscription: async (): Promise<StripeSubscriptionResponse> => {
-      const response = await apiClient.get('/stripe/subscription');
+    /** Get current subscription status
+     * @param justPaid - Set to true after checkout to force sync from Stripe (handles webhook race condition)
+     */
+    getSubscription: async (justPaid?: boolean): Promise<StripeSubscriptionResponse> => {
+      const params = justPaid ? '?just_paid=true' : '';
+      const response = await apiClient.get(`/stripe/subscription${params}`);
       return response.data;
     },
 
