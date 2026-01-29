@@ -16,6 +16,8 @@ interface UseSubscriptionReturn {
   subscription: StripeSubscriptionStatus | null;
   /** Loading state */
   loading: boolean;
+  /** Whether the subscription API call failed (network/server error) */
+  fetchError: boolean;
   /** Whether user has any active subscription (paid or trial) */
   isSubscribed: boolean;
   /** Whether user is in trial period */
@@ -45,10 +47,12 @@ const TIER_LEVELS: Record<SubscriptionTier, number> = {
 export function useSubscription(): UseSubscriptionReturn {
   const [subscription, setSubscription] = useState<StripeSubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const router = useRouter();
 
   const fetchSubscription = useCallback(async () => {
     try {
+      setFetchError(false);
       const token = localStorage.getItem('authToken');
       if (!token) {
         setSubscription(null);
@@ -60,10 +64,14 @@ export function useSubscription(): UseSubscriptionReturn {
       if (response.success && response.data) {
         setSubscription(response.data);
       } else {
+        // API returned but no subscription - user is genuinely not subscribed
         setSubscription(null);
       }
     } catch (error) {
       console.error('Failed to fetch subscription:', error);
+      // API failed - don't assume user isn't subscribed, could be network/server issue
+      // Set error flag so we can show retry UI instead of immediately redirecting
+      setFetchError(true);
       setSubscription(null);
     } finally {
       setLoading(false);
@@ -112,6 +120,7 @@ export function useSubscription(): UseSubscriptionReturn {
   return {
     subscription,
     loading,
+    fetchError,
     isSubscribed,
     isTrial,
     isActive,

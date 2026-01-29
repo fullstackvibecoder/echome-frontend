@@ -44,10 +44,12 @@ export function SubscriptionGuard({
   redirectTo = '/app/billing?upgrade=true',
 }: SubscriptionGuardProps) {
   const router = useRouter();
-  const { loading, isSubscribed, isTrial, hasTierAccess } = useSubscription();
+  const { loading, fetchError, isSubscribed, isTrial, hasTierAccess, refresh } = useSubscription();
 
   useEffect(() => {
     if (loading) return;
+    // Don't redirect if there was an API error - show error UI instead
+    if (fetchError) return;
 
     // Check basic subscription requirement
     if (requireSub && !isSubscribed && !isTrial) {
@@ -65,13 +67,32 @@ export function SubscriptionGuard({
       };
       router.push(`${redirectTo}&tier=${requiredTier}&tierName=${encodeURIComponent(tierNames[requiredTier])}`);
     }
-  }, [loading, isSubscribed, isTrial, hasTierAccess, requiredTier, requireSub, redirectTo, router]);
+  }, [loading, fetchError, isSubscribed, isTrial, hasTierAccess, requiredTier, requireSub, redirectTo, router]);
 
   // Show loading state
   if (loading) {
     return loadingFallback || (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show error state with retry button if API failed
+  if (fetchError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 p-6">
+        <div className="text-4xl">⚠️</div>
+        <h2 className="text-xl font-semibold text-foreground">Connection Issue</h2>
+        <p className="text-muted-foreground text-center max-w-md">
+          We couldn&apos;t verify your subscription status. This might be a temporary network issue.
+        </p>
+        <button
+          onClick={() => refresh()}
+          className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
