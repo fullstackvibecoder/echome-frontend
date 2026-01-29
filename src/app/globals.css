@@ -345,6 +345,50 @@ body {
 .animation-delay-1000 { animation-delay: 1s; }
 .animation-delay-2000 { animation-delay: 2s; }
 
+/* Onboarding: Voice ring burst animation */
+@keyframes voice-burst {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px 15px rgba(0, 212, 255, 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0);
+    transform: scale(1);
+  }
+}
+
+/* Onboarding: CTA shimmer sweep */
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Onboarding: Bounce arrow */
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.animate-voice-burst {
+  animation: voice-burst 1s ease-out;
+}
+
+.animate-shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer-sweep 2s ease-in-out infinite;
+}
+
+.animate-bounce-down {
+  animation: bounce-down 1.5s ease-in-out infinite;
+}
+
 /* Respect user preferences for reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .echo-float,
@@ -361,7 +405,12 @@ body {
   .animate-sound-wave,
   .animate-dash,
   .animate-fade-in,
-  .animate-gradient {
+  .animate-gradient,
+  .animate-voice-burst,
+  .animate-bounce-down {
+    animation: none !important;
+  }
+  .animate-shimmer-sweep::after {
     animation: none !important;
   }
 }

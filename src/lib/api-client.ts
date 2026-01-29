@@ -515,6 +515,29 @@ export const api = {
     },
   },
 
+  // -------- VOICE STATUS --------
+  voice: {
+    getStatus: async () => {
+      const response = await apiClient.get('/voice/status');
+      return response.data as {
+        success: boolean;
+        data?: {
+          hasVoiceProfile: boolean;
+          contentCount: number;
+          lastUpdated?: string;
+        };
+      };
+    },
+
+    refreshProfile: async () => {
+      const response = await apiClient.post('/voice/profile/refresh');
+      return response.data as {
+        success: boolean;
+        message?: string;
+      };
+    },
+  },
+
   // -------- KB CONTENT (PASTE, VOICE, MBOX, SOCIAL) --------
   kbContent: {
     paste: async (data: {
