@@ -216,6 +216,13 @@ export default function AppContent() {
     }
   }, [carouselFailed]);
 
+  // Auto-dismiss welcome banner on first generation
+  // (Must be before the early return to maintain consistent hook count)
+  const hasResults = !!(results || contentKit || videoClips.length > 0);
+  useEffect(() => {
+    if (isFirstTime && hasResults) dismissWelcome();
+  }, [isFirstTime, hasResults, dismissWelcome]);
+
   // Show loading state while checking/redirecting for pending checkout
   // (Must be AFTER all hooks to follow rules of hooks)
   if (checkingPendingPlan || checkoutLoading) {
@@ -340,14 +347,6 @@ export default function AppContent() {
     setVideoClips([]);
     setContentKit(null);
   };
-
-  // Check if we have any results to display
-  const hasResults = results || contentKit || videoClips.length > 0;
-
-  // Auto-dismiss welcome banner on first generation
-  useEffect(() => {
-    if (isFirstTime && hasResults) dismissWelcome();
-  }, [isFirstTime, hasResults, dismissWelcome]);
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
