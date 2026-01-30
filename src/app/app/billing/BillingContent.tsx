@@ -131,8 +131,8 @@ function BillingContentInner() {
           setSuccessMessage('Your subscription has been activated! Welcome aboard.');
         }
         // If user just signed up, redirect to onboarding after successful checkout
-        if (sessionStorage.getItem('needsOnboarding')) {
-          sessionStorage.removeItem('needsOnboarding');
+        if (localStorage.getItem('needsOnboarding')) {
+          localStorage.removeItem('needsOnboarding');
           window.location.href = '/onboarding';
           return;
         }
