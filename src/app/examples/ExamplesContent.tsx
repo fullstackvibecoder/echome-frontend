@@ -585,7 +585,7 @@ export default function ExamplesContent() {
 
               <div className="space-y-4">
                 {[
-                  { icon: Scissors, text: 'AI detects viral-worthy clip moments' },
+                  { icon: Scissors, text: 'Agentic detection of viral-worthy clip moments' },
                   { icon: FileText, text: 'Full transcription with timestamps' },
                   { icon: Sparkles, text: 'Auto-generates captions for each clip' },
                   { icon: Clock, text: 'Save hours of editing time' },

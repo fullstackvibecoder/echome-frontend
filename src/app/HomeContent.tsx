@@ -67,7 +67,7 @@ export default function HomeContent() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 group cursor-pointer">
-              <Image src="/media/echome-logo.svg" alt="Echo, your AI content assistant" width={40} height={40} className="object-contain transition-transform group-hover:scale-110" />
+              <Image src="/media/echome-logo.svg" alt="Echo, your Agentic content assistant" width={40} height={40} className="object-contain transition-transform group-hover:scale-110" />
               <span className={`text-xl font-bold tracking-tight transition-colors ${scrolled ? 'text-[#1C1C1E]' : 'text-white'}`}>EchoMe</span>
             </div>
 
@@ -148,7 +148,7 @@ export default function HomeContent() {
               <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur
                               border border-white/20 rounded-full mb-8 animate-fade-in">
                 <Brain className="w-4 h-4 text-[#00D4FF]" />
-                <span className="text-white/90 font-medium text-sm">AI That Learns Your Voice</span>
+                <span className="text-white/90 font-medium text-sm">Agentic Voice Learning</span>
               </div>
 
               {/* Main Headline */}
@@ -389,7 +389,7 @@ export default function HomeContent() {
                   <h3 className="text-2xl font-bold">Echo Learns You</h3>
                 </div>
                 <p className="text-white/90 mb-6 leading-relaxed">
-                  Our AI analyzes your content to extract your unique voice patterns,
+                  Our Agentic engine analyzes your content to extract your unique voice patterns,
                   signature phrases, and communication style.
                 </p>
                 <div className="space-y-4">
@@ -583,7 +583,7 @@ export default function HomeContent() {
               <Sparkles className="w-6 h-6 text-[#FFD93D]" />
             </div>
             <p className="text-white/80 max-w-xl mx-auto">
-              Every piece of content is generated using your voice profile. No generic AI phrases.
+              Every piece of content is generated using your voice profile. No generic phrases.
               No corporate jargon. Just content that sounds like you.
             </p>
           </div>
@@ -611,7 +611,7 @@ export default function HomeContent() {
               </p>
               <div className="space-y-4">
                 {[
-                  "AI identifies your most viral-worthy moments",
+                  "Agentic analysis identifies your most viral-worthy moments",
                   "Auto-generates captions in your style",
                   "Creates Instagram carousels from key points",
                   "Writes platform-specific posts from transcription"
@@ -669,7 +669,7 @@ export default function HomeContent() {
               <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">Not ChatGPT?</span>
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              Generic AI tools give everyone the same output. EchoMe learns what makes you unique.
+              Generic tools give everyone the same output. EchoMe learns what makes you unique.
             </p>
           </div>
 
@@ -864,7 +864,7 @@ export default function HomeContent() {
                     <span className="text-2xl">🎯</span>
                   </div>
                   <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo</h3>
-                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For creators getting started with AI-powered content</p>
+                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For creators getting started with Agentic content</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparent">
@@ -1064,7 +1064,7 @@ export default function HomeContent() {
                 </div>
                 <div className="space-y-5">
                   {[
-                    { text: 'Generic AI forgets your context', emoji: '😵' },
+                    { text: 'Generic tools forget your context', emoji: '😵' },
                     { text: 'Manually rewrite for every platform', emoji: '⏰' },
                     { text: 'Inconsistent voice across channels', emoji: '😕' },
                     { text: '10+ hours per week on content', emoji: '😩' }
@@ -1155,14 +1155,14 @@ export default function HomeContent() {
               <div className="flex items-center space-x-3 mb-6 group">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <Image src="/media/echome-logo.svg" alt="Echo, your AI content assistant" width={48} height={48} className="relative object-contain" />
+                  <Image src="/media/echome-logo.svg" alt="Echo, your Agentic content assistant" width={48} height={48} className="relative object-contain" />
                 </div>
                 <span className="text-2xl font-extrabold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
                   EchoMe
                 </span>
               </div>
               <p className="text-white/80 font-light text-lg leading-relaxed mb-6">
-                AI content that sounds like you. Learn once, create forever.
+                Agentic content that sounds like you. Learn once, create forever.
               </p>
               <div className="flex gap-3">
                 <a href="#" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-[#00D4FF] hover:to-[#B794F6] flex items-center justify-center transition-all duration-300 group">

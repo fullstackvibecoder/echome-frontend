@@ -89,7 +89,7 @@ function getFriendlyTitle(sourceType: ContentSourceType, originalTitle: string):
     return 'Email Sample';
   }
   if (sourceType === 'generation') {
-    return 'AI-Generated Content';
+    return 'Agentic Content';
   }
   if (sourceType === 'clip-finder') {
     return 'Video Clip';

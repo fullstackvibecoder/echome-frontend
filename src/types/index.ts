@@ -397,7 +397,7 @@ export const CONTENT_SOURCE_CONFIG: Record<ContentSourceType, {
     label: 'Generated',
     icon: 'sparkles',
     color: 'cyan',
-    description: 'AI-generated content',
+    description: 'Agentic content',
   },
   'clip-finder': {
     label: 'Video Clip',

@@ -230,7 +230,7 @@ const VIDEO_PROCESSING_STAGES: Record<string, {
     title: 'Transcribing audio',
     tips: [
       'Listening carefully to every word...',
-      'Our AI is picking up all the nuances in your speech',
+      'Echo is picking up all the nuances in your speech',
       'Converting your voice into text with precision',
       'Fun fact: We can detect multiple speakers automatically!',
       'Capturing timestamps for perfect caption sync...',
@@ -244,7 +244,7 @@ const VIDEO_PROCESSING_STAGES: Record<string, {
       'Finding the hooks that will grab attention',
       'Identifying your most engaging segments',
       'Scoring clips for engagement potential',
-      'Our AI is learning what makes your content unique!',
+      'Echo is learning what makes your content unique!',
     ],
   },
   extracting: {

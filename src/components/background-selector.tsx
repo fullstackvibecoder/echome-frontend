@@ -98,7 +98,7 @@ export function BackgroundSelector({
   const tabs = [
     { id: 'presets' as const, label: 'Presets', icon: Palette },
     { id: 'upload' as const, label: 'Upload', icon: Upload },
-    { id: 'ai' as const, label: 'AI Generate', icon: Sparkles },
+    { id: 'ai' as const, label: 'Agentic Generate', icon: Sparkles },
   ];
 
   return (
@@ -240,7 +240,7 @@ export function BackgroundSelector({
                 <Sparkles className="text-purple-400 mt-0.5" size={20} />
                 <div>
                   <div className="font-medium text-white mb-1">
-                    AI-Generated Background
+                    Agentic Background
                   </div>
                   <p className="text-sm text-zinc-400">
                     DALL-E will create a custom background based on your content.
@@ -275,19 +275,19 @@ export function BackgroundSelector({
               {value.type === 'ai' ? (
                 <>
                   <Check size={18} />
-                  AI Background Selected
+                  Agentic Background Selected
                 </>
               ) : (
                 <>
                   <Sparkles size={18} />
-                  Use AI Background
+                  Use Agentic Background
                 </>
               )}
             </button>
 
             {contentSummary && (
               <p className="text-xs text-zinc-500">
-                AI will use your content to generate a relevant background.
+                Echo will use your content to generate a relevant background.
               </p>
             )}
           </div>
@@ -299,7 +299,7 @@ export function BackgroundSelector({
         Selected:{' '}
         <span className="text-zinc-300">
           {value.type === 'image' ? 'Custom Upload' :
-           value.type === 'ai' ? 'AI Generated' :
+           value.type === 'ai' ? 'Agentic Generated' :
            DESIGN_PRESET_PREVIEWS[getCurrentPreset()]?.label}
         </span>
       </div>

@@ -8,7 +8,7 @@ interface MboxProgressUIProps {
 }
 
 const UPLOAD_MESSAGES = [
-  'Creating AI embeddings for your writing style...',
+  'Creating Agentic embeddings for your writing style...',
   'Teaching Echo your unique voice patterns...',
   'Analyzing sentence structures and word choices...',
   'Building your personalized language model...',

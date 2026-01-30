@@ -47,7 +47,7 @@ const TEXT_GENERATION_STAGES: Record<string, {
     tips: [
       'Matching your exact writing style...',
       'Your content sounds better because it\'s actually YOU',
-      'AI + Your Voice = Content that converts',
+      'Agentic + Your Voice = Content that converts',
       'Capturing your unique tone and rhythm...',
     ],
   },

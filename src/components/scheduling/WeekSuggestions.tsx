@@ -61,7 +61,7 @@ export function WeekSuggestions({
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <p className="text-gray-500 text-sm">
-          Schedule some content to see AI-powered suggestions.
+          Schedule some content to see Agentic suggestions.
         </p>
       </div>
     );

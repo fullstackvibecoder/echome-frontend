@@ -23,7 +23,7 @@ export default function TrendsPage() {
         {/* Description */}
         <p className="text-muted-foreground mb-8 leading-relaxed">
           Discover trending content across TikTok, Instagram Reels, and YouTube Shorts.
-          Get AI-powered analysis of what makes trends go viral, plus customized scripts
+          Get Agentic analysis of what makes trends go viral, plus customized scripts
           and shot lists to recreate them in your unique voice and style.
         </p>
 
@@ -32,8 +32,8 @@ export default function TrendsPage() {
           <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
             <span className="text-2xl">🔍</span>
             <div>
-              <h3 className="font-semibold text-foreground">AI Trend Analysis</h3>
-              <p className="text-sm text-muted-foreground">Understand why trends work with deep AI analysis of hooks, pacing, and engagement patterns.</p>
+              <h3 className="font-semibold text-foreground">Agentic Trend Analysis</h3>
+              <p className="text-sm text-muted-foreground">Understand why trends work with deep Agentic analysis of hooks, pacing, and engagement patterns.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">

@@ -556,7 +556,7 @@ export const VIDEO_GENERATION_STEPS = [
     id: 'finding_clips',
     icon: '🔍',
     label: 'Finding moments',
-    description: 'AI identifying the best clips',
+    description: 'Identifying the best clips',
   },
   {
     id: 'extracting_clips',

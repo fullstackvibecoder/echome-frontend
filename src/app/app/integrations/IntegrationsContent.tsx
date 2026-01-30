@@ -11,7 +11,7 @@ export default function IntegrationsContent() {
           Connected Accounts
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Connect your accounts to sync content into your knowledge base for AI-powered generation
+          Connect your accounts to sync content into your knowledge base for Agentic generation
         </p>
       </div>
 

@@ -50,7 +50,7 @@ function getFriendlyTitle(sourceType: ContentSourceType, originalTitle: string):
     return 'Email Sample';
   }
   if (sourceType === 'generation') {
-    return 'AI-Generated Content';
+    return 'Agentic Content';
   }
   if (sourceType === 'clip-finder') {
     return 'Video Clip';
@@ -72,7 +72,7 @@ function getSourceDescription(sourceType: ContentSourceType, itemCount: number, 
     voice_recording: `${totalChunks.toLocaleString()} snippets transcribed from audio`,
     youtube_import: `${totalChunks.toLocaleString()} snippets from video transcripts`,
     instagram_import: `${totalChunks.toLocaleString()} snippets from Instagram`,
-    generation: `${itemCount} AI-generated pieces`,
+    generation: `${itemCount} Agentic-generated pieces`,
     'clip-finder': `${itemCount} video clips extracted`,
   };
   return descriptions[sourceType] || `${itemCount} items`;

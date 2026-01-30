@@ -103,7 +103,7 @@ export function BlogHeaderPreview({
       {/* Prompt info (collapsed by default) */}
       <details className="text-sm">
         <summary className="text-zinc-400 cursor-pointer hover:text-zinc-300">
-          View AI prompt used
+          View prompt used
         </summary>
         <p className="mt-2 p-3 bg-zinc-800 rounded-lg text-zinc-300 text-xs leading-relaxed">
           {image.prompt}
