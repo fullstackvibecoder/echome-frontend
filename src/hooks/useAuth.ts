@@ -6,7 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import type { User } from '@/types';
 
@@ -24,7 +24,6 @@ export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -60,7 +59,8 @@ export function useAuth(): UseAuthReturn {
         localStorage.setItem('authToken', response.data.token);
         setUser(response.data.user);
         // Check for redirect param, otherwise go to /app
-        const redirectTo = searchParams?.get('redirect') || '/app';
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect') || '/app';
         router.push(redirectTo);
       } else {
         throw new Error(response.error || 'Login failed');

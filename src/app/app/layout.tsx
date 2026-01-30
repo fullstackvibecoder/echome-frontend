@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { AppShell } from '@/components/app-shell';
 import { NavigationProvider } from '@/contexts/navigation-context';
@@ -18,22 +18,28 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <NavigationProvider>
-      <AppShell>
-        {isUnprotectedRoute ? (
-          children
-        ) : (
-          <SubscriptionGuard
-            loadingFallback={
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              </div>
-            }
-          >
-            {children}
-          </SubscriptionGuard>
-        )}
-      </AppShell>
-    </NavigationProvider>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <NavigationProvider>
+        <AppShell>
+          {isUnprotectedRoute ? (
+            children
+          ) : (
+            <SubscriptionGuard
+              loadingFallback={
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              }
+            >
+              {children}
+            </SubscriptionGuard>
+          )}
+        </AppShell>
+      </NavigationProvider>
+    </Suspense>
   );
 }
