@@ -14,7 +14,6 @@ import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/n
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
-import { useAuth } from '@/hooks/useAuth';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
@@ -97,7 +96,6 @@ export default function AppContent() {
   const router = useRouter();
   const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
-  const { user } = useAuth();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -358,7 +356,7 @@ export default function AppContent() {
           {/* Welcome Header */}
           {isFirstTime ? (
             <WelcomeBanner
-              userName={user?.name?.split(' ')[0]}
+              userName={undefined}
               onDismiss={dismissWelcome}
               onScrollToForm={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
             />
