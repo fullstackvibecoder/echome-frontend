@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
@@ -12,6 +12,9 @@ import { CarouselPreview } from '@/components/carousel-preview';
 import { setActiveGeneration, clearActiveGeneration } from '@/components/generation-banner';
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
+import { WelcomeBanner } from '@/components/welcome-banner';
+import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
+import { useAuth } from '@/hooks/useAuth';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
@@ -94,6 +97,9 @@ export default function AppContent() {
   const router = useRouter();
   const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
+  const { user } = useAuth();
+  const { isFirstTime, dismissWelcome } = useFirstTimeUser();
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Check for pending checkout from signup flow
   const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
@@ -340,25 +346,40 @@ export default function AppContent() {
   // Check if we have any results to display
   const hasResults = results || contentKit || videoClips.length > 0;
 
+  // Auto-dismiss welcome banner on first generation
+  useEffect(() => {
+    if (isFirstTime && hasResults) dismissWelcome();
+  }, [isFirstTime, hasResults, dismissWelcome]);
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {!hasResults && !generating && (
         <div className="animate-fade-in">
           {/* Welcome Header */}
-          <div className="mb-8">
-            <h1 className="text-display text-4xl mb-2">Welcome back!</h1>
-            <p className="text-body text-text-secondary">
-              What would you like to create today?
-            </p>
-          </div>
+          {isFirstTime ? (
+            <WelcomeBanner
+              userName={user?.name?.split(' ')[0]}
+              onDismiss={dismissWelcome}
+              onScrollToForm={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            />
+          ) : (
+            <div className="mb-8">
+              <h1 className="text-display text-4xl mb-2">Welcome back!</h1>
+              <p className="text-body text-text-secondary">
+                What would you like to create today?
+              </p>
+            </div>
+          )}
 
           {/* Input Form */}
-          <FirstGeneration
-            onGenerate={handleGenerate}
-            onRepurpose={handleRepurpose}
-            onVideoProcessing={handleVideoProcessing}
-            generating={false}
-          />
+          <div ref={formRef}>
+            <FirstGeneration
+              onGenerate={handleGenerate}
+              onRepurpose={handleRepurpose}
+              onVideoProcessing={handleVideoProcessing}
+              generating={false}
+            />
+          </div>
 
           {/* Error */}
           {error && (

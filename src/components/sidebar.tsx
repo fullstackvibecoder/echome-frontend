@@ -2,10 +2,14 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { NAV_ITEMS, useAppNavigation } from '@/hooks/useAppNavigation';
+import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
+
+const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
 
 export function Sidebar() {
   const { user, logout } = useAuth();
   const { activeItem, navigate } = useAppNavigation();
+  const { isFirstTime, sidebarHintsSeen, markSidebarHintSeen } = useFirstTimeUser();
 
   return (
     <aside className="h-screen w-64 bg-sidebar border-r border-border flex flex-col">
@@ -19,7 +23,11 @@ export function Sidebar() {
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
-            onClick={() => !item.comingSoon && navigate(item.path)}
+            onClick={() => {
+              if (item.comingSoon) return;
+              if (isFirstTime && HINT_ITEMS.has(item.id)) markSidebarHintSeen(item.id);
+              navigate(item.path);
+            }}
             disabled={item.comingSoon}
             className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-lg
@@ -35,6 +43,9 @@ export function Sidebar() {
           >
             <span className="text-xl">{item.icon}</span>
             <span className="flex-1 text-left">{item.label}</span>
+            {isFirstTime && HINT_ITEMS.has(item.id) && !sidebarHintsSeen[item.id] && (
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            )}
             {item.comingSoon && (
               <span className="text-[10px] font-semibold uppercase tracking-wide bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
                 Soon
