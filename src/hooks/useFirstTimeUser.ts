@@ -1,26 +1,24 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const WELCOME_KEY = 'echome_welcome_dismissed';
 const SIDEBAR_HINTS_KEY = 'echome_sidebar_hints_seen';
 
-function getStoredHints(): Record<string, boolean> {
-  if (typeof window === 'undefined') return {};
-  try {
-    return JSON.parse(localStorage.getItem(SIDEBAR_HINTS_KEY) || '{}');
-  } catch {
-    return {};
-  }
-}
-
 export function useFirstTimeUser() {
-  const [isFirstTime, setIsFirstTime] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return !localStorage.getItem(WELCOME_KEY);
-  });
+  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [sidebarHintsSeen, setSidebarHintsSeen] = useState<Record<string, boolean>>({});
 
-  const [sidebarHintsSeen, setSidebarHintsSeen] = useState<Record<string, boolean>>(getStoredHints);
+  // Read localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsFirstTime(!localStorage.getItem(WELCOME_KEY));
+    try {
+      const stored = localStorage.getItem(SIDEBAR_HINTS_KEY);
+      if (stored) setSidebarHintsSeen(JSON.parse(stored));
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
 
   const dismissWelcome = useCallback(() => {
     localStorage.setItem(WELCOME_KEY, new Date().toISOString());
