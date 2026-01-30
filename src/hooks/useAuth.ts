@@ -76,8 +76,9 @@ export function useAuth(): UseAuthReturn {
       if (response.success && response.data) {
         localStorage.setItem('authToken', response.data.token);
         setUser(response.data.user);
-        // Send new users to onboarding to train their voice
-        router.push('/onboarding');
+        // New users must subscribe before onboarding voice training
+        sessionStorage.setItem('needsOnboarding', 'true');
+        router.push('/app/billing');
       } else {
         throw new Error(response.error || 'Signup failed');
       }

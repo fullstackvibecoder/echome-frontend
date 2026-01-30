@@ -130,6 +130,12 @@ function BillingContentInner() {
           console.error('Failed to sync subscription:', err);
           setSuccessMessage('Your subscription has been activated! Welcome aboard.');
         }
+        // If user just signed up, redirect to onboarding after successful checkout
+        if (sessionStorage.getItem('needsOnboarding')) {
+          sessionStorage.removeItem('needsOnboarding');
+          window.location.href = '/onboarding';
+          return;
+        }
         // Clear the URL params
         window.history.replaceState({}, '', '/app/billing');
       } else if (searchParams.get('canceled') === 'true') {
