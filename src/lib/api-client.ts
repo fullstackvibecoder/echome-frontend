@@ -1615,7 +1615,7 @@ export const api = {
       const response = await apiClient.post('/stripe/checkout', {
         planId,
         billingInterval,
-        successUrl: `${window.location.origin}/app/billing?success=true`,
+        successUrl: `${window.location.origin}/app/billing?success=true${localStorage.getItem('needsOnboarding') ? '&onboarding=true' : ''}`,
         cancelUrl: `${window.location.origin}/app/billing?canceled=true`,
       });
       return response.data;
