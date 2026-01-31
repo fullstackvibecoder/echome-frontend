@@ -1296,12 +1296,17 @@ export const api = {
       const { Upload } = await import('tus-js-client');
       const { supabaseUrl, supabaseAnonKey } = await import('./supabase');
 
+      // Get the user's session token for RLS-authorized uploads
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token ?? supabaseAnonKey;
+
       await new Promise<void>((resolve, reject) => {
         const upload = new Upload(file, {
           endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
           retryDelays: [0, 1000, 3000, 5000],
           headers: {
-            authorization: `Bearer ${supabaseAnonKey}`,
+            authorization: `Bearer ${accessToken}`,
+            apikey: supabaseAnonKey,
             'x-upsert': 'true',
           },
           uploadDataDuringCreation: true,
