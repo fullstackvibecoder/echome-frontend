@@ -24,8 +24,17 @@ export default function CallbackContent() {
           // Store the access token for API calls
           localStorage.setItem('authToken', data.session.access_token);
 
-          // Redirect to app
-          router.push('/app');
+          // Check if this is a new user (created within the last 2 minutes)
+          const createdAt = new Date(data.session.user.created_at);
+          const isNewUser = Date.now() - createdAt.getTime() < 2 * 60 * 1000;
+
+          if (isNewUser) {
+            // New OAuth users need to subscribe before onboarding
+            localStorage.setItem('needsOnboarding', 'true');
+            router.push('/app/billing');
+          } else {
+            router.push('/app');
+          }
         } else {
           // No session, redirect to login
           router.push('/auth/login');
