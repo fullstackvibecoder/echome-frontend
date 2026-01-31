@@ -143,10 +143,7 @@ function BillingContentInner() {
           if (kbResponse.success && kbResponse.data && kbResponse.data.length > 0) {
             const contentResponse = await api.kb.getContent(kbResponse.data[0].id);
             if (contentResponse.success && contentResponse.data) {
-              const completedCount = contentResponse.data.items.filter(
-                (item: { status: string }) => item.status === 'completed'
-              ).length;
-              if (completedCount < 3) {
+              if (contentResponse.data.items.length === 0) {
                 window.location.href = '/onboarding';
                 return;
               }

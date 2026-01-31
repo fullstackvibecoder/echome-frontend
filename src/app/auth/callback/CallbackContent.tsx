@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api-client';
 
-const MIN_CONTENT_ITEMS = 3;
-
 export default function CallbackContent() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -50,10 +48,7 @@ export default function CallbackContent() {
             if (kbResponse.success && kbResponse.data && kbResponse.data.length > 0) {
               const contentResponse = await api.kb.getContent(kbResponse.data[0].id);
               if (contentResponse.success && contentResponse.data) {
-                const completedCount = contentResponse.data.items.filter(
-                  (item: { status: string }) => item.status === 'completed'
-                ).length;
-                hasContent = completedCount >= MIN_CONTENT_ITEMS;
+                hasContent = contentResponse.data.items.length > 0;
               }
             }
           } catch {
