@@ -1293,11 +1293,11 @@ export const api = {
       console.log('[api-client] Uploading to Supabase storage via TUS...');
       if (onProgress) onProgress(5); // Starting upload
 
-      const { default: tus } = await import('tus-js-client');
+      const { Upload } = await import('tus-js-client');
       const { supabaseUrl, supabaseAnonKey } = await import('./supabase');
 
       await new Promise<void>((resolve, reject) => {
-        const upload = new tus.Upload(file, {
+        const upload = new Upload(file, {
           endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
           retryDelays: [0, 1000, 3000, 5000],
           headers: {
