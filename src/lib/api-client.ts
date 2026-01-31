@@ -1289,27 +1289,55 @@ export const api = {
       const { uploadId, storagePath, token } = initResponse.data.data;
       console.log('[api-client] Got signed URL for upload:', uploadId);
 
-      // Step 2: Upload directly to Supabase using uploadToSignedUrl
-      // This handles the request format properly
-      console.log('[api-client] Uploading to Supabase storage...');
-
-      // For progress tracking, we'll use XHR but with the correct Supabase approach
-      // Supabase's uploadToSignedUrl doesn't support progress, so we track upload start/end
+      // Step 2: Upload via TUS resumable protocol (handles chunking, retry, resume)
+      console.log('[api-client] Uploading to Supabase storage via TUS...');
       if (onProgress) onProgress(5); // Starting upload
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('video-uploads')
-        .uploadToSignedUrl(storagePath, token, file, {
-          contentType: file.type || 'video/mp4',
-          upsert: true,
+      const { default: tus } = await import('tus-js-client');
+      const { supabaseUrl, supabaseAnonKey } = await import('./supabase');
+
+      await new Promise<void>((resolve, reject) => {
+        const upload = new tus.Upload(file, {
+          endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+          retryDelays: [0, 1000, 3000, 5000],
+          headers: {
+            authorization: `Bearer ${supabaseAnonKey}`,
+            'x-upsert': 'true',
+          },
+          uploadDataDuringCreation: true,
+          removeFingerprintOnSuccess: true,
+          metadata: {
+            bucketName: 'video-uploads',
+            objectName: storagePath,
+            contentType: file.type || 'video/mp4',
+            cacheControl: '3600',
+          },
+          chunkSize: 6 * 1024 * 1024, // 6MB chunks (Supabase minimum)
+          onError: (error) => {
+            console.error('[api-client] TUS upload error:', error);
+            reject(new Error(`Upload failed: ${error.message}`));
+          },
+          onProgress: (bytesUploaded, bytesTotal) => {
+            const pct = Math.round((bytesUploaded / bytesTotal) * 100);
+            console.log('[api-client] Upload progress:', pct + '%');
+            if (onProgress) onProgress(Math.max(5, Math.min(pct, 90)));
+          },
+          onSuccess: () => {
+            console.log('[api-client] TUS upload complete');
+            resolve();
+          },
         });
 
-      if (uploadError) {
-        console.error('[api-client] Supabase upload error:', uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
+        upload.findPreviousUploads().then((previousUploads) => {
+          if (previousUploads.length) {
+            console.log('[api-client] Resuming previous upload');
+            upload.resumeFromPreviousUpload(previousUploads[0]);
+          } else {
+            upload.start();
+          }
+        });
+      });
 
-      console.log('[api-client] Direct upload to storage complete:', uploadData);
       if (onProgress) onProgress(90); // Upload complete
 
       // Step 3: Complete the upload on our backend
