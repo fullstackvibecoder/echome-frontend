@@ -130,11 +130,34 @@ function BillingContentInner() {
           console.error('Failed to sync subscription:', err);
           setSuccessMessage('Your subscription has been activated! Welcome aboard.');
         }
-        // If user just signed up, redirect to onboarding after successful checkout
-        if (searchParams.get('onboarding') === 'true' || localStorage.getItem('needsOnboarding')) {
+        // Check if user needs onboarding (new signup or empty account)
+        const needsOnboarding = searchParams.get('onboarding') === 'true' || localStorage.getItem('needsOnboarding');
+        if (needsOnboarding) {
           localStorage.removeItem('needsOnboarding');
           window.location.href = '/onboarding';
           return;
+        }
+        // Even without the flag, check if the account has no content (returning empty user)
+        try {
+          const kbResponse = await api.kb.list();
+          if (kbResponse.success && kbResponse.data && kbResponse.data.length > 0) {
+            const contentResponse = await api.kb.getContent(kbResponse.data[0].id);
+            if (contentResponse.success && contentResponse.data) {
+              const completedCount = contentResponse.data.items.filter(
+                (item: { status: string }) => item.status === 'completed'
+              ).length;
+              if (completedCount < 3) {
+                window.location.href = '/onboarding';
+                return;
+              }
+            }
+          } else {
+            // No knowledge base at all — definitely needs onboarding
+            window.location.href = '/onboarding';
+            return;
+          }
+        } catch {
+          // If check fails, don't block — just stay on billing
         }
         // Clear the URL params
         window.history.replaceState({}, '', '/app/billing');

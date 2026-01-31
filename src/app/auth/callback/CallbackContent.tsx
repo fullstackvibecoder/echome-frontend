@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api-client';
+
+const MIN_CONTENT_ITEMS = 3;
 
 export default function CallbackContent() {
   const router = useRouter();
@@ -24,14 +27,42 @@ export default function CallbackContent() {
           // Store the access token for API calls
           localStorage.setItem('authToken', data.session.access_token);
 
-          // Check if this is a new user (created within the last 2 minutes)
-          const createdAt = new Date(data.session.user.created_at);
-          const isNewUser = Date.now() - createdAt.getTime() < 2 * 60 * 1000;
+          // Check subscription status
+          let hasSubscription = false;
+          try {
+            const subResponse = await api.stripe.getSubscription();
+            hasSubscription = subResponse.success && subResponse.data.isSubscribed;
+          } catch {
+            // If subscription check fails, continue to default flow
+          }
 
-          if (isNewUser) {
-            // New OAuth users need to subscribe before onboarding
+          if (!hasSubscription) {
+            // No subscription — need billing first, then onboarding
             localStorage.setItem('needsOnboarding', 'true');
             router.push('/app/billing');
+            return;
+          }
+
+          // Has subscription — check if onboarding is complete (has content)
+          let hasContent = false;
+          try {
+            const kbResponse = await api.kb.list();
+            if (kbResponse.success && kbResponse.data && kbResponse.data.length > 0) {
+              const contentResponse = await api.kb.getContent(kbResponse.data[0].id);
+              if (contentResponse.success && contentResponse.data) {
+                const completedCount = contentResponse.data.items.filter(
+                  (item: { status: string }) => item.status === 'completed'
+                ).length;
+                hasContent = completedCount >= MIN_CONTENT_ITEMS;
+              }
+            }
+          } catch {
+            // If content check fails, skip onboarding redirect
+            hasContent = true;
+          }
+
+          if (!hasContent) {
+            router.push('/onboarding');
           } else {
             router.push('/app');
           }
