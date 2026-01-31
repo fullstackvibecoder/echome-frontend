@@ -19,6 +19,9 @@ import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { UploadZone } from '@/components/upload-zone';
 import { VoiceRecorder } from '@/components/voice-recorder';
+import { MboxProgressUI } from '@/components/mbox-progress-ui';
+import { isMboxFile } from '@/lib/file-utils';
+import { parseMboxFile } from '@/lib/mbox-parser';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -139,6 +142,11 @@ export default function OnboardingContent() {
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('paste');
+
+  // Mbox
+  const [mboxUploading, setMboxUploading] = useState(false);
+  const [mboxProgress, setMboxProgress] = useState(0);
+  const [mboxStatus, setMboxStatus] = useState<string>('');
 
   // Paste
   const [pasteText, setPasteText] = useState('');
@@ -325,9 +333,89 @@ export default function OnboardingContent() {
     }
   };
 
+  const processMboxFile = async (file: File) => {
+    setMboxUploading(true);
+    setMboxProgress(0);
+    setMboxStatus('Reading file...');
+
+    const tempId = `mbox-${Date.now()}-${file.name}`;
+    setContentItems((prev) => [
+      ...prev,
+      { id: tempId, title: file.name, type: 'file', status: 'processing' },
+    ]);
+
+    try {
+      const parseResult = await parseMboxFile(file, {
+        maxEmails: 100,
+        minContentLength: 50,
+        onProgress: ({ percent, emailsFound, status }) => {
+          setMboxProgress(Math.round(percent * 0.7));
+          setMboxStatus(status || `Found ${emailsFound} emails...`);
+        },
+      });
+
+      if (parseResult.emails.length === 0) {
+        setContentItems((prev) =>
+          prev.map((item) =>
+            item.id === tempId
+              ? { ...item, status: 'error' as ContentStatus, error: 'No emails found — use your "Sent" folder' }
+              : item
+          )
+        );
+        return;
+      }
+
+      setMboxProgress(70);
+      setMboxStatus(`Uploading ${parseResult.emails.length} emails...`);
+
+      const result = await api.kbContent.ingestParsedEmails({
+        emails: parseResult.emails,
+        knowledgeBaseId: defaultKbId,
+        fileName: file.name,
+        parseStats: {
+          totalEmailsFound: parseResult.totalEmailsFound,
+          emailsParsed: parseResult.emailsParsed,
+          emailsFiltered: parseResult.emailsFiltered,
+          parseErrors: parseResult.parseErrors,
+        },
+        onBatchProgress: (batchNum, totalBatches) => {
+          setMboxProgress(70 + Math.round((batchNum / totalBatches) * 30));
+          setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
+        },
+      });
+
+      setMboxProgress(100);
+      setContentItems((prev) =>
+        prev.map((item) =>
+          item.id === tempId
+            ? { ...item, title: `${file.name} (${result.emailsIngested} emails)`, status: 'completed' as ContentStatus }
+            : item
+        )
+      );
+    } catch (err) {
+      setContentItems((prev) =>
+        prev.map((item) =>
+          item.id === tempId
+            ? { ...item, status: 'error' as ContentStatus, error: err instanceof Error ? err.message : 'Import failed' }
+            : item
+        )
+      );
+    } finally {
+      setMboxUploading(false);
+      setMboxStatus('');
+    }
+  };
+
   const handleFilesAdded = async (files: File[]) => {
     if (!defaultKbId) return;
-    for (const file of files) {
+    const mboxFiles = files.filter(isMboxFile);
+    const otherFiles = files.filter((f) => !isMboxFile(f));
+
+    for (const file of mboxFiles) {
+      await processMboxFile(file);
+    }
+
+    for (const file of otherFiles) {
       const tempId = `file-${Date.now()}-${file.name}`;
       setContentItems((prev) => [
         ...prev,
@@ -663,7 +751,12 @@ export default function OnboardingContent() {
 
             {/* Upload tab */}
             {activeTab === 'upload' && (
-              <UploadZone onFilesAdded={handleFilesAdded} disabled={isSubmitting} />
+              <>
+                {mboxUploading && <MboxProgressUI progress={mboxProgress} status={mboxStatus} />}
+                {!mboxUploading && (
+                  <UploadZone onFilesAdded={handleFilesAdded} disabled={isSubmitting} />
+                )}
+              </>
             )}
 
             {/* Voice tab */}
