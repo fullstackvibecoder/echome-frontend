@@ -69,7 +69,7 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
         if (kbList.length === 0) {
           console.log('[useKnowledgeBase] No KBs found, creating default');
           try {
-            const createResponse = await api.kb.create('My Knowledge Base');
+            const createResponse = await api.kb.create('My Knowledge Base', true);
             if (createResponse.success && createResponse.data) {
               kbList = [createResponse.data];
               console.log('[useKnowledgeBase] Created default KB:', createResponse.data.id);

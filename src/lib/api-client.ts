@@ -350,10 +350,10 @@ export const api = {
       return response.data;
     },
 
-    create: async (name: string) => {
+    create: async (name: string, isDefault?: boolean) => {
       const response = await apiClient.post<ApiResponse<KnowledgeBase>>(
         '/kb',
-        { name }
+        { name, is_default: isDefault }
       );
       return response.data;
     },
