@@ -23,7 +23,7 @@ interface SocialImportModalProps {
 }
 
 type Platform = 'youtube' | 'blog';
-type ImportStatus = 'idle' | 'importing' | 'polling' | 'success' | 'error';
+type ImportStatus = 'idle' | 'importing' | 'error';
 type SyncStatus = 'idle' | 'syncing' | 'polling' | 'success' | 'error';
 
 interface ConnectedAccount {
@@ -105,8 +105,6 @@ export function SocialImportModal({
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState<ImportStatus>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
-  const [pollCount, setPollCount] = useState(0);
   const [isOwnContent, setIsOwnContent] = useState(true);
 
   // Fetch connected accounts status
@@ -160,8 +158,6 @@ export function SocialImportModal({
       setUrl('');
       setStatus('idle');
       setError(null);
-      setJobId(null);
-      setPollCount(0);
       setIsOwnContent(true);
       setSyncStatus({});
       setSyncJobId(null);
@@ -169,45 +165,6 @@ export function SocialImportModal({
       setSyncError(null);
     }
   }, [isOpen]);
-
-  // Poll for URL import job status
-  useEffect(() => {
-    if (status !== 'polling' || !jobId) return;
-
-    const pollInterval = setInterval(async () => {
-      try {
-        const result = await api.kbContent.getSocialImportStatus(jobId);
-
-        if (result.job) {
-          if (result.job.status === 'completed') {
-            setStatus('success');
-            clearInterval(pollInterval);
-            onImportComplete?.({
-              jobId,
-              platform: result.job.platform,
-              contentCount: result.job.contentCount,
-            });
-          } else if (result.job.status === 'failed') {
-            setStatus('error');
-            setError(result.job.message || 'Import failed');
-            clearInterval(pollInterval);
-          }
-        }
-
-        setPollCount(prev => prev + 1);
-
-        if (pollCount > 60) {
-          clearInterval(pollInterval);
-          setStatus('error');
-          setError('Import is taking longer than expected. Check your Knowledge Base in a few minutes.');
-        }
-      } catch (err) {
-        console.error('Poll error:', err);
-      }
-    }, 5000);
-
-    return () => clearInterval(pollInterval);
-  }, [status, jobId, pollCount, onImportComplete]);
 
   // Poll for Google sync job status
   useEffect(() => {
@@ -323,8 +280,11 @@ export function SocialImportModal({
       });
 
       if (result.success) {
-        setJobId(result.jobId);
-        setStatus('polling');
+        onImportComplete?.({
+          jobId: result.jobId,
+          platform: selectedPlatform,
+        });
+        onClose();
       } else {
         throw new Error('Failed to start import');
       }
@@ -357,7 +317,6 @@ export function SocialImportModal({
   if (!isOpen) return null;
 
   const isAnySyncing = Object.values(syncStatus).some(s => s === 'syncing' || s === 'polling');
-  const isUrlImporting = status === 'importing' || status === 'polling';
 
   return (
     <div
@@ -383,7 +342,7 @@ export function SocialImportModal({
         {/* Content */}
         <div className="p-6">
           {/* ============ URL IMPORT SECTION ============ */}
-          {status === 'idle' || status === 'error' ? (
+          {(status === 'idle' || status === 'error') && (
             <>
               {/* Platform Selection */}
               <div className="mb-6">
@@ -489,102 +448,15 @@ export function SocialImportModal({
                 </button>
                 <button
                   onClick={handleUrlSubmit}
-                  disabled={!selectedPlatform || !url.trim() || isAnySyncing}
+                  disabled={!selectedPlatform || !url.trim() || isAnySyncing || status === 'importing'}
                   className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400
                            disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
                 >
-                  Start Import
+                  {status === 'importing' ? 'Starting...' : 'Start Import'}
                 </button>
               </div>
             </>
-          ) : status === 'importing' || status === 'polling' ? (
-            <div className="py-12 text-center">
-              <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className={`
-                  w-20 h-20 rounded-full flex items-center justify-center text-3xl
-                  ${selectedPlatform ? PLATFORM_CONFIG[selectedPlatform].color : 'bg-gray-200'}
-                `}>
-                  {selectedPlatform && PLATFORM_CONFIG[selectedPlatform].icon}
-                </div>
-                <svg
-                  className="absolute inset-0 w-20 h-20 animate-spin"
-                  viewBox="0 0 100 100"
-                >
-                  <circle
-                    className="text-gray-200 dark:text-gray-600"
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    strokeWidth="8"
-                    stroke="currentColor"
-                  />
-                  <circle
-                    className="text-indigo-600"
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    strokeWidth="8"
-                    stroke="currentColor"
-                    strokeDasharray="280"
-                    strokeDashoffset="200"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {status === 'importing' ? 'Starting Import...' : 'Importing Content...'}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {status === 'polling'
-                  ? selectedPlatform === 'blog'
-                    ? 'Discovering feed and fetching blog posts...'
-                    : 'Analyzing content and extracting transcripts...'
-                  : 'Connecting to ' + (selectedPlatform ? PLATFORM_CONFIG[selectedPlatform].name : 'platform')}
-              </p>
-
-              {status === 'polling' && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                  {selectedPlatform === 'blog'
-                    ? pollCount < 12
-                      ? 'This usually takes 1-2 minutes'
-                      : pollCount < 36
-                      ? 'Processing... blogs with many posts take longer'
-                      : 'Still working... almost there'
-                    : pollCount < 12
-                    ? 'This usually takes 1-2 minutes for single videos'
-                    : pollCount < 36
-                    ? 'Processing... channels and playlists take longer'
-                    : 'Still working... almost there'}
-                </p>
-              )}
-            </div>
-          ) : status === 'success' ? (
-            <div className="py-12 text-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Import Complete!
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-                Content has been added to your knowledge base.
-              </p>
-
-              <button
-                onClick={onClose}
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg
-                         transition-colors font-medium"
-              >
-                Done
-              </button>
-            </div>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
