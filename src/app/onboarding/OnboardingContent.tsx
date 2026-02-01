@@ -294,9 +294,14 @@ export default function OnboardingContent() {
     ]);
 
     try {
+      let url = importState.url.trim();
+      if (!/^https?:\/\//i.test(url)) {
+        url = `https://${url}`;
+      }
+
       const result = await api.kbContent.startSocialImport({
         platform,
-        url: importState.url,
+        url,
         knowledgeBaseId: defaultKbId,
         useForVoiceMatching: true,
       });

@@ -310,9 +310,14 @@ export function SocialImportModal({
     setError(null);
 
     try {
+      let normalizedUrl = url.trim();
+      if (!/^https?:\/\//i.test(normalizedUrl)) {
+        normalizedUrl = `https://${normalizedUrl}`;
+      }
+
       const result = await api.kbContent.startSocialImport({
         platform: selectedPlatform,
-        url: url.trim(),
+        url: normalizedUrl,
         knowledgeBaseId,
         useForVoiceMatching: isOwnContent,
       });

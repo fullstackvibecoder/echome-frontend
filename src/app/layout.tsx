@@ -12,20 +12,20 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'EchoMe - Unmute Yourself',
+    default: 'EchoMe - Content That Sounds Like You',
     template: '%s | EchoMe',
   },
   description:
-    'Your personal content engine that learns your voice, tone, and style. One upload becomes a full content kit. Blog posts, carousels, threads, clips. All in your voice.',
+    'Stop sounding like every other AI tool. EchoMe learns your unique voice from your existing content, then creates posts, threads, and articles that are unmistakably you.',
   keywords: [
+    'AI voice learning',
     'AI content creation',
     'content repurposing',
-    'video to text',
-    'social media content',
-    'AI writing',
-    'content automation',
     'personal voice AI',
-    'content marketing',
+    'AI writing assistant',
+    'social media content',
+    'content automation',
+    'voice matching AI',
   ],
   authors: [{ name: 'EchoMe' }],
   creator: 'EchoMe',
@@ -46,23 +46,23 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://tryechome.com',
     siteName: 'EchoMe',
-    title: 'EchoMe - Unmute Yourself',
+    title: 'EchoMe - Content That Sounds Like You',
     description:
-      'Your personal content engine that learns your voice, tone, and style. Create content kits from any upload.',
+      'Stop sounding like every other AI tool. EchoMe learns your voice from your existing content and creates posts, threads, and articles that are unmistakably you.',
     images: [
       {
         url: '/media/echome-og.png',
         width: 1200,
         height: 630,
-        alt: 'EchoMe - Unmute Yourself',
+        alt: 'EchoMe - Content That Sounds Like You',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'EchoMe - Unmute Yourself',
+    title: 'EchoMe - Content That Sounds Like You',
     description:
-      'Your personal content engine that learns your voice, tone, and style.',
+      'Stop sounding like every other AI tool. EchoMe learns your voice and creates content that is unmistakably you.',
     images: ['/media/echome-og.png'],
     creator: '@tryechome',
   },
