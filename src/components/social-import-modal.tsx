@@ -448,11 +448,11 @@ export function SocialImportModal({
                 </button>
                 <button
                   onClick={handleUrlSubmit}
-                  disabled={!selectedPlatform || !url.trim() || isAnySyncing || status === 'importing'}
+                  disabled={!selectedPlatform || !url.trim() || isAnySyncing}
                   className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400
                            disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
                 >
-                  {status === 'importing' ? 'Starting...' : 'Start Import'}
+                  Start Import
                 </button>
               </div>
             </>
