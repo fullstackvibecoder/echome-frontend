@@ -7,7 +7,7 @@ import { NavigationProvider } from '@/contexts/navigation-context';
 import { SubscriptionGuard } from '@/components/SubscriptionGuard';
 
 // Routes that don't require subscription (billing page needs to be accessible)
-const UNPROTECTED_ROUTES = ['/app/billing', '/app/settings'];
+const UNPROTECTED_ROUTES = ['/app/billing', '/app/settings', '/app/admin'];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();

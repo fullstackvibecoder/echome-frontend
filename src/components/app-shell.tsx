@@ -5,6 +5,7 @@ import { Sidebar } from './sidebar';
 import { MobileSidebar } from './mobile-sidebar';
 import { AppHeader } from './app-header';
 import { GenerationBanner } from './generation-banner';
+import { HelpWidget } from './help-widget';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 
 interface AppShellProps {
@@ -34,6 +35,9 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Floating Generation Progress Banner */}
       <GenerationBanner />
+
+      {/* Floating Help Chat Widget */}
+      <HelpWidget />
     </div>
   );
 }

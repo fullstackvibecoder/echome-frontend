@@ -22,6 +22,11 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'settings', label: 'Settings', icon: '⚙️', path: '/app/settings' },
 ];
 
+/** Admin-only nav items (appended when user is admin) */
+export const ADMIN_NAV_ITEMS: NavItem[] = [
+  { id: 'admin', label: 'Admin', icon: '📊', path: '/app/admin' },
+];
+
 interface UseAppNavigationReturn {
   activeItem: string;
   navigate: (path: string) => void;

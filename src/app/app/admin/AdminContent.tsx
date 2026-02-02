@@ -1,0 +1,579 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import {
+  api,
+  AdminUsageOverview,
+  AdminServiceBreakdown,
+  AdminUserBreakdown,
+  AdminDailyTrend,
+} from '@/lib/api-client';
+
+// ==================== Types ====================
+
+type Tab = 'overview' | 'services' | 'users' | 'trends' | 'providers';
+
+interface ProviderData {
+  elevenlabs?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
+  deepgram?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
+  pinecone?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
+  stripe?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
+}
+
+// ==================== Helpers ====================
+
+function formatCost(cost: number): string {
+  return `$${cost.toFixed(4)}`;
+}
+
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
+function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getMonthLabel(month: string): string {
+  const [year, m] = month.split('-');
+  const date = new Date(Number(year), Number(m) - 1);
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+const SERVICE_COLORS: Record<string, string> = {
+  openai: 'bg-emerald-500',
+  anthropic: 'bg-violet-500',
+  elevenlabs: 'bg-pink-500',
+  deepgram: 'bg-cyan-500',
+  pinecone: 'bg-amber-500',
+  apify: 'bg-orange-500',
+  aws: 'bg-yellow-500',
+  resend: 'bg-blue-500',
+};
+
+const SERVICE_LABELS: Record<string, string> = {
+  openai: 'OpenAI',
+  anthropic: 'Anthropic',
+  elevenlabs: 'ElevenLabs',
+  deepgram: 'Deepgram',
+  pinecone: 'Pinecone',
+  apify: 'Apify',
+  aws: 'AWS',
+  resend: 'Resend',
+};
+
+// ==================== Components ====================
+
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="bg-card rounded-xl border border-border p-5">
+      <p className="text-sm text-muted-foreground mb-1">{label}</p>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+function ServiceBar({ service, cost, maxCost }: { service: AdminServiceBreakdown; cost: number; maxCost: number }) {
+  const pct = maxCost > 0 ? (cost / maxCost) * 100 : 0;
+  const color = SERVICE_COLORS[service.service] || 'bg-gray-400';
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-24 text-sm font-medium text-foreground truncate">
+        {SERVICE_LABELS[service.service] || service.service}
+      </div>
+      <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
+        <div className={`h-full ${color} rounded-full transition-all duration-500`} style={{ width: `${Math.max(pct, 1)}%` }} />
+      </div>
+      <div className="w-24 text-right text-sm font-mono text-foreground">{formatCost(cost)}</div>
+      <div className="w-16 text-right text-xs text-muted-foreground">{formatNumber(service.requestCount)} req</div>
+    </div>
+  );
+}
+
+// ==================== Tab: Overview ====================
+
+function OverviewTab({ month }: { month: string }) {
+  const [data, setData] = useState<AdminUsageOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    api.adminUsage.getOverview(month)
+      .then(res => { if (res.success) setData(res.data); else setError('Failed to load'); })
+      .catch(err => setError(err.response?.data?.error || err.message))
+      .finally(() => setLoading(false));
+  }, [month]);
+
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState message={error} />;
+  if (!data) return null;
+
+  const maxCost = Math.max(...data.spendByService.map(s => s.totalCost), 0.001);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="Total Spend" value={formatCost(data.totalSpend)} sub={getMonthLabel(data.month)} />
+        <StatCard label="Total Tokens" value={formatNumber(data.totalTokens)} />
+        <StatCard label="API Requests" value={formatNumber(data.totalRequests)} />
+        <StatCard label="Active Users" value={data.activeUsers.toString()} />
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-5">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Spend by Service</h3>
+        <div className="space-y-3">
+          {data.spendByService.length === 0 && (
+            <p className="text-muted-foreground text-sm">No usage data for this month.</p>
+          )}
+          {data.spendByService.map(s => (
+            <ServiceBar key={s.service} service={s} cost={s.totalCost} maxCost={maxCost} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== Tab: Services ====================
+
+function ServicesTab({ month }: { month: string }) {
+  const [data, setData] = useState<AdminServiceBreakdown[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const start = `${month}-01T00:00:00Z`;
+    const endDate = new Date();
+    const [y, m] = month.split('-').map(Number);
+    const end = new Date(y, m, 1).toISOString();
+    api.adminUsage.getByService(start, end)
+      .then(res => { if (res.success) setData(res.data); })
+      .finally(() => setLoading(false));
+  }, [month]);
+
+  if (loading) return <LoadingState />;
+
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border bg-muted/50">
+            <th className="text-left p-4 font-medium text-muted-foreground">Service</th>
+            <th className="text-right p-4 font-medium text-muted-foreground">Cost</th>
+            <th className="text-right p-4 font-medium text-muted-foreground">Tokens</th>
+            <th className="text-right p-4 font-medium text-muted-foreground">Requests</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(s => (
+            <tr key={s.service} className="border-b border-border last:border-0 hover:bg-muted/30">
+              <td className="p-4 font-medium text-foreground flex items-center gap-2">
+                <span className={`w-3 h-3 rounded-full ${SERVICE_COLORS[s.service] || 'bg-gray-400'}`} />
+                {SERVICE_LABELS[s.service] || s.service}
+              </td>
+              <td className="p-4 text-right font-mono text-foreground">{formatCost(s.totalCost)}</td>
+              <td className="p-4 text-right text-muted-foreground">{formatNumber(s.totalTokens)}</td>
+              <td className="p-4 text-right text-muted-foreground">{formatNumber(s.requestCount)}</td>
+            </tr>
+          ))}
+          {data.length === 0 && (
+            <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No data</td></tr>
+          )}
+        </tbody>
+        {data.length > 0 && (
+          <tfoot>
+            <tr className="bg-muted/50 font-semibold">
+              <td className="p-4 text-foreground">Total</td>
+              <td className="p-4 text-right font-mono text-foreground">{formatCost(data.reduce((s, r) => s + r.totalCost, 0))}</td>
+              <td className="p-4 text-right text-foreground">{formatNumber(data.reduce((s, r) => s + r.totalTokens, 0))}</td>
+              <td className="p-4 text-right text-foreground">{formatNumber(data.reduce((s, r) => s + r.requestCount, 0))}</td>
+            </tr>
+          </tfoot>
+        )}
+      </table>
+    </div>
+  );
+}
+
+// ==================== Tab: Users ====================
+
+function UsersTab({ month }: { month: string }) {
+  const [data, setData] = useState<AdminUserBreakdown[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    api.adminUsage.getByUser(month, 50)
+      .then(res => { if (res.success) setData(res.data); })
+      .finally(() => setLoading(false));
+  }, [month]);
+
+  if (loading) return <LoadingState />;
+
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border bg-muted/50">
+            <th className="text-left p-4 font-medium text-muted-foreground">#</th>
+            <th className="text-left p-4 font-medium text-muted-foreground">User</th>
+            <th className="text-right p-4 font-medium text-muted-foreground">Cost</th>
+            <th className="text-right p-4 font-medium text-muted-foreground">Tokens</th>
+            <th className="text-right p-4 font-medium text-muted-foreground">Requests</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((u, i) => (
+            <tr key={u.userId} className="border-b border-border last:border-0 hover:bg-muted/30">
+              <td className="p-4 text-muted-foreground">{i + 1}</td>
+              <td className="p-4 text-foreground">
+                <span className="font-medium">{u.email || 'System'}</span>
+                <span className="text-xs text-muted-foreground ml-2">{u.userId?.slice(0, 8)}</span>
+              </td>
+              <td className="p-4 text-right font-mono text-foreground">{formatCost(u.totalCost)}</td>
+              <td className="p-4 text-right text-muted-foreground">{formatNumber(u.totalTokens)}</td>
+              <td className="p-4 text-right text-muted-foreground">{formatNumber(u.requestCount)}</td>
+            </tr>
+          ))}
+          {data.length === 0 && (
+            <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No user data</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ==================== Tab: Trends ====================
+
+function TrendsTab({ month }: { month: string }) {
+  const [data, setData] = useState<AdminDailyTrend[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [serviceFilter, setServiceFilter] = useState<string>('');
+
+  useEffect(() => {
+    setLoading(true);
+    const start = `${month}-01T00:00:00Z`;
+    const [y, m] = month.split('-').map(Number);
+    const end = new Date(y, m, 1).toISOString();
+    api.adminUsage.getTrends(start, end, serviceFilter || undefined)
+      .then(res => { if (res.success) setData(res.data); })
+      .finally(() => setLoading(false));
+  }, [month, serviceFilter]);
+
+  if (loading) return <LoadingState />;
+
+  // Group by date for chart-like display
+  const dateMap = new Map<string, { total: number; byService: Record<string, number> }>();
+  data.forEach(d => {
+    const entry = dateMap.get(d.date) || { total: 0, byService: {} };
+    entry.total += d.cost;
+    entry.byService[d.service] = (entry.byService[d.service] || 0) + d.cost;
+    dateMap.set(d.date, entry);
+  });
+
+  const dates = Array.from(dateMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+  const maxDailyCost = Math.max(...dates.map(([, v]) => v.total), 0.001);
+
+  // Get unique services for filter
+  const services = [...new Set(data.map(d => d.service))];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setServiceFilter('')}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            !serviceFilter ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          }`}
+        >
+          All
+        </button>
+        {services.map(s => (
+          <button
+            key={s}
+            onClick={() => setServiceFilter(s === serviceFilter ? '' : s)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              serviceFilter === s ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            {SERVICE_LABELS[s] || s}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-5">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Daily Cost</h3>
+        {dates.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No trend data for this period.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {dates.map(([date, val]) => {
+              const pct = (val.total / maxDailyCost) * 100;
+              const dayLabel = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return (
+                <div key={date} className="flex items-center gap-3 group">
+                  <div className="w-16 text-xs text-muted-foreground shrink-0">{dayLabel}</div>
+                  <div className="flex-1 h-5 bg-muted rounded overflow-hidden flex">
+                    {Object.entries(val.byService).map(([svc, cost]) => {
+                      const svcPct = (cost / maxDailyCost) * 100;
+                      const color = SERVICE_COLORS[svc]?.replace('bg-', 'bg-') || 'bg-gray-400';
+                      return (
+                        <div
+                          key={svc}
+                          className={`h-full ${color} transition-all duration-300`}
+                          style={{ width: `${svcPct}%` }}
+                          title={`${SERVICE_LABELS[svc] || svc}: ${formatCost(cost)}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="w-20 text-right text-xs font-mono text-foreground">{formatCost(val.total)}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==================== Tab: Providers ====================
+
+function ProvidersTab() {
+  const [data, setData] = useState<ProviderData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    api.adminUsage.getProviders()
+      .then(res => { if (res.success) setData(res.data as ProviderData); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingState />;
+  if (!data) return <ErrorState message="No provider data" />;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <ProviderCard
+        name="ElevenLabs"
+        color="bg-pink-500"
+        data={data.elevenlabs}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Characters Used" value={formatNumber(Number(m.characterCount) || 0)} />
+            <MetricRow label="Character Limit" value={formatNumber(Number(m.characterLimit) || 0)} />
+            <MetricRow label="Usage" value={`${m.characterUsagePercent || 0}%`} />
+            <MetricRow label="Tier" value={String(m.tier || 'unknown')} />
+            {m.nextResetDate && <MetricRow label="Resets" value={new Date(String(m.nextResetDate)).toLocaleDateString()} />}
+          </>
+        )}
+      />
+      <ProviderCard
+        name="Deepgram"
+        color="bg-cyan-500"
+        data={data.deepgram}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Hours Transcribed" value={String(m.totalHours || 0)} />
+            <MetricRow label="Minutes" value={String(m.totalMinutes || 0)} />
+            <MetricRow label="Requests" value={formatNumber(Number(m.requestCount) || 0)} />
+          </>
+        )}
+      />
+      <ProviderCard
+        name="Pinecone"
+        color="bg-amber-500"
+        data={data.pinecone}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Total Vectors" value={formatNumber(Number(m.totalVectorCount) || 0)} />
+            <MetricRow label="Index" value={String(m.indexName || 'N/A')} />
+            {Array.isArray(m.namespaces) && m.namespaces.length > 0 && (
+              <MetricRow label="Namespaces" value={String(m.namespaces.length)} />
+            )}
+          </>
+        )}
+      />
+      <ProviderCard
+        name="Stripe"
+        color="bg-indigo-500"
+        data={data.stripe}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Monthly Revenue" value={`$${Number(m.monthlyRevenue || 0).toFixed(2)}`} />
+            <MetricRow label="MRR" value={`$${Number(m.mrr || 0).toFixed(2)}`} />
+            <MetricRow label="Active Subs" value={String(m.activeSubscriptions || 0)} />
+            <MetricRow label="Charges" value={String(m.chargesThisMonth || 0)} />
+          </>
+        )}
+      />
+    </div>
+  );
+}
+
+function ProviderCard({
+  name,
+  color,
+  data,
+  renderMetrics,
+}: {
+  name: string;
+  color: string;
+  data?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
+  renderMetrics: (metrics: Record<string, unknown>) => React.ReactNode;
+}) {
+  if (!data) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-5 opacity-50">
+        <div className="flex items-center gap-2 mb-3">
+          <span className={`w-3 h-3 rounded-full ${color}`} />
+          <h4 className="font-semibold text-foreground">{name}</h4>
+        </div>
+        <p className="text-sm text-muted-foreground">Not configured</p>
+      </div>
+    );
+  }
+
+  const hasError = 'error' in data.metrics;
+
+  return (
+    <div className="bg-card rounded-xl border border-border p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className={`w-3 h-3 rounded-full ${color}`} />
+          <h4 className="font-semibold text-foreground">{name}</h4>
+        </div>
+        {data.fromCache && (
+          <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">cached</span>
+        )}
+      </div>
+      {hasError ? (
+        <p className="text-sm text-destructive">{String(data.metrics.error)}</p>
+      ) : (
+        <div className="space-y-2">{renderMetrics(data.metrics)}</div>
+      )}
+    </div>
+  );
+}
+
+function MetricRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-foreground">{value}</span>
+    </div>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
+      <p className="text-destructive font-medium">{message}</p>
+    </div>
+  );
+}
+
+// ==================== Main ====================
+
+export default function AdminContent() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>('overview');
+  const [month, setMonth] = useState(getCurrentMonth());
+
+  // Redirect non-admins
+  useEffect(() => {
+    if (!authLoading && user && !user.isAdmin) {
+      router.replace('/app');
+    }
+  }, [authLoading, user, router]);
+
+  if (authLoading) return <LoadingState />;
+  if (!user?.isAdmin) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">Admin access required.</p>
+      </div>
+    );
+  }
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'services', label: 'Services' },
+    { id: 'users', label: 'Users' },
+    { id: 'trends', label: 'Trends' },
+    { id: 'providers', label: 'Providers' },
+  ];
+
+  // Generate month options (last 6 months)
+  const monthOptions: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    monthOptions.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Platform-wide API usage and cost monitoring</p>
+        </div>
+        <select
+          value={month}
+          onChange={e => setMonth(e.target.value)}
+          className="px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          {monthOptions.map(m => (
+            <option key={m} value={m}>{getMonthLabel(m)}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-muted rounded-lg p-1">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              tab === t.id
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {tab === 'overview' && <OverviewTab month={month} />}
+      {tab === 'services' && <ServicesTab month={month} />}
+      {tab === 'users' && <UsersTab month={month} />}
+      {tab === 'trends' && <TrendsTab month={month} />}
+      {tab === 'providers' && <ProvidersTab />}
+    </div>
+  );
+}

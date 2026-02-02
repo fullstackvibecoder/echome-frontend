@@ -2060,7 +2060,135 @@ export const api = {
       return response.data as { success: boolean; copy: TrendCopy };
     },
   },
+
+  // -------- ADMIN USAGE --------
+  adminUsage: {
+    /** Get platform-wide usage overview for a month */
+    getOverview: async (month?: string) => {
+      const params = month ? { month } : {};
+      const response = await apiClient.get('/admin/usage/overview', { params });
+      return response.data as { success: boolean; data: AdminUsageOverview };
+    },
+
+    /** Get cost breakdown by service */
+    getByService: async (startDate?: string, endDate?: string) => {
+      const params: Record<string, string> = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const response = await apiClient.get('/admin/usage/by-service', { params });
+      return response.data as { success: boolean; data: AdminServiceBreakdown[] };
+    },
+
+    /** Get top users by spend */
+    getByUser: async (month?: string, limit?: number, offset?: number) => {
+      const params: Record<string, string | number> = {};
+      if (month) params.month = month;
+      if (limit) params.limit = limit;
+      if (offset) params.offset = offset;
+      const response = await apiClient.get('/admin/usage/by-user', { params });
+      return response.data as {
+        success: boolean;
+        data: AdminUserBreakdown[];
+        pagination: { month: string; limit: number; offset: number };
+      };
+    },
+
+    /** Get daily cost trends (chart data) */
+    getTrends: async (startDate?: string, endDate?: string, service?: string) => {
+      const params: Record<string, string> = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (service) params.service = service;
+      const response = await apiClient.get('/admin/usage/trends', { params });
+      return response.data as { success: boolean; data: AdminDailyTrend[] };
+    },
+
+    /** Get live provider usage data */
+    getProviders: async (compare?: boolean, month?: string) => {
+      const params: Record<string, string> = {};
+      if (compare) params.compare = 'true';
+      if (month) params.month = month;
+      const response = await apiClient.get('/admin/usage/providers', { params });
+      return response.data as { success: boolean; data: Record<string, unknown> };
+    },
+  },
+
+  // -------- HELP CHAT --------
+  help: {
+    /** Send a chat message (returns SSE stream) */
+    chat: async (query: string, conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []) => {
+      const response = await apiClient.post('/help/chat', { query, conversationHistory }, {
+        responseType: 'text',
+        timeout: 60000,
+        headers: { Accept: 'text/event-stream' },
+        // Axios doesn't natively stream SSE — we return raw text for manual parsing
+        transformResponse: [(data: string) => data],
+      });
+      return response.data as string;
+    },
+
+    /** Get help articles */
+    getArticles: async (category?: string) => {
+      const params = category ? { category } : {};
+      const response = await apiClient.get('/help/articles', { params });
+      return response.data as { success: boolean; data: { articles: HelpArticle[] } };
+    },
+
+    /** Submit feedback */
+    submitFeedback: async (data: {
+      category: 'bug' | 'feature_request' | 'general' | 'help_chat';
+      text: string;
+      rating?: number;
+      pageContext?: string;
+    }) => {
+      const response = await apiClient.post('/help/feedback', data);
+      return response.data as { success: boolean; data: { id: string } };
+    },
+  },
 };
+
+// -------- ADMIN USAGE TYPES --------
+
+export interface AdminUsageOverview {
+  month: string;
+  totalSpend: number;
+  totalTokens: number;
+  totalRequests: number;
+  activeUsers: number;
+  spendByService: AdminServiceBreakdown[];
+}
+
+export interface AdminServiceBreakdown {
+  service: string;
+  totalCost: number;
+  totalTokens: number;
+  requestCount: number;
+}
+
+export interface AdminUserBreakdown {
+  userId: string;
+  email: string | null;
+  totalCost: number;
+  totalTokens: number;
+  requestCount: number;
+}
+
+export interface AdminDailyTrend {
+  date: string;
+  service: string;
+  cost: number;
+  tokens: number;
+  requests: number;
+}
+
+export interface HelpArticle {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  content: string;
+  summary: string;
+}
 
 // Types for creator monitoring
 export interface MonitoredCreator {

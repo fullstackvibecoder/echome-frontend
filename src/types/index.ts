@@ -14,6 +14,7 @@ export interface User {
   avatar?: string;
   subscription: 'free' | 'starter' | 'creator' | 'studio';
   onboardingStep?: 1 | 2 | 3 | 'complete';
+  isAdmin?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

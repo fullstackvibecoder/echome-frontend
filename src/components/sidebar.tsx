@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_ITEMS, useAppNavigation } from '@/hooks/useAppNavigation';
+import { NAV_ITEMS, ADMIN_NAV_ITEMS, useAppNavigation } from '@/hooks/useAppNavigation';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 
 const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
@@ -20,7 +20,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
-        {NAV_ITEMS.map((item) => (
+        {[...NAV_ITEMS, ...(user?.isAdmin ? ADMIN_NAV_ITEMS : [])].map((item) => (
           <button
             key={item.id}
             onClick={() => {
