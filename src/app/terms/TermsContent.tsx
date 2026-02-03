@@ -46,14 +46,16 @@ export default function TermsContent() {
                 <h2 className="text-xl font-medium text-[#1C1C1E]">
                   Effective Date
                 </h2>
-                <p className="text-sm text-stone-600">[Insert Date]</p>
+                <p className="text-sm text-stone-600">February 2, 2026</p>
               </div>
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
-              Welcome to EchoMe, a product owned and operated by EchoMe Inc.,
-              a Bahamian-registered corporation. By accessing or using EchoMe
-              (&ldquo;Platform,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;), you agree to be bound by
-              these Terms of Service (&ldquo;Terms&rdquo;).
+              Welcome to EchoMe, a product owned and operated by
+              BottleneckLabs.ai (&ldquo;BottleneckLabs&rdquo;), a Bahamian-registered
+              company. By accessing or using EchoMe (&ldquo;Platform,&rdquo; &ldquo;we,&rdquo;
+              &ldquo;us,&rdquo; or &ldquo;our&rdquo;), you agree to be bound by these Terms of
+              Service (&ldquo;Terms&rdquo;). References to &ldquo;EchoMe&rdquo; in these Terms refer
+              to the Platform and services operated by BottleneckLabs.
             </p>
             <p className="text-stone-700 leading-relaxed">
               If you do not agree to these Terms, do not use the Platform.
@@ -297,9 +299,10 @@ export default function TermsContent() {
               11. Limitation of Liability
             </h2>
             <p className="text-stone-700 leading-relaxed">
-              To the maximum extent permitted by law, EchoMe is not liable for
-              indirect, incidental, or consequential damages arising out of
-              your use of the Platform or reliance on generated content.
+              To the maximum extent permitted by law, BottleneckLabs.ai and
+              EchoMe are not liable for indirect, incidental, or consequential
+              damages arising out of your use of the Platform or reliance on
+              generated content.
             </p>
           </div>
 

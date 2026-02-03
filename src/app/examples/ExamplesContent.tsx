@@ -698,7 +698,10 @@ export default function ExamplesContent() {
               </Link>
             </div>
 
-            <p className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} EchoMe. All rights reserved.</p>
+            <div className="flex flex-col items-end gap-1">
+              <p className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} EchoMe. All rights reserved.</p>
+              <p className="text-gray-600 text-xs">A product of <a href="https://bottlenecklabs.ai" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors">BottleneckLabs.ai</a></p>
+            </div>
           </div>
         </div>
       </footer>

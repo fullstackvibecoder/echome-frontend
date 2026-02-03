@@ -42,10 +42,11 @@ export default function PrivacyContent() {
               </div>
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
-              EchoMe Inc. (&ldquo;EchoMe,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is committed to
-              protecting your privacy. This Privacy Policy explains how we
-              collect, use, store, and share your data when you use our
-              platform and services.
+              EchoMe (&ldquo;EchoMe,&rdquo; &ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is a product of
+              BottleneckLabs.ai (&ldquo;BottleneckLabs&rdquo;). BottleneckLabs is the data
+              controller responsible for your personal information. This Privacy
+              Policy explains how we collect, use, store, and share your data
+              when you use our platform and services.
             </p>
             <p className="text-stone-700 leading-relaxed">
               By using EchoMe, you agree to the terms outlined here.

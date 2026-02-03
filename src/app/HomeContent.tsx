@@ -1197,14 +1197,13 @@ export default function HomeContent() {
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           </div>
 
-          <div className="text-center text-white/60 text-sm font-light flex flex-col md:flex-row items-center justify-center gap-3">
+          <div className="text-center text-white/60 text-sm font-light flex flex-col items-center justify-center gap-3">
             <div className="flex items-center gap-2">
               <Image src="/media/echo-mini.svg" alt="" aria-hidden="true" width={20} height={20} className="echo-wave-hover inline-block" />
-              <span>© 2025 EchoMe Inc. All rights reserved.</span>
+              <span>© 2025–2026 EchoMe. All rights reserved.</span>
             </div>
-            <span className="hidden md:inline text-white/30">•</span>
-            <span className="bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent font-medium">
-              Made with ✨ for creators
+            <span className="text-white/50">
+              EchoMe is a <a href="https://bottlenecklabs.ai" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-[#B794F6] transition-colors duration-200">BottleneckLabs.ai</a> company
             </span>
           </div>
         </div>
