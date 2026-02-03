@@ -125,20 +125,27 @@ export default function FollowingContent() {
         creatorUrl: newCreatorUrl.trim(),
       });
 
-      if (response.success) {
+      if (response.success && response.creator) {
         const newCreator = response.creator;
         setCreators([newCreator, ...creators]);
         setShowAddModal(false);
         setNewCreatorUrl('');
 
         // Load content for the new creator
-        const contentResponse = await api.creators.getContent(newCreator.id, 10);
-        if (contentResponse.success) {
-          const newContent = contentResponse.content.map((c: ContentHistoryEntry) => ({ ...c, creator: newCreator }));
-          setAllContent(prev => [...newContent, ...prev].sort((a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          ));
+        try {
+          const contentResponse = await api.creators.getContent(newCreator.id, 10);
+          if (contentResponse.success && contentResponse.content) {
+            const newContent = contentResponse.content.map((c: ContentHistoryEntry) => ({ ...c, creator: newCreator }));
+            setAllContent(prev => [...newContent, ...prev].sort((a, b) =>
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            ));
+          }
+        } catch (contentErr) {
+          // Content loading failed but creator was followed successfully — not critical
+          console.error('Failed to load initial content:', contentErr);
         }
+      } else if (!response.success) {
+        setAddError(response.error || 'Failed to follow creator. Please try again.');
       }
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { error?: string } }; message?: string };

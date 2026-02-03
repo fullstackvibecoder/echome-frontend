@@ -977,6 +977,7 @@ export const api = {
         success: boolean;
         creator: MonitoredCreator;
         initialContentCount: number;
+        error?: string;
       };
     },
 
