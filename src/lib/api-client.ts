@@ -708,7 +708,7 @@ export const api = {
             fileName: i === 0 ? fileName : `${fileName} (batch ${i + 1})`,
             parseStats: i === 0 ? parseStats : undefined, // Only include stats on first batch
           }, {
-            timeout: 300000, // 5 minutes per batch (embedding large emails takes time)
+            timeout: 30000, // Processing is async now — this just queues the batch
           });
 
           const result = response.data;
