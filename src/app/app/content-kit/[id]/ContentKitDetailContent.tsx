@@ -126,12 +126,13 @@ export default function ContentKitDetailContent() {
   // Auto-fetch square (1:1) carousel when portrait carousel is available
   // The backend generates both sizes concurrently, so the square version
   // should be ready by the time the page loads (or shortly after)
+  const contentKitId = detail?.contentKit?.id;
   useEffect(() => {
-    if (hasCarouselCheck && !resizedCarousel && !resizing && !squareFetchedRef.current) {
+    if (hasCarouselCheck && contentKitId && !resizedCarousel && !resizing && !squareFetchedRef.current) {
       squareFetchedRef.current = true;
       handleResizeCarousel('1:1');
     }
-  }, [hasCarouselCheck]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hasCarouselCheck, contentKitId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
@@ -204,9 +205,11 @@ export default function ContentKitDetailContent() {
 
   const handleResizeCarousel = async (targetAspectRatio: '1:1' | '9:16') => {
     if (resizing) return;
+    const kitId = detail?.contentKit?.id;
+    if (!kitId) return;
     setResizing(true);
     try {
-      const response = await api.contentKits.resizeCarousel(id, targetAspectRatio);
+      const response = await api.contentKits.resizeCarousel(kitId, targetAspectRatio);
       if (response.success && response.data?.carousel) {
         // Map API response to use 'template' (supports both old slideType and new template)
         const mappedSlides = response.data.carousel.slides.map((slide: any) => ({
