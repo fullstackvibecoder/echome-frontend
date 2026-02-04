@@ -7,7 +7,7 @@
  * written content, carousels, and share options.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
@@ -69,6 +69,7 @@ export default function ContentKitDetailContent() {
     aspectRatio: '1:1' | '9:16';
     slides: Array<{ slideNumber: number; publicUrl: string; text: string; template: string }>;
   } | null>(null);
+  const squareFetchedRef = useRef(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [quickScheduleConfig, setQuickScheduleConfig] = useState<{
@@ -121,6 +122,16 @@ export default function ContentKitDetailContent() {
       refresh();
     }
   }, [carouselReady, refresh]);
+
+  // Auto-fetch square (1:1) carousel when portrait carousel is available
+  // The backend generates both sizes concurrently, so the square version
+  // should be ready by the time the page loads (or shortly after)
+  useEffect(() => {
+    if (hasCarouselCheck && !resizedCarousel && !resizing && !squareFetchedRef.current) {
+      squareFetchedRef.current = true;
+      handleResizeCarousel('1:1');
+    }
+  }, [hasCarouselCheck]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
@@ -722,11 +733,107 @@ export default function ContentKitDetailContent() {
                 </span>
               </h2>
 
-              {/* Portrait (9:16) Carousel - Original */}
+              {/* Square (1:1) Carousel - Primary display */}
               <div className="bg-bg-secondary rounded-xl border border-border p-6 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium bg-accent/10 text-accent px-3 py-1 rounded-full">
+                      ⬜ Square (1:1)
+                    </span>
+                    <span className="text-xs text-text-secondary">Feed post format</span>
+                  </div>
+                </div>
+
+                {resizedCarousel ? (
+                  <>
+                    {/* Carousel Preview - Square */}
+                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
+                      {resizedCarousel.slides.map((slide, index) => (
+                        <div
+                          key={index}
+                          className="flex-shrink-0 w-72 snap-center"
+                        >
+                          <div className="aspect-square rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
+                            <img
+                              src={slide.publicUrl}
+                              alt={`Square Slide ${slide.slideNumber}`}
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Slide template badge */}
+                            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
+                              {slide.template}
+                            </div>
+                            {/* Slide number */}
+                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                              {slide.slideNumber}/{resizedCarousel.slides.length}
+                            </div>
+                            {/* Download hover button */}
+                            <a
+                              href={slide.publicUrl}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                            >
+                              <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
+                                ⬇️ Download
+                              </span>
+                            </a>
+                          </div>
+                          {/* Slide text preview */}
+                          <p className="mt-2 text-xs text-text-secondary line-clamp-2">
+                            {slide.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Carousel Footer - Square */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+                      <div className="text-sm text-text-secondary">
+                        <span className="font-medium text-text-primary">
+                          {resizedCarousel.slides.length} slides
+                        </span>
+                        <span> • Square format</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setQuickScheduleConfig({ type: 'carousel' })}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                        >
+                          <CalendarPlus className="w-4 h-4" />
+                          Add to Calendar
+                        </button>
+                        <button
+                          onClick={async () => {
+                            for (const slide of resizedCarousel.slides) {
+                              const link = document.createElement('a');
+                              link.href = slide.publicUrl;
+                              link.download = `square-slide-${slide.slideNumber}.png`;
+                              link.click();
+                              await new Promise(r => setTimeout(r, 500));
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
+                        >
+                          ⬇️ Download All
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center py-12 text-text-secondary">
+                    <span className="animate-spin mr-2">⏳</span>
+                    <span className="text-sm">Loading square slides...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Portrait (9:16) Carousel */}
+              <div className="bg-bg-secondary rounded-xl border border-border p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full">
                       📱 Portrait (9:16)
                     </span>
                     <span className="text-xs text-text-secondary">Stories/Reels format</span>
@@ -809,127 +916,6 @@ export default function ContentKitDetailContent() {
                     </button>
                   </div>
                 </div>
-              </div>
-
-              {/* Square (1:1) Carousel - Generated on demand */}
-              <div className="bg-bg-secondary rounded-xl border border-border p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full">
-                      ⬜ Square (1:1)
-                    </span>
-                    <span className="text-xs text-text-secondary">Feed post format</span>
-                  </div>
-                  {!resizedCarousel && (
-                    <button
-                      onClick={() => handleResizeCarousel('1:1')}
-                      disabled={resizing}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        resizing
-                          ? 'bg-bg-tertiary text-text-secondary cursor-wait'
-                          : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
-                      }`}
-                    >
-                      {resizing ? (
-                        <>
-                          <span className="animate-spin">⏳</span>
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>🔄</span>
-                          <span>Generate Square Version</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                {resizedCarousel ? (
-                  <>
-                    {/* Carousel Preview - Square */}
-                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-                      {resizedCarousel.slides.map((slide, index) => (
-                        <div
-                          key={index}
-                          className="flex-shrink-0 w-72 snap-center"
-                        >
-                          <div className="aspect-square rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
-                            <img
-                              src={slide.publicUrl}
-                              alt={`Square Slide ${slide.slideNumber}`}
-                              className="w-full h-full object-cover"
-                            />
-                            {/* Slide template badge */}
-                            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
-                              {slide.template}
-                            </div>
-                            {/* Slide number */}
-                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                              {slide.slideNumber}/{resizedCarousel.slides.length}
-                            </div>
-                            {/* Download hover button */}
-                            <a
-                              href={slide.publicUrl}
-                              download
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                            >
-                              <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
-                                ⬇️ Download
-                              </span>
-                            </a>
-                          </div>
-                          {/* Slide text preview */}
-                          <p className="mt-2 text-xs text-text-secondary line-clamp-2">
-                            {slide.text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Carousel Footer - Square */}
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-                      <div className="text-sm text-text-secondary">
-                        <span className="font-medium text-text-primary">
-                          {resizedCarousel.slides.length} slides
-                        </span>
-                        <span> • Square format</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setQuickScheduleConfig({ type: 'carousel' })}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
-                        >
-                          <CalendarPlus className="w-4 h-4" />
-                          Add to Calendar
-                        </button>
-                        <button
-                          onClick={async () => {
-                            for (const slide of resizedCarousel.slides) {
-                              const link = document.createElement('a');
-                              link.href = slide.publicUrl;
-                              link.download = `square-slide-${slide.slideNumber}.png`;
-                              link.click();
-                              await new Promise(r => setTimeout(r, 500));
-                            }
-                          }}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
-                        >
-                          ⬇️ Download All
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-12 text-text-secondary">
-                    <div className="text-4xl mb-3">⬜</div>
-                    <p className="text-sm">
-                      Click &quot;Generate Square Version&quot; to create 1:1 slides for feed posts
-                    </p>
-                  </div>
-                )}
               </div>
             </section>
           )}
