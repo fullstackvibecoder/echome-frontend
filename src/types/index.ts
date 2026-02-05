@@ -39,6 +39,11 @@ export interface UserProfile {
   email_notifications?: boolean;
   weekly_digest?: boolean;
   theme?: 'light' | 'dark' | 'auto';
+  // Profile context (custom instructions)
+  profile_role?: string;
+  profile_topics?: string;
+  profile_cta?: string;
+  profile_guardrails?: string;
 }
 
 /**
@@ -56,6 +61,11 @@ export interface UserProfileUpdate {
   email_notifications?: boolean;
   weekly_digest?: boolean;
   theme?: 'light' | 'dark' | 'auto';
+  // Profile context (custom instructions)
+  profile_role?: string | null;
+  profile_topics?: string | null;
+  profile_cta?: string | null;
+  profile_guardrails?: string | null;
 }
 
 // ============================================

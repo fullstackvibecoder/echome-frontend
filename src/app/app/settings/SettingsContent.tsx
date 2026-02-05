@@ -33,6 +33,12 @@ export default function SettingsContent() {
   const [bio, setBio] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
 
+  // Profile context (custom instructions)
+  const [profileRole, setProfileRole] = useState('');
+  const [profileTopics, setProfileTopics] = useState('');
+  const [profileCta, setProfileCta] = useState('');
+  const [profileGuardrails, setProfileGuardrails] = useState('');
+
   // Preferences state
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
@@ -56,6 +62,11 @@ export default function SettingsContent() {
         setInstagramHandle(response.data.instagram_handle || '');
         setBio(response.data.bio || '');
         setWebsiteUrl(response.data.website_url || '');
+        // Load profile context
+        setProfileRole(response.data.profile_role || '');
+        setProfileTopics(response.data.profile_topics || '');
+        setProfileCta(response.data.profile_cta || '');
+        setProfileGuardrails(response.data.profile_guardrails || '');
         // Load preferences
         setEmailNotifications(response.data.email_notifications ?? true);
         setWeeklyDigest(response.data.weekly_digest ?? false);
@@ -82,6 +93,11 @@ export default function SettingsContent() {
         instagram_handle: instagramHandle || null,
         bio: bio || null,
         website_url: websiteUrl || null,
+        // Profile context
+        profile_role: profileRole || null,
+        profile_topics: profileTopics || null,
+        profile_cta: profileCta || null,
+        profile_guardrails: profileGuardrails || null,
       };
 
       const response = await api.auth.updateProfile(updates);
@@ -344,6 +360,88 @@ export default function SettingsContent() {
                   <p className="text-xs text-text-secondary mt-1">
                     {bio.length}/500 characters
                   </p>
+                </div>
+
+                {/* Content Identity Section */}
+                <div className="pt-6 border-t border-border">
+                  <h4 className="text-subheading text-lg mb-1">Content Identity</h4>
+                  <p className="text-small text-text-secondary mb-4">
+                    These details help personalize your generated content
+                  </p>
+
+                  <div className="space-y-4">
+                    {/* What you do */}
+                    <div>
+                      <label className="block text-small font-medium text-text-primary mb-2">
+                        What do you do?
+                      </label>
+                      <input
+                        type="text"
+                        value={profileRole}
+                        onChange={(e) => setProfileRole(e.target.value)}
+                        placeholder="e.g., Leadership coach for mid-career women in tech"
+                        maxLength={200}
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                      />
+                      <p className="text-xs text-text-secondary mt-1">
+                        {profileRole.length}/200 characters
+                      </p>
+                    </div>
+
+                    {/* Topics */}
+                    <div>
+                      <label className="block text-small font-medium text-text-primary mb-2">
+                        What topics do you cover?
+                      </label>
+                      <input
+                        type="text"
+                        value={profileTopics}
+                        onChange={(e) => setProfileTopics(e.target.value)}
+                        placeholder="e.g., Confidence, career transitions, executive presence"
+                        maxLength={300}
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                      />
+                      <p className="text-xs text-text-secondary mt-1">
+                        {profileTopics.length}/300 characters
+                      </p>
+                    </div>
+
+                    {/* CTA/Offer */}
+                    <div>
+                      <label className="block text-small font-medium text-text-primary mb-2">
+                        Your offer or CTA
+                      </label>
+                      <input
+                        type="text"
+                        value={profileCta}
+                        onChange={(e) => setProfileCta(e.target.value)}
+                        placeholder="e.g., Confident Leader OS — my $497 self-paced course"
+                        maxLength={200}
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                      />
+                      <p className="text-xs text-text-secondary mt-1">
+                        {profileCta.length}/200 characters
+                      </p>
+                    </div>
+
+                    {/* Guardrails */}
+                    <div>
+                      <label className="block text-small font-medium text-text-primary mb-2">
+                        Brand guardrails
+                      </label>
+                      <textarea
+                        value={profileGuardrails}
+                        onChange={(e) => setProfileGuardrails(e.target.value)}
+                        placeholder="e.g., Never say hustle or grind. No bro-marketing. Warm but authoritative."
+                        rows={2}
+                        maxLength={500}
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors resize-none"
+                      />
+                      <p className="text-xs text-text-secondary mt-1">
+                        {profileGuardrails.length}/500 characters
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {profileError && (

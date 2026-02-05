@@ -55,6 +55,13 @@ interface ProfileState {
   profileImageUrl: string | null;
 }
 
+interface ProfileContextState {
+  role: string;
+  topics: string;
+  cta: string;
+  guardrails: string;
+}
+
 const MIN_CONTENT_ITEMS = 3;
 
 // ---------------------------------------------------------------------------
@@ -138,6 +145,17 @@ export default function OnboardingContent() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
+  // Profile Context (custom instructions)
+  const [profileContext, setProfileContext] = useState<ProfileContextState>({
+    role: '',
+    topics: '',
+    cta: '',
+    guardrails: '',
+  });
+  const [profileContextDirty, setProfileContextDirty] = useState(false);
+  const [profileContextSaving, setProfileContextSaving] = useState(false);
+  const [profileContextSaved, setProfileContextSaved] = useState(false);
+
   // Content
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -194,6 +212,16 @@ export default function OnboardingContent() {
           if (res.data.display_name || res.data.twitter_handle || res.data.instagram_handle) {
             setProfileSaved(true);
           }
+          // Load profile context
+          setProfileContext({
+            role: res.data.profile_role || '',
+            topics: res.data.profile_topics || '',
+            cta: res.data.profile_cta || '',
+            guardrails: res.data.profile_guardrails || '',
+          });
+          if (res.data.profile_role || res.data.profile_topics || res.data.profile_cta || res.data.profile_guardrails) {
+            setProfileContextSaved(true);
+          }
         }
       } catch {
         // fine
@@ -223,6 +251,30 @@ export default function OnboardingContent() {
       // non-blocking
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const updateProfileContextField = (field: keyof ProfileContextState, value: string) => {
+    setProfileContext((p) => ({ ...p, [field]: value }));
+    setProfileContextDirty(true);
+    setProfileContextSaved(false);
+  };
+
+  const handleSaveProfileContext = async () => {
+    setProfileContextSaving(true);
+    try {
+      await api.auth.updateProfile({
+        profile_role: profileContext.role || null,
+        profile_topics: profileContext.topics || null,
+        profile_cta: profileContext.cta || null,
+        profile_guardrails: profileContext.guardrails || null,
+      });
+      setProfileContextSaved(true);
+      setProfileContextDirty(false);
+    } catch {
+      // non-blocking
+    } finally {
+      setProfileContextSaving(false);
     }
   };
 
@@ -643,6 +695,89 @@ export default function OnboardingContent() {
                 </span>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* ========== TELL US ABOUT YOU CARD ========== */}
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-sm font-semibold">Tell Us About You</h2>
+            <span className="text-xs text-muted-foreground">- helps personalize your content</span>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">What do you do?</label>
+              <input
+                type="text"
+                value={profileContext.role}
+                onChange={(e) => updateProfileContextField('role', e.target.value)}
+                placeholder="e.g., Leadership coach for mid-career women"
+                maxLength={200}
+                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">What topics do you cover?</label>
+              <input
+                type="text"
+                value={profileContext.topics}
+                onChange={(e) => updateProfileContextField('topics', e.target.value)}
+                placeholder="e.g., Confidence, career transitions, executive presence"
+                maxLength={300}
+                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ========== YOUR CONTENT RULES CARD ========== */}
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-sm font-semibold">Your Content Rules</h2>
+            <span className="text-xs text-muted-foreground">- optional brand guidelines</span>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Your offer or CTA</label>
+              <input
+                type="text"
+                value={profileContext.cta}
+                onChange={(e) => updateProfileContextField('cta', e.target.value)}
+                placeholder="e.g., Confident Leader OS — my signature course"
+                maxLength={200}
+                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Anything to avoid?</label>
+              <textarea
+                value={profileContext.guardrails}
+                onChange={(e) => updateProfileContextField('guardrails', e.target.value)}
+                placeholder="e.g., Never say hustle or grind. No aggressive sales language."
+                maxLength={500}
+                rows={2}
+                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
+              />
+            </div>
+            {profileContextDirty && (
+              <button
+                onClick={handleSaveProfileContext}
+                disabled={profileContextSaving}
+                className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
+              >
+                {profileContextSaving ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Check className="w-3 h-3" />
+                )}
+                Save
+              </button>
+            )}
+            {!profileContextDirty && profileContextSaved && (
+              <span className="text-xs text-green-500 flex items-center gap-1">
+                <Check className="w-3 h-3" /> Saved
+              </span>
+            )}
           </div>
         </div>
 
