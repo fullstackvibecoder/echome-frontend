@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api-client';
 import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
 
-type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing';
+type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing' | 'referral';
 
 export default function SettingsContent() {
   const { user } = useAuth();
@@ -255,6 +255,16 @@ export default function SettingsContent() {
           }`}
         >
           Billing
+        </button>
+        <button
+          onClick={() => setActiveTab('referral')}
+          className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
+            activeTab === 'referral'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          Refer & Earn
         </button>
       </div>
 
@@ -830,6 +840,74 @@ export default function SettingsContent() {
               <p className="text-body text-text-secondary">No invoices yet</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Referral Tab */}
+      {activeTab === 'referral' && (
+        <div className="space-y-6">
+          {/* Refer & Earn Card */}
+          <div className="card">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-2xl">
+                🎁
+              </div>
+              <div>
+                <h3 className="text-subheading text-xl mb-1">Refer & Earn</h3>
+                <p className="text-body text-text-secondary">
+                  Love EchoMe? Share it with friends and earn 20% recurring commission on every referral.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-bg-secondary rounded-lg">
+                <h4 className="text-body font-semibold mb-2">How it works</h4>
+                <ol className="text-small text-text-secondary space-y-2 list-decimal list-inside">
+                  <li>Sign up as an affiliate (free, takes 2 minutes)</li>
+                  <li>Get your unique referral link</li>
+                  <li>Share with friends, followers, or your audience</li>
+                  <li>Earn 20% of every subscription they purchase — forever</li>
+                </ol>
+              </div>
+
+              <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <h4 className="text-body font-semibold text-accent mb-2">Commission Structure</h4>
+                <ul className="text-small text-text-secondary space-y-1">
+                  <li>• Echo ($29/mo) → <span className="text-accent font-medium">$5.80/mo per referral</span></li>
+                  <li>• Echo Studio ($49/mo) → <span className="text-accent font-medium">$9.80/mo per referral</span></li>
+                  <li>• Echo Pro ($99/mo) → <span className="text-accent font-medium">$19.80/mo per referral</span></li>
+                </ul>
+              </div>
+
+              <a
+                href="https://affonso.io/echome"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary w-full text-center block"
+              >
+                Become an Affiliate →
+              </a>
+
+              <p className="text-xs text-text-secondary text-center">
+                Already an affiliate? <a href="https://affonso.io/echome" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Log in to your dashboard</a> to get your link and track earnings.
+              </p>
+            </div>
+          </div>
+
+          {/* Enterprise Referrals */}
+          <div className="card">
+            <h3 className="text-subheading text-xl mb-4">Know a company that needs EchoMe?</h3>
+            <p className="text-body text-text-secondary mb-4">
+              Enterprise referrals earn higher commissions. Custom integrations start at $10K with 10-15% commission, plus 20% on the $297/mo managed service.
+            </p>
+            <a
+              href="mailto:partnerships@tryechome.com?subject=Enterprise Referral"
+              className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors inline-block"
+            >
+              Submit Enterprise Referral
+            </a>
+          </div>
         </div>
       )}
     </div>
