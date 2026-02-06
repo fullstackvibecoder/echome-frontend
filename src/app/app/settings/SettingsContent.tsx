@@ -881,7 +881,7 @@ export default function SettingsContent() {
               </div>
 
               <a
-                href="https://affonso.io/echome"
+                href="https://echo.affonso.io"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary w-full text-center block"
@@ -890,7 +890,7 @@ export default function SettingsContent() {
               </a>
 
               <p className="text-xs text-text-secondary text-center">
-                Already an affiliate? <a href="https://affonso.io/echome" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Log in to your dashboard</a> to get your link and track earnings.
+                Already an affiliate? <a href="https://echo.affonso.io" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Log in to your dashboard</a> to get your link and track earnings.
               </p>
             </div>
           </div>
