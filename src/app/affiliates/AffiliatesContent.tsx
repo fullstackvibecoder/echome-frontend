@@ -22,11 +22,11 @@ export default function AffiliatesContent() {
     },
     {
       q: "Do I earn on renewals?",
-      a: "Yes! You earn 20% on every payment your referral makes — not just the first one. As long as they stay subscribed, you keep earning."
+      a: "Yes! You earn 25% on every payment your referral makes — not just the first one. As long as they stay subscribed, you keep earning."
     },
     {
       q: "What if someone I refer upgrades their plan?",
-      a: "You earn 20% of whatever they pay. If they upgrade from Echo ($29) to Echo Pro ($99), your commission increases too."
+      a: "You earn 25% of whatever they pay. If they upgrade from Echo ($29) to Echo Pro ($99), your commission increases too."
     },
     {
       q: "Can I promote EchoMe on social media?",
@@ -34,7 +34,7 @@ export default function AffiliatesContent() {
     },
     {
       q: "What about enterprise referrals?",
-      a: "Enterprise deals (custom integrations starting at $10K) earn 10-15% commission plus 20% on the managed service ($297/mo). Email partnerships@tryechome.com with enterprise leads."
+      a: "Enterprise deals (custom integrations starting at $10K) earn 10-15% commission plus 25% on the managed service ($297/mo). Email partnerships@tryechome.com with enterprise leads."
     },
   ];
 
@@ -59,32 +59,63 @@ export default function AffiliatesContent() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block px-4 py-1.5 bg-[#00D4FF]/10 text-[#0099CC] rounded-full text-sm font-medium mb-6">
-            Affiliate Program
-          </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
-            Earn <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">20% Recurring</span> Sharing a Tool You Love
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Recommend EchoMe to creators, marketers, and businesses. Get paid every month they stay subscribed.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://echo.affonso.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-lg hover:shadow-xl hover:scale-105 transition-all"
-            >
-              Become an Affiliate
-            </a>
-            <a
-              href="#how-it-works"
-              className="px-8 py-4 border-2 border-gray-300 rounded-xl font-bold text-lg hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all"
-            >
-              Learn More
-            </a>
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-br from-[#B794F6]/10 to-[#FF6B9D]/10 rounded-full blur-3xl" />
+
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="text-center md:text-left relative z-10">
+              <div className="inline-block px-4 py-1.5 bg-[#00D4FF]/10 text-[#0099CC] rounded-full text-sm font-medium mb-6">
+                Affiliate Program
+              </div>
+              <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+                Earn <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">25% Recurring</span> Sharing a Tool You Love
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Recommend EchoMe to creators, marketers, and businesses. Get paid every month they stay subscribed.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <a
+                  href="https://echo.affonso.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-lg hover:shadow-xl hover:scale-105 transition-all"
+                >
+                  Become an Affiliate
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="px-8 py-4 border-2 border-gray-300 rounded-xl font-bold text-lg hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all"
+                >
+                  Learn More
+                </a>
+              </div>
+            </div>
+
+            {/* Hero Visual */}
+            <div className="relative flex justify-center">
+              <div className="relative">
+                {/* Glow effect behind mascot */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-3xl opacity-20 scale-75" />
+                <Image
+                  src="/media/echo-mascot.svg"
+                  alt="Echo - Your AI Content Assistant"
+                  width={320}
+                  height={320}
+                  className="relative z-10 drop-shadow-2xl"
+                />
+                {/* Floating commission badges */}
+                <div className="absolute -top-4 -right-4 px-4 py-2 bg-white rounded-xl shadow-lg border border-gray-100 animate-bounce">
+                  <span className="text-2xl font-bold text-[#00D4FF]">25%</span>
+                  <span className="text-sm text-gray-500 block">recurring</span>
+                </div>
+                <div className="absolute -bottom-2 -left-4 px-3 py-1.5 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] text-white rounded-lg text-sm font-semibold shadow-lg">
+                  Paid monthly
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -96,14 +127,14 @@ export default function AffiliatesContent() {
             Simple, Generous Commissions
           </h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Earn 20% of every payment your referrals make. Not just the first month — every month they stay subscribed.
+            Earn 25% of every payment your referrals make. Not just the first month — every month they stay subscribed.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { plan: 'Echo', price: 29, commission: 5.80, features: ['2 hours video/mo', '5 clips per video', '1 Knowledge Base'] },
-              { plan: 'Echo Studio', price: 49, commission: 9.80, features: ['5 hours video/mo', '10 clips per video', '3 Knowledge Bases'], popular: true },
-              { plan: 'Echo Pro', price: 99, commission: 19.80, features: ['Unlimited video', '15 clips per video', 'Unlimited KBs'] },
+              { plan: 'Echo', price: 29, commission: 7.25, features: ['2 hours video/mo', '5 clips per video', '1 Knowledge Base'] },
+              { plan: 'Echo Studio', price: 49, commission: 12.25, features: ['5 hours video/mo', '10 clips per video', '3 Knowledge Bases'], popular: true },
+              { plan: 'Echo Pro', price: 99, commission: 24.75, features: ['Unlimited video', '15 clips per video', 'Unlimited KBs'] },
             ].map((tier) => (
               <div
                 key={tier.plan}
@@ -140,7 +171,7 @@ export default function AffiliatesContent() {
               <div>
                 <h3 className="text-xl font-bold mb-1">Enterprise Referrals</h3>
                 <p className="text-gray-600">
-                  Know a company that needs custom integrations? Earn 10-15% on contracts starting at $10K, plus 20% on $297/mo managed service.
+                  Know a company that needs custom integrations? Earn 10-15% on contracts starting at $10K, plus 25% on $297/mo managed service.
                 </p>
               </div>
               <a
@@ -211,7 +242,7 @@ export default function AffiliatesContent() {
               { step: "1", title: "Sign Up", desc: "Create your free affiliate account in 2 minutes" },
               { step: "2", title: "Get Your Link", desc: "Grab your unique referral link from the dashboard" },
               { step: "3", title: "Share", desc: "Promote to your audience via content, email, or DMs" },
-              { step: "4", title: "Get Paid", desc: "Earn 20% of every subscription, every month" },
+              { step: "4", title: "Get Paid", desc: "Earn 25% of every subscription, every month" },
             ].map((item) => (
               <div key={item.step} className="text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">

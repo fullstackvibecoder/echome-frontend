@@ -855,7 +855,7 @@ export default function SettingsContent() {
               <div>
                 <h3 className="text-subheading text-xl mb-1">Refer & Earn</h3>
                 <p className="text-body text-text-secondary">
-                  Love EchoMe? Share it with friends and earn 20% recurring commission on every referral.
+                  Love EchoMe? Share it with friends and earn 25% recurring commission on every referral.
                 </p>
               </div>
             </div>
@@ -867,16 +867,16 @@ export default function SettingsContent() {
                   <li>Sign up as an affiliate (free, takes 2 minutes)</li>
                   <li>Get your unique referral link</li>
                   <li>Share with friends, followers, or your audience</li>
-                  <li>Earn 20% of every subscription they purchase — forever</li>
+                  <li>Earn 25% of every subscription they purchase — forever</li>
                 </ol>
               </div>
 
               <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg">
                 <h4 className="text-body font-semibold text-accent mb-2">Commission Structure</h4>
                 <ul className="text-small text-text-secondary space-y-1">
-                  <li>• Echo ($29/mo) → <span className="text-accent font-medium">$5.80/mo per referral</span></li>
-                  <li>• Echo Studio ($49/mo) → <span className="text-accent font-medium">$9.80/mo per referral</span></li>
-                  <li>• Echo Pro ($99/mo) → <span className="text-accent font-medium">$19.80/mo per referral</span></li>
+                  <li>• Echo ($29/mo) → <span className="text-accent font-medium">$7.25/mo per referral</span></li>
+                  <li>• Echo Studio ($49/mo) → <span className="text-accent font-medium">$12.25/mo per referral</span></li>
+                  <li>• Echo Pro ($99/mo) → <span className="text-accent font-medium">$24.75/mo per referral</span></li>
                 </ul>
               </div>
 
@@ -899,7 +899,7 @@ export default function SettingsContent() {
           <div className="card">
             <h3 className="text-subheading text-xl mb-4">Know a company that needs EchoMe?</h3>
             <p className="text-body text-text-secondary mb-4">
-              Enterprise referrals earn higher commissions. Custom integrations start at $10K with 10-15% commission, plus 20% on the $297/mo managed service.
+              Enterprise referrals earn higher commissions. Custom integrations start at $10K with 10-15% commission, plus 25% on the $297/mo managed service.
             </p>
             <a
               href="mailto:partnerships@tryechome.com?subject=Enterprise Referral"

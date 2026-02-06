@@ -11,10 +11,10 @@
 ## Commission Structure
 
 ### Consumer Plans (Self-Serve)
-**20% recurring commission** on all subscription plans:
-- Echo ($29/mo) → $5.80/mo per referral
-- Echo Studio ($49/mo) → $9.80/mo per referral
-- Echo Pro ($99/mo) → $19.80/mo per referral
+**25% recurring commission** on all subscription plans:
+- Echo ($29/mo) → $7.25/mo per referral
+- Echo Studio ($49/mo) → $12.25/mo per referral
+- Echo Pro ($99/mo) → $24.75/mo per referral
 
 ### Enterprise Referrals (High-Value)
 **Scaling percentage commission** on enterprise deals:
@@ -22,8 +22,8 @@
 | Deal Component | Your Commission |
 |----------------|-----------------|
 | Custom Integration (starts at $10,000) | 10-15% of contract |
-| Managed Service ($297/month) | 20% recurring |
-| Annual Enterprise Contracts | Negotiable (up to 20%) |
+| Managed Service ($297/month) | 25% recurring |
+| Annual Enterprise Contracts | Negotiable (up to 25%) |
 
 **Enterprise deals include:**
 - Custom API integrations
