@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api-client';
-import { UserProfile, UserProfileUpdate } from '@/types';
+import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
 
 type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing';
 
@@ -45,10 +45,35 @@ export default function SettingsContent() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
   const [preferencesSaving, setPreferencesSaving] = useState(false);
 
+  // Usage/billing state
+  const [usage, setUsage] = useState<UsageSummary | null>(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+
   // Load profile on mount
   useEffect(() => {
     loadProfile();
   }, []);
+
+  // Load usage when billing tab is selected
+  useEffect(() => {
+    if (activeTab === 'billing' && !usage && !usageLoading) {
+      loadUsage();
+    }
+  }, [activeTab]);
+
+  const loadUsage = async () => {
+    try {
+      setUsageLoading(true);
+      const response = await api.stripe.getUsageLimits();
+      if (response.success && response.data) {
+        setUsage(response.data as UsageSummary);
+      }
+    } catch (error) {
+      console.error('Failed to load usage:', error);
+    } finally {
+      setUsageLoading(false);
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -677,39 +702,134 @@ export default function SettingsContent() {
           {/* Current Plan */}
           <div className="card">
             <h3 className="text-subheading text-xl mb-4">Current Plan</h3>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-display text-2xl font-bold text-accent mb-1">
-                  {user?.subscription === 'free' ? 'Free' : 'Pro'}
-                </p>
-                <p className="text-body text-text-secondary">
-                  {user?.subscription === 'free'
-                    ? '10 generations per month'
-                    : 'Unlimited generations'}
-                </p>
+            {usageLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
-              {user?.subscription === 'free' && (
-                <button className="btn-primary">Upgrade to Pro</button>
-              )}
-            </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-display text-2xl font-bold text-accent mb-1">
+                      {usage?.tier === 'free' ? 'Free Trial' :
+                       usage?.tier === 'pro' ? 'Echo' :
+                       usage?.tier === 'studio' ? 'Echo Studio' :
+                       usage?.tier === 'enterprise' ? 'Echo Pro' : 'Free Trial'}
+                    </p>
+                    <p className="text-body text-text-secondary">
+                      {usage?.isUnlimited
+                        ? 'Unlimited generations'
+                        : `${usage?.generationsLimit || 10} generations per month`}
+                    </p>
+                  </div>
+                  {(!usage || usage.tier === 'free') && (
+                    <button
+                      onClick={() => window.location.href = '/app/billing'}
+                      className="btn-primary"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  )}
+                </div>
 
-            {/* Usage */}
-            <div className="p-4 bg-bg-secondary rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-small text-text-secondary">This month</span>
-                <span className="text-small font-semibold">7 / 10 used</span>
-              </div>
-              <div className="h-2 bg-border rounded-full overflow-hidden">
-                <div className="h-full bg-accent" style={{ width: '70%' }} />
-              </div>
-            </div>
+                {/* Usage - only show for limited plans */}
+                {usage && !usage.isUnlimited && (
+                  <div className="p-4 bg-bg-secondary rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-small text-text-secondary">Generations this month</span>
+                      <span className="text-small font-semibold">
+                        {usage.generationsUsed} / {usage.generationsLimit} used
+                      </span>
+                    </div>
+                    <div className="h-2 bg-border rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${
+                          usage.generationsRemaining === 0 ? 'bg-error' :
+                          usage.generationsRemaining <= 2 ? 'bg-warning' : 'bg-accent'
+                        }`}
+                        style={{
+                          width: `${Math.min(100, (usage.generationsUsed / usage.generationsLimit) * 100)}%`
+                        }}
+                      />
+                    </div>
+                    {usage.generationsRemaining === 0 && (
+                      <p className="text-xs text-error mt-2">
+                        You&apos;ve reached your monthly limit. Upgrade for unlimited generations.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Show unlimited badge for paid plans */}
+                {usage?.isUnlimited && (
+                  <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-accent text-lg">✓</span>
+                      <span className="text-body font-medium text-accent">Unlimited generations</span>
+                    </div>
+                    <p className="text-small text-text-secondary mt-1">
+                      {usage.generationsUsed} generations this month
+                    </p>
+                  </div>
+                )}
+
+                {/* Video minutes usage */}
+                {usage && usage.videoMinutesLimit > 0 && (
+                  <div className="p-4 bg-bg-secondary rounded-lg mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-small text-text-secondary">Video minutes this month</span>
+                      <span className="text-small font-semibold">
+                        {usage.videoMinutesUsed.toFixed(1)} / {usage.videoMinutesLimit === -1 ? '∞' : usage.videoMinutesLimit} used
+                      </span>
+                    </div>
+                    {usage.videoMinutesLimit !== -1 && (
+                      <div className="h-2 bg-border rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-accent transition-all"
+                          style={{
+                            width: `${Math.min(100, (usage.videoMinutesUsed / usage.videoMinutesLimit) * 100)}%`
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Invoice History */}
-          <div className="card">
-            <h3 className="text-subheading text-xl mb-4">Invoice History</h3>
-            <p className="text-body text-text-secondary">No invoices yet</p>
-          </div>
+          {/* Manage Subscription */}
+          {usage && usage.tier !== 'free' && (
+            <div className="card">
+              <h3 className="text-subheading text-xl mb-4">Manage Subscription</h3>
+              <p className="text-body text-text-secondary mb-4">
+                View invoices, update payment method, or cancel your subscription.
+              </p>
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await api.stripe.getPortalUrl();
+                    if (response.success && response.data?.url) {
+                      window.location.href = response.data.url;
+                    }
+                  } catch (error) {
+                    console.error('Failed to open billing portal:', error);
+                  }
+                }}
+                className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
+              >
+                Open Billing Portal
+              </button>
+            </div>
+          )}
+
+          {/* Invoice History - show for free users */}
+          {(!usage || usage.tier === 'free') && (
+            <div className="card">
+              <h3 className="text-subheading text-xl mb-4">Invoice History</h3>
+              <p className="text-body text-text-secondary">No invoices yet</p>
+            </div>
+          )}
         </div>
       )}
     </div>

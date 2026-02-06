@@ -2507,8 +2507,20 @@ export interface StripeUsageLimits {
 export interface StripeUsageLimitsResponse {
   success: boolean;
   data: {
+    userId: string;
     tier: SubscriptionTier;
-    limits: StripeUsageLimits;
+    currentMonth: string;
+    generationsUsed: number;
+    generationsLimit: number;
+    generationsRemaining: number;
+    tokensUsed: number;
+    costUsd: number;
+    isUnlimited: boolean;
+    videoMinutesUsed: number;
+    videoMinutesLimit: number;
+    videoMinutesRemaining: number;
+    clipsGenerated: number;
+    contentKitsCreated: number;
   };
 }
 

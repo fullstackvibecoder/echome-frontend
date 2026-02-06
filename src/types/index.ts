@@ -521,6 +521,27 @@ export interface ToastNotification {
 }
 
 // ============================================
+// USAGE TYPES
+// ============================================
+
+export interface UsageSummary {
+  userId: string;
+  tier: 'free' | 'pro' | 'studio' | 'enterprise';
+  currentMonth: string;
+  generationsUsed: number;
+  generationsLimit: number;
+  generationsRemaining: number;
+  tokensUsed: number;
+  costUsd: number;
+  isUnlimited: boolean;
+  videoMinutesUsed: number;
+  videoMinutesLimit: number;
+  videoMinutesRemaining: number;
+  clipsGenerated: number;
+  contentKitsCreated: number;
+}
+
+// ============================================
 // AUTH TYPES
 // ============================================
 
