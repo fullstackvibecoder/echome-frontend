@@ -1187,7 +1187,7 @@ export default function HomeContent() {
               <ul className="space-y-3 text-white/70 font-light">
                 <li><Link href="/auth/login" className="hover:text-[#B794F6] transition-colors duration-200">Sign In</Link></li>
                 <li><Link href="/auth/signup" className="hover:text-[#B794F6] transition-colors duration-200">Sign Up</Link></li>
-                <li><a href="https://echo.affonso.io" target="_blank" rel="noopener noreferrer" className="hover:text-[#B794F6] transition-colors duration-200">Affiliates</a></li>
+                <li><Link href="/affiliates" className="hover:text-[#B794F6] transition-colors duration-200">Affiliates</Link></li>
                 <li><Link href="/privacy" className="hover:text-[#B794F6] transition-colors duration-200">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-[#B794F6] transition-colors duration-200">Terms of Service</Link></li>
               </ul>
