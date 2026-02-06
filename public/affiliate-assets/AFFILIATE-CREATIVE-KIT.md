@@ -5,7 +5,42 @@
 **Product:** EchoMe - AI content creation that learns your unique voice
 **Tagline:** "Content That Sounds Like You"
 **URL:** https://tryechome.com
-**Commission:** 20% recurring
+
+---
+
+## Commission Structure
+
+### Consumer Plans (Self-Serve)
+**20% recurring commission** on all subscription plans:
+- Echo ($29/mo) → $5.80/mo per referral
+- Echo Studio ($49/mo) → $9.80/mo per referral
+- Echo Pro ($99/mo) → $19.80/mo per referral
+
+### Enterprise Referrals (High-Value)
+**Scaling percentage commission** on enterprise deals:
+
+| Deal Component | Your Commission |
+|----------------|-----------------|
+| Custom Integration (starts at $10,000) | 10-15% of contract |
+| Managed Service ($297/month) | 20% recurring |
+| Annual Enterprise Contracts | Negotiable (up to 20%) |
+
+**Enterprise deals include:**
+- Custom API integrations
+- White-label deployments
+- Dedicated support & SLAs
+- Custom voice model training
+- Multi-user/team setups
+- Platform integrations (Slack, Discord, WhatsApp bots)
+
+**To refer an enterprise lead:**
+Email partnerships@tryechome.com with:
+- Company name & size
+- Contact person & email
+- Use case description
+- Your affiliate ID
+
+We'll handle the sales process and keep you updated. Commission paid on contract signing.
 
 ### Brand Colors
 - **Primary Cyan:** #00D4FF
@@ -150,6 +185,82 @@ No more "I hope this doesn't sound too AI." No more heavy editing to make it sou
 Skeptical? Try it free for 7 days: [YOUR AFFILIATE LINK]
 
 If it doesn't work for your voice, you've lost nothing. But if it does? You just got your time back.
+
+[Your Name]
+
+---
+
+### Email #5: Enterprise Referral (B2B/Agency)
+
+**Subject Lines:**
+- Your team is wasting 40 hours/week on content
+- Scale content without scaling headcount
+- The content ops tool your agency needs
+
+**Body:**
+
+Hey [First Name],
+
+Quick question for you as [role/agency owner]:
+
+How many hours does your team spend creating content each week? For most teams I talk to, it's 30-40+ hours across the org.
+
+What if you could cut that to 5?
+
+I've been recommending EchoMe to agencies and marketing teams because it solves a specific problem: scaling content production without scaling headcount.
+
+Here's what makes it work for teams:
+
+- **Voice consistency** - Train it once on your brand voice, and every team member creates on-brand content
+- **Repurposing at scale** - One client video becomes a month of LinkedIn, Twitter, blog, and email content
+- **API access** - Plug it into your existing workflows (Slack, Discord, custom integrations)
+
+For individual creators, they have self-serve plans starting at $29/mo.
+
+But for agencies and enterprise teams, they do custom integrations:
+- White-label options
+- Custom API setups
+- Dedicated support
+- Team training
+
+If this sounds relevant for [Company Name], I can intro you to their partnerships team. Just reply and I'll make the connection.
+
+[Your Name]
+
+P.S. Full disclosure—I'm an affiliate partner, so I benefit if you end up working with them. But I only recommend tools I'd use myself.
+
+---
+
+### Email #6: Enterprise Follow-Up
+
+**Subject Lines:**
+- Re: Content scaling for [Company]
+- Quick follow-up on EchoMe
+- [First Name] - still relevant?
+
+**Body:**
+
+Hey [First Name],
+
+Following up on my note about EchoMe for [Company Name].
+
+In case it's helpful, here's a quick breakdown of what enterprise clients typically get:
+
+**Custom Integration Package (starts at $10K):**
+- API access with dedicated endpoints
+- Custom voice model training for your brand
+- Integration with your existing stack (Slack, Discord, CRM, etc.)
+- White-label options available
+
+**Managed Service ($297/mo after integration):**
+- Ongoing support and optimization
+- Regular voice model updates
+- Priority feature requests
+- Dedicated account manager
+
+Most teams see ROI within the first month just from time savings alone.
+
+Want me to make an intro to their enterprise team? Just reply "yes" and I'll set it up.
 
 [Your Name]
 
