@@ -1646,11 +1646,15 @@ export const api = {
       planId: 'echo' | 'echo-studio' | 'echo-pro',
       billingInterval: 'month' | 'year'
     ): Promise<StripeCheckoutResponse> => {
+      // Get Affonso referral ID for affiliate attribution
+      const referralId = typeof window !== 'undefined' ? (window as any).affonso_referral : undefined;
+
       const response = await apiClient.post('/stripe/checkout', {
         planId,
         billingInterval,
         successUrl: `${window.location.origin}/app/billing?success=true${localStorage.getItem('needsOnboarding') ? '&onboarding=true' : ''}`,
         cancelUrl: `${window.location.origin}/app/billing?canceled=true`,
+        ...(referralId && { clientReferenceId: referralId }),
       });
       return response.data;
     },

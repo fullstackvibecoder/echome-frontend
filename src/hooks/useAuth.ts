@@ -76,6 +76,12 @@ export function useAuth(): UseAuthReturn {
       if (response.success && response.data) {
         localStorage.setItem('authToken', response.data.token);
         setUser(response.data.user);
+
+        // Track signup for Affonso affiliate attribution
+        if (typeof window !== 'undefined' && (window as any).Affonso) {
+          (window as any).Affonso.signup(email);
+        }
+
         // New users must subscribe before onboarding voice training
         localStorage.setItem('needsOnboarding', 'true');
         router.push('/app/billing');

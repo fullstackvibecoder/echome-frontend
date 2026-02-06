@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { satoshi } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
@@ -84,6 +85,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Affonso Affiliate Tracking */}
+        <Script
+          src="https://cdn.affonso.io/js/pixel.min.js"
+          data-affonso="cmlay3bhe0044f6rbp5bct1xv"
+          data-cookie_duration="30"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${satoshi.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
