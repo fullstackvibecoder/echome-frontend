@@ -19,6 +19,7 @@ import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/cont
 import api from '@/lib/api-client';
 import { ContentCategory } from '@/types';
 import { CalendarPlus } from 'lucide-react';
+import { downloadImage, downloadCarouselImages } from '@/lib/download';
 
 // Progress step component
 function ProgressStep({
@@ -771,17 +772,14 @@ export default function ContentKitDetailContent() {
                               {slide.slideNumber}/{resizedCarousel.slides.length}
                             </div>
                             {/* Download hover button */}
-                            <a
-                              href={slide.publicUrl}
-                              download
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              onClick={() => downloadImage(slide.publicUrl, `square-slide-${slide.slideNumber}.png`)}
                               className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
                             >
                               <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
                                 ⬇️ Download
                               </span>
-                            </a>
+                            </button>
                           </div>
                           {/* Slide text preview */}
                           <p className="mt-2 text-xs text-text-secondary line-clamp-2">
@@ -809,13 +807,10 @@ export default function ContentKitDetailContent() {
                         </button>
                         <button
                           onClick={async () => {
-                            for (const slide of resizedCarousel.slides) {
-                              const link = document.createElement('a');
-                              link.href = slide.publicUrl;
-                              link.download = `square-slide-${slide.slideNumber}.png`;
-                              link.click();
-                              await new Promise(r => setTimeout(r, 500));
-                            }
+                            await downloadCarouselImages(
+                              resizedCarousel.slides.map(s => ({ publicUrl: s.publicUrl, slideNumber: s.slideNumber })),
+                              `${id}-square`
+                            );
                           }}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
                         >
@@ -865,17 +860,14 @@ export default function ContentKitDetailContent() {
                           {slide.slideNumber}/{detail.carousel.slides.length}
                         </div>
                         {/* Download hover button */}
-                        <a
-                          href={slide.publicUrl}
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => downloadImage(slide.publicUrl, `portrait-slide-${slide.slideNumber}.png`)}
                           className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
                         >
                           <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
                             ⬇️ Download
                           </span>
-                        </a>
+                        </button>
                       </div>
                       {/* Slide text preview */}
                       <p className="mt-2 text-xs text-text-secondary line-clamp-2">
@@ -905,13 +897,10 @@ export default function ContentKitDetailContent() {
                     </button>
                     <button
                       onClick={async () => {
-                        for (const slide of detail.carousel.slides) {
-                          const link = document.createElement('a');
-                          link.href = slide.publicUrl;
-                          link.download = `portrait-slide-${slide.slideNumber}.png`;
-                          link.click();
-                          await new Promise(r => setTimeout(r, 500));
-                        }
+                        await downloadCarouselImages(
+                          detail.carousel.slides.map((s: any) => ({ publicUrl: s.publicUrl, slideNumber: s.slideNumber })),
+                          `${id}-portrait`
+                        );
                       }}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
                     >
