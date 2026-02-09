@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import type {
   ReelTemplate,
   ReelProject,
@@ -63,6 +64,7 @@ export default function ReelEditorContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const projectId = params.id as string;
   const isNewProject = projectId === 'new';
   const preselectedTemplateId = searchParams.get('template');
@@ -84,6 +86,8 @@ export default function ReelEditorContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const [renderStatus, setRenderStatus] = useState<ReelRenderStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -353,6 +357,65 @@ export default function ReelEditorContent() {
     return clipInputs;
   }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
 
+  // Get all media items that need to be included
+  const getAllMediaItems = useCallback((): MediaItem[] => {
+    if (!arrangerType) return [];
+
+    switch (arrangerType) {
+      case 'beatsync':
+        return beatSyncItems.filter(item => item.file || item.url);
+      case 'beforeafter':
+        return [...beforeItems, ...afterItems].filter(item => item.file || item.url);
+      case 'hook':
+        return [hookItem, mainItem, ctaItem].filter((item): item is MediaItem => item !== null);
+      case 'sequence':
+        return sequenceSections.map(s => s.item).filter((item): item is MediaItem => item !== null);
+      default:
+        return [];
+    }
+  }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
+
+  // Upload all media files and return URLs
+  const uploadAllMedia = useCallback(async (): Promise<Map<string, string>> => {
+    if (!user?.id) throw new Error('User not authenticated');
+
+    const mediaItems = getAllMediaItems();
+    const urlMap = new Map<string, string>();
+    const itemsToUpload = mediaItems.filter(item => item.file && !item.url);
+
+    if (itemsToUpload.length === 0) {
+      // All items already have URLs
+      mediaItems.forEach(item => {
+        if (item.url) urlMap.set(item.id, item.url);
+      });
+      return urlMap;
+    }
+
+    setIsUploading(true);
+    let uploaded = 0;
+
+    for (const item of mediaItems) {
+      if (item.url) {
+        urlMap.set(item.id, item.url);
+        continue;
+      }
+
+      if (item.file) {
+        setUploadProgress(`Uploading ${++uploaded}/${itemsToUpload.length}...`);
+        try {
+          const result = await api.reels.uploadMedia(item.file, user.id);
+          urlMap.set(item.id, result.url);
+        } catch (err) {
+          throw new Error(`Failed to upload ${item.file.name}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+    }
+
+    setIsUploading(false);
+    setUploadProgress('');
+    return urlMap;
+  }, [user?.id, getAllMediaItems]);
+
   // Create or update project
   const handleSaveProject = useCallback(async () => {
     if (!selectedTemplate || !hasRequiredContent) return;
@@ -361,16 +424,53 @@ export default function ReelEditorContent() {
       setIsSaving(true);
       setError(null);
 
-      const clipInputs = buildClipsFromMedia();
+      // Upload all media files first
+      const urlMap = await uploadAllMedia();
+
+      // Build clips with uploaded URLs
+      const clipInputs: Array<{ segmentId: string; sourceUrl: string }> = [];
+
+      if (arrangerType === 'beatsync') {
+        beatSyncItems.forEach((item, index) => {
+          const url = urlMap.get(item.id);
+          if (url) clipInputs.push({ segmentId: `beat_${index}`, sourceUrl: url });
+        });
+      } else if (arrangerType === 'beforeafter') {
+        beforeItems.forEach((item, index) => {
+          const url = urlMap.get(item.id);
+          if (url) clipInputs.push({ segmentId: `before_${index}`, sourceUrl: url });
+        });
+        afterItems.forEach((item, index) => {
+          const url = urlMap.get(item.id);
+          if (url) clipInputs.push({ segmentId: `after_${index}`, sourceUrl: url });
+        });
+      } else if (arrangerType === 'hook') {
+        if (hookItem) {
+          const url = urlMap.get(hookItem.id);
+          if (url) clipInputs.push({ segmentId: 'hook', sourceUrl: url });
+        }
+        if (mainItem) {
+          const url = urlMap.get(mainItem.id);
+          if (url) clipInputs.push({ segmentId: 'main', sourceUrl: url });
+        }
+        if (ctaItem) {
+          const url = urlMap.get(ctaItem.id);
+          if (url) clipInputs.push({ segmentId: 'cta', sourceUrl: url });
+        }
+      } else if (arrangerType === 'sequence') {
+        sequenceSections.forEach((section) => {
+          if (section.item) {
+            const url = urlMap.get(section.item.id);
+            if (url) clipInputs.push({ segmentId: section.id, sourceUrl: url });
+          }
+        });
+      }
 
       if (isNewProject || !project) {
         // Create new project
         const input: CreateReelProjectInput = {
           templateId: selectedTemplate.id,
-          clips: clipInputs.map(c => ({
-            segmentId: c.segmentId,
-            sourceUrl: c.sourceUrl,
-          })),
+          clips: clipInputs,
           musicTrackId: selectedMusic?.id,
           title: title || `Reel - ${selectedTemplate.name}`,
           addCaptions,
@@ -397,11 +497,21 @@ export default function ReelEditorContent() {
       setError(err instanceof Error ? err.message : 'Failed to save project');
     } finally {
       setIsSaving(false);
+      setIsUploading(false);
+      setUploadProgress('');
     }
   }, [
     selectedTemplate,
     hasRequiredContent,
-    buildClipsFromMedia,
+    uploadAllMedia,
+    arrangerType,
+    beatSyncItems,
+    beforeItems,
+    afterItems,
+    hookItem,
+    mainItem,
+    ctaItem,
+    sequenceSections,
     isNewProject,
     project,
     selectedMusic,
@@ -527,17 +637,17 @@ export default function ReelEditorContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleSaveProject}
-              disabled={isSaving || !hasRequiredContent}
+              disabled={isSaving || isUploading || !hasRequiredContent}
               className="btn-secondary disabled:opacity-50"
             >
-              {isSaving ? 'Saving...' : 'Save Draft'}
+              {isUploading ? uploadProgress : isSaving ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               onClick={handleStartRender}
-              disabled={!hasRequiredContent || isRendering}
+              disabled={!hasRequiredContent || isRendering || isUploading || isSaving}
               className="btn-primary disabled:opacity-50"
             >
-              {isRendering ? 'Rendering...' : 'Create Reel'}
+              {isUploading ? uploadProgress : isRendering ? 'Rendering...' : isSaving ? 'Saving...' : 'Create Reel'}
             </button>
           </div>
         )}
@@ -702,10 +812,10 @@ export default function ReelEditorContent() {
             <div className="pt-4 border-t border-border">
               <button
                 onClick={handleStartRender}
-                disabled={!hasRequiredContent}
+                disabled={!hasRequiredContent || isUploading || isSaving}
                 className="btn-primary w-full disabled:opacity-50"
               >
-                Create Reel
+                {isUploading ? uploadProgress : isSaving ? 'Saving...' : 'Create Reel'}
               </button>
             </div>
           </div>

@@ -2335,6 +2335,39 @@ export const api = {
       } as ApiResponse<MusicTrack>;
     },
 
+    // Media Upload
+    /** Upload a media file to Supabase storage for reels */
+    uploadMedia: async (file: File, userId: string): Promise<{ url: string; path: string }> => {
+      // Dynamic import to avoid SSR issues
+      const { supabase } = await import('./supabase');
+
+      const timestamp = Date.now();
+      const ext = file.name.split('.').pop() || 'mp4';
+      const fileName = `${timestamp}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const filePath = `${userId}/reels/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('video-uploads')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) {
+        throw new Error(`Failed to upload file: ${error.message}`);
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('video-uploads')
+        .getPublicUrl(filePath);
+
+      return {
+        url: urlData.publicUrl,
+        path: data.path,
+      };
+    },
+
     // Projects
     /** Create a new reel project */
     createProject: async (data: CreateReelProjectInput) => {
