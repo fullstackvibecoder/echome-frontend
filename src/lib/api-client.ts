@@ -33,6 +33,9 @@ import type {
   UpdateReelClipInput,
 } from '../types';
 
+// Re-export reel types for convenience
+export type { ReelTemplate, MusicTrackSummary, MusicTrack, TemplateSegment };
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -1400,6 +1403,12 @@ export const api = {
         presetId?: string;
         imageUrl?: string;
       };
+      /** Generate reel content (hook, segments, CTA) from transcript */
+      generateReel?: boolean;
+      /** Reel template ID (undefined for auto-select) */
+      reelTemplate?: string;
+      /** Music track ID for reel (undefined for auto, null for no music) */
+      reelMusicTrackId?: string | null;
     }) => {
       const response = await apiClient.post(`/clips/${uploadId}/process`, config || {}, {
         timeout: 300000, // 5 minutes for video processing

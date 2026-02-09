@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
-import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot } from '@/lib/api-client';
+import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
 import { SnapshotPicker } from './SnapshotPicker';
 
 /**
@@ -381,6 +381,13 @@ export function FirstGeneration({
   // Caption style state
   const [captionStyle, setCaptionStyle] = useState<CaptionStyleOption>('modern');
 
+  // Reel configuration state
+  const [reelTemplate, setReelTemplate] = useState<string>('auto');
+  const [reelMusicTrackId, setReelMusicTrackId] = useState<string>('auto');
+  const [musicTracks, setMusicTracks] = useState<MusicTrackSummary[]>([]);
+  const [reelTemplates, setReelTemplates] = useState<ReelTemplate[]>([]);
+  const [loadingReelOptions, setLoadingReelOptions] = useState(false);
+
   // Repurpose state
   const [pendingContent, setPendingContent] = useState<ContentHistoryEntry[]>([]);
   const [selectedContent, setSelectedContent] = useState<ContentHistoryEntry | null>(null);
@@ -406,6 +413,36 @@ export function FirstGeneration({
       loadPendingContent();
     }
   }, [inputType]);
+
+  // Load reel templates and music tracks when video mode is selected
+  useEffect(() => {
+    if (inputType === 'video' || inputType === 'url') {
+      loadReelOptions();
+    }
+  }, [inputType]);
+
+  const loadReelOptions = async () => {
+    if (reelTemplates.length > 0 && musicTracks.length > 0) return; // Already loaded
+
+    try {
+      setLoadingReelOptions(true);
+      const [templatesRes, musicRes] = await Promise.all([
+        api.reels.listTemplates(),
+        api.reels.listMusic({ limit: 20 }),
+      ]);
+
+      if (templatesRes.success && templatesRes.data) {
+        setReelTemplates(templatesRes.data);
+      }
+      if (musicRes.success && musicRes.data) {
+        setMusicTracks(musicRes.data);
+      }
+    } catch (error) {
+      console.error('Failed to load reel options:', error);
+    } finally {
+      setLoadingReelOptions(false);
+    }
+  };
 
   const loadPendingContent = async () => {
     try {
@@ -527,6 +564,10 @@ export function FirstGeneration({
         designPreset, // New design preset system
         carouselBackground, // Legacy/custom image support
         captionStyle, // Pass selected caption style
+        // Reel configuration
+        reelTemplate: reelTemplate === 'auto' ? undefined : reelTemplate,
+        reelMusicTrackId: reelMusicTrackId === 'auto' ? undefined : reelMusicTrackId === 'none' ? null : reelMusicTrackId,
+        generateReel: true, // Generate reel content from transcript
       });
 
       if (!processResponse.success || !processResponse.data?.jobId) {
@@ -1276,6 +1317,69 @@ export function FirstGeneration({
           <p className="text-small text-text-secondary">
             {CAPTION_STYLE_OPTIONS.find(opt => opt.value === captionStyle)?.description}
           </p>
+        </div>
+      )}
+
+      {/* Reel Configuration - Only show for video/URL input */}
+      {(inputType === 'video' || inputType === 'url') && (
+        <div className="mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl">🎬</span>
+            <h3 className="text-body font-semibold text-text-primary">Video Reel</h3>
+            <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Auto-generated</span>
+          </div>
+          <p className="text-small text-text-secondary mb-4">
+            A short-form reel with AI-generated text overlays will be created from your video
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Reel Template */}
+            <div>
+              <label className="text-small font-medium text-text-primary block mb-1.5">
+                Reel Template
+              </label>
+              <select
+                value={reelTemplate}
+                onChange={(e) => setReelTemplate(e.target.value)}
+                disabled={generating || uploading || videoProcessing || loadingReelOptions}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-bg-primary text-body text-sm focus:outline-none focus:border-accent"
+              >
+                <option value="auto">Auto (AI picks best)</option>
+                {reelTemplates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Music Track */}
+            <div>
+              <label className="text-small font-medium text-text-primary block mb-1.5">
+                Background Music
+              </label>
+              <select
+                value={reelMusicTrackId}
+                onChange={(e) => setReelMusicTrackId(e.target.value)}
+                disabled={generating || uploading || videoProcessing || loadingReelOptions}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-bg-primary text-body text-sm focus:outline-none focus:border-accent"
+              >
+                <option value="auto">Auto (AI picks)</option>
+                <option value="none">No music</option>
+                {musicTracks.map((track) => (
+                  <option key={track.id} value={track.id}>
+                    {track.name}{track.artist ? ` - ${track.artist}` : ''}{track.genre ? ` (${track.genre})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {reelTemplate !== 'auto' && reelTemplates.find(t => t.id === reelTemplate) && (
+            <p className="mt-3 text-small text-text-secondary">
+              {reelTemplates.find(t => t.id === reelTemplate)?.description}
+            </p>
+          )}
         </div>
       )}
 
