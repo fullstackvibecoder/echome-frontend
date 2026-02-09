@@ -37,21 +37,37 @@ export function TemplateCard({ template, onClick, isSelected }: TemplateCardProp
       `}
     >
       {/* Thumbnail / Preview */}
-      <div className="aspect-[9/16] bg-gradient-to-br from-surface to-surface-secondary relative">
+      <div className="aspect-[9/16] relative overflow-hidden">
+        {/* Gradient background based on category */}
+        <div className={`absolute inset-0 ${
+          template.category === 'hook' ? 'bg-gradient-to-br from-orange-500/80 to-red-600/80' :
+          template.category === 'transformation' ? 'bg-gradient-to-br from-purple-500/80 to-pink-600/80' :
+          template.category === 'tutorial' ? 'bg-gradient-to-br from-blue-500/80 to-cyan-600/80' :
+          template.category === 'lifestyle' ? 'bg-gradient-to-br from-green-500/80 to-teal-600/80' :
+          'bg-gradient-to-br from-violet-500/80 to-fuchsia-600/80'
+        }`} />
+
+        {/* Pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+          backgroundSize: '24px 24px'
+        }} />
+
         {/* Segment indicators */}
         <div className="absolute inset-0 flex flex-col justify-center items-center p-4">
-          <div className="space-y-2 w-full max-w-[80%]">
+          <div className="space-y-2 w-full max-w-[85%]">
             {segments.slice(0, 4).map((segment, i) => (
               <div
                 key={segment.id}
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center"
+                className="bg-white/20 backdrop-blur-sm rounded-lg p-2.5 text-center border border-white/10 transform transition-transform group-hover:scale-[1.02]"
+                style={{ animationDelay: `${i * 100}ms` }}
               >
-                <span className="text-xs text-white/80">{segment.label}</span>
+                <span className="text-sm font-medium text-white drop-shadow-sm">{segment.label}</span>
               </div>
             ))}
             {segments.length > 4 && (
-              <div className="text-center text-xs text-white/60">
-                +{segments.length - 4} more
+              <div className="text-center text-xs text-white/70 font-medium">
+                +{segments.length - 4} more segments
               </div>
             )}
           </div>

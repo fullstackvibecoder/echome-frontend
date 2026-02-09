@@ -20,6 +20,7 @@ import type {
   UserProfileUpdate,
   // Reel maker types
   ReelTemplate,
+  TemplateSegment,
   MusicTrack,
   MusicTrackSummary,
   ReelProject,
@@ -2245,13 +2246,45 @@ export const api = {
       outputDurationMs: s.output_duration_ms,
     }),
 
+    _transformSegment: (s: any): TemplateSegment => ({
+      id: s.id,
+      label: s.label,
+      order: s.order,
+      defaultDurationMs: s.default_duration_ms,
+      minDurationMs: s.min_duration_ms,
+      maxDurationMs: s.max_duration_ms,
+      transitionIn: s.transition_in,
+      transitionOut: s.transition_out,
+      effects: s.effects,
+      textOverlay: s.text_overlay,
+      description: s.description,
+    }),
+
+    _transformTemplate: (t: any): ReelTemplate => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      thumbnailUrl: t.thumbnail_url,
+      category: t.category,
+      segments: (t.segments || []).map(api.reels._transformSegment),
+      defaultDurationMs: t.default_duration_ms,
+      musicRequired: t.music_required,
+      suggestedEffects: t.suggested_effects || [],
+      bestFor: t.best_for || [],
+      aspectRatio: t.aspect_ratio,
+    }),
+
     // Templates
     /** List all reel templates */
     listTemplates: async () => {
       const response = await apiClient.get('/reels/templates', {
         timeout: LIST_TIMEOUT,
       });
-      return response.data as ApiResponse<ReelTemplate[]>;
+      const rawData = response.data as ApiResponse<any[]>;
+      return {
+        ...rawData,
+        data: rawData.data?.map(api.reels._transformTemplate) || [],
+      } as ApiResponse<ReelTemplate[]>;
     },
 
     /** Get template by ID */
@@ -2259,7 +2292,11 @@ export const api = {
       const response = await apiClient.get(`/reels/templates/${templateId}`, {
         timeout: LIST_TIMEOUT,
       });
-      return response.data as ApiResponse<ReelTemplate>;
+      const rawData = response.data as ApiResponse<any>;
+      return {
+        ...rawData,
+        data: rawData.data ? api.reels._transformTemplate(rawData.data) : null,
+      } as ApiResponse<ReelTemplate>;
     },
 
     // Music
