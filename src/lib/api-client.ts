@@ -2347,7 +2347,7 @@ export const api = {
       const filePath = `${userId}/reels/${fileName}`;
 
       const { data, error } = await supabase.storage
-        .from('video-uploads')
+        .from('reels')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
@@ -2359,7 +2359,7 @@ export const api = {
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('video-uploads')
+        .from('reels')
         .getPublicUrl(filePath);
 
       return {
