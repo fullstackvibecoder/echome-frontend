@@ -461,13 +461,22 @@ export default function ContentKitDetailContent() {
           {/* Video Clips Section */}
           {hasClips && (
             <section>
-              <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
-                <span>🎬</span>
-                <span>Video Clips</span>
-                <span className="text-text-secondary text-lg font-normal">
-                  ({detail.clips.length} ready to share)
-                </span>
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-display text-2xl flex items-center gap-3">
+                  <span>🎬</span>
+                  <span>Video Clips</span>
+                  <span className="text-text-secondary text-lg font-normal">
+                    ({detail.clips.length} ready to share)
+                  </span>
+                </h2>
+                <Link
+                  href={`/app/reels/new?contentKitId=${id}`}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-purple-500/25"
+                >
+                  <span>🎵</span>
+                  <span>Create BeatSync Reel</span>
+                </Link>
+              </div>
 
               {/* Featured Clip Player */}
               <div className="grid lg:grid-cols-2 gap-6 mb-6">

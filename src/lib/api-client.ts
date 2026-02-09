@@ -18,6 +18,18 @@ import type {
   UnifiedContentResponse,
   UserProfile,
   UserProfileUpdate,
+  // Reel maker types
+  ReelTemplate,
+  MusicTrack,
+  MusicTrackSummary,
+  ReelProject,
+  ReelProjectClip,
+  ReelProjectDetail,
+  ReelRenderStatus,
+  ReelStatus,
+  CreateReelProjectInput,
+  UpdateReelProjectInput,
+  UpdateReelClipInput,
 } from '../types';
 
 const API_BASE_URL =
@@ -2148,6 +2160,284 @@ export const api = {
     }) => {
       const response = await apiClient.post('/help/feedback', data);
       return response.data as { success: boolean; data: { id: string } };
+    },
+  },
+
+  // -------- REELS --------
+  reels: {
+    // Transform functions for snake_case to camelCase
+    _transformProject: (p: any): ReelProject => ({
+      id: p.id,
+      userId: p.user_id,
+      contentKitId: p.content_kit_id,
+      templateId: p.template_id,
+      title: p.title,
+      status: p.status,
+      errorMessage: p.error_message,
+      progress: p.progress,
+      musicTrackId: p.music_track_id,
+      musicVolume: p.music_volume,
+      beatSyncEnabled: p.beat_sync_enabled,
+      addCaptions: p.add_captions,
+      captionPreset: p.caption_preset,
+      outputUrl: p.output_url,
+      outputDurationMs: p.output_duration_ms,
+      thumbnailUrl: p.thumbnail_url,
+      createdAt: p.created_at,
+      updatedAt: p.updated_at,
+    }),
+
+    _transformClip: (c: any): ReelProjectClip => ({
+      id: c.id,
+      reelProjectId: c.reel_project_id,
+      segmentId: c.segment_id,
+      orderIndex: c.order_index,
+      sourceUrl: c.source_url,
+      sourceDurationMs: c.source_duration_ms,
+      originalFilename: c.original_filename,
+      trimStartMs: c.trim_start_ms,
+      trimEndMs: c.trim_end_ms,
+      transitionType: c.transition_type,
+      effects: c.effects || [],
+      status: c.status,
+      localPath: c.local_path,
+      errorMessage: c.error_message,
+      createdAt: c.created_at,
+    }),
+
+    _transformMusicTrack: (t: any): MusicTrack => ({
+      id: t.id,
+      name: t.name,
+      artist: t.artist,
+      durationMs: t.duration_ms,
+      fileUrl: t.file_url,
+      tempo: t.tempo,
+      beats: t.beats,
+      downbeats: t.downbeats,
+      genre: t.genre,
+      mood: t.mood,
+      isTrending: t.is_trending,
+      licenseType: t.license_type,
+      createdAt: t.created_at,
+      updatedAt: t.updated_at,
+    }),
+
+    _transformMusicTrackSummary: (t: any): MusicTrackSummary => ({
+      id: t.id,
+      name: t.name,
+      artist: t.artist,
+      durationMs: t.duration_ms,
+      fileUrl: t.file_url,
+      tempo: t.tempo,
+      genre: t.genre,
+      mood: t.mood,
+      isTrending: t.is_trending,
+      licenseType: t.license_type,
+      createdAt: t.created_at,
+    }),
+
+    _transformRenderStatus: (s: any): ReelRenderStatus => ({
+      status: s.status,
+      progress: s.progress,
+      errorMessage: s.error_message,
+      outputUrl: s.output_url,
+      thumbnailUrl: s.thumbnail_url,
+      outputDurationMs: s.output_duration_ms,
+    }),
+
+    // Templates
+    /** List all reel templates */
+    listTemplates: async () => {
+      const response = await apiClient.get('/reels/templates', {
+        timeout: LIST_TIMEOUT,
+      });
+      return response.data as ApiResponse<ReelTemplate[]>;
+    },
+
+    /** Get template by ID */
+    getTemplate: async (templateId: string) => {
+      const response = await apiClient.get(`/reels/templates/${templateId}`, {
+        timeout: LIST_TIMEOUT,
+      });
+      return response.data as ApiResponse<ReelTemplate>;
+    },
+
+    // Music
+    /** List music tracks */
+    listMusic: async (params?: {
+      genre?: string;
+      mood?: string;
+      trending?: boolean;
+      limit?: number;
+      offset?: number;
+    }) => {
+      const response = await apiClient.get('/reels/music', {
+        params,
+        timeout: LIST_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any[]>;
+      return {
+        ...rawData,
+        data: rawData.data?.map(api.reels._transformMusicTrackSummary) || [],
+      } as ApiResponse<MusicTrackSummary[]>;
+    },
+
+    /** Get music track with beat data */
+    getMusicTrack: async (trackId: string) => {
+      const response = await apiClient.get(`/reels/music/${trackId}`, {
+        timeout: LIST_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any>;
+      return {
+        ...rawData,
+        data: rawData.data ? api.reels._transformMusicTrack(rawData.data) : null,
+      } as ApiResponse<MusicTrack>;
+    },
+
+    // Projects
+    /** Create a new reel project */
+    createProject: async (data: CreateReelProjectInput) => {
+      const response = await apiClient.post('/reels/projects', data, {
+        timeout: GENERATION_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any>;
+      return {
+        ...rawData,
+        data: rawData.data ? api.reels._transformProject(rawData.data) : null,
+      } as ApiResponse<ReelProject>;
+    },
+
+    /** List user's reel projects */
+    listProjects: async (params?: {
+      status?: ReelStatus;
+      limit?: number;
+      offset?: number;
+    }) => {
+      const response = await apiClient.get('/reels/projects', {
+        params,
+        timeout: LIST_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any[]>;
+      return {
+        ...rawData,
+        data: rawData.data?.map(api.reels._transformProject) || [],
+      } as ApiResponse<ReelProject[]>;
+    },
+
+    /** Get project details with clips */
+    getProject: async (projectId: string) => {
+      const response = await apiClient.get(`/reels/projects/${projectId}`, {
+        timeout: LIST_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any>;
+      if (!rawData.data) {
+        return rawData as ApiResponse<ReelProjectDetail>;
+      }
+      return {
+        ...rawData,
+        data: {
+          project: api.reels._transformProject(rawData.data.project),
+          clips: (rawData.data.clips || []).map(api.reels._transformClip),
+          template: rawData.data.template, // Already camelCase from templates.ts
+          musicTrack: rawData.data.musicTrack ? api.reels._transformMusicTrack(rawData.data.musicTrack) : null,
+        },
+      } as ApiResponse<ReelProjectDetail>;
+    },
+
+    /** Update project settings */
+    updateProject: async (projectId: string, data: UpdateReelProjectInput) => {
+      const response = await apiClient.patch(`/reels/projects/${projectId}`, data);
+      const rawData = response.data as ApiResponse<any>;
+      return {
+        ...rawData,
+        data: rawData.data ? api.reels._transformProject(rawData.data) : null,
+      } as ApiResponse<ReelProject>;
+    },
+
+    /** Update a clip within a project */
+    updateClip: async (projectId: string, clipId: string, data: UpdateReelClipInput) => {
+      const response = await apiClient.patch(
+        `/reels/projects/${projectId}/clips/${clipId}`,
+        data
+      );
+      const rawData = response.data as ApiResponse<any>;
+      return {
+        ...rawData,
+        data: rawData.data ? api.reels._transformClip(rawData.data) : null,
+      } as ApiResponse<ReelProjectClip>;
+    },
+
+    /** Delete a project */
+    deleteProject: async (projectId: string) => {
+      const response = await apiClient.delete(`/reels/projects/${projectId}`, {
+        timeout: DELETE_TIMEOUT,
+      });
+      return response.data as ApiResponse<{ deleted: true }>;
+    },
+
+    /** Start rendering a project */
+    renderProject: async (projectId: string) => {
+      const response = await apiClient.post(`/reels/projects/${projectId}/render`, {}, {
+        timeout: GENERATION_TIMEOUT,
+      });
+      return response.data as ApiResponse<{ status: 'processing'; projectId: string }>;
+    },
+
+    /** Get render status */
+    getRenderStatus: async (projectId: string) => {
+      const response = await apiClient.get(`/reels/projects/${projectId}/status`, {
+        timeout: LIST_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any>;
+      return {
+        ...rawData,
+        data: rawData.data ? api.reels._transformRenderStatus(rawData.data) : null,
+      } as ApiResponse<ReelRenderStatus>;
+    },
+
+    /** Poll render status until complete */
+    pollRenderStatus: async (
+      projectId: string,
+      onProgress?: (status: ReelRenderStatus) => void,
+      intervalMs: number = 2000,
+      maxAttempts: number = 300 // 10 minutes max
+    ): Promise<ReelRenderStatus> => {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+
+        const poll = async () => {
+          try {
+            const response = await api.reels.getRenderStatus(projectId);
+            const status = response.data;
+
+            if (!status) {
+              reject(new Error('No status data received'));
+              return;
+            }
+
+            if (onProgress) {
+              onProgress(status);
+            }
+
+            if (status.status === 'completed' || status.status === 'failed') {
+              resolve(status);
+              return;
+            }
+
+            attempts++;
+            if (attempts >= maxAttempts) {
+              reject(new Error('Render polling timed out'));
+              return;
+            }
+
+            setTimeout(poll, intervalMs);
+          } catch (error) {
+            reject(error);
+          }
+        };
+
+        poll();
+      });
     },
   },
 };

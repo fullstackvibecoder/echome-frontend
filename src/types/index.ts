@@ -895,3 +895,236 @@ export interface UnscheduledContent {
   thumbnailUrl?: string;
   createdAt: string;
 }
+
+// ============================================
+// REEL MAKER TYPES
+// ============================================
+
+/**
+ * Reel project status
+ */
+export type ReelStatus = 'draft' | 'processing' | 'completed' | 'failed';
+
+/**
+ * Transition types for reel clips
+ */
+export type TransitionType = 'cut' | 'whip_pan' | 'zoom_in' | 'zoom_out' | 'flash' | 'fade';
+
+/**
+ * Effect types that can be applied during a segment
+ */
+export type EffectType = 'zoom_pulse' | 'shake' | 'glow' | 'slow_mo' | 'speed_ramp';
+
+/**
+ * Template category
+ */
+export type TemplateCategory = 'hook' | 'transformation' | 'tutorial' | 'lifestyle' | 'trending';
+
+/**
+ * Music license types
+ */
+export type MusicLicenseType = 'royalty_free' | 'licensed';
+
+/**
+ * Template segment definition
+ */
+export interface TemplateSegment {
+  id: string;
+  label: string;
+  order: number;
+  defaultDurationMs: number;
+  minDurationMs: number;
+  maxDurationMs: number;
+  transitionIn?: TransitionType;
+  transitionOut?: TransitionType;
+  effects?: EffectType[];
+  textOverlay?: string;
+  description?: string;
+}
+
+/**
+ * Reel template definition
+ */
+export interface ReelTemplate {
+  id: string;
+  name: string;
+  description: string;
+  thumbnailUrl: string;
+  category: TemplateCategory;
+  segments: TemplateSegment[];
+  defaultDurationMs: number;
+  musicRequired: boolean;
+  suggestedEffects: EffectType[];
+  bestFor: string[];
+  aspectRatio: '9:16' | '16:9' | '1:1';
+}
+
+/**
+ * Music track from library
+ */
+export interface MusicTrack {
+  id: string;
+  name: string;
+  artist?: string;
+  durationMs: number;
+  fileUrl: string;
+  tempo?: number;
+  beats?: number[];
+  downbeats?: number[];
+  genre?: string;
+  mood?: string;
+  isTrending: boolean;
+  licenseType: MusicLicenseType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Simplified music track for list view
+ */
+export interface MusicTrackSummary {
+  id: string;
+  name: string;
+  artist?: string;
+  durationMs: number;
+  fileUrl: string;
+  tempo?: number;
+  genre?: string;
+  mood?: string;
+  isTrending: boolean;
+  licenseType: MusicLicenseType;
+  createdAt: string;
+}
+
+/**
+ * Reel project
+ */
+export interface ReelProject {
+  id: string;
+  userId: string;
+  contentKitId?: string;
+  templateId: string;
+  title?: string;
+  status: ReelStatus;
+  errorMessage?: string;
+  progress: number;
+  musicTrackId?: string;
+  musicVolume: number;
+  beatSyncEnabled: boolean;
+  addCaptions: boolean;
+  captionPreset: string;
+  outputUrl?: string;
+  outputDurationMs?: number;
+  thumbnailUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Reel project clip
+ */
+export interface ReelProjectClip {
+  id: string;
+  reelProjectId: string;
+  segmentId: string;
+  orderIndex: number;
+  sourceUrl: string;
+  sourceDurationMs?: number;
+  originalFilename?: string;
+  trimStartMs: number;
+  trimEndMs?: number;
+  transitionType: TransitionType;
+  effects: EffectType[];
+  status: 'pending' | 'downloading' | 'processing' | 'ready' | 'failed';
+  localPath?: string;
+  errorMessage?: string;
+  createdAt: string;
+}
+
+/**
+ * Input for creating a reel project
+ */
+export interface CreateReelProjectInput {
+  templateId: string;
+  clips: Array<{
+    segmentId: string;
+    sourceUrl: string;
+    trimStartMs?: number;
+    trimEndMs?: number;
+  }>;
+  musicTrackId?: string;
+  title?: string;
+  addCaptions?: boolean;
+  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+  contentKitId?: string;
+}
+
+/**
+ * Input for updating a reel project
+ */
+export interface UpdateReelProjectInput {
+  title?: string;
+  musicTrackId?: string | null;
+  musicVolume?: number;
+  beatSyncEnabled?: boolean;
+  addCaptions?: boolean;
+  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+}
+
+/**
+ * Input for updating a reel project clip
+ */
+export interface UpdateReelClipInput {
+  trimStartMs?: number;
+  trimEndMs?: number;
+  transitionType?: TransitionType;
+  effects?: EffectType[];
+}
+
+/**
+ * Project detail response
+ */
+export interface ReelProjectDetail {
+  project: ReelProject;
+  clips: ReelProjectClip[];
+  template?: ReelTemplate;
+  musicTrack?: MusicTrack | null;
+}
+
+/**
+ * Render status response
+ */
+export interface ReelRenderStatus {
+  status: ReelStatus;
+  progress: number;
+  errorMessage?: string;
+  outputUrl?: string;
+  thumbnailUrl?: string;
+  outputDurationMs?: number;
+}
+
+/**
+ * Caption preset options
+ */
+export const CAPTION_PRESETS = {
+  modern: {
+    label: 'Modern',
+    description: 'Bold, centered text with high impact',
+  },
+  classic: {
+    label: 'Classic',
+    description: 'Traditional bottom-positioned subtitles',
+  },
+  bold: {
+    label: 'Bold',
+    description: 'Extra large attention-grabbing text',
+  },
+  minimal: {
+    label: 'Minimal',
+    description: 'Clean, understated captions',
+  },
+  highlight: {
+    label: 'Highlight',
+    description: 'Word-by-word highlighting effect',
+  },
+} as const;
