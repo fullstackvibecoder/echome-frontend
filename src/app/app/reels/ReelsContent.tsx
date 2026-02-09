@@ -42,8 +42,13 @@ export default function ReelsContent() {
         if (projectsRes.success && projectsRes.data) {
           setRecentProjects(projectsRes.data);
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data');
+      } catch (err: any) {
+        // Check if it's a 404 (backend not deployed) or other error
+        if (err?.response?.status === 404) {
+          setError('Reel Maker API is not available yet. Please ensure the backend is deployed with the latest changes.');
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load data');
+        }
       } finally {
         setIsLoading(false);
       }

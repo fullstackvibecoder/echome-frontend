@@ -20,6 +20,10 @@ export function TemplateCard({ template, onClick, isSelected }: TemplateCardProp
     return `${seconds}s`;
   };
 
+  // Defensive: ensure arrays exist
+  const segments = template.segments || [];
+  const bestFor = template.bestFor || [];
+
   return (
     <button
       onClick={onClick}
@@ -37,7 +41,7 @@ export function TemplateCard({ template, onClick, isSelected }: TemplateCardProp
         {/* Segment indicators */}
         <div className="absolute inset-0 flex flex-col justify-center items-center p-4">
           <div className="space-y-2 w-full max-w-[80%]">
-            {template.segments.slice(0, 4).map((segment, i) => (
+            {segments.slice(0, 4).map((segment, i) => (
               <div
                 key={segment.id}
                 className="bg-white/10 backdrop-blur-sm rounded-lg p-2 text-center"
@@ -45,9 +49,9 @@ export function TemplateCard({ template, onClick, isSelected }: TemplateCardProp
                 <span className="text-xs text-white/80">{segment.label}</span>
               </div>
             ))}
-            {template.segments.length > 4 && (
+            {segments.length > 4 && (
               <div className="text-center text-xs text-white/60">
-                +{template.segments.length - 4} more
+                +{segments.length - 4} more
               </div>
             )}
           </div>
@@ -84,7 +88,7 @@ export function TemplateCard({ template, onClick, isSelected }: TemplateCardProp
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1 mt-3">
-          {template.bestFor.slice(0, 2).map((tag) => (
+          {bestFor.slice(0, 2).map((tag) => (
             <span
               key={tag}
               className="text-xs bg-surface px-2 py-0.5 rounded text-text-secondary"
@@ -96,7 +100,7 @@ export function TemplateCard({ template, onClick, isSelected }: TemplateCardProp
 
         {/* Segments count */}
         <div className="flex items-center gap-2 mt-3 text-xs text-text-secondary">
-          <span>{template.segments.length} segments</span>
+          <span>{segments.length} segments</span>
           <span>•</span>
           <span className="capitalize">{template.category}</span>
         </div>
