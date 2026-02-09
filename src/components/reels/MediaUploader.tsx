@@ -127,40 +127,69 @@ export function MediaUploader({
   };
 
   const handleFiles = useCallback(async (files: FileList) => {
-    const newItems: MediaItem[] = [];
     const remainingSlots = maxItems - items.length;
+    const filesToProcess = Math.min(files.length, remainingSlots);
 
-    for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+    if (filesToProcess === 0) return;
+
+    // Step 1: Add all files immediately with 'pending' status for instant feedback
+    const pendingItems: MediaItem[] = [];
+    for (let i = 0; i < filesToProcess; i++) {
       const file = files[i];
       const error = validateFile(file);
 
-      if (error) {
-        newItems.push({
-          id: generateId(),
-          file,
-          type: getMediaType(file),
-          status: 'error',
-          error,
-        });
-        continue;
-      }
-
-      const thumbnail = await createThumbnail(file);
-      const duration = await getVideoDuration(file);
-
-      newItems.push({
+      pendingItems.push({
         id: generateId(),
         file,
         type: getMediaType(file),
-        thumbnailUrl: thumbnail,
-        durationMs: duration,
-        motionEffect: getMediaType(file) === 'image' ? 'ken_burns' : undefined,
-        status: 'ready',
+        status: error ? 'error' : 'pending',
+        error: error || undefined,
+        progress: 0,
       });
     }
 
-    onItemsChange([...items, ...newItems]);
-  }, [items, maxItems, onItemsChange]);
+    // Update state immediately so user sees all items
+    const allItems = [...items, ...pendingItems];
+    onItemsChange(allItems);
+
+    // Step 2: Process each file in parallel for faster processing
+    const processItem = async (item: MediaItem): Promise<MediaItem> => {
+      if (item.status === 'error') return item;
+
+      try {
+        // Generate thumbnail and get duration
+        const [thumbnail, duration] = await Promise.all([
+          createThumbnail(item.file!),
+          getVideoDuration(item.file!),
+        ]);
+
+        return {
+          ...item,
+          thumbnailUrl: thumbnail,
+          durationMs: duration,
+          motionEffect: item.type === 'image' ? 'ken_burns' : undefined,
+          status: 'ready' as const,
+          progress: 100,
+        };
+      } catch (err) {
+        return {
+          ...item,
+          status: 'error' as const,
+          error: 'Failed to process file',
+        };
+      }
+    };
+
+    // Process all items in parallel
+    const processedItems = await Promise.all(pendingItems.map(processItem));
+
+    // Update items with processed versions
+    onItemsChange([
+      ...items,
+      ...processedItems,
+    ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, maxItems, onItemsChange, acceptedTypes]);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -222,6 +251,16 @@ export function MediaUploader({
         </div>
       </div>
 
+      {/* Processing banner */}
+      {items.some(item => item.status === 'pending') && (
+        <div className="bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <span className="text-sm text-text-primary">
+            Processing {items.filter(i => i.status === 'pending').length} file(s)...
+          </span>
+        </div>
+      )}
+
       {/* Uploaded items grid */}
       {items.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
@@ -230,7 +269,8 @@ export function MediaUploader({
               key={item.id}
               className={`
                 relative aspect-square rounded-lg overflow-hidden group
-                ${item.status === 'error' ? 'ring-2 ring-red-500' : 'ring-1 ring-border'}
+                ${item.status === 'error' ? 'ring-2 ring-red-500' :
+                  item.status === 'pending' ? 'ring-2 ring-accent animate-pulse' : 'ring-1 ring-border'}
               `}
             >
               {/* Thumbnail */}
@@ -242,7 +282,12 @@ export function MediaUploader({
                 />
               ) : (
                 <div className="w-full h-full bg-surface-secondary flex items-center justify-center">
-                  {item.type === 'video' ? (
+                  {item.status === 'pending' ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-text-secondary">Processing...</span>
+                    </div>
+                  ) : item.type === 'video' ? (
                     <svg className="w-8 h-8 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
