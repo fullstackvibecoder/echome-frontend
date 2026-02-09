@@ -1635,6 +1635,79 @@ export const api = {
         };
       };
     },
+
+    /** Generate AI reel content (hook, overlays, CTA) for a content kit */
+    generateReelContent: async (
+      kitId: string,
+      templateId?: string,
+      contentType?: 'tutorial' | 'transformation' | 'lifestyle' | 'promotional'
+    ) => {
+      const response = await apiClient.post(
+        `/content-kits/${kitId}/generate-reel-content`,
+        { templateId, contentType },
+        { timeout: GENERATION_TIMEOUT }
+      );
+      return response.data as {
+        success: boolean;
+        data: {
+          reelContent: {
+            hookText: string;
+            segmentOverlays: Array<{
+              segmentId: string;
+              text: string;
+              position: 'top' | 'center' | 'bottom';
+            }>;
+            ctaText: string;
+            captionScript?: string;
+            suggestedTemplate?: string;
+            generatedAt: string;
+          };
+        };
+      };
+    },
+
+    /** Get reel project linked to a content kit */
+    getLinkedReel: async (kitId: string) => {
+      const response = await apiClient.get(`/content-kits/${kitId}/reel`);
+      return response.data as {
+        success: boolean;
+        data: {
+          project: ReelProject;
+          clips: ReelProjectClip[];
+          template?: ReelTemplate;
+          musicTrack?: MusicTrack | null;
+        } | null;
+      };
+    },
+
+    /** Create a reel project from a content kit */
+    createReelFromKit: async (
+      kitId: string,
+      data: {
+        templateId: string;
+        clips: Array<{
+          segmentId: string;
+          sourceUrl: string;
+          trimStartMs?: number;
+          trimEndMs?: number;
+        }>;
+        musicTrackId?: string;
+        addCaptions?: boolean;
+        captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+      }
+    ) => {
+      const response = await apiClient.post(
+        `/content-kits/${kitId}/create-reel`,
+        data,
+        { timeout: GENERATION_TIMEOUT }
+      );
+      return response.data as {
+        success: boolean;
+        data: {
+          project: ReelProject;
+        };
+      };
+    },
   },
 
   // -------- STRIPE / BILLING --------

@@ -1142,3 +1142,63 @@ export const CAPTION_PRESETS = {
     description: 'Word-by-word highlighting effect',
   },
 } as const;
+
+// ============================================
+// REEL CONTENT KIT INTEGRATION TYPES
+// ============================================
+
+/**
+ * AI-generated reel content structure for content kits
+ * Links reels to content kits by providing pre-generated text overlays
+ */
+export interface ReelContentStructure {
+  hookText: string;           // Attention grabber for first 2-3 seconds (max 10 words)
+  segmentOverlays: Array<{
+    segmentId: string;        // 'hook', 'step_1', 'before', 'after', etc.
+    text: string;             // Text to display on this segment
+    position: 'top' | 'center' | 'bottom';
+  }>;
+  ctaText: string;            // Call-to-action at the end (max 8 words)
+  captionScript?: string;     // Optional voiceover/caption script (max 100 words)
+  suggestedTemplate?: string; // AI-suggested template ID based on content analysis
+  generatedAt: string;        // ISO timestamp when content was generated
+}
+
+/**
+ * Input for creating a reel from a content kit
+ */
+export interface CreateReelFromKitInput {
+  templateId: string;
+  clips: Array<{
+    segmentId: string;
+    sourceUrl: string;
+    trimStartMs?: number;
+    trimEndMs?: number;
+  }>;
+  musicTrackId?: string;
+  addCaptions?: boolean;
+  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+}
+
+/**
+ * Linked reel summary (returned from content kit detail endpoint)
+ */
+export interface LinkedReelSummary {
+  id: string;
+  templateId: string;
+  title?: string;
+  status: ReelStatus;
+  progress: number;
+  outputUrl?: string;
+  thumbnailUrl?: string;
+  outputDurationMs?: number;
+  createdAt: string;
+}
+
+/**
+ * Extended content kit detail including reel data
+ */
+export interface ContentKitDetailWithReel extends ContentKitDetail {
+  reelContent?: ReelContentStructure;
+  reel?: LinkedReelSummary;
+}

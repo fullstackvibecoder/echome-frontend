@@ -12,12 +12,12 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
 import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS, VIDEO_GENERATION_STEPS, isVideoStep } from '@/hooks/useGenerationProgress';
-import { VideoPlayer } from '@/components/content-kit';
+import { VideoPlayer, ReelOutputCard, ReelContentPreview, EmptyReelState } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
-import { ContentCategory } from '@/types';
+import { ContentCategory, ReelContentStructure, LinkedReelSummary, ReelProjectDetail } from '@/types';
 import { CalendarPlus } from 'lucide-react';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
 
@@ -79,6 +79,12 @@ export default function ContentKitDetailContent() {
   } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
+  // Reel integration state
+  const [linkedReel, setLinkedReel] = useState<LinkedReelSummary | null>(null);
+  const [reelContent, setReelContent] = useState<ReelContentStructure | null>(null);
+  const [isGeneratingReelContent, setIsGeneratingReelContent] = useState(false);
+  const [isCreatingReel, setIsCreatingReel] = useState(false);
+
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
 
@@ -134,6 +140,79 @@ export default function ContentKitDetailContent() {
       handleResizeCarousel('1:1');
     }
   }, [hasCarouselCheck, contentKitId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch linked reel data when content kit loads
+  useEffect(() => {
+    if (contentKitId) {
+      // Check for reel data from the detail response
+      if ((detail as any)?.reel) {
+        setLinkedReel((detail as any).reel);
+      }
+      if ((detail as any)?.reelContent) {
+        // Transform snake_case to camelCase
+        const rc = (detail as any).reelContent;
+        setReelContent({
+          hookText: rc.hook_text,
+          segmentOverlays: rc.segment_overlays?.map((o: any) => ({
+            segmentId: o.segment_id,
+            text: o.text,
+            position: o.position,
+          })) || [],
+          ctaText: rc.cta_text,
+          captionScript: rc.caption_script,
+          suggestedTemplate: rc.suggested_template,
+          generatedAt: rc.generated_at,
+        });
+      }
+    }
+  }, [contentKitId, detail]);
+
+  // Handler to generate reel content
+  const handleGenerateReelContent = async () => {
+    if (!contentKitId) return;
+
+    setIsGeneratingReelContent(true);
+    try {
+      const response = await api.contentKits.generateReelContent(contentKitId);
+      if (response.success && response.data?.reelContent) {
+        setReelContent(response.data.reelContent);
+      }
+    } catch (err) {
+      console.error('Failed to generate reel content:', err);
+    } finally {
+      setIsGeneratingReelContent(false);
+    }
+  };
+
+  // Handler to create reel from content kit
+  const handleCreateReel = () => {
+    // Navigate to reel editor with content kit context
+    if (contentKitId && reelContent?.suggestedTemplate) {
+      router.push(`/app/reels/new?contentKitId=${contentKitId}&templateId=${reelContent.suggestedTemplate}`);
+    } else if (contentKitId) {
+      router.push(`/app/reels/new?contentKitId=${contentKitId}`);
+    }
+  };
+
+  // Handler to view/edit linked reel
+  const handleEditReel = () => {
+    if (linkedReel) {
+      router.push(`/app/reels/${linkedReel.id}`);
+    }
+  };
+
+  // Handler to delete linked reel
+  const handleDeleteReel = async () => {
+    if (!linkedReel || !window.confirm('Delete this reel? This cannot be undone.')) return;
+
+    try {
+      // TODO: Add delete reel API call
+      setLinkedReel(null);
+      refresh();
+    } catch (err) {
+      console.error('Failed to delete reel:', err);
+    }
+  };
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
@@ -920,6 +999,63 @@ export default function ContentKitDetailContent() {
               </div>
             </section>
           )}
+
+          {/* Video Reel Section */}
+          <section id="reel-section" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <span>Video Reel</span>
+                {linkedReel && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    linkedReel.status === 'completed'
+                      ? 'bg-green-500/10 text-green-400'
+                      : linkedReel.status === 'processing'
+                      ? 'bg-blue-500/10 text-blue-400'
+                      : 'bg-gray-500/10 text-gray-400'
+                  }`}>
+                    {linkedReel.status}
+                  </span>
+                )}
+              </h2>
+              {!linkedReel && !reelContent && (
+                <button
+                  onClick={handleGenerateReelContent}
+                  disabled={isGeneratingReelContent || !hasClips}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isGeneratingReelContent ? (
+                    <>
+                      <span className="animate-spin inline-block mr-1">⏳</span>
+                      Generating...
+                    </>
+                  ) : (
+                    <>Generate Reel Content</>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {linkedReel ? (
+              <ReelOutputCard
+                reel={linkedReel}
+                onEdit={handleEditReel}
+                onDelete={handleDeleteReel}
+              />
+            ) : reelContent ? (
+              <ReelContentPreview
+                content={reelContent}
+                onCreateReel={handleCreateReel}
+                onRegenerate={handleGenerateReelContent}
+                isCreating={isCreatingReel}
+              />
+            ) : (
+              <EmptyReelState
+                onGenerate={handleGenerateReelContent}
+                isLoading={isGeneratingReelContent}
+                hasTranscript={hasClips}
+              />
+            )}
+          </section>
 
           {/* Empty State */}
           {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (
