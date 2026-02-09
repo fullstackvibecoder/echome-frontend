@@ -149,20 +149,8 @@ export default function ContentKitDetailContent() {
         setLinkedReel((detail as any).reel);
       }
       if ((detail as any)?.reelContent) {
-        // Transform snake_case to camelCase
-        const rc = (detail as any).reelContent;
-        setReelContent({
-          hookText: rc.hook_text,
-          segmentOverlays: rc.segment_overlays?.map((o: any) => ({
-            segmentId: o.segment_id,
-            text: o.text,
-            position: o.position,
-          })) || [],
-          ctaText: rc.cta_text,
-          captionScript: rc.caption_script,
-          suggestedTemplate: rc.suggested_template,
-          generatedAt: rc.generated_at,
-        });
+        // Backend already transforms to camelCase, use directly
+        setReelContent((detail as any).reelContent);
       }
     }
   }, [contentKitId, detail]);
