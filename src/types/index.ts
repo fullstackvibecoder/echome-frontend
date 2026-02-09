@@ -1013,6 +1013,8 @@ export interface ReelProject {
   beatSyncEnabled: boolean;
   addCaptions: boolean;
   captionPreset: string;
+  /** AI-generated content (for standalone reels with context) */
+  generatedContent?: ReelContentStructure;
   outputUrl?: string;
   outputDurationMs?: number;
   thumbnailUrl?: string;

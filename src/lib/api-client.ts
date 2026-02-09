@@ -2263,6 +2263,19 @@ export const api = {
       beatSyncEnabled: p.beat_sync_enabled,
       addCaptions: p.add_captions,
       captionPreset: p.caption_preset,
+      // Transform generated_content (snake_case) to generatedContent (camelCase)
+      generatedContent: p.generated_content ? {
+        hookText: p.generated_content.hook_text,
+        segmentOverlays: (p.generated_content.segment_overlays || []).map((o: any) => ({
+          segmentId: o.segment_id,
+          text: o.text,
+          position: o.position,
+        })),
+        ctaText: p.generated_content.cta_text,
+        captionScript: p.generated_content.caption_script,
+        suggestedTemplate: p.generated_content.suggested_template,
+        generatedAt: p.generated_content.generated_at,
+      } : undefined,
       outputUrl: p.output_url,
       outputDurationMs: p.output_duration_ms,
       thumbnailUrl: p.thumbnail_url,
