@@ -424,9 +424,9 @@ export default function ReelEditorContent() {
     return urlMap;
   }, [user?.id, getAllMediaItems]);
 
-  // Create or update project
-  const handleSaveProject = useCallback(async () => {
-    if (!selectedTemplate || !canCreateReel) return;
+  // Create or update project - returns the project if created/updated successfully
+  const handleSaveProject = useCallback(async (): Promise<ReelProject | null> => {
+    if (!selectedTemplate || !canCreateReel) return null;
 
     try {
       setIsSaving(true);
@@ -489,6 +489,7 @@ export default function ReelEditorContent() {
         if (res.success && res.data) {
           setProject(res.data);
           router.replace(`/app/reels/${res.data.id}`);
+          return res.data;
         }
       } else {
         // Update existing project
@@ -500,14 +501,17 @@ export default function ReelEditorContent() {
           addCaptions,
           captionPreset,
         });
+        return project;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save project');
+      return null;
     } finally {
       setIsSaving(false);
       setIsUploading(false);
       setUploadProgress('');
     }
+    return null;
   }, [
     selectedTemplate,
     canCreateReel,
@@ -533,10 +537,16 @@ export default function ReelEditorContent() {
 
   // Start rendering
   const handleStartRender = useCallback(async () => {
-    if (!project) {
-      // Need to save first
-      await handleSaveProject();
-      return;
+    let projectToRender = project;
+
+    if (!projectToRender) {
+      // Need to save first, then use the returned project
+      const savedProject = await handleSaveProject();
+      if (!savedProject) {
+        // Save failed, error already set by handleSaveProject
+        return;
+      }
+      projectToRender = savedProject;
     }
 
     try {
@@ -544,7 +554,7 @@ export default function ReelEditorContent() {
       setError(null);
       setStep('render');
 
-      const res = await api.reels.renderProject(project.id);
+      const res = await api.reels.renderProject(projectToRender.id);
       if (res.success) {
         pollRenderStatus();
       }
