@@ -4,7 +4,7 @@
  * Before/After Arranger Component
  *
  * Two drop zones for transformation-style content.
- * Each zone accepts 1-3 images OR 1 video.
+ * Each zone accepts 1-6 images OR 1 video.
  */
 
 import { useState, useRef, useCallback } from 'react';
@@ -37,7 +37,7 @@ export function BeforeAfterArranger({
             <h3 className="font-medium text-text-primary">Before/After Reveal</h3>
             <p className="text-sm text-text-secondary mt-1">
               Perfect for transformations, makeovers, and results.
-              Each zone can have 1-3 images or 1 video.
+              Each zone can have 1-6 images or 1 video.
             </p>
           </div>
         </div>
@@ -170,8 +170,8 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
       return;
     }
 
-    // Max 3 images or 1 video
-    const maxItems = hasNewVideo ? 1 : 3;
+    // Max 6 images or 1 video
+    const maxItems = hasNewVideo ? 1 : 6;
     const remainingSlots = maxItems - items.length;
 
     const newItems: MediaItem[] = [];
@@ -222,7 +222,7 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
     onChange(items.filter(item => item.id !== id));
   };
 
-  const canAddMore = items.length === 0 || (items[0]?.type === 'image' && items.length < 3);
+  const canAddMore = items.length === 0 || (items[0]?.type === 'image' && items.length < 6);
 
   return (
     <div className={`bg-gradient-to-b ${colorClasses.bg} rounded-xl p-4 border ${colorClasses.border}`}>
@@ -236,8 +236,8 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
           {items.length > 0
             ? items[0].type === 'video'
               ? '1 video'
-              : `${items.length}/3 images`
-            : '1-3 images or 1 video'
+              : `${items.length}/6 images`
+            : '1-6 images or 1 video'
           }
         </span>
       </div>
@@ -320,7 +320,7 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
               Drop {label.toLowerCase()} content
             </p>
             <p className="text-xs text-text-secondary mt-1">
-              1-3 images or 1 video
+              1-6 images or 1 video
             </p>
           </div>
         </div>

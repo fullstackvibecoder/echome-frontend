@@ -128,6 +128,14 @@ export default function ReelEditorContent() {
     }
   }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
 
+  // Check if all requirements are met (content + music when required)
+  const canCreateReel = useMemo(() => {
+    if (!hasRequiredContent) return false;
+    // If template requires music, check that music is selected
+    if (selectedTemplate?.musicRequired && !selectedMusic) return false;
+    return true;
+  }, [hasRequiredContent, selectedTemplate?.musicRequired, selectedMusic]);
+
   // Load initial data
   useEffect(() => {
     async function loadData() {
@@ -418,7 +426,7 @@ export default function ReelEditorContent() {
 
   // Create or update project
   const handleSaveProject = useCallback(async () => {
-    if (!selectedTemplate || !hasRequiredContent) return;
+    if (!selectedTemplate || !canCreateReel) return;
 
     try {
       setIsSaving(true);
@@ -502,7 +510,7 @@ export default function ReelEditorContent() {
     }
   }, [
     selectedTemplate,
-    hasRequiredContent,
+    canCreateReel,
     uploadAllMedia,
     arrangerType,
     beatSyncItems,
@@ -637,14 +645,14 @@ export default function ReelEditorContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleSaveProject}
-              disabled={isSaving || isUploading || !hasRequiredContent}
+              disabled={isSaving || isUploading || !canCreateReel}
               className="btn-secondary disabled:opacity-50"
             >
               {isUploading ? uploadProgress : isSaving ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               onClick={handleStartRender}
-              disabled={!hasRequiredContent || isRendering || isUploading || isSaving}
+              disabled={!canCreateReel || isRendering || isUploading || isSaving}
               className="btn-primary disabled:opacity-50"
             >
               {isUploading ? uploadProgress : isRendering ? 'Rendering...' : isSaving ? 'Saving...' : 'Create Reel'}
@@ -812,7 +820,7 @@ export default function ReelEditorContent() {
             <div className="pt-4 border-t border-border">
               <button
                 onClick={handleStartRender}
-                disabled={!hasRequiredContent || isUploading || isSaving}
+                disabled={!canCreateReel || isUploading || isSaving}
                 className="btn-primary w-full disabled:opacity-50"
               >
                 {isUploading ? uploadProgress : isSaving ? 'Saving...' : 'Create Reel'}
