@@ -1021,6 +1021,16 @@ export interface ReelProject {
 }
 
 /**
+ * Media type for reel clips
+ */
+export type ReelMediaType = 'video' | 'image';
+
+/**
+ * Motion effect for images
+ */
+export type MotionEffect = 'ken_burns' | 'zoom_in' | 'zoom_out' | 'pan' | 'pulse' | 'static';
+
+/**
  * Reel project clip
  */
 export interface ReelProjectClip {
@@ -1031,6 +1041,10 @@ export interface ReelProjectClip {
   sourceUrl: string;
   sourceDurationMs?: number;
   originalFilename?: string;
+  thumbnailUrl?: string;
+  mediaType: ReelMediaType;
+  motionEffect?: MotionEffect;
+  displayDurationMs?: number;
   trimStartMs: number;
   trimEndMs?: number;
   transitionType: TransitionType;

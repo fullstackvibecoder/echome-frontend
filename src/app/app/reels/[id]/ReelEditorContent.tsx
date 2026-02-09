@@ -4,7 +4,8 @@
  * Reel Editor Page
  *
  * Main editor for creating and editing reels:
- * - Upload clips for each segment
+ * - Select template
+ * - Upload media (images + videos) using template-specific arrangers
  * - Select music (optional)
  * - Configure captions
  * - Preview and render
@@ -18,27 +19,44 @@ import type {
   ReelTemplate,
   ReelProject,
   ReelProjectClip,
-  ReelProjectDetail,
   MusicTrack,
   MusicTrackSummary,
   CreateReelProjectInput,
   ReelRenderStatus,
+  MotionEffect,
 } from '@/types';
 import { TemplatePicker } from '@/components/reels/TemplatePicker';
-import { ClipUploader } from '@/components/reels/ClipUploader';
 import { MusicPicker } from '@/components/reels/MusicPicker';
-import { SegmentTimeline } from '@/components/reels/SegmentTimeline';
 import { RenderProgress } from '@/components/reels/RenderProgress';
+import {
+  BeatSyncArranger,
+  BeforeAfterArranger,
+  HookArranger,
+  SequenceArranger,
+  type MediaItem,
+  type SequenceSection,
+} from '@/components/reels';
 
-type EditorStep = 'template' | 'clips' | 'music' | 'settings' | 'render';
+type EditorStep = 'template' | 'content' | 'music' | 'settings' | 'render';
 
-interface ClipUpload {
-  segmentId: string;
-  file?: File;
-  sourceUrl?: string;
-  trimStartMs?: number;
-  trimEndMs?: number;
-  preview?: string;
+// Map template categories to arranger types
+type ArrangerType = 'beatsync' | 'beforeafter' | 'hook' | 'sequence';
+
+function getArrangerType(template: ReelTemplate): ArrangerType {
+  const templateId = template.id.toLowerCase();
+  const category = template.category?.toLowerCase() || '';
+
+  if (templateId.includes('before') || templateId.includes('after') || category === 'transformation') {
+    return 'beforeafter';
+  }
+  if (templateId.includes('hook') || templateId.includes('3-clip') || templateId.includes('3clip')) {
+    return 'hook';
+  }
+  if (templateId.includes('tutorial') || templateId.includes('day') || templateId.includes('sequence') || category === 'tutorial' || category === 'lifestyle') {
+    return 'sequence';
+  }
+  // Default to beat sync for trending/music-driven templates
+  return 'beatsync';
 }
 
 export default function ReelEditorContent() {
@@ -51,12 +69,11 @@ export default function ReelEditorContent() {
   const contentKitId = searchParams.get('contentKitId');
 
   // State
-  const [step, setStep] = useState<EditorStep>(isNewProject ? 'template' : 'clips');
+  const [step, setStep] = useState<EditorStep>(isNewProject ? 'template' : 'content');
   const [templates, setTemplates] = useState<ReelTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<ReelTemplate | null>(null);
   const [project, setProject] = useState<ReelProject | null>(null);
   const [clips, setClips] = useState<ReelProjectClip[]>([]);
-  const [clipUploads, setClipUploads] = useState<Map<string, ClipUpload>>(new Map());
   const [musicTracks, setMusicTracks] = useState<MusicTrackSummary[]>([]);
   const [selectedMusic, setSelectedMusic] = useState<MusicTrack | null>(null);
   const [title, setTitle] = useState('');
@@ -69,13 +86,43 @@ export default function ReelEditorContent() {
   const [isRendering, setIsRendering] = useState(false);
   const [renderStatus, setRenderStatus] = useState<ReelRenderStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [contentKitClips, setContentKitClips] = useState<Array<{
-    id: string;
-    title?: string;
-    url: string;
-    thumbnailUrl?: string;
-    duration?: number;
-  }>>([]);
+
+  // New media state for redesigned arrangers
+  const [beatSyncItems, setBeatSyncItems] = useState<MediaItem[]>([]);
+  const [beforeItems, setBeforeItems] = useState<MediaItem[]>([]);
+  const [afterItems, setAfterItems] = useState<MediaItem[]>([]);
+  const [hookItem, setHookItem] = useState<MediaItem | null>(null);
+  const [mainItem, setMainItem] = useState<MediaItem | null>(null);
+  const [ctaItem, setCtaItem] = useState<MediaItem | null>(null);
+  const [sequenceSections, setSequenceSections] = useState<SequenceSection[]>([
+    { id: 'sec1', label: 'Step 1', item: null },
+    { id: 'sec2', label: 'Step 2', item: null },
+    { id: 'sec3', label: 'Step 3', item: null },
+  ]);
+
+  // Determine arranger type based on selected template
+  const arrangerType = useMemo(() => {
+    if (!selectedTemplate) return null;
+    return getArrangerType(selectedTemplate);
+  }, [selectedTemplate]);
+
+  // Check if content is ready for next step
+  const hasRequiredContent = useMemo(() => {
+    if (!arrangerType) return false;
+
+    switch (arrangerType) {
+      case 'beatsync':
+        return beatSyncItems.length >= 3;
+      case 'beforeafter':
+        return beforeItems.length > 0 && afterItems.length > 0;
+      case 'hook':
+        return hookItem !== null && mainItem !== null && ctaItem !== null;
+      case 'sequence':
+        return sequenceSections.filter(s => s.item !== null).length >= 3;
+      default:
+        return false;
+    }
+  }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
 
   // Load initial data
   useEffect(() => {
@@ -94,7 +141,8 @@ export default function ReelEditorContent() {
             const template = templatesRes.data.find(t => t.id === preselectedTemplateId);
             if (template) {
               setSelectedTemplate(template);
-              setStep('clips');
+              initializeArrangerState(template);
+              setStep('content');
             }
           }
         }
@@ -103,25 +151,6 @@ export default function ReelEditorContent() {
         const musicRes = await api.reels.listMusic({ limit: 50 });
         if (musicRes.success && musicRes.data) {
           setMusicTracks(musicRes.data);
-        }
-
-        // Load content kit clips if contentKitId is provided
-        if (contentKitId) {
-          try {
-            const kitRes = await api.contentKits.get(contentKitId);
-            if (kitRes.success && kitRes.data?.clips) {
-              const kitClips = kitRes.data.clips.map((clip: any) => ({
-                id: clip.id,
-                title: clip.title || `Clip ${clip.clipNumber || 1}`,
-                url: clip.exports?.[0]?.url || clip.url,
-                thumbnailUrl: clip.thumbnailUrl,
-                duration: clip.duration,
-              })).filter((c: any) => c.url);
-              setContentKitClips(kitClips);
-            }
-          } catch (err) {
-            console.warn('Failed to load content kit clips:', err);
-          }
         }
 
         // Load existing project if not new
@@ -139,6 +168,7 @@ export default function ReelEditorContent() {
 
             if (data.template) {
               setSelectedTemplate(data.template);
+              initializeArrangerState(data.template);
             }
 
             if (data.musicTrack) {
@@ -172,6 +202,22 @@ export default function ReelEditorContent() {
     loadData();
   }, [isNewProject, projectId, preselectedTemplateId, contentKitId]);
 
+  // Initialize arranger state based on template
+  const initializeArrangerState = useCallback((template: ReelTemplate) => {
+    const type = getArrangerType(template);
+    if (type === 'sequence') {
+      const category = template.category?.toLowerCase() || '';
+      const labels = category === 'lifestyle'
+        ? ['Morning', 'Midday', 'Evening']
+        : ['Step 1', 'Step 2', 'Step 3'];
+      setSequenceSections([
+        { id: 'sec1', label: labels[0], item: null },
+        { id: 'sec2', label: labels[1], item: null },
+        { id: 'sec3', label: labels[2], item: null },
+      ]);
+    }
+  }, []);
+
   // Poll render status
   const pollRenderStatus = useCallback(async () => {
     if (!project?.id) return;
@@ -194,34 +240,9 @@ export default function ReelEditorContent() {
   // Handle template selection
   const handleTemplateSelect = useCallback((template: ReelTemplate) => {
     setSelectedTemplate(template);
-    setStep('clips');
-  }, []);
-
-  // Handle clip upload for a segment
-  const handleClipUpload = useCallback((segmentId: string, file: File) => {
-    const preview = URL.createObjectURL(file);
-    setClipUploads(prev => {
-      const next = new Map(prev);
-      next.set(segmentId, {
-        segmentId,
-        file,
-        preview,
-      });
-      return next;
-    });
-  }, []);
-
-  // Handle clip URL input for a segment
-  const handleClipUrl = useCallback((segmentId: string, url: string) => {
-    setClipUploads(prev => {
-      const next = new Map(prev);
-      next.set(segmentId, {
-        segmentId,
-        sourceUrl: url,
-      });
-      return next;
-    });
-  }, []);
+    initializeArrangerState(template);
+    setStep('content');
+  }, [initializeArrangerState]);
 
   // Handle music selection
   const handleMusicSelect = useCallback(async (track: MusicTrackSummary | null) => {
@@ -240,42 +261,116 @@ export default function ReelEditorContent() {
     }
   }, []);
 
-  // Check if all segments have clips
-  const allSegmentsHaveClips = useMemo(() => {
-    if (!selectedTemplate) return false;
-    return selectedTemplate.segments.every(segment =>
-      clipUploads.has(segment.id) || clips.some(c => c.segmentId === segment.id)
-    );
-  }, [selectedTemplate, clipUploads, clips]);
+  // Build clips from current media state
+  const buildClipsFromMedia = useCallback(() => {
+    const clipInputs: Array<{
+      segmentId: string;
+      sourceUrl: string;
+      mediaType: 'video' | 'image';
+      motionEffect?: MotionEffect;
+    }> = [];
+
+    if (!arrangerType) return clipInputs;
+
+    switch (arrangerType) {
+      case 'beatsync':
+        beatSyncItems.forEach((item, index) => {
+          if (item.file || item.url) {
+            clipInputs.push({
+              segmentId: `beat_${index}`,
+              sourceUrl: item.url || 'pending_upload',
+              mediaType: item.type,
+              motionEffect: item.motionEffect,
+            });
+          }
+        });
+        break;
+
+      case 'beforeafter':
+        beforeItems.forEach((item, index) => {
+          if (item.file || item.url) {
+            clipInputs.push({
+              segmentId: `before_${index}`,
+              sourceUrl: item.url || 'pending_upload',
+              mediaType: item.type,
+              motionEffect: item.motionEffect,
+            });
+          }
+        });
+        afterItems.forEach((item, index) => {
+          if (item.file || item.url) {
+            clipInputs.push({
+              segmentId: `after_${index}`,
+              sourceUrl: item.url || 'pending_upload',
+              mediaType: item.type,
+              motionEffect: item.motionEffect,
+            });
+          }
+        });
+        break;
+
+      case 'hook':
+        if (hookItem) {
+          clipInputs.push({
+            segmentId: 'hook',
+            sourceUrl: hookItem.url || 'pending_upload',
+            mediaType: hookItem.type,
+            motionEffect: hookItem.motionEffect,
+          });
+        }
+        if (mainItem) {
+          clipInputs.push({
+            segmentId: 'main',
+            sourceUrl: mainItem.url || 'pending_upload',
+            mediaType: mainItem.type,
+            motionEffect: mainItem.motionEffect,
+          });
+        }
+        if (ctaItem) {
+          clipInputs.push({
+            segmentId: 'cta',
+            sourceUrl: ctaItem.url || 'pending_upload',
+            mediaType: ctaItem.type,
+            motionEffect: ctaItem.motionEffect,
+          });
+        }
+        break;
+
+      case 'sequence':
+        sequenceSections.forEach((section) => {
+          if (section.item) {
+            clipInputs.push({
+              segmentId: section.id,
+              sourceUrl: section.item.url || 'pending_upload',
+              mediaType: section.item.type,
+              motionEffect: section.item.motionEffect,
+            });
+          }
+        });
+        break;
+    }
+
+    return clipInputs;
+  }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
 
   // Create or update project
   const handleSaveProject = useCallback(async () => {
-    if (!selectedTemplate || !allSegmentsHaveClips) return;
+    if (!selectedTemplate || !hasRequiredContent) return;
 
     try {
       setIsSaving(true);
       setError(null);
 
-      // Build clips array
-      const clipInputs = selectedTemplate.segments.map(segment => {
-        const upload = clipUploads.get(segment.id);
-        const existingClip = clips.find(c => c.segmentId === segment.id);
-
-        // For now, use existing clips or placeholder
-        // In production, you'd upload the file first
-        return {
-          segmentId: segment.id,
-          sourceUrl: upload?.sourceUrl || existingClip?.sourceUrl || 'placeholder',
-          trimStartMs: upload?.trimStartMs,
-          trimEndMs: upload?.trimEndMs,
-        };
-      });
+      const clipInputs = buildClipsFromMedia();
 
       if (isNewProject || !project) {
         // Create new project
         const input: CreateReelProjectInput = {
           templateId: selectedTemplate.id,
-          clips: clipInputs,
+          clips: clipInputs.map(c => ({
+            segmentId: c.segmentId,
+            sourceUrl: c.sourceUrl,
+          })),
           musicTrackId: selectedMusic?.id,
           title: title || `Reel - ${selectedTemplate.name}`,
           addCaptions,
@@ -305,9 +400,8 @@ export default function ReelEditorContent() {
     }
   }, [
     selectedTemplate,
-    allSegmentsHaveClips,
-    clipUploads,
-    clips,
+    hasRequiredContent,
+    buildClipsFromMedia,
     isNewProject,
     project,
     selectedMusic,
@@ -353,6 +447,59 @@ export default function ReelEditorContent() {
     );
   }
 
+  // Render content arranger based on template type
+  const renderContentArranger = () => {
+    if (!selectedTemplate || !arrangerType) return null;
+
+    switch (arrangerType) {
+      case 'beatsync':
+        return (
+          <BeatSyncArranger
+            items={beatSyncItems}
+            onItemsChange={setBeatSyncItems}
+            tempo={selectedMusic?.tempo}
+            beatCount={selectedMusic?.downbeats?.length}
+          />
+        );
+
+      case 'beforeafter':
+        return (
+          <BeforeAfterArranger
+            beforeItems={beforeItems}
+            afterItems={afterItems}
+            onBeforeChange={setBeforeItems}
+            onAfterChange={setAfterItems}
+          />
+        );
+
+      case 'hook':
+        return (
+          <HookArranger
+            hookItem={hookItem}
+            mainItem={mainItem}
+            ctaItem={ctaItem}
+            onHookChange={setHookItem}
+            onMainChange={setMainItem}
+            onCtaChange={setCtaItem}
+          />
+        );
+
+      case 'sequence':
+        return (
+          <SequenceArranger
+            sections={sequenceSections}
+            onSectionsChange={setSequenceSections}
+            variant={selectedTemplate.category === 'lifestyle' ? 'dayinlife' : 'tutorial'}
+            minSections={3}
+            maxSections={6}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
@@ -380,14 +527,14 @@ export default function ReelEditorContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleSaveProject}
-              disabled={isSaving || !allSegmentsHaveClips}
+              disabled={isSaving || !hasRequiredContent}
               className="btn-secondary disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               onClick={handleStartRender}
-              disabled={!allSegmentsHaveClips || isRendering}
+              disabled={!hasRequiredContent || isRendering}
               className="btn-primary disabled:opacity-50"
             >
               {isRendering ? 'Rendering...' : 'Create Reel'}
@@ -406,17 +553,17 @@ export default function ReelEditorContent() {
       {/* Step navigation */}
       {step !== 'render' && (
         <div className="flex gap-2 mb-8">
-          {['template', 'clips', 'music', 'settings'].map((s, i) => (
+          {['template', 'content', 'music', 'settings'].map((s, i) => (
             <button
               key={s}
               onClick={() => {
-                if (s === 'template' && selectedTemplate) return; // Can't go back to template
+                if (s === 'template' && selectedTemplate) return;
                 setStep(s as EditorStep);
               }}
               disabled={
-                (s === 'clips' && !selectedTemplate) ||
-                (s === 'music' && !allSegmentsHaveClips) ||
-                (s === 'settings' && !allSegmentsHaveClips)
+                (s === 'content' && !selectedTemplate) ||
+                (s === 'music' && !hasRequiredContent) ||
+                (s === 'settings' && !hasRequiredContent)
               }
               className={`
                 px-4 py-2 text-sm rounded-lg transition-colors
@@ -425,7 +572,7 @@ export default function ReelEditorContent() {
                 disabled:opacity-30 disabled:cursor-not-allowed
               `}
             >
-              {i + 1}. {s.charAt(0).toUpperCase() + s.slice(1)}
+              {i + 1}. {s === 'content' ? 'Content' : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
         </div>
@@ -442,52 +589,26 @@ export default function ReelEditorContent() {
           />
         )}
 
-        {/* Clip uploads */}
-        {step === 'clips' && selectedTemplate && (
+        {/* Content upload - template-specific arrangers */}
+        {step === 'content' && selectedTemplate && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-medium text-text-primary mb-2">Upload Clips</h2>
+              <h2 className="text-lg font-medium text-text-primary mb-2">Add Your Content</h2>
               <p className="text-text-secondary text-sm">
-                Upload a video clip for each segment. You can trim clips after uploading.
+                Upload images and videos. Each piece of content will become a segment in your reel.
               </p>
             </div>
 
-            {/* Content Kit clips notice */}
-            {contentKitClips.length > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/30 rounded-lg">
-                <span className="text-2xl">📦</span>
-                <div>
-                  <p className="text-sm font-medium text-text-primary">
-                    Content Kit clips available
-                  </p>
-                  <p className="text-xs text-text-secondary">
-                    {contentKitClips.length} clip{contentKitClips.length !== 1 ? 's' : ''} from your content kit are ready to use.
-                    Click &quot;Select from Content Kit&quot; on any segment below.
-                  </p>
-                </div>
-              </div>
-            )}
+            {renderContentArranger()}
 
-            <div className="grid gap-4">
-              {selectedTemplate.segments.map((segment) => (
-                <ClipUploader
-                  key={segment.id}
-                  segment={segment}
-                  upload={clipUploads.get(segment.id)}
-                  existingClip={clips.find(c => c.segmentId === segment.id)}
-                  availableClips={contentKitClips}
-                  onFileSelect={(file) => handleClipUpload(segment.id, file)}
-                  onUrlInput={(url) => handleClipUrl(segment.id, url)}
-                />
-              ))}
-            </div>
-
-            {allSegmentsHaveClips && (
-              <div className="pt-4 border-t border-border">
-                <SegmentTimeline
-                  template={selectedTemplate}
-                  clips={clipUploads}
-                />
+            {hasRequiredContent && (
+              <div className="flex justify-end pt-4 border-t border-border">
+                <button
+                  onClick={() => setStep('music')}
+                  className="btn-primary"
+                >
+                  Continue to Music
+                </button>
               </div>
             )}
           </div>
@@ -581,7 +702,7 @@ export default function ReelEditorContent() {
             <div className="pt-4 border-t border-border">
               <button
                 onClick={handleStartRender}
-                disabled={!allSegmentsHaveClips}
+                disabled={!hasRequiredContent}
                 className="btn-primary w-full disabled:opacity-50"
               >
                 Create Reel
