@@ -1071,6 +1071,8 @@ export interface CreateReelProjectInput {
   addCaptions?: boolean;
   captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
   contentKitId?: string;
+  /** Context/description for AI text overlay generation (standalone reels) */
+  context?: string;
 }
 
 /**

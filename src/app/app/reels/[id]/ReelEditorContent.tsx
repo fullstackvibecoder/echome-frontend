@@ -72,6 +72,7 @@ export default function ReelEditorContent() {
   const [musicTracks, setMusicTracks] = useState<MusicTrackSummary[]>([]);
   const [selectedMusic, setSelectedMusic] = useState<MusicTrack | null>(null);
   const [title, setTitle] = useState('');
+  const [reelContext, setReelContext] = useState(''); // Context/description for AI text overlay generation
   const [addCaptions, setAddCaptions] = useState(false);
   const [captionPreset, setCaptionPreset] = useState<'modern' | 'classic' | 'bold'>('modern');
   const [musicVolume, setMusicVolume] = useState(0.3);
@@ -403,6 +404,8 @@ export default function ReelEditorContent() {
           title: title || `Reel - ${selectedTemplate.name}`,
           addCaptions,
           captionPreset,
+          // Include context for AI text overlay generation (standalone reels only)
+          context: reelContext || undefined,
         };
 
         const res = await api.reels.createProject(input);
@@ -550,18 +553,21 @@ export default function ReelEditorContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleSaveProject}
-              disabled={isSaving || isUploading || !canCreateReel}
+              disabled={isSaving || isUploading || !hasRequiredContent}
               className="btn-secondary disabled:opacity-50"
             >
               {isUploading ? uploadProgress : isSaving ? 'Saving...' : 'Save Draft'}
             </button>
-            <button
-              onClick={handleStartRender}
-              disabled={!canCreateReel || isRendering || isUploading || isSaving}
-              className="btn-primary disabled:opacity-50"
-            >
-              {isUploading ? uploadProgress : isRendering ? 'Rendering...' : isSaving ? 'Saving...' : 'Create Reel'}
-            </button>
+            {/* Only show Create Reel on settings step when ready */}
+            {step === 'settings' && (
+              <button
+                onClick={handleStartRender}
+                disabled={!canCreateReel || isRendering || isUploading || isSaving}
+                className="btn-primary disabled:opacity-50"
+              >
+                {isUploading ? uploadProgress : isRendering ? 'Rendering...' : isSaving ? 'Saving...' : 'Create Reel'}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -621,6 +627,25 @@ export default function ReelEditorContent() {
                 Upload images and videos. Each piece of content will become a segment in your reel.
               </p>
             </div>
+
+            {/* Context input for AI text overlay generation (standalone reels only) */}
+            {!contentKitId && (
+              <div className="bg-surface-secondary/50 rounded-lg p-4 border border-border">
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  What is your reel about? <span className="text-text-secondary font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={reelContext}
+                  onChange={(e) => setReelContext(e.target.value)}
+                  placeholder="E.g., 'A day in my life as a software developer' or '3 tips for better sleep' - This helps generate engaging text overlays for your reel"
+                  rows={3}
+                  className="w-full px-4 py-3 bg-bg-primary border border-border rounded-lg text-text-primary placeholder:text-text-secondary/70 focus:outline-none focus:ring-2 focus:ring-accent resize-none text-sm"
+                />
+                <p className="text-xs text-text-secondary mt-2">
+                  Adding context helps AI generate hook text, segment labels, and calls-to-action for your reel.
+                </p>
+              </div>
+            )}
 
             {renderContentArranger()}
 
