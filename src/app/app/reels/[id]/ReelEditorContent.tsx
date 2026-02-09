@@ -32,32 +32,25 @@ import { RenderProgress } from '@/components/reels/RenderProgress';
 import {
   BeatSyncArranger,
   BeforeAfterArranger,
-  HookArranger,
-  SequenceArranger,
   type MediaItem,
-  type SequenceSection,
 } from '@/components/reels';
 
 type EditorStep = 'template' | 'content' | 'music' | 'settings' | 'render';
 
-// Map template categories to arranger types
-type ArrangerType = 'beatsync' | 'beforeafter' | 'hook' | 'sequence';
+// Simplified arranger types: 'pool' for single upload zone, 'zones' for before/after
+type ArrangerType = 'pool' | 'zones';
 
 function getArrangerType(template: ReelTemplate): ArrangerType {
   const templateId = template.id.toLowerCase();
   const category = template.category?.toLowerCase() || '';
 
+  // Only before/after uses zones mode
   if (templateId.includes('before') || templateId.includes('after') || category === 'transformation') {
-    return 'beforeafter';
+    return 'zones';
   }
-  if (templateId.includes('hook') || templateId.includes('3-clip') || templateId.includes('3clip')) {
-    return 'hook';
-  }
-  if (templateId.includes('tutorial') || templateId.includes('day') || templateId.includes('sequence') || category === 'tutorial' || category === 'lifestyle') {
-    return 'sequence';
-  }
-  // Default to beat sync for trending/music-driven templates
-  return 'beatsync';
+
+  // All other templates use pool mode (single upload area, auto-distributed)
+  return 'pool';
 }
 
 export default function ReelEditorContent() {
@@ -91,18 +84,12 @@ export default function ReelEditorContent() {
   const [renderStatus, setRenderStatus] = useState<ReelRenderStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // New media state for redesigned arrangers
+  // Media state for arrangers
+  // Pool mode: single upload zone, items auto-distributed across music
   const [beatSyncItems, setBeatSyncItems] = useState<MediaItem[]>([]);
+  // Zones mode: before/after with separate upload zones
   const [beforeItems, setBeforeItems] = useState<MediaItem[]>([]);
   const [afterItems, setAfterItems] = useState<MediaItem[]>([]);
-  const [hookItem, setHookItem] = useState<MediaItem | null>(null);
-  const [mainItem, setMainItem] = useState<MediaItem | null>(null);
-  const [ctaItem, setCtaItem] = useState<MediaItem | null>(null);
-  const [sequenceSections, setSequenceSections] = useState<SequenceSection[]>([
-    { id: 'sec1', label: 'Step 1', item: null },
-    { id: 'sec2', label: 'Step 2', item: null },
-    { id: 'sec3', label: 'Step 3', item: null },
-  ]);
 
   // Determine arranger type based on selected template
   const arrangerType = useMemo(() => {
@@ -115,18 +102,16 @@ export default function ReelEditorContent() {
     if (!arrangerType) return false;
 
     switch (arrangerType) {
-      case 'beatsync':
-        return beatSyncItems.length >= 3;
-      case 'beforeafter':
+      case 'pool':
+        // Pool mode: need at least 1 item
+        return beatSyncItems.length >= 1;
+      case 'zones':
+        // Zones mode (before/after): need at least 1 in each zone
         return beforeItems.length > 0 && afterItems.length > 0;
-      case 'hook':
-        return hookItem !== null && mainItem !== null && ctaItem !== null;
-      case 'sequence':
-        return sequenceSections.filter(s => s.item !== null).length >= 3;
       default:
         return false;
     }
-  }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
+  }, [arrangerType, beatSyncItems, beforeItems, afterItems]);
 
   // Check if all requirements are met (content + music when required)
   const canCreateReel = useMemo(() => {
@@ -214,19 +199,14 @@ export default function ReelEditorContent() {
     loadData();
   }, [isNewProject, projectId, preselectedTemplateId, contentKitId]);
 
-  // Initialize arranger state based on template
+  // Initialize arranger state based on template (reset items when switching)
   const initializeArrangerState = useCallback((template: ReelTemplate) => {
     const type = getArrangerType(template);
-    if (type === 'sequence') {
-      const category = template.category?.toLowerCase() || '';
-      const labels = category === 'lifestyle'
-        ? ['Morning', 'Midday', 'Evening']
-        : ['Step 1', 'Step 2', 'Step 3'];
-      setSequenceSections([
-        { id: 'sec1', label: labels[0], item: null },
-        { id: 'sec2', label: labels[1], item: null },
-        { id: 'sec3', label: labels[2], item: null },
-      ]);
+    if (type === 'pool') {
+      setBeatSyncItems([]);
+    } else if (type === 'zones') {
+      setBeforeItems([]);
+      setAfterItems([]);
     }
   }, []);
 
@@ -285,7 +265,8 @@ export default function ReelEditorContent() {
     if (!arrangerType) return clipInputs;
 
     switch (arrangerType) {
-      case 'beatsync':
+      case 'pool':
+        // Pool mode: all items go into beat segments
         beatSyncItems.forEach((item, index) => {
           if (item.file || item.url) {
             clipInputs.push({
@@ -298,7 +279,8 @@ export default function ReelEditorContent() {
         });
         break;
 
-      case 'beforeafter':
+      case 'zones':
+        // Zones mode: before items then after items
         beforeItems.forEach((item, index) => {
           if (item.file || item.url) {
             clipInputs.push({
@@ -320,68 +302,24 @@ export default function ReelEditorContent() {
           }
         });
         break;
-
-      case 'hook':
-        if (hookItem) {
-          clipInputs.push({
-            segmentId: 'hook',
-            sourceUrl: hookItem.url || 'pending_upload',
-            mediaType: hookItem.type,
-            motionEffect: hookItem.motionEffect,
-          });
-        }
-        if (mainItem) {
-          clipInputs.push({
-            segmentId: 'main',
-            sourceUrl: mainItem.url || 'pending_upload',
-            mediaType: mainItem.type,
-            motionEffect: mainItem.motionEffect,
-          });
-        }
-        if (ctaItem) {
-          clipInputs.push({
-            segmentId: 'cta',
-            sourceUrl: ctaItem.url || 'pending_upload',
-            mediaType: ctaItem.type,
-            motionEffect: ctaItem.motionEffect,
-          });
-        }
-        break;
-
-      case 'sequence':
-        sequenceSections.forEach((section) => {
-          if (section.item) {
-            clipInputs.push({
-              segmentId: section.id,
-              sourceUrl: section.item.url || 'pending_upload',
-              mediaType: section.item.type,
-              motionEffect: section.item.motionEffect,
-            });
-          }
-        });
-        break;
     }
 
     return clipInputs;
-  }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
+  }, [arrangerType, beatSyncItems, beforeItems, afterItems]);
 
   // Get all media items that need to be included
   const getAllMediaItems = useCallback((): MediaItem[] => {
     if (!arrangerType) return [];
 
     switch (arrangerType) {
-      case 'beatsync':
+      case 'pool':
         return beatSyncItems.filter(item => item.file || item.url);
-      case 'beforeafter':
+      case 'zones':
         return [...beforeItems, ...afterItems].filter(item => item.file || item.url);
-      case 'hook':
-        return [hookItem, mainItem, ctaItem].filter((item): item is MediaItem => item !== null);
-      case 'sequence':
-        return sequenceSections.map(s => s.item).filter((item): item is MediaItem => item !== null);
       default:
         return [];
     }
-  }, [arrangerType, beatSyncItems, beforeItems, afterItems, hookItem, mainItem, ctaItem, sequenceSections]);
+  }, [arrangerType, beatSyncItems, beforeItems, afterItems]);
 
   // Upload all media files and return URLs
   const uploadAllMedia = useCallback(async (): Promise<Map<string, string>> => {
@@ -438,12 +376,14 @@ export default function ReelEditorContent() {
       // Build clips with uploaded URLs
       const clipInputs: Array<{ segmentId: string; sourceUrl: string }> = [];
 
-      if (arrangerType === 'beatsync') {
+      if (arrangerType === 'pool') {
+        // Pool mode: all items become beat segments
         beatSyncItems.forEach((item, index) => {
           const url = urlMap.get(item.id);
           if (url) clipInputs.push({ segmentId: `beat_${index}`, sourceUrl: url });
         });
-      } else if (arrangerType === 'beforeafter') {
+      } else if (arrangerType === 'zones') {
+        // Zones mode: before items then after items
         beforeItems.forEach((item, index) => {
           const url = urlMap.get(item.id);
           if (url) clipInputs.push({ segmentId: `before_${index}`, sourceUrl: url });
@@ -451,26 +391,6 @@ export default function ReelEditorContent() {
         afterItems.forEach((item, index) => {
           const url = urlMap.get(item.id);
           if (url) clipInputs.push({ segmentId: `after_${index}`, sourceUrl: url });
-        });
-      } else if (arrangerType === 'hook') {
-        if (hookItem) {
-          const url = urlMap.get(hookItem.id);
-          if (url) clipInputs.push({ segmentId: 'hook', sourceUrl: url });
-        }
-        if (mainItem) {
-          const url = urlMap.get(mainItem.id);
-          if (url) clipInputs.push({ segmentId: 'main', sourceUrl: url });
-        }
-        if (ctaItem) {
-          const url = urlMap.get(ctaItem.id);
-          if (url) clipInputs.push({ segmentId: 'cta', sourceUrl: url });
-        }
-      } else if (arrangerType === 'sequence') {
-        sequenceSections.forEach((section) => {
-          if (section.item) {
-            const url = urlMap.get(section.item.id);
-            if (url) clipInputs.push({ segmentId: section.id, sourceUrl: url });
-          }
         });
       }
 
@@ -520,10 +440,6 @@ export default function ReelEditorContent() {
     beatSyncItems,
     beforeItems,
     afterItems,
-    hookItem,
-    mainItem,
-    ctaItem,
-    sequenceSections,
     isNewProject,
     project,
     selectedMusic,
@@ -580,7 +496,8 @@ export default function ReelEditorContent() {
     if (!selectedTemplate || !arrangerType) return null;
 
     switch (arrangerType) {
-      case 'beatsync':
+      case 'pool':
+        // Pool mode: single upload zone, auto-distributed across music
         return (
           <BeatSyncArranger
             items={beatSyncItems}
@@ -590,36 +507,14 @@ export default function ReelEditorContent() {
           />
         );
 
-      case 'beforeafter':
+      case 'zones':
+        // Zones mode: separate before/after upload zones
         return (
           <BeforeAfterArranger
             beforeItems={beforeItems}
             afterItems={afterItems}
             onBeforeChange={setBeforeItems}
             onAfterChange={setAfterItems}
-          />
-        );
-
-      case 'hook':
-        return (
-          <HookArranger
-            hookItem={hookItem}
-            mainItem={mainItem}
-            ctaItem={ctaItem}
-            onHookChange={setHookItem}
-            onMainChange={setMainItem}
-            onCtaChange={setCtaItem}
-          />
-        );
-
-      case 'sequence':
-        return (
-          <SequenceArranger
-            sections={sequenceSections}
-            onSectionsChange={setSequenceSections}
-            variant={selectedTemplate.category === 'lifestyle' ? 'dayinlife' : 'tutorial'}
-            minSections={3}
-            maxSections={6}
           />
         );
 

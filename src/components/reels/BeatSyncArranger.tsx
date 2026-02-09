@@ -64,12 +64,12 @@ export function BeatSyncArranger({
       <MediaUploader
         items={items}
         onItemsChange={onItemsChange}
-        maxItems={12}
-        minItems={3}
+        maxItems={50}
+        minItems={1}
         acceptImages={true}
         acceptVideos={true}
         label="Add your clips & images"
-        description="Mix videos and images freely. Minimum 3, maximum 12."
+        description="Mix videos and images freely. Each becomes a beat segment."
       />
 
       {/* Media pool with reordering */}

@@ -37,7 +37,7 @@ export function BeforeAfterArranger({
             <h3 className="font-medium text-text-primary">Before/After Reveal</h3>
             <p className="text-sm text-text-secondary mt-1">
               Perfect for transformations, makeovers, and results.
-              Each zone can have 1-6 images or 1 video.
+              Add as many images as you want - they'll be distributed across the music.
             </p>
           </div>
         </div>
@@ -155,34 +155,26 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
   };
 
   const handleFiles = useCallback(async (files: FileList) => {
-    // Check if adding a video - only 1 video allowed per zone
+    // Check if zone already has a video
     const hasVideo = items.some(i => i.type === 'video');
     const newFiles = Array.from(files);
     const hasNewVideo = newFiles.some(f => f.type.startsWith('video/'));
 
+    // Can mix images with a video, but only 1 video per zone
     if (hasVideo && hasNewVideo) {
       alert('Only 1 video allowed per zone. Remove the existing video first.');
       return;
     }
 
-    if (hasNewVideo && newFiles.length > 1) {
-      alert('When using a video, only 1 file is allowed per zone.');
-      return;
-    }
-
-    // Max 6 images or 1 video
-    const maxItems = hasNewVideo ? 1 : 6;
-    const remainingSlots = maxItems - items.length;
-
+    // No hard limit on images - they distribute across the music duration
     const newItems: MediaItem[] = [];
-    for (let i = 0; i < Math.min(newFiles.length, remainingSlots); i++) {
+    for (let i = 0; i < newFiles.length; i++) {
       const file = newFiles[i];
       const type = getMediaType(file);
 
-      // If zone has images and trying to add video, reject
-      if (items.length > 0 && items[0].type === 'image' && type === 'video') {
-        alert('Remove existing images before adding a video.');
-        return;
+      // Skip additional videos if zone already has one
+      if (type === 'video' && (hasVideo || newItems.some(n => n.type === 'video'))) {
+        continue;
       }
 
       const thumbnail = await createThumbnail(file);
@@ -222,7 +214,9 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
     onChange(items.filter(item => item.id !== id));
   };
 
-  const canAddMore = items.length === 0 || (items[0]?.type === 'image' && items.length < 6);
+  // Can always add more images, or add a video if none exists
+  const hasVideo = items.some(i => i.type === 'video');
+  const canAddMore = !hasVideo || items.every(i => i.type === 'image');
 
   return (
     <div className={`bg-gradient-to-b ${colorClasses.bg} rounded-xl p-4 border ${colorClasses.border}`}>
@@ -234,10 +228,10 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
         </div>
         <span className="text-xs text-text-secondary">
           {items.length > 0
-            ? items[0].type === 'video'
-              ? '1 video'
-              : `${items.length}/6 images`
-            : '1-6 images or 1 video'
+            ? items.some(i => i.type === 'video')
+              ? `${items.filter(i => i.type === 'video').length} video, ${items.filter(i => i.type === 'image').length} images`
+              : `${items.length} images`
+            : 'Add images or 1 video'
           }
         </span>
       </div>
@@ -320,7 +314,7 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
               Drop {label.toLowerCase()} content
             </p>
             <p className="text-xs text-text-secondary mt-1">
-              1-6 images or 1 video
+              Any number of images or 1 video
             </p>
           </div>
         </div>
