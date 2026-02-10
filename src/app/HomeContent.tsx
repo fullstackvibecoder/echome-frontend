@@ -235,7 +235,7 @@ export default function HomeContent() {
                   </div>
                   <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center relative overflow-hidden">
                     <Image
-                      src="/showcase/video-thumbnail.jpg"
+                      src="/showcase/video-thumbnail.png"
                       alt="Video content example"
                       fill
                       className="object-cover"
@@ -781,7 +781,7 @@ export default function HomeContent() {
                     {/* Reel Content - Real thumbnail with gradient fallback */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B9D] via-[#B794F6] to-[#00D4FF]" />
                     <Image
-                      src="/showcase/reel-background.jpg"
+                      src="/showcase/reel-background.png"
                       alt="Reel content example"
                       fill
                       className="object-cover"
