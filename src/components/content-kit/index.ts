@@ -10,3 +10,4 @@ export { VideoPlayer } from './VideoPlayer';
 export { ReelOutputCard } from './ReelOutputCard';
 export { ReelContentPreview } from './ReelContentPreview';
 export { EmptyReelState } from './EmptyReelState';
+export { ClipSegmentAssignment } from './ClipSegmentAssignment';

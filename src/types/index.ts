@@ -175,6 +175,16 @@ export interface ContentKitDetail {
   createdAt: string;
 }
 
+/**
+ * Video clip metadata for template-aware extraction
+ */
+export interface VideoClipSegmentMetadata {
+  suggestedSegmentId?: string; // e.g., 'hook', 'before', 'step_1'
+  segmentConfidence?: number; // 0-100 confidence score
+  segmentReasoning?: string; // Why this clip fits the segment
+  alternativeSegments?: string[]; // Other possible segment matches
+}
+
 export interface VideoClipDetail {
   id: string;
   videoUploadId: string;
@@ -205,6 +215,8 @@ export interface VideoClipDetail {
   sortOrder?: number;
   isSelected?: boolean;
   createdAt: string;
+  // Template-aware segment metadata
+  segmentMetadata?: VideoClipSegmentMetadata;
 }
 
 export type TemplateType =

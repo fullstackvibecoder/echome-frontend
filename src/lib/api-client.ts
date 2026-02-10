@@ -258,6 +258,13 @@ export const api = {
           sortOrder: clip.sort_order ?? clip.sortOrder ?? 0,
           isSelected: clip.is_selected ?? clip.isSelected ?? true,
           createdAt: clip.created_at || clip.createdAt,
+          // Template-aware segment metadata
+          segmentMetadata: clip.metadata?.suggested_segment_id ? {
+            suggestedSegmentId: clip.metadata.suggested_segment_id,
+            segmentConfidence: clip.metadata.segment_confidence,
+            segmentReasoning: clip.metadata.segment_reasoning,
+            alternativeSegments: clip.metadata.alternative_segments,
+          } : undefined,
         })),
         carousel: rawData.carousel ? {
           id: rawData.carousel.id,
