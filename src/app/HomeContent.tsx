@@ -234,8 +234,15 @@ export default function HomeContent() {
                     <span className="ml-auto text-white/50 text-sm">12:34</span>
                   </div>
                   <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center relative overflow-hidden">
+                    <Image
+                      src="/showcase/video-thumbnail.jpg"
+                      alt="Video content example"
+                      fill
+                      className="object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+                    <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-full flex items-center justify-center relative z-10">
                       <Play className="w-6 h-6 text-white ml-1" />
                     </div>
                   </div>
@@ -771,10 +778,17 @@ export default function HomeContent() {
               <div className="relative mx-auto w-[280px]">
                 <div className="bg-[#1C1C1E] rounded-[3rem] p-3 shadow-2xl">
                   <div className="bg-black rounded-[2.5rem] overflow-hidden aspect-[9/16] relative">
-                    {/* Reel Content */}
+                    {/* Reel Content - Real thumbnail with gradient fallback */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B9D] via-[#B794F6] to-[#00D4FF]" />
+                    <Image
+                      src="/showcase/reel-background.jpg"
+                      alt="Reel content example"
+                      fill
+                      className="object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
 
-                    {/* Video thumbnail placeholder */}
+                    {/* Overlay gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
 
                     {/* Play indicator */}
@@ -892,21 +906,18 @@ export default function HomeContent() {
               </p>
             </div>
 
-            {/* Carousel slides preview */}
+            {/* Carousel slides preview - uses real images if available */}
             <div className="flex justify-center gap-4 overflow-x-auto pb-4">
-              {[
-                { slide: 1, title: "The Hook", color: "from-[#FF6B9D] to-[#B794F6]", text: "Stop scrolling. This changed everything for me." },
-                { slide: 2, title: "The Problem", color: "from-[#B794F6] to-[#00D4FF]", text: "I was posting daily but getting zero engagement..." },
-                { slide: 3, title: "The Solution", color: "from-[#00D4FF] to-[#0099CC]", text: "Then I discovered this simple framework:" },
-                { slide: 4, title: "The CTA", color: "from-[#FFD93D] to-[#FF6B9D]", text: "Follow for more tips like this →" },
-              ].map((item, i) => (
-                <div key={i} className="flex-shrink-0 w-48">
-                  <div className={`aspect-square bg-gradient-to-br ${item.color} rounded-2xl p-4 flex flex-col justify-between shadow-lg`}>
-                    <div className="text-white/60 text-xs font-medium">{item.slide}/4</div>
-                    <div>
-                      <p className="text-white font-bold text-sm mb-1">{item.title}</p>
-                      <p className="text-white/80 text-xs leading-relaxed">{item.text}</p>
-                    </div>
+              {[1, 2, 3, 4].map((slideNum) => (
+                <div key={slideNum} className="flex-shrink-0 w-48">
+                  <div className="aspect-square rounded-2xl shadow-lg overflow-hidden relative bg-gradient-to-br from-[#FF6B9D] to-[#B794F6]">
+                    <Image
+                      src={`/showcase/carousel-${slideNum}.png`}
+                      alt={`Carousel slide ${slideNum}`}
+                      fill
+                      className="object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                   </div>
                 </div>
               ))}
