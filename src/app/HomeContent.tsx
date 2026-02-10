@@ -254,12 +254,12 @@ export default function HomeContent() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div className="p-3 bg-[#FF6B9D]/10 border border-[#FF6B9D]/30 rounded-lg">
-                      <p className="text-[#FF6B9D] text-xs font-bold mb-1">5 Viral Clips</p>
-                      <p className="text-white/50 text-xs">Auto-detected highlights</p>
+                      <p className="text-[#FF6B9D] text-xs font-bold mb-1">5 Captioned Reels</p>
+                      <p className="text-white/50 text-xs">Ready to post</p>
                     </div>
                     <div className="p-3 bg-[#B794F6]/10 border border-[#B794F6]/30 rounded-lg">
                       <p className="text-[#B794F6] text-xs font-bold mb-1">3 Carousels</p>
-                      <p className="text-white/50 text-xs">Key points visualized</p>
+                      <p className="text-white/50 text-xs">Designed & branded</p>
                     </div>
                     <div className="p-3 bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded-lg">
                       <p className="text-[#00D4FF] text-xs font-bold mb-1">8 Social Posts</p>
@@ -752,6 +752,165 @@ export default function HomeContent() {
               Every piece of content is generated using your voice profile. No generic phrases.
               No corporate jargon. Just content that sounds like you.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Reels Maker - Visual Content Creation */}
+      <section className="py-20 px-6 bg-gradient-to-br from-[#FF6B9D]/5 via-[#B794F6]/5 to-[#00D4FF]/5 relative overflow-hidden" data-animate="true">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#FF6B9D]/10 to-transparent rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#B794F6]/10 to-transparent rounded-full blur-3xl -z-10" />
+
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left - Reel Preview */}
+            <div className="relative order-2 md:order-1">
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#FF6B9D]/20 via-[#B794F6]/20 to-[#00D4FF]/20 rounded-3xl blur-2xl" />
+
+              {/* Phone Frame with Reel */}
+              <div className="relative mx-auto w-[280px]">
+                <div className="bg-[#1C1C1E] rounded-[3rem] p-3 shadow-2xl">
+                  <div className="bg-black rounded-[2.5rem] overflow-hidden aspect-[9/16] relative">
+                    {/* Reel Content */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B9D] via-[#B794F6] to-[#00D4FF]" />
+
+                    {/* Video thumbnail placeholder */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+
+                    {/* Play indicator */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+                        <Play className="w-8 h-8 text-white ml-1" />
+                      </div>
+                    </div>
+
+                    {/* Captions */}
+                    <div className="absolute bottom-20 left-4 right-4">
+                      <div className="bg-black/60 backdrop-blur-sm rounded-lg p-3">
+                        <p className="text-white text-sm font-medium leading-relaxed">
+                          &quot;Here&apos;s the thing about content creation...
+                          <span className="bg-[#00D4FF] px-1 rounded">most people</span> overthink it.&quot;
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Social UI elements */}
+                    <div className="absolute right-3 bottom-32 flex flex-col items-center gap-4">
+                      {[
+                        { icon: "❤️", count: "12.4K" },
+                        { icon: "💬", count: "847" },
+                        { icon: "↗️", count: "2.1K" },
+                      ].map((action, i) => (
+                        <div key={i} className="flex flex-col items-center">
+                          <span className="text-2xl">{action.icon}</span>
+                          <span className="text-white text-xs font-medium">{action.count}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Profile */}
+                    <div className="absolute top-4 left-4 flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-full" />
+                      <span className="text-white text-sm font-semibold">@yourhandle</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating badges */}
+                <div className="absolute -top-4 -right-4 px-4 py-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-xl shadow-lg transform rotate-6">
+                  <span className="text-white text-sm font-bold">Auto-Captioned</span>
+                </div>
+                <div className="absolute -bottom-4 -left-4 px-4 py-2 bg-gradient-to-r from-[#FF6B9D] to-[#FFD93D] rounded-xl shadow-lg transform -rotate-6">
+                  <span className="text-white text-sm font-bold">Ready to Post</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Messaging */}
+            <div className="order-1 md:order-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B9D]/10 border border-[#FF6B9D]/20 rounded-full mb-6">
+                <Video className="w-4 h-4 text-[#FF6B9D]" />
+                <span className="text-[#FF6B9D] font-semibold text-sm">Reels Maker</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black mb-6 text-[#1C1C1E]">
+                Not Just Copy.
+                <br />
+                <span className="bg-gradient-to-r from-[#FF6B9D] to-[#B794F6] bg-clip-text text-transparent">Ready-to-Post Reels.</span>
+              </h2>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Echo doesn&apos;t just write captions - it creates complete, captioned video reels
+                you can post directly to Instagram, TikTok, and YouTube Shorts.
+              </p>
+
+              <div className="space-y-4 mb-8">
+                {[
+                  { title: "AI Clip Selection", desc: "Automatically identifies your most engaging moments" },
+                  { title: "Smart Captions", desc: "Word-by-word animated captions that match your speaking" },
+                  { title: "Template Library", desc: "Before/after, tutorials, hooks - pick your format" },
+                  { title: "One-Click Export", desc: "9:16 vertical video, ready for every platform" }
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-gradient-to-br from-[#FF6B9D] to-[#B794F6] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-[#1C1C1E] font-semibold">{feature.title}</span>
+                      <p className="text-gray-500 text-sm">{feature.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Output formats */}
+              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Export formats</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: "Instagram Reels", icon: "📸" },
+                    { name: "TikTok", icon: "🎵" },
+                    { name: "YouTube Shorts", icon: "▶️" },
+                    { name: "Stories", icon: "⏱️" }
+                  ].map((format, i) => (
+                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-sm font-medium text-gray-700">
+                      <span>{format.icon}</span>
+                      {format.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Carousel Preview */}
+          <div className="mt-20">
+            <div className="text-center mb-10">
+              <h3 className="text-2xl md:text-3xl font-black text-[#1C1C1E] mb-2">
+                Carousels Too. With Real Visuals.
+              </h3>
+              <p className="text-gray-600">
+                Not just text slides - actual designed carousels with your branding, ready to post.
+              </p>
+            </div>
+
+            {/* Carousel slides preview */}
+            <div className="flex justify-center gap-4 overflow-x-auto pb-4">
+              {[
+                { slide: 1, title: "The Hook", color: "from-[#FF6B9D] to-[#B794F6]", text: "Stop scrolling. This changed everything for me." },
+                { slide: 2, title: "The Problem", color: "from-[#B794F6] to-[#00D4FF]", text: "I was posting daily but getting zero engagement..." },
+                { slide: 3, title: "The Solution", color: "from-[#00D4FF] to-[#0099CC]", text: "Then I discovered this simple framework:" },
+                { slide: 4, title: "The CTA", color: "from-[#FFD93D] to-[#FF6B9D]", text: "Follow for more tips like this →" },
+              ].map((item, i) => (
+                <div key={i} className="flex-shrink-0 w-48">
+                  <div className={`aspect-square bg-gradient-to-br ${item.color} rounded-2xl p-4 flex flex-col justify-between shadow-lg`}>
+                    <div className="text-white/60 text-xs font-medium">{item.slide}/4</div>
+                    <div>
+                      <p className="text-white font-bold text-sm mb-1">{item.title}</p>
+                      <p className="text-white/80 text-xs leading-relaxed">{item.text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
