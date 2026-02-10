@@ -119,56 +119,58 @@ export default function HomeContent() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section - Video First */}
       <section className="min-h-screen flex items-center px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900" />
 
-        {/* Animated voice wave effect */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-30">
-          <div className="flex items-end gap-1 h-64">
-            {[...Array(40)].map((_, i) => (
-              <div
-                key={i}
-                className="w-1 bg-gradient-to-t from-[#00D4FF] to-[#B794F6] rounded-full animate-pulse"
-                style={{
-                  height: `${20 + Math.sin(i * 0.3) * 60 + Math.random() * 40}%`,
-                  animationDelay: `${i * 50}ms`,
-                  animationDuration: `${1000 + Math.random() * 500}ms`
-                }}
-              />
-            ))}
+        {/* Animated video frame effect */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+          <div className="relative w-[600px] h-[400px] border-4 border-white/20 rounded-2xl">
+            <div className="absolute inset-0 flex items-end gap-1 p-8">
+              {[...Array(30)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 bg-gradient-to-t from-[#00D4FF] to-[#B794F6] rounded-full animate-pulse"
+                  style={{
+                    height: `${20 + Math.sin(i * 0.3) * 60 + Math.random() * 40}%`,
+                    animationDelay: `${i * 50}ms`,
+                    animationDuration: `${1000 + Math.random() * 500}ms`
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto py-20 w-full relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Messaging */}
+            {/* Left Column - Video-First Messaging */}
             <div className="text-center lg:text-left">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur
                               border border-white/20 rounded-full mb-8 animate-fade-in">
-                <Brain className="w-4 h-4 text-[#00D4FF]" />
-                <span className="text-white/90 font-medium text-sm">Agentic Voice Learning</span>
+                <Video className="w-4 h-4 text-[#FF6B9D]" />
+                <span className="text-white/90 font-medium text-sm">Video-First Content Platform</span>
               </div>
 
               {/* Main Headline */}
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-[1.1]">
-                <span className="text-white">Content That</span>
+                <span className="text-white">One Video.</span>
                 <br />
-                <span className="text-white">Sounds Like </span>
+                <span className="text-white">One Week of </span>
                 <span className="bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D]
                                bg-clip-text text-transparent">
-                  You.
+                  Content.
                 </span>
               </h1>
 
               {/* Subheadline */}
               <p className="text-xl md:text-2xl text-gray-300 mb-4 font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Stop sounding like every other AI tool.
+                All in your authentic voice.
               </p>
               <p className="text-lg md:text-xl text-white/90 mb-8 font-medium max-w-xl mx-auto lg:mx-0">
-                EchoMe learns your unique voice from your existing content, then creates posts,
-                threads, and articles that are unmistakably you.
+                Upload any video and Echo transforms it into clips, carousels, posts, and emails -
+                all matching your unique voice through our Knowledge Base system.
               </p>
 
               {/* CTAs */}
@@ -179,7 +181,7 @@ export default function HomeContent() {
                              rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
                              shadow-lg text-lg flex items-center gap-2 group"
                 >
-                  Start Building Your Voice
+                  Start Free Trial
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
@@ -188,116 +190,100 @@ export default function HomeContent() {
                              text-white rounded-xl font-bold hover:bg-white/20 transition-all
                              text-lg flex items-center gap-2"
                 >
-                  <Sparkles className="w-5 h-5" />
-                  See Examples
+                  <Play className="w-5 h-5" />
+                  See It Work
                 </Link>
               </div>
 
-              {/* Social Proof */}
+              {/* Social Proof - Video focused */}
               <div className="flex items-center justify-center lg:justify-start gap-6 text-white/70">
                 <div className="text-center lg:text-left">
-                  <p className="text-2xl font-bold text-white"><NumberCounter end={12847} /></p>
-                  <p className="text-xs">Unique Voices</p>
+                  <p className="text-2xl font-bold text-white"><NumberCounter end={47} /></p>
+                  <p className="text-xs">Avg. Content Pieces</p>
+                  <p className="text-xs text-white/50">per video</p>
                 </div>
-                <div className="w-px h-10 bg-white/20" />
+                <div className="w-px h-12 bg-white/20" />
                 <div className="text-center lg:text-left">
                   <p className="text-2xl font-bold text-white"><NumberCounter end={94} suffix="%" /></p>
-                  <p className="text-xs">Voice Match Rate</p>
+                  <p className="text-xs">Voice Match</p>
+                  <p className="text-xs text-white/50">accuracy</p>
                 </div>
-                <div className="w-px h-10 bg-white/20" />
+                <div className="w-px h-12 bg-white/20" />
                 <div className="text-center lg:text-left">
                   <p className="text-2xl font-bold text-white"><NumberCounter end={8} /></p>
                   <p className="text-xs">Platforms</p>
+                  <p className="text-xs text-white/50">supported</p>
                 </div>
               </div>
             </div>
 
-            {/* Right Column - Voice Profile Preview */}
+            {/* Right Column - Video to Content Kit Transformation */}
             <div className="relative">
               {/* Glow effect */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#00D4FF]/20 via-[#B794F6]/20 to-[#FF6B9D]/20 rounded-3xl blur-2xl" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#FF6B9D]/20 via-[#B794F6]/20 to-[#00D4FF]/20 rounded-3xl blur-2xl" />
 
-              {/* Voice Profile Card */}
+              {/* Content Kit Preview */}
               <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold">Your Voice Profile</p>
-                      <p className="text-white/50 text-sm">Learned from 47 samples</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[#00D4FF] font-bold text-lg">87%</p>
-                    <p className="text-white/50 text-xs">Confidence</p>
-                  </div>
-                </div>
-
-                {/* Confidence Bar */}
+                {/* Video Input */}
                 <div className="mb-6">
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full transition-all duration-1000"
-                      style={{ width: '87%' }}
-                    />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#FF6B9D] to-[#FFD93D] rounded-lg flex items-center justify-center">
+                      <Video className="w-4 h-4 text-white" />
+                    </div>
+                    <p className="text-white font-semibold">Your Video</p>
+                    <span className="ml-auto text-white/50 text-sm">12:34</span>
+                  </div>
+                  <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+                      <Play className="w-6 h-6 text-white ml-1" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Signature Phrases */}
-                <div className="mb-5">
-                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-3">Signature Phrases</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Here's the thing...", "Let me tell you", "The secret is", "What do you think?"].map((phrase, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1.5 bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded-lg text-[#00D4FF] text-sm font-medium"
-                      >
-                        &quot;{phrase}&quot;
-                      </span>
-                    ))}
+                {/* Arrow */}
+                <div className="flex justify-center my-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-full flex items-center justify-center animate-bounce">
+                    <ArrowRight className="w-5 h-5 text-white rotate-90" />
                   </div>
                 </div>
 
-                {/* Tone Markers */}
-                <div className="mb-5">
-                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-3">Your Tone</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: "Conversational", color: "from-purple-500/20 to-purple-500/10 border-purple-500/30 text-purple-400" },
-                      { label: "Direct", color: "from-pink-500/20 to-pink-500/10 border-pink-500/30 text-pink-400" },
-                      { label: "Encouraging", color: "from-green-500/20 to-green-500/10 border-green-500/30 text-green-400" }
-                    ].map((tone, i) => (
-                      <span
-                        key={i}
-                        className={`px-3 py-1.5 bg-gradient-to-r ${tone.color} border rounded-lg text-sm font-medium`}
-                      >
-                        {tone.label}
-                      </span>
-                    ))}
+                {/* Content Kit Output */}
+                <div className="space-y-3">
+                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Your Content Kit</p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 bg-[#FF6B9D]/10 border border-[#FF6B9D]/30 rounded-lg">
+                      <p className="text-[#FF6B9D] text-xs font-bold mb-1">5 Viral Clips</p>
+                      <p className="text-white/50 text-xs">Auto-detected highlights</p>
+                    </div>
+                    <div className="p-3 bg-[#B794F6]/10 border border-[#B794F6]/30 rounded-lg">
+                      <p className="text-[#B794F6] text-xs font-bold mb-1">3 Carousels</p>
+                      <p className="text-white/50 text-xs">Key points visualized</p>
+                    </div>
+                    <div className="p-3 bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded-lg">
+                      <p className="text-[#00D4FF] text-xs font-bold mb-1">8 Social Posts</p>
+                      <p className="text-white/50 text-xs">Platform-optimized</p>
+                    </div>
+                    <div className="p-3 bg-[#FFD93D]/10 border border-[#FFD93D]/30 rounded-lg">
+                      <p className="text-[#FFD93D] text-xs font-bold mb-1">1 Newsletter</p>
+                      <p className="text-white/50 text-xs">Long-form email</p>
+                    </div>
+                  </div>
+
+                  {/* Voice Match Badge */}
+                  <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <Check className="w-5 h-5 text-green-400" />
+                    <div>
+                      <p className="text-green-400 text-sm font-bold">94% Voice Match</p>
+                      <p className="text-white/50 text-xs">Powered by your Knowledge Base</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Things You Avoid */}
-                <div>
-                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-3">Things You Never Say</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Corporate jargon", "Generic AI phrases", "Passive voice"].map((avoid, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400/80 text-sm font-medium line-through decoration-red-500/50"
-                      >
-                        {avoid}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Floating elements for visual interest */}
-                <div className="absolute -top-3 -right-3 w-20 h-20 bg-gradient-to-br from-[#FFD93D] to-[#FF6B9D] rounded-2xl flex items-center justify-center shadow-lg transform rotate-12">
-                  <span className="text-3xl">🎯</span>
+                {/* Floating badge */}
+                <div className="absolute -top-3 -right-3 px-4 py-2 bg-gradient-to-br from-[#FFD93D] to-[#FF6B9D] rounded-xl shadow-lg transform rotate-6">
+                  <span className="text-white text-sm font-bold">47 pieces</span>
                 </div>
               </div>
 
@@ -323,6 +309,167 @@ export default function HomeContent() {
         </div>
       </section>
 
+      {/* Knowledge Base - The Core */}
+      <section className="py-24 px-6 bg-gradient-to-br from-[#1C1C1E] via-[#2a2a2c] to-[#1C1C1E] relative overflow-hidden" data-animate="true">
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-gradient-to-br from-[#00D4FF]/10 to-transparent rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#B794F6]/10 to-transparent rounded-full blur-3xl -z-10" />
+
+        <div className="max-w-6xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#B794F6]/20 border border-[#B794F6]/30 rounded-full mb-6">
+              <Brain className="w-4 h-4 text-[#B794F6]" />
+              <span className="text-[#B794F6] font-semibold text-sm">The Foundation</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-white">
+              Your Voice Lives in Your
+              <br />
+              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">Knowledge Base</span>
+            </h2>
+            <p className="text-xl text-white/70 font-light max-w-2xl mx-auto">
+              The Knowledge Base is the brain behind Echo. Every upload teaches it.
+              Every output reflects it. Your voice gets stronger with every piece of content.
+            </p>
+          </div>
+
+          {/* Knowledge Base Visual */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Flow Diagram */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-3xl blur-2xl" />
+
+              <div className="relative space-y-4">
+                {/* Inputs flowing in */}
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 space-y-2">
+                    {[
+                      { icon: <Video className="w-4 h-4" />, label: "Videos", color: "from-[#FF6B9D] to-[#FFD93D]" },
+                      { icon: <FileText className="w-4 h-4" />, label: "Documents", color: "from-[#00D4FF] to-[#0099CC]" },
+                      { icon: <MessageSquare className="w-4 h-4" />, label: "Social Posts", color: "from-[#B794F6] to-[#9F7AEA]" },
+                      { icon: <Mail className="w-4 h-4" />, label: "Emails", color: "from-[#48BB78] to-[#38A169]" },
+                    ].map((input, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur border border-white/10 rounded-xl">
+                        <div className={`w-8 h-8 bg-gradient-to-br ${input.color} rounded-lg flex items-center justify-center text-white`}>
+                          {input.icon}
+                        </div>
+                        <span className="text-white/80 text-sm font-medium">{input.label}</span>
+                        <ArrowRight className="w-4 h-4 text-white/30 ml-auto" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Knowledge Base Center */}
+                  <div className="relative">
+                    <div className="w-32 h-32 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-2xl flex items-center justify-center shadow-2xl shadow-[#00D4FF]/20">
+                      <div className="text-center">
+                        <Brain className="w-10 h-10 text-white mx-auto mb-1" />
+                        <p className="text-white text-xs font-bold">Knowledge</p>
+                        <p className="text-white text-xs font-bold">Base</p>
+                      </div>
+                    </div>
+                    {/* Pulse effect */}
+                    <div className="absolute -inset-2 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-2xl animate-pulse opacity-20" />
+                  </div>
+
+                  {/* Outputs flowing out */}
+                  <div className="flex-1 space-y-2">
+                    {[
+                      { label: "LinkedIn", icon: "in" },
+                      { label: "Twitter/X", icon: "𝕏" },
+                      { label: "Instagram", icon: "📸" },
+                      { label: "Newsletter", icon: "📧" },
+                    ].map((output, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white/5 backdrop-blur border border-white/10 rounded-xl">
+                        <ArrowRight className="w-4 h-4 text-white/30" />
+                        <span className="text-white/80 text-sm font-medium flex-1">{output.label}</span>
+                        <span className="text-lg">{output.icon}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Voice Profile Card */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#B794F6]/20 to-[#FF6B9D]/20 rounded-3xl blur-2xl" />
+
+              <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Echo Learns From You</p>
+                      <p className="text-white/50 text-sm">Getting smarter every day</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What Echo Learns */}
+                <div className="space-y-4">
+                  <div className="p-4 bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded-xl">
+                    <p className="text-[#00D4FF] text-xs font-bold uppercase tracking-wider mb-2">Signature Phrases Detected</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Here's the thing...", "Let me tell you", "The secret is"].map((phrase, i) => (
+                        <span key={i} className="px-2 py-1 bg-[#00D4FF]/20 rounded text-white/80 text-xs">
+                          &quot;{phrase}&quot;
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-[#B794F6]/10 border border-[#B794F6]/30 rounded-xl">
+                    <p className="text-[#B794F6] text-xs font-bold uppercase tracking-wider mb-2">Your Communication Style</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Conversational", "Direct", "Encouraging", "Story-driven"].map((style, i) => (
+                        <span key={i} className="px-2 py-1 bg-[#B794F6]/20 rounded text-white/80 text-xs">
+                          {style}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                    <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">Words You Never Use</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["leverage", "synergy", "utilize", "circle back"].map((word, i) => (
+                        <span key={i} className="px-2 py-1 bg-red-500/20 rounded text-red-400/80 text-xs line-through">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confidence Meter */}
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white/60 text-sm">Voice Confidence</span>
+                    <span className="text-[#00D4FF] font-bold">94%</span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full" style={{ width: '94%' }} />
+                  </div>
+                  <p className="text-white/40 text-xs mt-2">Based on 47 content samples</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Message */}
+          <div className="mt-16 text-center">
+            <div className="inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 border border-[#00D4FF]/30 rounded-2xl">
+              <div className="text-left">
+                <p className="text-white font-bold">This isn&apos;t session-based learning that forgets.</p>
+                <p className="text-white/60 text-sm">Your Knowledge Base remembers everything, forever. The more you feed it, the better Echo knows you.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How Voice Learning Works */}
       <section id="how" className="py-24 px-6 bg-white relative overflow-hidden" data-animate="true">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[#00D4FF]/5 to-[#B794F6]/5 rounded-full blur-3xl -z-10" />
@@ -331,150 +478,145 @@ export default function HomeContent() {
         <div className="max-w-6xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
-              <Brain className="w-4 h-4 text-[#00D4FF]" />
-              <span className="text-[#00D4FF] font-semibold text-sm">How It Works</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF6B9D]/10 border border-[#FF6B9D]/20 rounded-full mb-6">
+              <Video className="w-4 h-4 text-[#FF6B9D]" />
+              <span className="text-[#FF6B9D] font-semibold text-sm">How It Works</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-[#1C1C1E]">
-              Voice Learning in
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent"> 3 Steps</span>
+              Video In.
+              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent"> Content Kit Out.</span>
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              The more content you share, the better Echo understands your unique voice.
+              Upload once. Echo extracts highlights, generates platform-native content, and matches your voice automatically.
             </p>
           </div>
 
-          {/* 3-Step Process */}
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            {/* Step 1: Feed */}
+          {/* 4-Step Pipeline */}
+          <div className="grid md:grid-cols-4 gap-6 mb-20">
+            {/* Step 1: Upload */}
             <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-all h-full">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B9D]/20 to-[#FFD93D]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#FF6B9D] to-[#FFD93D] rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                     1
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1C1C1E]">Feed Your Echo</h3>
+                  <h3 className="text-lg font-bold text-[#1C1C1E]">Upload Video</h3>
                 </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Upload your existing content - blog posts, emails, social posts, videos, podcasts.
-                  Everything you&apos;ve already created becomes training data.
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                  Drop in any video - YouTube links, Zoom recordings, selfie videos, podcasts.
                 </p>
-                <div className="space-y-3">
-                  {[
-                    { icon: <FileText className="w-4 h-4" />, text: "Blog posts & articles" },
-                    { icon: <Mail className="w-4 h-4" />, text: "Emails & newsletters" },
-                    { icon: <MessageSquare className="w-4 h-4" />, text: "Social media posts" },
-                    { icon: <Video className="w-4 h-4" />, text: "Videos & podcasts" }
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 text-sm text-gray-500">
-                      <div className="w-8 h-8 bg-[#00D4FF]/10 rounded-lg flex items-center justify-center text-[#00D4FF]">
-                        {item.icon}
-                      </div>
-                      <span>{item.text}</span>
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                  {["YouTube", "Loom", "Upload"].map((source, i) => (
+                    <span key={i} className="px-2 py-1 bg-[#FF6B9D]/10 text-[#FF6B9D] rounded text-xs font-medium">
+                      {source}
+                    </span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Step 2: Learn */}
-            <div className="relative group md:-mt-4">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#B794F6]/20 to-[#FF6B9D]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all h-full text-white">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center font-bold text-xl">
+            {/* Step 2: AI Extracts */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#B794F6]/20 to-[#00D4FF]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#B794F6] to-[#9F7AEA] rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                     2
                   </div>
-                  <h3 className="text-2xl font-bold">Echo Learns You</h3>
+                  <h3 className="text-lg font-bold text-[#1C1C1E]">AI Extracts</h3>
                 </div>
-                <p className="text-white/90 mb-6 leading-relaxed">
-                  Our Agentic engine analyzes your content to extract your unique voice patterns,
-                  signature phrases, and communication style.
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                  Echo identifies your most viral-worthy moments and key talking points.
                 </p>
-                <div className="space-y-4">
-                  <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-                    <p className="text-xs text-white/60 uppercase tracking-wider mb-2">Echo Discovers</p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-[#FFD93D]" />
-                        <span className="text-sm">Your signature phrases</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-[#FFD93D]" />
-                        <span className="text-sm">Your tone & energy</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-[#FFD93D]" />
-                        <span className="text-sm">Words you never use</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-[#FFD93D]" />
-                        <span className="text-sm">Your storytelling style</span>
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Check className="w-3 h-3 text-[#B794F6]" />
+                    <span>Highlight detection</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Check className="w-3 h-3 text-[#B794F6]" />
+                    <span>Full transcription</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Check className="w-3 h-3 text-[#B794F6]" />
+                    <span>Clip scoring</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Step 3: Create */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B9D]/20 to-[#FFD93D]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-all h-full">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B9D] to-[#FFD93D] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+            {/* Step 3: Voice Match */}
+            <div className="relative group md:-mt-4">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/30 to-[#B794F6]/30 rounded-3xl blur-lg opacity-50 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all h-full text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center font-bold">
                     3
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1C1C1E]">Create as You</h3>
+                  <h3 className="text-lg font-bold">Voice Match</h3>
                 </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Give Echo a topic or idea. It generates content for any platform
-                  that sounds exactly like you wrote it.
+                <p className="text-white/90 text-sm mb-4 leading-relaxed">
+                  Your Knowledge Base ensures every piece sounds authentically you.
                 </p>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">One idea becomes:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["LinkedIn", "Twitter", "Instagram", "Blog", "Email", "TikTok", "YouTube", "Newsletter"].map((platform, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-600"
-                      >
-                        {platform}
-                      </span>
-                    ))}
+                <div className="bg-white/10 backdrop-blur rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/70">Match Score</span>
+                    <span className="text-sm font-bold">94%</span>
                   </div>
+                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-white rounded-full" style={{ width: '94%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 4: Content Kit */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#FFD93D]/20 to-[#48BB78]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all h-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#FFD93D] to-[#48BB78] rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+                    4
+                  </div>
+                  <h3 className="text-lg font-bold text-[#1C1C1E]">Content Kit</h3>
+                </div>
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                  Get clips, carousels, posts, and emails - ready to publish.
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "Clips", count: "5" },
+                    { label: "Posts", count: "8" },
+                    { label: "Carousels", count: "3" },
+                    { label: "Emails", count: "1" },
+                  ].map((item, i) => (
+                    <div key={i} className="text-center p-2 bg-gray-50 rounded-lg">
+                      <p className="text-lg font-bold text-[#1C1C1E]">{item.count}</p>
+                      <p className="text-xs text-gray-500">{item.label}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Voice Improvement Indicator */}
-          <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-8 border border-gray-100">
+          {/* Time Savings */}
+          <div className="bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] rounded-2xl p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
-                <h3 className="text-xl font-bold text-[#1C1C1E] mb-2">Your Voice Gets Stronger</h3>
-                <p className="text-gray-600">Add 3+ new pieces of content and Echo automatically refreshes your voice profile.</p>
+                <h3 className="text-xl font-bold text-white mb-2">From Hours to Minutes</h3>
+                <p className="text-white/60">What used to take 10+ hours now happens automatically.</p>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-[#00D4FF]">3</p>
-                  <p className="text-xs text-gray-500">samples</p>
+                  <p className="text-3xl font-bold text-gray-400 line-through">10hrs</p>
+                  <p className="text-xs text-white/50">Manual work</p>
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-400" />
+                <ArrowRight className="w-6 h-6 text-[#00D4FF]" />
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-[#B794F6]">60%</p>
-                  <p className="text-xs text-gray-500">confidence</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400" />
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-[#FF6B9D]">10+</p>
-                  <p className="text-xs text-gray-500">samples</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400" />
-                <div className="text-center">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#FF6B9D] bg-clip-text text-transparent">95%</p>
-                  <p className="text-xs text-gray-500">confidence</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">5min</p>
+                  <p className="text-xs text-white/50">With Echo</p>
                 </div>
               </div>
             </div>
@@ -482,59 +624,83 @@ export default function HomeContent() {
         </div>
       </section>
 
-      {/* Input Methods - What You Can Upload */}
+      {/* No Video? No Problem - Secondary Input Methods */}
       <section className="py-20 px-6 bg-gradient-to-br from-[#FAFAFA] to-white relative overflow-hidden" data-animate="true">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
+              <FileText className="w-4 h-4 text-[#00D4FF]" />
+              <span className="text-[#00D4FF] font-semibold text-sm">Multiple Entry Points</span>
+            </div>
             <h2 className="text-4xl md:text-5xl font-black mb-4 text-[#1C1C1E]">
-              Many Ways to Build Your Voice
+              No Video? <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">No Problem.</span>
             </h2>
-            <p className="text-xl text-gray-600 font-light">
-              Import from anywhere. Echo learns from everything.
+            <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
+              Start with whatever you have. Paste a link. Drop a document. Import your best posts.
+              Echo learns from everything and adds it to your Knowledge Base.
             </p>
           </div>
 
-          {/* Bento Grid of Input Methods */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            {[
-              { icon: <Upload className="w-8 h-8" />, label: "Upload Files", desc: "PDFs, Docs, Text", color: "from-[#00D4FF] to-[#0099CC]" },
-              { icon: <Hash className="w-8 h-8" />, label: "Social Posts", desc: "Import from platforms", color: "from-[#B794F6] to-[#9F7AEA]" },
-              { icon: <Video className="w-8 h-8" />, label: "Videos", desc: "YouTube, Loom, etc.", color: "from-[#FF6B9D] to-[#F56565]" },
-              { icon: <Mail className="w-8 h-8" />, label: "Emails", desc: "Newsletters & more", color: "from-[#FFD93D] to-[#F6AD55]" },
-              { icon: <MessageSquare className="w-8 h-8" />, label: "Voice Notes", desc: "Record or upload", color: "from-[#48BB78] to-[#38A169]", span: true },
-              { icon: <FileText className="w-8 h-8" />, label: "Paste Text", desc: "Copy from anywhere", color: "from-[#667EEA] to-[#5A67D8]", span: true }
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`group relative bg-white rounded-2xl p-6 border border-gray-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all ${item.span ? 'col-span-1 md:col-span-2' : ''}`}
-              >
-                <div className={`w-14 h-14 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
-                  {item.icon}
-                </div>
-                <h3 className="font-bold text-[#1C1C1E] mb-1">{item.label}</h3>
-                <p className="text-sm text-gray-500">{item.desc}</p>
+          {/* Simple Input Methods Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+            {/* Paste Links */}
+            <div className="group relative bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-lg">
+                <Hash className="w-8 h-8" />
               </div>
-            ))}
-          </div>
-
-          {/* Social Import Highlight */}
-          <div className="mt-12 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-2xl p-8 border border-[#00D4FF]/20 max-w-3xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="flex -space-x-3">
-                {[
-                  { icon: '📸', bg: 'from-pink-500 to-purple-600' },
-                  { icon: '▶️', bg: 'from-red-500 to-red-600' },
-                  { icon: 'in', bg: 'from-blue-600 to-blue-700' },
-                  { icon: '𝕏', bg: 'from-gray-700 to-gray-900' }
-                ].map((p, i) => (
-                  <div key={i} className={`w-12 h-12 bg-gradient-to-br ${p.bg} rounded-xl flex items-center justify-center text-white font-bold shadow-lg border-2 border-white`}>
-                    {p.icon}
-                  </div>
+              <h3 className="text-xl font-bold text-[#1C1C1E] mb-2">Paste Any Link</h3>
+              <p className="text-gray-600 mb-4">YouTube, blog posts, tweets, articles - just paste the URL and Echo extracts your content.</p>
+              <div className="flex flex-wrap gap-2">
+                {["YouTube", "Twitter", "Blog", "Article"].map((type, i) => (
+                  <span key={i} className="px-2 py-1 bg-[#00D4FF]/10 text-[#00D4FF] rounded text-xs font-medium">
+                    {type}
+                  </span>
                 ))}
               </div>
+            </div>
+
+            {/* Drop Documents */}
+            <div className="group relative bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#B794F6] to-[#9F7AEA] rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-lg">
+                <Upload className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-[#1C1C1E] mb-2">Drop Documents</h3>
+              <p className="text-gray-600 mb-4">PDFs, Word docs, text files - upload your existing content and Echo learns your writing style.</p>
+              <div className="flex flex-wrap gap-2">
+                {["PDF", "DOCX", "TXT", "MD"].map((type, i) => (
+                  <span key={i} className="px-2 py-1 bg-[#B794F6]/10 text-[#B794F6] rounded text-xs font-medium">
+                    {type}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Import Emails */}
+            <div className="group relative bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#FF6B9D] to-[#F56565] rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform shadow-lg">
+                <Mail className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-[#1C1C1E] mb-2">Import Emails</h3>
+              <p className="text-gray-600 mb-4">Connect your email and Echo learns from your newsletters and customer communications.</p>
+              <div className="flex flex-wrap gap-2">
+                {["Gmail", "Newsletter", "Sent Items"].map((type, i) => (
+                  <span key={i} className="px-2 py-1 bg-[#FF6B9D]/10 text-[#FF6B9D] rounded text-xs font-medium">
+                    {type}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Everything Feeds KB */}
+          <div className="bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-2xl p-8 border border-[#00D4FF]/20 max-w-3xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
               <div className="text-center md:text-left">
-                <h3 className="font-bold text-[#1C1C1E] mb-1">Import Your Best Performing Content</h3>
-                <p className="text-gray-600 text-sm">Connect Instagram, YouTube, or paste any URL. Echo learns from content that already resonates with your audience.</p>
+                <h3 className="font-bold text-[#1C1C1E] mb-1">Everything Feeds Your Knowledge Base</h3>
+                <p className="text-gray-600 text-sm">Whether you start with video, documents, or social posts - it all goes into your Knowledge Base. The more you feed Echo, the better it knows your voice.</p>
               </div>
             </div>
           </div>
@@ -590,68 +756,105 @@ export default function HomeContent() {
         </div>
       </section>
 
-      {/* Video Features - Condensed */}
+      {/* Echo Voice Matching - The Differentiator */}
       <section className="py-20 px-6 bg-gradient-to-br from-[#FAFAFA] to-white relative overflow-hidden" data-animate="true">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left - Messaging */}
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FF6B9D]/10 border border-[#FF6B9D]/20 rounded-full mb-6">
-                <Video className="w-4 h-4 text-[#FF6B9D]" />
-                <span className="text-[#FF6B9D] font-semibold text-sm">Video Feature</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
+                <Sparkles className="w-4 h-4 text-[#00D4FF]" />
+                <span className="text-[#00D4FF] font-semibold text-sm">Echo Voice Matching</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-black mb-6 text-[#1C1C1E]">
-                Got Video?
+                Not Just AI.
                 <br />
-                <span className="bg-gradient-to-r from-[#FF6B9D] to-[#FFD93D] bg-clip-text text-transparent">Get Everything.</span>
+                <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">Your AI.</span>
               </h2>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Upload any video - Zoom recordings, selfie videos, podcasts.
-                Echo extracts the best moments and creates a full content kit.
+                Echo doesn&apos;t just generate content - it matches your voice with 94% accuracy.
+                Here&apos;s exactly what makes your content sound like you:
               </p>
               <div className="space-y-4">
                 {[
-                  "Agentic analysis identifies your most viral-worthy moments",
-                  "Auto-generates captions in your style",
-                  "Creates Instagram carousels from key points",
-                  "Writes platform-specific posts from transcription"
+                  { title: "Signature Phrase Detection", desc: "Echo identifies the phrases you use repeatedly and incorporates them naturally" },
+                  { title: "Tone & Energy Matching", desc: "Conversational? Authoritative? Echo matches your unique communication energy" },
+                  { title: "Avoidance Patterns", desc: "Words you never use stay out of your content - no 'leverage' or 'synergy' if that's not you" },
+                  { title: "Storytelling Style", desc: "Whether you lead with data or anecdotes, Echo mirrors your approach" }
                 ].map((feature, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-gradient-to-br from-[#FF6B9D] to-[#FFD93D] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-gray-700">{feature}</span>
+                    <div>
+                      <span className="text-[#1C1C1E] font-semibold">{feature.title}</span>
+                      <p className="text-gray-500 text-sm">{feature.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Right - Visual */}
+            {/* Right - Voice Profile Visual */}
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#FF6B9D]/20 to-[#FFD93D]/20 rounded-3xl blur-2xl" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-2xl" />
               <div className="relative bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
-                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl mb-4 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#FF6B9D] to-[#FFD93D] rounded-full flex items-center justify-center shadow-lg">
-                    <Play className="w-8 h-8 text-white ml-1" />
+                {/* Voice Profile Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#1C1C1E]">Your Voice Profile</p>
+                      <p className="text-gray-500 text-sm">Based on 47 samples</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-[#00D4FF]">94%</p>
+                    <p className="text-xs text-gray-500">Match Rate</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <span>Your Video</span>
-                  <span>12:34</span>
+
+                {/* Detected Patterns */}
+                <div className="space-y-4">
+                  <div className="p-4 bg-[#00D4FF]/5 border border-[#00D4FF]/20 rounded-xl">
+                    <p className="text-xs text-[#00D4FF] font-bold uppercase tracking-wider mb-2">23 Signature Phrases</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Here's the thing...", "Let me tell you", "The secret is"].map((phrase, i) => (
+                        <span key={i} className="px-2 py-1 bg-[#00D4FF]/10 rounded text-[#00D4FF] text-xs font-medium">
+                          &quot;{phrase}&quot;
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-[#B794F6]/5 border border-[#B794F6]/20 rounded-xl">
+                    <p className="text-xs text-[#B794F6] font-bold uppercase tracking-wider mb-2">Your Tone</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Conversational", "Direct", "Encouraging"].map((tone, i) => (
+                        <span key={i} className="px-2 py-1 bg-[#B794F6]/10 rounded text-[#B794F6] text-xs font-medium">
+                          {tone}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
+                    <p className="text-xs text-red-500 font-bold uppercase tracking-wider mb-2">Words You Never Use</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["leverage", "synergy", "circle back", "utilize"].map((word, i) => (
+                        <span key={i} className="px-2 py-1 bg-red-100 rounded text-red-400 text-xs font-medium line-through">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 bg-[#00D4FF]/5 rounded-lg border border-[#00D4FF]/20">
-                    <span className="text-sm font-medium text-[#1C1C1E]">5 Viral Clips Detected</span>
-                    <span className="text-xs text-[#00D4FF] font-semibold">92% avg score</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-[#1C1C1E]">Full Transcription</span>
-                    <span className="text-xs text-gray-500">2,847 words</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-[#1C1C1E]">Content Kit Ready</span>
-                    <span className="text-xs text-gray-500">8 platforms</span>
-                  </div>
+
+                {/* Floating badge */}
+                <div className="absolute -top-3 -right-3 px-4 py-2 bg-gradient-to-br from-[#FFD93D] to-[#FF6B9D] rounded-xl shadow-lg transform rotate-6">
+                  <span className="text-white text-sm font-bold">Unique to You</span>
                 </div>
               </div>
             </div>
@@ -890,7 +1093,7 @@ export default function HomeContent() {
                     {[
                       '2 hours of video processing',
                       '5 clips per video',
-                      '1 Knowledge Base',
+                      '1 Knowledge Base (your voice profile)',
                       '3 Creator Radar slots',
                       'Standard carousel templates',
                       '1080p exports',
@@ -946,7 +1149,7 @@ export default function HomeContent() {
                     {[
                       '5 hours of video processing',
                       '10 clips per video',
-                      '3 Knowledge Bases',
+                      '3 Knowledge Bases (multiple voices)',
                       '10 Creator Radar slots',
                       'All templates + custom colors',
                       '1080p exports',
@@ -1000,7 +1203,7 @@ export default function HomeContent() {
                     {[
                       'Unlimited video processing',
                       '15 clips per video',
-                      'Unlimited Knowledge Bases',
+                      'Unlimited Knowledge Bases (team voices)',
                       'Unlimited Creator Radar',
                       'Custom carousel design system',
                       '1080p exports',
@@ -1125,19 +1328,19 @@ export default function HomeContent() {
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6">
-            Ready to Sound Like
+            One Video.
             <br />
-            <span className="text-white/90">Yourself?</span>
+            <span className="text-white/90">Endless Content.</span>
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-8 font-light max-w-2xl mx-auto">
-            The more you share, the better Echo knows you.
-            Start with a free trial - no credit card required.
+            Upload your first video and watch Echo transform it into a week&apos;s worth of content -
+            all in your authentic voice. Start free, no credit card required.
           </p>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-2 px-10 py-5 bg-white text-[#00D4FF] rounded-2xl font-bold text-lg shadow-2xl hover:shadow-xl hover:scale-105 transition-all group"
           >
-            Start Building Your Voice
+            Start Your Free Trial
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -1162,7 +1365,7 @@ export default function HomeContent() {
                 </span>
               </div>
               <p className="text-white/80 font-light text-lg leading-relaxed mb-6">
-                Agentic content that sounds like you. Learn once, create forever.
+                Video-first content platform. One video becomes a week of content, all in your voice.
               </p>
               <div className="flex gap-3">
                 <a href="#" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-[#00D4FF] hover:to-[#B794F6] flex items-center justify-center transition-all duration-300 group">
