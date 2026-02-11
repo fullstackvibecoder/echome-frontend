@@ -174,7 +174,7 @@ export default function HomeContent() {
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-10">
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-6">
                 <Link
                   href="/auth/signup"
                   className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
@@ -193,6 +193,32 @@ export default function HomeContent() {
                   <Play className="w-5 h-5" />
                   See It Work
                 </Link>
+              </div>
+
+              {/* Audience Selector - smooth scroll to relevant section */}
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-10">
+                <span className="text-white/50 text-sm self-center mr-1">I am a:</span>
+                <a
+                  href="#podcasters"
+                  className="px-4 py-2 bg-white/5 hover:bg-[#FF6B9D]/20 border border-white/20 hover:border-[#FF6B9D]/50
+                             text-white rounded-full text-sm font-medium transition-all flex items-center gap-2"
+                >
+                  <span>🎙️</span> Podcaster
+                </a>
+                <a
+                  href="#how"
+                  className="px-4 py-2 bg-white/5 hover:bg-[#B794F6]/20 border border-white/20 hover:border-[#B794F6]/50
+                             text-white rounded-full text-sm font-medium transition-all flex items-center gap-2"
+                >
+                  <span>📹</span> Video Creator
+                </a>
+                <a
+                  href="#no-video"
+                  className="px-4 py-2 bg-white/5 hover:bg-[#00D4FF]/20 border border-white/20 hover:border-[#00D4FF]/50
+                             text-white rounded-full text-sm font-medium transition-all flex items-center gap-2"
+                >
+                  <span>✍️</span> Just Starting
+                </a>
               </div>
 
               {/* Social Proof - Video focused */}
@@ -631,8 +657,66 @@ export default function HomeContent() {
         </div>
       </section>
 
+      {/* Podcasters Section - Sunnybrook style: tight, numbers-forward, emotional */}
+      <section id="podcasters" className="py-20 px-6 bg-gradient-to-br from-[#1C1C1E] via-[#2a2a2c] to-[#1C1C1E] relative overflow-hidden" data-animate="true">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FF6B9D] via-[#B794F6] to-[#00D4FF]" />
+
+        <div className="max-w-4xl mx-auto text-center">
+          {/* The Hook */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-full mb-8">
+            <span className="text-xl">🎙️</span>
+            <span className="text-white/90 font-medium text-sm">For Podcasters & Video Creators</span>
+          </div>
+
+          {/* Problem + Proof - Sunnybrook style */}
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-white leading-tight">
+            You&apos;ve already recorded
+            <br />
+            <span className="bg-gradient-to-r from-[#FF6B9D] via-[#B794F6] to-[#00D4FF] bg-clip-text text-transparent">
+              a year of content.
+            </span>
+          </h2>
+
+          {/* The Math - specific numbers like "150 times" */}
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-10">
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl px-6 py-4">
+              <p className="text-4xl md:text-5xl font-black text-white">100</p>
+              <p className="text-white/60 text-sm">episodes</p>
+            </div>
+            <div className="flex items-center">
+              <span className="text-3xl text-white/40">=</span>
+            </div>
+            <div className="bg-gradient-to-br from-[#FF6B9D]/20 to-[#B794F6]/20 border border-[#FF6B9D]/30 rounded-2xl px-6 py-4">
+              <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#FF6B9D] to-[#B794F6] bg-clip-text text-transparent">4,700</p>
+              <p className="text-white/60 text-sm">posts</p>
+            </div>
+            <div className="flex items-center">
+              <span className="text-3xl text-white/40">=</span>
+            </div>
+            <div className="bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 border border-[#00D4FF]/30 rounded-2xl px-6 py-4">
+              <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">12+</p>
+              <p className="text-white/60 text-sm">years of daily content</p>
+            </div>
+          </div>
+
+          {/* Tagline - emotional gut punch */}
+          <p className="text-xl md:text-2xl text-white/80 mb-10 font-light">
+            You did the hard part. Let Echo do the rest.
+          </p>
+
+          {/* CTA */}
+          <Link
+            href="/auth/signup"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#B794F6] text-white rounded-xl font-bold text-lg shadow-2xl hover:shadow-[#FF6B9D]/25 hover:scale-105 transition-all group"
+          >
+            Upload Your First Episode
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+      </section>
+
       {/* No Video? No Problem - Secondary Input Methods */}
-      <section className="py-20 px-6 bg-gradient-to-br from-[#FAFAFA] to-white relative overflow-hidden" data-animate="true">
+      <section id="no-video" className="py-20 px-6 bg-gradient-to-br from-[#FAFAFA] to-white relative overflow-hidden" data-animate="true">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
@@ -711,64 +795,6 @@ export default function HomeContent() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Podcasters Section - Sunnybrook style: tight, numbers-forward, emotional */}
-      <section className="py-20 px-6 bg-gradient-to-br from-[#1C1C1E] via-[#2a2a2c] to-[#1C1C1E] relative overflow-hidden" data-animate="true">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FF6B9D] via-[#B794F6] to-[#00D4FF]" />
-
-        <div className="max-w-4xl mx-auto text-center">
-          {/* The Hook */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-full mb-8">
-            <span className="text-xl">🎙️</span>
-            <span className="text-white/90 font-medium text-sm">For Podcasters & Video Creators</span>
-          </div>
-
-          {/* Problem + Proof - Sunnybrook style */}
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-white leading-tight">
-            You&apos;ve already recorded
-            <br />
-            <span className="bg-gradient-to-r from-[#FF6B9D] via-[#B794F6] to-[#00D4FF] bg-clip-text text-transparent">
-              a year of content.
-            </span>
-          </h2>
-
-          {/* The Math - specific numbers like "150 times" */}
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-10">
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl px-6 py-4">
-              <p className="text-4xl md:text-5xl font-black text-white">100</p>
-              <p className="text-white/60 text-sm">episodes</p>
-            </div>
-            <div className="flex items-center">
-              <span className="text-3xl text-white/40">=</span>
-            </div>
-            <div className="bg-gradient-to-br from-[#FF6B9D]/20 to-[#B794F6]/20 border border-[#FF6B9D]/30 rounded-2xl px-6 py-4">
-              <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#FF6B9D] to-[#B794F6] bg-clip-text text-transparent">4,700</p>
-              <p className="text-white/60 text-sm">posts</p>
-            </div>
-            <div className="flex items-center">
-              <span className="text-3xl text-white/40">=</span>
-            </div>
-            <div className="bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 border border-[#00D4FF]/30 rounded-2xl px-6 py-4">
-              <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">12+</p>
-              <p className="text-white/60 text-sm">years of daily content</p>
-            </div>
-          </div>
-
-          {/* Tagline - emotional gut punch */}
-          <p className="text-xl md:text-2xl text-white/80 mb-10 font-light">
-            You did the hard part. Let Echo do the rest.
-          </p>
-
-          {/* CTA */}
-          <Link
-            href="/auth/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#B794F6] text-white rounded-xl font-bold text-lg shadow-2xl hover:shadow-[#FF6B9D]/25 hover:scale-105 transition-all group"
-          >
-            Upload Your First Episode
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
         </div>
       </section>
 
