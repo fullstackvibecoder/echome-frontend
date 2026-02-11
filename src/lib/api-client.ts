@@ -258,12 +258,12 @@ export const api = {
           sortOrder: clip.sort_order ?? clip.sortOrder ?? 0,
           isSelected: clip.is_selected ?? clip.isSelected ?? true,
           createdAt: clip.created_at || clip.createdAt,
-          // Template-aware segment metadata
-          segmentMetadata: clip.metadata?.suggested_segment_id ? {
-            suggestedSegmentId: clip.metadata.suggested_segment_id,
-            segmentConfidence: clip.metadata.segment_confidence,
-            segmentReasoning: clip.metadata.segment_reasoning,
-            alternativeSegments: clip.metadata.alternative_segments,
+          // Template-aware segment metadata (from top-level columns or nested metadata)
+          segmentMetadata: (clip.suggested_segment_id || clip.metadata?.suggested_segment_id) ? {
+            suggestedSegmentId: clip.suggested_segment_id || clip.metadata?.suggested_segment_id,
+            segmentConfidence: clip.segment_confidence ?? clip.metadata?.segment_confidence,
+            segmentReasoning: clip.segment_reasoning || clip.metadata?.segment_reasoning,
+            alternativeSegments: clip.alternative_segments || clip.metadata?.alternative_segments,
           } : undefined,
         })),
         carousel: rawData.carousel ? {
