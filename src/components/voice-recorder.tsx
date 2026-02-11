@@ -258,7 +258,7 @@ export function VoiceRecorder({
                       key={i}
                       className="w-1 bg-red-500 rounded-full animate-pulse"
                       style={{
-                        height: `${Math.random() * 20 + 10}px`,
+                        height: `${10 + ((i * 17 + 7) % 20)}px`,
                         animationDelay: `${i * 0.1}s`,
                       }}
                     />

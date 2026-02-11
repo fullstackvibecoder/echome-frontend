@@ -1402,6 +1402,17 @@ export const api = {
       captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
       generateContent?: boolean;
       knowledgeBaseId?: string;
+      /**
+       * Normalize video before processing (audio loudness + codec standardization)
+       * Improves transcription accuracy with consistent audio levels.
+       * Default: true (enabled)
+       */
+      normalizeVideo?: boolean | {
+        /** Target loudness in LUFS (-23 broadcast, -16 streaming, -14 loud). Default: -16 */
+        targetLoudness?: number;
+        /** Skip video re-encoding, only normalize audio */
+        audioOnly?: boolean;
+      };
       /** Carousel template preset */
       designPreset?: 'auto' | 'tweet-style' | 'text-box';
       /** For custom background image uploads */

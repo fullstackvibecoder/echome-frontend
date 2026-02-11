@@ -132,9 +132,9 @@ export default function HomeContent() {
                   key={i}
                   className="flex-1 bg-gradient-to-t from-[#00D4FF] to-[#B794F6] rounded-full animate-pulse"
                   style={{
-                    height: `${20 + Math.sin(i * 0.3) * 60 + Math.random() * 40}%`,
+                    height: `${20 + Math.sin(i * 0.3) * 60 + ((i * 17 + 7) % 40)}%`,
                     animationDelay: `${i * 50}ms`,
-                    animationDuration: `${1000 + Math.random() * 500}ms`
+                    animationDuration: `${1000 + ((i * 31 + 13) % 500)}ms`
                   }}
                 />
               ))}
