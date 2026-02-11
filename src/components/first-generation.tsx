@@ -362,7 +362,7 @@ export function FirstGeneration({
   generating,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
-  const [inputType, setInputType] = useState<ExtendedInputType>('text');
+  const [inputType, setInputType] = useState<ExtendedInputType>('video');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
