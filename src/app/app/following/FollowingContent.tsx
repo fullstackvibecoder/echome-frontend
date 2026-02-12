@@ -59,6 +59,7 @@ export default function FollowingContent() {
   const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('tweet-style');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
+  const [carouselBgDragActive, setCarouselBgDragActive] = useState(false);
   const [repurposing, setRepurposing] = useState(false);
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
@@ -790,7 +791,21 @@ export default function FollowingContent() {
                         />
                         <label
                           htmlFor="carousel-bg-upload"
-                          className="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-accent hover:bg-accent/5 transition-all"
+                          className={`flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                            carouselBgDragActive
+                              ? 'border-accent bg-accent/10 scale-[1.01]'
+                              : 'border-border hover:border-accent hover:bg-accent/5'
+                          }`}
+                          onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setCarouselBgDragActive(true); }}
+                          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget as Node)) setCarouselBgDragActive(false); }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setCarouselBgDragActive(false);
+                            const file = e.dataTransfer.files?.[0];
+                            if (file && file.type.startsWith('image/')) setCarouselBgFile(file);
+                          }}
                         >
                           {carouselBgFile ? (
                             <div className="flex items-center gap-3">
@@ -808,10 +823,15 @@ export default function FollowingContent() {
                                 ✕
                               </button>
                             </div>
+                          ) : carouselBgDragActive ? (
+                            <>
+                              <span className="text-2xl">📥</span>
+                              <span className="text-accent font-medium">Drop image here</span>
+                            </>
                           ) : (
                             <>
                               <span className="text-2xl">📷</span>
-                              <span className="text-foreground">Click to upload background image</span>
+                              <span className="text-foreground">Drag & drop or click to upload background image</span>
                             </>
                           )}
                         </label>

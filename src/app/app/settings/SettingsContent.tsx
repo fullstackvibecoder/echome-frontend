@@ -24,6 +24,7 @@ export default function SettingsContent() {
   // Image upload state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [avatarDragActive, setAvatarDragActive] = useState(false);
 
   // Profile form state
   const [displayName, setDisplayName] = useState('');
@@ -139,26 +140,18 @@ export default function SettingsContent() {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
+  const uploadProfileImage = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setProfileError('Please select an image file');
       return;
     }
-
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setProfileError('Image must be less than 5MB');
       return;
     }
-
     try {
       setImageUploading(true);
       setProfileError(null);
-
       const response = await api.auth.uploadProfileImage(file);
       if (response.success && response.data?.profile_image_url) {
         const imageUrl = response.data.profile_image_url;
@@ -171,11 +164,23 @@ export default function SettingsContent() {
       setProfileError(error.response?.data?.error?.message || 'Failed to upload image');
     } finally {
       setImageUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) uploadProfileImage(file);
+  };
+
+  const handleAvatarDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAvatarDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadProfileImage(file);
   };
 
   const handlePreferenceChange = async (key: 'email_notifications' | 'weekly_digest' | 'theme', value: boolean | string) => {
@@ -504,11 +509,23 @@ export default function SettingsContent() {
           </div>
 
           {/* Profile Image Card */}
-          <div className="card">
+          <div
+            className={`card transition-all duration-200 ${
+              avatarDragActive ? 'ring-2 ring-accent ring-offset-2 ring-offset-background' : ''
+            }`}
+            onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setAvatarDragActive(true); }}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget as Node)) setAvatarDragActive(false); }}
+            onDrop={handleAvatarDrop}
+          >
             <h3 className="text-subheading text-xl mb-4">Profile Image</h3>
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-accent/10 border-2 border-accent/20 flex items-center justify-center overflow-hidden">
-                {profile?.profile_image_url ? (
+              <div className={`w-24 h-24 rounded-full bg-accent/10 border-2 flex items-center justify-center overflow-hidden transition-colors ${
+                avatarDragActive ? 'border-accent' : 'border-accent/20'
+              }`}>
+                {avatarDragActive ? (
+                  <span className="text-2xl">📥</span>
+                ) : profile?.profile_image_url ? (
                   <img
                     src={profile.profile_image_url}
                     alt="Profile"
@@ -522,7 +539,9 @@ export default function SettingsContent() {
               </div>
               <div className="flex-1">
                 <p className="text-body text-text-secondary mb-3">
-                  Your profile image appears on carousel slides and content attribution.
+                  {avatarDragActive
+                    ? 'Drop your image to upload'
+                    : 'Your profile image appears on carousel slides and content attribution.'}
                 </p>
                 <input
                   ref={fileInputRef}
@@ -546,7 +565,7 @@ export default function SettingsContent() {
                   )}
                 </button>
                 <p className="text-xs text-text-secondary mt-2">
-                  Recommended: Square image, at least 200x200px. Max 5MB.
+                  Drag & drop or click to upload. Square image, at least 200x200px. Max 5MB.
                 </p>
               </div>
             </div>

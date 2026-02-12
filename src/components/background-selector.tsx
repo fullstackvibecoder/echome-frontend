@@ -47,6 +47,7 @@ export function BackgroundSelector({
   const [generatingAI, setGeneratingAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   // Get current design preset (map legacy values)
   const getCurrentPreset = (): DesignPreset => {
@@ -64,10 +65,7 @@ export function BackgroundSelector({
     onChange({ designPreset: preset });
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = async (file: File) => {
     setUploading(true);
     try {
       const response = await api.images.uploadBackground(file);
@@ -82,6 +80,21 @@ export function BackgroundSelector({
       console.error('Upload failed:', error);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      uploadFile(file);
     }
   };
 
@@ -201,18 +214,33 @@ export function BackgroundSelector({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="w-full aspect-video rounded-lg border-2 border-dashed border-zinc-600 hover:border-zinc-500 flex flex-col items-center justify-center gap-2 transition-colors"
+                className={`w-full aspect-video rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-200 ${
+                  dragActive
+                    ? 'border-purple-400 bg-purple-500/10 scale-[1.01]'
+                    : 'border-zinc-600 hover:border-zinc-500'
+                }`}
+                onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragActive(false); }}
+                onDrop={handleDrop}
               >
                 {uploading ? (
                   <>
                     <Loader2 className="animate-spin text-zinc-400" size={32} />
                     <span className="text-sm text-zinc-400">Uploading...</span>
                   </>
+                ) : dragActive ? (
+                  <>
+                    <Upload className="text-purple-400" size={32} />
+                    <span className="text-sm text-purple-400 font-medium">
+                      Drop image here
+                    </span>
+                  </>
                 ) : (
                   <>
                     <Image className="text-zinc-400" size={32} />
                     <span className="text-sm text-zinc-400">
-                      Click to upload background image
+                      Drag & drop or click to upload
                     </span>
                     <span className="text-xs text-zinc-500">
                       JPEG, PNG, or WebP (max 10MB)

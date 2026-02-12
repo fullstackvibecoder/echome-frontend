@@ -368,11 +368,13 @@ export function FirstGeneration({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const [videoDragActive, setVideoDragActive] = useState(false);
 
   // Carousel design preset state
   const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
+  const [carouselBgDragActive, setCarouselBgDragActive] = useState(false);
 
   // Video snapshot state
   const [selectedSnapshot, setSelectedSnapshot] = useState<VideoSnapshot | null>(null);
@@ -669,6 +671,62 @@ export function FirstGeneration({
     }
   };
 
+  // Shared drag-and-drop helpers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleVideoDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setVideoDragActive(true);
+  };
+
+  const handleVideoDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only deactivate if we left the drop zone (not entering a child)
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setVideoDragActive(false);
+  };
+
+  const handleVideoDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setVideoDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('video/')) {
+      setSelectedFile(file);
+      setUploadError(null);
+    } else if (file) {
+      setUploadError('Please drop a video file (MP4, MOV, AVI, or WebM)');
+    }
+  };
+
+  const handleCarouselBgDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCarouselBgDragActive(true);
+  };
+
+  const handleCarouselBgDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setCarouselBgDragActive(false);
+  };
+
+  const handleCarouselBgDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCarouselBgDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setCarouselBgFile(file);
+    }
+  };
+
   const handleDesignOptionChange = (value: CarouselDesignOption) => {
     setCarouselDesignOption(value);
     // Clear file if not upload option
@@ -929,7 +987,17 @@ export function FirstGeneration({
       )}
 
       {inputType === 'video' && (
-        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+            videoDragActive
+              ? 'border-accent bg-accent/5 scale-[1.01]'
+              : 'border-border'
+          }`}
+          onDragEnter={handleVideoDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleVideoDragLeave}
+          onDrop={handleVideoDrop}
+        >
           <input
             type="file"
             ref={videoInputRef}
@@ -992,20 +1060,31 @@ export function FirstGeneration({
             </div>
           ) : !selectedFile ? (
             <>
-              <div className="text-5xl mb-4">🎥</div>
-              <p className="text-body text-text-secondary mb-4">
-                Upload a video to extract clips and generate a content kit
-              </p>
-              <button
-                onClick={() => videoInputRef.current?.click()}
-                className="btn-secondary px-6 py-2"
-                disabled={generating || uploading || videoProcessing}
-              >
-                Select Video File
-              </button>
-              <p className="text-small text-text-secondary mt-4">
-                Supports MP4, MOV, AVI, WebM (up to 5GB)
-              </p>
+              {videoDragActive ? (
+                <>
+                  <div className="text-5xl mb-4">📥</div>
+                  <p className="text-body text-accent font-semibold mb-4">
+                    Drop your video here
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-5xl mb-4">🎥</div>
+                  <p className="text-body text-text-secondary mb-4">
+                    Drag & drop a video or click to browse
+                  </p>
+                  <button
+                    onClick={() => videoInputRef.current?.click()}
+                    className="btn-secondary px-6 py-2"
+                    disabled={generating || uploading || videoProcessing}
+                  >
+                    Select Video File
+                  </button>
+                  <p className="text-small text-text-secondary mt-4">
+                    Supports MP4, MOV, AVI, WebM (up to 5GB)
+                  </p>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -1232,10 +1311,20 @@ export function FirstGeneration({
             {!carouselBgFile ? (
               <button
                 onClick={() => carouselBgInputRef.current?.click()}
-                className="w-full py-3 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors"
+                className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
+                  carouselBgDragActive
+                    ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
+                    : 'border-border text-text-secondary hover:border-accent hover:text-accent'
+                }`}
                 disabled={generating || uploading}
+                onDragEnter={handleCarouselBgDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleCarouselBgDragLeave}
+                onDrop={handleCarouselBgDrop}
               >
-                Click to upload background image (JPEG, PNG, WebP)
+                {carouselBgDragActive
+                  ? 'Drop image here'
+                  : 'Drag & drop or click to upload background image (JPEG, PNG, WebP)'}
               </button>
             ) : (
               <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
