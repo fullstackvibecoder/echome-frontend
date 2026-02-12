@@ -423,6 +423,64 @@ body {
   }
 }
 
+/* Hero Showcase — vertical beam draw */
+@keyframes transform-draw-vertical {
+  0% {
+    opacity: 1;
+    transform: scaleY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Hero Showcase — individual card fan entrance */
+@keyframes card-fan-in-individual {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.9) rotate(var(--fan-rotate, 0deg));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--fan-rotate, 0deg));
+  }
+}
+
+/* Hero Showcase — spark pulsing ring */
+@keyframes spark-ping {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    transform: scale(2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* Hero Showcase — dots falling through beam */
+@keyframes particle-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+}
+
 .animate-hero-fade-in-up {
   animation: hero-fade-in-up 0.6s ease-out forwards;
 }
@@ -433,6 +491,22 @@ body {
 
 .animate-card-fan-in {
   animation: card-fan-in 0.5s ease-out forwards;
+}
+
+.animate-transform-draw-vertical {
+  animation: transform-draw-vertical 0.5s ease-out forwards;
+}
+
+.animate-card-fan-in-individual {
+  animation: card-fan-in-individual 0.5s ease-out forwards;
+}
+
+.animate-spark-ping {
+  animation: spark-ping 2s ease-out infinite;
+}
+
+.animate-particle-fall {
+  animation: particle-fall 1.5s ease-in infinite;
 }
 
 /* Respect user preferences for reduced motion */
@@ -456,7 +530,11 @@ body {
   .animate-bounce-down,
   .animate-hero-fade-in-up,
   .animate-transform-draw,
-  .animate-card-fan-in {
+  .animate-card-fan-in,
+  .animate-transform-draw-vertical,
+  .animate-card-fan-in-individual,
+  .animate-spark-ping,
+  .animate-particle-fall {
     animation: none !important;
     opacity: 1 !important;
   }

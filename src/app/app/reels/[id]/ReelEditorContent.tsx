@@ -396,23 +396,39 @@ export default function ReelEditorContent() {
       }
 
       if (isNewProject || !project) {
-        // Create new project
-        const input: CreateReelProjectInput = {
-          templateId: selectedTemplate.id,
-          clips: clipInputs,
-          musicTrackId: selectedMusic?.id,
-          title: title || `Reel - ${selectedTemplate.name}`,
-          addCaptions,
-          captionPreset,
-          // Include context for AI text overlay generation (standalone reels only)
-          context: reelContext || undefined,
-        };
+        if (contentKitId) {
+          // Content kit flow: use the dedicated endpoint that preserves
+          // AI-generated text overlays (hook, segment text, CTA)
+          const res = await api.contentKits.createReelFromKit(contentKitId, {
+            templateId: selectedTemplate.id,
+            clips: clipInputs,
+            musicTrackId: selectedMusic?.id,
+            addCaptions,
+            captionPreset,
+          });
+          if (res.success && res.data) {
+            setProject(res.data.project);
+            router.replace(`/app/reels/${res.data.project.id}`);
+            return res.data.project;
+          }
+        } else {
+          // Standalone reel creation
+          const input: CreateReelProjectInput = {
+            templateId: selectedTemplate.id,
+            clips: clipInputs,
+            musicTrackId: selectedMusic?.id,
+            title: title || `Reel - ${selectedTemplate.name}`,
+            addCaptions,
+            captionPreset,
+            context: reelContext || undefined,
+          };
 
-        const res = await api.reels.createProject(input);
-        if (res.success && res.data) {
-          setProject(res.data);
-          router.replace(`/app/reels/${res.data.id}`);
-          return res.data;
+          const res = await api.reels.createProject(input);
+          if (res.success && res.data) {
+            setProject(res.data);
+            router.replace(`/app/reels/${res.data.id}`);
+            return res.data;
+          }
         }
       } else {
         // Update existing project
@@ -445,6 +461,7 @@ export default function ReelEditorContent() {
     afterItems,
     isNewProject,
     project,
+    contentKitId,
     selectedMusic,
     title,
     addCaptions,
@@ -452,6 +469,7 @@ export default function ReelEditorContent() {
     musicVolume,
     beatSyncEnabled,
     router,
+    reelContext,
   ]);
 
   // Start rendering

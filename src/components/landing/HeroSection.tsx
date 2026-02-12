@@ -2,12 +2,17 @@
 
 import Link from 'next/link';
 import { ArrowRight, Play, Video } from 'lucide-react';
-import { HeroTransformAnimation } from './HeroTransformAnimation';
+import { HeroShowcase } from './HeroShowcase';
 
 export function HeroSection() {
   return (
     <section className="min-h-screen flex items-center px-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900" />
+
+      {/* Ambient gradient blobs for depth */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#00D4FF]/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-[#FF6B9D]/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#B794F6]/5 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto py-20 w-full relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -29,13 +34,9 @@ export function HeroSection() {
               </span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-gray-300 mb-4 font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-              All in your authentic voice.
-            </p>
-            <p className="text-lg md:text-xl text-white/90 mb-8 font-medium max-w-xl mx-auto lg:mx-0">
-              Upload any video and Echo transforms it into clips, carousels, posts, and emails —
-              all matching your unique voice.
+            {/* Subtitle — single stronger line */}
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
+              Upload any video and Echo transforms it into clips, carousels, posts, and emails — all in your authentic voice.
             </p>
 
             {/* CTAs */}
@@ -61,8 +62,8 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Right Column — Animated transformation */}
-          <HeroTransformAnimation />
+          {/* Right Column — Layered showcase */}
+          <HeroShowcase />
         </div>
       </div>
     </section>
