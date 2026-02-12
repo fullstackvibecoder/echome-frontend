@@ -605,11 +605,14 @@ export function FirstGeneration({
     };
 
     return new Promise<void>((resolve, reject) => {
+      let consecutiveErrors = 0;
+
       const checkStatus = async () => {
         try {
           const response = await api.clips.get(uploadId);
 
           if (response.success && response.data) {
+            consecutiveErrors = 0;
             const { upload, clips, contentKit } = response.data;
             const status = upload.status;
 
@@ -642,10 +645,28 @@ export function FirstGeneration({
               setVideoProcessing(false);
               reject(new Error(upload.statusMessage || 'Processing failed'));
             }
+          } else {
+            // Response indicates failure (e.g. 404 not found)
+            consecutiveErrors++;
+            if (consecutiveErrors >= 3) {
+              if (processingIntervalRef.current) {
+                clearInterval(processingIntervalRef.current);
+              }
+              setVideoProcessing(false);
+              reject(new Error('Upload not found'));
+            }
           }
         } catch (err) {
           console.error('Status check error:', err);
-          // Continue polling on transient errors
+          consecutiveErrors++;
+          // Stop polling after 3 consecutive errors
+          if (consecutiveErrors >= 3) {
+            if (processingIntervalRef.current) {
+              clearInterval(processingIntervalRef.current);
+            }
+            setVideoProcessing(false);
+            reject(new Error('Lost connection to processing status'));
+          }
         }
       };
 
