@@ -310,6 +310,7 @@ export type ContentSourceType =
   | 'mbox_import'      // MBOX email archive import
   | 'youtube_import'   // YouTube transcript import
   | 'instagram_import' // Instagram caption import
+  | 'blog_import'      // Blog/website content import
   | 'generation'       // AI generation request
   | 'clip-finder';     // Video clip finder upload
 
@@ -415,6 +416,12 @@ export const CONTENT_SOURCE_CONFIG: Record<ContentSourceType, {
     icon: 'instagram',
     color: 'fuchsia',
     description: 'Instagram post captions',
+  },
+  blog_import: {
+    label: 'Blog',
+    icon: 'globe',
+    color: 'teal',
+    description: 'Imported blog/website content',
   },
   generation: {
     label: 'Generated',

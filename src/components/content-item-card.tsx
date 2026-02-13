@@ -38,6 +38,7 @@ function getSourceIcon(sourceType: ContentSourceType): string {
     mbox_import: '📥',
     youtube_import: '🎬',
     instagram_import: '📸',
+    blog_import: '🌐',
     generation: '✨',
     'clip-finder': '🎥',
   };
@@ -57,6 +58,7 @@ function getSourceColor(sourceType: ContentSourceType): string {
     mbox_import: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     youtube_import: 'bg-red-500/10 text-red-400 border-red-500/20',
     instagram_import: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20',
+    blog_import: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
     generation: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
     'clip-finder': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
   };
