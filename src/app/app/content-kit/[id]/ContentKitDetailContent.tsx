@@ -84,6 +84,8 @@ export default function ContentKitDetailContent() {
   const [reelContent, setReelContent] = useState<ReelContentStructure | null>(null);
   const [isGeneratingReelContent, setIsGeneratingReelContent] = useState(false);
   const [isCreatingReel, setIsCreatingReel] = useState(false);
+  const [isGeneratingCarouselReel, setIsGeneratingCarouselReel] = useState(false);
+  const [carouselReelError, setCarouselReelError] = useState<string | null>(null);
 
   // Segment assignment state (for template-aware reel creation)
   const [showSegmentAssignment, setShowSegmentAssignment] = useState(false);
@@ -248,6 +250,37 @@ export default function ContentKitDetailContent() {
       console.error('Failed to delete reel:', err);
     }
   };
+
+  // Handler to generate carousel reel (one-click)
+  const handleGenerateCarouselReel = async () => {
+    if (!contentKitId || isGeneratingCarouselReel) return;
+    setIsGeneratingCarouselReel(true);
+    setCarouselReelError(null);
+    try {
+      const response = await api.contentKits.generateCarouselReel(contentKitId);
+      if (response.success) {
+        // Start polling for completion
+        refresh();
+      }
+    } catch (err: any) {
+      console.error('Failed to start carousel reel:', err);
+      setCarouselReelError(err?.response?.data?.error?.message || 'Failed to start reel generation');
+      setIsGeneratingCarouselReel(false);
+    }
+  };
+
+  // Poll for carousel reel completion when processing
+  useEffect(() => {
+    if (!linkedReel || linkedReel.status !== 'processing') {
+      setIsGeneratingCarouselReel(false);
+      return;
+    }
+    setIsGeneratingCarouselReel(true);
+    const interval = setInterval(() => {
+      refresh();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [linkedReel?.status, refresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCopy = async (content: string, contentId: string) => {
     await navigator.clipboard.writeText(content);
@@ -1036,19 +1069,102 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
-          {/* Video Reel Section - Coming Soon */}
-          <section id="reel-section" className="space-y-4 opacity-50 pointer-events-none">
+          {/* Carousel Reel Section */}
+          <section id="reel-section" className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <span>Video Reel</span>
-                <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-medium">Coming Soon</span>
               </h2>
             </div>
-            <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border">
-              <div className="text-4xl mb-3">🎬</div>
-              <h3 className="text-lg font-semibold mb-1">Reel Maker is being rebuilt</h3>
-              <p className="text-sm text-text-secondary">Animated carousel reels with text overlays — coming soon.</p>
-            </div>
+
+            {/* No carousel → show prompt */}
+            {!hasCarousel && (
+              <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border">
+                <div className="text-4xl mb-3">🎬</div>
+                <h3 className="text-lg font-semibold mb-1">Generate a carousel first</h3>
+                <p className="text-sm text-text-secondary">A carousel is needed to create an animated reel.</p>
+              </div>
+            )}
+
+            {/* Has carousel, no reel yet → Generate button */}
+            {hasCarousel && (!linkedReel || linkedReel.status === 'failed') && !isGeneratingCarouselReel && (
+              <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border">
+                <div className="text-4xl mb-3">🎬</div>
+                <h3 className="text-lg font-semibold mb-2">Create an animated reel</h3>
+                <p className="text-sm text-text-secondary mb-4">
+                  Turn your {detail?.carousel?.slides?.length || 0} carousel slides into an animated MP4 with motion effects and transitions.
+                </p>
+                {carouselReelError && (
+                  <p className="text-sm text-error mb-3">{carouselReelError}</p>
+                )}
+                {linkedReel?.status === 'failed' && (
+                  <p className="text-sm text-error mb-3">
+                    Previous attempt failed. Try again?
+                  </p>
+                )}
+                <button
+                  onClick={handleGenerateCarouselReel}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium"
+                >
+                  Generate Reel
+                </button>
+              </div>
+            )}
+
+            {/* Processing state */}
+            {isGeneratingCarouselReel && linkedReel?.status === 'processing' && (
+              <div className="p-8 bg-bg-secondary rounded-xl border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+                  <div>
+                    <p className="font-medium text-text-primary">Generating your reel...</p>
+                    <p className="text-sm text-text-secondary">Animating slides with motion effects. This takes about 20-30 seconds.</p>
+                  </div>
+                </div>
+                <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
+                  <div className="h-full bg-accent rounded-full animate-pulse" style={{ width: '60%' }} />
+                </div>
+              </div>
+            )}
+
+            {/* Completed state → video player + download */}
+            {linkedReel?.status === 'completed' && linkedReel.outputUrl && (
+              <div className="bg-bg-secondary rounded-xl border border-border overflow-hidden">
+                <div className="aspect-[9/16] max-h-[500px] bg-black flex items-center justify-center">
+                  <video
+                    src={linkedReel.outputUrl}
+                    controls
+                    playsInline
+                    className="max-h-full max-w-full"
+                    poster={linkedReel.thumbnailUrl || undefined}
+                  />
+                </div>
+                <div className="p-4 flex items-center justify-between">
+                  <div className="text-sm text-text-secondary">
+                    {linkedReel.outputDurationMs && (
+                      <span>{(linkedReel.outputDurationMs / 1000).toFixed(1)}s</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={linkedReel.outputUrl}
+                      download="carousel-reel.mp4"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
+                    >
+                      Download MP4
+                    </a>
+                    <button
+                      onClick={handleGenerateCarouselReel}
+                      className="flex items-center gap-2 px-4 py-2 bg-bg-tertiary text-text-secondary rounded-lg hover:text-text-primary transition-colors text-sm"
+                    >
+                      Regenerate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Empty State */}

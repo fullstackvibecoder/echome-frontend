@@ -1735,6 +1735,22 @@ export const api = {
         };
       };
     },
+
+    /** Generate animated MP4 reel from carousel slides (one-click) */
+    generateCarouselReel: async (kitId: string) => {
+      const response = await apiClient.post(
+        `/content-kits/${kitId}/generate-carousel-reel`,
+        {},
+        { timeout: GENERATION_TIMEOUT }
+      );
+      return response.data as {
+        success: boolean;
+        data: {
+          projectId: string;
+          status: string;
+        };
+      };
+    },
   },
 
   // -------- STRIPE / BILLING --------
