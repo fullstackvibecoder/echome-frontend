@@ -584,16 +584,12 @@ export default function ContentKitDetailContent() {
                   </span>
                 </h2>
                 <button
-                  onClick={handleCreateReel}
-                  disabled={isLoadingTemplate}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
+                  disabled
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600/40 to-pink-600/40 text-white/50 rounded-lg cursor-not-allowed"
                 >
-                  {isLoadingTemplate ? (
-                    <span className="animate-spin">⏳</span>
-                  ) : (
-                    <span>🎵</span>
-                  )}
-                  <span>Create BeatSync Reel</span>
+                  <span>🎵</span>
+                  <span>Create Reel</span>
+                  <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full">Coming Soon</span>
                 </button>
               </div>
 
@@ -1040,61 +1036,19 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
-          {/* Video Reel Section */}
-          <section id="reel-section" className="space-y-4">
+          {/* Video Reel Section - Coming Soon */}
+          <section id="reel-section" className="space-y-4 opacity-50 pointer-events-none">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <span>Video Reel</span>
-                {linkedReel && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    linkedReel.status === 'completed'
-                      ? 'bg-green-500/10 text-green-400'
-                      : linkedReel.status === 'processing'
-                      ? 'bg-blue-500/10 text-blue-400'
-                      : 'bg-gray-500/10 text-gray-400'
-                  }`}>
-                    {linkedReel.status}
-                  </span>
-                )}
+                <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-medium">Coming Soon</span>
               </h2>
-              {!linkedReel && !reelContent && (
-                <button
-                  onClick={handleGenerateReelContent}
-                  disabled={isGeneratingReelContent || !hasClips}
-                  className="px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isGeneratingReelContent ? (
-                    <>
-                      <span className="animate-spin inline-block mr-1">⏳</span>
-                      Generating...
-                    </>
-                  ) : (
-                    <>Generate Reel Content</>
-                  )}
-                </button>
-              )}
             </div>
-
-            {linkedReel ? (
-              <ReelOutputCard
-                reel={linkedReel}
-                onEdit={handleEditReel}
-                onDelete={handleDeleteReel}
-              />
-            ) : reelContent ? (
-              <ReelContentPreview
-                content={reelContent}
-                onCreateReel={handleCreateReel}
-                onRegenerate={handleGenerateReelContent}
-                isCreating={isCreatingReel}
-              />
-            ) : (
-              <EmptyReelState
-                onGenerate={handleGenerateReelContent}
-                isLoading={isGeneratingReelContent}
-                hasTranscript={hasClips}
-              />
-            )}
+            <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border">
+              <div className="text-4xl mb-3">🎬</div>
+              <h3 className="text-lg font-semibold mb-1">Reel Maker is being rebuilt</h3>
+              <p className="text-sm text-text-secondary">Animated carousel reels with text overlays — coming soon.</p>
+            </div>
           </section>
 
           {/* Empty State */}

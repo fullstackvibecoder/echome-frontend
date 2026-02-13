@@ -1430,66 +1430,17 @@ export function FirstGeneration({
         </div>
       )}
 
-      {/* Reel Configuration - Only show for video/URL input */}
+      {/* Reel Configuration - Coming Soon */}
       {(inputType === 'video' || inputType === 'url') && (
-        <div className="mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20 opacity-50 pointer-events-none">
+          <div className="flex items-center gap-2">
             <span className="text-xl">🎬</span>
             <h3 className="text-body font-semibold text-text-primary">Video Reel</h3>
-            <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Auto-generated</span>
+            <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
           </div>
-          <p className="text-small text-text-secondary mb-4">
-            A short-form reel with AI-generated text overlays will be created from your video
+          <p className="text-small text-text-secondary mt-2">
+            Animated carousel reels with text overlays — coming soon.
           </p>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Reel Template */}
-            <div>
-              <label className="text-small font-medium text-text-primary block mb-1.5">
-                Reel Template
-              </label>
-              <select
-                value={reelTemplate}
-                onChange={(e) => setReelTemplate(e.target.value)}
-                disabled={generating || uploading || videoProcessing || loadingReelOptions}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-bg-primary text-body text-sm focus:outline-none focus:border-accent"
-              >
-                <option value="auto">Auto (AI picks best)</option>
-                {reelTemplates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Music Track */}
-            <div>
-              <label className="text-small font-medium text-text-primary block mb-1.5">
-                Background Music
-              </label>
-              <select
-                value={reelMusicTrackId}
-                onChange={(e) => setReelMusicTrackId(e.target.value)}
-                disabled={generating || uploading || videoProcessing || loadingReelOptions}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-bg-primary text-body text-sm focus:outline-none focus:border-accent"
-              >
-                <option value="auto">Auto (AI picks)</option>
-                <option value="none">No music</option>
-                {musicTracks.map((track) => (
-                  <option key={track.id} value={track.id}>
-                    {track.name}{track.artist ? ` - ${track.artist}` : ''}{track.genre ? ` (${track.genre})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {reelTemplate !== 'auto' && reelTemplates.find(t => t.id === reelTemplate) && (
-            <p className="mt-3 text-small text-text-secondary">
-              {reelTemplates.find(t => t.id === reelTemplate)?.description}
-            </p>
-          )}
         </div>
       )}
 
