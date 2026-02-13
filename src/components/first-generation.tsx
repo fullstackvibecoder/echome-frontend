@@ -569,7 +569,7 @@ export function FirstGeneration({
         // Reel configuration
         reelTemplate: reelTemplate === 'auto' ? undefined : reelTemplate,
         reelMusicTrackId: reelMusicTrackId === 'auto' ? undefined : reelMusicTrackId === 'none' ? null : reelMusicTrackId,
-        generateReel: true, // Generate reel content from transcript
+        generateReel: false, // Old reel content generation not needed (using carousel-reel instead)
       });
 
       if (!processResponse.success || !processResponse.data?.jobId) {

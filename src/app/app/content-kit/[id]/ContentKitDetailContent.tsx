@@ -12,12 +12,12 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
 import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS, VIDEO_GENERATION_STEPS, isVideoStep } from '@/hooks/useGenerationProgress';
-import { VideoPlayer, ReelOutputCard, ReelContentPreview, EmptyReelState, ClipSegmentAssignment } from '@/components/content-kit';
+import { VideoPlayer } from '@/components/content-kit';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
-import { ContentCategory, ReelContentStructure, LinkedReelSummary, ReelProjectDetail, ReelTemplate } from '@/types';
+import { ContentCategory, LinkedReelSummary } from '@/types';
 import { CalendarPlus } from 'lucide-react';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
 
@@ -79,18 +79,10 @@ export default function ContentKitDetailContent() {
   } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
-  // Reel integration state
+  // Carousel reel state
   const [linkedReel, setLinkedReel] = useState<LinkedReelSummary | null>(null);
-  const [reelContent, setReelContent] = useState<ReelContentStructure | null>(null);
-  const [isGeneratingReelContent, setIsGeneratingReelContent] = useState(false);
-  const [isCreatingReel, setIsCreatingReel] = useState(false);
   const [isGeneratingCarouselReel, setIsGeneratingCarouselReel] = useState(false);
   const [carouselReelError, setCarouselReelError] = useState<string | null>(null);
-
-  // Segment assignment state (for template-aware reel creation)
-  const [showSegmentAssignment, setShowSegmentAssignment] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<ReelTemplate | null>(null);
-  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -150,106 +142,10 @@ export default function ContentKitDetailContent() {
 
   // Fetch linked reel data when content kit loads
   useEffect(() => {
-    if (contentKitId) {
-      // Check for reel data from the detail response
-      if ((detail as any)?.reel) {
-        setLinkedReel((detail as any).reel);
-      }
-      if ((detail as any)?.reelContent) {
-        // Backend already transforms to camelCase, use directly
-        setReelContent((detail as any).reelContent);
-      }
+    if (contentKitId && (detail as any)?.reel) {
+      setLinkedReel((detail as any).reel);
     }
   }, [contentKitId, detail]);
-
-  // Handler to generate reel content
-  const handleGenerateReelContent = async () => {
-    if (!contentKitId) return;
-
-    setIsGeneratingReelContent(true);
-    try {
-      const response = await api.contentKits.generateReelContent(contentKitId);
-      if (response.success && response.data?.reelContent) {
-        setReelContent(response.data.reelContent);
-      }
-    } catch (err) {
-      console.error('Failed to generate reel content:', err);
-    } finally {
-      setIsGeneratingReelContent(false);
-    }
-  };
-
-  // Handler to create reel from content kit
-  const handleCreateReel = async () => {
-    // If clips have segment metadata, show the segment assignment UI first
-    const clipsWithSegments = detail?.clips?.filter(clip => clip.segmentMetadata?.suggestedSegmentId);
-    const suggestedTemplateId = reelContent?.suggestedTemplate;
-
-    // If we have clips with segment suggestions and a suggested template, show assignment UI
-    if (clipsWithSegments && clipsWithSegments.length > 0 && suggestedTemplateId) {
-      setIsLoadingTemplate(true);
-      try {
-        const response = await api.reels.getTemplate(suggestedTemplateId);
-        if (response.success && response.data) {
-          setSelectedTemplate(response.data);
-          setShowSegmentAssignment(true);
-        } else {
-          // Fallback to direct navigation
-          router.push(`/app/reels/new?contentKitId=${contentKitId}&templateId=${suggestedTemplateId}`);
-        }
-      } catch (err) {
-        console.error('Failed to fetch template:', err);
-        router.push(`/app/reels/new?contentKitId=${contentKitId}&templateId=${suggestedTemplateId}`);
-      } finally {
-        setIsLoadingTemplate(false);
-      }
-      return;
-    }
-
-    // Navigate to reel editor with content kit context (no segment assignment)
-    if (contentKitId && suggestedTemplateId) {
-      router.push(`/app/reels/new?contentKitId=${contentKitId}&templateId=${suggestedTemplateId}`);
-    } else if (contentKitId) {
-      router.push(`/app/reels/new?contentKitId=${contentKitId}`);
-    }
-  };
-
-  // Handler when segment assignments are confirmed
-  const handleSegmentAssignmentConfirm = (assignments: Record<string, string>) => {
-    if (!contentKitId || !selectedTemplate) return;
-
-    // Encode assignments as URL params for the reel editor
-    const assignmentsParam = encodeURIComponent(JSON.stringify(assignments));
-    router.push(
-      `/app/reels/new?contentKitId=${contentKitId}&templateId=${selectedTemplate.id}&assignments=${assignmentsParam}`
-    );
-  };
-
-  // Handler to cancel segment assignment
-  const handleSegmentAssignmentCancel = () => {
-    setShowSegmentAssignment(false);
-    setSelectedTemplate(null);
-  };
-
-  // Handler to view/edit linked reel
-  const handleEditReel = () => {
-    if (linkedReel) {
-      router.push(`/app/reels/${linkedReel.id}`);
-    }
-  };
-
-  // Handler to delete linked reel
-  const handleDeleteReel = async () => {
-    if (!linkedReel || !window.confirm('Delete this reel? This cannot be undone.')) return;
-
-    try {
-      // TODO: Add delete reel API call
-      setLinkedReel(null);
-      refresh();
-    } catch (err) {
-      console.error('Failed to delete reel:', err);
-    }
-  };
 
   // Handler to generate carousel reel (one-click)
   const handleGenerateCarouselReel = async () => {
@@ -616,14 +512,6 @@ export default function ContentKitDetailContent() {
                     ({detail.clips.length} ready to share)
                   </span>
                 </h2>
-                <button
-                  disabled
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600/40 to-pink-600/40 text-white/50 rounded-lg cursor-not-allowed"
-                >
-                  <span>🎵</span>
-                  <span>Create Reel</span>
-                  <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full">Coming Soon</span>
-                </button>
               </div>
 
               {/* Featured Clip Player */}
@@ -1195,21 +1083,6 @@ export default function ContentKitDetailContent() {
             >
               ✨ Create New
             </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Segment Assignment Modal */}
-      {showSegmentAssignment && selectedTemplate && detail?.clips && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <ClipSegmentAssignment
-              clips={detail.clips}
-              template={selectedTemplate}
-              onConfirm={handleSegmentAssignmentConfirm}
-              onCancel={handleSegmentAssignmentCancel}
-              isLoading={isCreatingReel}
-            />
           </div>
         </div>
       )}
