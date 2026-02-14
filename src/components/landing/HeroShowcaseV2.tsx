@@ -26,7 +26,7 @@ export function HeroShowcaseV2() {
   }, []);
 
   return (
-    <div className="relative flex flex-col items-center gap-6">
+    <div className="relative flex flex-col items-center gap-4">
       {/* Ambient glow */}
       <div className="absolute -inset-8 bg-gradient-to-b from-[#00D4FF]/10 via-[#B794F6]/10 to-[#FF6B9D]/10 rounded-[40px] blur-3xl pointer-events-none" />
 
@@ -96,8 +96,8 @@ export function HeroShowcaseV2() {
 
       {/* TRANSFORM: Arrow + Echo processing */}
       <div
-        className={`relative flex flex-col items-center py-4 transition-all duration-700 ${showTransform ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
-        style={{ minHeight: 80 }}
+        className={`relative flex flex-col items-center py-2 transition-all duration-700 ${showTransform ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+        style={{ minHeight: 60 }}
       >
         {/* Echo logo with pulse */}
         <div className="relative">
@@ -107,7 +107,7 @@ export function HeroShowcaseV2() {
           </div>
         </div>
 
-        <ArrowRight className="w-6 h-6 text-[#00D4FF] rotate-90 mt-2" />
+        <ArrowRight className="w-5 h-5 text-[#00D4FF] rotate-90 mt-1" />
       </div>
 
       {/* AFTER: Content Kit Output */}
