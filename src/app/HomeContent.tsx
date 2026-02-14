@@ -149,7 +149,7 @@ export default function HomeContent() {
                     <span className="text-2xl">🎯</span>
                   </div>
                   <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo</h3>
-                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For creators getting started with Agentic content</p>
+                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For creators with growing video libraries</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparent">
@@ -205,7 +205,7 @@ export default function HomeContent() {
                     <span className="text-2xl">🎬</span>
                   </div>
                   <h3 className="text-2xl font-extrabold text-white mb-2">Echo Studio</h3>
-                  <p className="text-xs font-light text-white/90 mb-4 leading-relaxed">For professional creators and small content teams</p>
+                  <p className="text-xs font-light text-white/90 mb-4 leading-relaxed">For video creators proliferating content at scale</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold text-white drop-shadow-lg">
@@ -259,7 +259,7 @@ export default function HomeContent() {
                     <span className="text-2xl">💎</span>
                   </div>
                   <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo Pro</h3>
-                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For agencies and power users who need unlimited capacity</p>
+                  <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For agencies managing multiple creator video libraries</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent">
