@@ -21,26 +21,25 @@ export function HeroSection() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur border border-white/20 rounded-full mb-8 animate-fade-in">
               <Video className="w-4 h-4 text-[#FF6B9D]" />
-              <span className="text-white/90 font-medium text-sm">Video-First Content Platform</span>
+              <span className="text-white/90 font-medium text-sm">For Creators with Video Libraries</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-[1.1]">
-              <span className="text-white">One Video.</span>
+              <span className="text-white">Got a Pile of Videos</span>
               <br />
-              <span className="text-white">One Week of </span>
               <span className="bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent">
-                Content.
+                Sitting There?
               </span>
             </h1>
 
             {/* Subtitle — single stronger line */}
             <p className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-              Upload any video and Echo transforms it into clips, carousels, posts, and emails — all in your authentic voice.
+              YouTube channel? Old podcasts? Videos in your phone? Echo learns your voice from everything you've already created, then expands the reach across every platform — without more upfront effort.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+            <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-6">
               <Link
                 href="/auth/signup"
                 className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
@@ -60,6 +59,11 @@ export function HeroSection() {
                 See It Work
               </Link>
             </div>
+
+            {/* Trust signal */}
+            <p className="text-sm text-white/60 font-light max-w-xl mx-auto lg:mx-0">
+              → For creators who've already made the content
+            </p>
           </div>
 
           {/* Right Column — Layered showcase */}

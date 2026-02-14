@@ -1,247 +1,226 @@
 'use client';
 
-import Image from 'next/image';
-import { Play, User, Heart, MessageCircle, Share2, Bookmark } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Youtube, FileText, Mail, Video, Sparkles, ArrowRight, Check } from 'lucide-react';
 
-interface OutputCard {
-  type: string;
-  label: string;
-  aspect: string;
-  color: string;
-  rotation: number;
-  src: string | null;
-  delay: number;
-}
-
-const cards: OutputCard[] = [
-  {
-    type: 'reel',
-    label: 'Reels',
-    aspect: 'aspect-[9/16]',
-    color: '#FF6B9D',
-    rotation: -4,
-    src: '/showcase/reel-background.png',
-    delay: 1200,
-  },
-  {
-    type: 'carousel',
-    label: 'Carousels',
-    aspect: 'aspect-square',
-    color: '#B794F6',
-    rotation: -1,
-    src: '/showcase/carousel-1.png',
-    delay: 1350,
-  },
-  {
-    type: 'post',
-    label: 'Posts',
-    aspect: 'aspect-[4/5]',
-    color: '#00D4FF',
-    rotation: 2,
-    src: null,
-    delay: 1500,
-  },
-  {
-    type: 'blog',
-    label: 'Blog',
-    aspect: 'aspect-[3/4]',
-    color: '#FFD93D',
-    rotation: 4,
-    src: null,
-    delay: 1650,
-  },
-];
-
-function ReelSkeleton() {
-  return (
-    <div className="w-full h-full bg-gradient-to-b from-gray-800 to-gray-900 flex flex-col items-center justify-center gap-2 p-3">
-      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-        <Play className="w-5 h-5 text-white/40 ml-0.5" />
-      </div>
-      <div className="w-3/4 h-1.5 bg-white/10 rounded-full" />
-      <div className="w-1/2 h-1.5 bg-white/10 rounded-full" />
-    </div>
-  );
-}
-
-function CarouselSkeleton() {
-  return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center p-3 relative">
-      {/* Stacked layer hints */}
-      <div className="absolute top-1 right-1 w-[85%] h-[85%] rounded-lg border border-white/5 bg-white/[0.02]" />
-      <div className="absolute top-2.5 right-2.5 w-[85%] h-[85%] rounded-lg border border-white/5 bg-white/[0.02]" />
-      <div className="relative w-full h-full flex flex-col items-center justify-center gap-2">
-        <div className="w-3/4 h-2 bg-white/10 rounded-full" />
-        <div className="w-1/2 h-2 bg-white/10 rounded-full" />
-        <div className="flex gap-1 mt-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
-          <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-          <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PostSkeleton() {
-  return (
-    <div className="w-full h-full bg-gradient-to-b from-gray-800 to-gray-900 flex flex-col p-3 gap-2">
-      {/* Avatar row */}
-      <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
-          <User className="w-3 h-3 text-white/30" />
-        </div>
-        <div className="w-12 h-1.5 bg-white/10 rounded-full" />
-      </div>
-      {/* Text bars */}
-      <div className="flex-1 flex flex-col gap-1.5 mt-1">
-        <div className="w-full h-1.5 bg-white/10 rounded-full" />
-        <div className="w-5/6 h-1.5 bg-white/10 rounded-full" />
-        <div className="w-2/3 h-1.5 bg-white/10 rounded-full" />
-      </div>
-      {/* Action icons */}
-      <div className="flex items-center gap-3 mt-auto pt-1 border-t border-white/5">
-        <Heart className="w-3 h-3 text-white/20" />
-        <MessageCircle className="w-3 h-3 text-white/20" />
-        <Share2 className="w-3 h-3 text-white/20" />
-      </div>
-    </div>
-  );
-}
-
-function BlogSkeleton() {
-  return (
-    <div className="w-full h-full bg-gradient-to-b from-gray-800 to-gray-900 flex flex-col p-3 gap-2">
-      {/* Title bars */}
-      <div className="w-5/6 h-2 bg-white/15 rounded-full" />
-      <div className="w-2/3 h-2 bg-white/15 rounded-full" />
-      {/* Body bars */}
-      <div className="flex-1 flex flex-col gap-1 mt-2">
-        <div className="w-full h-1 bg-white/8 rounded-full" />
-        <div className="w-full h-1 bg-white/8 rounded-full" />
-        <div className="w-5/6 h-1 bg-white/8 rounded-full" />
-        <div className="w-full h-1 bg-white/8 rounded-full" />
-        <div className="w-3/4 h-1 bg-white/8 rounded-full" />
-      </div>
-      {/* Read more / bookmark */}
-      <div className="flex items-center justify-between mt-auto pt-1 border-t border-white/5">
-        <div className="w-10 h-1.5 bg-white/10 rounded-full" />
-        <Bookmark className="w-3 h-3 text-white/20" />
-      </div>
-    </div>
-  );
-}
-
-const skeletons: Record<string, () => React.JSX.Element> = {
-  reel: ReelSkeleton,
-  carousel: CarouselSkeleton,
-  post: PostSkeleton,
-  blog: BlogSkeleton,
-};
-
-function CardFrame({ card }: { card: OutputCard }) {
-  const [imgFailed, setImgFailed] = useState(false);
-  const Skeleton = skeletons[card.type];
-  const showImage = card.src && !imgFailed;
-
-  // Phone bezel for reels
-  if (card.type === 'reel') {
-    return (
-      <div className="rounded-2xl border-2 border-white/10 bg-black overflow-hidden shadow-xl">
-        {/* Phone notch */}
-        <div className="h-3 bg-black flex justify-center">
-          <div className="w-10 h-1.5 bg-white/10 rounded-full mt-1" />
-        </div>
-        <div className={`${card.aspect} relative`}>
-          {showImage ? (
-            <Image
-              src={card.src!}
-              alt={card.label}
-              fill
-              className="object-cover"
-              onError={() => setImgFailed(true)}
-            />
-          ) : (
-            <Skeleton />
-          )}
-        </div>
-        {/* Home bar */}
-        <div className="h-3 bg-black flex justify-center">
-          <div className="w-8 h-1 bg-white/15 rounded-full mt-1" />
-        </div>
-      </div>
-    );
-  }
-
-  // All other card types: simple rounded card
-  return (
-    <div className="rounded-xl border border-white/10 bg-black/50 overflow-hidden shadow-xl">
-      <div className={`${card.aspect} relative`}>
-        {showImage ? (
-          <Image
-            src={card.src!}
-            alt={card.label}
-            fill
-            className="object-cover"
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <Skeleton />
-        )}
-      </div>
-    </div>
-  );
-}
+/**
+ * 4-Stage Workflow Visualization:
+ * 1. Content Library Stack (YouTube, blog, emails)
+ * 2. KB Building (Learning voice patterns, chunks count)
+ * 3. Video Upload (Raw, unedited video)
+ * 4. Content Kit (Clips, carousels, posts filtered through KB)
+ */
 
 export function ContentOutputFan() {
+  const [chunksCount, setChunksCount] = useState(0);
+  const [kbComplete, setKbComplete] = useState(false);
+
+  // Animate chunks counter
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const interval = setInterval(() => {
+        setChunksCount((prev) => {
+          if (prev >= 894) {
+            clearInterval(interval);
+            setTimeout(() => setKbComplete(true), 300);
+            return 894;
+          }
+          return prev + 47;
+        });
+      }, 80);
+      return () => clearInterval(interval);
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="relative">
-      {/* Desktop: horizontal fan with overlapping rotated cards */}
-      <div className="hidden md:flex items-end justify-center gap-[-8px] relative" style={{ minHeight: 220 }}>
-        {cards.map((card, i) => (
-          <div
-            key={card.type}
-            className="opacity-0 animate-card-fan-in-individual w-[130px] flex-shrink-0"
-            style={{
-              '--fan-rotate': `${card.rotation}deg`,
-              animationDelay: `${card.delay}ms`,
-              transform: `rotate(${card.rotation}deg)`,
-              marginLeft: i === 0 ? 0 : -8,
-              zIndex: i,
-            } as React.CSSProperties}
-          >
-            <CardFrame card={card} />
-            <p
-              className="text-[10px] font-semibold text-center mt-1.5 tracking-wide"
-              style={{ color: card.color }}
-            >
-              {card.label}
-            </p>
+    <div className="w-full relative">
+      {/* Desktop: Horizontal 4-stage flow */}
+      <div className="hidden md:grid md:grid-cols-4 gap-4 items-start">
+        {/* Stage 1: Content Library Stack */}
+        <div className="flex flex-col items-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1200ms' }}>
+          <div className="relative w-full">
+            {/* Stacked cards effect */}
+            <div className="absolute top-0 left-2 w-[calc(100%-16px)] h-24 bg-white/5 border border-white/10 rounded-lg transform -rotate-2" />
+            <div className="absolute top-1 left-1 w-[calc(100%-8px)] h-24 bg-white/5 border border-white/10 rounded-lg transform rotate-1" />
+
+            {/* Main card */}
+            <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg p-4 shadow-xl">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-red-400">
+                  <Youtube className="w-4 h-4" />
+                  <span className="text-xs font-medium">12 videos</span>
+                </div>
+                <div className="flex items-center gap-2 text-blue-400">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-xs font-medium">8 posts</span>
+                </div>
+                <div className="flex items-center gap-2 text-purple-400">
+                  <Mail className="w-4 h-4" />
+                  <span className="text-xs font-medium">50 emails</span>
+                </div>
+              </div>
+            </div>
           </div>
-        ))}
+          <p className="text-white/60 text-xs font-medium mt-3 text-center">Your Content Library</p>
+        </div>
+
+        {/* Arrow */}
+        <div className="flex items-center justify-center pt-8 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1400ms' }}>
+          <ArrowRight className="w-5 h-5 text-[#00D4FF]" />
+        </div>
+
+        {/* Stage 2: KB Building */}
+        <div className="flex flex-col items-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1500ms' }}>
+          <div className="relative w-full bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-lg p-4 shadow-xl">
+            {/* Pulsing effect while building */}
+            {!kbComplete && (
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 rounded-lg animate-kb-pulse" />
+            )}
+
+            <div className="relative flex flex-col items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${kbComplete ? 'bg-gradient-to-br from-[#00D4FF] to-[#B794F6]' : 'bg-white/10'} transition-all duration-500`}>
+                {kbComplete ? (
+                  <Check className="w-5 h-5 text-white" />
+                ) : (
+                  <Sparkles className="w-5 h-5 text-[#00D4FF] animate-pulse" />
+                )}
+              </div>
+
+              <div className="text-center">
+                <p className="text-white text-sm font-bold mb-1">
+                  {kbComplete ? 'Voice Learned' : 'Learning Voice'}
+                </p>
+                <p className="text-[#00D4FF] text-lg font-black">
+                  {chunksCount.toLocaleString()} chunks
+                </p>
+              </div>
+            </div>
+          </div>
+          <p className="text-white/60 text-xs font-medium mt-3 text-center">Knowledge Base</p>
+        </div>
+
+        {/* Arrow */}
+        <div className="flex items-center justify-center pt-8 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1700ms' }}>
+          <ArrowRight className="w-5 h-5 text-[#B794F6]" />
+        </div>
+
+        {/* Stage 3: Video Upload */}
+        <div className="flex flex-col items-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1800ms' }}>
+          <div className="relative w-full aspect-video bg-gradient-to-br from-gray-800 to-gray-900 border border-white/10 rounded-lg overflow-hidden shadow-xl">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center">
+                <Video className="w-5 h-5 text-white/60" />
+              </div>
+            </div>
+
+            {/* RAW badge */}
+            <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/30 backdrop-blur rounded">
+              <span className="text-yellow-300 text-[10px] font-bold">RAW</span>
+            </div>
+          </div>
+          <p className="text-white/60 text-xs font-medium mt-3 text-center">New Upload</p>
+        </div>
+
+        {/* Arrow */}
+        <div className="flex items-center justify-center pt-8 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '2000ms' }}>
+          <ArrowRight className="w-5 h-5 text-[#FF6B9D]" />
+        </div>
+
+        {/* Stage 4: Content Kit */}
+        <div className="flex flex-col items-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '2100ms' }}>
+          <div className="relative w-full">
+            {/* Mini content cards stack */}
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg p-3 shadow-xl">
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {/* Mini cards */}
+                <div className="aspect-[9/16] bg-gradient-to-br from-[#FF6B9D]/20 to-[#FF6B9D]/5 border border-[#FF6B9D]/30 rounded flex items-center justify-center">
+                  <Video className="w-3 h-3 text-[#FF6B9D]" />
+                </div>
+                <div className="aspect-square bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5 border border-[#B794F6]/30 rounded flex items-center justify-center">
+                  <span className="text-[#B794F6] text-[8px] font-bold">═</span>
+                </div>
+                <div className="aspect-[4/5] bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5 border border-[#00D4FF]/30 rounded flex items-center justify-center">
+                  <span className="text-[#00D4FF] text-[8px] font-bold">Aa</span>
+                </div>
+                <div className="aspect-[3/4] bg-gradient-to-br from-[#FFD93D]/20 to-[#FFD93D]/5 border border-[#FFD93D]/30 rounded flex items-center justify-center">
+                  <FileText className="w-3 h-3 text-[#FFD93D]" />
+                </div>
+              </div>
+              <div className="text-center pt-2 border-t border-white/10">
+                <p className="text-white/60 text-[9px] font-medium">Sounds like YOU</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-white/60 text-xs font-medium mt-3 text-center">Content Kit</p>
+        </div>
       </div>
 
-      {/* Mobile: 2x2 grid, no rotations */}
-      <div className="grid grid-cols-2 gap-3 md:hidden">
-        {cards.map((card) => (
-          <div
-            key={card.type}
-            className="opacity-0 animate-card-fan-in-individual"
-            style={{
-              '--fan-rotate': '0deg',
-              animationDelay: `${card.delay}ms`,
-            } as React.CSSProperties}
-          >
-            <CardFrame card={card} />
-            <p
-              className="text-[10px] font-semibold text-center mt-1.5 tracking-wide"
-              style={{ color: card.color }}
-            >
-              {card.label}
-            </p>
+      {/* Mobile: Vertical flow */}
+      <div className="md:hidden flex flex-col gap-4">
+        {/* Stage 1: Content Library */}
+        <div className="flex items-center gap-3 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1200ms' }}>
+          <div className="flex-1 bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg p-3 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Youtube className="w-4 h-4 text-red-400" />
+                <FileText className="w-4 h-4 text-blue-400" />
+                <Mail className="w-4 h-4 text-purple-400" />
+              </div>
+              <p className="text-white/80 text-xs font-bold">Content Library</p>
+            </div>
           </div>
-        ))}
+        </div>
+
+        {/* Arrow down */}
+        <div className="flex justify-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1400ms' }}>
+          <div className="rotate-90">
+            <ArrowRight className="w-4 h-4 text-[#00D4FF]" />
+          </div>
+        </div>
+
+        {/* Stage 2: KB Building */}
+        <div className="flex items-center gap-3 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1500ms' }}>
+          <div className="flex-1 bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-lg p-3 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {kbComplete ? (
+                  <Check className="w-5 h-5 text-green-400" />
+                ) : (
+                  <Sparkles className="w-5 h-5 text-[#00D4FF] animate-pulse" />
+                )}
+                <div>
+                  <p className="text-white text-xs font-bold">{kbComplete ? 'Voice Learned' : 'Learning'}</p>
+                  <p className="text-[#00D4FF] text-xs font-black">{chunksCount.toLocaleString()} chunks</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Arrow down */}
+        <div className="flex justify-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1700ms' }}>
+          <div className="rotate-90">
+            <ArrowRight className="w-4 h-4 text-[#B794F6]" />
+          </div>
+        </div>
+
+        {/* Stage 3 + 4: Video → Content Kit (combined for mobile) */}
+        <div className="flex items-center gap-2 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1800ms' }}>
+          <div className="flex-1 aspect-video bg-gradient-to-br from-gray-800 to-gray-900 border border-white/10 rounded-lg overflow-hidden shadow-xl flex items-center justify-center relative">
+            <Video className="w-6 h-6 text-white/60" />
+            <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-yellow-500/20 border border-yellow-500/30 backdrop-blur rounded text-[8px] font-bold text-yellow-300">
+              RAW
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-[#FF6B9D] flex-shrink-0" />
+          <div className="flex-1 grid grid-cols-2 gap-1 p-2 bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl">
+            <div className="aspect-square bg-[#FF6B9D]/10 border border-[#FF6B9D]/30 rounded" />
+            <div className="aspect-square bg-[#B794F6]/10 border border-[#B794F6]/30 rounded" />
+            <div className="aspect-square bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded" />
+            <div className="aspect-square bg-[#FFD93D]/10 border border-[#FFD93D]/30 rounded" />
+          </div>
+        </div>
       </div>
     </div>
   );

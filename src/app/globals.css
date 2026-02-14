@@ -481,8 +481,24 @@ body {
   }
 }
 
+/* Knowledge Base building pulse */
+@keyframes kb-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
 .animate-hero-fade-in-up {
   animation: hero-fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-kb-pulse {
+  animation: kb-pulse 2s ease-in-out infinite;
 }
 
 .animate-transform-draw {
@@ -534,7 +550,8 @@ body {
   .animate-transform-draw-vertical,
   .animate-card-fan-in-individual,
   .animate-spark-ping,
-  .animate-particle-fall {
+  .animate-particle-fall,
+  .animate-kb-pulse {
     animation: none !important;
     opacity: 1 !important;
   }

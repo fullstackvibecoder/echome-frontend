@@ -5,7 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X, Check, Mail } from 'lucide-react';
 import { HeroSection } from '@/components/landing/HeroSection';
+import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
+import { NotChatGPTSection } from '@/components/landing/NotChatGPTSection';
 
 export default function HomeContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -78,8 +80,14 @@ export default function HomeContent() {
       {/* Hero */}
       <HeroSection />
 
+      {/* Knowledge Base */}
+      <KnowledgeBaseSection />
+
       {/* How It Works */}
       <HowItWorks />
+
+      {/* Not ChatGPT */}
+      <NotChatGPTSection />
 
       {/* Pricing */}
       <section id="pricing" className="py-20 px-6 bg-gradient-to-br from-[#FAFAFA] to-white relative overflow-hidden">

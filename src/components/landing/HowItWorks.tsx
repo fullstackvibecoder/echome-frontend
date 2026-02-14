@@ -6,20 +6,20 @@ import { AnimatedSection } from '@/components/shared/AnimatedSection';
 const steps = [
   {
     num: 1,
-    title: 'Upload',
-    desc: 'Drop in any video, podcast, or document.',
+    title: 'Build Your Voice',
+    desc: 'Connect YouTube, upload videos, paste blog links, import emails. Echo learns how YOU communicate.',
     gradient: 'from-[#FF6B9D] to-[#FFD93D]',
   },
   {
     num: 2,
-    title: 'Echo Processes',
-    desc: 'AI matches your voice and creates content.',
+    title: 'Upload Any Video',
+    desc: 'Raw Zoom recording. Podcast. Phone video. Echo processes it in 2-20 minutes.',
     gradient: 'from-[#B794F6] to-[#9F7AEA]',
   },
   {
     num: 3,
-    title: 'Get Your Kit',
-    desc: 'Clips, carousels, posts — ready to publish.',
+    title: 'Get Your Content Kit',
+    desc: 'Clips, carousels, posts — filtered through your knowledge base so they sound like you.',
     gradient: 'from-[#00D4FF] to-[#0099CC]',
   },
 ];
@@ -34,13 +34,13 @@ export function HowItWorks() {
           {/* Header */}
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 text-[#1C1C1E]">
-              Video In.
+              From Video Library to
               <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
-                {' '}Content Kit Out.
+                {' '}Content Engine
               </span>
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              Upload once. Echo extracts highlights, generates platform-native content, and matches your voice automatically.
+              The more you feed Echo from your existing content, the better it sounds like you. Then every new video becomes a content kit.
             </p>
           </div>
 
@@ -62,22 +62,22 @@ export function HowItWorks() {
             ))}
           </div>
 
-          {/* Time Savings Bar */}
+          {/* Content Library Stats */}
           <div className="bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] rounded-2xl p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
-                <h3 className="text-xl font-bold text-white mb-2">From Hours to Minutes</h3>
-                <p className="text-white/60">What used to take 10+ hours now happens automatically.</p>
+                <h3 className="text-xl font-bold text-white mb-2">Your Video Pile = Content Goldmine</h3>
+                <p className="text-white/60">Average creator has 47 videos sitting unused. That's 376 pieces of content waiting.</p>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-gray-400 line-through">10hrs</p>
-                  <p className="text-xs text-white/50">Manual work</p>
+                  <p className="text-3xl font-bold text-gray-400">47 videos</p>
+                  <p className="text-xs text-white/50">Collecting dust</p>
                 </div>
                 <ArrowRight className="w-6 h-6 text-[#00D4FF]" />
                 <div className="text-center">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">5min</p>
-                  <p className="text-xs text-white/50">With Echo</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">376 pieces</p>
+                  <p className="text-xs text-white/50">Proliferated</p>
                 </div>
               </div>
             </div>
