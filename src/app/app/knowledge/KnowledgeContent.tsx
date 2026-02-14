@@ -96,9 +96,9 @@ function KBListItem({ item, selectionMode, isSelected, onSelect, onDelete }: KBL
         )}
       </div>
 
-      {/* Chunks */}
+      {/* Knowledge Nuggets */}
       <div className="flex-shrink-0 text-xs text-text-secondary">
-        {item.chunkCount || 0} chunks
+        {item.chunkCount || 0} knowledge nuggets
       </div>
 
       {/* Date */}
@@ -429,7 +429,7 @@ export default function KnowledgeContent() {
                   <div>
                     <p className="text-sm font-medium text-text-primary">Echo Training Progress</p>
                     <p className="text-xs text-text-secondary">
-                      {totalItems} source{totalItems !== 1 ? 's' : ''} added • {totalChunks.toLocaleString()} passages learned
+                      {totalItems} source{totalItems !== 1 ? 's' : ''} added • {totalChunks.toLocaleString()} knowledge nuggets learned
                     </p>
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export default function KnowledgeContent() {
               </div>
               {totalChunks < 500 && (
                 <p className="text-xs text-text-secondary mt-2">
-                  Keep adding content to improve voice accuracy. Aim for 500+ passages.
+                  Keep adding content to improve voice accuracy. Aim for 500+ knowledge nuggets.
                 </p>
               )}
             </div>
@@ -553,7 +553,7 @@ export default function KnowledgeContent() {
                       <span className="font-medium text-text-primary">{config?.label || type}</span>
                       <span className="text-text-secondary">({items.length})</span>
                       <span className="text-text-tertiary">•</span>
-                      <span className="text-text-secondary text-xs">{totalChunksInGroup.toLocaleString()} chunks</span>
+                      <span className="text-text-secondary text-xs">{totalChunksInGroup.toLocaleString()} knowledge nuggets</span>
                     </div>
 
                     {/* Items */}
