@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Play, Video } from 'lucide-react';
-import { HeroShowcaseV3 } from './HeroShowcaseV3';
+import { HeroShowcaseV2 } from './HeroShowcaseV2';
 
 export function HeroSection() {
   return (
@@ -67,7 +67,7 @@ export function HeroSection() {
           </div>
 
           {/* Right Column — Layered showcase */}
-          <HeroShowcaseV3 />
+          <HeroShowcaseV2 />
         </div>
       </div>
     </section>
