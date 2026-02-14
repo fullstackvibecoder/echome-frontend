@@ -50,11 +50,11 @@ export function HeroShowcaseV3() {
 
           {/* Video content */}
           <div className="aspect-video relative bg-gradient-to-br from-gray-800 to-gray-900">
-            {/* Actual video thumbnail - using the reel screenshot */}
+            {/* Actual video thumbnail - using real uploaded video */}
             <div className="absolute inset-0">
               <Image
-                src="/showcase/video-clip.png"
-                alt="Video content"
+                src="/showcase/source-video.png"
+                alt="Your video library"
                 fill
                 className="object-cover"
               />
@@ -119,62 +119,62 @@ export function HeroShowcaseV3() {
       >
         <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-3 shadow-2xl">
           <div className="grid grid-cols-2 gap-2.5">
-            {/* Reel - vertical video */}
+            {/* Instagram Reel - vertical video */}
             <div className="aspect-[9/16] relative rounded-lg overflow-hidden border border-white/10">
               <Image
-                src="/showcase/carousel-portrait.png"
-                alt="Video reel"
-                fill
-                className="object-cover object-top"
-              />
-              <div className="absolute bottom-2 left-2 right-2 text-center">
-                <span className="text-[9px] text-white/80 font-medium bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
-                  Reel
-                </span>
-              </div>
-            </div>
-
-            {/* Carousel - square posts */}
-            <div className="aspect-square relative rounded-lg overflow-hidden border border-white/10">
-              <Image
-                src="/showcase/carousel-square.png"
-                alt="Social carousel"
+                src="/showcase/instagram-reel.png"
+                alt="Instagram reel"
                 fill
                 className="object-cover object-center"
               />
               <div className="absolute bottom-2 left-2 right-2 text-center">
                 <span className="text-[9px] text-white/80 font-medium bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
-                  Carousel
+                  Instagram
                 </span>
               </div>
             </div>
 
-            {/* Post - text content */}
+            {/* Twitter Post - square */}
+            <div className="aspect-square relative rounded-lg overflow-hidden border border-white/10">
+              <Image
+                src="/showcase/twitter-post.png"
+                alt="Twitter post"
+                fill
+                className="object-cover object-center"
+              />
+              <div className="absolute bottom-2 left-2 right-2 text-center">
+                <span className="text-[9px] text-white/80 font-medium bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
+                  Twitter
+                </span>
+              </div>
+            </div>
+
+            {/* LinkedIn Post */}
             <div className="aspect-[4/5] relative rounded-lg overflow-hidden border border-white/10">
               <Image
-                src="/showcase/content-cards.png"
-                alt="Text posts"
+                src="/showcase/linkedin-post.png"
+                alt="LinkedIn post"
+                fill
+                className="object-cover object-center"
+              />
+              <div className="absolute bottom-2 left-2 right-2 text-center">
+                <span className="text-[9px] text-white/80 font-medium bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
+                  LinkedIn
+                </span>
+              </div>
+            </div>
+
+            {/* Newsletter/Blog */}
+            <div className="aspect-[3/4] relative rounded-lg overflow-hidden border border-white/10">
+              <Image
+                src="/showcase/newsletter.png"
+                alt="Newsletter"
                 fill
                 className="object-cover object-top"
               />
               <div className="absolute bottom-2 left-2 right-2 text-center">
                 <span className="text-[9px] text-white/80 font-medium bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
-                  Posts
-                </span>
-              </div>
-            </div>
-
-            {/* Blog - newsletter */}
-            <div className="aspect-[3/4] relative rounded-lg overflow-hidden border border-white/10">
-              <Image
-                src="/showcase/content-cards.png"
-                alt="Blog & email"
-                fill
-                className="object-cover object-bottom"
-              />
-              <div className="absolute bottom-2 left-2 right-2 text-center">
-                <span className="text-[9px] text-white/80 font-medium bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
-                  Blog
+                  Newsletter
                 </span>
               </div>
             </div>
