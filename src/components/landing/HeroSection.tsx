@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Play, Upload } from 'lucide-react';
-import { HeroAnimation } from './HeroAnimation';
+import HeroAnimation from './HeroAnimation.jsx';
 
 export function HeroSection() {
   return (
