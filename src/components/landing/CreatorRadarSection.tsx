@@ -1,6 +1,6 @@
 'use client';
 
-import { UserPlus, Bell, Sparkles, MessageSquare } from 'lucide-react';
+import { UserPlus, Bell, Sparkles, MessageSquare, ArrowRight } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const steps = [
@@ -29,7 +29,7 @@ const steps = [
 export function CreatorRadarSection() {
   return (
     <AnimatedSection>
-      <section className="py-24 px-6 bg-white relative overflow-hidden">
+      <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
         {/* Single subtle gradient */}
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#B794F6]/5 rounded-full blur-3xl -z-10" />
 
@@ -49,19 +49,24 @@ export function CreatorRadarSection() {
             </p>
           </div>
 
-          {/* Flow Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {/* Flow Grid with connecting arrows */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12 relative">
             {steps.map((step, index) => {
               const Icon = step.icon;
               return (
-                <div key={index} className="relative">
-                  <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all h-full">
+                <div key={index} className="relative flex items-center">
+                  <div className="flex-1 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
                     <div className="w-12 h-12 mb-4 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center shadow-md">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <h3 className="font-bold text-[#1C1C1E] mb-2 text-lg">{step.title}</h3>
                     <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
                   </div>
+                  {index < steps.length - 1 && (
+                    <div className="hidden lg:flex items-center justify-center px-2">
+                      <ArrowRight className="w-6 h-6 text-[#00D4FF]" />
+                    </div>
+                  )}
                 </div>
               );
             })}

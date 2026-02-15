@@ -48,8 +48,8 @@ export function KnowledgeBaseSection() {
             </p>
           </div>
 
-          {/* Sources Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {/* Sources Grid - 2x2 for visual differentiation */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
             {sources.map((source) => (
               <div key={source.title} className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />

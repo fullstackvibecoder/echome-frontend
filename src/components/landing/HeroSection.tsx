@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Play, Upload } from 'lucide-react';
-import { HeroShowcaseV2 } from './HeroShowcaseV2';
+import { HeroShowcaseV4 } from './HeroShowcaseV4';
 
 export function HeroSection() {
   return (
@@ -64,8 +64,8 @@ export function HeroSection() {
             </p>
           </div>
 
-          {/* Right Column — Layered showcase */}
-          <HeroShowcaseV2 />
+          {/* Right Column — Transformation flow */}
+          <HeroShowcaseV4 />
         </div>
       </div>
     </section>
