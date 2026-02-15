@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Play, Upload } from 'lucide-react';
-import { HeroShowcaseV4 } from './HeroShowcaseV4';
+import { HeroAnimation } from './HeroAnimation';
 
 export function HeroSection() {
   return (
@@ -97,8 +97,8 @@ export function HeroSection() {
             </p>
           </div>
 
-          {/* Right Column - Transformation flow */}
-          <HeroShowcaseV4 />
+          {/* Right Column - Comprehensive Animation */}
+          <HeroAnimation />
         </div>
       </div>
     </section>
