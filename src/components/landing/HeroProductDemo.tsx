@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Video, LayoutGrid, FileText, Calendar } from 'lucide-react';
+import { ArrowRight, Video, LayoutGrid } from 'lucide-react';
 
 export function HeroProductDemo() {
   const [showOutputs, setShowOutputs] = useState(false);
@@ -36,7 +36,7 @@ export function HeroProductDemo() {
             showOutputs ? 'scale-95 opacity-60' : 'scale-100 opacity-100'
           }`}
         >
-          <div className="relative w-[280px] lg:w-[320px]">
+          <div className="relative w-[300px] lg:w-[360px]">
             {/* Label */}
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center">
@@ -45,19 +45,19 @@ export function HeroProductDemo() {
               <span className="text-white/80 text-sm font-medium">Input</span>
             </div>
 
-            {/* Video Card */}
-            <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl">
+            {/* Video Card - Real QuickTime Player Screenshot */}
+            <div className="relative rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl">
               <Image
-                src="/showcase/source-video.png"
+                src="/showcase/new/source-video.png"
                 alt="Source video"
-                fill
-                className="object-cover"
+                width={360}
+                height={240}
+                className="w-full h-auto"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3">
-                <p className="text-white text-xs font-medium">podcast_episode_24.mp4</p>
-                <p className="text-white/60 text-xs">42:18</p>
-              </div>
+            </div>
+
+            <div className="mt-2 text-center">
+              <p className="text-white/60 text-xs">Raw video · Any length</p>
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@ export function HeroProductDemo() {
             showOutputs ? 'scale-100 opacity-100 translate-x-0' : 'scale-95 opacity-0 translate-x-8'
           }`}
         >
-          <div className="relative w-[380px] lg:w-[480px]">
+          <div className="relative w-[420px] lg:w-[520px]">
             {/* Label */}
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#B794F6] flex items-center justify-center shadow-lg">
@@ -87,90 +87,58 @@ export function HeroProductDemo() {
               </div>
               <span className="text-white/80 text-sm font-medium">Content Kit</span>
               <div className="ml-auto px-2 py-1 rounded-md bg-green-500/20 border border-green-500/30">
-                <span className="text-green-400 text-xs font-bold">Ready in 3m</span>
+                <span className="text-green-400 text-xs font-bold">Ready in 2-5 min</span>
               </div>
             </div>
 
-            {/* Grid of Outputs */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Clip */}
+            {/* Grid of Real Product UI Outputs */}
+            <div className="grid grid-cols-3 gap-3">
+              {/* Viral Reel */}
               <div
-                className="relative aspect-[9/16] rounded-lg overflow-hidden border border-[#00D4FF]/30 shadow-xl transition-all duration-500"
+                className="relative rounded-lg overflow-hidden border border-[#00D4FF]/30 shadow-xl transition-all duration-500"
                 style={{ transitionDelay: showOutputs ? '100ms' : '0ms' }}
               >
                 <Image
-                  src="/showcase/instagram-reel.png"
-                  alt="Video clip"
-                  fill
-                  className="object-cover"
+                  src="/showcase/new/viral-reel-1.png"
+                  alt="Viral reel with captions"
+                  width={160}
+                  height={285}
+                  className="w-full h-auto"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm border border-white/20">
-                  <p className="text-white text-xs font-bold">Clip 1 of 5</p>
-                </div>
               </div>
 
-              {/* Carousel */}
+              {/* Carousel Array */}
               <div
-                className="relative aspect-square rounded-lg overflow-hidden border border-[#B794F6]/30 shadow-xl transition-all duration-500"
+                className="relative col-span-2 rounded-lg overflow-hidden border border-[#B794F6]/30 shadow-xl transition-all duration-500"
                 style={{ transitionDelay: showOutputs ? '200ms' : '0ms' }}
               >
                 <Image
-                  src="/showcase/carousel-square-1.png"
-                  alt="Carousel"
-                  fill
-                  className="object-cover"
+                  src="/showcase/new/carousel-array.png"
+                  alt="Carousel outputs"
+                  width={340}
+                  height={285}
+                  className="w-full h-auto object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm border border-white/20">
-                  <p className="text-white text-xs font-bold">Carousel 1 of 3</p>
-                </div>
               </div>
 
-              {/* LinkedIn Post */}
+              {/* Text Content Grid */}
               <div
-                className="relative aspect-square rounded-lg overflow-hidden border border-[#00D4FF]/30 shadow-xl transition-all duration-500"
+                className="relative col-span-3 rounded-lg overflow-hidden border border-[#00D4FF]/30 shadow-xl transition-all duration-500"
                 style={{ transitionDelay: showOutputs ? '300ms' : '0ms' }}
               >
                 <Image
-                  src="/showcase/linkedin-post.png"
-                  alt="LinkedIn post"
-                  fill
-                  className="object-cover"
+                  src="/showcase/new/text-content-output.png"
+                  alt="Text content outputs"
+                  width={520}
+                  height={180}
+                  className="w-full h-auto"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-2 left-2 right-2">
-                  <div className="flex items-center gap-1">
-                    <FileText className="w-3 h-3 text-white" />
-                    <p className="text-white text-xs font-bold">LinkedIn Post</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Twitter Post */}
-              <div
-                className="relative aspect-square rounded-lg overflow-hidden border border-[#B794F6]/30 shadow-xl transition-all duration-500"
-                style={{ transitionDelay: showOutputs ? '400ms' : '0ms' }}
-              >
-                <Image
-                  src="/showcase/twitter-post.png"
-                  alt="Twitter post"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-2 left-2 right-2">
-                  <div className="flex items-center gap-1">
-                    <FileText className="w-3 h-3 text-white" />
-                    <p className="text-white text-xs font-bold">X Post</p>
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* Bottom stat */}
             <div className="mt-3 text-center">
-              <p className="text-white/60 text-xs">+ 7 more posts, captions & calendar</p>
+              <p className="text-white/60 text-xs">15 pieces of content, matched to your voice</p>
             </div>
           </div>
         </div>
