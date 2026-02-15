@@ -15,7 +15,7 @@ export function HeroSection() {
       <div className="max-w-7xl mx-auto py-20 w-full relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Left Column */}
-          <div className="text-center lg:text-left">
+          <div className="text-center lg:text-left pt-8">
             {/* Badge */}
             <div
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur border border-white/20 rounded-full mb-8 opacity-0 animate-fade-in"

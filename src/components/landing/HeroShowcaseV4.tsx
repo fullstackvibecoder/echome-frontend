@@ -51,15 +51,28 @@ export function HeroShowcaseV4() {
             </div>
             <span className="text-white/80 font-medium text-sm">Input</span>
           </div>
-          <div className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center border border-white/5 relative">
-            <Video
-              className={`w-12 h-12 text-white/40 transition-opacity duration-300 ${
-                phase === 'processing' ? 'opacity-50' : 'opacity-100'
+          <div className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl overflow-hidden border border-white/5 relative">
+            {/* Video thumbnail */}
+            <Image
+              src="/showcase/source-video.png"
+              alt="Input video"
+              fill
+              className={`object-cover transition-opacity duration-300 ${
+                phase === 'processing' ? 'opacity-30' : 'opacity-70'
               }`}
             />
+            {/* Play button overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className={`w-14 h-14 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30 transition-opacity duration-300 ${
+                phase === 'processing' ? 'opacity-0' : 'opacity-100'
+              }`}>
+                <Video className="w-7 h-7 text-white" />
+              </div>
+            </div>
+            {/* Processing spinner */}
             {phase === 'processing' && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#00D4FF] animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
               </div>
             )}
           </div>
