@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Video, LayoutGrid, FileText, Calendar } from 'lucide-react';
+import Image from 'next/image';
+import { Video, LayoutGrid, FileText, Calendar, Play } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const tabs = [
@@ -11,34 +12,20 @@ const tabs = [
   { id: 'calendar', label: 'Calendar', icon: Calendar },
 ];
 
-const mockClips = [
+const realClips = [
   {
-    duration: '0:32',
-    caption: 'The biggest mistake I see creators make with content repurposing',
-  },
-  {
-    duration: '0:47',
-    caption: 'Why your knowledge base makes all the difference in output quality',
-  },
-  {
-    duration: '0:23',
-    caption: 'Three platforms you should be posting to daily (and how Echo handles it)',
+    image: '/showcase/instagram-reel.png',
+    duration: '0:19',
+    caption: 'Vertical reel optimized for Instagram and TikTok',
+    badge: '80% viral',
   },
 ];
 
-const carouselSlides = [
-  {
-    title: 'The Problem',
-    content: 'You have 47 videos sitting in Drive. Zero social posts this week.',
-  },
-  {
-    title: 'The Solution',
-    content: 'Upload one video. Get clips, carousels, and posts - all in your voice.',
-  },
-  {
-    title: 'How It Works',
-    content: 'Your knowledge base (YouTube, blog, emails) trains the system to write like you.',
-  },
+const carouselImages = [
+  '/showcase/carousel-1.png',
+  '/showcase/twitter-post.png',
+  '/showcase/carousel-3.png',
+  '/showcase/carousel-4.png',
 ];
 
 export function OutputShowcase() {
@@ -47,21 +34,25 @@ export function OutputShowcase() {
 
   return (
     <AnimatedSection>
-      <section id="output-showcase" className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-        {/* Single subtle gradient */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
+      <section id="output-showcase" className="py-32 px-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
+        {/* Ambient gradients */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#B794F6]/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-[#1C1C1E]">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
+              <span className="text-[#00D4FF] font-semibold text-sm">Real Examples</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-[#1C1C1E] leading-tight">
               What You
               <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
                 {' '}Actually Get
               </span>
             </h2>
 
-            <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
               This is proof, not promise. Here's what comes out of every video you upload.
             </p>
           </div>
@@ -88,118 +79,183 @@ export function OutputShowcase() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8 min-h-[400px]">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-12 min-h-[500px]">
             {activeTab === 'clips' && (
-              <div className="grid md:grid-cols-3 gap-6">
-                {mockClips.map((clip, i) => (
-                  <div key={i} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
-                          <Video className="w-6 h-6 text-white" />
+              <div className="max-w-5xl mx-auto">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {realClips.map((clip, i) => (
+                    <div key={i} className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
+                      <div className="relative aspect-[9/16] bg-gray-900">
+                        <Image
+                          src={clip.image}
+                          alt={clip.caption}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                            <Play className="w-8 h-8 text-white ml-1" />
+                          </div>
                         </div>
+                        <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur rounded-lg text-white text-xs font-medium">
+                          {clip.duration}
+                        </div>
+                        {clip.badge && (
+                          <div className="absolute top-3 left-3 px-3 py-1 bg-[#00D4FF] rounded-full text-white text-xs font-bold">
+                            {clip.badge}
+                          </div>
+                        )}
                       </div>
-                      <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/60 backdrop-blur rounded text-white text-xs font-medium">
-                        {clip.duration}
-                      </div>
-                      <div className="absolute top-2 left-2 px-2 py-0.5 bg-[#00D4FF]/80 backdrop-blur rounded text-white text-xs font-bold">
-                        Clip {i + 1}
+                      <div className="p-5 bg-gradient-to-b from-white to-gray-50">
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {clip.caption}
+                        </p>
                       </div>
                     </div>
-                    <div className="p-4">
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        "{clip.caption}"
+                  ))}
+
+                  {/* Additional placeholder clips with different styles */}
+                  <div className="border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1 bg-gradient-to-br from-[#00D4FF]/5 to-[#B794F6]/5">
+                    <div className="aspect-[9/16] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
+                      <Video className="w-16 h-16 text-white/30" />
+                      <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur rounded-lg text-white text-xs font-medium">
+                        0:31
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        Key insight extracted with auto-generated captions
                       </p>
                     </div>
                   </div>
-                ))}
+
+                  <div className="border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1 bg-gradient-to-br from-[#B794F6]/5 to-[#00D4FF]/5">
+                    <div className="aspect-[9/16] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
+                      <Video className="w-16 h-16 text-white/30" />
+                      <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur rounded-lg text-white text-xs font-medium">
+                        0:45
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        Hook moment identified and trimmed to perfect length
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-center text-gray-500 mt-8 text-sm">
+                  Each clip auto-captioned and optimized for vertical platforms
+                </p>
               </div>
             )}
 
             {activeTab === 'carousels' && (
-              <div className="max-w-2xl mx-auto">
-                <div className="aspect-square bg-white rounded-xl border-2 border-gray-200 p-12 flex flex-col items-center justify-center text-center relative">
-                  <div className="mb-6">
-                    <span className="text-sm font-bold text-[#00D4FF]">
-                      {carouselIndex + 1}/{carouselSlides.length}
-                    </span>
-                  </div>
-                  <h3 className="text-3xl font-extrabold text-[#1C1C1E] mb-6">
-                    {carouselSlides[carouselIndex].title}
-                  </h3>
-                  <p className="text-lg text-gray-600 leading-relaxed max-w-md">
-                    {carouselSlides[carouselIndex].content}
-                  </p>
-                  <div className="flex gap-2 mt-8">
-                    {carouselSlides.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCarouselIndex(idx)}
-                        className={`w-2.5 h-2.5 rounded-full transition-all ${
-                          idx === carouselIndex ? 'bg-[#00D4FF] w-8' : 'bg-gray-300'
-                        }`}
-                      />
-                    ))}
+              <div className="max-w-3xl mx-auto">
+                <div className="relative aspect-square bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={carouselImages[carouselIndex]}
+                    alt={`Carousel slide ${carouselIndex + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute bottom-6 right-6 px-4 py-2 bg-black/80 backdrop-blur rounded-full text-white text-sm font-bold">
+                    {carouselIndex + 1}/{carouselImages.length}
                   </div>
                 </div>
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  Each slide extracted from your video's key points. Ready for LinkedIn, Instagram, Twitter.
+                <div className="flex gap-3 mt-6 justify-center">
+                  {carouselImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCarouselIndex(idx)}
+                      className={`h-2 rounded-full transition-all ${
+                        idx === carouselIndex ? 'bg-[#00D4FF] w-12' : 'bg-gray-300 w-2'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-center text-gray-500 mt-8 text-base leading-relaxed">
+                  Tweet-style carousel posts generated from your video's key points.<br />
+                  Ready for LinkedIn, Instagram, and Twitter - no editing required.
                 </p>
               </div>
             )}
 
             {activeTab === 'posts' && (
-              <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded bg-[#0077B5] flex items-center justify-center text-white text-xs font-bold">
-                      in
+              <div className="max-w-6xl mx-auto">
+                <div className="grid md:grid-cols-3 gap-8">
+                  {/* LinkedIn Post */}
+                  <div className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
+                    <div className="relative aspect-[4/5] bg-gray-100">
+                      <Image
+                        src="/showcase/linkedin-post.png"
+                        alt="LinkedIn post example"
+                        fill
+                        className="object-cover"
+                      />
                     </div>
-                    <span className="text-sm font-semibold text-gray-700">LinkedIn</span>
-                  </div>
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    Most people think they need to create new content every day.
-                    <br /><br />
-                    That's backwards.
-                    <br /><br />
-                    I upload one video per week. My system generates:
-                    <br />
-                    → 5 short clips with captions
-                    <br />
-                    → 3 carousel posts
-                    <br />
-                    → 7 social captions
-                    <br />
-                    → 2 blog drafts
-                    <br /><br />
-                    All filtered through my knowledge base so they sound like me.
-                    <br /><br />
-                    One video = a week of content.
-                  </p>
-                </div>
-                <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center text-white text-xs font-bold">
-                      IG
+                    <div className="p-5 bg-gradient-to-b from-white to-gray-50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded bg-[#0077B5] flex items-center justify-center text-white text-xs font-bold">
+                          in
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700">LinkedIn</span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Professional thought leadership post with your tone and perspective
+                      </p>
                     </div>
-                    <span className="text-sm font-semibold text-gray-700">Instagram</span>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    Stop trying to "sound like yourself" in prompts. It doesn't work.
-                    <br /><br />
-                    Here's what actually works:
-                    <br /><br />
-                    ✅ Build a knowledge base from your existing content
-                    <br />
-                    ✅ Upload new videos as you create them
-                    <br />
-                    ✅ Get output that's already voice-matched
-                    <br /><br />
-                    No prompt engineering. No "act like me" instructions.
-                    <br /><br />
-                    The system already knows your voice.
-                  </p>
+
+                  {/* Newsletter */}
+                  <div className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
+                    <div className="relative aspect-[4/5] bg-gray-100">
+                      <Image
+                        src="/showcase/newsletter.png"
+                        alt="Newsletter example"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-5 bg-gradient-to-b from-white to-gray-50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
+                          ✉
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700">Newsletter</span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Email-ready content with subject line and formatted body
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Twitter/X Post */}
+                  <div className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
+                    <div className="relative aspect-[4/5] bg-gray-100">
+                      <Image
+                        src="/showcase/twitter-post.png"
+                        alt="Twitter post example"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-5 bg-gradient-to-b from-white to-gray-50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold">
+                          𝕏
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700">Twitter / X</span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Thread-style posts with your authentic voice and perspective
+                      </p>
+                    </div>
+                  </div>
                 </div>
+                <p className="text-center text-gray-500 mt-8 text-sm">
+                  All posts include copy buttons and calendar integration - ready to schedule or publish immediately
+                </p>
               </div>
             )}
 

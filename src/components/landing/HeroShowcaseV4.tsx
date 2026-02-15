@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Upload, ArrowRight, Video, FileText, LayoutGrid, Calendar, Loader2 } from 'lucide-react';
 
 type AnimationPhase = 'input' | 'processing' | 'transforming' | 'output' | 'complete';
@@ -91,51 +92,95 @@ export function HeroShowcaseV4() {
             <span className="text-white/80 font-medium text-sm">Output</span>
           </div>
 
-          {/* Grid of content types */}
+          {/* Grid of content types with preview thumbnails */}
           <div className="grid grid-cols-2 gap-3">
+            {/* Clips Preview */}
             <div
-              className={`aspect-square bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5 border border-[#00D4FF]/30 rounded-lg flex flex-col items-center justify-center p-3 transition-all duration-300 ${
+              className={`relative aspect-square border border-[#00D4FF]/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '0ms' }}
             >
-              <Video className="w-6 h-6 text-[#00D4FF] mb-2" />
-              <span className="text-white text-xs font-medium">5 Clips</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5" />
+              <Image
+                src="/showcase/instagram-reel.png"
+                alt="Clip preview"
+                fill
+                className="object-cover opacity-50"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                <Video className="w-4 h-4 text-white" />
+                <span className="text-white text-xs font-bold">5 Clips</span>
+              </div>
             </div>
+
+            {/* Carousels Preview */}
             <div
-              className={`aspect-square bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5 border border-[#B794F6]/30 rounded-lg flex flex-col items-center justify-center p-3 transition-all duration-300 ${
+              className={`relative aspect-square border border-[#B794F6]/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '100ms' }}
             >
-              <LayoutGrid className="w-6 h-6 text-[#B794F6] mb-2" />
-              <span className="text-white text-xs font-medium">3 Carousels</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5" />
+              <Image
+                src="/showcase/carousel-1.png"
+                alt="Carousel preview"
+                fill
+                className="object-cover opacity-50"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                <LayoutGrid className="w-4 h-4 text-white" />
+                <span className="text-white text-xs font-bold">3 Carousels</span>
+              </div>
             </div>
+
+            {/* Posts Preview */}
             <div
-              className={`aspect-square bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5 border border-[#00D4FF]/30 rounded-lg flex flex-col items-center justify-center p-3 transition-all duration-300 ${
+              className={`relative aspect-square border border-[#00D4FF]/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '200ms' }}
             >
-              <FileText className="w-6 h-6 text-[#00D4FF] mb-2" />
-              <span className="text-white text-xs font-medium">7 Posts</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5" />
+              <Image
+                src="/showcase/linkedin-post.png"
+                alt="Post preview"
+                fill
+                className="object-cover opacity-50"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-white" />
+                <span className="text-white text-xs font-bold">7 Posts</span>
+              </div>
             </div>
+
+            {/* Calendar Preview */}
             <div
-              className={`aspect-square bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5 border border-[#B794F6]/30 rounded-lg flex flex-col items-center justify-center p-3 transition-all duration-300 ${
+              className={`relative aspect-square border border-[#B794F6]/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '300ms' }}
             >
-              <Calendar className="w-6 h-6 text-[#B794F6] mb-2" />
-              <span className="text-white text-xs font-medium">Calendar</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Calendar className="w-12 h-12 text-white/40" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-white" />
+                <span className="text-white text-xs font-bold">Calendar</span>
+              </div>
             </div>
           </div>
 
