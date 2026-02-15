@@ -48,12 +48,12 @@ export function HeroShowcase() {
               </div>
             </div>
 
-            {/* Timestamp pill — bottom-left */}
+            {/* Timestamp pill - bottom-left */}
             <div className="absolute bottom-2.5 left-2.5 px-2 py-0.5 bg-black/60 backdrop-blur rounded-md">
               <span className="text-white/90 text-xs font-mono font-medium">42:18</span>
             </div>
 
-            {/* RAW label — bottom-right */}
+            {/* RAW label - bottom-right */}
             <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/30 backdrop-blur rounded-md">
               <span className="text-yellow-300 text-xs font-bold tracking-wider">RAW</span>
             </div>
@@ -72,7 +72,7 @@ export function HeroShowcase() {
           }}
         />
 
-        {/* Spark node — centered on the beam */}
+        {/* Spark node - centered on the beam */}
         <div
           className="relative -mt-10 z-10 opacity-0 animate-hero-fade-in-up"
           style={{ animationDelay: '900ms' }}

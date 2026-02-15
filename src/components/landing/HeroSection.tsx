@@ -57,12 +57,12 @@ export function HeroSection() {
               </div>
             </div>
 
-            {/* Subtitle — mechanical and specific */}
+            {/* Subtitle - mechanical and specific */}
             <p
               className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed max-w-xl mx-auto lg:mx-0 opacity-0 animate-fade-in"
               style={{ animationDelay: '500ms' }}
             >
-              Drop in any video — Zoom recording, podcast, phone clip, unedited raw footage. In 2–5 minutes: extracted clips with captions, tweet-style carousels, social posts, and a populated content calendar. All matched to your voice using a knowledge base built from your YouTube transcripts, blog posts, sent emails, and voice recordings.
+              Drop in any video - Zoom recording, podcast, phone clip, unedited raw footage. In 2-5 minutes: extracted clips with captions, tweet-style carousels, social posts, and a populated content calendar. All matched to your voice using a knowledge base built from your YouTube transcripts, blog posts, sent emails, and voice recordings.
             </p>
 
             {/* CTAs */}
@@ -97,7 +97,7 @@ export function HeroSection() {
             </p>
           </div>
 
-          {/* Right Column — Transformation flow */}
+          {/* Right Column - Transformation flow */}
           <HeroShowcaseV4 />
         </div>
       </div>

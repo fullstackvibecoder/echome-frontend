@@ -44,7 +44,7 @@ export function HowItWorks() {
               How It Works
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              Four steps. Upload a video, get a full content kit — all matched to your voice.
+              Four steps. Upload a video, get a full content kit - all matched to your voice.
             </p>
           </div>
 

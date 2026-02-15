@@ -33,7 +33,7 @@ const carouselSlides = [
   },
   {
     title: 'The Solution',
-    content: 'Upload one video. Get clips, carousels, and posts — all in your voice.',
+    content: 'Upload one video. Get clips, carousels, and posts - all in your voice.',
   },
   {
     title: 'How It Works',

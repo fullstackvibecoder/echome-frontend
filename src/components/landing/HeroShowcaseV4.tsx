@@ -9,29 +9,28 @@ export function HeroShowcaseV4() {
   const [phase, setPhase] = useState<AnimationPhase>('input');
 
   useEffect(() => {
-    const sequence = [
-      { phase: 'input' as AnimationPhase, delay: 0 },
-      { phase: 'processing' as AnimationPhase, delay: 1000 },
-      { phase: 'transforming' as AnimationPhase, delay: 2500 },
-      { phase: 'output' as AnimationPhase, delay: 3500 },
-      { phase: 'complete' as AnimationPhase, delay: 5000 },
-    ];
+    const runAnimation = () => {
+      const sequence = [
+        { phase: 'input' as AnimationPhase, delay: 0 },
+        { phase: 'processing' as AnimationPhase, delay: 1000 },
+        { phase: 'transforming' as AnimationPhase, delay: 2500 },
+        { phase: 'output' as AnimationPhase, delay: 3500 },
+        { phase: 'complete' as AnimationPhase, delay: 5000 },
+      ];
 
-    const timeouts: NodeJS.Timeout[] = [];
+      sequence.forEach(({ phase: nextPhase, delay }) => {
+        setTimeout(() => setPhase(nextPhase), delay);
+      });
 
-    sequence.forEach(({ phase: nextPhase, delay }) => {
-      const timeout = setTimeout(() => setPhase(nextPhase), delay);
-      timeouts.push(timeout);
-    });
+      // Loop animation
+      setTimeout(() => {
+        setPhase('input');
+        setTimeout(runAnimation, 100);
+      }, 10000);
+    };
 
-    // Loop animation
-    const loopTimeout = setTimeout(() => {
-      setPhase('input');
-    }, 10000);
-    timeouts.push(loopTimeout);
-
-    return () => timeouts.forEach(clearTimeout);
-  }, [phase]);
+    runAnimation();
+  }, []);
 
   return (
     <div className="relative flex flex-col items-center gap-6">
@@ -83,13 +82,7 @@ export function HeroShowcaseV4() {
       </div>
 
       {/* Output: Content Kit */}
-      <div
-        className={`relative w-full max-w-sm transition-all duration-700 ${
-          phase === 'output' || phase === 'complete'
-            ? 'opacity-100 scale-100'
-            : 'opacity-0 scale-95'
-        }`}
-      >
+      <div className="relative w-full max-w-sm">
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center shadow-lg">
@@ -155,7 +148,7 @@ export function HeroShowcaseV4() {
       {/* Voice Match Badge */}
       <div
         className={`flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg backdrop-blur-sm transition-all duration-500 ${
-          phase === 'complete' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+          phase === 'complete' ? 'opacity-100 scale-100' : 'opacity-50 scale-95'
         }`}
       >
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
