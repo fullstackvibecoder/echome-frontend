@@ -47,7 +47,7 @@ export function OutputShowcase() {
 
   return (
     <AnimatedSection>
-      <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+      <section id="output-showcase" className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         {/* Single subtle gradient */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
 
