@@ -40,15 +40,15 @@ const CAL_COLORS=["","#ef4444",AC,AP,AE];
 function PhaseLabel({text,sub,visible,color=AC}){
   return(
     <div style={{position:"absolute",top:"30px",left:"50%",transform:"translateX(-50%)",textAlign:"center",opacity:visible?1:0,transition:"all 0.5s ease",zIndex:200,pointerEvents:"none"}}>
-      <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${color}15`,border:`1px solid ${color}30`,borderRadius:"20px",padding:"5px 14px",fontSize:"18px",color,letterSpacing:"0.5px",marginBottom:"8px"}}>{sub}</div>
-      <h2 style={{fontSize:"34px",fontWeight:300,color:"#e2e8f0",margin:"6px 0 0",letterSpacing:"-0.5px"}}>{text}</h2>
+      <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${color}15`,border:`1px solid ${color}30`,borderRadius:"20px",padding:"5px 14px",fontSize:"11px",color,letterSpacing:"0.5px",marginBottom:"8px"}}>{sub}</div>
+      <h2 style={{fontSize:"24px",fontWeight:300,color:"#e2e8f0",margin:"6px 0 0",letterSpacing:"-0.5px"}}>{text}</h2>
     </div>
   );
 }
 
 function ProgressBar({progress,visible}){
   return(
-    <div style={{width:"340px",height:"5px",background:`${AC}15`,borderRadius:"3px",overflow:"hidden",opacity:visible?1:0,transition:"opacity 0.3s ease"}}>
+    <div style={{width:"240px",height:"5px",background:`${AC}15`,borderRadius:"3px",overflow:"hidden",opacity:visible?1:0,transition:"opacity 0.3s ease"}}>
       <div style={{width:`${progress}%`,height:"100%",background:`linear-gradient(90deg,${AC},${AP})`,borderRadius:"3px",transition:"width 0.3s ease"}}/>
     </div>
   );
@@ -59,9 +59,9 @@ function OutputCard({item,index,visible,total}){
   const fx=Math.sin(angle)*180,fy=Math.cos(angle)*-30+index*4;
   return(
     <div style={{position:"absolute",left:"50%",top:"50%",transform:visible?`translate(calc(-50% + ${fx}px),calc(-50% + ${fy}px)) scale(1)`:"translate(-50%,-50%) scale(0)",opacity:visible?1:0,transition:`all 0.6s cubic-bezier(0.34,1.56,0.64,1) ${0.05+index*0.1}s`,zIndex:20}}>
-      <div style={{width:"180px",padding:"16px 12px",background:`${item.color}10`,border:`1.5px solid ${item.color}40`,borderRadius:"14px",textAlign:"center"}}>
-        <div style={{fontSize:"44px",marginBottom:"3px"}}>{item.icon}</div>
-        <div style={{fontSize:"16px",fontWeight:700,color:item.color}}>{item.label}</div>
+      <div style={{width:"100px",padding:"12px 8px",background:`${item.color}10`,border:`1.5px solid ${item.color}40`,borderRadius:"14px",textAlign:"center"}}>
+        <div style={{fontSize:"22px",marginBottom:"3px"}}>{item.icon}</div>
+        <div style={{fontSize:"12px",fontWeight:700,color:item.color}}>{item.label}</div>
       </div>
     </div>
   );
@@ -72,7 +72,7 @@ function SlideCard({img,index,total,visible}){
   const fx=(index-(total-1)/2)*80;
   const fy=Math.abs(index-(total-1)/2)*8;
   return(
-    <div style={{position:"absolute",left:"50%",top:"50%",marginLeft:"-130px",marginTop:"-130px",width:"260px",height:"260px",borderRadius:"12px",overflow:"hidden",transform:visible?`translateX(${fx}px) translateY(${fy}px) rotate(${fanAngle}deg) scale(0.9)`:"translate(0,0) scale(0)",opacity:visible?1:0,zIndex:total-Math.abs(index-1),transition:`all 0.7s cubic-bezier(0.34,1.56,0.64,1) ${index*0.1}s`,boxShadow:`0 8px 30px rgba(0,0,0,0.4),0 0 20px ${AC}15`}}>
+    <div style={{position:"absolute",left:"50%",top:"50%",marginLeft:"-90px",marginTop:"-90px",width:"180px",height:"180px",borderRadius:"12px",overflow:"hidden",transform:visible?`translateX(${fx}px) translateY(${fy}px) rotate(${fanAngle}deg) scale(0.9)`:"translate(0,0) scale(0)",opacity:visible?1:0,zIndex:total-Math.abs(index-1),transition:`all 0.7s cubic-bezier(0.34,1.56,0.64,1) ${index*0.1}s`,boxShadow:`0 8px 30px rgba(0,0,0,0.4),0 0 20px ${AC}15`}}>
       <img src={img} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
     </div>
   );
@@ -84,9 +84,9 @@ function KBNode({source,index,visible,total}){
   const x=Math.cos(angle)*r,y=Math.sin(angle)*r;
   return(
     <div style={{position:"absolute",left:"50%",top:"50%",transform:`translate(calc(-50% + ${x}px),calc(-50% + ${y}px)) scale(${visible?1:0})`,transition:`all 0.6s cubic-bezier(0.34,1.56,0.64,1) ${index*0.1}s`,opacity:visible?1:0,zIndex:10}}>
-      <div style={{width:"80px",height:"80px",borderRadius:"14px",background:`${source.color}15`,border:`1.5px solid ${source.color}40`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"1px"}}>
-        <span style={{fontSize:"26px"}}>{source.icon}</span>
-        <span style={{fontSize:"17px",color:source.color,fontWeight:600}}>{source.label}</span>
+      <div style={{width:"56px",height:"56px",borderRadius:"14px",background:`${source.color}15`,border:`1.5px solid ${source.color}40`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"1px"}}>
+        <span style={{fontSize:"18px"}}>{source.icon}</span>
+        <span style={{fontSize:"7px",color:source.color,fontWeight:600}}>{source.label}</span>
       </div>
     </div>
   );
@@ -96,7 +96,7 @@ function MiniCal({visible,revealCount}){
   return(
     <div style={{opacity:visible?1:0,transform:visible?"scale(1)":"scale(0.8)",transition:"all 0.5s ease"}}>
       <div style={{display:"flex",gap:"4px",marginBottom:"3px"}}>
-        {CAL_DAYS.map((d,i)=><div key={i} style={{width:"50px",textAlign:"center",fontSize:"17px",fontWeight:600,color:"#475569",textTransform:"uppercase"}}>{d}</div>)}
+        {CAL_DAYS.map((d,i)=><div key={i} style={{width:"36px",textAlign:"center",fontSize:"7px",fontWeight:600,color:"#475569",textTransform:"uppercase"}}>{d}</div>)}
       </div>
       {CAL_DATA.map((week,wi)=>(
         <div key={wi} style={{display:"flex",gap:"4px",marginBottom:"4px"}}>
@@ -104,7 +104,7 @@ function MiniCal({visible,revealCount}){
             const idx=wi*7+ci;
             const shown=idx<revealCount&&cell>0;
             return(
-              <div key={ci} style={{width:"50px",height:"50px",borderRadius:"8px",background:shown?`${CAL_COLORS[cell]}10`:`${BD}60`,border:`1px solid ${shown?CAL_COLORS[cell]+"40":"#1e293b30"}`,display:"flex",alignItems:"center",justifyContent:"center",transition:`all 0.3s ease ${idx*0.03}s`,opacity:shown?1:cell>0?0.15:0.3}}>
+              <div key={ci} style={{width:"36px",height:"36px",borderRadius:"8px",background:shown?`${CAL_COLORS[cell]}10`:`${BD}60`,border:`1px solid ${shown?CAL_COLORS[cell]+"40":"#1e293b30"}`,display:"flex",alignItems:"center",justifyContent:"center",transition:`all 0.3s ease ${idx*0.03}s`,opacity:shown?1:cell>0?0.15:0.3}}>
                 {cell>0&&<span style={{fontSize:shown?"14px":"8px",transition:"all 0.3s ease",filter:shown?"none":"grayscale(1)"}}>{CAL_ICONS[cell]}</span>}
               </div>
             );
@@ -128,9 +128,9 @@ function ScreenshotFrame({src,visible,delay=0,width=220,x=0,y=0,borderColor=AC})
 function CreatorBadge({visible}){
   return(
     <div style={{display:"inline-flex",alignItems:"center",gap:"10px",background:`linear-gradient(135deg,${AA}12,${AC}12)`,border:`1px solid ${AA}30`,borderRadius:"20px",padding:"8px 18px",opacity:visible?1:0,transform:visible?"translateY(0)":"translateY(15px)",transition:"all 0.6s ease"}}>
-      <span style={{fontSize:"17px",fontWeight:600,color:AA}}>Their Ideas.</span>
+      <span style={{fontSize:"13px",fontWeight:600,color:AA}}>Their Ideas.</span>
       <span style={{fontSize:"16px"}}>→</span>
-      <span style={{fontSize:"17px",fontWeight:600,color:AC}}>Your Voice.</span>
+      <span style={{fontSize:"13px",fontWeight:600,color:AC}}>Your Voice.</span>
     </div>
   );
 }
@@ -239,26 +239,26 @@ export default function EchoMeMasterDemo(){
       <PhaseLabel text={<>Follow Creators. <span style={{background:`linear-gradient(135deg,${AA},${AC})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Repurpose Everything.</span></>} sub="🚀 Growth Hack" visible={phase==="repurpose"} color={AA}/>
 
       {/* MAIN STAGE */}
-      <div style={{position:"relative",width:"1200px",height:"700px",marginTop:"10px"}}>
+      <div style={{position:"relative",width:"600px",height:"380px",marginTop:"10px"}}>
 
         {/* 1. UPLOAD ICON */}
         {(phase==="upload"||phase==="processing")&&(
           <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:"14px",zIndex:40}}>
-            <div style={{width:"120px",height:"120px",borderRadius:"22px",background:isProc?`linear-gradient(135deg,${AO}20,${AC}20)`:BC,border:`2px solid ${isProc?AO:AC}40`,display:"flex",alignItems:"center",justifyContent:"center",animation:phase==="upload"?"uploadBounce 0.6s ease infinite":"none",boxShadow:isProc?`0 0 40px ${AO}30`:"none",transition:"all 0.5s ease"}}>
-              {isProc?<div style={{width:"50px",height:"50px",border:`3px solid ${AO}30`,borderTop:`3px solid ${AO}`,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>:<span style={{fontSize:"44px"}}>⬆️</span>}
+            <div style={{width:"90px",height:"90px",borderRadius:"22px",background:isProc?`linear-gradient(135deg,${AO}20,${AC}20)`:BC,border:`2px solid ${isProc?AO:AC}40`,display:"flex",alignItems:"center",justifyContent:"center",animation:phase==="upload"?"uploadBounce 0.6s ease infinite":"none",boxShadow:isProc?`0 0 40px ${AO}30`:"none",transition:"all 0.5s ease"}}>
+              {isProc?<div style={{width:"36px",height:"36px",border:`3px solid ${AO}30`,borderTop:`3px solid ${AO}`,borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>:<span style={{fontSize:"32px"}}>⬆️</span>}
             </div>
             <ProgressBar progress={progress} visible={isProc}/>
-            <div style={{fontSize:"18px",color:AO,fontWeight:500,opacity:isProc?1:0,transition:"opacity 0.3s ease",height:"14px"}}>{STEPS[stepIdx]}</div>
-            {phase==="upload"&&<div style={{fontSize:"16px",color:"#64748b"}}>Drop any video to start</div>}
+            <div style={{fontSize:"11px",color:AO,fontWeight:500,opacity:isProc?1:0,transition:"opacity 0.3s ease",height:"14px"}}>{STEPS[stepIdx]}</div>
+            {phase==="upload"&&<div style={{fontSize:"12px",color:"#64748b"}}>Drop any video to start</div>}
           </div>
         )}
 
         {/* 3. KNOWLEDGE BASE */}
         {phase==="kb"&&(
-          <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:"650px",height:"650px"}}>
+          <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:"300px",height:"300px"}}>
             {KB_SOURCES.map((s,i)=><KBNode key={s.label} source={s} index={i} visible={true} total={KB_SOURCES.length}/>)}
-            <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:"140px",height:"140px",borderRadius:"50%",background:`radial-gradient(circle,${AC}20,${BD})`,border:`2px solid ${AC}40`,display:"flex",alignItems:"center",justifyContent:"center",animation:"corePulse 2s ease-in-out infinite",zIndex:5}}>
-              <div style={{textAlign:"center"}}><div style={{fontSize:"26px"}}>🧠</div><div style={{fontSize:"8px",fontWeight:700,color:AC}}>YOUR VOICE</div></div>
+            <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:"70px",height:"70px",borderRadius:"50%",background:`radial-gradient(circle,${AC}20,${BD})`,border:`2px solid ${AC}40`,display:"flex",alignItems:"center",justifyContent:"center",animation:"corePulse 2s ease-in-out infinite",zIndex:5}}>
+              <div style={{textAlign:"center"}}><div style={{fontSize:"18px"}}>🧠</div><div style={{fontSize:"8px",fontWeight:700,color:AC}}>YOUR VOICE</div></div>
             </div>
           </div>
         )}
@@ -291,7 +291,7 @@ export default function EchoMeMasterDemo(){
                 {[0,1,2].map(i=><div key={i} style={{width:"6px",height:"2px",background:AC,borderRadius:"1px",opacity:1-i*0.2}}/>)}
                 <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderLeft:`6px solid ${AC}`}}/>
               </div>
-              <div style={{width:"60px",height:"60px",borderRadius:"16px",background:`linear-gradient(135deg,${AC}20,${AP}20)`,border:`2px solid ${AC}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"34px",animation:"corePulse 2s ease-in-out infinite"}}>🧠</div>
+              <div style={{width:"60px",height:"60px",borderRadius:"16px",background:`linear-gradient(135deg,${AC}20,${AP}20)`,border:`2px solid ${AC}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"24px",animation:"corePulse 2s ease-in-out infinite"}}>🧠</div>
               <div style={{display:"flex",alignItems:"center",gap:"2px",margin:"0 8px"}}>
                 {[0,1,2].map(i=><div key={i} style={{width:"6px",height:"2px",background:AA,borderRadius:"1px",opacity:1-i*0.2}}/>)}
                 <div style={{width:0,height:0,borderTop:"4px solid transparent",borderBottom:"4px solid transparent",borderLeft:`6px solid ${AA}`}}/>
@@ -306,11 +306,11 @@ export default function EchoMeMasterDemo(){
         {phase==="cta"&&(
           <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",textAlign:"center",animation:"fadeInUp 0.6s ease"}}>
             <div style={{fontSize:"40px",marginBottom:"12px"}}>🔊</div>
-            <h1 style={{fontSize:"44px",fontWeight:300,color:"#e2e8f0",margin:"0 0 8px",letterSpacing:"-0.5px"}}>
+            <h1 style={{fontSize:"32px",fontWeight:300,color:"#e2e8f0",margin:"0 0 8px",letterSpacing:"-0.5px"}}>
               <span style={{background:`linear-gradient(135deg,${AC},${AP})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>EchoMe</span>
             </h1>
             <p style={{fontSize:"15px",color:"#94a3b8",margin:"0 0 20px"}}>Your voice. Your content. Done.</p>
-            <div style={{display:"inline-flex",alignItems:"center",gap:"8px",background:`${AC}15`,border:`1px solid ${AC}40`,borderRadius:"24px",padding:"10px 24px",fontSize:"18px",color:AC,fontWeight:600,letterSpacing:"0.3px"}}>tryechome.com</div>
+            <div style={{display:"inline-flex",alignItems:"center",gap:"8px",background:`${AC}15`,border:`1px solid ${AC}40`,borderRadius:"24px",padding:"10px 24px",fontSize:"14px",color:AC,fontWeight:600,letterSpacing:"0.3px"}}>tryechome.com</div>
           </div>
         )}
       </div>

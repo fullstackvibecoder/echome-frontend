@@ -239,7 +239,7 @@ export default function EchoMeMasterDemo(){
       <PhaseLabel text={<>Follow Creators. <span style={{background:`linear-gradient(135deg,${AA},${AC})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Repurpose Everything.</span></>} sub="🚀 Growth Hack" visible={phase==="repurpose"} color={AA}/>
 
       {/* MAIN STAGE */}
-      <div style={{position:"relative",width:"1200px",height:"700px",marginTop:"10px"}}>
+      <div style={{position:"relative",width:"900px",height:"600px",marginTop:"10px"}}>
 
         {/* 1. UPLOAD ICON */}
         {(phase==="upload"||phase==="processing")&&(
