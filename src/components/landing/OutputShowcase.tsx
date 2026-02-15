@@ -19,13 +19,19 @@ const realClips = [
     caption: 'Vertical reel optimized for Instagram and TikTok',
     badge: '80% viral',
   },
+  {
+    image: '/showcase/vertical-clip-2.png',
+    duration: '0:23',
+    caption: 'Tutorial-style clip with text overlay and captions',
+    badge: '70% viral',
+  },
 ];
 
 const carouselImages = [
+  '/showcase/carousel-square-1.png',
+  '/showcase/carousel-square-2.png',
   '/showcase/carousel-1.png',
   '/showcase/twitter-post.png',
-  '/showcase/carousel-3.png',
-  '/showcase/carousel-4.png',
 ];
 
 export function OutputShowcase() {
@@ -183,79 +189,25 @@ export function OutputShowcase() {
 
             {activeTab === 'posts' && (
               <div className="max-w-6xl mx-auto">
-                <div className="grid md:grid-cols-3 gap-8">
-                  {/* LinkedIn Post */}
-                  <div className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
-                    <div className="relative aspect-[4/5] bg-gray-100">
-                      <Image
-                        src="/showcase/linkedin-post.png"
-                        alt="LinkedIn post example"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="p-5 bg-gradient-to-b from-white to-gray-50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded bg-[#0077B5] flex items-center justify-center text-white text-xs font-bold">
-                          in
-                        </div>
-                        <span className="text-sm font-semibold text-gray-700">LinkedIn</span>
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        Professional thought leadership post with your tone and perspective
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Newsletter */}
-                  <div className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
-                    <div className="relative aspect-[4/5] bg-gray-100">
-                      <Image
-                        src="/showcase/newsletter.png"
-                        alt="Newsletter example"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="p-5 bg-gradient-to-b from-white to-gray-50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
-                          ✉
-                        </div>
-                        <span className="text-sm font-semibold text-gray-700">Newsletter</span>
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        Email-ready content with subject line and formatted body
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Twitter/X Post */}
-                  <div className="group relative border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
-                    <div className="relative aspect-[4/5] bg-gray-100">
-                      <Image
-                        src="/showcase/twitter-post.png"
-                        alt="Twitter post example"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="p-5 bg-gradient-to-b from-white to-gray-50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold">
-                          𝕏
-                        </div>
-                        <span className="text-sm font-semibold text-gray-700">Twitter / X</span>
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        Thread-style posts with your authentic voice and perspective
-                      </p>
-                    </div>
+                {/* Full Written Content Grid Screenshot */}
+                <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden shadow-2xl bg-white">
+                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                    <Image
+                      src="/showcase/written-content-grid.png"
+                      alt="Written content for all platforms"
+                      fill
+                      className="object-contain"
+                    />
                   </div>
                 </div>
-                <p className="text-center text-gray-500 mt-8 text-sm">
-                  All posts include copy buttons and calendar integration - ready to schedule or publish immediately
-                </p>
+                <div className="mt-8 text-center">
+                  <p className="text-lg text-gray-700 font-medium mb-3">
+                    Six platforms. One video. Full text content ready to post.
+                  </p>
+                  <p className="text-gray-500 text-sm leading-relaxed max-w-3xl mx-auto">
+                    LinkedIn, Twitter/X, Instagram, TikTok, Blog Post, and Newsletter - all generated with your voice and tone. Each includes a Copy button and Add to Calendar integration for instant scheduling.
+                  </p>
+                </div>
               </div>
             )}
 
