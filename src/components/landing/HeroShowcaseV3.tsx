@@ -56,12 +56,12 @@ export function HeroShowcaseV3() {
                 src="/showcase/source-video.png"
                 alt="Your video library"
                 fill
-                className="object-cover"
+                className="object-cover opacity-60"
               />
             </div>
 
-            {/* Overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            {/* Stronger overlay to reduce noise */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
             {/* Play button */}
             <div className="absolute inset-0 flex items-center justify-center z-10">

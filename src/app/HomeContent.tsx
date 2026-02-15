@@ -5,8 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X, Check, Mail } from 'lucide-react';
 import { HeroSection } from '@/components/landing/HeroSection';
-import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
+import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
+import { CreatorRadarSection } from '@/components/landing/CreatorRadarSection';
+import { OutputShowcase } from '@/components/landing/OutputShowcase';
 import { NotChatGPTSection } from '@/components/landing/NotChatGPTSection';
 
 export default function HomeContent() {
@@ -80,11 +82,17 @@ export default function HomeContent() {
       {/* Hero */}
       <HeroSection />
 
+      {/* How It Works */}
+      <HowItWorks />
+
       {/* Knowledge Base */}
       <KnowledgeBaseSection />
 
-      {/* How It Works */}
-      <HowItWorks />
+      {/* Creator Radar */}
+      <CreatorRadarSection />
+
+      {/* Output Showcase */}
+      <OutputShowcase />
 
       {/* Not ChatGPT */}
       <NotChatGPTSection />
@@ -94,16 +102,12 @@ export default function HomeContent() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#00D4FF]/5 to-transparent rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-[#B794F6]/5 to-transparent rounded-full blur-3xl -z-10" />
 
-        <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-full border border-[#00D4FF]/20 mb-8 backdrop-blur-sm">
-              <span className="text-2xl">💰</span>
-              <span className="text-sm font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">Pricing</span>
-            </div>
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 tracking-tight text-[#1C1C1E] leading-tight">
-              Your voice,
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight text-[#1C1C1E] leading-tight">
+              Choose Your
               <br />
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">your way</span> 🎨
+              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
               Choose a plan that works with your creative rhythm.
@@ -145,9 +149,6 @@ export default function HomeContent() {
               <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#00D4FF] to-[#0099CC] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-                    <span className="text-2xl">🎯</span>
-                  </div>
                   <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo</h3>
                   <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For creators with growing video libraries</p>
                   <div className="mb-3">
@@ -185,7 +186,7 @@ export default function HomeContent() {
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0099CC] flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-xs font-medium text-stone-700">{feature}</span>
+                        <span className="text-sm font-medium text-stone-700">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -195,15 +196,12 @@ export default function HomeContent() {
 
             {/* Echo Studio - $49 - Popular */}
             <div className="relative md:-mt-6 group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#FFD93D] via-[#FF6B9D] to-[#B794F6] rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 animate-pulse transition-opacity duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-gradient-to-br from-[#00D4FF] via-[#0099CC] to-[#00D4FF] rounded-3xl p-6 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(0,212,255,0.5)] hover:-translate-y-2 transition-all duration-300 h-full">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FFD93D] to-[#FF6B9D] text-white text-[10px] font-extrabold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
-                  <span className="text-sm">⭐</span> MOST POPULAR
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white text-xs font-extrabold px-4 py-1.5 rounded-full shadow-lg">
+                  MOST POPULAR
                 </div>
                 <div className="mb-6 mt-3">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-                    <span className="text-2xl">🎬</span>
-                  </div>
                   <h3 className="text-2xl font-extrabold text-white mb-2">Echo Studio</h3>
                   <p className="text-xs font-light text-white/90 mb-4 leading-relaxed">For video creators proliferating content at scale</p>
                   <div className="mb-3">
@@ -242,7 +240,7 @@ export default function HomeContent() {
                         <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-xs font-medium text-white">{feature}</span>
+                        <span className="text-sm font-medium text-white">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -252,31 +250,28 @@ export default function HomeContent() {
 
             {/* Echo Pro - $99 */}
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#B794F6]/30 to-[#FF6B9D]/30 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#B794F6]/30 to-[#B794F6]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-[#B794F6]/40 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#B794F6] to-[#FF6B9D] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-                    <span className="text-2xl">💎</span>
-                  </div>
                   <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-2">Echo Pro</h3>
                   <p className="text-xs font-light text-stone-600 mb-4 leading-relaxed">For agencies managing multiple creator video libraries</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent">
+                      <span className="text-4xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] bg-clip-text text-transparent">
                         ${billingPeriod === 'monthly' ? '99' : '990'}
                       </span>
                       <span className="text-sm font-light text-stone-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
-                      <div className="mt-2 inline-block bg-gradient-to-r from-[#B794F6]/10 to-[#FF6B9D]/10 border border-[#B794F6]/30 rounded-lg px-2 py-0.5">
+                      <div className="mt-2 inline-block bg-[#B794F6]/10 border border-[#B794F6]/30 rounded-lg px-2 py-0.5">
                         <p className="text-[10px] font-semibold text-[#B794F6]">2 months free</p>
                       </div>
                     )}
                   </div>
-                  <div className="mb-4 inline-block bg-gradient-to-r from-[#B794F6]/20 to-[#FF6B9D]/20 border border-[#B794F6]/40 rounded-lg px-2 py-1">
+                  <div className="mb-4 inline-block bg-[#B794F6]/20 border border-[#B794F6]/40 rounded-lg px-2 py-1">
                     <p className="text-[10px] font-bold text-[#B794F6]">7-Day Free Trial</p>
                   </div>
-                  <Link href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#B794F6] to-[#FF6B9D] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                  <Link href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
                     Start Free Trial
                   </Link>
                 </div>
@@ -294,10 +289,10 @@ export default function HomeContent() {
                       'Priority support'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B794F6] to-[#FF6B9D] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B794F6] to-[#9F7AEA] flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-xs font-medium text-stone-700">{feature}</span>
+                        <span className="text-sm font-medium text-stone-700">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -320,9 +315,8 @@ export default function HomeContent() {
 
       {/* Footer */}
       <footer className="relative py-20 px-6 bg-gradient-to-br from-[#1C1C1E] via-[#2a2a2c] to-[#1C1C1E] text-white overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D]" />
-        <div className="absolute top-10 right-20 w-64 h-64 bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-20 w-72 h-72 bg-gradient-to-br from-[#FF6B9D]/10 to-[#FFD93D]/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00D4FF] to-[#B794F6]" />
+        <div className="absolute top-10 right-20 w-64 h-64 bg-[#00D4FF]/8 rounded-full blur-3xl" />
 
         <div className="relative max-w-[1400px] mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
