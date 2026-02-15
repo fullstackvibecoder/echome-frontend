@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Play, Upload } from 'lucide-react';
-import HeroAnimation from './HeroAnimation.jsx';
+import { HeroProductDemo } from './HeroProductDemo';
 
 export function HeroSection() {
   return (
@@ -55,9 +55,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Animation - Center Stage */}
+          {/* Product Demo - Center Stage */}
           <div className="w-full mb-8 opacity-0 animate-fade-in" style={{ animationDelay: '500ms' }}>
-            <HeroAnimation />
+            <HeroProductDemo />
           </div>
 
           {/* Subtitle - mechanical and specific */}
