@@ -218,7 +218,7 @@ export default function EchoMeMasterDemo(){
   const isProc=phase==="processing";
 
   return(
-    <div style={{width:"100%",height:"100vh",background:`radial-gradient(ellipse at 50% 35%,${BC},${BD} 70%)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
+    <div style={{width:"100%",height:"auto",background:`radial-gradient(ellipse at 50% 35%,${BC},${BD} 70%)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
       <style>{`
         @keyframes uploadBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
