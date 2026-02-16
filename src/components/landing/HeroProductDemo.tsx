@@ -14,28 +14,19 @@ interface Output {
 }
 
 const outputs: Output[] = [
-  // Text content cards
+  // Mix it up for variety - no consecutive similar types
+  { type: 'reel', src: '/showcase/new/viral-reel-1.png', label: 'Instagram Reel', aspect: 'vertical' },
   { type: 'text', src: '/showcase/new/text-linkedin.png', label: 'LinkedIn Post', aspect: 'square' },
-  { type: 'text', src: '/showcase/new/text-twitter.png', label: 'X Post', aspect: 'square' },
-  { type: 'text', src: '/showcase/new/text-instagram.png', label: 'Instagram Caption', aspect: 'square' },
+  { type: 'tweet-carousel', src: '/showcase/new/tweet-carousel-1.png', label: 'Twitter Carousel', aspect: 'square' },
+  { type: 'reel', src: '/showcase/new/viral-reel-2.png', label: 'TikTok Clip', aspect: 'vertical' },
   { type: 'text', src: '/showcase/new/text-blog.png', label: 'Blog Post', aspect: 'square' },
-  { type: 'text', src: '/showcase/new/text-tiktok.png', label: 'TikTok Script', aspect: 'square' },
-
-  // Viral reels
-  { type: 'reel', src: '/showcase/new/viral-reel-1.png', label: 'Viral Reel', aspect: 'vertical' },
-  { type: 'reel', src: '/showcase/new/viral-reel-2.png', label: 'Viral Reel', aspect: 'vertical' },
-  { type: 'reel', src: '/showcase/new/viral-reel-3.png', label: 'Viral Reel', aspect: 'vertical' },
-  { type: 'reel', src: '/showcase/new/viral-reel-4.png', label: 'Viral Reel', aspect: 'vertical' },
-
-  // Tweet-style carousels
-  { type: 'tweet-carousel', src: '/showcase/new/tweet-carousel-1.png', label: 'Tweet Carousel Slide', aspect: 'square' },
-  { type: 'tweet-carousel', src: '/showcase/new/tweet-carousel-2.png', label: 'Tweet Carousel Slide', aspect: 'square' },
-  { type: 'tweet-carousel', src: '/showcase/new/tweet-carousel-3.png', label: 'Tweet Carousel Slide', aspect: 'square' },
-
-  // Background image carousels
-  { type: 'bg-carousel', src: '/showcase/new/bg-carousel-1.png', label: 'Custom Carousel Slide', aspect: 'square' },
-  { type: 'bg-carousel', src: '/showcase/new/bg-carousel-2.png', label: 'Custom Carousel Slide', aspect: 'square' },
-  { type: 'bg-carousel', src: '/showcase/new/bg-carousel-3.png', label: 'Custom Carousel Slide', aspect: 'square' },
+  { type: 'bg-carousel', src: '/showcase/new/bg-carousel-1.png', label: 'Custom Carousel', aspect: 'square' },
+  { type: 'reel', src: '/showcase/new/viral-reel-3.png', label: 'YouTube Short', aspect: 'vertical' },
+  { type: 'text', src: '/showcase/new/text-twitter.png', label: 'X Thread', aspect: 'square' },
+  { type: 'tweet-carousel', src: '/showcase/new/tweet-carousel-2.png', label: 'LinkedIn Carousel', aspect: 'square' },
+  { type: 'reel', src: '/showcase/new/viral-reel-4.png', label: 'Viral Clip', aspect: 'vertical' },
+  { type: 'text', src: '/showcase/new/text-instagram.png', label: 'IG Caption', aspect: 'square' },
+  { type: 'bg-carousel', src: '/showcase/new/bg-carousel-2.png', label: 'Quote Carousel', aspect: 'square' },
 ];
 
 export function HeroProductDemo() {
@@ -124,6 +115,22 @@ export function HeroProductDemo() {
                 isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
             >
+              {/* Top badge with playful description */}
+              <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between">
+                <div className="px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/30">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-3.5 h-3.5 text-white" />
+                    <p className="text-white text-xs font-bold">{currentOutput.label}</p>
+                  </div>
+                </div>
+                {currentOutput.type === 'reel' && (
+                  <div className="px-2 py-1 rounded-md bg-[#00D4FF] text-white text-[10px] font-bold">
+                    AUTO-CAPTIONED
+                  </div>
+                )}
+              </div>
+
+              {/* Image */}
               <Image
                 src={currentOutput.src}
                 alt={currentOutput.label}
@@ -132,17 +139,22 @@ export function HeroProductDemo() {
                 className="w-full h-auto"
               />
 
-              {/* Label overlay */}
+              {/* Bottom description overlay */}
               <div className="absolute bottom-3 left-3 right-3">
-                <div className="px-3 py-2 rounded-lg bg-black/60 backdrop-blur-sm border border-white/20">
-                  <p className="text-white text-xs font-bold">{currentOutput.label}</p>
+                <div className="px-3 py-2 rounded-lg bg-black/70 backdrop-blur-md border border-white/20">
+                  <p className="text-white text-xs leading-relaxed">
+                    {currentOutput.type === 'reel' && '9:16 vertical • Ready for Instagram, TikTok, YouTube Shorts'}
+                    {currentOutput.type === 'text' && 'Matched to your voice • Copy & schedule instantly'}
+                    {(currentOutput.type === 'tweet-carousel' || currentOutput.type === 'bg-carousel') &&
+                      'Multi-slide post • LinkedIn, Twitter, Instagram'}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-2 text-center">
+            <div className="mt-3 text-center">
               <p className="text-white/60 text-xs">
-                {currentIndex + 1} of {outputs.length} · 15 pieces total
+                {currentIndex + 1} of {outputs.length} outputs · All auto-generated in 2-5 min
               </p>
             </div>
           </div>
