@@ -915,9 +915,9 @@ export function FirstGeneration({
     <div className="card max-w-3xl mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-display text-3xl mb-2">Upload a video to get your content kit</h2>
+        <h2 className="text-display text-3xl mb-2">From raw footage to ready-to-post in 3 minutes</h2>
         <p className="text-body text-text-secondary">
-          Drop in any video — raw footage, Zoom call, podcast. Get clips, carousels, and social posts in 3 minutes. Or start with text, voice, or a URL.
+          Upload any video — unedited Zoom call, raw footage, podcast recording. Get clips with captions, carousels, and social posts. Or start with text, voice, or a URL.
         </p>
       </div>
 
