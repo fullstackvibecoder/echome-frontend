@@ -112,25 +112,107 @@ export function HeroProductDemo() {
             {/* Output Card - Fixed height container to prevent page jog */}
             <div className="relative" style={{ height: '604px' }}>
               <div
-                className={`relative rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl transition-all duration-300 h-full flex items-center justify-center ${
+                className={`relative h-full flex items-center justify-center transition-all duration-300 ${
                   isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                 }`}
               >
-                {/* Image */}
-                <Image
-                  src={currentOutput.src}
-                  alt={currentOutput.label}
-                  width={340}
-                  height={currentOutput.aspect === 'vertical' ? 604 : 340}
-                  className="w-full h-auto max-h-full object-contain"
-                />
+                {/* Reel - iPhone Mockup */}
+                {currentOutput.type === 'reel' && (
+                  <div className="relative">
+                    {/* iPhone Frame */}
+                    <div className="relative bg-black rounded-[3rem] p-3 shadow-2xl border-4 border-gray-800" style={{ width: '260px' }}>
+                      {/* Notch */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-3xl z-10" />
 
-                {/* Subtle corner badge - watermark style */}
-                <div className="absolute bottom-2 right-2">
-                  <div className="px-2 py-1 rounded bg-black/30 backdrop-blur-sm">
-                    <p className="text-white/70 text-[10px] font-medium">{currentOutput.label}</p>
+                      {/* Screen */}
+                      <div className="relative rounded-[2.5rem] overflow-hidden bg-white" style={{ aspectRatio: '9/19.5' }}>
+                        <Image
+                          src={currentOutput.src}
+                          alt={currentOutput.label}
+                          width={236}
+                          height={512}
+                          className="w-full h-full object-cover"
+                        />
+
+                        {/* Instagram UI Elements */}
+                        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-white" />
+                            <span className="text-white text-sm font-semibold drop-shadow-lg">echome</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Label below */}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                      <div className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 backdrop-blur-sm">
+                        <p className="text-white text-xs font-medium">{currentOutput.label}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Text Post - Platform Card */}
+                {currentOutput.type === 'text' && (
+                  <div className="relative w-[340px]">
+                    {/* Platform badge */}
+                    <div className="absolute -top-3 left-4 z-10">
+                      <div className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#0099CC] shadow-lg">
+                        <p className="text-white text-xs font-bold">{currentOutput.label}</p>
+                      </div>
+                    </div>
+
+                    {/* Card */}
+                    <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white to-gray-50 shadow-2xl border border-gray-200">
+                      <Image
+                        src={currentOutput.src}
+                        alt={currentOutput.label}
+                        width={340}
+                        height={340}
+                        className="w-full h-auto"
+                      />
+
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#00D4FF]/10 via-transparent to-transparent pointer-events-none" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Carousel - Browser Window */}
+                {(currentOutput.type === 'tweet-carousel' || currentOutput.type === 'bg-carousel') && (
+                  <div className="relative w-[340px]">
+                    {/* Browser chrome */}
+                    <div className="bg-gray-800 rounded-t-xl px-3 py-2 flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-500" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                        <div className="w-3 h-3 rounded-full bg-green-500" />
+                      </div>
+                      <div className="flex-1 bg-gray-700 rounded px-3 py-1 text-gray-400 text-xs">
+                        {currentOutput.type === 'tweet-carousel' ? 'twitter.com' : 'linkedin.com'}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative rounded-b-xl overflow-hidden border-2 border-gray-800 shadow-2xl">
+                      <Image
+                        src={currentOutput.src}
+                        alt={currentOutput.label}
+                        width={340}
+                        height={340}
+                        className="w-full h-auto"
+                      />
+
+                      {/* Platform badge */}
+                      <div className="absolute top-3 right-3">
+                        <div className="px-2 py-1 rounded bg-black/60 backdrop-blur-sm border border-white/20">
+                          <p className="text-white text-xs font-medium">{currentOutput.label}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
