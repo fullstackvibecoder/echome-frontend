@@ -62,7 +62,7 @@ export function HeroProductDemo() {
       <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/5 via-transparent to-[#B794F6]/5 rounded-3xl blur-3xl" />
 
       <div className="relative flex items-center justify-center gap-8 lg:gap-12">
-        {/* Input: Single Video */}
+        {/* Input: Stacked Videos */}
         <div className="relative">
           <div className="relative w-[280px] lg:w-[340px]">
             {/* Label */}
@@ -73,11 +73,11 @@ export function HeroProductDemo() {
               <span className="text-white/80 text-sm font-medium">Input</span>
             </div>
 
-            {/* Video Card */}
+            {/* Video Card 1 - Solo recording */}
             <div className="relative rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl">
               <Image
                 src="/showcase/new/source-video.png"
-                alt="Source video"
+                alt="Solo video recording"
                 width={340}
                 height={227}
                 className="w-full h-auto"
@@ -85,7 +85,29 @@ export function HeroProductDemo() {
             </div>
 
             <div className="mt-2 text-center">
-              <p className="text-white/60 text-xs">Raw video · Any length</p>
+              <p className="text-white/60 text-xs">Solo recording · Any length</p>
+            </div>
+
+            {/* "or" divider */}
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-white/20" />
+              <span className="text-white/50 text-sm font-medium uppercase tracking-wide">or</span>
+              <div className="flex-1 h-px bg-white/20" />
+            </div>
+
+            {/* Video Card 2 - Multi-person Zoom */}
+            <div className="relative rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl">
+              <Image
+                src="/showcase/new/source-video-zoom.png"
+                alt="Multi-person Zoom recording"
+                width={340}
+                height={227}
+                className="w-full h-auto"
+              />
+            </div>
+
+            <div className="mt-2 text-center">
+              <p className="text-white/60 text-xs">Zoom call · Podcast · Interview</p>
             </div>
           </div>
         </div>
