@@ -1063,6 +1063,16 @@ export const api = {
       };
     },
 
+    /** Poll all followed creators at once */
+    pollAll: async () => {
+      const response = await apiClient.post('/creators/poll-all');
+      return response.data as {
+        success: boolean;
+        results: { creatorId: string; creatorName: string; newContentCount: number; error?: string }[];
+        totalNew: number;
+      };
+    },
+
     /** Get new content across all followed creators */
     getNewContent: async (limit?: number) => {
       const response = await apiClient.get('/creators/content/new', {
