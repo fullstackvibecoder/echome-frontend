@@ -15,7 +15,9 @@ export function Sidebar() {
     <aside className="h-screen w-64 bg-sidebar border-r border-border flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-bold text-primary">EchoMe</h1>
+        <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+          EchoMe
+        </button>
       </div>
 
       {/* Navigation */}

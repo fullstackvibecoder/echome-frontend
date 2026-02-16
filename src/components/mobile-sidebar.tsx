@@ -30,7 +30,9 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-border flex flex-col z-50 lg:hidden animate-fade-in">
         {/* Logo */}
         <div className="p-6 border-b border-border flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-primary">EchoMe</h1>
+          <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+            EchoMe
+          </button>
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground text-2xl"
