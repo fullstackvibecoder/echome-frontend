@@ -66,7 +66,7 @@ function ContentLibraryInner() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-display text-3xl mb-2">Content Library</h1>
+          <h1 className="text-display text-2xl mb-1">Content Library</h1>
           <p className="text-body text-text-secondary">
             Your generated content, clips, and carousels
           </p>
@@ -80,36 +80,52 @@ function ContentLibraryInner() {
         </Link>
       </div>
 
-      {/* Stats Bar */}
-      <div className="flex items-center gap-6 mb-6 text-sm">
-        <div>
-          <span className="text-2xl font-semibold text-text-primary">{stats.total}</span>
-          <span className="text-text-secondary ml-2">Total</span>
-        </div>
-        <div className="text-text-secondary">|</div>
-        <div className="flex items-center gap-4 text-text-secondary">
-          <span>{stats.videos} videos</span>
-          <span>{stats.written} written</span>
-          <span>{stats.carousels} carousels</span>
-        </div>
-        {stats.processing > 0 && (
-          <>
-            <div className="text-text-secondary">|</div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-accent rounded-full animate-pulse" />
-              <span className="text-accent font-medium">{stats.processing} processing</span>
+      {/* Stats Card */}
+      <div className="relative group mb-6">
+        {/* Subtle glow */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+
+        <div className="relative bg-card border border-border rounded-xl p-6 shadow-sm">
+          <div className="flex items-center gap-6 text-sm">
+            <div>
+              <span className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{stats.total}</span>
+              <span className="text-text-secondary ml-2">Total pieces</span>
             </div>
-          </>
-        )}
-        <div className="flex-1" />
-        <button
-          onClick={refresh}
-          disabled={isLoading}
-          className="flex items-center gap-2 text-text-secondary hover:text-accent transition-colors"
-        >
-          <span className={isLoading ? 'animate-spin' : ''}>↻</span>
-          <span className="hidden sm:inline">Refresh</span>
-        </button>
+            <div className="h-8 w-px bg-border" />
+            <div className="flex items-center gap-6 text-text-secondary">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎬</span>
+                <span>{stats.videos} videos</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">✍️</span>
+                <span>{stats.written} written</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎨</span>
+                <span>{stats.carousels} carousels</span>
+              </div>
+            </div>
+            {stats.processing > 0 && (
+              <>
+                <div className="h-8 w-px bg-border" />
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-[#00D4FF] rounded-full animate-pulse" />
+                  <span className="text-[#00D4FF] font-medium">{stats.processing} processing</span>
+                </div>
+              </>
+            )}
+            <div className="flex-1" />
+            <button
+              onClick={refresh}
+              disabled={isLoading}
+              className="flex items-center gap-2 text-text-secondary hover:text-[#00D4FF] transition-colors"
+            >
+              <span className={isLoading ? 'animate-spin' : ''}>↻</span>
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Filters Bar */}

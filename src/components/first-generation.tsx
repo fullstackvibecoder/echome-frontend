@@ -919,7 +919,7 @@ export function FirstGeneration({
       <div className="relative card backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-2 border-white/20 shadow-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-display text-3xl mb-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+          <h2 className="text-display text-2xl mb-2 text-foreground">
             From raw footage to ready-to-post in 3 minutes
           </h2>
           <p className="text-body text-text-secondary">

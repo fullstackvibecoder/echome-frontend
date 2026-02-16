@@ -434,7 +434,7 @@ export default function AppContent() {
                 <div className="mb-8">
                   {/* Welcome Header */}
                   <div className="mb-6">
-                    <h1 className="text-display text-4xl mb-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{headline}</h1>
+                    <h1 className="text-display text-2xl mb-1 text-foreground">{headline}</h1>
                     <p className="text-body text-text-secondary">
                       {subheadline}
                     </p>

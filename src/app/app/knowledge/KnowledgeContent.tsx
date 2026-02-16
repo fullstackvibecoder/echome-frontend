@@ -345,24 +345,27 @@ export default function KnowledgeContent() {
         <>
           {/* Header with Guidance */}
           <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2">Your Echosystem</h1>
-            <p className="text-text-secondary text-base max-w-2xl">
+            <h1 className="text-2xl font-bold text-text-primary mb-1">Your Echosystem</h1>
+            <p className="text-text-secondary text-sm max-w-2xl">
               This is where Echo learns <span className="text-text-primary font-medium">your</span> voice.
               The more you add, the better Echo writes like you.
             </p>
 
             {/* Quick Help */}
-            <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-xl">
-              <div className="flex items-start gap-3">
-                <span className="text-xl">💡</span>
-                <div className="flex-1">
-                  <p className="text-sm text-text-primary font-medium mb-1">
-                    What should I add?
-                  </p>
-                  <p className="text-sm text-text-secondary">
-                    Anything <span className="font-medium">you&apos;ve written</span> — emails, social posts, blog articles, scripts.
-                    Echo analyzes your word choices, tone, and style to generate content that sounds like you.
-                  </p>
+            <div className="relative group mt-4">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+              <div className="relative p-4 bg-card border border-border rounded-xl">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl">💡</span>
+                  <div className="flex-1">
+                    <p className="text-sm text-text-primary font-medium mb-1">
+                      What should I add?
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      Anything <span className="font-medium">you&apos;ve written</span> — emails, social posts, blog articles, scripts.
+                      Echo analyzes your word choices, tone, and style to generate content that sounds like you.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -376,21 +379,21 @@ export default function KnowledgeContent() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setShowVoiceModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
                 title="Record yourself talking — we'll transcribe it"
               >
                 <span>🎤</span> Voice
               </button>
               <button
                 onClick={() => setShowSocialModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
                 title="Import from YouTube or Instagram"
               >
                 <span>📱</span> Social
               </button>
               <button
                 onClick={() => setShowBlogModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
                 title="Import articles from your blog"
               >
                 <span>📝</span> Blog
@@ -398,21 +401,21 @@ export default function KnowledgeContent() {
               <button
                 onClick={() => setShowMboxInstructions(true)}
                 disabled={mboxUploading}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium disabled:opacity-50"
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium disabled:opacity-50"
                 title="Import emails you've sent"
               >
                 <span>📧</span> Email
               </button>
               <button
                 onClick={() => setShowPasteModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-accent/30 rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
                 title="Copy & paste any text you've written"
               >
                 <span>✍️</span> Paste
               </button>
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all text-sm font-medium"
+                className="btn-primary flex items-center gap-2"
                 title="Upload documents (PDF, Word, TXT)"
               >
                 <span>📤</span> Upload
@@ -422,40 +425,43 @@ export default function KnowledgeContent() {
 
           {/* Voice Strength Indicator */}
           {hasContent && (
-            <div className="mb-6 p-4 bg-bg-secondary rounded-xl">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🎯</span>
-                  <div>
-                    <p className="text-sm font-medium text-text-primary">Echo Training Progress</p>
-                    <p className="text-xs text-text-secondary">
-                      {totalItems} source{totalItems !== 1 ? 's' : ''} added • {totalChunks.toLocaleString()} knowledge nuggets learned
-                    </p>
+            <div className="relative group mb-6">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+              <div className="relative p-5 bg-card border border-border rounded-xl shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🎯</span>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">Echo Training Progress</p>
+                      <p className="text-xs text-text-secondary">
+                        {totalItems} source{totalItems !== 1 ? 's' : ''} added • <span className="font-semibold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{totalChunks.toLocaleString()}</span> knowledge nuggets learned
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex items-center gap-3">
+                    <span className={`text-sm font-semibold ${voiceStrength.color}`}>{voiceStrength.level}</span>
+                    <button
+                      onClick={refresh}
+                      disabled={loading}
+                      className="text-text-secondary hover:text-[#00D4FF] transition-colors text-sm"
+                    >
+                      ↻
+                    </button>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className={`text-sm font-semibold ${voiceStrength.color}`}>{voiceStrength.level}</span>
-                  <button
-                    onClick={refresh}
-                    disabled={loading}
-                    className="ml-3 text-text-secondary hover:text-accent transition-colors text-sm"
-                  >
-                    ↻
-                  </button>
+                {/* Progress Bar */}
+                <div className="w-full bg-bg-tertiary rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] h-2.5 rounded-full transition-all duration-500 shadow-md shadow-[#00D4FF]/25"
+                    style={{ width: `${voiceStrength.percent}%` }}
+                  />
                 </div>
+                {totalChunks < 500 && (
+                  <p className="text-xs text-text-secondary mt-2">
+                    Keep adding content to improve voice accuracy. Aim for 500+ knowledge nuggets.
+                  </p>
+                )}
               </div>
-              {/* Progress Bar */}
-              <div className="w-full bg-bg-tertiary rounded-full h-2">
-                <div
-                  className="bg-accent h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${voiceStrength.percent}%` }}
-                />
-              </div>
-              {totalChunks < 500 && (
-                <p className="text-xs text-text-secondary mt-2">
-                  Keep adding content to improve voice accuracy. Aim for 500+ knowledge nuggets.
-                </p>
-              )}
             </div>
           )}
 
