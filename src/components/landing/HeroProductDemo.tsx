@@ -115,21 +115,6 @@ export function HeroProductDemo() {
                 isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
             >
-              {/* Top badge with playful description */}
-              <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between">
-                <div className="px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/30">
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-3.5 h-3.5 text-white" />
-                    <p className="text-white text-xs font-bold">{currentOutput.label}</p>
-                  </div>
-                </div>
-                {currentOutput.type === 'reel' && (
-                  <div className="px-2 py-1 rounded-md bg-[#00D4FF] text-white text-[10px] font-bold">
-                    AUTO-CAPTIONED
-                  </div>
-                )}
-              </div>
-
               {/* Image */}
               <Image
                 src={currentOutput.src}
@@ -139,22 +124,17 @@ export function HeroProductDemo() {
                 className="w-full h-auto"
               />
 
-              {/* Bottom description overlay */}
-              <div className="absolute bottom-3 left-3 right-3">
-                <div className="px-3 py-2 rounded-lg bg-black/70 backdrop-blur-md border border-white/20">
-                  <p className="text-white text-xs leading-relaxed">
-                    {currentOutput.type === 'reel' && '9:16 vertical • Ready for Instagram, TikTok, YouTube Shorts'}
-                    {currentOutput.type === 'text' && 'Matched to your voice • Copy & schedule instantly'}
-                    {(currentOutput.type === 'tweet-carousel' || currentOutput.type === 'bg-carousel') &&
-                      'Multi-slide post • LinkedIn, Twitter, Instagram'}
-                  </p>
+              {/* Subtle corner badge - watermark style */}
+              <div className="absolute bottom-2 right-2">
+                <div className="px-2 py-1 rounded bg-black/30 backdrop-blur-sm">
+                  <p className="text-white/70 text-[10px] font-medium">{currentOutput.label}</p>
                 </div>
               </div>
             </div>
 
             <div className="mt-3 text-center">
               <p className="text-white/60 text-xs">
-                {currentIndex + 1} of {outputs.length} outputs · All auto-generated in 2-5 min
+                {currentIndex + 1} of {outputs.length}
               </p>
             </div>
           </div>
