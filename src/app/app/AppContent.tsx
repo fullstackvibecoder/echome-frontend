@@ -14,6 +14,7 @@ import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/n
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
+import { useAuth } from '@/hooks/useAuth';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
@@ -92,15 +93,80 @@ const TEXT_GENERATION_STAGES: Record<string, {
 // Stage order for progress indicator dots
 const TEXT_GENERATION_STAGE_ORDER = ['init', 'context', 'voice', 'generate', 'validate', 'complete'];
 
+// Dynamic welcome message generator
+function getWelcomeMessage(userName?: string, generationsUsed?: number): { headline: string; subheadline: string } {
+  const hour = new Date().getHours();
+  const name = userName || 'there';
+  const firstName = name.split(' ')[0];
+
+  // Time-based greetings
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Activity-based variations
+  if (generationsUsed && generationsUsed >= 10) {
+    return {
+      headline: `${firstName}, you're on fire 🔥`,
+      subheadline: `${generationsUsed} pieces created this month and counting. Let's keep the momentum going.`
+    };
+  }
+
+  if (generationsUsed && generationsUsed >= 5) {
+    return {
+      headline: `Welcome back, ${firstName}!`,
+      subheadline: `You've created ${generationsUsed} pieces this month. Ready to add more?`
+    };
+  }
+
+  // Time-based defaults
+  if (hour < 12) {
+    return {
+      headline: `${timeGreeting}, ${firstName}!`,
+      subheadline: 'Ready to turn some footage into content?'
+    };
+  }
+
+  if (hour >= 20) {
+    return {
+      headline: `Working late, ${firstName}?`,
+      subheadline: `Let's make it count. Upload and we'll handle the rest.`
+    };
+  }
+
+  return {
+    headline: `Welcome back, ${firstName}!`,
+    subheadline: `What would you like to create today?`
+  };
+}
+
 export default function AppContent() {
   const router = useRouter();
   const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
+  const { user } = useAuth();
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Usage stats for dynamic messaging
+  const [usageStats, setUsageStats] = useState<{ generationsUsed?: number } | null>(null);
 
   // Check for pending checkout from signup flow
   const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
+
+  // Load usage stats for dynamic welcome message
+  useEffect(() => {
+    const loadUsageStats = async () => {
+      try {
+        const response = await api.stripe.getUsageLimits();
+        if (response.success && response.data) {
+          setUsageStats({ generationsUsed: response.data.generationsUsed || 0 });
+        }
+      } catch (err) {
+        // Silently fail - not critical for UX
+        console.error('Failed to load usage stats:', err);
+      }
+    };
+    loadUsageStats();
+  }, []);
 
   // Real-time progress from SSE (including carousel status)
   const { progress, isComplete: progressComplete, hasError: progressError, carouselReady, carouselFailed } = useGenerationProgress(requestId);
@@ -360,12 +426,17 @@ export default function AppContent() {
               onScrollToForm={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
             />
           ) : (
-            <div className="mb-8">
-              <h1 className="text-display text-4xl mb-2">Welcome back!</h1>
-              <p className="text-body text-text-secondary">
-                What would you like to create today?
-              </p>
-            </div>
+            (() => {
+              const { headline, subheadline } = getWelcomeMessage(user?.name, usageStats?.generationsUsed);
+              return (
+                <div className="mb-8">
+                  <h1 className="text-display text-4xl mb-2">{headline}</h1>
+                  <p className="text-body text-text-secondary">
+                    {subheadline}
+                  </p>
+                </div>
+              );
+            })()
           )}
 
           {/* Input Form */}
