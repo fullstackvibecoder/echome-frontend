@@ -109,25 +109,27 @@ export function HeroProductDemo() {
               </div>
             </div>
 
-            {/* Output Card */}
-            <div
-              className={`relative rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl transition-all duration-300 ${
-                isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-              }`}
-            >
-              {/* Image */}
-              <Image
-                src={currentOutput.src}
-                alt={currentOutput.label}
-                width={340}
-                height={currentOutput.aspect === 'vertical' ? 604 : 340}
-                className="w-full h-auto"
-              />
+            {/* Output Card - Fixed height container to prevent page jog */}
+            <div className="relative" style={{ height: '604px' }}>
+              <div
+                className={`relative rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl transition-all duration-300 h-full flex items-center justify-center ${
+                  isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}
+              >
+                {/* Image */}
+                <Image
+                  src={currentOutput.src}
+                  alt={currentOutput.label}
+                  width={340}
+                  height={currentOutput.aspect === 'vertical' ? 604 : 340}
+                  className="w-full h-auto max-h-full object-contain"
+                />
 
-              {/* Subtle corner badge - watermark style */}
-              <div className="absolute bottom-2 right-2">
-                <div className="px-2 py-1 rounded bg-black/30 backdrop-blur-sm">
-                  <p className="text-white/70 text-[10px] font-medium">{currentOutput.label}</p>
+                {/* Subtle corner badge - watermark style */}
+                <div className="absolute bottom-2 right-2">
+                  <div className="px-2 py-1 rounded bg-black/30 backdrop-blur-sm">
+                    <p className="text-white/70 text-[10px] font-medium">{currentOutput.label}</p>
+                  </div>
                 </div>
               </div>
             </div>
