@@ -915,9 +915,9 @@ export function FirstGeneration({
     <div className="card max-w-3xl mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-display text-3xl mb-2">What do you want to create?</h2>
+        <h2 className="text-display text-3xl mb-2">Upload a video to get your content kit</h2>
         <p className="text-body text-text-secondary">
-          Describe your topic, and we will generate content for all platforms
+          Drop in any video — raw footage, Zoom call, podcast. Get clips, carousels, and social posts in 3 minutes. Or start with text, voice, or a URL.
         </p>
       </div>
 
