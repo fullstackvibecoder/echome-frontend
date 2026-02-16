@@ -46,7 +46,7 @@ export default function HomeContent() {
                 href="/auth/signup"
                 className="px-6 py-2.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
               >
-                Start Building Your Voice
+                Create Account
               </Link>
             </div>
 
@@ -71,7 +71,7 @@ export default function HomeContent() {
                   href="/auth/signup"
                   className="px-6 py-2.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-semibold hover:shadow-lg transition-all text-center shadow-md"
                 >
-                  Start Building Your Voice
+                  Create Account
                 </Link>
               </div>
             </div>
