@@ -912,25 +912,31 @@ export function FirstGeneration({
     : selectedFile !== null;
 
   return (
-    <div className="card max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-display text-3xl mb-2">From raw footage to ready-to-post in 3 minutes</h2>
-        <p className="text-body text-text-secondary">
-          Upload any video — unedited Zoom call, raw footage, podcast recording. Get clips with captions, carousels, and social posts. Or start with text, voice, or a URL.
-        </p>
-      </div>
+    <div className="relative group max-w-3xl mx-auto">
+      {/* Ambient glow behind card */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+
+      <div className="relative card backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-2 border-white/20 shadow-2xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-display text-3xl mb-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+            From raw footage to ready-to-post in 3 minutes
+          </h2>
+          <p className="text-body text-text-secondary">
+            Upload any video — unedited Zoom call, raw footage, podcast recording. Get clips with captions, carousels, and social posts. Or start with text, voice, or a URL.
+          </p>
+        </div>
 
       {/* Input Type Tabs */}
-      <div className="flex items-center gap-2 mb-4 p-1 bg-bg-secondary rounded-lg">
+      <div className="flex items-center gap-2 mb-6 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
         <button
           onClick={() => { setInputType('text'); clearFile(); }}
           className={`
-            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
+            flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
             ${
               inputType === 'text'
-                ? 'bg-accent text-white'
-                : 'text-text-secondary hover:text-text-primary'
+                ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
             }
           `}
         >
@@ -939,11 +945,11 @@ export function FirstGeneration({
         <button
           onClick={() => { setInputType('audio'); clearFile(); }}
           className={`
-            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
+            flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
             ${
               inputType === 'audio'
-                ? 'bg-accent text-white'
-                : 'text-text-secondary hover:text-text-primary'
+                ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
             }
           `}
         >
@@ -952,11 +958,11 @@ export function FirstGeneration({
         <button
           onClick={() => { setInputType('video'); clearFile(); }}
           className={`
-            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
+            flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
             ${
               inputType === 'video'
-                ? 'bg-accent text-white'
-                : 'text-text-secondary hover:text-text-primary'
+                ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
             }
           `}
         >
@@ -1009,16 +1015,18 @@ export function FirstGeneration({
 
       {inputType === 'video' && (
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+          className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
             videoDragActive
-              ? 'border-accent bg-accent/5 scale-[1.01]'
-              : 'border-border'
+              ? 'border-[#00D4FF] bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 scale-[1.02] shadow-2xl shadow-[#00D4FF]/20'
+              : 'border-gray-300 dark:border-white/20 hover:border-[#00D4FF]/50 hover:bg-gradient-to-br hover:from-[#00D4FF]/5 hover:to-[#B794F6]/5'
           }`}
           onDragEnter={handleVideoDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleVideoDragLeave}
           onDrop={handleVideoDrop}
         >
+          {/* Gradient border animation on hover */}
+          <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-[#00D4FF] to-[#B794F6] opacity-0 ${videoDragActive ? 'opacity-20' : 'group-hover:opacity-10'} transition-opacity blur-xl`} />
           <input
             type="file"
             ref={videoInputRef}
@@ -1080,33 +1088,45 @@ export function FirstGeneration({
               </div>
             </div>
           ) : !selectedFile ? (
-            <>
+            <div className="relative">
               {videoDragActive ? (
                 <>
-                  <div className="text-5xl mb-4">📥</div>
-                  <p className="text-body text-accent font-semibold mb-4">
+                  <div className="text-7xl mb-4 animate-bounce">📥</div>
+                  <p className="text-xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent mb-2">
                     Drop your video here
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Release to upload
                   </p>
                 </>
               ) : (
                 <>
-                  <div className="text-5xl mb-4">🎥</div>
-                  <p className="text-body text-text-secondary mb-4">
-                    Drag & drop a video or click to browse
+                  {/* Animated gradient icon background */}
+                  <div className="relative inline-block mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-2xl opacity-30 animate-pulse" />
+                    <div className="relative w-24 h-24 bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 rounded-full flex items-center justify-center border-2 border-white/20">
+                      <span className="text-5xl">🎥</span>
+                    </div>
+                  </div>
+
+                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 font-medium">
+                    Drag & drop your video or click to browse
                   </p>
+
                   <button
                     onClick={() => videoInputRef.current?.click()}
-                    className="btn-secondary px-6 py-2"
+                    className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all shadow-lg mb-4"
                     disabled={generating || uploading || videoProcessing}
                   >
                     Select Video File
                   </button>
-                  <p className="text-small text-text-secondary mt-4">
-                    Supports MP4, MOV, AVI, WebM (up to 5GB)
+
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Supports MP4, MOV, AVI, WebM • Up to 5GB
                   </p>
                 </>
               )}
-            </>
+            </div>
           ) : (
             <>
               <div className="text-5xl mb-4">✅</div>
@@ -1518,6 +1538,7 @@ export function FirstGeneration({
             ? '🎬 Video processing may take 2-5 minutes depending on length'
             : '✨ This usually takes 30-60 seconds'}
         </p>
+      </div>
       </div>
     </div>
   );

@@ -428,12 +428,88 @@ export default function AppContent() {
           ) : (
             (() => {
               const { headline, subheadline } = getWelcomeMessage(user?.name, usageStats?.generationsUsed);
+              const generationsUsed = usageStats?.generationsUsed || 0;
+
               return (
                 <div className="mb-8">
-                  <h1 className="text-display text-4xl mb-2">{headline}</h1>
-                  <p className="text-body text-text-secondary">
-                    {subheadline}
-                  </p>
+                  {/* Welcome Header */}
+                  <div className="mb-6">
+                    <h1 className="text-display text-4xl mb-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{headline}</h1>
+                    <p className="text-body text-text-secondary">
+                      {subheadline}
+                    </p>
+                  </div>
+
+                  {/* Stats Card - Only show if user has created content */}
+                  {generationsUsed > 0 && (
+                    <div className="relative group">
+                      {/* Ambient glow */}
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-2xl opacity-20 blur group-hover:opacity-30 transition-opacity" />
+
+                      <div className="relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                        <div className="flex items-center justify-between">
+                          {/* Left: Stats */}
+                          <div className="flex items-center gap-6">
+                            {/* Circular progress for generations */}
+                            <div className="relative">
+                              <svg className="w-20 h-20 transform -rotate-90">
+                                <circle
+                                  cx="40"
+                                  cy="40"
+                                  r="36"
+                                  stroke="currentColor"
+                                  strokeWidth="6"
+                                  fill="none"
+                                  className="text-gray-700"
+                                />
+                                <circle
+                                  cx="40"
+                                  cy="40"
+                                  r="36"
+                                  stroke="url(#gradient)"
+                                  strokeWidth="6"
+                                  fill="none"
+                                  strokeDasharray={`${Math.min(generationsUsed * 10, 226)} 226`}
+                                  className="transition-all duration-1000"
+                                  strokeLinecap="round"
+                                />
+                                <defs>
+                                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#00D4FF" />
+                                    <stop offset="100%" stopColor="#B794F6" />
+                                  </linearGradient>
+                                </defs>
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-2xl font-black bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+                                  {generationsUsed}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Text stats */}
+                            <div>
+                              <p className="text-sm text-gray-400 mb-1">This month</p>
+                              <p className="text-2xl font-bold text-white">{generationsUsed} {generationsUsed === 1 ? 'piece' : 'pieces'} created</p>
+                              {generationsUsed >= 10 && (
+                                <p className="text-xs text-[#00D4FF] mt-1 flex items-center gap-1">
+                                  <span>🔥</span> On fire!
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right: Milestone badge */}
+                          {generationsUsed >= 5 && (
+                            <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 border border-[#00D4FF]/30">
+                              <p className="text-xs text-gray-400">Streak</p>
+                              <p className="text-xl font-bold text-white">Active Creator</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()
@@ -477,7 +553,7 @@ export default function AppContent() {
           <div className="w-full max-w-sm mx-auto mb-3">
             <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
+                className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] h-2.5 rounded-full transition-all duration-500 relative shadow-lg shadow-[#00D4FF]/25"
                 style={{ width: `${progress?.percent || 5}%` }}
               >
                 <div className="absolute inset-0 bg-white/20 animate-pulse" />
@@ -500,8 +576,8 @@ export default function AppContent() {
                 <div
                   key={stage}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    isComplete ? 'bg-accent' :
-                    isCurrent ? 'bg-accent animate-pulse scale-125' :
+                    isComplete ? 'bg-gradient-to-r from-[#00D4FF] to-[#B794F6]' :
+                    isCurrent ? 'bg-gradient-to-r from-[#00D4FF] to-[#B794F6] animate-pulse scale-125 shadow-md shadow-[#00D4FF]/50' :
                     'bg-bg-secondary'
                   }`}
                   title={TEXT_GENERATION_STAGES[stage]?.title}
@@ -516,8 +592,8 @@ export default function AppContent() {
         <div className="animate-fade-in">
           {/* Success Header */}
           <div className="text-center mb-12">
-            <div className="text-6xl mb-4">{videoClips.length > 0 ? '🎬' : '✨'}</div>
-            <h2 className="text-display text-4xl mb-2">
+            <div className="text-6xl mb-4 animate-bounce">{videoClips.length > 0 ? '🎬' : '✨'}</div>
+            <h2 className="text-display text-4xl mb-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
               {videoClips.length > 0 ? 'Your Content Kit is Ready!' : 'Your Content is Ready!'}
             </h2>
             <p className="text-body text-text-secondary mb-6">

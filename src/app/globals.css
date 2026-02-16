@@ -566,7 +566,7 @@ body {
 }
 
 .btn-primary {
-  @apply bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-center inline-block px-6 py-3;
+  @apply bg-gradient-to-r from-[#00D4FF] to-[#B794F6] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#00D4FF]/30 transition-all text-center inline-block px-6 py-3;
 }
 
 .btn-secondary {
@@ -574,7 +574,7 @@ body {
 }
 
 .btn-outline {
-  @apply border-2 border-border text-foreground font-semibold rounded-lg hover:border-primary hover:text-primary transition-colors text-center inline-block px-6 py-3;
+  @apply border-2 border-border text-foreground font-semibold rounded-lg hover:border-[#00D4FF] hover:text-[#00D4FF] hover:shadow-md hover:shadow-[#00D4FF]/20 transition-all text-center inline-block px-6 py-3;
 }
 
 /* Custom color utilities for app theming */
