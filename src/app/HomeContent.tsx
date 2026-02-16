@@ -227,13 +227,14 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-white/30">
                     {[
-                      '5 hours of video processing',
-                      '10 clips per video',
-                      '3 Knowledge Bases (multiple voices)',
-                      '10 Creator Radar slots',
+                      'Up to 5 hours of video processing',
+                      'Up to 10 clips per video',
+                      'Advanced voice matching',
+                      'Up to 10 Creator Radar slots',
                       'All templates + custom colors',
                       '1080p exports',
-                      'Email import (50 emails)',
+                      '750MB file upload limit',
+                      'Email import (up to 50 emails)',
                       'Priority processing queue'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
@@ -279,12 +280,13 @@ export default function HomeContent() {
                   <div className="space-y-3 pt-4 border-t-2 border-stone-200">
                     {[
                       'Unlimited video processing',
-                      '15 clips per video',
-                      'Unlimited Knowledge Bases (team voices)',
+                      'Up to 15 clips per video',
+                      'Premium voice matching',
                       'Unlimited Creator Radar',
                       'Custom carousel design system',
                       '1080p exports',
-                      'Email import (100 emails)',
+                      '5GB file upload limit',
+                      'Email import (up to 100 emails)',
                       'Priority processing queue',
                       'Priority support'
                     ].map((feature, idx) => (

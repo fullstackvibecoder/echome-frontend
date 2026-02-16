@@ -132,9 +132,9 @@ export default function AffiliatesContent() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { plan: 'Echo', price: 29, commission: 7.25, features: ['2 hours video/mo', '5 clips per video', '1 Knowledge Base'] },
-              { plan: 'Echo Studio', price: 49, commission: 12.25, features: ['5 hours video/mo', '10 clips per video', '3 Knowledge Bases'], popular: true },
-              { plan: 'Echo Pro', price: 99, commission: 24.75, features: ['Unlimited video', '15 clips per video', 'Unlimited KBs'] },
+              { plan: 'Echo', price: 29, commission: 7.25, features: ['Up to 2 hours video/mo', 'Up to 5 clips per video', '250MB file uploads'] },
+              { plan: 'Echo Studio', price: 49, commission: 12.25, features: ['Up to 5 hours video/mo', 'Up to 10 clips per video', '750MB file uploads'], popular: true },
+              { plan: 'Echo Pro', price: 99, commission: 24.75, features: ['Unlimited video', 'Up to 15 clips per video', '5GB file uploads'] },
             ].map((tier) => (
               <div
                 key={tier.plan}
