@@ -35,7 +35,7 @@ export function OutputShowcase() {
 
   return (
     <AnimatedSection>
-      <section id="output-showcase" className="py-32 px-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
+      <section id="output-showcase" className="pt-16 pb-32 px-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
         {/* Ambient gradients */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#B794F6]/5 rounded-full blur-3xl -z-10" />

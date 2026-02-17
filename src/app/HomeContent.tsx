@@ -35,6 +35,7 @@ export default function HomeContent() {
 
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how" className={`transition font-medium ${scrolled ? 'text-[#1C1C1E] hover:text-[#00D4FF]' : 'text-white hover:text-[#00D4FF]'}`}>How It Works</a>
+              <a href="#output-showcase" className={`transition font-medium ${scrolled ? 'text-[#1C1C1E] hover:text-[#00D4FF]' : 'text-white hover:text-[#00D4FF]'}`}>Examples</a>
               <a href="#pricing" className={`transition font-medium ${scrolled ? 'text-[#1C1C1E] hover:text-[#00D4FF]' : 'text-white hover:text-[#00D4FF]'}`}>Pricing</a>
               <Link
                 href="/auth/login"
@@ -60,6 +61,7 @@ export default function HomeContent() {
             <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
                 <a href="#how" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">How It Works</a>
+                <a href="#output-showcase" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">Examples</a>
                 <a href="#pricing" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">Pricing</a>
                 <Link
                   href="/auth/login"
