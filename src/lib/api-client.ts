@@ -53,6 +53,7 @@ const GENERATION_TIMEOUT = 180000; // 3 minutes for AI generation (includes pote
 const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (download + Whisper)
 const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
+const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 
 // Request interceptor - add JWT token
 apiClient.interceptors.request.use(
@@ -995,7 +996,7 @@ export const api = {
       pollingIntervalSeconds?: number;
       automationEnabled?: boolean;
     }) => {
-      const response = await apiClient.post('/creators/follow', data);
+      const response = await apiClient.post('/creators/follow', data, { timeout: FOLLOW_TIMEOUT });
       return response.data as {
         success: boolean;
         creator: MonitoredCreator;
