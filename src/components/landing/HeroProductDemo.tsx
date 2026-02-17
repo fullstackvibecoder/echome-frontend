@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Video, LayoutGrid, FileText, Play } from 'lucide-react';
+import { ArrowRight, Video } from 'lucide-react';
 
 type OutputType = 'text' | 'reel' | 'tweet-carousel' | 'bg-carousel';
 
@@ -48,16 +48,8 @@ export function HeroProductDemo() {
 
   const currentOutput = outputs[currentIndex];
 
-  const getIcon = () => {
-    if (currentOutput.type === 'text') return FileText;
-    if (currentOutput.type === 'reel') return Play;
-    return LayoutGrid;
-  };
-
-  const Icon = getIcon();
-
   return (
-    <div className="relative w-full max-w-5xl mx-auto py-12">
+    <div className="relative w-full max-w-5xl mx-auto py-4">
       {/* Ambient glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/5 via-transparent to-[#B794F6]/5 rounded-3xl blur-3xl" />
 
@@ -120,17 +112,6 @@ export function HeroProductDemo() {
         {/* Output: Cycling through individual items */}
         <div className="relative">
           <div className="relative w-[280px] lg:w-[340px]">
-            {/* Label */}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#B794F6] flex items-center justify-center shadow-lg">
-                <Icon className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-white/80 text-sm font-medium">Content Kit</span>
-              <div className="ml-auto px-2 py-1 rounded-md bg-green-500/20 border border-green-500/30">
-                <span className="text-green-400 text-xs font-bold">Ready in 2-5 min</span>
-              </div>
-            </div>
-
             {/* Output Card - Fixed height container to prevent page jog */}
             <div className="relative" style={{ height: '604px' }}>
               <div
