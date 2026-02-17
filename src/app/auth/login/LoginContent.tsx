@@ -29,8 +29,17 @@ export default function LoginContent() {
       <form action={handleSubmit} className="space-y-4">
         {/* General Error */}
         {generalError && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-            {generalError}
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-sm">
+            <p className="text-destructive">{generalError}</p>
+            <p className="mt-2 text-muted-foreground">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/auth/signup"
+                className="text-primary hover:underline font-medium"
+              >
+                Create one here
+              </Link>
+            </p>
           </div>
         )}
 

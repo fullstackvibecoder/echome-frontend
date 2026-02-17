@@ -66,7 +66,12 @@ export function useAuth(): UseAuthReturn {
         throw new Error(response.error || 'Login failed');
       }
     } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Login failed');
+      const msg =
+        error.response?.data?.error?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'Login failed';
+      throw new Error(typeof msg === 'string' ? msg : 'Login failed');
     }
   };
 
@@ -89,7 +94,12 @@ export function useAuth(): UseAuthReturn {
         throw new Error(response.error || 'Signup failed');
       }
     } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Signup failed');
+      const msg =
+        error.response?.data?.error?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'Signup failed';
+      throw new Error(typeof msg === 'string' ? msg : 'Signup failed');
     }
   };
 
