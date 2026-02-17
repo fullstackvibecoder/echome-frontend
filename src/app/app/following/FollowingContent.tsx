@@ -373,7 +373,7 @@ export default function FollowingContent() {
         <div>
           <h1 className="text-display text-3xl mb-1">Following</h1>
           <p className="text-body text-text-secondary">
-            Content from creators you follow, ready to repurpose
+            Track YouTube creators and repurpose their ideas in your voice
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -416,15 +416,47 @@ export default function FollowingContent() {
           <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : creators.length === 0 ? (
-        <div className="card text-center py-16">
-          <div className="text-6xl mb-4">👥</div>
-          <h2 className="text-display text-2xl mb-2">No creators followed yet</h2>
-          <p className="text-body text-text-secondary mb-6">
-            Follow creators to see their content and repurpose it in your voice
-          </p>
-          <button onClick={() => setShowAddModal(true)} className="btn-primary px-6 py-3">
-            Follow Your First Creator
-          </button>
+        <div className="card py-12 px-8">
+          <div className="max-w-xl mx-auto text-center mb-10">
+            <div className="text-6xl mb-4">👥</div>
+            <h2 className="text-display text-2xl mb-2">Follow creators you admire</h2>
+            <p className="text-body text-text-secondary">
+              Track YouTube creators and repurpose their best ideas into your own content, matched to your voice.
+            </p>
+          </div>
+
+          {/* How it works steps */}
+          <div className="max-w-2xl mx-auto grid gap-4 mb-10">
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-bg-secondary/60 border border-border">
+              <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">1</div>
+              <div>
+                <p className="font-medium text-text-primary">Add a YouTube creator</p>
+                <p className="text-sm text-text-secondary">Paste their channel or video URL. We&apos;ll start tracking their new uploads.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-bg-secondary/60 border border-border">
+              <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">2</div>
+              <div>
+                <p className="font-medium text-text-primary">Pull fresh content anytime</p>
+                <p className="text-sm text-text-secondary">Click &quot;Pull Fresh Content&quot; to check for new videos from everyone you follow.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-bg-secondary/60 border border-border">
+              <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">3</div>
+              <div>
+                <p className="font-medium text-text-primary">Repurpose in your voice</p>
+                <p className="text-sm text-text-secondary">
+                  Pick any video and repurpose it right here, or use the <span className="font-medium text-accent">Repurpose</span> tab on the Dashboard to browse all followed content.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button onClick={() => setShowAddModal(true)} className="btn-primary px-6 py-3">
+              + Follow Your First Creator
+            </button>
+          </div>
         </div>
       ) : (
         <>
