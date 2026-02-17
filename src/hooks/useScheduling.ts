@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import {
   ScheduledPost,
   WeeklyAnalysis,
@@ -104,7 +105,7 @@ export function useScheduling(): UseSchedulingReturn {
       }
     } catch (err) {
       console.error('[useScheduling] Failed to fetch data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load schedule');
+      setError(extractErrorMessage(err, 'Failed to load schedule'));
     } finally {
       setLoading(false);
     }
@@ -152,7 +153,7 @@ export function useScheduling(): UseSchedulingReturn {
       return null;
     } catch (err) {
       console.error('[useScheduling] Failed to schedule post:', err);
-      setError(err instanceof Error ? err.message : 'Failed to schedule post');
+      setError(extractErrorMessage(err, 'Failed to schedule post'));
       return null;
     }
   }, [currentWeekStart]);
@@ -192,7 +193,7 @@ export function useScheduling(): UseSchedulingReturn {
       return null;
     } catch (err) {
       console.error('[useScheduling] Failed to update schedule:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update schedule');
+      setError(extractErrorMessage(err, 'Failed to update schedule'));
       return null;
     }
   }, [currentWeekStart]);
@@ -220,7 +221,7 @@ export function useScheduling(): UseSchedulingReturn {
       return false;
     } catch (err) {
       console.error('[useScheduling] Failed to delete schedule:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete schedule');
+      setError(extractErrorMessage(err, 'Failed to delete schedule'));
       return false;
     }
   }, [currentWeekStart]);
@@ -245,7 +246,7 @@ export function useScheduling(): UseSchedulingReturn {
       return false;
     } catch (err) {
       console.error('[useScheduling] Failed to mark as posted:', err);
-      setError(err instanceof Error ? err.message : 'Failed to mark as posted');
+      setError(extractErrorMessage(err, 'Failed to mark as posted'));
       return false;
     }
   }, []);
@@ -270,7 +271,7 @@ export function useScheduling(): UseSchedulingReturn {
       return false;
     } catch (err) {
       console.error('[useScheduling] Failed to mark as skipped:', err);
-      setError(err instanceof Error ? err.message : 'Failed to mark as skipped');
+      setError(extractErrorMessage(err, 'Failed to mark as skipped'));
       return false;
     }
   }, []);

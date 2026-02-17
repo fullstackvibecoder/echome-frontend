@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { showErrorToast } from '@/lib/toast';
 
 export function OAuthButtons() {
   const [isLoading, setIsLoading] = useState(false);
@@ -23,11 +24,11 @@ export function OAuthButtons() {
 
       if (error) {
         console.error('Google OAuth error:', error);
-        alert('Failed to sign in with Google. Please try again.');
+        showErrorToast(error, 'signing in with Google');
       }
     } catch (error) {
       console.error('Google OAuth error:', error);
-      alert('Failed to sign in with Google. Please try again.');
+      showErrorToast(error, 'signing in with Google');
     } finally {
       setIsLoading(false);
     }

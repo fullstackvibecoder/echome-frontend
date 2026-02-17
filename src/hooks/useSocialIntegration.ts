@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { SocialIntegration } from '@/types';
 
 interface UseSocialIntegrationReturn {
@@ -27,7 +28,7 @@ export function useSocialIntegration(): UseSocialIntegrationReturn {
         setIntegrations(response.data);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load integrations');
+      setError(extractErrorMessage(err, 'Failed to load integrations'));
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export function useSocialIntegration(): UseSocialIntegrationReturn {
       await api.social.connect(platform);
       await fetchIntegrations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect');
+      setError(extractErrorMessage(err, 'Failed to connect'));
       throw err;
     }
   }, [fetchIntegrations]);
@@ -64,7 +65,7 @@ export function useSocialIntegration(): UseSocialIntegrationReturn {
       await api.social.disconnect(platform);
       await fetchIntegrations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to disconnect');
+      setError(extractErrorMessage(err, 'Failed to disconnect'));
       throw err;
     }
   }, [fetchIntegrations]);

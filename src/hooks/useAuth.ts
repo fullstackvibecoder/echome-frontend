@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import type { User } from '@/types';
 
 interface UseAuthReturn {
@@ -58,20 +59,21 @@ export function useAuth(): UseAuthReturn {
       if (response.success && response.data) {
         localStorage.setItem('authToken', response.data.token);
         setUser(response.data.user);
-        // Check for redirect param, otherwise go to /app
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect') || '/app';
-        router.push(redirectTo);
+        // Check for stored redirect path (from 401 session expiry), URL param, or default to /app
+        const storedRedirect = localStorage.getItem('redirectAfterLogin');
+        if (storedRedirect) {
+          localStorage.removeItem('redirectAfterLogin');
+          router.push(storedRedirect);
+        } else {
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTo = urlParams.get('redirect') || '/app';
+          router.push(redirectTo);
+        }
       } else {
         throw new Error(response.error || 'Login failed');
       }
-    } catch (error: any) {
-      const msg =
-        error.response?.data?.error?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        'Login failed';
-      throw new Error(typeof msg === 'string' ? msg : 'Login failed');
+    } catch (error) {
+      throw new Error(extractErrorMessage(error, 'Login failed'));
     }
   };
 
@@ -93,13 +95,8 @@ export function useAuth(): UseAuthReturn {
       } else {
         throw new Error(response.error || 'Signup failed');
       }
-    } catch (error: any) {
-      const msg =
-        error.response?.data?.error?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        'Signup failed';
-      throw new Error(typeof msg === 'string' ? msg : 'Signup failed');
+    } catch (error) {
+      throw new Error(extractErrorMessage(error, 'Signup failed'));
     }
   };
 

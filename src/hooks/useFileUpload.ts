@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import {
   FileWithProgress,
   validateFile,
@@ -112,10 +113,7 @@ export function useFileUpload(): UseFileUploadReturn {
               ? {
                   ...f,
                   status: 'error',
-                  error:
-                    error instanceof Error
-                      ? error.message
-                      : 'Upload failed',
+                  error: extractErrorMessage(error, 'Upload failed'),
                 }
               : f
           )

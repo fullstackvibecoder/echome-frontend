@@ -10,6 +10,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
+import { showErrorToast } from '@/lib/toast';
 
 interface SocialImportModalProps {
   isOpen: boolean;
@@ -217,7 +219,9 @@ export function SocialImportModal({
       }
     } catch (err) {
       console.error('Connect error:', err);
-      setSyncError('Failed to start connection. Please try again.');
+      const msg = extractErrorMessage(err, 'Failed to start connection. Please try again.');
+      setSyncError(msg);
+      showErrorToast(err, 'connecting account');
     } finally {
       setConnectingPlatform(null);
     }
@@ -247,7 +251,9 @@ export function SocialImportModal({
     } catch (err) {
       console.error('Sync error:', err);
       setSyncStatus(prev => ({ ...prev, [platform]: 'error' }));
-      setSyncError(err instanceof Error ? err.message : 'Failed to start sync');
+      const msg = extractErrorMessage(err, 'Failed to start sync');
+      setSyncError(msg);
+      showErrorToast(err, 'syncing content');
     }
   };
 
@@ -291,7 +297,7 @@ export function SocialImportModal({
     } catch (err) {
       console.error('Import error:', err);
       setStatus('error');
-      setError(err instanceof Error ? err.message : 'Failed to start import');
+      setError(extractErrorMessage(err, 'Failed to start import'));
     }
   };
 

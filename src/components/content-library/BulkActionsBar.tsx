@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react';
+import { showErrorToast } from '@/lib/toast';
 
 interface BulkActionsBarProps {
   selectedCount: number;
@@ -36,6 +37,7 @@ export function BulkActionsBar({
       setShowDeleteConfirm(false);
     } catch (error) {
       console.error('Failed to delete:', error);
+      showErrorToast(error, 'deleting items');
     } finally {
       setIsDeleting(false);
     }

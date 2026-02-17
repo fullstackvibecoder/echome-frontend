@@ -65,6 +65,12 @@ function SignupForm() {
         {generalError && (
           <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
             {generalError}
+            <p className="mt-2 text-muted-foreground">
+              Already have an account?{' '}
+              <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                Sign in instead
+              </Link>
+            </p>
           </div>
         )}
 

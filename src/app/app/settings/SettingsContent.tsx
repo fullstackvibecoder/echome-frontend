@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
 
 type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing' | 'referral';
@@ -132,9 +133,9 @@ export default function SettingsContent() {
         setProfileSuccess(true);
         setTimeout(() => setProfileSuccess(false), 3000);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to save profile:', error);
-      setProfileError(error.response?.data?.error?.message || 'Failed to save profile');
+      setProfileError(extractErrorMessage(error, 'Failed to save profile'));
     } finally {
       setProfileSaving(false);
     }
@@ -159,9 +160,9 @@ export default function SettingsContent() {
         setProfileSuccess(true);
         setTimeout(() => setProfileSuccess(false), 3000);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to upload image:', error);
-      setProfileError(error.response?.data?.error?.message || 'Failed to upload image');
+      setProfileError(extractErrorMessage(error, 'Failed to upload image'));
     } finally {
       setImageUploading(false);
       if (fileInputRef.current) {

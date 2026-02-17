@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import { Toaster } from 'sonner';
 import { satoshi } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
@@ -96,6 +97,7 @@ export default function RootLayout({
       </head>
       <body className={`${satoshi.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

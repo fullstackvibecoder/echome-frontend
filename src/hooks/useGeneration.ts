@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { GeneratedContent, Platform, InputType, BackgroundConfig, DesignPreset } from '@/types';
 
 interface GenerationOptions {
@@ -76,7 +77,7 @@ export function useGeneration(): UseGenerationReturn {
           throw new Error(response.error || 'Generation failed');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Generation failed');
+        setError(extractErrorMessage(err, 'Generation failed'));
         return null;
       } finally {
         setGenerating(false);
@@ -144,23 +145,8 @@ export function useGeneration(): UseGenerationReturn {
           throw new Error(response.result?.error || 'Repurposing failed');
         }
       } catch (err) {
-        // Extract error message from axios error response if available
-        let errorMessage = 'Repurposing failed';
-        if (err && typeof err === 'object') {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const axiosError = err as any;
-          if (axiosError.response?.data?.error?.message) {
-            errorMessage = axiosError.response.data.error.message;
-          } else if (axiosError.response?.data?.error) {
-            errorMessage = typeof axiosError.response.data.error === 'string'
-              ? axiosError.response.data.error
-              : 'Repurposing failed';
-          } else if (err instanceof Error) {
-            errorMessage = err.message;
-          }
-        }
         console.error('Repurpose error:', err);
-        setError(errorMessage);
+        setError(extractErrorMessage(err, 'Repurposing failed'));
         setGenerating(false);
         return null;
       }

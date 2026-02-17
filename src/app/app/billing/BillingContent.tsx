@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Check, CreditCard, Loader2, ExternalLink, Sparkles, AlertCircle } from 'lucide-react';
 import api, { StripePlan, StripeSubscriptionStatus } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 
 type BillingInterval = 'month' | 'year';
 
@@ -269,17 +270,9 @@ function BillingContentInner() {
           throw new Error('Failed to create checkout session');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Plan selection error:', err);
-
-      // Handle auth errors - redirect to login
-      if (err.response?.status === 401) {
-        localStorage.removeItem('authToken');
-        window.location.href = '/auth/login?redirect=/app/billing';
-        return;
-      }
-
-      setError(err.response?.data?.error || 'Failed to process your request. Please try again.');
+      setError(extractErrorMessage(err, 'Failed to process your request. Please try again.'));
       setCheckoutLoading(null);
     }
   };
@@ -297,17 +290,9 @@ function BillingContentInner() {
       } else {
         throw new Error('Failed to open billing portal');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Portal error:', err);
-
-      // Handle auth errors - redirect to login
-      if (err.response?.status === 401) {
-        localStorage.removeItem('authToken');
-        window.location.href = '/auth/login?redirect=/app/billing';
-        return;
-      }
-
-      setError(err.response?.data?.error || 'Failed to open billing portal. Please try again.');
+      setError(extractErrorMessage(err, 'Failed to open billing portal. Please try again.'));
       setPortalLoading(false);
     }
   };

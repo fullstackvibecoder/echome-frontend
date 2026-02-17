@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { Platform, BackgroundConfig, DesignPreset } from '@/types';
 
 type CreatorPlatform = 'youtube' | 'instagram';
@@ -148,10 +149,8 @@ export default function FollowingContent() {
       } else if (!response.success) {
         setAddError(response.error || 'Failed to follow creator. Please try again.');
       }
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
-      const errorMessage = axiosError.response?.data?.error || axiosError.message || 'Failed to follow creator';
-      setAddError(errorMessage);
+    } catch (err) {
+      setAddError(extractErrorMessage(err, 'Failed to follow creator'));
     } finally {
       setAdding(false);
     }
@@ -357,10 +356,8 @@ export default function FollowingContent() {
       } else {
         throw new Error(response.result?.error || 'Repurposing failed');
       }
-    } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
-      const errorMessage = axiosError.response?.data?.error || (err instanceof Error ? err.message : 'Repurposing failed');
-      setRepurposeError(errorMessage);
+    } catch (err) {
+      setRepurposeError(extractErrorMessage(err, 'Repurposing failed'));
     } finally {
       setRepurposing(false);
     }

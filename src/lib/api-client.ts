@@ -73,11 +73,28 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - show toast then redirect to login
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
+        // Store current path so user can return after login
+        const currentPath = window.location.pathname + window.location.search;
+        if (currentPath !== '/auth/login' && currentPath !== '/auth/signup') {
+          localStorage.setItem('redirectAfterLogin', currentPath);
+        }
+
+        // Lazy-import toast to avoid circular deps
+        import('sonner').then(({ toast }) => {
+          toast.error('Session expired', {
+            description: 'Please log in again.',
+            duration: 3000,
+          });
+        });
+
+        // Small delay so the toast is visible before redirect
+        setTimeout(() => {
+          window.location.href = '/auth/login';
+        }, 1500);
       }
     }
 

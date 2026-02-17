@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import {
   KnowledgeBase,
   KBFile,
@@ -86,7 +87,7 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load knowledge bases');
+      setError(extractErrorMessage(err, 'Failed to load knowledge bases'));
     } finally {
       setLoading(false);
     }
@@ -126,7 +127,7 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
         setFiles(legacyFiles);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load content');
+      setError(extractErrorMessage(err, 'Failed to load content'));
       // Reset to empty state on error
       setContentItems([]);
       setContentStats(DEFAULT_STATS);
@@ -231,7 +232,7 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
         await fetchContent(selectedKb);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete file');
+      setError(extractErrorMessage(err, 'Failed to delete file'));
       throw err;
     }
   }, [selectedKb, fetchContent]);
@@ -253,7 +254,7 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
         await fetchContent(selectedKb);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete content');
+      setError(extractErrorMessage(err, 'Failed to delete content'));
       throw err;
     }
   }, [selectedKb, fetchContent]);

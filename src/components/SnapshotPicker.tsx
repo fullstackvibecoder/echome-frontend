@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { api, VideoSnapshot } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 
 interface SnapshotPickerProps {
   /** Video upload ID to fetch snapshots for */
@@ -64,7 +65,7 @@ export function SnapshotPicker({
       }
     } catch (err) {
       console.error('Failed to load snapshots:', err);
-      setError('Failed to load video snapshots');
+      setError(extractErrorMessage(err, 'Failed to load video snapshots'));
     } finally {
       setLoading(false);
     }

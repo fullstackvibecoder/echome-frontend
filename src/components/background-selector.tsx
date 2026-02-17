@@ -18,6 +18,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { showErrorToast } from '@/lib/toast';
 import type { DesignPreset, BackgroundConfig } from '@/types';
 
 export interface BackgroundSelectorProps {
@@ -78,6 +79,7 @@ export function BackgroundSelector({
       }
     } catch (error) {
       console.error('Upload failed:', error);
+      showErrorToast(error, 'uploading background');
     } finally {
       setUploading(false);
     }

@@ -59,7 +59,14 @@ export default function CallbackContent() {
           if (!hasContent) {
             router.push('/onboarding');
           } else {
-            router.push('/app');
+            // Check for stored redirect path (from 401 session expiry)
+            const redirectPath = localStorage.getItem('redirectAfterLogin');
+            if (redirectPath) {
+              localStorage.removeItem('redirectAfterLogin');
+              router.push(redirectPath);
+            } else {
+              router.push('/app');
+            }
           }
         } else {
           // No session, redirect to login
