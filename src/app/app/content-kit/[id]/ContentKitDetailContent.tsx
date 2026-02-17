@@ -974,27 +974,22 @@ export default function ContentKitDetailContent() {
               </div>
             )}
 
-            {/* Has carousel, no reel yet → Generate button */}
+            {/* Has carousel, no reel yet → Coming Soon */}
             {hasCarousel && (!linkedReel || linkedReel.status === 'failed') && !isGeneratingCarouselReel && (
-              <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border">
+              <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border relative overflow-hidden">
                 <div className="text-4xl mb-3">🎬</div>
-                <h3 className="text-lg font-semibold mb-2">Create an animated reel</h3>
+                <h3 className="text-lg font-semibold mb-2">Generate Reel from Carousel</h3>
                 <p className="text-sm text-text-secondary mb-4">
-                  Turn your {detail?.carousel?.slides?.length || 0} carousel slides into an animated MP4 with motion effects and transitions.
+                  Turn your {detail?.carousel?.slides?.length || 0} carousel slides into a beat-synced animated reel with motion effects and transitions.
                 </p>
-                {carouselReelError && (
-                  <p className="text-sm text-error mb-3">{carouselReelError}</p>
-                )}
-                {linkedReel?.status === 'failed' && (
-                  <p className="text-sm text-error mb-3">
-                    Previous attempt failed. Try again?
-                  </p>
-                )}
                 <button
-                  onClick={handleGenerateCarouselReel}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium"
+                  disabled
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/70 rounded-lg font-medium cursor-not-allowed relative"
                 >
-                  Generate Reel
+                  Generate Reel from Carousel
+                  <span className="absolute -top-2 -right-2 text-[10px] font-bold uppercase tracking-wide bg-accent/20 text-accent px-2 py-0.5 rounded-full">
+                    Coming Soon
+                  </span>
                 </button>
               </div>
             )}

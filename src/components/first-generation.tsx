@@ -969,14 +969,6 @@ export function FirstGeneration({
           🎥 Video
         </button>
         <button
-          disabled
-          className="flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all text-text-secondary/50 cursor-not-allowed relative"
-          title="Coming Soon"
-        >
-          🔗 URL
-          <span className="absolute -top-1 -right-1 text-[10px] bg-accent/20 text-accent px-1 rounded">Soon</span>
-        </button>
-        <button
           onClick={() => { setInputType('repurpose'); clearFile(); }}
           className={`
             flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all

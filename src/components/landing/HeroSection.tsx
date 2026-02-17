@@ -55,23 +55,35 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Product Demo - Center Stage */}
-          <div className="w-full mb-8 opacity-0 animate-fade-in" style={{ animationDelay: '500ms' }}>
-            <HeroProductDemo />
+          {/* Value Prop */}
+          <div
+            className="max-w-3xl mx-auto mb-10 opacity-0 animate-fade-in"
+            style={{ animationDelay: '400ms' }}
+          >
+            <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm px-8 py-6">
+              <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[#00D4FF]/20 via-transparent to-[#B794F6]/20 opacity-50 pointer-events-none" />
+              <p className="relative text-lg md:text-xl text-white/80 font-light leading-relaxed text-center">
+                Drop in any video —{' '}
+                <span className="text-white font-medium">Zoom recording, podcast, phone clip, unedited raw footage</span>.
+                In 2–5 minutes:{' '}
+                <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent font-medium">
+                  extracted clips with captions, tweet-style carousels, social posts, and a populated content calendar
+                </span>.
+                All matched to your voice using a knowledge base built from your{' '}
+                <span className="text-white font-medium">YouTube transcripts, blog posts, sent emails, and voice recordings</span>.
+              </p>
+            </div>
           </div>
 
-          {/* Subtitle - mechanical and specific */}
-          <p
-            className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed max-w-3xl mx-auto opacity-0 animate-fade-in"
-            style={{ animationDelay: '700ms' }}
-          >
-            Drop in any video - Zoom recording, podcast, phone clip, unedited raw footage. In 2-5 minutes: extracted clips with captions, tweet-style carousels, social posts, and a populated content calendar. All matched to your voice using a knowledge base built from your YouTube transcripts, blog posts, sent emails, and voice recordings.
-          </p>
+          {/* Product Demo - Center Stage */}
+          <div className="w-full mb-8 opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <HeroProductDemo />
+          </div>
 
           {/* CTAs */}
           <div
             className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-4 opacity-0 animate-fade-in"
-            style={{ animationDelay: '900ms' }}
+            style={{ animationDelay: '800ms' }}
           >
             <Link
               href="/auth/signup"
@@ -94,7 +106,7 @@ export function HeroSection() {
           {/* Trust signal */}
           <p
             className="text-sm text-white/60 font-light opacity-0 animate-fade-in"
-            style={{ animationDelay: '1100ms' }}
+            style={{ animationDelay: '1000ms' }}
           >
             → One video becomes a week of content
           </p>
