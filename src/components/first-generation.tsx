@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios';
+import { useRouter } from 'next/navigation';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
+import { useSubscription } from '@/hooks/useSubscription';
 import { SnapshotPicker } from './SnapshotPicker';
 
 /**
@@ -399,6 +401,17 @@ export function FirstGeneration({
   const [videoUrl, setVideoUrl] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
   const [processingUrl, setProcessingUrl] = useState(false);
+
+  // Subscription & free generation state
+  const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate } = useSubscription();
+  const router = useRouter();
+
+  // Free users can't use video/repurpose — switch to text if needed
+  useEffect(() => {
+    if (isFreeUser && (inputType === 'video' || inputType === 'repurpose' || inputType === 'url')) {
+      setInputType('text');
+    }
+  }, [isFreeUser, inputType]);
 
   // Video processing state (Clip Finder)
   const [videoProcessing, setVideoProcessing] = useState(false);
@@ -956,9 +969,12 @@ export function FirstGeneration({
           🎤 Voice
         </button>
         <button
-          onClick={() => { setInputType('video'); clearFile(); }}
+          onClick={() => { if (!isFreeUser) { setInputType('video'); clearFile(); } }}
+          disabled={isFreeUser}
+          title={isFreeUser ? 'Requires subscription' : undefined}
           className={`
             flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
+            ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
             ${
               inputType === 'video'
                 ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
@@ -966,12 +982,15 @@ export function FirstGeneration({
             }
           `}
         >
-          🎥 Video
+          🎥 Video {isFreeUser && '🔒'}
         </button>
         <button
-          onClick={() => { setInputType('repurpose'); clearFile(); }}
+          onClick={() => { if (!isFreeUser) { setInputType('repurpose'); clearFile(); } }}
+          disabled={isFreeUser}
+          title={isFreeUser ? 'Requires subscription' : undefined}
           className={`
             flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
+            ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
             ${
               inputType === 'repurpose'
                 ? 'bg-accent text-white'
@@ -979,7 +998,7 @@ export function FirstGeneration({
             }
           `}
         >
-          🔄 Repurpose
+          🔄 Repurpose {isFreeUser && '🔒'}
         </button>
       </div>
 
@@ -1491,37 +1510,103 @@ export function FirstGeneration({
         )}
       </p>
 
-      {/* Generate Button */}
-      <button
-        onClick={handleGenerate}
-        disabled={generating || uploading || videoProcessing || !isReady}
-        className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {uploading ? (
-          <span className="flex items-center justify-center gap-2">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Uploading...
-          </span>
-        ) : videoProcessing ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="text-lg">{VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}</span>
-            {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || 'Processing video...'}
-          </span>
-        ) : generating ? (
-          <span className="flex items-center justify-center gap-2">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            {inputType === 'repurpose' ? 'Repurposing...' : 'Generating...'}
-          </span>
-        ) : inputType === 'repurpose' ? (
-          'Repurpose Content'
-        ) : inputType === 'url' ? (
-          'Extract Clips & Generate Content'
-        ) : inputType === 'video' ? (
-          'Extract Clips & Generate Content'
-        ) : (
-          'Generate Content'
-        )}
-      </button>
+      {/* Free generation paywall - replaces generate button when exhausted */}
+      {isFreeUser && freeGenerationsRemaining <= 0 ? (
+        <div className="mt-6 p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center">
+          <div className="text-4xl mb-3">🔒</div>
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            You&apos;ve used your {freeGenerationsLimit} free generations
+          </h3>
+          <p className="text-text-secondary mb-6">
+            You&apos;ve seen what EchoMe can do. Subscribe to unlock:
+          </p>
+          <div className="text-left max-w-sm mx-auto mb-6 space-y-2">
+            {[
+              'Unlimited content generation',
+              'Video clip extraction',
+              'Creator Radar — follow & repurpose',
+              'Instagram carousels',
+              'Priority processing',
+            ].map((feature) => (
+              <div key={feature} className="flex items-center gap-2 text-sm text-foreground">
+                <span className="text-green-500">✓</span> {feature}
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[
+              { name: 'Echo', price: '$29/mo', id: 'echo' },
+              { name: 'Echo Studio', price: '$49/mo', id: 'echo-studio', popular: true },
+              { name: 'Echo Pro', price: '$99/mo', id: 'echo-pro' },
+            ].map((plan) => (
+              <button
+                key={plan.id}
+                onClick={() => router.push(`/app/billing`)}
+                className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between ${
+                  plan.popular
+                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
+                    : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-foreground hover:border-[#00D4FF] hover:scale-[1.02]'
+                }`}
+              >
+                <span>{plan.name} — {plan.price}</span>
+                <span className="text-sm">{plan.popular ? 'Most Popular →' : 'Subscribe →'}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-text-secondary mt-4">
+            Previously generated content is still available in your Content Library.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Free generation banner */}
+          {isFreeUser && freeGenerationsRemaining > 0 && (
+            <div className="mb-4 p-3 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-xl flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">
+                ✨ Free Plan — {freeGenerationsUsed} of {freeGenerationsLimit} generations used
+              </span>
+              <button
+                onClick={() => router.push('/app/billing')}
+                className="text-xs font-semibold text-[#00D4FF] hover:text-[#0099CC] transition-colors"
+              >
+                Subscribe for unlimited →
+              </button>
+            </div>
+          )}
+
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerate}
+            disabled={generating || uploading || videoProcessing || !isReady}
+            className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {uploading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Uploading...
+              </span>
+            ) : videoProcessing ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-lg">{VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}</span>
+                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || 'Processing video...'}
+              </span>
+            ) : generating ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {inputType === 'repurpose' ? 'Repurposing...' : 'Generating...'}
+              </span>
+            ) : inputType === 'repurpose' ? (
+              'Repurpose Content'
+            ) : inputType === 'url' ? (
+              'Extract Clips & Generate Content'
+            ) : inputType === 'video' ? (
+              'Extract Clips & Generate Content'
+            ) : (
+              'Generate Content'
+            )}
+          </button>
+        </>
+      )}
 
       {/* Info */}
       <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">

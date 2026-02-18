@@ -28,6 +28,16 @@ interface UseSubscriptionReturn {
   tier: SubscriptionTier;
   /** Days remaining in trial (0 if not in trial) */
   trialDaysRemaining: number;
+  /** Number of free generations used (lifetime) */
+  freeGenerationsUsed: number;
+  /** Maximum free generations allowed */
+  freeGenerationsLimit: number;
+  /** Free generations remaining */
+  freeGenerationsRemaining: number;
+  /** Whether user can generate content (subscribed, trialing, or has free generations) */
+  canGenerate: boolean;
+  /** Whether user is on the free tier (not subscribed, not trialing) */
+  isFreeUser: boolean;
   /** Refresh subscription status from server. Pass true to force sync from Stripe. */
   refresh: (forceSync?: boolean) => Promise<void>;
   /** Check if user has access to a tier-gated feature */
@@ -111,6 +121,13 @@ export function useSubscription(): UseSubscriptionReturn {
     return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
   })();
 
+  // Free generation tracking
+  const freeGenerationsUsed = subscription?.freeGenerationsUsed || 0;
+  const freeGenerationsLimit = subscription?.freeGenerationsLimit || 2;
+  const freeGenerationsRemaining = Math.max(0, freeGenerationsLimit - freeGenerationsUsed);
+  const isFreeUser = !isSubscribed && !isTrial;
+  const canGenerate = isSubscribed || isTrial || freeGenerationsRemaining > 0;
+
   // Check tier access
   const hasTierAccess = useCallback((requiredTier: SubscriptionTier): boolean => {
     if (!isSubscribed && !isTrial) return false;
@@ -143,6 +160,11 @@ export function useSubscription(): UseSubscriptionReturn {
     isActive,
     tier,
     trialDaysRemaining,
+    freeGenerationsUsed,
+    freeGenerationsLimit,
+    freeGenerationsRemaining,
+    canGenerate,
+    isFreeUser,
     refresh,
     hasTierAccess,
     requireSubscription,

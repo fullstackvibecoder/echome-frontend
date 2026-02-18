@@ -208,7 +208,7 @@ export default function AffiliatesContent() {
                 icon: "💡"
               },
               {
-                title: "7-Day Free Trial",
+                title: "Try 2 Free Generations",
                 desc: "No credit card required. People can try it risk-free. Most users convert because once they see their voice captured, they don't want to go back.",
                 icon: "🎁"
               },

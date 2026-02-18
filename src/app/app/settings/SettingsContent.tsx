@@ -741,14 +741,16 @@ export default function SettingsContent() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-display text-2xl font-bold text-accent mb-1">
-                      {usage?.tier === 'free' ? 'Free Trial' :
+                      {usage?.tier === 'free' ? 'Free' :
                        usage?.tier === 'pro' ? 'Echo' :
                        usage?.tier === 'studio' ? 'Echo Studio' :
-                       usage?.tier === 'enterprise' ? 'Echo Pro' : 'Free Trial'}
+                       usage?.tier === 'enterprise' ? 'Echo Pro' : 'Free'}
                     </p>
                     <p className="text-body text-text-secondary">
                       {usage?.isUnlimited
                         ? 'Unlimited generations'
+                        : usage?.tier === 'free'
+                        ? '2 free generations (lifetime)'
                         : `${usage?.generationsLimit || 10} generations per month`}
                     </p>
                   </div>

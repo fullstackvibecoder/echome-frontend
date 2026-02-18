@@ -89,9 +89,8 @@ export function useAuth(): UseAuthReturn {
           (window as any).Affonso.signup(email);
         }
 
-        // New users must subscribe before onboarding voice training
-        localStorage.setItem('needsOnboarding', 'true');
-        router.push('/app/billing');
+        // New users go straight to onboarding (2 free generations, no billing required)
+        router.push('/onboarding');
       } else {
         throw new Error(response.error || 'Signup failed');
       }

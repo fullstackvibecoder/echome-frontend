@@ -166,11 +166,8 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <div className="mb-4 inline-block bg-gradient-to-r from-[#FFD93D]/20 to-[#FF6B9D]/20 border border-[#FFD93D]/40 rounded-lg px-2 py-1">
-                    <p className="text-[10px] font-bold text-[#FF6B9D]">7-Day Free Trial</p>
-                  </div>
                   <Link href="/auth/signup?plan=echo" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                    Start Free Trial
+                    Get Started
                   </Link>
                 </div>
                 <div className="flex-1">
@@ -219,11 +216,8 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <div className="mb-4 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-1">
-                    <p className="text-[10px] font-bold text-white">7-Day Free Trial</p>
-                  </div>
                   <Link href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
-                    Start Free Trial
+                    Get Started
                   </Link>
                 </div>
                 <div className="flex-1">
@@ -271,11 +265,8 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <div className="mb-4 inline-block bg-[#B794F6]/20 border border-[#B794F6]/40 rounded-lg px-2 py-1">
-                    <p className="text-[10px] font-bold text-[#B794F6]">7-Day Free Trial</p>
-                  </div>
                   <Link href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                    Start Free Trial
+                    Get Started
                   </Link>
                 </div>
                 <div className="flex-1">

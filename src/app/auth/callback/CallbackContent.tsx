@@ -25,23 +25,7 @@ export default function CallbackContent() {
           // Store the access token for API calls
           localStorage.setItem('authToken', data.session.access_token);
 
-          // Check subscription status
-          let hasSubscription = false;
-          try {
-            const subResponse = await api.stripe.getSubscription();
-            hasSubscription = subResponse.success && subResponse.data.isSubscribed;
-          } catch {
-            // If subscription check fails, continue to default flow
-          }
-
-          if (!hasSubscription) {
-            // No subscription — need billing first, then onboarding
-            localStorage.setItem('needsOnboarding', 'true');
-            router.push('/app/billing');
-            return;
-          }
-
-          // Has subscription — check if onboarding is complete (has content)
+          // Check if onboarding is complete (has content)
           let hasContent = false;
           try {
             const kbResponse = await api.kb.list();

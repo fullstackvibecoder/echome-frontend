@@ -118,11 +118,7 @@ function BillingContentInner() {
             const tierName = syncResult.data.tier === 'pro' ? 'Echo' :
                             syncResult.data.tier === 'studio' ? 'Echo Studio' :
                             syncResult.data.tier === 'enterprise' ? 'Echo Pro' : 'your plan';
-            if (syncResult.data.isTrialing) {
-              setSuccessMessage(`Your 7-day free trial for ${tierName} has started! You won't be charged until the trial ends.`);
-            } else {
-              setSuccessMessage(`Your ${tierName} subscription has been activated! Welcome aboard.`);
-            }
+            setSuccessMessage(`Your ${tierName} subscription is now active! Welcome aboard.`);
             // Reload subscription status
             const subResult = await api.stripe.getSubscription();
             if (subResult.success) {
@@ -170,12 +166,10 @@ function BillingContentInner() {
         // User was redirected here because they need a subscription
         const tierName = searchParams.get('tierName');
         const reason = searchParams.get('reason');
-        if (reason === 'subscription_required') {
-          setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
-        } else if (tierName) {
+        if (tierName) {
           setError(`This feature requires ${tierName} or higher. Please upgrade your plan to continue.`);
         } else {
-          setSuccessMessage('Start your 7-day free trial to unlock all features. No charge until the trial ends!');
+          setSuccessMessage('Choose a plan to unlock unlimited content creation.');
         }
         window.history.replaceState({}, '', '/app/billing');
       }
@@ -300,7 +294,7 @@ function BillingContentInner() {
   // Get tier display name
   const getTierDisplayName = (tier: string) => {
     const names: Record<string, string> = {
-      free: 'Free Trial',
+      free: 'Free',
       pro: 'Echo',
       studio: 'Echo Studio',
       enterprise: 'Echo Pro',
@@ -354,11 +348,6 @@ function BillingContentInner() {
               <span className="text-2xl font-bold text-primary">
                 {getTierDisplayName(subscription?.tier || 'free')}
               </span>
-              {subscription?.status === 'trialing' && (
-                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-600 text-xs font-medium rounded-full">
-                  Trial
-                </span>
-              )}
               {subscription?.status === 'active' && (
                 <span className="px-2 py-0.5 bg-green-500/20 text-green-600 text-xs font-medium rounded-full">
                   Active
@@ -495,7 +484,7 @@ function BillingContentInner() {
                 ) : subscription?.isSubscribed && !subscription?.isAdminAssigned ? (
                   'Switch to this plan'
                 ) : (
-                  'Start 7-day trial'
+                  'Get Started'
                 )}
               </button>
             </div>
