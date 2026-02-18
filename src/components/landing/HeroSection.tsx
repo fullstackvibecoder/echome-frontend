@@ -91,7 +91,7 @@ export function HeroSection() {
                          rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
                          shadow-lg text-xl flex items-center gap-2 group w-full sm:w-auto justify-center"
             >
-              Start Free
+              Try It Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
@@ -108,7 +108,7 @@ export function HeroSection() {
             className="text-sm text-white/60 font-light opacity-0 animate-fade-in"
             style={{ animationDelay: '1000ms' }}
           >
-            → One video becomes a week of content
+            No credit card required — get 2 free generations and see your voice in action
           </p>
         </div>
       </div>

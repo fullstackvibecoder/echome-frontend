@@ -47,7 +47,7 @@ export default function HomeContent() {
                 href="/auth/signup"
                 className="px-6 py-2.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
               >
-                Create Account
+                Try Free
               </Link>
             </div>
 
@@ -73,7 +73,7 @@ export default function HomeContent() {
                   href="/auth/signup"
                   className="px-6 py-2.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-semibold hover:shadow-lg transition-all text-center shadow-md"
                 >
-                  Create Account
+                  Try Free
                 </Link>
               </div>
             </div>
@@ -112,7 +112,9 @@ export default function HomeContent() {
               <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              Choose a plan that works with your creative rhythm.
+              Start with 2 free generations — no credit card required.
+              <br />
+              <span className="text-base">Then choose a plan that works with your creative rhythm.</span>
             </p>
 
             {/* Billing Period Toggle */}
