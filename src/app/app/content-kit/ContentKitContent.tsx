@@ -21,6 +21,7 @@ import {
   BulkActionsBar,
 } from '@/components/content-library';
 import type { NormalizedContent } from '@/lib/content-normalizer';
+import { InfoTooltip } from '@/components/info-tooltip';
 
 function ContentLibraryInner() {
   const router = useRouter();
@@ -66,7 +67,10 @@ function ContentLibraryInner() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-display text-2xl mb-1">Content Library</h1>
+          <h1 className="text-display text-2xl mb-1">
+            Content Library
+            <InfoTooltip text="Each Content Kit contains posts for every platform generated from a single input. Click any kit to view, edit, copy, or download." />
+          </h1>
           <p className="text-body text-text-secondary">
             Your generated content, clips, and carousels
           </p>

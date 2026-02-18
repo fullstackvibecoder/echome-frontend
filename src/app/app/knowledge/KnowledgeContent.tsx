@@ -15,6 +15,7 @@ import { parseMboxFile } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
 import { CONTENT_SOURCE_CONFIG, ContentSourceType } from '@/types';
+import { InfoTooltip } from '@/components/info-tooltip';
 
 // ============================================
 // HELPERS
@@ -345,7 +346,10 @@ export default function KnowledgeContent() {
         <>
           {/* Header with Guidance */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-text-primary mb-1">Your Echosystem</h1>
+            <h1 className="text-2xl font-bold text-text-primary mb-1">
+              Your Echosystem
+              <InfoTooltip text="Your Knowledge Base is your voice DNA. Everything you add here teaches EchoMe how YOU write and speak. The more you add, the more authentic your generated content sounds." />
+            </h1>
             <p className="text-text-secondary text-sm max-w-2xl">
               This is where Echo learns <span className="text-text-primary font-medium">your</span> voice.
               The more you add, the better Echo writes like you.
@@ -420,6 +424,7 @@ export default function KnowledgeContent() {
               >
                 <span>📤</span> Upload
               </button>
+              <InfoTooltip text="Upload blog posts, articles, PDFs, docs, or email exports. EchoMe analyzes your writing patterns to match your unique voice." />
             </div>
           </div>
 
@@ -432,7 +437,10 @@ export default function KnowledgeContent() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🎯</span>
                     <div>
-                      <p className="text-sm font-medium text-text-primary">Echo Training Progress</p>
+                      <p className="text-sm font-medium text-text-primary">
+                        Echo Training Progress
+                        <InfoTooltip text="This measures how well EchoMe knows your voice. Add more of your content to improve it. 'Strong' or higher = your generated content will closely match your writing style." />
+                      </p>
                       <p className="text-xs text-text-secondary">
                         {totalItems} source{totalItems !== 1 ? 's' : ''} added • <span className="font-semibold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{totalChunks.toLocaleString()}</span> knowledge nuggets learned
                       </p>

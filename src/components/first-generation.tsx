@@ -7,6 +7,7 @@ import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { SnapshotPicker } from './SnapshotPicker';
+import { InfoTooltip } from './info-tooltip';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -157,6 +158,7 @@ function VoiceInputPanel({
           </p>
           <p className="text-small text-text-secondary">
             Speak your content idea and we'll transcribe it
+            <InfoTooltip text="Speak naturally about your content idea. We'll transcribe your words and generate content from them." />
           </p>
         </>
       )}
@@ -937,10 +939,15 @@ export function FirstGeneration({
           </h2>
           <p className="text-body text-text-secondary">
             Upload any video — unedited Zoom call, raw footage, podcast recording. Get clips with captions, carousels, and social posts. Or start with text, voice, or a URL.
+            <InfoTooltip text="One generation creates content for ALL platforms at once — Instagram, LinkedIn, Blog, Email, TikTok, and Video Script." />
           </p>
         </div>
 
       {/* Input Type Tabs */}
+      <div className="flex items-center gap-1 mb-2">
+        <span className="text-xs text-text-secondary font-medium">Input Mode</span>
+        <InfoTooltip text="Text and Voice are free for all users. Video, URL, and Repurpose require a paid plan." />
+      </div>
       <div className="flex items-center gap-2 mb-6 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
         <button
           onClick={() => { setInputType('text'); clearFile(); }}
@@ -1134,6 +1141,7 @@ export function FirstGeneration({
 
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Supports MP4, MOV, AVI, WebM • Up to 5GB
+                    <InfoTooltip text="Supports MP4, MOV, AVI, and WebM. We'll transcribe audio, find the best clips, add captions, and generate a full content kit." />
                   </p>
                 </>
               )}
@@ -1218,6 +1226,7 @@ export function FirstGeneration({
                 <div className="text-5xl mb-3">🔗</div>
                 <p className="text-body text-text-secondary">
                   Paste a YouTube or Instagram video URL to extract clips
+                  <InfoTooltip text="Paste a YouTube or Instagram video URL. We'll download, extract clips, and generate content — same as uploading a file." />
                 </p>
               </div>
               <div className="space-y-4">
@@ -1326,6 +1335,7 @@ export function FirstGeneration({
           <div className="flex-1">
             <label className="text-body font-medium text-text-primary block mb-1">
               Carousel Style
+              <InfoTooltip text="Controls the look of your Instagram carousel slides. 'Auto' picks the best design. 'Upload Custom' lets you use your own branded background." />
             </label>
             <p className="text-small text-text-secondary">
               Choose a design preset for your Instagram carousel
@@ -1436,6 +1446,7 @@ export function FirstGeneration({
             <div className="flex-1">
               <label className="text-body font-medium text-text-primary block mb-1">
                 Caption Style
+                <InfoTooltip text="The visual style of word-by-word captions on your video clips. 'Modern' is the most popular TikTok/Reels look." />
               </label>
               <p className="text-small text-text-secondary">
                 Choose how captions appear on your video clips
@@ -1504,7 +1515,7 @@ export function FirstGeneration({
 
       {/* Helper Text */}
       <p className="text-small text-text-secondary mt-2 mb-6">
-        {inputType === 'text' && 'Press ⌘+Enter to generate'}
+        {inputType === 'text' && (<>Press ⌘+Enter to generate<InfoTooltip text="Describe your content idea in detail — the more context you give, the better your results. You can paste existing text, share a topic, or describe what you want to talk about." /></>)}
         {inputType === 'repurpose' && selectedContent && (
           <>Selected: {selectedContent.title || 'Content'}</>
         )}

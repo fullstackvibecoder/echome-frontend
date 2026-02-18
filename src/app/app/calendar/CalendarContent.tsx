@@ -10,6 +10,7 @@ import {
   WeekSuggestions,
 } from '@/components/scheduling';
 import { ScheduledPost, ContentCategory } from '@/types';
+import { InfoTooltip } from '@/components/info-tooltip';
 
 export default function CalendarContent() {
   const {
@@ -68,7 +69,10 @@ export default function CalendarContent() {
             <Calendar className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Content Calendar</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Content Calendar
+              <InfoTooltip text="Plan when to publish your generated content. Drag posts to different dates to schedule them." />
+            </h1>
             <p className="text-sm text-gray-600">
               View and manage your scheduled content
             </p>

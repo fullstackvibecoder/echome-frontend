@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Check, CreditCard, Loader2, ExternalLink, Sparkles, AlertCircle } from 'lucide-react';
 import api, { StripePlan, StripeSubscriptionStatus } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { InfoTooltip } from '@/components/info-tooltip';
 
 type BillingInterval = 'month' | 'year';
 
@@ -343,7 +344,10 @@ function BillingContentInner() {
       <div className="mb-8 p-6 bg-card border rounded-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold mb-1">Current Plan</h2>
+            <h2 className="text-lg font-semibold mb-1">
+              Current Plan
+              <InfoTooltip text="Your subscription controls how many generations, video minutes, and features you can access each month." />
+            </h2>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-primary">
                 {getTierDisplayName(subscription?.tier || 'free')}

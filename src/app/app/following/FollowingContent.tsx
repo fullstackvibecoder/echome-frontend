@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { Platform, BackgroundConfig, DesignPreset } from '@/types';
+import { InfoTooltip } from '@/components/info-tooltip';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -371,6 +372,7 @@ export default function FollowingContent() {
           <h1 className="text-display text-3xl mb-1">Following</h1>
           <p className="text-body text-text-secondary">
             Track YouTube creators and repurpose their ideas in your voice
+            <InfoTooltip text="When creators you follow post new content, you can repurpose their ideas into your own posts — written in YOUR voice, not theirs." />
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -390,6 +392,7 @@ export default function FollowingContent() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 Pull Fresh Content
+                <InfoTooltip text="Checks all followed creators for new uploads since the last check. New content appears with a 'NEW' badge." />
               </>
             )}
           </button>
@@ -609,12 +612,15 @@ export default function FollowingContent() {
                         </div>
 
                         {/* Repurpose Button */}
-                        <button
-                          onClick={() => openRepurposeModal(content)}
-                          className="px-4 py-2 bg-accent text-white text-small rounded-lg hover:bg-accent/90 transition-colors flex-shrink-0"
-                        >
-                          ✨ Repurpose
-                        </button>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => openRepurposeModal(content)}
+                            className="px-4 py-2 bg-accent text-white text-small rounded-lg hover:bg-accent/90 transition-colors"
+                          >
+                            ✨ Repurpose
+                          </button>
+                          <InfoTooltip text="Takes this creator's video and generates social posts in YOUR voice. Their ideas + your style = authentic content." />
+                        </div>
                       </div>
 
                       {/* Meta */}
@@ -685,6 +691,7 @@ export default function FollowingContent() {
               <div>
                 <label className="block text-body font-medium mb-2">
                   {newCreatorPlatform === 'youtube' ? 'YouTube Channel URL' : 'Instagram Profile URL'}
+                  <InfoTooltip text="Paste a channel URL (youtube.com/@creator) or any video URL. We'll find the channel automatically." />
                 </label>
                 <input
                   type="url"

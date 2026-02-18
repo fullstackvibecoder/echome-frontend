@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, X, Check, Mail } from 'lucide-react';
+import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
@@ -375,6 +376,9 @@ export default function HomeContent() {
           </div>
         </div>
       </footer>
+
+      {/* Public help widget (FAQ-only) */}
+      <HelpWidget isPublic />
     </div>
   );
 }

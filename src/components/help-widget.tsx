@@ -8,11 +8,48 @@ interface Message {
   content: string;
 }
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+const PUBLIC_FAQS: FAQItem[] = [
+  {
+    question: 'What is EchoMe?',
+    answer: 'EchoMe is an AI content tool that learns YOUR unique voice. Upload a video, and it generates social posts, carousels, blog articles, and email newsletters — all written the way you actually write and speak.',
+  },
+  {
+    question: 'How do free generations work?',
+    answer: 'You get 2 free lifetime generations — no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
+  },
+  {
+    question: 'What can I upload to train my voice?',
+    answer: 'Blog posts, articles, PDFs, Word docs, social media posts, email exports (.mbox), voice recordings, and YouTube/Instagram imports. The more you add, the better EchoMe matches your style.',
+  },
+  {
+    question: 'How is this different from ChatGPT?',
+    answer: 'ChatGPT writes generic AI content. EchoMe learns YOUR specific voice — your word choices, sentence patterns, and tone — so generated content sounds like you wrote it, not a robot.',
+  },
+  {
+    question: 'What video formats are supported?',
+    answer: 'MP4, MOV, AVI, and WebM files up to 5GB. We transcribe the audio, find the best clips, add captions, and generate a full content kit from your video.',
+  },
+  {
+    question: 'How much does it cost?',
+    answer: 'Plans start at $29/mo (Echo), $49/mo (Echo Studio — most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
+  },
+];
+
+interface HelpWidgetProps {
+  isPublic?: boolean;
+}
+
 /**
  * Floating help chat widget.
- * Uses the backend /api/help/chat SSE endpoint for RAG-powered answers.
+ * - Authenticated mode (inside app): Full RAG chat + feedback
+ * - Public mode (home page): FAQ-only with predefined Q&A pairs
  */
-export function HelpWidget() {
+export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -24,6 +61,34 @@ export function HelpWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // "Need help?" label state
+  const [showLabel, setShowLabel] = useState(false);
+  // Pulse animation state
+  const [showPulse, setShowPulse] = useState(true);
+
+  // Show "Need help?" label on first visit
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const seen = localStorage.getItem('echome_helpWidgetSeen');
+    if (!seen) {
+      setShowLabel(true);
+      const timer = setTimeout(() => {
+        setShowLabel(false);
+        localStorage.setItem('echome_helpWidgetSeen', '1');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Stop pulse after 3 cycles (~4.5s)
+  useEffect(() => {
+    const timer = setTimeout(() => setShowPulse(false), 4500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Public FAQ expand state
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -31,10 +96,10 @@ export function HelpWidget() {
 
   // Focus input when widget opens
   useEffect(() => {
-    if (open && tab === 'chat') {
+    if (open && tab === 'chat' && !isPublic) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [open, tab]);
+  }, [open, tab, isPublic]);
 
   const sendMessage = useCallback(async () => {
     const query = input.trim();
@@ -99,48 +164,102 @@ export function HelpWidget() {
   return (
     <>
       {/* Floating toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:scale-105"
-        aria-label={open ? 'Close help' : 'Open help'}
-      >
-        {open ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+        {/* "Need help?" label */}
+        {showLabel && !open && (
+          <span className="px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg shadow-lg animate-fade-in whitespace-nowrap">
+            Need help?
+          </span>
         )}
-      </button>
+        <button
+          onClick={() => setOpen(!open)}
+          className="relative w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:scale-105"
+          aria-label={open ? 'Close help' : 'Open help'}
+        >
+          {/* Pulse ring animation */}
+          {showPulse && !open && (
+            <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
+          )}
+          <span className="relative">
+            {open ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              /* Chat bubble icon */
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            )}
+          </span>
+        </button>
+      </div>
 
-      {/* Chat panel */}
+      {/* Chat / FAQ panel */}
       {open && (
-        <div className="fixed bottom-20 right-6 z-50 w-[360px] max-h-[500px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200">
+        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-h-[500px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200">
           {/* Header */}
           <div className="px-4 py-3 border-b border-border bg-muted/50">
-            <div className="flex gap-1">
-              <button
-                onClick={() => setTab('chat')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  tab === 'chat' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Help Chat
-              </button>
-              <button
-                onClick={() => setTab('feedback')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  tab === 'feedback' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Feedback
-              </button>
-            </div>
+            {isPublic ? (
+              <p className="text-sm font-semibold text-foreground">Frequently Asked Questions</p>
+            ) : (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setTab('chat')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    tab === 'chat' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Help Chat
+                </button>
+                <button
+                  onClick={() => setTab('feedback')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    tab === 'feedback' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Feedback
+                </button>
+              </div>
+            )}
           </div>
 
-          {tab === 'chat' ? (
+          {isPublic ? (
+            /* Public FAQ mode */
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-[280px] max-h-[400px]">
+              {PUBLIC_FAQS.map((faq, i) => (
+                <div key={i} className="border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                    className="w-full text-left px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors flex items-center justify-between gap-2"
+                  >
+                    <span>{faq.question}</span>
+                    <svg
+                      className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${expandedFaq === i ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {expandedFaq === i && (
+                    <div className="px-3 pb-3 text-xs text-muted-foreground leading-relaxed border-t border-border pt-2">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="pt-3 text-center">
+                <a
+                  href="/auth/signup"
+                  className="inline-block px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  Try EchoMe Free
+                </a>
+              </div>
+            </div>
+          ) : tab === 'chat' ? (
             <>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[280px] max-h-[350px]">
