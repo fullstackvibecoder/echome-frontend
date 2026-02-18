@@ -315,7 +315,7 @@ export default function FollowingContent() {
 
       // Build design preset config
       // video-snapshot is coming soon and disabled, so default to tweet-style if somehow selected
-      let designPreset: DesignPreset = (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot')
+      const designPreset: DesignPreset = (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot')
         ? 'tweet-style'
         : carouselDesignOption;
       let carouselBackground: { type: 'image'; imageUrl: string } | undefined;

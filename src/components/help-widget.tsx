@@ -135,8 +135,9 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
 
       if (!fullContent) fullContent = 'Sorry, I could not generate a response. Please try again.';
       setMessages(prev => [...prev, { role: 'assistant', content: fullContent }]);
-    } catch (err: any) {
-      const errorMsg = err.response?.status === 429
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number } };
+      const errorMsg = axiosErr.response?.status === 429
         ? 'Rate limited. Please wait a moment and try again.'
         : 'Something went wrong. Please try again.';
       setMessages(prev => [...prev, { role: 'assistant', content: errorMsg }]);

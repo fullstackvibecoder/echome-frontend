@@ -157,7 +157,7 @@ function VoiceInputPanel({
             Click to start recording
           </p>
           <p className="text-small text-text-secondary">
-            Speak your content idea and we'll transcribe it
+            Speak your content idea and we&apos;ll transcribe it
             <InfoTooltip text="Speak naturally about your content idea. We'll transcribe your words and generate content from them." />
           </p>
         </>
@@ -557,7 +557,7 @@ export function FirstGeneration({
       setVideoProcessingProgress(35);
 
       // Build carousel design config
-      let designPreset: DesignPreset = getDesignPreset();
+      const designPreset: DesignPreset = getDesignPreset();
       let carouselBackground: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string } | undefined;
 
       if (carouselDesignOption === 'upload' && carouselBgFile) {

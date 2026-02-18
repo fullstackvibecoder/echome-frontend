@@ -590,7 +590,7 @@ export default function KnowledgeContent() {
               {/* No Results */}
               {filteredContent.length === 0 && searchTerm && (
                 <div className="text-center py-8 text-text-secondary">
-                  No results for "{searchTerm}"
+                  No results for &ldquo;{searchTerm}&rdquo;
                 </div>
               )}
             </div>
