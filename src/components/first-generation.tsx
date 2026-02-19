@@ -946,7 +946,7 @@ export function FirstGeneration({
       {/* Input Type Tabs */}
       <div className="flex items-center gap-1 mb-2">
         <span className="text-xs text-text-secondary font-medium">Input Mode</span>
-        <InfoTooltip text="Text and Voice are free for all users. Video, URL, and Repurpose require a paid plan." />
+        <InfoTooltip text="All input modes share your 2 free generations. After that, a subscription unlocks unlimited generations across Text, Voice, Video, URL, and Repurpose." />
       </div>
       <div className="flex items-center gap-2 mb-6 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
         <button
