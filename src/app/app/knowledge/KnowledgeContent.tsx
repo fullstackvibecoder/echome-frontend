@@ -16,6 +16,7 @@ import { isMboxFile } from '@/lib/file-utils';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
 import { CONTENT_SOURCE_CONFIG, ContentSourceType } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 // ============================================
 // HELPERS
@@ -344,6 +345,8 @@ export default function KnowledgeContent() {
 
       {!loading && (
         <>
+          <UpgradeBanner />
+
           {/* Header with Guidance */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-text-primary mb-1">

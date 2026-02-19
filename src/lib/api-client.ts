@@ -99,6 +99,24 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Handle 403 Forbidden — quota/subscription limit reached
+    if (error.response?.status === 403) {
+      const message = error.response?.data?.error || error.response?.data?.message || '';
+      const isQuotaError = /free generation|generation limit|subscribe|upgrade/i.test(message);
+      if (isQuotaError && typeof window !== 'undefined') {
+        import('sonner').then(({ toast }) => {
+          toast.error('Free generations used', {
+            description: 'Subscribe to unlock unlimited content creation.',
+            action: {
+              label: 'View Plans',
+              onClick: () => { window.location.href = '/app/billing'; },
+            },
+            duration: 6000,
+          });
+        });
+      }
+    }
+
     // Handle network errors
     if (!error.response) {
       console.error('Network error:', error.message);

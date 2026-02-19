@@ -163,6 +163,9 @@ function BillingContentInner() {
       } else if (searchParams.get('canceled') === 'true') {
         setError('Checkout was canceled. No charges were made.');
         window.history.replaceState({}, '', '/app/billing');
+      } else if (searchParams.get('plan')) {
+        // User clicked a specific plan from the paywall — auto-trigger checkout after data loads
+        // Handled in the second useEffect below once plans are loaded
       } else if (searchParams.get('upgrade') === 'true') {
         // User was redirected here because they need a subscription
         const tierName = searchParams.get('tierName');
@@ -271,6 +274,20 @@ function BillingContentInner() {
       setCheckoutLoading(null);
     }
   };
+
+  // Auto-trigger checkout when ?plan= param is present and data is loaded
+  const [autoCheckoutDone, setAutoCheckoutDone] = useState(false);
+  useEffect(() => {
+    if (autoCheckoutDone || loading || plans.length === 0) return;
+    const planParam = searchParams.get('plan');
+    if (!planParam) return;
+    const validPlans: string[] = ['echo', 'echo-studio', 'echo-pro'];
+    if (validPlans.includes(planParam)) {
+      setAutoCheckoutDone(true);
+      window.history.replaceState({}, '', '/app/billing');
+      handlePlanSelect(planParam as 'echo' | 'echo-studio' | 'echo-pro');
+    }
+  }, [loading, plans]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle portal redirect
   const handleManageSubscription = async () => {

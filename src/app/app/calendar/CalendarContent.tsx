@@ -11,6 +11,7 @@ import {
 } from '@/components/scheduling';
 import { ScheduledPost, ContentCategory } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 export default function CalendarContent() {
   const {
@@ -97,6 +98,8 @@ export default function CalendarContent() {
           </Link>
         </div>
       </div>
+
+      <UpgradeBanner />
 
       {/* Error Message */}
       {error && (

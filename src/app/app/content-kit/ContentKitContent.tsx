@@ -22,6 +22,7 @@ import {
 } from '@/components/content-library';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 function ContentLibraryInner() {
   const router = useRouter();
@@ -83,6 +84,8 @@ function ContentLibraryInner() {
           <span>Create New</span>
         </Link>
       </div>
+
+      <UpgradeBanner />
 
       {/* Stats Card */}
       <div className="relative group mb-6">

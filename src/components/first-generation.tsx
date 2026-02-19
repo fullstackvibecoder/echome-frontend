@@ -946,7 +946,7 @@ export function FirstGeneration({
       {/* Input Type Tabs */}
       <div className="flex items-center gap-1 mb-2">
         <span className="text-xs text-text-secondary font-medium">Input Mode</span>
-        <InfoTooltip text="All input modes share your 2 free generations. After that, a subscription unlocks unlimited generations across Text, Voice, Video, URL, and Repurpose." />
+        <InfoTooltip text="Text and Voice are available with your 2 free generations. Video, URL, and Repurpose unlock when you subscribe." />
       </div>
       <div className="flex items-center gap-2 mb-6 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
         <button
@@ -1552,7 +1552,7 @@ export function FirstGeneration({
             ].map((plan) => (
               <button
                 key={plan.id}
-                onClick={() => router.push(`/app/billing`)}
+                onClick={() => router.push(`/app/billing?plan=${plan.id}`)}
                 className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between ${
                   plan.popular
                     ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'

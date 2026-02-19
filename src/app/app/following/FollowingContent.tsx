@@ -6,6 +6,7 @@ import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { UpgradeBanner } from '@/components/upgrade-banner';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -404,6 +405,8 @@ export default function FollowingContent() {
           </button>
         </div>
       </div>
+
+      <UpgradeBanner />
 
       {error && (
         <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg text-error">
