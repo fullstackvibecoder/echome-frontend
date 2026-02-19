@@ -1073,7 +1073,7 @@ export const api = {
 
     /** Manually trigger poll for a creator */
     poll: async (creatorId: string) => {
-      const response = await apiClient.post(`/creators/${creatorId}/poll`);
+      const response = await apiClient.post(`/creators/${creatorId}/poll`, undefined, { timeout: 60000 });
       return response.data as {
         success: boolean;
         newContentCount: number;
@@ -1083,7 +1083,7 @@ export const api = {
 
     /** Poll all followed creators at once */
     pollAll: async () => {
-      const response = await apiClient.post('/creators/poll-all');
+      const response = await apiClient.post('/creators/poll-all', undefined, { timeout: 120000 });
       return response.data as {
         success: boolean;
         results: { creatorId: string; creatorName: string; newContentCount: number; error?: string }[];
