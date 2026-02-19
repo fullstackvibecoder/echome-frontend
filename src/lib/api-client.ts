@@ -4,6 +4,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { supabase } from './supabase';
 import type {
   ApiResponse,
   GenerationRequest,
@@ -106,6 +107,19 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ============================================
+// AUTO-REFRESH: Keep localStorage token in sync with Supabase
+// ============================================
+if (typeof window !== 'undefined') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session?.access_token) {
+      localStorage.setItem('authToken', session.access_token);
+    } else if (event === 'SIGNED_OUT') {
+      localStorage.removeItem('authToken');
+    }
+  });
+}
 
 // ============================================
 // API FUNCTIONS
