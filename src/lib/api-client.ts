@@ -99,6 +99,20 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Handle 402 Payment Required — subscription needed for this feature
+    if (error.response?.status === 402 && typeof window !== 'undefined') {
+      import('sonner').then(({ toast }) => {
+        toast.error('Subscription required', {
+          description: 'This feature requires a paid plan.',
+          action: {
+            label: 'View Plans',
+            onClick: () => { window.location.href = '/app/billing'; },
+          },
+          duration: 6000,
+        });
+      });
+    }
+
     // Handle 403 Forbidden — quota/subscription limit reached
     if (error.response?.status === 403) {
       const message = error.response?.data?.error || error.response?.data?.message || '';
