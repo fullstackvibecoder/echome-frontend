@@ -413,8 +413,11 @@ function ProvidersTab() {
         renderMetrics={(m) => (
           <>
             <MetricRow label="Monthly Revenue" value={`$${Number(m.monthlyRevenue || 0).toFixed(2)}`} />
-            <MetricRow label="MRR" value={`$${Number(m.mrr || 0).toFixed(2)}`} />
-            <MetricRow label="Active Subs" value={String(m.activeSubscriptions || 0)} />
+            <MetricRow label="MRR (Paying)" value={`$${Number(m.mrr || 0).toFixed(2)}`} />
+            <MetricRow label="Paying Subs" value={String(m.activeSubscriptions || 0)} />
+            {Number(m.trialingSubscriptions) > 0 && (
+              <MetricRow label="In Trial" value={String(m.trialingSubscriptions)} />
+            )}
             <MetricRow label="Charges" value={String(m.chargesThisMonth || 0)} />
           </>
         )}
@@ -525,30 +528,68 @@ function BusinessMetrics() {
 
   if (!data) return null;
 
+  const totalTrialing = data.trialSubscribers.length + data.trialUsers;
+
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="MRR" value={formatCurrency(data.mrr)} />
+    <div className="space-y-4">
+      {/* Top-level stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <StatCard label="MRR" value={formatCurrency(data.mrr)} sub="Paying only" />
         <StatCard label="ARR" value={formatCurrency(data.arr)} />
         <StatCard label="Paying Subscribers" value={data.activeSubscribers.toString()} />
+        <StatCard label="In Trial" value={totalTrialing.toString()} sub={`${data.trialSubscribers.length} Stripe + ${data.trialUsers} admin`} />
         <StatCard label="Total Users" value={data.totalUsers.toString()} />
       </div>
-      {(data.tierBreakdown.length > 0 || data.trialUsers > 0) && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-sm text-muted-foreground">
-          {data.tierBreakdown.map(t => (
-            <span key={t.tier}>
-              <span className="capitalize font-medium text-foreground">{t.tier}</span>
-              {': '}
-              {t.count} ({formatCurrency(t.mrr)})
-            </span>
-          ))}
-          {data.trialUsers > 0 && (
-            <span>
-              <span className="font-medium text-foreground">Trial</span>
-              {': '}
-              {data.trialUsers}
-            </span>
-          )}
+
+      {/* Tier breakdown + conversion rate */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-sm text-muted-foreground">
+        {data.tierBreakdown.map(t => (
+          <span key={t.tier}>
+            <span className="capitalize font-medium text-foreground">{t.tier}</span>
+            {': '}
+            {t.count} ({formatCurrency(t.mrr)})
+          </span>
+        ))}
+        {data.conversionRate !== null && (
+          <span className="border-l border-border pl-4">
+            Trial → Paid: <span className="font-medium text-foreground">{data.conversionRate}%</span>
+            <span className="text-xs ml-1">({data.convertedCount}/{data.convertedCount + data.canceledTrialCount})</span>
+          </span>
+        )}
+      </div>
+
+      {/* Trial subscribers table */}
+      {data.trialSubscribers.length > 0 && (
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-5 py-3 border-b border-border bg-muted/50">
+            <h3 className="text-sm font-semibold text-foreground">Stripe Trial Subscribers</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left p-3 pl-5 font-medium text-muted-foreground">Email</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Plan</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Trial Ends</th>
+                <th className="text-right p-3 pr-5 font-medium text-muted-foreground">Days Left</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.trialSubscribers.map((t, i) => (
+                <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
+                  <td className="p-3 pl-5 text-foreground">{t.email}</td>
+                  <td className="p-3 capitalize text-muted-foreground">{t.tier}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {new Date(t.trialEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </td>
+                  <td className="p-3 pr-5 text-right">
+                    <span className={`font-medium ${t.daysRemaining <= 3 ? 'text-destructive' : t.daysRemaining <= 7 ? 'text-amber-500' : 'text-foreground'}`}>
+                      {t.daysRemaining}d
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
