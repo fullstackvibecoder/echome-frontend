@@ -101,20 +101,22 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Still 0 voices after retry — create a fallback default voice
+        // Still 0 voices after retry — create default voice from user's profile
         if (!hasAttemptedFallbackRef.current) {
           hasAttemptedFallbackRef.current = true;
           try {
-            const createResponse = await api.teamVoices.create({ name: 'My Voice' });
+            const createResponse = await api.teamVoices.createDefault();
             if (createResponse.success && createResponse.data) {
               const newVoice = createResponse.data;
               setVoices([newVoice]);
               setActiveVoice(newVoice);
               localStorage.setItem(ACTIVE_VOICE_KEY, newVoice.id);
+              // Refresh limits to reflect the new voice
+              fetchLimits();
               return;
             }
           } catch (createErr) {
-            console.error('Failed to create fallback voice:', createErr);
+            console.error('Failed to create default voice from profile:', createErr);
           }
         }
 

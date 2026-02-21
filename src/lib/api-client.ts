@@ -2847,6 +2847,11 @@ export const api = {
       const response = await apiClient.get('/team-voices/limits');
       return response.data;
     },
+
+    createDefault: async (): Promise<ApiResponse<TeamVoice>> => {
+      const response = await apiClient.post('/team-voices/create-default');
+      return response.data;
+    },
   },
 };
 
