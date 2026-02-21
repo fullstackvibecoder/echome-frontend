@@ -528,7 +528,10 @@ function BusinessMetrics() {
 
   if (!data) return null;
 
-  const totalTrialing = data.trialSubscribers.length + data.trialUsers;
+  // Safe defaults for fields that may be missing from stale cache
+  const trialSubs = data.trialSubscribers || [];
+  const trialUsers = data.trialUsers || 0;
+  const totalTrialing = trialSubs.length + trialUsers;
 
   return (
     <div className="space-y-4">
@@ -537,29 +540,29 @@ function BusinessMetrics() {
         <StatCard label="MRR" value={formatCurrency(data.mrr)} sub="Paying only" />
         <StatCard label="ARR" value={formatCurrency(data.arr)} />
         <StatCard label="Paying Subscribers" value={data.activeSubscribers.toString()} />
-        <StatCard label="In Trial" value={totalTrialing.toString()} sub={`${data.trialSubscribers.length} Stripe + ${data.trialUsers} admin`} />
+        <StatCard label="In Trial" value={totalTrialing.toString()} sub={`${trialSubs.length} Stripe + ${trialUsers} admin`} />
         <StatCard label="Total Users" value={data.totalUsers.toString()} />
       </div>
 
       {/* Tier breakdown + conversion rate */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-sm text-muted-foreground">
-        {data.tierBreakdown.map(t => (
+        {(data.tierBreakdown || []).map(t => (
           <span key={t.tier}>
             <span className="capitalize font-medium text-foreground">{t.tier}</span>
             {': '}
             {t.count} ({formatCurrency(t.mrr)})
           </span>
         ))}
-        {data.conversionRate !== null && (
+        {data.conversionRate != null && (
           <span className="border-l border-border pl-4">
             Trial → Paid: <span className="font-medium text-foreground">{data.conversionRate}%</span>
-            <span className="text-xs ml-1">({data.convertedCount}/{data.convertedCount + data.canceledTrialCount})</span>
+            <span className="text-xs ml-1">({data.convertedCount || 0}/{(data.convertedCount || 0) + (data.canceledTrialCount || 0)})</span>
           </span>
         )}
       </div>
 
       {/* Trial subscribers table */}
-      {data.trialSubscribers.length > 0 && (
+      {trialSubs.length > 0 && (
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="px-5 py-3 border-b border-border bg-muted/50">
             <h3 className="text-sm font-semibold text-foreground">Stripe Trial Subscribers</h3>
@@ -574,7 +577,7 @@ function BusinessMetrics() {
               </tr>
             </thead>
             <tbody>
-              {data.trialSubscribers.map((t, i) => (
+              {trialSubs.map((t, i) => (
                 <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
                   <td className="p-3 pl-5 text-foreground">{t.email}</td>
                   <td className="p-3 capitalize text-muted-foreground">{t.tier}</td>
