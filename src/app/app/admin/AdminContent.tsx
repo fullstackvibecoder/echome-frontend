@@ -9,6 +9,7 @@ import {
   AdminServiceBreakdown,
   AdminUserBreakdown,
   AdminDailyTrend,
+  AdminBusinessMetrics,
 } from '@/lib/api-client';
 
 // ==================== Types ====================
@@ -492,6 +493,68 @@ function ErrorState({ message }: { message: string }) {
   );
 }
 
+// ==================== Business Metrics ====================
+
+function formatCurrency(amount: number): string {
+  return `$${Math.round(amount).toLocaleString()}`;
+}
+
+function BusinessMetrics() {
+  const [data, setData] = useState<AdminBusinessMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.adminMetrics.get()
+      .then(res => { if (res.success) setData(res.data); })
+      .catch(err => console.error('Failed to load business metrics', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-card rounded-xl border border-border p-5 animate-pulse">
+            <div className="h-4 bg-muted rounded w-20 mb-2" />
+            <div className="h-7 bg-muted rounded w-16" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="MRR" value={formatCurrency(data.mrr)} />
+        <StatCard label="ARR" value={formatCurrency(data.arr)} />
+        <StatCard label="Paying Subscribers" value={data.activeSubscribers.toString()} />
+        <StatCard label="Total Users" value={data.totalUsers.toString()} />
+      </div>
+      {(data.tierBreakdown.length > 0 || data.trialUsers > 0) && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-sm text-muted-foreground">
+          {data.tierBreakdown.map(t => (
+            <span key={t.tier}>
+              <span className="capitalize font-medium text-foreground">{t.tier}</span>
+              {': '}
+              {t.count} ({formatCurrency(t.mrr)})
+            </span>
+          ))}
+          {data.trialUsers > 0 && (
+            <span>
+              <span className="font-medium text-foreground">Trial</span>
+              {': '}
+              {data.trialUsers}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ==================== Main ====================
 
 export default function AdminContent() {
@@ -550,6 +613,9 @@ export default function AdminContent() {
           ))}
         </select>
       </div>
+
+      {/* Business Metrics — always visible */}
+      <BusinessMetrics />
 
       {/* Tabs */}
       <div className="flex gap-1 bg-muted rounded-lg p-1">

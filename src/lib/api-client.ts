@@ -2321,6 +2321,15 @@ export const api = {
     },
   },
 
+  // -------- ADMIN BUSINESS METRICS --------
+  adminMetrics: {
+    /** Get business metrics (MRR, ARR, subscribers, users) */
+    get: async () => {
+      const response = await apiClient.get('/admin/metrics');
+      return response.data as { success: boolean; data: AdminBusinessMetrics; fromCache?: boolean };
+    },
+  },
+
   // -------- HELP CHAT --------
   help: {
     /** Send a chat message (returns SSE stream) */
@@ -2751,6 +2760,15 @@ export interface AdminDailyTrend {
   cost: number;
   tokens: number;
   requests: number;
+}
+
+export interface AdminBusinessMetrics {
+  mrr: number;
+  arr: number;
+  activeSubscribers: number;
+  tierBreakdown: { tier: string; count: number; mrr: number }[];
+  totalUsers: number;
+  trialUsers: number;
 }
 
 export interface HelpArticle {
