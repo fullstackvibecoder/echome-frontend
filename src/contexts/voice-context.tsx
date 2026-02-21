@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { api, TeamVoice } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useAuth } from '@/hooks/useAuth';
 
 interface VoiceContextType {
   /** Currently active voice (null = single-user, no teams) */
@@ -29,7 +28,6 @@ const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
 const ACTIVE_VOICE_KEY = 'echome_active_voice_id';
 
 export function VoiceProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
   const { tier, isSubscribed, isTrial } = useSubscription();
   const [voices, setVoices] = useState<TeamVoice[]>([]);
   const [activeVoice, setActiveVoice] = useState<TeamVoice | null>(null);
@@ -130,7 +128,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
             // Endpoint may not be deployed yet — fall back to basic create
             try {
               const fallbackResponse = await api.teamVoices.create({
-                name: user?.name || 'My Voice',
+                name: 'My Voice',
               });
               if (fallbackResponse.success && fallbackResponse.data) {
                 const newVoice = fallbackResponse.data;
