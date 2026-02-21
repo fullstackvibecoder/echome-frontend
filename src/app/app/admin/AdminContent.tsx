@@ -10,6 +10,7 @@ import {
   AdminUserBreakdown,
   AdminDailyTrend,
   AdminBusinessMetrics,
+  AdminErrorHealth,
 } from '@/lib/api-client';
 
 // ==================== Types ====================
@@ -498,6 +499,119 @@ function ErrorState({ message }: { message: string }) {
 
 // ==================== Business Metrics ====================
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+const STATUS_CONFIG = {
+  green: { label: 'All Clear', bg: 'bg-emerald-500', ring: 'ring-emerald-500/20' },
+  yellow: { label: 'Some Errors', bg: 'bg-amber-500', ring: 'ring-amber-500/20' },
+  red: { label: 'Needs Attention', bg: 'bg-red-500', ring: 'ring-red-500/20' },
+} as const;
+
+function ErrorHealthMonitor() {
+  const [data, setData] = useState<AdminErrorHealth | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  const fetchHealth = useCallback(async () => {
+    try {
+      const res = await api.adminErrors.getHealth();
+      if (res.success) setData(res.data);
+    } catch (err) {
+      console.error('Failed to load error health', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHealth().finally(() => setLoading(false));
+    const interval = setInterval(fetchHealth, 60000);
+    return () => clearInterval(interval);
+  }, [fetchHealth]);
+
+  if (loading) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-4 animate-pulse">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-muted" />
+          <div className="h-4 bg-muted rounded w-28" />
+          <div className="h-4 bg-muted rounded w-40 ml-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const cfg = STATUS_CONFIG[data.status];
+
+  return (
+    <div className="bg-card rounded-xl border border-border">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/30 transition-colors rounded-xl"
+      >
+        {/* Traffic light dot */}
+        <span className={`w-3 h-3 rounded-full ${cfg.bg} ring-4 ${cfg.ring} shrink-0`} />
+
+        <span className="text-sm font-medium text-foreground">System Health</span>
+        <span className="text-xs font-medium text-muted-foreground">{cfg.label}</span>
+
+        {/* Counts */}
+        <span className="ml-auto text-xs text-muted-foreground font-mono">
+          {data.counts.last1h} / 1h
+          <span className="mx-1.5 text-border">·</span>
+          {data.counts.last24h} / 24h
+          <span className="mx-1.5 text-border">·</span>
+          {data.counts.last7d} / 7d
+        </span>
+
+        {/* Expand chevron */}
+        <svg
+          className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Expandable recent errors */}
+      {expanded && data.recentErrors.length > 0 && (
+        <div className="border-t border-border px-4 pb-3">
+          <div className="divide-y divide-border">
+            {data.recentErrors.map((err) => (
+              <div key={err.id} className="py-2.5 flex items-start gap-3">
+                <span className="text-xs font-mono text-muted-foreground whitespace-nowrap pt-0.5">
+                  {timeAgo(err.created_at)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-foreground truncate">{err.error_message}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {err.error_type}{err.endpoint ? ` — ${err.endpoint}` : ''}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {expanded && data.recentErrors.length === 0 && (
+        <div className="border-t border-border px-4 py-3">
+          <p className="text-sm text-muted-foreground">No recent errors</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function formatCurrency(amount: number): string {
   return `$${Math.round(amount).toLocaleString()}`;
 }
@@ -670,6 +784,9 @@ export default function AdminContent() {
 
       {/* Business Metrics — always visible */}
       <BusinessMetrics />
+
+      {/* Error Health Monitor */}
+      <ErrorHealthMonitor />
 
       {/* Tabs */}
       <div className="flex gap-1 bg-muted rounded-lg p-1">

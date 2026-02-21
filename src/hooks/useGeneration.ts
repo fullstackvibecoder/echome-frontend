@@ -8,6 +8,7 @@ import { GeneratedContent, Platform, InputType, BackgroundConfig, DesignPreset }
 interface GenerationOptions {
   designPreset?: DesignPreset;
   carouselBackground?: BackgroundConfig;
+  voiceId?: string;
 }
 
 interface UseGenerationReturn {
@@ -58,6 +59,7 @@ export function useGeneration(): UseGenerationReturn {
           inputAudioPath: inputType === 'audio' ? input : undefined,
           inputVideoPath: inputType === 'video' ? input : undefined,
           platforms,
+          voiceId: options?.voiceId,
           // Pass carousel design options
           designPreset: options?.designPreset,
           carouselBackground: options?.carouselBackground,

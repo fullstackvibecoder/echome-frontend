@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useVoiceContext } from '@/contexts/voice-context';
 import { UploadZone } from '@/components/upload-zone';
 import { FileList } from '@/components/file-list';
 import { PasteContentModal } from '@/components/paste-content-modal';
@@ -137,6 +138,14 @@ export default function KnowledgeContent() {
     refresh,
   } = useKnowledgeBase();
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
+  const { voices, isTeamsUser } = useVoiceContext();
+
+  // Voices linked to the currently selected KB
+  const linkedVoices = useMemo(() => {
+    if (!isTeamsUser || !selectedKb) return [];
+    return voices.filter(v => v.knowledgeBaseId === selectedKb);
+  }, [voices, isTeamsUser, selectedKb]);
+
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
@@ -377,6 +386,20 @@ export default function KnowledgeContent() {
               </div>
             </div>
           </div>
+
+          {/* Voice Linking Info (EchoTeams) */}
+          {isTeamsUser && linkedVoices.length > 0 && (
+            <div className="mb-6 p-3 bg-accent/5 border border-accent/20 rounded-lg flex items-center gap-2 text-sm">
+              <span className="text-accent">🎙️</span>
+              <span className="text-text-secondary">
+                Used by: {linkedVoices.map(v => (
+                  <span key={v.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/10 rounded-full text-xs font-medium text-accent mx-0.5">
+                    {v.name}
+                  </span>
+                ))}
+              </span>
+            </div>
+          )}
 
           {/* Add Content Section */}
           <div className="mb-8">

@@ -324,6 +324,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
             createdAt: new Date(req.createdAt),
             sourceId: req.id,
             generationRequestId: req.id,
+            voiceId: req.voiceId,
             clipCount: 0,
             platformCount: req.platforms?.length || 0,
             raw: req,

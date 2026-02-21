@@ -10,10 +10,11 @@
  * - Bulk actions
  */
 
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
+import { useVoiceContext } from '@/contexts/voice-context';
 import {
   ContentFiltersBar,
   ContentListView,
@@ -26,10 +27,12 @@ import { UpgradeBanner } from '@/components/upgrade-banner';
 
 function ContentLibraryInner() {
   const router = useRouter();
+  const { voices, isTeamsUser } = useVoiceContext();
+  const [voiceFilter, setVoiceFilter] = useState<string>('all');
 
   const {
-    items,
-    groups,
+    items: rawItems,
+    groups: rawGroups,
     stats,
     state,
     pagination,
@@ -59,6 +62,23 @@ function ContentLibraryInner() {
   const handleSelect = useCallback((id: string, selected: boolean) => {
     toggleSelection(id);
   }, [toggleSelection]);
+
+  // Apply voice filter for teams users
+  const items = useMemo(() => {
+    if (!isTeamsUser || voiceFilter === 'all') return rawItems;
+    if (voiceFilter === 'none') return rawItems.filter(i => !i.voiceId);
+    return rawItems.filter(i => i.voiceId === voiceFilter);
+  }, [rawItems, voiceFilter, isTeamsUser]);
+
+  const groups = useMemo(() => {
+    if (!isTeamsUser || voiceFilter === 'all') return rawGroups;
+    return rawGroups.map(g => ({
+      ...g,
+      items: g.items.filter(i =>
+        voiceFilter === 'none' ? !i.voiceId : i.voiceId === voiceFilter
+      ),
+    })).filter(g => g.items.length > 0);
+  }, [rawGroups, voiceFilter, isTeamsUser]);
 
   const selectedCount = state.selectedIds.size;
   const showBulkActions = selectedCount > 0;
@@ -136,21 +156,36 @@ function ContentLibraryInner() {
       </div>
 
       {/* Filters Bar */}
-      <div className="mb-6">
-        <ContentFiltersBar
-          viewMode={state.viewMode}
-          groupBy={state.groupBy}
-          sortBy={state.sortBy}
-          searchQuery={state.searchQuery}
-          contentTypeFilter={state.contentTypeFilter}
-          platformFilters={state.platformFilters}
-          onViewModeChange={setViewMode}
-          onGroupByChange={setGroupBy}
-          onSortByChange={setSortBy}
-          onSearchChange={setSearchQuery}
-          onContentTypeFilterChange={setContentTypeFilter}
-          onPlatformFilterToggle={togglePlatformFilter}
-        />
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex-1">
+          <ContentFiltersBar
+            viewMode={state.viewMode}
+            groupBy={state.groupBy}
+            sortBy={state.sortBy}
+            searchQuery={state.searchQuery}
+            contentTypeFilter={state.contentTypeFilter}
+            platformFilters={state.platformFilters}
+            onViewModeChange={setViewMode}
+            onGroupByChange={setGroupBy}
+            onSortByChange={setSortBy}
+            onSearchChange={setSearchQuery}
+            onContentTypeFilterChange={setContentTypeFilter}
+            onPlatformFilterToggle={togglePlatformFilter}
+          />
+        </div>
+        {isTeamsUser && voices.length > 0 && (
+          <select
+            value={voiceFilter}
+            onChange={(e) => setVoiceFilter(e.target.value)}
+            className="bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50"
+          >
+            <option value="all">All Voices</option>
+            {voices.map((v) => (
+              <option key={v.id} value={v.id}>{v.name}</option>
+            ))}
+            <option value="none">No Voice</option>
+          </select>
+        )}
       </div>
 
       {/* Bulk Actions Bar */}

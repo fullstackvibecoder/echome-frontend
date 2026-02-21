@@ -223,6 +223,7 @@ export const api = {
         tone: data.tone,
         additional_instructions: data.additionalInstructions,
         use_tll_validator: data.useTllValidator,
+        voice_id: data.voiceId,
         // Carousel design options
         design_preset: data.designPreset,
         carousel_background: data.carouselBackground ? {
@@ -259,6 +260,7 @@ export const api = {
           platforms: rawData.request.platforms || [],
           tone: rawData.request.tone,
           additionalInstructions: rawData.request.additional_instructions,
+          voiceId: rawData.request.voice_id,
           status: rawData.request.status,
           results: rawData.request.results,
           createdAt: rawData.request.created_at,
@@ -354,7 +356,7 @@ export const api = {
       } as ApiResponse<GenerationRequestDetail>;
     },
 
-    listRequests: async (params?: { limit?: number; offset?: number }) => {
+    listRequests: async (params?: { limit?: number; offset?: number; voice_id?: string }) => {
       const response = await apiClient.get<ApiResponse<any[]>>('/generate', { params });
 
       // Transform snake_case to camelCase for frontend consumption
@@ -366,6 +368,7 @@ export const api = {
         inputVideoPath: item.input_video_path,
         inputAudioPath: item.input_audio_path,
         knowledgeBaseId: item.knowledge_base_id,
+        voiceId: item.voice_id,
         platforms: item.platforms || [],
         tone: item.tone,
         additionalInstructions: item.additional_instructions,
@@ -581,6 +584,51 @@ export const api = {
           chunksCreated?: number;
           message?: string;
         };
+      };
+    },
+
+    /** Get voice integration assignments */
+    getVoiceAssignments: async () => {
+      const response = await apiClient.get('/social/voice-assignments');
+      return response.data as {
+        success: boolean;
+        data: Array<{ integrationId: string; voiceId: string | null }>;
+      };
+    },
+
+    /** Assign an integration to a voice (null voiceId = shared) */
+    assignToVoice: async (integrationId: string, voiceId: string | null) => {
+      const response = await apiClient.post('/social/voice-assignments', {
+        integration_id: integrationId,
+        voice_id: voiceId,
+      });
+      return response.data as { success: boolean };
+    },
+
+    /** Remove a voice integration assignment */
+    removeFromVoice: async (integrationId: string, voiceId: string | null) => {
+      const response = await apiClient.delete('/social/voice-assignments', {
+        data: {
+          integration_id: integrationId,
+          voice_id: voiceId,
+        },
+      });
+      return response.data as { success: boolean };
+    },
+
+    /** Get integrations available for a specific voice */
+    getVoiceIntegrations: async (voiceId: string) => {
+      const response = await apiClient.get(`/social/voice/${voiceId}/integrations`);
+      return response.data as {
+        success: boolean;
+        data: Array<{
+          id: string;
+          platform: string;
+          platformUsername?: string;
+          status: string;
+          lastSyncAt?: string;
+          createdAt: string;
+        }>;
       };
     },
   },
@@ -1846,7 +1894,7 @@ export const api = {
 
     /** Create checkout session and get redirect URL */
     createCheckoutSession: async (
-      planId: 'echo' | 'echo-studio' | 'echo-pro',
+      planId: PlanId,
       billingInterval: 'month' | 'year'
     ): Promise<StripeCheckoutResponse> => {
       // Get Affonso referral ID for affiliate attribution
@@ -1894,7 +1942,7 @@ export const api = {
 
     /** Switch to a different plan (upgrade or downgrade) */
     switchPlan: async (
-      planId: 'echo' | 'echo-studio' | 'echo-pro',
+      planId: PlanId,
       billingInterval: 'month' | 'year'
     ): Promise<{
       success: boolean;
@@ -2330,6 +2378,15 @@ export const api = {
     },
   },
 
+  // -------- ADMIN ERROR HEALTH --------
+  adminErrors: {
+    /** Get error health status (green/yellow/red) with counts and recent errors */
+    getHealth: async () => {
+      const response = await apiClient.get('/admin/errors/health');
+      return response.data as { success: boolean; data: AdminErrorHealth };
+    },
+  },
+
   // -------- HELP CHAT --------
   help: {
     /** Send a chat message (returns SSE stream) */
@@ -2726,7 +2783,115 @@ export const api = {
       });
     },
   },
+
+  // -------- TEAM VOICES --------
+  teamVoices: {
+    list: async (): Promise<ApiResponse<TeamVoice[]>> => {
+      const response = await apiClient.get('/team-voices');
+      return response.data;
+    },
+
+    get: async (voiceId: string): Promise<ApiResponse<TeamVoice>> => {
+      const response = await apiClient.get(`/team-voices/${voiceId}`);
+      return response.data;
+    },
+
+    create: async (data: TeamVoiceInput): Promise<ApiResponse<TeamVoice>> => {
+      const response = await apiClient.post('/team-voices', {
+        name: data.name,
+        description: data.description,
+        avatar_url: data.avatarUrl,
+        knowledge_base_id: data.knowledgeBaseId,
+        profile_role: data.profileRole,
+        profile_topics: data.profileTopics,
+        profile_cta: data.profileCta,
+        profile_guardrails: data.profileGuardrails,
+        display_name: data.displayName,
+        twitter_handle: data.twitterHandle,
+        instagram_handle: data.instagramHandle,
+        website_url: data.websiteUrl,
+      });
+      return response.data;
+    },
+
+    update: async (voiceId: string, data: Partial<TeamVoiceInput>): Promise<ApiResponse<TeamVoice>> => {
+      const payload: Record<string, unknown> = {};
+      if (data.name !== undefined) payload.name = data.name;
+      if (data.description !== undefined) payload.description = data.description;
+      if (data.avatarUrl !== undefined) payload.avatar_url = data.avatarUrl;
+      if (data.knowledgeBaseId !== undefined) payload.knowledge_base_id = data.knowledgeBaseId;
+      if (data.profileRole !== undefined) payload.profile_role = data.profileRole;
+      if (data.profileTopics !== undefined) payload.profile_topics = data.profileTopics;
+      if (data.profileCta !== undefined) payload.profile_cta = data.profileCta;
+      if (data.profileGuardrails !== undefined) payload.profile_guardrails = data.profileGuardrails;
+      if (data.displayName !== undefined) payload.display_name = data.displayName;
+      if (data.twitterHandle !== undefined) payload.twitter_handle = data.twitterHandle;
+      if (data.instagramHandle !== undefined) payload.instagram_handle = data.instagramHandle;
+      if (data.websiteUrl !== undefined) payload.website_url = data.websiteUrl;
+
+      const response = await apiClient.put(`/team-voices/${voiceId}`, payload);
+      return response.data;
+    },
+
+    delete: async (voiceId: string): Promise<ApiResponse<{ message: string }>> => {
+      const response = await apiClient.delete(`/team-voices/${voiceId}`);
+      return response.data;
+    },
+
+    setDefault: async (voiceId: string): Promise<ApiResponse<TeamVoice>> => {
+      const response = await apiClient.post(`/team-voices/${voiceId}/set-default`);
+      return response.data;
+    },
+
+    getLimits: async (): Promise<ApiResponse<{ voiceCount: number; voiceLimit: number; tier: string }>> => {
+      const response = await apiClient.get('/team-voices/limits');
+      return response.data;
+    },
+
+    createDefault: async (): Promise<ApiResponse<TeamVoice>> => {
+      const response = await apiClient.post('/team-voices/create-default');
+      return response.data;
+    },
+  },
 };
+
+// -------- TEAM VOICE TYPES --------
+
+export interface TeamVoice {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  avatarUrl?: string;
+  knowledgeBaseId?: string;
+  profileRole?: string;
+  profileTopics?: string;
+  profileCta?: string;
+  profileGuardrails?: string;
+  displayName?: string;
+  twitterHandle?: string;
+  instagramHandle?: string;
+  websiteUrl?: string;
+  isDefault: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamVoiceInput {
+  name: string;
+  description?: string;
+  avatarUrl?: string;
+  knowledgeBaseId?: string;
+  profileRole?: string;
+  profileTopics?: string;
+  profileCta?: string;
+  profileGuardrails?: string;
+  displayName?: string;
+  twitterHandle?: string;
+  instagramHandle?: string;
+  websiteUrl?: string;
+}
 
 // -------- ADMIN USAGE TYPES --------
 
@@ -2773,6 +2938,12 @@ export interface AdminBusinessMetrics {
   conversionRate: number | null;
   convertedCount: number;
   canceledTrialCount: number;
+}
+
+export interface AdminErrorHealth {
+  status: 'green' | 'yellow' | 'red';
+  counts: { last1h: number; last24h: number; last7d: number };
+  recentErrors: { id: string; error_message: string; error_type: string; endpoint: string; created_at: string }[];
 }
 
 export interface HelpArticle {
@@ -3026,9 +3197,9 @@ export interface VideoSnapshot {
 // STRIPE / BILLING TYPES
 // ============================================
 
-export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise';
+export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise' | 'teams_2' | 'teams_5' | 'teams_10';
 export type BillingInterval = 'month' | 'year';
-export type PlanId = 'echo' | 'echo-studio' | 'echo-pro';
+export type PlanId = 'echo' | 'echo-studio' | 'echo-pro' | 'echo-teams-2' | 'echo-teams-5' | 'echo-teams-10';
 
 export interface StripePlan {
   id: PlanId;

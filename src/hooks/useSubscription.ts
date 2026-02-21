@@ -9,7 +9,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, StripeSubscriptionStatus } from '@/lib/api-client';
 
-export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise';
+export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise' | 'teams_2' | 'teams_5' | 'teams_10';
 
 interface UseSubscriptionReturn {
   /** Current subscription status */
@@ -49,9 +49,12 @@ interface UseSubscriptionReturn {
 // Tier hierarchy for comparison
 const TIER_LEVELS: Record<SubscriptionTier, number> = {
   free: 0,
-  pro: 1,      // Echo ($29/mo)
-  studio: 2,   // Echo Studio ($49/mo)
+  pro: 1,        // Echo ($29/mo)
+  studio: 2,     // Echo Studio ($49/mo)
   enterprise: 3, // Echo Pro ($99/mo)
+  teams_2: 4,    // EchoTeams Duo ($129/mo)
+  teams_5: 4,    // EchoTeams Pro ($179/mo)
+  teams_10: 4,   // EchoTeams Agency ($249/mo)
 };
 
 export function useSubscription(): UseSubscriptionReturn {

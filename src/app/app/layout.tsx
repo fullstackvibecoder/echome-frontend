@@ -3,6 +3,7 @@
 import { ReactNode, Suspense } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { NavigationProvider } from '@/contexts/navigation-context';
+import { VoiceProvider } from '@/contexts/voice-context';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
 
@@ -13,9 +14,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </div>
     }>
       <NavigationProvider>
-        <AppShell>
-          {children}
-        </AppShell>
+        <VoiceProvider>
+          <AppShell>
+            {children}
+          </AppShell>
+        </VoiceProvider>
       </NavigationProvider>
     </Suspense>
   );

@@ -121,6 +121,7 @@ export interface GenerationRequest {
   tone?: ContentTone;
   additionalInstructions?: string;
   useTllValidator?: boolean;
+  voiceId?: string;
   // Carousel design options
   designPreset?: DesignPreset;
   carouselBackground?: BackgroundConfig;
@@ -273,6 +274,7 @@ export interface KnowledgeBase {
   status: 'active' | 'training' | 'archived';
   totalChunks: number;
   storageUsed?: number; // bytes
+  is_default?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

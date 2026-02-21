@@ -1,8 +1,10 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_ITEMS, useAppNavigation } from '@/hooks/useAppNavigation';
+import { NAV_ITEMS, ADMIN_NAV_ITEMS, useAppNavigation } from '@/hooks/useAppNavigation';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
+import { VoiceSwitcher } from '@/components/voice-switcher';
+import { useVoiceContext } from '@/contexts/voice-context';
 
 const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
 
@@ -15,6 +17,10 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const { user, logout } = useAuth();
   const { activeItem, navigate } = useAppNavigation();
   const { isFirstTime, sidebarHintsSeen, markSidebarHintSeen } = useFirstTimeUser();
+  const { isTeamsUser } = useVoiceContext();
+
+  // Filter nav items: hide teamsOnly items for non-teams users
+  const visibleNavItems = [...NAV_ITEMS.filter(item => !item.teamsOnly || isTeamsUser), ...(user?.isAdmin ? ADMIN_NAV_ITEMS : [])];
 
   if (!isOpen) return null;
 
@@ -41,9 +47,12 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
           </button>
         </div>
 
+        {/* Voice Switcher (teams users only) */}
+        <VoiceSwitcher />
+
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.map((item) => (
+          {visibleNavItems.map((item) => (
             <button
               key={item.id}
               onClick={() => {
