@@ -530,25 +530,27 @@ function BusinessMetrics() {
 
   // Safe defaults for fields that may be missing from stale cache
   const trialSubs = data.trialSubscribers || [];
-  const trialUsers = data.trialUsers || 0;
-  const totalTrialing = trialSubs.length + trialUsers;
+  const stripeTrials = trialSubs.filter(t => t.source === 'stripe');
+  const adminTrials = trialSubs.filter(t => t.source === 'admin');
+  const freeUsers = data.freeUsers || 0;
 
   return (
     <div className="space-y-4">
       {/* Top-level stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard label="MRR" value={formatCurrency(data.mrr)} sub="Paying only" />
         <StatCard label="ARR" value={formatCurrency(data.arr)} />
-        <StatCard label="Paying Subscribers" value={data.activeSubscribers.toString()} />
-        <StatCard label="In Trial" value={totalTrialing.toString()} sub={`${trialSubs.length} Stripe + ${trialUsers} admin`} />
-        <StatCard label="Total Users" value={data.totalUsers.toString()} />
+        <StatCard label="Paying" value={data.activeSubscribers.toString()} />
+        <StatCard label="Stripe Trials" value={stripeTrials.length.toString()} sub={stripeTrials.length > 0 ? `${stripeTrials[0].daysRemaining}d left` : undefined} />
+        <StatCard label="Admin Trials" value={adminTrials.length.toString()} sub={adminTrials.length > 0 ? `${adminTrials[0].daysRemaining}d left` : undefined} />
+        <StatCard label="Total Users" value={data.totalUsers.toString()} sub={`${freeUsers} free`} />
       </div>
 
       {/* Tier breakdown + conversion rate */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-sm text-muted-foreground">
         {(data.tierBreakdown || []).map(t => (
           <span key={t.tier}>
-            <span className="capitalize font-medium text-foreground">{t.tier}</span>
+            <span className="font-medium text-foreground">{t.tier}</span>
             {': '}
             {t.count} ({formatCurrency(t.mrr)})
           </span>
@@ -565,13 +567,14 @@ function BusinessMetrics() {
       {trialSubs.length > 0 && (
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="px-5 py-3 border-b border-border bg-muted/50">
-            <h3 className="text-sm font-semibold text-foreground">Stripe Trial Subscribers</h3>
+            <h3 className="text-sm font-semibold text-foreground">Trial Users ({trialSubs.length})</h3>
           </div>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-3 pl-5 font-medium text-muted-foreground">Email</th>
                 <th className="text-left p-3 font-medium text-muted-foreground">Plan</th>
+                <th className="text-left p-3 font-medium text-muted-foreground">Source</th>
                 <th className="text-left p-3 font-medium text-muted-foreground">Trial Ends</th>
                 <th className="text-right p-3 pr-5 font-medium text-muted-foreground">Days Left</th>
               </tr>
@@ -580,7 +583,14 @@ function BusinessMetrics() {
               {trialSubs.map((t, i) => (
                 <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
                   <td className="p-3 pl-5 text-foreground">{t.email}</td>
-                  <td className="p-3 capitalize text-muted-foreground">{t.tier}</td>
+                  <td className="p-3 text-muted-foreground">{t.tier}</td>
+                  <td className="p-3">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      t.source === 'stripe' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                    }`}>
+                      {t.source === 'stripe' ? '7-day' : '14-day'}
+                    </span>
+                  </td>
                   <td className="p-3 text-muted-foreground">
                     {new Date(t.trialEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </td>

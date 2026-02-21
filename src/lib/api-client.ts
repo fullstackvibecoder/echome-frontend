@@ -2768,8 +2768,8 @@ export interface AdminBusinessMetrics {
   activeSubscribers: number;
   tierBreakdown: { tier: string; count: number; mrr: number }[];
   totalUsers: number;
-  trialSubscribers: { email: string; tier: string; trialEnd: string; daysRemaining: number }[];
-  trialUsers: number; // admin-assigned trials (no Stripe sub)
+  freeUsers: number;
+  trialSubscribers: { email: string; tier: string; trialEnd: string; daysRemaining: number; source: 'stripe' | 'admin' }[];
   conversionRate: number | null;
   convertedCount: number;
   canceledTrialCount: number;
