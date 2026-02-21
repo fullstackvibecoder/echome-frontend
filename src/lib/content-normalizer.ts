@@ -62,6 +62,9 @@ export interface NormalizedContent {
   // Duration for video clips
   duration?: number;
 
+  // EchoTeams: which voice this content belongs to
+  voiceId?: string;
+
   // Platform content for kits (for expandable cards)
   platformContent?: {
     platform: Platform;

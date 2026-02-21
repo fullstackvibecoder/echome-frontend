@@ -121,6 +121,7 @@ export interface GenerationRequest {
   tone?: ContentTone;
   additionalInstructions?: string;
   useTllValidator?: boolean;
+  voiceId?: string;
   // Carousel design options
   designPreset?: DesignPreset;
   carouselBackground?: BackgroundConfig;

@@ -9,6 +9,7 @@ export interface NavItem {
   icon: string;
   path: string;
   comingSoon?: boolean;
+  teamsOnly?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -16,6 +17,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'following', label: 'Following', icon: '👥', path: '/app/following' },
   { id: 'knowledge', label: 'Knowledge Base', icon: '📚', path: '/app/knowledge' },
   { id: 'content-kit', label: 'Content Kit', icon: '📦', path: '/app/content-kit' },
+  { id: 'team-voices', label: 'Team Voices', icon: '🎙️', path: '/app/team-voices', teamsOnly: true },
   { id: 'reels', label: 'Reel Maker', icon: '🎬', path: '/app/reels', comingSoon: true },
   { id: 'trends', label: 'Trends', icon: '🔥', path: '/app/trends', comingSoon: true },
   { id: 'calendar', label: 'Calendar', icon: '📅', path: '/app/calendar' },

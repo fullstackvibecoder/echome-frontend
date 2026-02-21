@@ -118,12 +118,21 @@ function BillingContentInner() {
           if (syncResult.success && syncResult.data.synced) {
             const tierName = syncResult.data.tier === 'pro' ? 'Echo' :
                             syncResult.data.tier === 'studio' ? 'Echo Studio' :
-                            syncResult.data.tier === 'enterprise' ? 'Echo Pro' : 'your plan';
+                            syncResult.data.tier === 'enterprise' ? 'Echo Pro' :
+                            syncResult.data.tier === 'teams_2' ? 'EchoTeams Duo' :
+                            syncResult.data.tier === 'teams_5' ? 'EchoTeams Pro' :
+                            syncResult.data.tier === 'teams_10' ? 'EchoTeams Agency' : 'your plan';
             setSuccessMessage(`Your ${tierName} subscription is now active! Welcome aboard.`);
             // Reload subscription status
             const subResult = await api.stripe.getSubscription();
             if (subResult.success) {
               setSubscription(subResult.data);
+            }
+
+            // Teams-specific redirect: send user to Team Voices page for setup
+            if (syncResult.data.tier?.startsWith('teams_')) {
+              window.location.href = '/app/team-voices?welcome=true';
+              return;
             }
           } else {
             setSuccessMessage('Your subscription has been activated! Welcome aboard.');
@@ -233,8 +242,12 @@ function BillingContentInner() {
     loadData();
   }, []);
 
+  // Separate individual and teams plans
+  const individualPlans = plans.filter(p => !p.tier.startsWith('teams_'));
+  const teamsPlans = plans.filter(p => p.tier.startsWith('teams_'));
+
   // Handle plan selection - either checkout for new users or switch for existing subscribers
-  const handlePlanSelect = async (planId: 'echo' | 'echo-studio' | 'echo-pro') => {
+  const handlePlanSelect = async (planId: string) => {
     try {
       setCheckoutLoading(planId);
       setError(null);
@@ -242,10 +255,11 @@ function BillingContentInner() {
 
       // If user already has an active Stripe subscription (not admin-assigned), switch plans instead of checkout
       if (subscription?.isSubscribed && !subscription?.isAdminAssigned && (subscription.status === 'active' || subscription.status === 'trialing')) {
-        const response = await api.stripe.switchPlan(planId, billingInterval);
+        const response = await api.stripe.switchPlan(planId as any, billingInterval);
 
         if (response.success) {
-          const planName = planId === 'echo' ? 'Echo' : planId === 'echo-studio' ? 'Echo Studio' : 'Echo Pro';
+          const plan = plans.find(p => p.id === planId);
+          const planName = plan?.name || planId;
           setSuccessMessage(`Successfully switched to ${planName}! Your billing will be prorated.`);
 
           // Refresh subscription status
@@ -259,7 +273,7 @@ function BillingContentInner() {
         }
       } else {
         // New user - create checkout session
-        const response = await api.stripe.createCheckoutSession(planId, billingInterval);
+        const response = await api.stripe.createCheckoutSession(planId as any, billingInterval);
 
         if (response.success && response.data.url) {
           // Redirect to Stripe Checkout
@@ -281,11 +295,11 @@ function BillingContentInner() {
     if (autoCheckoutDone || loading || plans.length === 0) return;
     const planParam = searchParams.get('plan');
     if (!planParam) return;
-    const validPlans: string[] = ['echo', 'echo-studio', 'echo-pro'];
+    const validPlans: string[] = ['echo', 'echo-studio', 'echo-pro', 'echo-teams-2', 'echo-teams-5', 'echo-teams-10'];
     if (validPlans.includes(planParam)) {
       setAutoCheckoutDone(true);
       window.history.replaceState({}, '', '/app/billing');
-      handlePlanSelect(planParam as 'echo' | 'echo-studio' | 'echo-pro');
+      handlePlanSelect(planParam);
     }
   }, [loading, plans]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -316,6 +330,9 @@ function BillingContentInner() {
       pro: 'Echo',
       studio: 'Echo Studio',
       enterprise: 'Echo Pro',
+      teams_2: 'EchoTeams Duo',
+      teams_5: 'EchoTeams Pro',
+      teams_10: 'EchoTeams Agency',
     };
     return names[tier] || tier;
   };
@@ -435,7 +452,7 @@ function BillingContentInner() {
 
       {/* Pricing Cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {plans.map((plan) => {
+        {individualPlans.map((plan) => {
           const isCurrent = isCurrentPlan(plan);
           const isPopular = plan.id === 'echo-studio';
           const price = billingInterval === 'month' ? plan.monthlyPrice : plan.annualPrice;
@@ -512,6 +529,97 @@ function BillingContentInner() {
           );
         })}
       </div>
+
+      {/* Teams Plans */}
+      {teamsPlans.length > 0 && (
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-1">For Teams</h2>
+            <p className="text-muted-foreground">
+              Manage multiple voices from one account. Everything in Echo Pro, plus multi-voice management.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {teamsPlans.map((plan) => {
+              const isCurrent = isCurrentPlan(plan);
+              const price = billingInterval === 'month' ? plan.monthlyPrice : plan.annualPrice;
+              const voiceCount = plan.tier === 'teams_2' ? 2 : plan.tier === 'teams_5' ? 5 : 10;
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative rounded-2xl border-2 p-6 flex flex-col ${
+                    plan.tier === 'teams_5'
+                      ? 'border-primary bg-primary/5 shadow-lg'
+                      : 'border-border bg-card'
+                  } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
+                >
+                  {plan.tier === 'teams_5' && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
+                      BEST VALUE
+                    </div>
+                  )}
+                  {isCurrent && (
+                    <div className="absolute -top-3 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                      CURRENT
+                    </div>
+                  )}
+
+                  <div className="mb-4 mt-2">
+                    <h3 className="text-xl font-bold">{plan.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">{voiceCount} voices</p>
+                    <div className="flex items-baseline gap-1 mt-2">
+                      <span className="text-4xl font-extrabold">${price}</span>
+                      <span className="text-muted-foreground">
+                        /{billingInterval === 'month' ? 'mo' : 'yr'}
+                      </span>
+                    </div>
+                    {billingInterval === 'year' && (
+                      <p className="text-sm text-green-600 font-medium mt-1">
+                        2 months free
+                      </p>
+                    )}
+                  </div>
+
+                  <ul className="space-y-3 flex-1 mb-6">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => handlePlanSelect(plan.id)}
+                    disabled={isCurrent || checkoutLoading !== null}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                      isCurrent
+                        ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                        : plan.tier === 'teams_5'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'bg-foreground text-background hover:bg-foreground/90'
+                    } disabled:opacity-50`}
+                  >
+                    {checkoutLoading === plan.id ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {subscription?.isSubscribed && !subscription?.isAdminAssigned ? 'Switching...' : 'Redirecting...'}
+                      </span>
+                    ) : isCurrent ? (
+                      'Current Plan'
+                    ) : subscription?.isSubscribed && !subscription?.isAdminAssigned ? (
+                      'Switch to this plan'
+                    ) : (
+                      'Get Started'
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Enterprise CTA */}
       <div className="text-center p-8 bg-muted/50 rounded-2xl">
