@@ -274,6 +274,7 @@ export interface KnowledgeBase {
   status: 'active' | 'training' | 'archived';
   totalChunks: number;
   storageUsed?: number; // bytes
+  is_default?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
