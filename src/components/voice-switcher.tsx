@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useVoiceContext } from '@/contexts/voice-context';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, Mic } from 'lucide-react';
+import Link from 'next/link';
 
 export function VoiceSwitcher() {
-  const { activeVoice, voices, isTeamsUser, loading, switchVoice } = useVoiceContext();
+  const { activeVoice, voices, isTeamsUser, loading, voiceCount, voiceLimit, switchVoice } = useVoiceContext();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -20,9 +21,27 @@ export function VoiceSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!isTeamsUser || voices.length === 0) return null;
+  if (!isTeamsUser) return null;
 
-  const voiceLimit = voices.length; // We show current count; limit is enforced server-side
+  // Zero-voice state: show setup prompt
+  if (voices.length === 0) {
+    return (
+      <div className="px-4 py-3 border-b border-border">
+        <Link
+          href="/app/team-voices"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center flex-shrink-0">
+            <Mic className="w-4 h-4" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <p className="text-sm font-medium text-foreground">Set up your voices</p>
+            <p className="text-xs text-muted-foreground">Get started with EchoTeams</p>
+          </div>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div ref={dropdownRef} className="relative px-4 py-3 border-b border-border">
@@ -42,7 +61,7 @@ export function VoiceSwitcher() {
             {activeVoice?.name || 'Select Voice'}
           </p>
           <p className="text-xs text-muted-foreground">
-            {voices.length} voice{voices.length !== 1 ? 's' : ''}
+            {voiceLimit > 0 ? `${voiceCount} / ${voiceLimit} voices` : `${voices.length} voice${voices.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 

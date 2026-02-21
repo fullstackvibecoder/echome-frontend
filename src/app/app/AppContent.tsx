@@ -16,6 +16,7 @@ import { WelcomeBanner } from '@/components/welcome-banner';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
+import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
@@ -145,8 +146,18 @@ export default function AppContent() {
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
   const { user } = useAuth();
-  const { activeVoice, isTeamsUser } = useVoiceContext();
+  const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Teams onboarding banner (dismissible via localStorage)
+  const [showTeamsOnboarding, setShowTeamsOnboarding] = useState(false);
+  useEffect(() => {
+    if (isTeamsUser && !activeVoice) {
+      setShowTeamsOnboarding(!localStorage.getItem('echome_teams_onboarding_dismissed'));
+    } else {
+      setShowTeamsOnboarding(false);
+    }
+  }, [isTeamsUser, activeVoice]);
 
   // Usage stats for dynamic messaging
   const [usageStats, setUsageStats] = useState<{ generationsUsed?: number } | null>(null);
@@ -516,6 +527,31 @@ export default function AppContent() {
                 </div>
               );
             })()
+          )}
+
+          {/* Teams Onboarding Banner (zero-voice state) */}
+          {showTeamsOnboarding && (
+            <div className="mb-6 p-5 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl relative">
+              <button
+                onClick={() => {
+                  localStorage.setItem('echome_teams_onboarding_dismissed', new Date().toISOString());
+                  setShowTeamsOnboarding(false);
+                }}
+                className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <h3 className="font-bold text-lg mb-1">Welcome to EchoTeams!</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Your account supports up to {voiceLimit} voice{voiceLimit !== 1 ? 's' : ''}. Let&apos;s get set up:
+              </p>
+              <a
+                href="/app/team-voices"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm"
+              >
+                Go to Team Voices
+              </a>
+            </div>
           )}
 
           {/* Active Voice Indicator (teams users) */}

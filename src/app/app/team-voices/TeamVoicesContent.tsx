@@ -43,14 +43,14 @@ const emptyForm: VoiceFormData = {
 
 export default function TeamVoicesContent() {
   const searchParams = useSearchParams();
-  const { voices, isTeamsUser, refreshVoices } = useVoiceContext();
+  const { voices, isTeamsUser, refreshVoices, voiceCount, voiceLimit } = useVoiceContext();
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Welcome state (post-checkout redirect)
+  // Welcome state (persistent via localStorage, dismissible)
   const [showWelcome, setShowWelcome] = useState(false);
 
   // Modal state
@@ -69,12 +69,15 @@ export default function TeamVoicesContent() {
   const [socialIntegrations, setSocialIntegrations] = useState<SocialIntegration[]>([]);
   const [voiceAssignments, setVoiceAssignments] = useState<VoiceIntegrationAssignment[]>([]);
 
-  // Detect welcome redirect from billing
+  // Show welcome banner persistently until dismissed (localStorage)
+  // Also set it on first visit from checkout (?welcome=true) to ensure localStorage gets primed
   useEffect(() => {
     if (searchParams.get('welcome') === 'true') {
-      setShowWelcome(true);
+      // Mark as not dismissed so it persists
+      localStorage.removeItem('echome_teams_welcome_dismissed');
       window.history.replaceState({}, '', '/app/team-voices');
     }
+    setShowWelcome(!localStorage.getItem('echome_teams_welcome_dismissed'));
   }, [searchParams]);
 
   // Load knowledge bases, social integrations, and voice assignments
@@ -293,7 +296,14 @@ export default function TeamVoicesContent() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Team Voices</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl font-bold">Team Voices</h1>
+            {voiceLimit > 0 && (
+              <span className="text-sm font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                {voiceCount} of {voiceLimit}
+              </span>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Manage multiple voice profiles for your team
           </p>
@@ -311,7 +321,10 @@ export default function TeamVoicesContent() {
       {showWelcome && (
         <div className="mb-6 p-5 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl relative">
           <button
-            onClick={() => setShowWelcome(false)}
+            onClick={() => {
+              localStorage.setItem('echome_teams_welcome_dismissed', new Date().toISOString());
+              setShowWelcome(false);
+            }}
             className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
@@ -345,7 +358,10 @@ export default function TeamVoicesContent() {
         <div className="text-center py-16 bg-card border rounded-xl">
           <div className="text-5xl mb-4">🎙️</div>
           <h3 className="text-lg font-semibold mb-2">No voices yet</h3>
-          <p className="text-muted-foreground mb-6">Create your first voice to get started.</p>
+          <p className="text-muted-foreground mb-2 max-w-md mx-auto">
+            Voices let you manage distinct creator identities — each with their own knowledge base, writing style, and profile context.
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">Create your first voice to get started.</p>
           <button
             onClick={openCreateModal}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
@@ -528,7 +544,7 @@ export default function TeamVoicesContent() {
                   }}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
-                  <option value="">Default (all content)</option>
+                  <option value="">None (uses account KB)</option>
                   {knowledgeBases.map((kb) => (
                     <option key={kb.id} value={kb.id}>{kb.name || 'Unnamed KB'}</option>
                   ))}

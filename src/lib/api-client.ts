@@ -2842,6 +2842,11 @@ export const api = {
       const response = await apiClient.post(`/team-voices/${voiceId}/set-default`);
       return response.data;
     },
+
+    getLimits: async (): Promise<ApiResponse<{ voiceCount: number; voiceLimit: number; tier: string }>> => {
+      const response = await apiClient.get('/team-voices/limits');
+      return response.data;
+    },
   },
 };
 
