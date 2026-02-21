@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { api, TeamVoice } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
 
 interface VoiceContextType {
   /** Currently active voice (null = single-user, no teams) */
@@ -28,6 +29,7 @@ const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
 const ACTIVE_VOICE_KEY = 'echome_active_voice_id';
 
 export function VoiceProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const { tier, isSubscribed, isTrial } = useSubscription();
   const [voices, setVoices] = useState<TeamVoice[]>([]);
   const [activeVoice, setActiveVoice] = useState<TeamVoice | null>(null);
@@ -37,6 +39,9 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const hasAttemptedFallbackRef = useRef(false);
 
   const isTeamsUser = (isSubscribed || isTrial) && (tier === 'teams_2' || tier === 'teams_5' || tier === 'teams_10');
+
+  // Tier-based fallback limits (used when /limits endpoint isn't available)
+  const tierLimits: Record<string, number> = { teams_2: 2, teams_5: 5, teams_10: 10 };
 
   const fetchLimits = useCallback(async () => {
     if (!isTeamsUser) {
@@ -50,11 +55,17 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       if (response.success && response.data) {
         setVoiceLimit(response.data.voiceLimit);
         setVoiceCount(response.data.voiceCount);
+        return;
       }
-    } catch (error) {
-      console.error('Failed to fetch voice limits:', error);
+    } catch {
+      // Endpoint may not be deployed yet — use tier-based fallback
     }
-  }, [isTeamsUser]);
+
+    // Fallback: derive limit from tier, count from local voices state
+    if (tier) {
+      setVoiceLimit(tierLimits[tier] || 0);
+    }
+  }, [isTeamsUser, tier]);
 
   const setActiveFromList = useCallback((voiceList: TeamVoice[]) => {
     const savedVoiceId = localStorage.getItem(ACTIVE_VOICE_KEY);
@@ -105,18 +116,33 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         if (!hasAttemptedFallbackRef.current) {
           hasAttemptedFallbackRef.current = true;
           try {
+            // Try the profile-based endpoint first (pulls KB, profile context, etc.)
             const createResponse = await api.teamVoices.createDefault();
             if (createResponse.success && createResponse.data) {
               const newVoice = createResponse.data;
               setVoices([newVoice]);
               setActiveVoice(newVoice);
               localStorage.setItem(ACTIVE_VOICE_KEY, newVoice.id);
-              // Refresh limits to reflect the new voice
               fetchLimits();
               return;
             }
-          } catch (createErr) {
-            console.error('Failed to create default voice from profile:', createErr);
+          } catch {
+            // Endpoint may not be deployed yet — fall back to basic create
+            try {
+              const fallbackResponse = await api.teamVoices.create({
+                name: user?.name || 'My Voice',
+              });
+              if (fallbackResponse.success && fallbackResponse.data) {
+                const newVoice = fallbackResponse.data;
+                setVoices([newVoice]);
+                setActiveVoice(newVoice);
+                localStorage.setItem(ACTIVE_VOICE_KEY, newVoice.id);
+                fetchLimits();
+                return;
+              }
+            } catch (fallbackErr) {
+              console.error('Failed to create fallback voice:', fallbackErr);
+            }
           }
         }
 
@@ -136,6 +162,11 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     fetchVoices();
     fetchLimits();
   }, [fetchVoices, fetchLimits]);
+
+  // Keep voiceCount in sync with local voices array
+  useEffect(() => {
+    setVoiceCount(voices.length);
+  }, [voices]);
 
   const switchVoice = useCallback((voiceId: string) => {
     const voice = voices.find(v => v.id === voiceId);
