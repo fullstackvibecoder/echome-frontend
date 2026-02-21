@@ -130,7 +130,8 @@ export default function TeamVoicesContent() {
 
   const openCreateModal = () => {
     setEditingVoice(null);
-    setFormData(emptyForm);
+    const defaultKb = knowledgeBases.find(kb => kb.is_default) || knowledgeBases[0];
+    setFormData({ ...emptyForm, knowledgeBaseId: defaultKb?.id || '' });
     setShowModal(true);
     setError(null);
   };
@@ -571,7 +572,7 @@ export default function TeamVoicesContent() {
                 )}
                 {!formData.knowledgeBaseId && (
                   <p className="text-xs text-amber-600 mt-1">
-                    This voice will use the default knowledge base. For distinct voices, assign a dedicated KB.
+                    Tip: Your existing knowledge base content is shared across all voices. Assign a specific KB to customize what content this voice draws from.
                   </p>
                 )}
               </div>

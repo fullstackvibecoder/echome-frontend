@@ -127,8 +127,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           } catch {
             // Endpoint may not be deployed yet — fall back to basic create
             try {
+              const kbResponse = await api.kb.list();
+              const defaultKb = kbResponse.success && kbResponse.data
+                ? (kbResponse.data.find((kb: any) => kb.is_default) || kbResponse.data[0])
+                : null;
+
               const fallbackResponse = await api.teamVoices.create({
                 name: 'My Voice',
+                knowledgeBaseId: defaultKb?.id,
               });
               if (fallbackResponse.success && fallbackResponse.data) {
                 const newVoice = fallbackResponse.data;
