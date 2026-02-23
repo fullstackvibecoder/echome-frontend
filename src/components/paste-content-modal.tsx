@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { api } from '@/lib/api-client';
 
 type ContentSourceType = 'writing_sample' | 'social_post' | 'email' | 'text';
@@ -98,13 +99,23 @@ export function PasteContentModal({
     }
   };
 
+  // Escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, submitting]);
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
         onClick={handleClose}
       />
 
@@ -122,15 +133,16 @@ export function PasteContentModal({
             <button
               onClick={handleClose}
               disabled={submitting}
-              className="text-text-secondary hover:text-text-primary text-2xl disabled:opacity-50"
+              className="text-text-secondary hover:text-text-primary disabled:opacity-50"
+              aria-label="Close"
             >
-              ✕
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
               {error}
             </div>
           )}

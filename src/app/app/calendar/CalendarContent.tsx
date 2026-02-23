@@ -66,15 +66,15 @@ export default function CalendarContent() {
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Calendar className="w-6 h-6 text-purple-600" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Calendar className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-foreground">
               Content Calendar
               <InfoTooltip text="Plan when to publish your generated content. Drag posts to different dates to schedule them." />
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               View and manage your scheduled content
             </p>
           </div>
@@ -84,14 +84,14 @@ export default function CalendarContent() {
           <button
             onClick={refresh}
             disabled={loading}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+            className="p-2 hover:bg-muted rounded-md transition-colors disabled:opacity-50"
             title="Refresh"
           >
-            <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-5 h-5 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
           </button>
           <Link
             href="/app"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Sparkles className="w-4 h-4" />
             Create Content
@@ -103,7 +103,7 @@ export default function CalendarContent() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
           {error}
         </div>
       )}
@@ -132,20 +132,20 @@ export default function CalendarContent() {
           />
 
           {/* How to Schedule */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">How to Schedule</h3>
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <div className="px-4 py-3 border-b border-border">
+              <h3 className="font-semibold text-foreground">How to Schedule</h3>
             </div>
-            <div className="p-4 space-y-3 text-sm text-gray-600">
+            <div className="p-4 space-y-3 text-sm text-muted-foreground">
               <p>
                 To add content to your calendar:
               </p>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Go to your <Link href="/app" className="text-blue-600 hover:underline">Content Kits</Link></li>
+                <li>Go to your <Link href="/app" className="text-primary hover:underline">Content Kits</Link></li>
                 <li>Open a content kit</li>
                 <li>Click &quot;Add to Calendar&quot; on any content piece</li>
               </ol>
-              <p className="text-xs text-gray-500 mt-3">
+              <p className="text-xs text-muted-foreground mt-3">
                 This ensures every scheduled post is linked to actual content you&apos;ve created.
               </p>
             </div>

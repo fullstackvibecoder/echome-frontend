@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
+import { toast } from 'sonner';
 
 type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing' | 'referral';
 
@@ -581,16 +582,16 @@ export default function SettingsContent() {
           {/* Change Password */}
           <div className="card">
             <h3 className="text-subheading text-xl mb-4">Change Password</h3>
-            <div className="space-y-4">
+            <div className="space-y-4 opacity-50">
               <div>
                 <label className="block text-small font-medium text-text-primary mb-2">
                   Current Password
                 </label>
                 <input
                   type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                  disabled
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border-2 border-border rounded-lg cursor-not-allowed"
                 />
               </div>
               <div>
@@ -599,9 +600,9 @@ export default function SettingsContent() {
                 </label>
                 <input
                   type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                  disabled
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border-2 border-border rounded-lg cursor-not-allowed"
                 />
               </div>
               <div>
@@ -610,12 +611,17 @@ export default function SettingsContent() {
                 </label>
                 <input
                   type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                  disabled
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border-2 border-border rounded-lg cursor-not-allowed"
                 />
               </div>
-              <button className="btn-primary">Update Password</button>
+              <button
+                onClick={() => toast.info("Use 'Forgot Password' from the login page to reset your password.")}
+                className="btn-primary cursor-not-allowed"
+              >
+                Update Password
+              </button>
             </div>
           </div>
 
@@ -625,7 +631,10 @@ export default function SettingsContent() {
             <p className="text-body text-text-secondary mb-4">
               Once you delete your account, there is no going back. Please be certain.
             </p>
-            <button className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors">
+            <button
+              onClick={() => toast.info('To delete your account, please contact support at ara.mamourian@tryechome.com')}
+              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
+            >
               Delete Account
             </button>
           </div>

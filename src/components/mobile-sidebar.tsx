@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NAV_ITEMS, ADMIN_NAV_ITEMS, useAppNavigation } from '@/hooks/useAppNavigation';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
@@ -18,9 +20,27 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const { activeItem, navigate } = useAppNavigation();
   const { isFirstTime, sidebarHintsSeen, markSidebarHintSeen } = useFirstTimeUser();
   const { isTeamsUser } = useVoiceContext();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   // Filter nav items: hide teamsOnly items for non-teams users
   const visibleNavItems = [...NAV_ITEMS.filter(item => !item.teamsOnly || isTeamsUser), ...(user?.isAdmin ? ADMIN_NAV_ITEMS : [])];
+
+  // Escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Auto-focus close button on open
+  useEffect(() => {
+    if (isOpen) {
+      closeButtonRef.current?.focus();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -28,22 +48,24 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
         onClick={onClose}
       />
 
       {/* Sidebar */}
-      <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-border flex flex-col z-50 lg:hidden animate-fade-in">
+      <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-border flex flex-col z-50 lg:hidden animate-fade-in" role="dialog" aria-modal="true" aria-label="Navigation menu">
         {/* Logo */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
             EchoMe
           </button>
           <button
+            ref={closeButtonRef}
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground text-2xl"
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Close menu"
           >
-            ✕
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -51,7 +73,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         <VoiceSwitcher />
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1" aria-label="Main navigation">
           {visibleNavItems.map((item) => (
             <button
               key={item.id}

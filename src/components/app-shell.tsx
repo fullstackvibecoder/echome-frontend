@@ -17,6 +17,10 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:p-4 focus:bg-background focus:text-foreground focus:rounded-lg focus:shadow-lg">
+        Skip to main content
+      </a>
+
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -28,7 +32,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <AppHeader />
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main id="main-content" className="flex-1 overflow-y-auto bg-background">
           {children}
         </main>
       </div>

@@ -55,7 +55,7 @@ const TIME_SLOTS = [
  * Get category color classes
  */
 function getCategoryColor(category?: ContentCategory): string {
-  if (!category) return 'bg-gray-100 border-gray-300 text-gray-700';
+  if (!category) return 'bg-muted border-border text-muted-foreground';
 
   const colors: Record<ContentCategory, string> = {
     authority: 'bg-blue-100 border-blue-300 text-blue-800',
@@ -75,9 +75,9 @@ function getStatusIcon(status: ScheduledPost['status']) {
     case 'posted':
       return <Check className="w-3 h-3 text-green-600" />;
     case 'skipped':
-      return <X className="w-3 h-3 text-gray-400" />;
+      return <X className="w-3 h-3 text-muted-foreground" />;
     default:
-      return <Clock className="w-3 h-3 text-blue-500" />;
+      return <Clock className="w-3 h-3 text-primary" />;
   }
 }
 
@@ -171,44 +171,44 @@ export function ScheduleCalendar({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-card rounded-lg border border-border overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-b border-gray-200">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-b border-border">
         <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={goToPreviousWeek}
-            className="p-2.5 sm:p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+            className="p-2.5 sm:p-2 hover:bg-muted rounded-md transition-colors touch-manipulation"
             aria-label="Previous week"
           >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
+            <ChevronLeft className="w-5 h-5 text-muted-foreground" />
           </button>
           <button
             onClick={goToNextWeek}
-            className="p-2.5 sm:p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+            className="p-2.5 sm:p-2 hover:bg-muted rounded-md transition-colors touch-manipulation"
             aria-label="Next week"
           >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
-          <span className="font-medium text-gray-900 ml-1 sm:ml-2 text-sm sm:text-base">{weekRangeStr}</span>
+          <span className="font-medium text-foreground ml-1 sm:ml-2 text-sm sm:text-base">{weekRangeStr}</span>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={goToToday}
-            className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+            className="px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors touch-manipulation"
           >
             Today
           </button>
 
           {/* View toggle - hidden on mobile since we auto-show list view */}
           {onViewChange && !isMobile && (
-            <div className="hidden sm:flex items-center bg-gray-100 rounded-md p-0.5">
+            <div className="hidden sm:flex items-center bg-muted rounded-md p-0.5">
               <button
                 onClick={() => onViewChange('week')}
                 className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                   view === 'week'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Week
@@ -217,8 +217,8 @@ export function ScheduleCalendar({
                 onClick={() => onViewChange('month')}
                 className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                   view === 'month'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Month
@@ -230,18 +230,18 @@ export function ScheduleCalendar({
 
       {/* Mobile List View - Shows agenda-style list on small screens */}
       {isMobile && (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border">
           {weekDays.map((day, dayIndex) => {
             const dateKey = day.toISOString().split('T')[0];
             const dayPosts = postsByDate[dateKey] || [];
             const isTodayDate = isToday(day);
 
             return (
-              <div key={dateKey} className={isTodayDate ? 'bg-blue-50/30' : ''}>
+              <div key={dateKey} className={isTodayDate ? 'bg-primary/5' : ''}>
                 {/* Day Header */}
                 <div
                   className={`flex items-center justify-between px-4 py-3 ${
-                    isTodayDate ? 'bg-blue-50' : 'bg-gray-50'
+                    isTodayDate ? 'bg-primary/10' : 'bg-muted'
                   }`}
                   onClick={() => onSlotClick?.(day)}
                 >
@@ -249,23 +249,23 @@ export function ScheduleCalendar({
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                         isTodayDate
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white border border-gray-200 text-gray-700'
+                          ? 'bg-primary text-white'
+                          : 'bg-card border border-border text-muted-foreground'
                       }`}
                     >
                       {day.getDate()}
                     </div>
                     <div>
-                      <div className={`font-medium ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
+                      <div className={`font-medium ${isTodayDate ? 'text-primary' : 'text-foreground'}`}>
                         {FULL_DAYS[dayIndex]}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {day.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                       </div>
                     </div>
                   </div>
                   {dayPosts.length === 0 && (
-                    <span className="text-sm text-gray-400">Tap to add</span>
+                    <span className="text-sm text-muted-foreground">Tap to add</span>
                   )}
                 </div>
 
@@ -297,7 +297,7 @@ export function ScheduleCalendar({
                             {post.platforms.map(p => (
                               <span
                                 key={p}
-                                className="text-xs px-2 py-1 bg-white/60 rounded-full"
+                                className="text-xs px-2 py-1 bg-card/60 rounded-full"
                               >
                                 {p}
                               </span>
@@ -324,25 +324,25 @@ export function ScheduleCalendar({
             return (
               <div
                 key={dateKey}
-                className={`border-r border-gray-200 last:border-r-0 ${
-                  isToday(day) ? 'bg-blue-50/50' : ''
+                className={`border-r border-border last:border-r-0 ${
+                  isToday(day) ? 'bg-primary/10' : ''
                 }`}
               >
                 {/* Day Header */}
                 <div
-                  className={`sticky top-0 z-10 px-2 py-2 border-b border-gray-200 ${
-                    isToday(day) ? 'bg-blue-50' : 'bg-gray-50'
+                  className={`sticky top-0 z-10 px-2 py-2 border-b border-border ${
+                    isToday(day) ? 'bg-primary/10' : 'bg-muted'
                   }`}
                 >
                   <div className="text-center">
-                    <div className="text-xs text-gray-500 uppercase">
+                    <div className="text-xs text-muted-foreground uppercase">
                       {DAYS[dayIndex]}
                     </div>
                     <div
                       className={`text-lg font-semibold ${
                         isToday(day)
-                          ? 'text-blue-600'
-                          : 'text-gray-900'
+                          ? 'text-primary'
+                          : 'text-foreground'
                       }`}
                     >
                       {day.getDate()}
@@ -352,11 +352,11 @@ export function ScheduleCalendar({
 
                 {/* Day Content */}
                 <div
-                  className="p-2 min-h-[400px] space-y-2 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                  className="p-2 min-h-[400px] space-y-2 cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => onSlotClick?.(day)}
                 >
                   {dayPosts.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                       <CalendarIcon className="w-4 h-4 mr-1" />
                       <span className="hidden md:inline">Click to schedule</span>
                     </div>
@@ -391,13 +391,13 @@ export function ScheduleCalendar({
                             {post.platforms.slice(0, 3).map(p => (
                               <span
                                 key={p}
-                                className="text-[10px] px-1.5 py-0.5 bg-white/50 rounded"
+                                className="text-[10px] px-1.5 py-0.5 bg-card/50 rounded"
                               >
                                 {p}
                               </span>
                             ))}
                             {post.platforms.length > 3 && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-white/50 rounded">
+                              <span className="text-[10px] px-1.5 py-0.5 bg-card/50 rounded">
                                 +{post.platforms.length - 3}
                               </span>
                             )}
@@ -421,7 +421,7 @@ export function ScheduleCalendar({
             {DAYS.map(day => (
               <div
                 key={day}
-                className="text-center text-xs font-medium text-gray-500 py-2"
+                className="text-center text-xs font-medium text-muted-foreground py-2"
               >
                 {day}
               </div>
@@ -464,13 +464,13 @@ export function ScheduleCalendar({
                   <div
                     key={day}
                     onClick={() => onSlotClick?.(date)}
-                    className={`aspect-square border rounded-md p-1 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      isTodayDate ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    className={`aspect-square border rounded-md p-1 cursor-pointer hover:bg-muted transition-colors ${
+                      isTodayDate ? 'border-primary bg-primary/10' : 'border-border'
                     }`}
                   >
                     <div
                       className={`text-xs font-medium ${
-                        isTodayDate ? 'text-blue-600' : 'text-gray-700'
+                        isTodayDate ? 'text-primary' : 'text-muted-foreground'
                       }`}
                     >
                       {day}
@@ -483,13 +483,13 @@ export function ScheduleCalendar({
                             className={`w-2 h-2 rounded-full ${
                               post.contentCategory
                                 ? getCategoryColor(post.contentCategory).split(' ')[0]
-                                : 'bg-gray-300'
+                                : 'bg-muted'
                             }`}
                             title={post.title || 'Scheduled'}
                           />
                         ))}
                         {dayPosts.length > 3 && (
-                          <span className="text-[8px] text-gray-500">
+                          <span className="text-[8px] text-muted-foreground">
                             +{dayPosts.length - 3}
                           </span>
                         )}
@@ -506,7 +506,7 @@ export function ScheduleCalendar({
       )}
 
       {/* Legend - Hidden on mobile for cleaner UI */}
-      <div className="hidden sm:block px-4 py-2 border-t border-gray-200 bg-gray-50">
+      <div className="hidden sm:block px-4 py-2 border-t border-border bg-muted">
         <div className="flex items-center justify-center gap-4 text-xs">
           {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map(
             category => (
@@ -516,7 +516,7 @@ export function ScheduleCalendar({
                     getCategoryColor(category).split(' ')[0]
                   }`}
                 />
-                <span className="text-gray-600">
+                <span className="text-muted-foreground">
                   {CONTENT_CATEGORY_CONFIG[category].label.split('/')[0]}
                 </span>
               </div>

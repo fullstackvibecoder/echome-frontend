@@ -1,5 +1,6 @@
 'use client';
 
+import { Menu, Check } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 
@@ -15,14 +16,15 @@ export function AppHeader() {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
-            className="lg:hidden text-muted-foreground hover:text-foreground text-2xl"
+            className="lg:hidden text-muted-foreground hover:text-foreground"
+            aria-label="Open menu"
           >
-            ☰
+            <Menu className="w-6 h-6" />
           </button>
 
           {/* KB Status */}
           <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-lg border border-border">
-            <span className="text-primary">✓</span>
+            <Check className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">Echo trained</span>
           </div>
         </div>

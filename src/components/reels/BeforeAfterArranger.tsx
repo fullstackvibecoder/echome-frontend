@@ -8,6 +8,7 @@
  */
 
 import { useState, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { ReelMediaType, MotionEffect } from '@/types';
 import type { MediaItem } from './MediaUploader';
 
@@ -162,7 +163,7 @@ function DropZone({ label, sublabel, items, onChange, accentColor }: DropZonePro
 
     // Can mix images with a video, but only 1 video per zone
     if (hasVideo && hasNewVideo) {
-      alert('Only 1 video allowed per zone. Remove the existing video first.');
+      toast.info('Only 1 video allowed per zone. Remove the existing video first.');
       return;
     }
 

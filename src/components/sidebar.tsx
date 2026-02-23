@@ -21,7 +21,7 @@ export function Sidebar() {
     <aside className="h-screen w-64 bg-sidebar border-r border-border flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-border">
-        <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+        <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity" aria-label="Go to dashboard">
           EchoMe
         </button>
       </div>
@@ -30,7 +30,7 @@ export function Sidebar() {
       <VoiceSwitcher />
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1" aria-label="Main navigation">
         {visibleNavItems.map((item) => (
           <button
             key={item.id}
@@ -40,6 +40,7 @@ export function Sidebar() {
               navigate(item.path);
             }}
             disabled={item.comingSoon}
+            aria-current={activeItem === item.id ? 'page' : undefined}
             className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-lg
               font-medium transition-all duration-200

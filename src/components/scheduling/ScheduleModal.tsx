@@ -111,12 +111,12 @@ function ContentPreview({
   // No content snapshot - just show title
   if (!snapshot) {
     return (
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="p-4 bg-muted rounded-lg border border-border">
         <div className="flex items-center gap-2 mb-2">
-          <FileText className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-900">{post.title || 'Scheduled Post'}</span>
+          <FileText className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">{post.title || 'Scheduled Post'}</span>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Content details not available. Open the content kit to access full content.
         </p>
       </div>
@@ -124,16 +124,16 @@ function ContentPreview({
   }
 
   return (
-    <div className="p-4 bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-lg border border-gray-200 space-y-3">
+    <div className="p-4 bg-gradient-to-br from-muted to-primary/5 rounded-lg border border-border space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {snapshot.type === 'clips' && <Video className="w-4 h-4 text-purple-600" />}
           {snapshot.type === 'carousel' && <Image className="w-4 h-4 text-pink-600" />}
-          {snapshot.type === 'written' && <FileText className="w-4 h-4 text-blue-600" />}
-          <span className="text-sm font-medium text-gray-900">{post.title || 'Scheduled Post'}</span>
+          {snapshot.type === 'written' && <FileText className="w-4 h-4 text-primary" />}
+          <span className="text-sm font-medium text-foreground">{post.title || 'Scheduled Post'}</span>
         </div>
-        <span className="text-xs px-2 py-0.5 bg-white rounded-full text-gray-600 capitalize border">
+        <span className="text-xs px-2 py-0.5 bg-card rounded-full text-muted-foreground capitalize border">
           {snapshot.type}
         </span>
       </div>
@@ -141,14 +141,14 @@ function ContentPreview({
       {/* Written Content */}
       {snapshot.type === 'written' && snapshot.text && (
         <div className="space-y-2">
-          <div className="bg-white rounded-md p-3 border border-gray-100 max-h-32 overflow-y-auto">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{snapshot.text}</p>
+          <div className="bg-card rounded-md p-3 border border-border max-h-32 overflow-y-auto">
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{snapshot.text}</p>
           </div>
           <button
             onClick={() => handleCopy(snapshot.text!)}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors touch-manipulation"
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-card border border-border rounded-md hover:bg-muted transition-colors touch-manipulation"
           >
-            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-500" />}
+            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
             {copied ? 'Copied!' : 'Copy Content'}
           </button>
         </div>
@@ -158,28 +158,28 @@ function ContentPreview({
       {snapshot.type === 'clips' && (
         <div className="space-y-2">
           {snapshot.thumbnailUrl && (
-            <div className="relative aspect-video w-full max-w-[200px] rounded-md overflow-hidden bg-gray-900">
+            <div className="relative aspect-video w-full max-w-[200px] rounded-md overflow-hidden bg-foreground">
               <img src={snapshot.thumbnailUrl} alt="Video thumbnail" className="w-full h-full object-cover" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center">
-                  <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-gray-900 border-b-[6px] border-b-transparent ml-1" />
+                <div className="w-10 h-10 bg-card/90 rounded-full flex items-center justify-center">
+                  <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-foreground border-b-[6px] border-b-transparent ml-1" />
                 </div>
               </div>
             </div>
           )}
           {snapshot.suggestedCaption && (
-            <div className="bg-white rounded-md p-3 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Suggested Caption:</p>
-              <p className="text-sm text-gray-700">{snapshot.suggestedCaption}</p>
+            <div className="bg-card rounded-md p-3 border border-border">
+              <p className="text-xs text-muted-foreground mb-1">Suggested Caption:</p>
+              <p className="text-sm text-muted-foreground">{snapshot.suggestedCaption}</p>
             </div>
           )}
           <div className="flex flex-wrap gap-2">
             {snapshot.suggestedCaption && (
               <button
                 onClick={() => handleCopy(snapshot.suggestedCaption!)}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors touch-manipulation"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-card border border-border rounded-md hover:bg-muted transition-colors touch-manipulation"
               >
-                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-500" />}
+                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                 {copied ? 'Copied!' : 'Copy Caption'}
               </button>
             )}
@@ -202,24 +202,24 @@ function ContentPreview({
         <div className="space-y-2">
           <div className="flex gap-2 overflow-x-auto pb-2">
             {snapshot.carouselSlides.slice(0, 5).map((slide) => (
-              <div key={slide.slideNumber} className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-gray-200">
+              <div key={slide.slideNumber} className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-muted">
                 <img src={slide.imageUrl} alt={`Slide ${slide.slideNumber}`} className="w-full h-full object-cover" />
               </div>
             ))}
             {snapshot.carouselSlides.length > 5 && (
-              <div className="flex-shrink-0 w-16 h-16 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500">
+              <div className="flex-shrink-0 w-16 h-16 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
                 +{snapshot.carouselSlides.length - 5}
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-500">{snapshot.carouselSlides.length} slides</p>
+          <p className="text-xs text-muted-foreground">{snapshot.carouselSlides.length} slides</p>
         </div>
       )}
 
       {/* Platform Quick Actions */}
       {post.platforms.length > 0 && (
-        <div className="pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
             Auto-posting coming soon! For now, open your platform to post:
           </p>
@@ -228,7 +228,7 @@ function ContentPreview({
               <button
                 key={platform}
                 onClick={() => openPlatform(platform)}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors capitalize"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-card border border-border rounded-full hover:bg-muted transition-colors capitalize"
               >
                 <ExternalLink className="w-3 h-3" />
                 Open {platform}
@@ -359,6 +359,16 @@ export function ScheduleModal({
     }
   };
 
+  // Escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const isEditMode = !!editingPost;
@@ -373,22 +383,22 @@ export function ScheduleModal({
       <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
 
         {/* Modal */}
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg transform transition-all max-h-[95vh] overflow-y-auto">
+        <div className="relative bg-card rounded-xl shadow-xl w-full max-w-lg transform transition-all max-h-[95vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border sticky top-0 bg-card z-10">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               {isEditMode ? 'Edit Scheduled Post' : 'Schedule Content'}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+              className="p-2 hover:bg-muted rounded-md transition-colors touch-manipulation"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
@@ -397,13 +407,13 @@ export function ScheduleModal({
             {/* Content Selection (only for new) */}
             {!isEditMode && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Select Content
                 </label>
                 <select
                   value={selectedContent}
                   onChange={e => setSelectedContent(e.target.value)}
-                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
+                  className="w-full px-3 py-3 sm:py-2 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-accent transition-colors text-base sm:text-sm"
                 >
                   <option value="">Choose content to schedule...</option>
                   {unscheduledContent.map(content => (
@@ -428,7 +438,7 @@ export function ScheduleModal({
             {/* Date & Time */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   <Calendar className="w-4 h-4 inline mr-1" />
                   Date
                 </label>
@@ -436,11 +446,11 @@ export function ScheduleModal({
                   type="date"
                   value={selectedDate}
                   onChange={e => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
+                  className="w-full px-3 py-3 sm:py-2 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-accent transition-colors text-base sm:text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   <Clock className="w-4 h-4 inline mr-1" />
                   Time
                 </label>
@@ -448,7 +458,7 @@ export function ScheduleModal({
                   type="time"
                   value={selectedTime}
                   onChange={e => setSelectedTime(e.target.value)}
-                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
+                  className="w-full px-3 py-3 sm:py-2 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-accent transition-colors text-base sm:text-sm"
                 />
               </div>
             </div>
@@ -459,7 +469,7 @@ export function ScheduleModal({
                 <button
                   key={preset.label}
                   onClick={() => handleTimePreset(preset.hour, preset.minute)}
-                  className="px-3 py-2 sm:py-1 text-sm sm:text-xs bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-gray-700 touch-manipulation"
+                  className="px-3 py-2 sm:py-1 text-sm sm:text-xs bg-muted hover:bg-muted/80 rounded-full transition-colors text-muted-foreground touch-manipulation"
                 >
                   {preset.label}
                 </button>
@@ -468,7 +478,7 @@ export function ScheduleModal({
 
             {/* Platforms */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Platforms
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -481,8 +491,8 @@ export function ScheduleModal({
                       onClick={() => togglePlatform(platform.id)}
                       className={`flex items-center gap-2 px-3 py-3 sm:py-2 rounded-md border transition-all touch-manipulation ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border hover:border-accent/50 text-muted-foreground'
                       }`}
                     >
                       <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
@@ -495,7 +505,7 @@ export function ScheduleModal({
 
             {/* Content Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Content Category
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -512,16 +522,16 @@ export function ScheduleModal({
                         }
                         className={`flex items-start gap-2 px-3 py-3 sm:py-2 rounded-md border transition-all text-left touch-manipulation ${
                           isSelected
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-300 hover:border-gray-400'
+                            ? 'border-primary bg-primary/10'
+                            : 'border-border hover:border-accent/50'
                         }`}
                       >
                         <Icon className="w-5 h-5 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
                         <div>
-                          <div className="text-base sm:text-sm font-medium text-gray-900">
+                          <div className="text-base sm:text-sm font-medium text-foreground">
                             {config.label.split('/')[0]}
                           </div>
-                          <div className="text-sm sm:text-xs text-gray-500">
+                          <div className="text-sm sm:text-xs text-muted-foreground">
                             {config.description.slice(0, 40)}...
                           </div>
                         </div>
@@ -534,7 +544,7 @@ export function ScheduleModal({
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Notes (optional)
               </label>
               <textarea
@@ -542,13 +552,13 @@ export function ScheduleModal({
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Any reminders or notes for this post..."
                 rows={2}
-                className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
+                className="w-full px-3 py-3 sm:py-2 border-2 border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-accent transition-colors text-base sm:text-sm"
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 sticky bottom-0 bg-white">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border sticky bottom-0 bg-card">
             {/* Edit mode actions - stack on mobile */}
             {isEditMode && editingPost?.status === 'scheduled' && (
               <div className="flex flex-wrap gap-2 mb-3 sm:mb-0 sm:float-left">
@@ -565,7 +575,7 @@ export function ScheduleModal({
                   <button
                     onClick={() => onMarkSkipped(editingPost.id).then(onClose)}
                     disabled={loading}
-                    className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+                    className="px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors touch-manipulation"
                   >
                     Skip
                   </button>
@@ -574,7 +584,7 @@ export function ScheduleModal({
                   <button
                     onClick={handleDelete}
                     disabled={loading}
-                    className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors touch-manipulation"
+                    className="px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md transition-colors touch-manipulation"
                   >
                     Delete
                   </button>
@@ -584,14 +594,14 @@ export function ScheduleModal({
             <div className="flex gap-2 justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2.5 sm:py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors touch-manipulation"
+                className="px-4 py-2.5 sm:py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors touch-manipulation"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={!canSave || loading}
-                className="px-4 py-2.5 sm:py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                className="px-4 py-2.5 sm:py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               >
                 {loading
                   ? 'Saving...'

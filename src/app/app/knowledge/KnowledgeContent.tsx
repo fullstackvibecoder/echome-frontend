@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
+import { X } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -11,6 +12,7 @@ import { VoiceRecorder } from '@/components/voice-recorder';
 import { SocialImportModal } from '@/components/social-import-modal';
 import { BlogImportModal } from '@/components/blog-import-modal';
 import { api } from '@/lib/api-client';
+import { toast } from 'sonner';
 import { UnifiedContentItem } from '@/types';
 import { parseMboxFile } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
@@ -271,7 +273,7 @@ export default function KnowledgeContent() {
       });
 
       if (parseResult.emails.length === 0) {
-        alert('No emails found to import. Make sure you\'re uploading your "Sent" folder.');
+        toast.info('No emails found to import. Make sure you\'re uploading your "Sent" folder.');
         return;
       }
 
@@ -299,7 +301,7 @@ export default function KnowledgeContent() {
       setMboxResult({ emailsIngested: result.emailsIngested, chunksCreated: result.chunksCreated });
       await refresh();
     } catch (err) {
-      alert(`Failed to import emails: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(`Failed to import emails: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setMboxUploading(false);
       setMboxStatus('');
@@ -631,12 +633,12 @@ export default function KnowledgeContent() {
       {/* Upload Modal */}
       {showUploadModal && (
         <>
-          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowUploadModal(false)} />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowUploadModal(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Upload Files</h2>
-                <button onClick={() => setShowUploadModal(false)} className="text-text-secondary hover:text-text-primary">✕</button>
+                <button onClick={() => setShowUploadModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
               </div>
               <UploadZone onFilesAdded={addFiles} disabled={uploading} />
               <FileList files={uploadFiles} onRemove={removeFile} totalSize={totalSize} />
@@ -654,12 +656,12 @@ export default function KnowledgeContent() {
       {/* MBOX Modal */}
       {showMboxInstructions && (
         <>
-          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowMboxInstructions(false)} />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowMboxInstructions(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Import Emails</h2>
-                <button onClick={() => setShowMboxInstructions(false)} className="text-text-secondary hover:text-text-primary">✕</button>
+                <button onClick={() => setShowMboxInstructions(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
               </div>
               <p className="text-sm text-text-secondary mb-4">
                 Import your sent emails to train Echo on your writing style.
@@ -694,12 +696,12 @@ export default function KnowledgeContent() {
       {/* Voice Modal */}
       {showVoiceModal && (
         <>
-          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowVoiceModal(false)} />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowVoiceModal(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full">
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <h2 className="font-semibold">Record Voice</h2>
-                <button onClick={() => setShowVoiceModal(false)} className="text-text-secondary hover:text-text-primary">✕</button>
+                <button onClick={() => setShowVoiceModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
               </div>
               <div className="p-4">
                 <VoiceRecorder onSaved={() => { setShowVoiceModal(false); refresh(); }} knowledgeBaseId={selectedKb ?? undefined} />

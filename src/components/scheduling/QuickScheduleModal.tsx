@@ -141,6 +141,16 @@ export function QuickScheduleModal({
     );
   };
 
+  // Escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -185,7 +195,7 @@ export function QuickScheduleModal({
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-3 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary text-base sm:text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+              className="w-full px-4 py-3 sm:py-2.5 bg-background border-2 border-border rounded-lg text-foreground text-base sm:text-sm focus:outline-none focus:border-accent transition-colors"
               required
             />
           </div>
@@ -216,7 +226,7 @@ export function QuickScheduleModal({
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full px-4 py-3 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary text-base sm:text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+              className="w-full px-4 py-3 sm:py-2.5 bg-background border-2 border-border rounded-lg text-foreground text-base sm:text-sm focus:outline-none focus:border-accent transition-colors"
               required
             />
           </div>
@@ -289,7 +299,7 @@ export function QuickScheduleModal({
               placeholder="Add any notes for this post..."
               rows={2}
               maxLength={500}
-              className="w-full px-4 py-3 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary text-base sm:text-sm placeholder:text-text-secondary focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
+              className="w-full px-4 py-3 sm:py-2.5 bg-background border-2 border-border rounded-lg text-foreground text-base sm:text-sm placeholder:text-text-secondary focus:outline-none focus:border-accent transition-colors resize-none"
             />
           </div>
 
