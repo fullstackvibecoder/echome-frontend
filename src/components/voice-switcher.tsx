@@ -60,8 +60,8 @@ export function VoiceSwitcher() {
           <p className="text-sm font-medium text-foreground truncate">
             {activeVoice?.name || 'Select Voice'}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {voiceLimit > 0 ? `${voiceCount} / ${voiceLimit} voices` : `${voices.length} voice${voices.length !== 1 ? 's' : ''}`}
+          <p className={`text-xs ${voiceLimit > 0 && voiceCount >= voiceLimit ? 'text-amber-500 font-medium' : 'text-muted-foreground'}`}>
+            {voiceLimit > 0 ? `${voiceCount} / ${voiceLimit} voices${voiceCount >= voiceLimit ? ' (limit reached)' : ''}` : `${voices.length} voice${voices.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 

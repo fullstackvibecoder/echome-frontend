@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Plus, Pencil, Trash2, Star, Loader2, X, Link2, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, Loader2, X, Link2, AlertTriangle, Check } from 'lucide-react';
 import { api, TeamVoice, TeamVoiceInput } from '@/lib/api-client';
 import { KnowledgeBase, SocialIntegration } from '@/types';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -40,6 +40,19 @@ const emptyForm: VoiceFormData = {
   instagramHandle: '',
   websiteUrl: '',
 };
+
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
 
 export default function TeamVoicesContent() {
   const searchParams = useSearchParams();
@@ -107,6 +120,8 @@ export default function TeamVoicesContent() {
     }
     loadData();
   }, []);
+
+  const isAtLimit = voiceLimit > 0 && voiceCount >= voiceLimit;
 
   if (!isTeamsUser) {
     return (
@@ -276,6 +291,16 @@ export default function TeamVoicesContent() {
     }
   };
 
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!showModal) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showModal]);
+
   // Auto-dismiss messages
   useEffect(() => {
     if (successMessage) {
@@ -300,7 +325,7 @@ export default function TeamVoicesContent() {
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-3xl font-bold">Team Voices</h1>
             {voiceLimit > 0 && (
-              <span className="text-sm font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+              <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${isAtLimit ? 'text-amber-600 bg-amber-500/10' : 'text-muted-foreground bg-muted'}`}>
                 {voiceCount} of {voiceLimit}
               </span>
             )}
@@ -309,13 +334,21 @@ export default function TeamVoicesContent() {
             Manage multiple voice profiles for your team
           </p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Voice
-        </button>
+        <div className="flex flex-col items-end gap-1">
+          <button
+            onClick={openCreateModal}
+            disabled={isAtLimit}
+            className={`flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium transition-colors ${isAtLimit ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'}`}
+          >
+            <Plus className="w-4 h-4" />
+            Add Voice
+          </button>
+          {isAtLimit && (
+            <a href="/app/billing" className="text-xs text-amber-600 hover:underline">
+              Upgrade for more voices
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Welcome Banner (post-checkout) */}
@@ -365,11 +398,17 @@ export default function TeamVoicesContent() {
           <p className="text-sm text-muted-foreground mb-6">Create your first voice to get started.</p>
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+            disabled={isAtLimit}
+            className={`inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold transition-colors ${isAtLimit ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'}`}
           >
             <Plus className="w-4 h-4" />
             Create Voice
           </button>
+          {isAtLimit && (
+            <p className="text-sm text-amber-600 mt-2">
+              Voice limit reached. <a href="/app/billing" className="underline hover:no-underline">Upgrade</a> for more.
+            </p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -402,7 +441,8 @@ export default function TeamVoicesContent() {
                     )}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {kb ? (
-                        <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Check className="w-3 h-3" />
                           KB: {kb.name || 'Default'}
                         </span>
                       ) : (
@@ -427,6 +467,9 @@ export default function TeamVoicesContent() {
                         ) : null;
                       })()}
                     </div>
+                    {voice.createdAt && (
+                      <p className="text-xs text-muted-foreground mt-1.5">Created {timeAgo(voice.createdAt)}</p>
+                    )}
                   </div>
                 </div>
 
@@ -449,19 +492,22 @@ export default function TeamVoicesContent() {
                         Set Default
                       </button>
                       {deleteConfirm === voice.id ? (
-                        <div className="flex items-center gap-1 ml-auto">
-                          <button
-                            onClick={() => handleDelete(voice.id)}
-                            className="px-3 py-1.5 text-sm bg-destructive text-white rounded-lg hover:bg-destructive/90 transition-colors"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(null)}
-                            className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-lg transition-colors"
-                          >
-                            Cancel
-                          </button>
+                        <div className="flex flex-col items-end gap-1.5 ml-auto">
+                          <p className="text-xs text-muted-foreground">Content created with this voice stays in your library.</p>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleDelete(voice.id)}
+                              className="px-3 py-1.5 text-sm bg-destructive text-white rounded-lg hover:bg-destructive/90 transition-colors"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(null)}
+                              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <button
@@ -483,10 +529,10 @@ export default function TeamVoicesContent() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card border rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
+          <div className="bg-card border rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border">
+            <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
               <h2 className="text-xl font-bold">
                 {editingVoice ? 'Edit Voice' : 'Create Voice'}
               </h2>
@@ -499,7 +545,7 @@ export default function TeamVoicesContent() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                   {error}
@@ -679,12 +725,10 @@ export default function TeamVoicesContent() {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Social Integrations Section (edit mode only) */}
-            {editingVoice && socialIntegrations.length > 0 && (
-              <div className="px-6 pb-4">
-                <div className="pt-2">
+              {/* Social Integrations Section (edit mode only) */}
+              {editingVoice && socialIntegrations.length > 0 && (
+                <div className="pt-4">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                     <Link2 className="w-4 h-4" />
                     Social Accounts
@@ -727,11 +771,11 @@ export default function TeamVoicesContent() {
                     })}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border flex-shrink-0">
               <button
                 onClick={() => setShowModal(false)}
                 disabled={saving}

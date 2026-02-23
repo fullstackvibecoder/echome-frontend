@@ -19,6 +19,7 @@ import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/cont
 import api from '@/lib/api-client';
 import { ContentCategory, LinkedReelSummary } from '@/types';
 import { CalendarPlus } from 'lucide-react';
+import { useVoiceContext } from '@/contexts/voice-context';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
 
 // Progress step component
@@ -62,6 +63,7 @@ export default function ContentKitDetailContent() {
   const id = params.id as string;
 
   const { item, detail, loading, error, refresh } = useContentKitDetail({ id });
+  const { activeVoice, isTeamsUser } = useVoiceContext();
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -372,6 +374,24 @@ export default function ContentKitDetailContent() {
         <span>←</span>
         <span>Back to Content Kit</span>
       </Link>
+
+      {/* Active Voice Indicator (Teams users) */}
+      {isTeamsUser && activeVoice && (
+        <div className="flex items-center gap-3 mb-6 px-4 py-2.5 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold flex-shrink-0">
+            {activeVoice.name.charAt(0).toUpperCase()}
+          </div>
+          <span className="text-sm text-foreground">
+            Voice: <span className="font-medium">{activeVoice.name}</span>
+          </span>
+          <Link
+            href="/app/team-voices"
+            className="text-xs text-primary hover:underline ml-auto"
+          >
+            Switch
+          </Link>
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (
