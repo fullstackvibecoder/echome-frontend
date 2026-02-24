@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Check, Mail } from 'lucide-react';
+import { Menu, X, Check, Mail, Users } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
@@ -297,6 +297,174 @@ export default function HomeContent() {
                         <span className="text-sm font-medium text-stone-700">{feature}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Teams Plans */}
+          <div className="mt-20 mb-16">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#B794F6]/10 border border-[#B794F6]/20 rounded-full mb-4">
+                <Users className="w-4 h-4 text-[#B794F6]" />
+                <span className="text-[#B794F6] font-semibold text-sm">For Teams</span>
+              </div>
+              <h3 className="text-3xl md:text-4xl font-extrabold text-[#1C1C1E] mb-2">
+                Multi-Voice Management
+              </h3>
+              <p className="text-gray-600 font-light max-w-2xl mx-auto">
+                Manage multiple voices from one account. Everything in Echo Pro, plus per-voice knowledge bases and profile context.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {/* EchoTeams Duo - $129 */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#B794F6]/20 to-[#00D4FF]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                  <div className="mb-6">
+                    <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-1">EchoTeams Duo</h3>
+                    <p className="text-xs font-light text-stone-600 mb-4">2 voices</p>
+                    <div className="mb-3">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] bg-clip-text text-transparent">
+                          ${billingPeriod === 'monthly' ? '129' : '1,075'}
+                        </span>
+                        <span className="text-sm font-light text-stone-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                      </div>
+                      {billingPeriod === 'annual' && (
+                        <div className="mt-2 inline-block bg-[#B794F6]/10 border border-[#B794F6]/30 rounded-lg px-2 py-0.5">
+                          <p className="text-[10px] font-semibold text-[#B794F6]">2 months free</p>
+                        </div>
+                      )}
+                    </div>
+                    <Link href="/auth/signup?plan=echo-teams-2" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                      Get Started
+                    </Link>
+                  </div>
+                  <div className="flex-1">
+                    <div className="space-y-3 pt-4 border-t-2 border-stone-200">
+                      {[
+                        'Everything in Echo Pro',
+                        '2 distinct voice profiles',
+                        'Per-voice knowledge bases',
+                        'Per-voice profile context',
+                        'Shared usage pool across voices',
+                        'Unlimited video processing',
+                        'Up to 15 clips per video',
+                        '5GB file upload limit',
+                        'Priority support',
+                      ].map((feature, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B794F6] to-[#9F7AEA] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="text-sm font-medium text-stone-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* EchoTeams Pro - $179 - Best Value */}
+              <div className="relative md:-mt-6 group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-gradient-to-br from-[#B794F6] via-[#9F7AEA] to-[#B794F6] rounded-3xl p-6 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(183,148,246,0.5)] hover:-translate-y-2 transition-all duration-300 h-full">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] text-white text-xs font-extrabold px-4 py-1.5 rounded-full shadow-lg">
+                    BEST VALUE
+                  </div>
+                  <div className="mb-6 mt-3">
+                    <h3 className="text-2xl font-extrabold text-white mb-1">EchoTeams Pro</h3>
+                    <p className="text-xs font-light text-white/90 mb-4">5 voices</p>
+                    <div className="mb-3">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-extrabold text-white drop-shadow-lg">
+                          ${billingPeriod === 'monthly' ? '179' : '1,492'}
+                        </span>
+                        <span className="text-sm font-light text-white/80">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                      </div>
+                      {billingPeriod === 'annual' && (
+                        <div className="mt-2 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-0.5">
+                          <p className="text-[10px] font-semibold text-white">2 months free</p>
+                        </div>
+                      )}
+                    </div>
+                    <Link href="/auth/signup?plan=echo-teams-5" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
+                      Get Started
+                    </Link>
+                  </div>
+                  <div className="flex-1">
+                    <div className="space-y-3 pt-4 border-t-2 border-white/30">
+                      {[
+                        'Everything in Echo Pro',
+                        '5 distinct voice profiles',
+                        'Per-voice knowledge bases',
+                        'Per-voice profile context',
+                        'Shared usage pool across voices',
+                        'Unlimited video processing',
+                        'Up to 15 clips per video',
+                        '5GB file upload limit',
+                        'Priority support',
+                      ].map((feature, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="text-sm font-medium text-white">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* EchoTeams Agency - $249 */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#B794F6]/20 to-[#00D4FF]/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-stone-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                  <div className="mb-6">
+                    <h3 className="text-2xl font-extrabold text-[#1C1C1E] mb-1">EchoTeams Agency</h3>
+                    <p className="text-xs font-light text-stone-600 mb-4">10 voices</p>
+                    <div className="mb-3">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-extrabold bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] bg-clip-text text-transparent">
+                          ${billingPeriod === 'monthly' ? '249' : '2,075'}
+                        </span>
+                        <span className="text-sm font-light text-stone-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                      </div>
+                      {billingPeriod === 'annual' && (
+                        <div className="mt-2 inline-block bg-[#B794F6]/10 border border-[#B794F6]/30 rounded-lg px-2 py-0.5">
+                          <p className="text-[10px] font-semibold text-[#B794F6]">2 months free</p>
+                        </div>
+                      )}
+                    </div>
+                    <Link href="/auth/signup?plan=echo-teams-10" className="relative w-full px-4 py-3 bg-gradient-to-r from-[#B794F6] to-[#9F7AEA] text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                      Get Started
+                    </Link>
+                  </div>
+                  <div className="flex-1">
+                    <div className="space-y-3 pt-4 border-t-2 border-stone-200">
+                      {[
+                        'Everything in Echo Pro',
+                        '10 distinct voice profiles',
+                        'Per-voice knowledge bases',
+                        'Per-voice profile context',
+                        'Shared usage pool across voices',
+                        'Unlimited video processing',
+                        'Up to 15 clips per video',
+                        '5GB file upload limit',
+                        'Priority support',
+                      ].map((feature, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B794F6] to-[#9F7AEA] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="text-sm font-medium text-stone-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
