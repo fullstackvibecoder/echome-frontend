@@ -154,6 +154,34 @@ if (typeof window !== 'undefined') {
 }
 
 // ============================================
+// TRANSFORM HELPERS
+// ============================================
+
+/** Transform a raw snake_case team voice row from the API into camelCase TeamVoice */
+function transformTeamVoice(raw: Record<string, unknown>): TeamVoice {
+  return {
+    id: raw.id as string,
+    userId: (raw.user_id ?? raw.userId) as string,
+    name: raw.name as string,
+    description: (raw.description as string) || undefined,
+    avatarUrl: ((raw.avatar_url ?? raw.avatarUrl) as string) || undefined,
+    knowledgeBaseId: ((raw.knowledge_base_id ?? raw.knowledgeBaseId) as string) || undefined,
+    profileRole: ((raw.profile_role ?? raw.profileRole) as string) || undefined,
+    profileTopics: ((raw.profile_topics ?? raw.profileTopics) as string) || undefined,
+    profileCta: ((raw.profile_cta ?? raw.profileCta) as string) || undefined,
+    profileGuardrails: ((raw.profile_guardrails ?? raw.profileGuardrails) as string) || undefined,
+    displayName: ((raw.display_name ?? raw.displayName) as string) || undefined,
+    twitterHandle: ((raw.twitter_handle ?? raw.twitterHandle) as string) || undefined,
+    instagramHandle: ((raw.instagram_handle ?? raw.instagramHandle) as string) || undefined,
+    websiteUrl: ((raw.website_url ?? raw.websiteUrl) as string) || undefined,
+    isDefault: (raw.is_default ?? raw.isDefault) as boolean,
+    sortOrder: (raw.sort_order ?? raw.sortOrder) as number,
+    createdAt: (raw.created_at ?? raw.createdAt) as string,
+    updatedAt: (raw.updated_at ?? raw.updatedAt) as string,
+  };
+}
+
+// ============================================
 // API FUNCTIONS
 // ============================================
 
@@ -2788,12 +2816,20 @@ export const api = {
   teamVoices: {
     list: async (): Promise<ApiResponse<TeamVoice[]>> => {
       const response = await apiClient.get('/team-voices');
-      return response.data;
+      const raw = response.data as ApiResponse<Record<string, unknown>[]>;
+      return {
+        ...raw,
+        data: raw.data ? raw.data.map(transformTeamVoice) : undefined,
+      } as ApiResponse<TeamVoice[]>;
     },
 
     get: async (voiceId: string): Promise<ApiResponse<TeamVoice>> => {
       const response = await apiClient.get(`/team-voices/${voiceId}`);
-      return response.data;
+      const raw = response.data as ApiResponse<Record<string, unknown>>;
+      return {
+        ...raw,
+        data: raw.data ? transformTeamVoice(raw.data) : undefined,
+      } as ApiResponse<TeamVoice>;
     },
 
     create: async (data: TeamVoiceInput): Promise<ApiResponse<TeamVoice>> => {
@@ -2811,7 +2847,11 @@ export const api = {
         instagram_handle: data.instagramHandle,
         website_url: data.websiteUrl,
       });
-      return response.data;
+      const raw = response.data as ApiResponse<Record<string, unknown>>;
+      return {
+        ...raw,
+        data: raw.data ? transformTeamVoice(raw.data) : undefined,
+      } as ApiResponse<TeamVoice>;
     },
 
     update: async (voiceId: string, data: Partial<TeamVoiceInput>): Promise<ApiResponse<TeamVoice>> => {
@@ -2830,7 +2870,11 @@ export const api = {
       if (data.websiteUrl !== undefined) payload.website_url = data.websiteUrl;
 
       const response = await apiClient.put(`/team-voices/${voiceId}`, payload);
-      return response.data;
+      const raw = response.data as ApiResponse<Record<string, unknown>>;
+      return {
+        ...raw,
+        data: raw.data ? transformTeamVoice(raw.data) : undefined,
+      } as ApiResponse<TeamVoice>;
     },
 
     delete: async (voiceId: string): Promise<ApiResponse<{ message: string }>> => {
@@ -2840,7 +2884,11 @@ export const api = {
 
     setDefault: async (voiceId: string): Promise<ApiResponse<TeamVoice>> => {
       const response = await apiClient.post(`/team-voices/${voiceId}/set-default`);
-      return response.data;
+      const raw = response.data as ApiResponse<Record<string, unknown>>;
+      return {
+        ...raw,
+        data: raw.data ? transformTeamVoice(raw.data) : undefined,
+      } as ApiResponse<TeamVoice>;
     },
 
     getLimits: async (): Promise<ApiResponse<{ voiceCount: number; voiceLimit: number; tier: string }>> => {
@@ -2850,7 +2898,11 @@ export const api = {
 
     createDefault: async (): Promise<ApiResponse<TeamVoice>> => {
       const response = await apiClient.post('/team-voices/create-default');
-      return response.data;
+      const raw = response.data as ApiResponse<Record<string, unknown>>;
+      return {
+        ...raw,
+        data: raw.data ? transformTeamVoice(raw.data) : undefined,
+      } as ApiResponse<TeamVoice>;
     },
   },
 };

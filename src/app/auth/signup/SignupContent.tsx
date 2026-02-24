@@ -15,7 +15,7 @@ function SignupForm() {
   // Store plan selection in sessionStorage for checkout after signup
   useEffect(() => {
     const plan = searchParams.get('plan');
-    if (plan && ['echo', 'echo-studio', 'echo-pro'].includes(plan)) {
+    if (plan && ['echo', 'echo-studio', 'echo-pro', 'echo-teams-2', 'echo-teams-5', 'echo-teams-10'].includes(plan)) {
       sessionStorage.setItem('pendingPlan', plan);
     }
   }, [searchParams]);

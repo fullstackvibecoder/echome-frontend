@@ -193,7 +193,13 @@ export default function OnboardingContent() {
       existingContent &&
       existingContent.filter((i) => i.status === 'completed').length >= MIN_CONTENT_ITEMS
     ) {
-      router.replace('/app');
+      const redirect = localStorage.getItem('postOnboardingRedirect');
+      localStorage.removeItem('postOnboardingRedirect');
+      if (redirect && redirect.startsWith('/app')) {
+        router.replace(redirect);
+      } else {
+        router.replace('/app');
+      }
     }
   }, [kbLoading, existingContent, router]);
 
@@ -510,8 +516,17 @@ export default function OnboardingContent() {
     ]);
   };
 
-  const handleSkip = () => router.push('/app');
-  const handleStartCreating = () => router.push('/app');
+  const getPostOnboardingPath = () => {
+    const redirect = localStorage.getItem('postOnboardingRedirect');
+    localStorage.removeItem('postOnboardingRedirect');
+    // Only allow internal /app paths to prevent open redirect
+    if (redirect && redirect.startsWith('/app')) {
+      return redirect;
+    }
+    return '/app';
+  };
+  const handleSkip = () => router.push(getPostOnboardingPath());
+  const handleStartCreating = () => router.push(getPostOnboardingPath());
 
   // --- Loading ---
   if (kbLoading) {

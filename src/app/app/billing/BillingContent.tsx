@@ -129,8 +129,29 @@ function BillingContentInner() {
               setSubscription(subResult.data);
             }
 
-            // Teams-specific redirect: send user to Team Voices page for setup
+            // Teams-specific redirect: onboarding first if empty KB, then team voices
             if (syncResult.data.tier?.startsWith('teams_')) {
+              try {
+                const kbResponse = await api.kb.list();
+                const hasKb = kbResponse.success && kbResponse.data && kbResponse.data.length > 0;
+                if (hasKb) {
+                  const contentResponse = await api.kb.getContent(kbResponse.data![0].id);
+                  const hasContent = contentResponse.success && contentResponse.data && contentResponse.data.items.length > 0;
+                  if (!hasContent) {
+                    // New user with empty KB — onboard first, then team voices
+                    localStorage.setItem('postOnboardingRedirect', '/app/team-voices?welcome=true');
+                    window.location.href = '/onboarding';
+                    return;
+                  }
+                } else {
+                  // No KB at all — definitely needs onboarding first
+                  localStorage.setItem('postOnboardingRedirect', '/app/team-voices?welcome=true');
+                  window.location.href = '/onboarding';
+                  return;
+                }
+              } catch {
+                // If check fails, still go to team voices
+              }
               window.location.href = '/app/team-voices?welcome=true';
               return;
             }
