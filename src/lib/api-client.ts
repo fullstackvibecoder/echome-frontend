@@ -145,10 +145,45 @@ apiClient.interceptors.response.use(
 // ============================================
 if (typeof window !== 'undefined') {
   supabase.auth.onAuthStateChange((event, session) => {
-    if (session?.access_token) {
-      localStorage.setItem('authToken', session.access_token);
-    } else if (event === 'SIGNED_OUT') {
+    if (event === 'SIGNED_OUT') {
       localStorage.removeItem('authToken');
+      return;
+    }
+
+    if (session?.access_token) {
+      // Guard against silent session swaps: if the user is already logged in
+      // via email/password, don't let an implicit OAuth session overwrite them.
+      // Only accept TOKEN_REFRESHED (same user) or explicit SIGNED_IN events.
+      if (event === 'TOKEN_REFRESHED') {
+        localStorage.setItem('authToken', session.access_token);
+      } else if (event === 'SIGNED_IN') {
+        // Check if this is a different user than what's currently stored
+        const currentToken = localStorage.getItem('authToken');
+        if (currentToken) {
+          try {
+            // Decode the JWT payload (base64) to compare user IDs
+            const currentPayload = JSON.parse(atob(currentToken.split('.')[1]));
+            const newPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            if (currentPayload.sub !== newPayload.sub) {
+              // Different user — this is an unwanted session swap (e.g., Chrome
+              // Google account leaking into Supabase). Ignore it.
+              console.warn('[auth] Blocked session swap to different user', {
+                current: currentPayload.email,
+                incoming: newPayload.email,
+              });
+              return;
+            }
+          } catch {
+            // If JWT decode fails, accept the new token as fallback
+          }
+        }
+        localStorage.setItem('authToken', session.access_token);
+      } else if (event === 'INITIAL_SESSION') {
+        // Initial page load — only set if no token exists yet
+        if (!localStorage.getItem('authToken')) {
+          localStorage.setItem('authToken', session.access_token);
+        }
+      }
     }
   });
 }
