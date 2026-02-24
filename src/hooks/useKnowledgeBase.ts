@@ -45,14 +45,14 @@ const DEFAULT_STATS: KBContentStats = {
   bySourceType: {},
 };
 
-export function useKnowledgeBase(): UseKnowledgeBaseReturn {
+export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseReturn {
   const [kbs, setKbs] = useState<KnowledgeBase[]>([]);
   const [files, setFiles] = useState<KBFile[]>([]);
   const [contentItems, setContentItems] = useState<UnifiedContentItem[]>([]);
   const [contentStats, setContentStats] = useState<KBContentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedKb, setSelectedKb] = useState<string | null>(null);
+  const [selectedKb, setSelectedKb] = useState<string | null>(initialKbId ?? null);
 
   // Polling refs
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -81,9 +81,10 @@ export function useKnowledgeBase(): UseKnowledgeBaseReturn {
         }
 
         setKbs(kbList);
-        // Auto-select first KB if none selected
+        // Auto-select: prefer initialKbId if valid, otherwise first KB
         if (kbList.length > 0 && !selectedKb) {
-          setSelectedKb(kbList[0].id);
+          const preferredKb = initialKbId && kbList.find(kb => kb.id === initialKbId);
+          setSelectedKb(preferredKb ? preferredKb.id : kbList[0].id);
         }
       }
     } catch (err) {

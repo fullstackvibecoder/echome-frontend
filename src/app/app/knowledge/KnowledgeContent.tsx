@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -130,17 +130,25 @@ function KBListItem({ item, selectionMode, isSelected, onSelect, onDelete }: KBL
 // ============================================
 
 export default function KnowledgeContent() {
+  const { voices, isTeamsUser, activeVoice } = useVoiceContext();
   const {
     kbs,
     contentItems,
     contentStats,
     loading,
     selectedKb,
+    selectKb,
     deleteContent,
     refresh,
-  } = useKnowledgeBase();
+  } = useKnowledgeBase(isTeamsUser ? activeVoice?.knowledgeBaseId : undefined);
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
-  const { voices, isTeamsUser } = useVoiceContext();
+
+  // When active voice changes, switch to that voice's KB
+  useEffect(() => {
+    if (isTeamsUser && activeVoice?.knowledgeBaseId && activeVoice.knowledgeBaseId !== selectedKb) {
+      selectKb(activeVoice.knowledgeBaseId);
+    }
+  }, [isTeamsUser, activeVoice?.knowledgeBaseId, selectKb, selectedKb]);
 
   // Voices linked to the currently selected KB
   const linkedVoices = useMemo(() => {
@@ -388,6 +396,17 @@ export default function KnowledgeContent() {
               </div>
             </div>
           </div>
+
+          {/* Voice has no KB (EchoTeams) */}
+          {isTeamsUser && activeVoice && !activeVoice.knowledgeBaseId && (
+            <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-sm">
+              <span>&#9888;&#65039;</span>
+              <span className="text-text-secondary">
+                <strong>{activeVoice.name}</strong> has no Knowledge Base yet.
+                <a href="/app/team-voices" className="text-primary hover:underline ml-1">Assign or create one</a> in Team Voices, or add content here to use the shared KB below.
+              </span>
+            </div>
+          )}
 
           {/* Voice Linking Info (EchoTeams) */}
           {isTeamsUser && linkedVoices.length > 0 && (
