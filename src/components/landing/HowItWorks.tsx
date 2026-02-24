@@ -1,6 +1,7 @@
 'use client';
 
-import { Database, Upload, Sparkles, Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Database, Upload, Sparkles, Calendar } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const steps = [
@@ -66,6 +67,22 @@ export function HowItWorks() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Mid-page CTA */}
+          <div className="text-center mt-16">
+            <Link
+              href="/auth/signup"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
+                         rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
+                         shadow-lg text-lg group"
+            >
+              Try It Free
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <p className="text-sm text-gray-500 font-light mt-3">
+              No credit card required — 2 free generations
+            </p>
           </div>
         </div>
       </section>

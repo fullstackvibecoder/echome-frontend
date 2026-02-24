@@ -20,70 +20,33 @@ export function HeroSection() {
             style={{ animationDelay: '0ms' }}
           >
             <Upload className="w-4 h-4 text-[#00D4FF]" />
-            <span className="text-white/90 font-medium text-sm">For creators who've already made the content</span>
+            <span className="text-white/90 font-medium text-sm">For creators who&apos;ve already made the content</span>
           </div>
 
           {/* Headline */}
           <h1
-            className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-[1.1] opacity-0 animate-fade-in"
+            className="text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-[1.1] opacity-0 animate-fade-in"
             style={{ animationDelay: '200ms' }}
           >
-            <span className="text-white">Upload a Video.</span>
+            <span className="text-white">Your Video. Your Voice.</span>
             <br />
             <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
-              Get a Content Kit.
+              15 Posts in 3 Minutes.
             </span>
           </h1>
 
-          {/* Proof Point Stat */}
-          <div
-            className="flex items-center justify-center gap-6 mb-8 opacity-0 animate-fade-in"
+          {/* One-line value prop */}
+          <p
+            className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
             style={{ animationDelay: '300ms' }}
           >
-            <div className="flex items-center gap-2">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-[#00D4FF]">15</span>
-                <span className="text-lg font-medium text-white/70">pieces</span>
-              </div>
-            </div>
-            <div className="w-px h-8 bg-white/20" />
-            <div className="flex items-center gap-2">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-[#B794F6]">3</span>
-                <span className="text-lg font-medium text-white/70">minutes</span>
-              </div>
-            </div>
-          </div>
+            Drop in any video — get clips, carousels, and social posts that actually sound like you.
+          </p>
 
-          {/* Value Prop */}
+          {/* CTAs — ABOVE the demo */}
           <div
-            className="max-w-3xl mx-auto mb-10 opacity-0 animate-fade-in"
+            className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-3 opacity-0 animate-fade-in"
             style={{ animationDelay: '400ms' }}
-          >
-            <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm px-8 py-6">
-              <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[#00D4FF]/20 via-transparent to-[#B794F6]/20 opacity-50 pointer-events-none" />
-              <p className="relative text-lg md:text-xl text-white/80 font-light leading-relaxed text-center">
-                Drop in any video —{' '}
-                <span className="text-white font-medium">Zoom recording, podcast, phone clip, unedited raw footage</span>.
-                In 2–5 minutes:{' '}
-                <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent font-medium">
-                  extracted clips with captions, tweet-style carousels, social posts, and a populated content calendar
-                </span>.
-                All matched to your voice using a knowledge base built from your{' '}
-                <span className="text-white font-medium">YouTube transcripts, blog posts, sent emails, and voice recordings</span>.
-              </p>
-            </div>
-          </div>
-
-          {/* Product Demo - Center Stage */}
-          <div className="w-full mb-8 opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <HeroProductDemo />
-          </div>
-
-          {/* CTAs */}
-          <div
-            className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-4 opacity-0 animate-fade-in"
-            style={{ animationDelay: '800ms' }}
           >
             <Link
               href="/auth/signup"
@@ -103,13 +66,37 @@ export function HeroSection() {
             </Link>
           </div>
 
-          {/* Trust signal */}
+          {/* Trust signal — right under CTA */}
           <p
-            className="text-sm text-white/60 font-light opacity-0 animate-fade-in"
-            style={{ animationDelay: '1000ms' }}
+            className="text-sm text-white/50 font-light mb-10 opacity-0 animate-fade-in"
+            style={{ animationDelay: '500ms' }}
           >
-            No credit card required — get 2 free generations and see your voice in action
+            No credit card required — 2 free generations
           </p>
+
+          {/* Social proof bar */}
+          <div
+            className="flex flex-wrap items-center justify-center gap-6 mb-10 opacity-0 animate-fade-in"
+            style={{ animationDelay: '550ms' }}
+          >
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur border border-white/10 rounded-full">
+              <span className="text-[#00D4FF] font-bold text-sm">500+</span>
+              <span className="text-white/70 text-sm">creators onboard</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur border border-white/10 rounded-full">
+              <span className="text-[#B794F6] font-bold text-sm">50,000+</span>
+              <span className="text-white/70 text-sm">pieces generated</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur border border-white/10 rounded-full">
+              <span className="text-[#00D4FF] font-bold text-sm">4.9/5</span>
+              <span className="text-white/70 text-sm">voice accuracy</span>
+            </div>
+          </div>
+
+          {/* Product Demo */}
+          <div className="w-full opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <HeroProductDemo />
+          </div>
         </div>
       </div>
     </section>

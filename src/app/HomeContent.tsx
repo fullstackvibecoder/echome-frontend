@@ -10,6 +10,7 @@ import { HowItWorks } from '@/components/landing/HowItWorks';
 import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
 import { CreatorRadarSection } from '@/components/landing/CreatorRadarSection';
 import { OutputShowcase } from '@/components/landing/OutputShowcase';
+import { TestimonialStrip } from '@/components/landing/TestimonialStrip';
 import { NotChatGPTSection } from '@/components/landing/NotChatGPTSection';
 
 export default function HomeContent() {
@@ -96,6 +97,9 @@ export default function HomeContent() {
 
       {/* Output Showcase */}
       <OutputShowcase />
+
+      {/* Testimonials */}
+      <TestimonialStrip />
 
       {/* Not ChatGPT */}
       <NotChatGPTSection />
