@@ -26,6 +26,12 @@ const SANITIZED_MESSAGES: Record<string, string> = {
   'Potential SQL injection detected': 'Your input contains characters that aren\'t allowed. Please revise and try again.',
   'Potential XSS attack detected': 'Your input contains characters that aren\'t allowed. Please revise and try again.',
   'Potential path traversal detected': 'Your input contains characters that aren\'t allowed. Please revise and try again.',
+  // Catch any internal service names that shouldn't reach users
+  'SociaVault': 'Unable to fetch Instagram content. Please try again later.',
+  'Apify': 'Unable to fetch Instagram content. Please try again later.',
+  'Pinecone': 'Something went wrong. Please try again.',
+  'OPENAI_API_KEY': 'Something went wrong on our end. Please try again.',
+  'SUPABASE_': 'Something went wrong on our end. Please try again.',
 };
 
 /** Status-based fallback messages */
