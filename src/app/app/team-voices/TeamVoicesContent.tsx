@@ -56,7 +56,7 @@ function timeAgo(dateStr: string): string {
 
 export default function TeamVoicesContent() {
   const searchParams = useSearchParams();
-  const { voices, isTeamsUser, refreshVoices, voiceCount, voiceLimit } = useVoiceContext();
+  const { voices, isTeamsUser, loading: voiceLoading, refreshVoices, voiceCount, voiceLimit } = useVoiceContext();
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -122,6 +122,14 @@ export default function TeamVoicesContent() {
   }, []);
 
   const isAtLimit = voiceLimit > 0 && voiceCount >= voiceLimit;
+
+  if (voiceLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!isTeamsUser) {
     return (

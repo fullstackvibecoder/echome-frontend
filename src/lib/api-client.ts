@@ -3304,6 +3304,7 @@ export interface StripePlan {
     creatorRadar: number;
     exportQuality: string;
     emailImportMaxEmails: number;
+    maxVoices?: number;
   };
   trialDays?: number;
 }
