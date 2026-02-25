@@ -199,6 +199,8 @@ function BillingContentInner() {
   useEffect(() => {
     async function handleRedirect() {
       if (searchParams.get('success') === 'true') {
+        // Clear any pending checkout plan (checkout completed successfully)
+        localStorage.removeItem('pendingCheckoutPlan');
         // Sync subscription from Stripe to ensure we have the latest status
         try {
           const syncResult = await api.stripe.syncSubscription();
@@ -384,6 +386,8 @@ function BillingContentInner() {
         const response = await api.stripe.createCheckoutSession(planId as any, billingInterval);
 
         if (response.success && response.data.url) {
+          // Persist plan selection so it survives session expiry during checkout
+          localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval }));
           // Redirect to Stripe Checkout
           window.location.href = response.data.url;
         } else {

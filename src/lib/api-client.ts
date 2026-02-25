@@ -56,10 +56,34 @@ const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 
-// Request interceptor - add JWT token
+// Check if a JWT is expired or expiring within the next 60 seconds
+function isTokenExpiringSoon(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now() + 60_000;
+  } catch {
+    return true; // If we can't decode it, treat as expired
+  }
+}
+
+// Request interceptor - add JWT token (with proactive refresh)
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
+  async (config) => {
+    let token = localStorage.getItem('authToken');
+
+    // If token is expired or about to expire, try to refresh from Supabase
+    if (token && isTokenExpiringSoon(token)) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          localStorage.setItem('authToken', session.access_token);
+          token = session.access_token;
+        }
+      } catch {
+        // If refresh fails, proceed with existing token — 401 interceptor will handle it
+      }
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

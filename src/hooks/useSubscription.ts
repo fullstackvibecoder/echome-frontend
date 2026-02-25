@@ -101,11 +101,26 @@ export function useSubscription(): UseSubscriptionReturn {
   // Fetch subscription on mount
   // Check URL params for checkout success indicator to handle webhook race condition
   useEffect(() => {
-    // Check if user just completed checkout (success=true in URL)
     const urlParams = new URLSearchParams(window.location.search);
     const justPaid = urlParams.get('success') === 'true';
 
-    fetchSubscription(justPaid);
+    fetchSubscription(justPaid).then(() => {
+      // If user just paid but tier is still 'free', poll a few times for webhook to land
+      if (justPaid) {
+        let retries = 0;
+        const poll = setInterval(async () => {
+          retries++;
+          const res = await api.stripe.getSubscription(true).catch(() => null);
+          if (res?.success && res.data?.isSubscribed) {
+            setSubscription(res.data);
+            clearInterval(poll);
+          } else if (retries >= 5) {
+            clearInterval(poll);
+          }
+        }, 2000);
+        return () => clearInterval(poll);
+      }
+    });
   }, [fetchSubscription]);
 
   // Computed values
