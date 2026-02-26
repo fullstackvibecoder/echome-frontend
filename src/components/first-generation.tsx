@@ -345,6 +345,7 @@ interface FirstGenerationProps {
     job?: ClipJob;
   }) => void;
   generating: boolean;
+  isQuotaError?: boolean;
 }
 
 const ALL_PLATFORMS: Platform[] = [
@@ -364,6 +365,7 @@ export function FirstGeneration({
   onRepurpose,
   onVideoProcessing,
   generating,
+  isQuotaError: quotaErrorFromParent,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
@@ -405,8 +407,16 @@ export function FirstGeneration({
   const [processingUrl, setProcessingUrl] = useState(false);
 
   // Subscription & free generation state
-  const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate } = useSubscription();
+  const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate, refresh: refreshSubscription } = useSubscription();
   const router = useRouter();
+
+  // Refresh subscription state when a quota error comes back from the backend
+  // This updates freeGenerationsRemaining so the paywall card replaces the button
+  useEffect(() => {
+    if (quotaErrorFromParent) {
+      refreshSubscription();
+    }
+  }, [quotaErrorFromParent, refreshSubscription]);
 
   // Free users can't use video/repurpose — switch to text if needed
   useEffect(() => {

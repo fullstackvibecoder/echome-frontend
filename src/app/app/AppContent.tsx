@@ -142,7 +142,7 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
 
 export default function AppContent() {
   const router = useRouter();
-  const { generating, requestId, results, error, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
+  const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
   const { user } = useAuth();
@@ -584,14 +584,29 @@ export default function AppContent() {
               onRepurpose={handleRepurpose}
               onVideoProcessing={handleVideoProcessing}
               generating={false}
+              isQuotaError={isQuotaError}
             />
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mt-6 p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
-              {error}
-            </div>
+            isQuotaError ? (
+              <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center">
+                <div className="text-3xl mb-2">🔒</div>
+                <h3 className="text-lg font-bold text-foreground mb-1">Free generations used</h3>
+                <p className="text-sm text-text-secondary mb-4">Subscribe to unlock unlimited content creation.</p>
+                <button
+                  onClick={() => router.push('/app/billing')}
+                  className="bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all hover:scale-[1.02]"
+                >
+                  View Plans →
+                </button>
+              </div>
+            ) : (
+              <div className="mt-6 p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
+                {error}
+              </div>
+            )
           )}
         </div>
       )}

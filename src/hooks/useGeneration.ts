@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
-import { extractErrorMessage } from '@/lib/error-utils';
+import { extractError } from '@/lib/error-utils';
 import { GeneratedContent, Platform, InputType, BackgroundConfig, DesignPreset } from '@/types';
 
 interface GenerationOptions {
@@ -16,6 +16,7 @@ interface UseGenerationReturn {
   requestId: string | null;
   results: GeneratedContent[] | null;
   error: string | null;
+  isQuotaError: boolean;
   voiceScore?: number;
   qualityScore?: number;
   generate: (
@@ -37,6 +38,7 @@ export function useGeneration(): UseGenerationReturn {
   const [requestId, setRequestId] = useState<string | null>(null);
   const [results, setResults] = useState<GeneratedContent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isQuotaError, setIsQuotaError] = useState(false);
   const [voiceScore, setVoiceScore] = useState<number>();
   const [qualityScore, setQualityScore] = useState<number>();
 
@@ -50,6 +52,7 @@ export function useGeneration(): UseGenerationReturn {
       try {
         setGenerating(true);
         setError(null);
+        setIsQuotaError(false);
         setResults(null);
         setRequestId(null);
 
@@ -79,7 +82,12 @@ export function useGeneration(): UseGenerationReturn {
           throw new Error(response.error || 'Generation failed');
         }
       } catch (err) {
-        setError(extractErrorMessage(err, 'Generation failed'));
+        const extracted = extractError(err, 'Generation failed');
+        setError(extracted.message);
+        // Detect quota/subscription errors from backend
+        const isQuota = extracted.status === 403 &&
+          /free generation|generation limit|subscribe|upgrade|quota/i.test(extracted.message);
+        setIsQuotaError(isQuota || extracted.isPaymentRequired);
         return null;
       } finally {
         setGenerating(false);
@@ -148,7 +156,7 @@ export function useGeneration(): UseGenerationReturn {
         }
       } catch (err) {
         console.error('Repurpose error:', err);
-        setError(extractErrorMessage(err, 'Repurposing failed'));
+        setError(extractError(err, 'Repurposing failed').message);
         setGenerating(false);
         return null;
       }
@@ -160,6 +168,7 @@ export function useGeneration(): UseGenerationReturn {
     setRequestId(null);
     setResults(null);
     setError(null);
+    setIsQuotaError(false);
     setVoiceScore(undefined);
     setQualityScore(undefined);
   }, []);
@@ -169,6 +178,7 @@ export function useGeneration(): UseGenerationReturn {
     requestId,
     results,
     error,
+    isQuotaError,
     voiceScore,
     qualityScore,
     generate,
