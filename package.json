@@ -13,6 +13,7 @@
     "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.40.0",
     "@supabase/supabase-js": "^2.89.0",
     "axios": "^1.13.2",
     "jszip": "^3.10.1",

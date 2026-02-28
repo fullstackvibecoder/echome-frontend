@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 import {
   api,
   AdminUsageOverview,
@@ -163,7 +164,6 @@ function ServicesTab({ month }: { month: string }) {
   useEffect(() => {
     setLoading(true);
     const start = `${month}-01T00:00:00Z`;
-    const endDate = new Date();
     const [y, m] = month.split('-').map(Number);
     const end = new Date(y, m, 1).toISOString();
     api.adminUsage.getByService(start, end)
@@ -337,7 +337,7 @@ function TrendsTab({ month }: { month: string }) {
                   <div className="flex-1 h-5 bg-muted rounded overflow-hidden flex">
                     {Object.entries(val.byService).map(([svc, cost]) => {
                       const svcPct = (cost / maxDailyCost) * 100;
-                      const color = SERVICE_COLORS[svc]?.replace('bg-', 'bg-') || 'bg-gray-400';
+                      const color = SERVICE_COLORS[svc] || 'bg-gray-400';
                       return (
                         <div
                           key={svc}
@@ -829,6 +829,25 @@ export default function AdminContent() {
             <option key={m} value={m}>{getMonthLabel(m)}</option>
           ))}
         </select>
+      </div>
+
+      {/* TODO: Remove after Sentry verification */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            Sentry.captureException(new Error('[Sentry Test] Direct capture — ' + new Date().toISOString()));
+            alert('Sentry event sent! Check your dashboard.');
+          }}
+          className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+        >
+          Test Sentry (Silent)
+        </button>
+        <button
+          onClick={() => { throw new Error('[Sentry Test] Uncaught error — ' + new Date().toISOString()); }}
+          className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Test Sentry (Crash)
+        </button>
       </div>
 
       {/* Business Metrics — always visible */}
