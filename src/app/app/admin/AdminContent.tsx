@@ -17,11 +17,20 @@ import {
 
 type Tab = 'overview' | 'services' | 'users' | 'trends' | 'providers';
 
+interface ProviderDataEntry {
+  provider: string;
+  metrics: Record<string, unknown>;
+  fromCache: boolean;
+}
+
 interface ProviderData {
-  elevenlabs?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
-  deepgram?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
-  pinecone?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
-  stripe?: { provider: string; metrics: Record<string, unknown>; fromCache: boolean };
+  openai?: ProviderDataEntry;
+  anthropic?: ProviderDataEntry;
+  sociavault?: ProviderDataEntry;
+  elevenlabs?: ProviderDataEntry;
+  deepgram?: ProviderDataEntry;
+  pinecone?: ProviderDataEntry;
+  stripe?: ProviderDataEntry;
 }
 
 // ==================== Helpers ====================
@@ -53,7 +62,7 @@ const SERVICE_COLORS: Record<string, string> = {
   elevenlabs: 'bg-pink-500',
   deepgram: 'bg-cyan-500',
   pinecone: 'bg-amber-500',
-  apify: 'bg-orange-500',
+  sociavault: 'bg-orange-500',
   aws: 'bg-yellow-500',
   resend: 'bg-blue-500',
 };
@@ -64,7 +73,7 @@ const SERVICE_LABELS: Record<string, string> = {
   elevenlabs: 'ElevenLabs',
   deepgram: 'Deepgram',
   pinecone: 'Pinecone',
-  apify: 'Apify',
+  sociavault: 'SociaVault',
   aws: 'AWS',
   resend: 'Resend',
 };
@@ -367,6 +376,45 @@ function ProvidersTab() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* AI Providers — internal tracking */}
+      <ProviderCard
+        name="OpenAI"
+        color="bg-emerald-500"
+        data={data.openai}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Monthly Cost" value={formatCost(Number(m.monthlyCost) || 0)} />
+            <MetricRow label="Tokens" value={formatNumber(Number(m.totalTokens) || 0)} />
+            <MetricRow label="Requests" value={formatNumber(Number(m.requestCount) || 0)} />
+          </>
+        )}
+      />
+      <ProviderCard
+        name="Anthropic"
+        color="bg-violet-500"
+        data={data.anthropic}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Monthly Cost" value={formatCost(Number(m.monthlyCost) || 0)} />
+            <MetricRow label="Tokens" value={formatNumber(Number(m.totalTokens) || 0)} />
+            <MetricRow label="Requests" value={formatNumber(Number(m.requestCount) || 0)} />
+          </>
+        )}
+      />
+      <ProviderCard
+        name="SociaVault"
+        color="bg-orange-500"
+        data={data.sociavault}
+        renderMetrics={(m) => (
+          <>
+            <MetricRow label="Monthly Cost" value={formatCost(Number(m.monthlyCost) || 0)} />
+            <MetricRow label="Tokens" value={formatNumber(Number(m.totalTokens) || 0)} />
+            <MetricRow label="Requests" value={formatNumber(Number(m.requestCount) || 0)} />
+          </>
+        )}
+      />
+
+      {/* External provider APIs */}
       <ProviderCard
         name="ElevenLabs"
         color="bg-pink-500"
