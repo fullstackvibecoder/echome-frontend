@@ -36,7 +36,8 @@ interface ProviderData {
 // ==================== Helpers ====================
 
 function formatCost(cost: number): string {
-  return `$${cost.toFixed(4)}`;
+  // Show 2 decimals for amounts >= $1, 4 decimals for tiny amounts
+  return cost >= 1 ? `$${cost.toFixed(2)}` : `$${cost.toFixed(4)}`;
 }
 
 function formatNumber(n: number): string {
