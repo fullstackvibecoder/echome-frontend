@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import * as Sentry from '@sentry/nextjs';
 import {
   api,
   AdminUsageOverview,
@@ -829,25 +828,6 @@ export default function AdminContent() {
             <option key={m} value={m}>{getMonthLabel(m)}</option>
           ))}
         </select>
-      </div>
-
-      {/* TODO: Remove after Sentry verification */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            Sentry.captureException(new Error('[Sentry Test] Direct capture — ' + new Date().toISOString()));
-            alert('Sentry event sent! Check your dashboard.');
-          }}
-          className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-        >
-          Test Sentry (Silent)
-        </button>
-        <button
-          onClick={() => { throw new Error('[Sentry Test] Uncaught error — ' + new Date().toISOString()); }}
-          className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Test Sentry (Crash)
-        </button>
       </div>
 
       {/* Business Metrics — always visible */}
