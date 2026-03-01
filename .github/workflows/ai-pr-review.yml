@@ -1,0 +1,83 @@
+name: AI PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          gh pr diff ${{ github.event.pull_request.number }} > /tmp/pr-diff.txt
+          # Truncate to ~30KB to stay within token limits
+          head -c 30000 /tmp/pr-diff.txt > /tmp/pr-diff-limited.txt
+          DIFF_SIZE=$(wc -c < /tmp/pr-diff.txt | tr -d ' ')
+          echo "diff_size=$DIFF_SIZE" >> "$GITHUB_OUTPUT"
+          if [ "$DIFF_SIZE" -gt 30000 ]; then
+            echo "truncated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "truncated=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run AI review
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY=$(cat <<'PRBODY'
+          ${{ github.event.pull_request.body }}
+          PRBODY
+          )
+          TRUNCATION_NOTE=""
+          if [ "${{ steps.diff.outputs.truncated }}" = "true" ]; then
+            TRUNCATION_NOTE="Note: The diff was truncated to 30KB. Focus your review on what's shown."
+          fi
+
+          DIFF_CONTENT=$(cat /tmp/pr-diff-limited.txt)
+
+          # Build the JSON payload using jq to handle escaping
+          PAYLOAD=$(jq -n \
+            --arg model "claude-sonnet-4-20250514" \
+            --argjson max_tokens 2048 \
+            --arg system "You are a senior code reviewer. Review the PR diff and provide concise, actionable feedback. Focus on: bugs, security issues, performance problems, and logic errors. Skip style nitpicks. If the code looks good, say so briefly. Format your review in markdown." \
+            --arg prompt "$(printf 'Review this pull request.\n\nTitle: %s\n\nDescription: %s\n\n%s\n\nDiff:\n```\n%s\n```' "$PR_TITLE" "$PR_BODY" "$TRUNCATION_NOTE" "$DIFF_CONTENT")" \
+            '{
+              model: $model,
+              max_tokens: $max_tokens,
+              system: $system,
+              messages: [{role: "user", content: $prompt}]
+            }')
+
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "$PAYLOAD")
+
+          # Extract the review text
+          REVIEW=$(echo "$RESPONSE" | jq -r '.content[0].text // empty')
+
+          if [ -z "$REVIEW" ]; then
+            echo "Failed to get review from Claude API"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          # Post as PR comment
+          printf '## AI Code Review\n\n%s\n\n---\n_Reviewed by Claude Sonnet_' "$REVIEW" > /tmp/review-comment.txt
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/review-comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
