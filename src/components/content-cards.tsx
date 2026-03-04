@@ -50,7 +50,7 @@ export function ContentCards({
         return (
           <div
             key={result.platform}
-            className="card animate-slide-in hover:shadow-lg transition-all duration-200"
+            className="card animate-slide-in transition-all duration-200"
             style={{
               animationDelay: `${index * 100}ms`,
             }}

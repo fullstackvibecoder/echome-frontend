@@ -138,7 +138,7 @@ export function ContentItemCard({ item, onDelete, selected, onSelect, selectionM
 
   return (
     <div
-      className={`card hover:shadow-lg transition-all border ${
+      className={`card transition-all border ${
         selected
           ? 'border-accent ring-2 ring-accent/30 bg-accent/5'
           : 'border-border'

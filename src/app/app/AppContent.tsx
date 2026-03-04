@@ -223,11 +223,25 @@ export default function AppContent() {
   // (Must be AFTER all hooks to follow rules of hooks)
   if (checkingPendingPlan || checkoutLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-        <p className="text-text-secondary">
-          {checkoutLoading ? 'Redirecting to checkout...' : 'Loading...'}
-        </p>
+      <div className="min-h-[60vh] p-6 max-w-7xl mx-auto">
+        {checkoutLoading ? (
+          <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+            <p className="text-text-secondary">Redirecting to checkout...</p>
+          </div>
+        ) : (
+          <div className="space-y-6 animate-fade-in">
+            <div className="skeleton h-8 w-64" />
+            <div className="skeleton h-4 w-48" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="skeleton h-20 rounded-xl" />
+              <div className="skeleton h-20 rounded-xl" />
+              <div className="skeleton h-20 rounded-xl" />
+              <div className="skeleton h-20 rounded-xl" />
+            </div>
+            <div className="skeleton h-64 rounded-xl" />
+          </div>
+        )}
       </div>
     );
   }
@@ -448,8 +462,8 @@ export default function AppContent() {
 
           {/* Usage Dashboard Widget */}
           {usageStats && !isFreeUser && (usageStats.generationsUsed ?? 0) > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="p-4 bg-card border border-border rounded-xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
+              <div className="p-4 bg-card border border-border rounded-xl card-lift">
                 <p className="text-xs text-muted-foreground mb-1">Generations</p>
                 <p className="text-xl font-bold text-foreground">
                   {usageStats.generationsUsed}
@@ -458,7 +472,7 @@ export default function AppContent() {
                   ) : null}
                 </p>
               </div>
-              <div className="p-4 bg-card border border-border rounded-xl">
+              <div className="p-4 bg-card border border-border rounded-xl card-lift">
                 <p className="text-xs text-muted-foreground mb-1">Video Minutes</p>
                 <p className="text-xl font-bold text-foreground">
                   {usageStats.videoMinutesUsed ?? 0}
@@ -467,11 +481,11 @@ export default function AppContent() {
                   ) : null}
                 </p>
               </div>
-              <div className="p-4 bg-card border border-border rounded-xl">
+              <div className="p-4 bg-card border border-border rounded-xl card-lift">
                 <p className="text-xs text-muted-foreground mb-1">Content Kits</p>
                 <p className="text-xl font-bold text-foreground">{usageStats.contentKitsCreated ?? 0}</p>
               </div>
-              <div className="p-4 bg-card border border-border rounded-xl">
+              <div className="p-4 bg-card border border-border rounded-xl card-lift">
                 <p className="text-xs text-muted-foreground mb-1">Remaining</p>
                 <p className="text-xl font-bold text-foreground">
                   {usageStats.isUnlimited ? '∞' : usageStats.generationsRemaining ?? 0}

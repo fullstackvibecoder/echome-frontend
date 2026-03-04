@@ -41,11 +41,11 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
       </p>
 
       {/* Quick Hint Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-children">
         {/* Generate */}
         <button
           onClick={onScrollToForm}
-          className="bg-bg-secondary border border-border rounded-lg p-4 text-left hover:border-accent/50 transition-colors group"
+          className="bg-bg-secondary border border-border rounded-lg p-4 text-left hover:border-accent/50 transition-all group card-lift"
         >
           <div className="text-2xl mb-2">✨</div>
           <h3 className="text-body font-semibold mb-1">Generate</h3>
@@ -60,7 +60,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
         {/* Knowledge Base */}
         <Link
           href="/app/knowledge"
-          className="bg-bg-secondary border border-border rounded-lg p-4 text-left hover:border-accent/50 transition-colors group"
+          className="bg-bg-secondary border border-border rounded-lg p-4 text-left hover:border-accent/50 transition-all group card-lift"
         >
           <div className="text-2xl mb-2">📖</div>
           <h3 className="text-body font-semibold mb-1">Knowledge Base</h3>
@@ -75,7 +75,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
         {/* Content Kit */}
         <Link
           href="/app/content-kit"
-          className="bg-bg-secondary border border-border rounded-lg p-4 text-left hover:border-accent/50 transition-colors group"
+          className="bg-bg-secondary border border-border rounded-lg p-4 text-left hover:border-accent/50 transition-all group card-lift"
         >
           <div className="text-2xl mb-2">📂</div>
           <h3 className="text-body font-semibold mb-1">Content Kit</h3>

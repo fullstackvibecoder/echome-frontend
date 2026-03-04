@@ -112,7 +112,7 @@ function ContentLibraryInner() {
         {/* Subtle glow */}
         <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
 
-        <div className="relative bg-card border border-border rounded-xl p-6 shadow-sm">
+        <div className="relative bg-card border border-border rounded-xl p-6 card-lift">
           <div className="flex items-center gap-6 text-sm">
             <div>
               <span className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{stats.total}</span>
@@ -214,17 +214,21 @@ function ContentLibraryInner() {
 
       {/* Loading State */}
       {isLoading && items.length === 0 && (
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-text-secondary">Loading your content...</p>
+        <div className="py-8 space-y-6 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="skeleton h-64 rounded-xl" />
+            <div className="skeleton h-64 rounded-xl" />
+            <div className="skeleton h-64 rounded-xl" />
+            <div className="skeleton h-64 rounded-xl" />
+            <div className="skeleton h-64 rounded-xl" />
+            <div className="skeleton h-64 rounded-xl" />
           </div>
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && items.length === 0 && !error && (
-        <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
+        <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border card-lift">
           <div className="text-6xl mb-4">📦</div>
           <h3 className="text-xl font-semibold mb-2">No content yet</h3>
           <p className="text-text-secondary mb-6">
@@ -274,10 +278,14 @@ function ContentLibraryInner() {
 export default function ContentKitContent() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-text-secondary">Loading content library...</p>
+      <div className="container mx-auto px-6 py-8 max-w-7xl space-y-6">
+        <div className="skeleton h-8 w-48" />
+        <div className="skeleton h-4 w-64" />
+        <div className="skeleton h-20 rounded-xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="skeleton h-64 rounded-xl" />
+          <div className="skeleton h-64 rounded-xl" />
+          <div className="skeleton h-64 rounded-xl" />
         </div>
       </div>
     }>

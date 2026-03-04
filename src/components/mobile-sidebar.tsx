@@ -53,9 +53,9 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       />
 
       {/* Sidebar */}
-      <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-border flex flex-col z-50 lg:hidden animate-fade-in" role="dialog" aria-modal="true" aria-label="Navigation menu">
+      <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-border/50 shadow-sm flex flex-col z-50 lg:hidden animate-fade-in" role="dialog" aria-modal="true" aria-label="Navigation menu">
         {/* Logo */}
-        <div className="p-6 border-b border-border flex items-center justify-between">
+        <div className="p-6 border-b border-border/50 flex items-center justify-between">
           <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
             EchoMe
           </button>
@@ -91,8 +91,8 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   item.comingSoon
                     ? 'text-muted-foreground/40 cursor-not-allowed opacity-40'
                     : activeItem === item.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                      ? 'bg-gradient-to-r from-primary to-primary-dark text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground hover:translate-x-0.5'
                 }
               `}
             >
@@ -112,7 +112,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
 
         {/* User Section */}
         {user && (
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border/50">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
                 {user.name?.charAt(0).toUpperCase() || 'U'}

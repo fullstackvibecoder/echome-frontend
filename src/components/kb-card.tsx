@@ -24,7 +24,7 @@ export function KBCard({ file, onDelete }: KBCardProps) {
   }[file.status];
 
   return (
-    <div className="card hover:shadow-lg transition-all">
+    <div className="card transition-all">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-3xl flex-shrink-0">

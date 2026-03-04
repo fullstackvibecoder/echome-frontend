@@ -9,7 +9,7 @@ export function AppHeader() {
   const { toggleMobileMenu } = useAppNavigation();
 
   return (
-    <header className="bg-background border-b border-border px-6 py-4">
+    <header className="glass sticky top-0 z-30 border-b border-border/50 px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left: Mobile menu + KB Status */}
         <div className="flex items-center gap-4">
@@ -23,7 +23,7 @@ export function AppHeader() {
           </button>
 
           {/* KB Status */}
-          <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-lg border border-border">
+          <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-full border border-border/50 shadow-sm">
             <Check className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">Echo trained</span>
           </div>

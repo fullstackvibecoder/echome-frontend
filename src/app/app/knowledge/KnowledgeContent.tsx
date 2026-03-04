@@ -351,8 +351,21 @@ export default function KnowledgeContent() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-24">
-          <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+        <div className="py-8 space-y-6 animate-fade-in">
+          <div className="skeleton h-8 w-48" />
+          <div className="skeleton h-4 w-72" />
+          <div className="flex flex-wrap gap-2">
+            <div className="skeleton h-10 w-24 rounded-xl" />
+            <div className="skeleton h-10 w-24 rounded-xl" />
+            <div className="skeleton h-10 w-24 rounded-xl" />
+            <div className="skeleton h-10 w-24 rounded-xl" />
+          </div>
+          <div className="skeleton h-24 rounded-xl" />
+          <div className="space-y-2">
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+          </div>
         </div>
       )}
 
@@ -437,7 +450,7 @@ export default function KnowledgeContent() {
             <p className="text-xs uppercase tracking-wider text-text-secondary font-medium mb-3">
               Add to your Echosystem
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 stagger-children">
               <button
                 onClick={() => setShowVoiceModal(true)}
                 className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
@@ -489,7 +502,7 @@ export default function KnowledgeContent() {
           {hasContent && (
             <div className="relative group mb-6">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
-              <div className="relative p-5 bg-card border border-border rounded-xl shadow-sm">
+              <div className="relative p-5 bg-card border border-border rounded-xl card-lift">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🎯</span>
@@ -571,7 +584,7 @@ export default function KnowledgeContent() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search..."
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg input-glow"
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">🔍</span>
                 </div>

@@ -52,7 +52,7 @@ export function ContentCard({
       onMouseLeave={() => setIsHovered(false)}
       className={`
         group relative bg-bg-secondary rounded-xl border overflow-hidden cursor-pointer
-        transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5
+        transition-all duration-200 hover:shadow-[var(--shadow-lift)] hover:-translate-y-0.5
         ${isSelected ? 'border-accent ring-2 ring-accent/30' : 'border-border hover:border-accent/50'}
         ${isProcessing ? 'border-accent/50' : ''}
       `}

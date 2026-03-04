@@ -34,7 +34,7 @@ export function UpgradeBanner() {
   };
 
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent-purple/10 border border-primary/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative">
+    <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent-purple/10 border border-primary/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative card-lift">
       <button
         onClick={handleDismiss}
         className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-black/5"

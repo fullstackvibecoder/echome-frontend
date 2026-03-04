@@ -579,7 +579,7 @@ export default function FollowingContent() {
               {filteredContent.map((content) => (
                 <div
                   key={content.id}
-                  className="card hover:shadow-lg transition-shadow"
+                  className="card transition-shadow"
                 >
                   <div className="flex gap-4">
                     {/* Thumbnail */}

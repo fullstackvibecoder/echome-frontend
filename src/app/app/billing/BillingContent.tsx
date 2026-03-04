@@ -487,7 +487,7 @@ function BillingContentInner() {
       )}
 
       {/* Current Subscription Status */}
-      <div className="mb-8 p-6 bg-card border rounded-xl">
+      <div className="mb-8 p-6 bg-card border rounded-xl card-lift">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold mb-1">
@@ -535,7 +535,7 @@ function BillingContentInner() {
 
       {/* Billing Interval Toggle */}
       <div className="flex justify-center mb-8">
-        <div className="inline-flex items-center bg-muted rounded-lg p-1">
+        <div className="inline-flex items-center bg-muted rounded-lg p-1 shadow-sm">
           <button
             onClick={() => setBillingInterval('month')}
             className={`px-6 py-2 rounded-md font-medium transition-all ${
@@ -580,7 +580,7 @@ function BillingContentInner() {
       )}
 
       {/* Pricing Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="grid md:grid-cols-3 gap-6 mb-8 stagger-children">
         {individualPlans.map((plan) => {
           const isCurrent = isCurrentPlan(plan);
           const isPopular = plan.id === 'echo-studio';
@@ -589,7 +589,7 @@ function BillingContentInner() {
           return (
             <div
               key={plan.id}
-              className={`relative rounded-2xl border-2 p-6 flex flex-col ${
+              className={`relative rounded-2xl border-2 p-6 flex flex-col card-lift ${
                 isPopular
                   ? 'border-primary bg-primary/5 shadow-lg'
                   : 'border-border bg-card'
@@ -668,7 +668,7 @@ function BillingContentInner() {
               Manage multiple voices from one account. Everything in Echo Pro, plus multi-voice management.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 stagger-children">
             {teamsPlans.map((plan) => {
               const isCurrent = isCurrentPlan(plan);
               const price = billingInterval === 'month' ? plan.monthlyPrice : plan.annualPrice;
@@ -677,7 +677,7 @@ function BillingContentInner() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative rounded-2xl border-2 p-6 flex flex-col ${
+                  className={`relative rounded-2xl border-2 p-6 flex flex-col card-lift ${
                     plan.tier === 'teams_5'
                       ? 'border-primary bg-primary/5 shadow-lg'
                       : 'border-border bg-card'

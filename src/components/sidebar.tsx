@@ -18,9 +18,9 @@ export function Sidebar() {
   const visibleNavItems = [...NAV_ITEMS.filter(item => !item.teamsOnly || isTeamsUser), ...(user?.isAdmin ? ADMIN_NAV_ITEMS : [])];
 
   return (
-    <aside className="h-screen w-64 bg-sidebar border-r border-border flex flex-col">
+    <aside className="h-screen w-64 bg-sidebar border-r border-border/50 flex flex-col shadow-sm">
       {/* Logo */}
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border/50">
         <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity" aria-label="Go to dashboard">
           EchoMe
         </button>
@@ -49,8 +49,8 @@ export function Sidebar() {
                 item.comingSoon
                   ? 'text-muted-foreground/40 cursor-not-allowed opacity-40'
                   : activeItem === item.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                    ? 'bg-gradient-to-r from-primary to-primary-dark text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground hover:translate-x-0.5'
               }
             `}
           >
@@ -70,7 +70,7 @@ export function Sidebar() {
 
       {/* User Section */}
       {user && (
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
               {user.name?.charAt(0).toUpperCase() || 'U'}

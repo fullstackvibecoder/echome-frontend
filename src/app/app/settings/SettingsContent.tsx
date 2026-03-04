@@ -240,7 +240,7 @@ export default function SettingsContent() {
       <div className="flex gap-2 mb-8 border-b border-border overflow-x-auto">
         <button
           onClick={() => handleTabChange('profile')}
-          className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
+          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'profile'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -250,7 +250,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('account')}
-          className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
+          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'account'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -260,7 +260,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('preferences')}
-          className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
+          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'preferences'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -270,7 +270,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('billing')}
-          className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
+          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'billing'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -280,7 +280,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('referral')}
-          className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
+          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'referral'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -326,7 +326,7 @@ export default function SettingsContent() {
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="How you want to appear on carousels"
-                      className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                      className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                     />
                     <p className="text-xs text-text-secondary mt-1">
                       Shown on carousel slides (e.g., &quot;John Smith&quot; or &quot;@TechGuru&quot;)
@@ -341,7 +341,7 @@ export default function SettingsContent() {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Your legal name"
-                      className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                      className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                     />
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export default function SettingsContent() {
                         value={twitterHandle}
                         onChange={(e) => setTwitterHandle(e.target.value.replace(/^@/, ''))}
                         placeholder="username"
-                        className="flex-1 px-4 py-3 border-2 border-border rounded-r-lg focus:outline-none focus:border-accent transition-colors"
+                        className="flex-1 px-4 py-3 border-2 border-border rounded-r-lg input-glow"
                       />
                     </div>
                     <p className="text-xs text-text-secondary mt-1">
@@ -381,7 +381,7 @@ export default function SettingsContent() {
                         value={instagramHandle}
                         onChange={(e) => setInstagramHandle(e.target.value.replace(/^@/, ''))}
                         placeholder="username"
-                        className="flex-1 px-4 py-3 border-2 border-border rounded-r-lg focus:outline-none focus:border-accent transition-colors"
+                        className="flex-1 px-4 py-3 border-2 border-border rounded-r-lg input-glow"
                       />
                     </div>
                   </div>
@@ -397,7 +397,7 @@ export default function SettingsContent() {
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="https://yourwebsite.com"
-                    className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                    className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                   />
                 </div>
 
@@ -412,7 +412,7 @@ export default function SettingsContent() {
                     placeholder="A short bio about yourself..."
                     rows={3}
                     maxLength={500}
-                    className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors resize-none"
+                    className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow resize-none"
                   />
                   <p className="text-xs text-text-secondary mt-1">
                     {bio.length}/500 characters
@@ -438,7 +438,7 @@ export default function SettingsContent() {
                         onChange={(e) => setProfileRole(e.target.value)}
                         placeholder="e.g., Leadership coach for mid-career women in tech"
                         maxLength={200}
-                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                       />
                       <p className="text-xs text-text-secondary mt-1">
                         {profileRole.length}/200 characters
@@ -456,7 +456,7 @@ export default function SettingsContent() {
                         onChange={(e) => setProfileTopics(e.target.value)}
                         placeholder="e.g., Confidence, career transitions, executive presence"
                         maxLength={300}
-                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                       />
                       <p className="text-xs text-text-secondary mt-1">
                         {profileTopics.length}/300 characters
@@ -474,7 +474,7 @@ export default function SettingsContent() {
                         onChange={(e) => setProfileCta(e.target.value)}
                         placeholder="e.g., Confident Leader OS — my $497 self-paced course"
                         maxLength={200}
-                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors"
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                       />
                       <p className="text-xs text-text-secondary mt-1">
                         {profileCta.length}/200 characters
@@ -492,7 +492,7 @@ export default function SettingsContent() {
                         placeholder="e.g., Never say hustle or grind. No bro-marketing. Warm but authoritative."
                         rows={2}
                         maxLength={500}
-                        className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors resize-none"
+                        className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow resize-none"
                       />
                       <p className="text-xs text-text-secondary mt-1">
                         {profileGuardrails.length}/500 characters

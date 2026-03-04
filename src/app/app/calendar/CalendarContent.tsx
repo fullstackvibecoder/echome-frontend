@@ -66,7 +66,7 @@ export default function CalendarContent() {
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl shadow-sm">
             <Calendar className="w-6 h-6 text-primary" />
           </div>
           <div>
@@ -132,7 +132,7 @@ export default function CalendarContent() {
           />
 
           {/* How to Schedule */}
-          <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="bg-card rounded-xl border border-border overflow-hidden card-lift">
             <div className="px-4 py-3 border-b border-border">
               <h3 className="font-semibold text-foreground">How to Schedule</h3>
             </div>

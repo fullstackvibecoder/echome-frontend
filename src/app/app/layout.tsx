@@ -20,8 +20,25 @@ function AuthGuard({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen">
+        {/* Sidebar skeleton */}
+        <div className="hidden lg:flex flex-col w-64 bg-sidebar border-r border-border/50 p-6 space-y-6">
+          <div className="skeleton h-8 w-28" />
+          <div className="space-y-3 flex-1">
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+          </div>
+          <div className="skeleton h-12 rounded-lg" />
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 p-8 space-y-6">
+          <div className="skeleton h-8 w-64" />
+          <div className="skeleton h-4 w-48" />
+          <div className="skeleton h-48 rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -37,8 +54,23 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen">
+        <div className="hidden lg:flex flex-col w-64 bg-sidebar border-r border-border/50 p-6 space-y-6">
+          <div className="skeleton h-8 w-28" />
+          <div className="space-y-3 flex-1">
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+            <div className="skeleton h-10 rounded-lg" />
+          </div>
+          <div className="skeleton h-12 rounded-lg" />
+        </div>
+        <div className="flex-1 p-8 space-y-6">
+          <div className="skeleton h-8 w-64" />
+          <div className="skeleton h-4 w-48" />
+          <div className="skeleton h-48 rounded-xl" />
+        </div>
       </div>
     }>
       <AuthGuard>

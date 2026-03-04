@@ -452,7 +452,7 @@ export default function TrendsContent() {
               {trends.map(trend => (
                 <div
                   key={trend.id}
-                  className="card hover:shadow-lg transition-shadow cursor-pointer"
+                  className="card transition-shadow cursor-pointer"
                   onClick={() => handleViewTrend(trend.id)}
                 >
                   {/* Thumbnail */}

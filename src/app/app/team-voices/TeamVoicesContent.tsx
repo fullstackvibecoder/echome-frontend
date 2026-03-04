@@ -419,13 +419,13 @@ export default function TeamVoicesContent() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
           {voices.map((voice) => {
             const kb = knowledgeBases.find(kb => kb.id === voice.knowledgeBaseId);
             return (
               <div
                 key={voice.id}
-                className={`relative bg-card border rounded-xl p-5 hover:border-primary/30 transition-colors ${
+                className={`relative bg-card border rounded-xl p-5 hover:border-primary/30 transition-all card-lift ${
                   voice.isDefault ? 'ring-2 ring-primary/20' : ''
                 }`}
               >
