@@ -38,18 +38,18 @@ export function OutputShowcase() {
     <AnimatedSection>
       <section id="output-showcase" className="pt-16 pb-32 px-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
         {/* Ambient gradients */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#B794F6]/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-accent-purple/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
-              <span className="text-[#00D4FF] font-semibold text-sm">Real Examples</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+              <span className="text-primary font-semibold text-sm">Real Examples</span>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-[#1C1C1E] leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
               What You
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 {' '}Actually Get
               </span>
             </h2>
@@ -60,16 +60,20 @@ export function OutputShowcase() {
           </div>
 
           {/* Tabs */}
-          <div className="flex justify-center gap-2 mb-8 flex-wrap">
+          <div className="flex justify-center gap-2 mb-8 flex-wrap" role="tablist" aria-label="Content output examples">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`tabpanel-${tab.id}`}
+                  id={`tab-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg'
+                      ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg'
                       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
@@ -81,12 +85,12 @@ export function OutputShowcase() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8 md:p-12">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8 md:p-12" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
             {activeTab === 'reels' && (
               <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {viralReels.map((reel, i) => (
-                    <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-[#00D4FF]/30 transition-all hover:shadow-2xl hover:-translate-y-1">
+                    <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
                       <Image
                         src={reel.image}
                         alt={reel.label}
@@ -108,9 +112,9 @@ export function OutputShowcase() {
                 {/* Tweet Style Carousels */}
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Tweet Style</h3>
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {tweetCarousels.map((carousel, i) => (
-                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-[#B794F6]/30 transition-all hover:shadow-2xl hover:-translate-y-1">
+                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-accent-purple/30 transition-all hover:shadow-2xl hover:-translate-y-1">
                         <Image
                           src={carousel.image}
                           alt={carousel.label}
@@ -126,9 +130,9 @@ export function OutputShowcase() {
                 {/* Custom Background Carousels */}
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Custom Backgrounds</h3>
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {bgCarousels.map((carousel, i) => (
-                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-[#00D4FF]/30 transition-all hover:shadow-2xl hover:-translate-y-1">
+                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
                         <Image
                           src={carousel.image}
                           alt={carousel.label}
@@ -175,8 +179,8 @@ export function OutputShowcase() {
           <div className="text-center mt-16">
             <Link
               href="/auth/signup"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
-                         rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white
+                         rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
                          shadow-lg text-lg group"
             >
               Get Your Content Kit

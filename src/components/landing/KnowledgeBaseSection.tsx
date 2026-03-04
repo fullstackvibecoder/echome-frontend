@@ -31,14 +31,14 @@ export function KnowledgeBaseSection() {
     <AnimatedSection>
       <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
         {/* Single subtle gradient */}
-        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-[#1C1C1E]">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground">
               How Echo Learns
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 {' '}Your Voice
               </span>
             </h2>
@@ -52,12 +52,12 @@ export function KnowledgeBaseSection() {
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
             {sources.map((source) => (
               <div key={source.title} className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent-purple/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all h-full">
-                  <div className="w-12 h-12 mb-4 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 mb-4 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center">
                     <source.icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="font-bold text-[#1C1C1E] mb-2 text-lg">{source.title}</h3>
+                  <h3 className="font-bold text-foreground mb-2 text-lg">{source.title}</h3>
                   <p className="text-sm text-gray-600 leading-relaxed">{source.desc}</p>
                 </div>
               </div>
@@ -65,7 +65,7 @@ export function KnowledgeBaseSection() {
           </div>
 
           {/* KB Explanation */}
-          <div className="bg-gradient-to-r from-[#1C1C1E] to-[#2a2a2c] rounded-2xl p-8 md:p-10 text-center">
+          <div className="bg-gradient-to-r from-foreground to-foreground rounded-2xl p-8 md:p-10 text-center">
             <h3 className="text-2xl font-bold text-white mb-4">What Are "Chunks"?</h3>
             <p className="text-white/70 max-w-3xl mx-auto leading-relaxed text-lg">
               Pieces of your past content that get recalled when generating new output. That's why Echo sounds like <span className="text-white font-semibold">you</span>, not a template.

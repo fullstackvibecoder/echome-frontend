@@ -83,25 +83,26 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 navigate(item.path);
               }}
               disabled={item.comingSoon}
+              aria-current={activeItem === item.id ? 'page' : undefined}
               className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-lg
                 font-medium transition-all duration-200
                 ${
                   item.comingSoon
-                    ? 'text-muted-foreground/50 cursor-not-allowed'
+                    ? 'text-muted-foreground/40 cursor-not-allowed opacity-40'
                     : activeItem === item.id
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
                 }
               `}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-xl" aria-hidden="true">{item.icon}</span>
               <span className="flex-1 text-left">{item.label}</span>
               {isFirstTime && HINT_ITEMS.has(item.id) && !sidebarHintsSeen[item.id] && (
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               )}
               {item.comingSoon && (
-                <span className="text-[10px] font-semibold uppercase tracking-wide bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                <span className="text-xs font-semibold bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full" title="Coming soon">
                   Soon
                 </span>
               )}

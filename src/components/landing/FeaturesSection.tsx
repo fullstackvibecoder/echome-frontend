@@ -57,7 +57,7 @@ export function FeaturesSection() {
   return (
     <section className="py-32 px-6 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
       {/* Ambient gradient */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10" />
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -65,9 +65,9 @@ export function FeaturesSection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#0f172a] border border-[#1e293b] rounded-full mb-6">
             <span className="text-[#38bdf8] font-semibold text-sm">Interactive Demo</span>
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-[#1C1C1E] leading-tight">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
             See It
-            <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
               {' '}In Action
             </span>
           </h2>

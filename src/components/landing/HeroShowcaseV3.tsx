@@ -29,7 +29,7 @@ export function HeroShowcaseV3() {
   return (
     <div className="relative flex flex-col items-center gap-3">
       {/* Ambient glow */}
-      <div className="absolute -inset-8 bg-gradient-to-b from-[#00D4FF]/10 via-[#B794F6]/10 to-[#FF6B9D]/10 rounded-[40px] blur-3xl pointer-events-none" />
+      <div className="absolute -inset-8 bg-gradient-to-b from-primary/10 via-accent-purple/10 to-accent-pink/10 rounded-[40px] blur-3xl pointer-events-none" />
 
       {/* Video + Content Library */}
       <div
@@ -88,12 +88,12 @@ export function HeroShowcaseV3() {
 
             {/* KB counter (bottom right) */}
             <div
-              className="absolute bottom-3 right-3 px-2.5 py-1.5 bg-[#00D4FF]/20 border border-[#00D4FF]/40 backdrop-blur-md rounded-lg z-10 opacity-0 animate-hero-fade-in-up"
+              className="absolute bottom-3 right-3 px-2.5 py-1.5 bg-primary/20 border border-primary/40 backdrop-blur-md rounded-lg z-10 opacity-0 animate-hero-fade-in-up"
               style={{ animationDelay: '800ms' }}
             >
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3 text-[#00D4FF] animate-pulse" />
-                <span className="text-[#00D4FF] text-xs font-bold">{kbChunks}</span>
+                <Sparkles className="w-3 h-3 text-primary animate-pulse" />
+                <span className="text-primary text-xs font-bold">{kbChunks}</span>
               </div>
             </div>
           </div>
@@ -105,12 +105,12 @@ export function HeroShowcaseV3() {
         className={`flex items-center gap-2 transition-all duration-500 ${showOutput ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#B794F6] animate-spark-ping opacity-50" />
-          <div className="relative w-8 h-8 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-full flex items-center justify-center shadow-lg">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent-purple animate-spark-ping opacity-50" />
+          <div className="relative w-8 h-8 bg-gradient-to-br from-primary to-accent-purple rounded-full flex items-center justify-center shadow-lg">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
         </div>
-        <Play className="w-4 h-4 text-[#00D4FF] rotate-90" />
+        <Play className="w-4 h-4 text-primary rotate-90" />
       </div>
 
       {/* Output: Real content kit */}

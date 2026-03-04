@@ -2,21 +2,30 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function ForgotPasswordContent() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
 
-    // TODO: Implement password reset
-    setTimeout(() => {
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      if (resetError) throw resetError;
       setIsSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   if (isSubmitted) {
@@ -47,6 +56,11 @@ export default function ForgotPasswordContent() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
         {/* Email */}
         <div>
           <label

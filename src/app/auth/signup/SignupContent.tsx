@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Eye, EyeOff, Check, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, signupSchema } from '@/hooks/useAuthForm';
 import { OAuthButtons } from '@/components/oauth-buttons';
@@ -10,6 +11,8 @@ import { OAuthButtons } from '@/components/oauth-buttons';
 function SignupForm() {
   const { signup } = useAuth();
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const searchParams = useSearchParams();
 
   // Store plan selection in sessionStorage for checkout after signup
@@ -63,7 +66,7 @@ function SignupForm() {
       >
         {/* General Error */}
         {generalError && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm" role="alert" aria-live="polite">
             {generalError}
             <p className="mt-2 text-muted-foreground">
               Already have an account?{' '}
@@ -84,13 +87,15 @@ function SignupForm() {
             name="name"
             type="text"
             required
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? 'name-error' : undefined}
             className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
               errors.name ? 'border-destructive' : 'border-border'
             }`}
             placeholder="John Doe"
           />
           {errors.name && (
-            <p className="mt-1 text-sm text-destructive">{errors.name}</p>
+            <p id="name-error" className="mt-1 text-sm text-destructive">{errors.name}</p>
           )}
         </div>
 
@@ -104,13 +109,15 @@ function SignupForm() {
             name="email"
             type="email"
             required
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'signup-email-error' : undefined}
             className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
               errors.email ? 'border-destructive' : 'border-border'
             }`}
             placeholder="you@example.com"
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-destructive">{errors.email}</p>
+            <p id="signup-email-error" className="mt-1 text-sm text-destructive">{errors.email}</p>
           )}
         </div>
 
@@ -119,21 +126,48 @@ function SignupForm() {
           <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
             Password
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
-              errors.password ? 'border-destructive' : 'border-border'
-            }`}
-            placeholder="••••••••"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'signup-password-error' : 'password-requirements'}
+              className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+                errors.password ? 'border-destructive' : 'border-border'
+              }`}
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-destructive">{errors.password}</p>
+            <p id="signup-password-error" className="mt-1 text-sm text-destructive">{errors.password}</p>
           )}
+
+          {/* Password Requirements Checklist */}
+          <ul id="password-requirements" className="mt-2 space-y-1 text-xs">
+            {[
+              { label: '8+ characters', met: password.length >= 8 },
+              { label: 'Uppercase letter', met: /[A-Z]/.test(password) },
+              { label: 'Lowercase letter', met: /[a-z]/.test(password) },
+              { label: 'Number', met: /[0-9]/.test(password) },
+            ].map((req) => (
+              <li key={req.label} className={`flex items-center gap-1.5 ${password ? (req.met ? 'text-green-600' : 'text-muted-foreground') : 'text-muted-foreground'}`}>
+                {password && req.met ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                {req.label}
+              </li>
+            ))}
+          </ul>
 
           {/* Password Strength Indicator */}
           {passwordStrength && (
@@ -164,16 +198,26 @@ function SignupForm() {
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
             Confirm Password
           </label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            required
-            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
-              errors.confirmPassword ? 'border-destructive' : 'border-border'
-            }`}
-            placeholder="••••••••"
-          />
+          <div className="relative">
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              required
+              className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+                errors.confirmPassword ? 'border-destructive' : 'border-border'
+              }`}
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+            >
+              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
           {errors.confirmPassword && (
             <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>
           )}

@@ -36,8 +36,8 @@ export default function CallbackContent() {
               }
             }
           } catch {
-            // If content check fails, skip onboarding redirect
-            hasContent = true;
+            // If content check fails, default to onboarding (safer than skipping it)
+            hasContent = false;
           }
 
           if (!hasContent) {
@@ -45,10 +45,11 @@ export default function CallbackContent() {
           } else {
             // Check for stored redirect path (from 401 session expiry)
             const redirectPath = localStorage.getItem('redirectAfterLogin');
-            if (redirectPath) {
+            if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
               localStorage.removeItem('redirectAfterLogin');
               router.push(redirectPath);
             } else {
+              localStorage.removeItem('redirectAfterLogin');
               router.push('/app');
             }
           }

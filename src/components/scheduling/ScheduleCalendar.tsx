@@ -265,7 +265,10 @@ export function ScheduleCalendar({
                     </div>
                   </div>
                   {dayPosts.length === 0 && (
-                    <span className="text-sm text-muted-foreground">Tap to add</span>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="opacity-40">📝</span>
+                      <span>Tap to add content</span>
+                    </div>
                   )}
                 </div>
 
@@ -356,9 +359,17 @@ export function ScheduleCalendar({
                   onClick={() => onSlotClick?.(day)}
                 >
                   {dayPosts.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                      <CalendarIcon className="w-4 h-4 mr-1" />
-                      <span className="hidden md:inline">Click to schedule</span>
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-3">
+                      <div className="flex gap-2 opacity-30">
+                        <span>🎯</span>
+                        <span>💡</span>
+                        <span>🗣️</span>
+                        <span>⭐</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CalendarIcon className="w-4 h-4 mr-1" />
+                        <span className="hidden md:inline">Click to schedule</span>
+                      </div>
                     </div>
                   ) : (
                     dayPosts.map(post => (

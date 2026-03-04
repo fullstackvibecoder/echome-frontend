@@ -562,6 +562,23 @@ function BillingContentInner() {
         </div>
       </div>
 
+      {/* Free Tier Card - show for free users */}
+      {(!subscription?.isSubscribed || subscription?.tier === 'free') && (
+        <div className="mb-6 p-5 border-2 border-border rounded-2xl bg-card flex items-center justify-between ring-2 ring-green-500">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-bold">Free Plan</h3>
+              <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current</span>
+            </div>
+            <p className="text-sm text-muted-foreground">2 free generations, basic voice matching, 1 platform per generation</p>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-foreground">$0</p>
+            <p className="text-xs text-muted-foreground">forever</p>
+          </div>
+        </div>
+      )}
+
       {/* Pricing Cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         {individualPlans.map((plan) => {
@@ -729,6 +746,64 @@ function BillingContentInner() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Feature Comparison Table */}
+      {individualPlans.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-center mb-6">Compare Plans</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border border-border rounded-xl overflow-hidden">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Feature</th>
+                  {individualPlans.map(plan => (
+                    <th key={plan.id} className="px-4 py-3 font-semibold text-foreground text-center">{plan.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {([
+                  { label: 'Video Processing', key: 'videoMinutesPerMonth', format: (v: number | string) => v === -1 ? 'Unlimited' : `${Math.floor(Number(v) / 60)} hrs` },
+                  { label: 'Clips per Video', key: 'clipsPerVideo', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
+                  { label: 'Creator Radar Slots', key: 'creatorRadar', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
+                  { label: 'Email Import', key: 'emailImportMaxEmails', format: (v: number | string) => v === 0 ? '—' : v === -1 ? 'Unlimited' : `Up to ${v}` },
+                  { label: 'Export Quality', key: 'exportQuality', format: (v: number | string) => String(v) },
+                ] as const).map(row => (
+                  <tr key={row.label} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground">{row.label}</td>
+                    {individualPlans.map(plan => (
+                      <td key={plan.id} className="px-4 py-3 text-center text-muted-foreground">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {row.format((plan.limits as any)?.[row.key] ?? 0)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-medium text-foreground">Priority Processing</td>
+                  {individualPlans.map(plan => (
+                    <td key={plan.id} className="px-4 py-3 text-center">
+                      {plan.features.some(f => f.toLowerCase().includes('priority processing'))
+                        ? <Check className="w-4 h-4 text-primary mx-auto" />
+                        : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-medium text-foreground">Priority Support</td>
+                  {individualPlans.map(plan => (
+                    <td key={plan.id} className="px-4 py-3 text-center">
+                      {plan.features.some(f => f.toLowerCase().includes('priority support'))
+                        ? <Check className="w-4 h-4 text-primary mx-auto" />
+                        : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}

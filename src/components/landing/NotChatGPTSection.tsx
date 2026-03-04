@@ -2,20 +2,21 @@
 
 import { MessageSquare, Video, ArrowRight } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
+import { SectionCTA } from './SectionCTA';
 
 export function NotChatGPTSection() {
   return (
     <AnimatedSection>
-      <section className="py-24 px-6 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900 relative overflow-hidden">
+      <section className="py-24 px-6 bg-gradient-to-br from-gray-900 via-foreground to-gray-900 relative overflow-hidden">
         {/* Single subtle gradient */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00D4FF]/8 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           {/* Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-white">
               Not
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 {' '}ChatGPT
               </span>
             </h2>
@@ -27,53 +28,61 @@ export function NotChatGPTSection() {
 
           {/* Comparison Cards */}
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* ChatGPT */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-              <div className="w-12 h-12 mb-6 bg-white/10 rounded-xl flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-white/60" />
+            {/* ChatGPT — muted */}
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-2xl p-8 opacity-80">
+              <div className="w-12 h-12 mb-6 bg-white/5 rounded-xl flex items-center justify-center">
+                <MessageSquare className="w-5 h-5 text-white/40" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">ChatGPT</h3>
-              <div className="space-y-3 text-white/70">
+              <h3 className="text-xl font-bold text-white/70 mb-4">ChatGPT</h3>
+              <div className="space-y-3 text-white/50 text-sm">
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-white/40" />
+                  <ArrowRight className="w-3 h-3 text-white/30" />
                   You write prompts
                 </p>
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-white/40" />
+                  <ArrowRight className="w-3 h-3 text-white/30" />
                   Generic output
                 </p>
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-white/40" />
+                  <ArrowRight className="w-3 h-3 text-white/30" />
                   No memory of your style
                 </p>
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-white/40" />
+                  <ArrowRight className="w-3 h-3 text-white/30" />
                   Sounds like AI
                 </p>
               </div>
             </div>
 
-            {/* EchoMe */}
-            <div className="bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 border-2 border-[#00D4FF]/30 rounded-2xl p-8">
-              <div className="w-12 h-12 mb-6 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center shadow-lg">
-                <Video className="w-6 h-6 text-white" />
+            {/* EchoMe — highlighted winner */}
+            <div className="relative bg-gradient-to-br from-primary/15 to-accent-purple/15 border-2 border-primary/40 rounded-2xl p-8 shadow-[0_0_40px_-10px_rgba(0,212,255,0.3)]">
+              <div className="w-14 h-14 mb-6 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
+                <Video className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">EchoMe</h3>
               <div className="space-y-3 text-white">
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-[#00D4FF]" />
+                  <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ArrowRight className="w-3 h-3 text-primary" />
+                  </span>
                   You upload video
                 </p>
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-[#00D4FF]" />
+                  <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ArrowRight className="w-3 h-3 text-primary" />
+                  </span>
                   Voice-matched output from your KB
                 </p>
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-[#00D4FF]" />
-                  Learns from everything you've created
+                  <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ArrowRight className="w-3 h-3 text-primary" />
+                  </span>
+                  Learns from everything you&apos;ve created
                 </p>
                 <p className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-[#00D4FF]" />
+                  <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <ArrowRight className="w-3 h-3 text-primary" />
+                  </span>
                   Sounds like you wrote it
                 </p>
               </div>
@@ -83,11 +92,12 @@ export function NotChatGPTSection() {
           {/* Bottom CTA */}
           <div className="mt-16 text-center">
             <p className="text-2xl font-bold text-white mb-2">
-              No prompt engineering. No "act like me" instructions.
+              No prompt engineering. No &ldquo;act like me&rdquo; instructions.
             </p>
-            <p className="text-lg text-white/60">
+            <p className="text-lg text-white/60 mb-8">
               Just upload. The system already knows your voice.
             </p>
+            <SectionCTA headline="" buttonText="Try It Free" trust="2 free generations — no credit card required" />
           </div>
         </div>
       </section>

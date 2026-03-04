@@ -67,23 +67,23 @@ export function ContentOutputFan() {
 
         {/* Arrow */}
         <div className="flex items-center justify-center pt-8 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1400ms' }}>
-          <ArrowRight className="w-5 h-5 text-[#00D4FF]" />
+          <ArrowRight className="w-5 h-5 text-primary" />
         </div>
 
         {/* Stage 2: KB Building */}
         <div className="flex flex-col items-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1500ms' }}>
-          <div className="relative w-full bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-lg p-4 shadow-xl">
+          <div className="relative w-full bg-gradient-to-br from-primary/10 to-accent-purple/10 border border-primary/30 rounded-lg p-4 shadow-xl">
             {/* Pulsing effect while building */}
             {!kbComplete && (
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 rounded-lg animate-kb-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent-purple/20 rounded-lg animate-kb-pulse" />
             )}
 
             <div className="relative flex flex-col items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${kbComplete ? 'bg-gradient-to-br from-[#00D4FF] to-[#B794F6]' : 'bg-white/10'} transition-all duration-500`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${kbComplete ? 'bg-gradient-to-br from-primary to-accent-purple' : 'bg-white/10'} transition-all duration-500`}>
                 {kbComplete ? (
                   <Check className="w-5 h-5 text-white" />
                 ) : (
-                  <Sparkles className="w-5 h-5 text-[#00D4FF] animate-pulse" />
+                  <Sparkles className="w-5 h-5 text-primary animate-pulse" />
                 )}
               </div>
 
@@ -91,7 +91,7 @@ export function ContentOutputFan() {
                 <p className="text-white text-sm font-bold mb-1">
                   {kbComplete ? 'Voice Learned' : 'Learning Voice'}
                 </p>
-                <p className="text-[#00D4FF] text-lg font-black">
+                <p className="text-primary text-lg font-black">
                   {chunksCount.toLocaleString()} chunks
                 </p>
               </div>
@@ -102,7 +102,7 @@ export function ContentOutputFan() {
 
         {/* Arrow */}
         <div className="flex items-center justify-center pt-8 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1700ms' }}>
-          <ArrowRight className="w-5 h-5 text-[#B794F6]" />
+          <ArrowRight className="w-5 h-5 text-accent-purple" />
         </div>
 
         {/* Stage 3: Video Upload */}
@@ -124,7 +124,7 @@ export function ContentOutputFan() {
 
         {/* Arrow */}
         <div className="flex items-center justify-center pt-8 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '2000ms' }}>
-          <ArrowRight className="w-5 h-5 text-[#FF6B9D]" />
+          <ArrowRight className="w-5 h-5 text-accent-pink" />
         </div>
 
         {/* Stage 4: Content Kit */}
@@ -134,17 +134,17 @@ export function ContentOutputFan() {
             <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg p-3 shadow-xl">
               <div className="grid grid-cols-2 gap-2 mb-2">
                 {/* Mini cards */}
-                <div className="aspect-[9/16] bg-gradient-to-br from-[#FF6B9D]/20 to-[#FF6B9D]/5 border border-[#FF6B9D]/30 rounded flex items-center justify-center">
-                  <Video className="w-3 h-3 text-[#FF6B9D]" />
+                <div className="aspect-[9/16] bg-gradient-to-br from-accent-pink/20 to-accent-pink/5 border border-accent-pink/30 rounded flex items-center justify-center">
+                  <Video className="w-3 h-3 text-accent-pink" />
                 </div>
-                <div className="aspect-square bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5 border border-[#B794F6]/30 rounded flex items-center justify-center">
-                  <span className="text-[#B794F6] text-[8px] font-bold">═</span>
+                <div className="aspect-square bg-gradient-to-br from-accent-purple/20 to-accent-purple/5 border border-accent-purple/30 rounded flex items-center justify-center">
+                  <span className="text-accent-purple text-[8px] font-bold">═</span>
                 </div>
-                <div className="aspect-[4/5] bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5 border border-[#00D4FF]/30 rounded flex items-center justify-center">
-                  <span className="text-[#00D4FF] text-[8px] font-bold">Aa</span>
+                <div className="aspect-[4/5] bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded flex items-center justify-center">
+                  <span className="text-primary text-[8px] font-bold">Aa</span>
                 </div>
-                <div className="aspect-[3/4] bg-gradient-to-br from-[#FFD93D]/20 to-[#FFD93D]/5 border border-[#FFD93D]/30 rounded flex items-center justify-center">
-                  <FileText className="w-3 h-3 text-[#FFD93D]" />
+                <div className="aspect-[3/4] bg-gradient-to-br from-accent-yellow/20 to-accent-yellow/5 border border-accent-yellow/30 rounded flex items-center justify-center">
+                  <FileText className="w-3 h-3 text-accent-yellow" />
                 </div>
               </div>
               <div className="text-center pt-2 border-t border-white/10">
@@ -175,23 +175,23 @@ export function ContentOutputFan() {
         {/* Arrow down */}
         <div className="flex justify-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1400ms' }}>
           <div className="rotate-90">
-            <ArrowRight className="w-4 h-4 text-[#00D4FF]" />
+            <ArrowRight className="w-4 h-4 text-primary" />
           </div>
         </div>
 
         {/* Stage 2: KB Building */}
         <div className="flex items-center gap-3 opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1500ms' }}>
-          <div className="flex-1 bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-lg p-3 shadow-xl">
+          <div className="flex-1 bg-gradient-to-br from-primary/10 to-accent-purple/10 border border-primary/30 rounded-lg p-3 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {kbComplete ? (
                   <Check className="w-5 h-5 text-green-400" />
                 ) : (
-                  <Sparkles className="w-5 h-5 text-[#00D4FF] animate-pulse" />
+                  <Sparkles className="w-5 h-5 text-primary animate-pulse" />
                 )}
                 <div>
                   <p className="text-white text-xs font-bold">{kbComplete ? 'Voice Learned' : 'Learning'}</p>
-                  <p className="text-[#00D4FF] text-xs font-black">{chunksCount.toLocaleString()} chunks</p>
+                  <p className="text-primary text-xs font-black">{chunksCount.toLocaleString()} chunks</p>
                 </div>
               </div>
             </div>
@@ -201,7 +201,7 @@ export function ContentOutputFan() {
         {/* Arrow down */}
         <div className="flex justify-center opacity-0 animate-hero-fade-in-up" style={{ animationDelay: '1700ms' }}>
           <div className="rotate-90">
-            <ArrowRight className="w-4 h-4 text-[#B794F6]" />
+            <ArrowRight className="w-4 h-4 text-accent-purple" />
           </div>
         </div>
 
@@ -213,12 +213,12 @@ export function ContentOutputFan() {
               RAW
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-[#FF6B9D] flex-shrink-0" />
+          <ArrowRight className="w-4 h-4 text-accent-pink flex-shrink-0" />
           <div className="flex-1 grid grid-cols-2 gap-1 p-2 bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl">
-            <div className="aspect-square bg-[#FF6B9D]/10 border border-[#FF6B9D]/30 rounded" />
-            <div className="aspect-square bg-[#B794F6]/10 border border-[#B794F6]/30 rounded" />
-            <div className="aspect-square bg-[#00D4FF]/10 border border-[#00D4FF]/30 rounded" />
-            <div className="aspect-square bg-[#FFD93D]/10 border border-[#FFD93D]/30 rounded" />
+            <div className="aspect-square bg-accent-pink/10 border border-accent-pink/30 rounded" />
+            <div className="aspect-square bg-accent-purple/10 border border-accent-purple/30 rounded" />
+            <div className="aspect-square bg-primary/10 border border-primary/30 rounded" />
+            <div className="aspect-square bg-accent-yellow/10 border border-accent-yellow/30 rounded" />
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
-import { useGenerationProgress, mapStepToIndex } from '@/hooks/useGenerationProgress';
+import { useGenerationProgress } from '@/hooks/useGenerationProgress';
 import { usePendingCheckout } from '@/hooks/usePendingCheckout';
 import { FirstGeneration } from '@/components/first-generation';
 import { ContentCards } from '@/components/content-cards';
@@ -16,85 +16,11 @@ import { WelcomeBanner } from '@/components/welcome-banner';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
+import { useSubscription } from '@/hooks/useSubscription';
 import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
-const TEXT_GENERATION_STAGES: Record<string, {
-  icon: string;
-  title: string;
-  tips: string[];
-}> = {
-  init: {
-    icon: '🚀',
-    title: 'Starting up',
-    tips: [
-      'Warming up the content engines...',
-      'Getting everything ready for you!',
-      'Preparing to create something amazing...',
-    ],
-  },
-  context: {
-    icon: '📚',
-    title: 'Reading your Echosystem',
-    tips: [
-      'Pulling context from your knowledge base...',
-      'Understanding your unique perspective...',
-      'Drawing from your authentic voice patterns...',
-      'Your Echosystem DNA is being analyzed...',
-    ],
-  },
-  voice: {
-    icon: '🎤',
-    title: 'Tuning into your voice',
-    tips: [
-      'Matching your exact writing style...',
-      'Your content sounds better because it\'s actually YOU',
-      'Agentic + Your Voice = Content that converts',
-      'Capturing your unique tone and rhythm...',
-    ],
-  },
-  generate: {
-    icon: '✨',
-    title: 'Crafting your content',
-    tips: [
-      'Making each platform sing YOUR tune...',
-      'Creating platform-perfect content...',
-      'Quality over quantity - every Echo matters',
-      'Tailoring content for maximum engagement...',
-    ],
-  },
-  validate: {
-    icon: '✅',
-    title: 'Polishing your Echo',
-    tips: [
-      'Running quality checks...',
-      'Ensuring everything sounds like you...',
-      'Final polish in progress...',
-      'Almost there! Perfecting the details...',
-    ],
-  },
-  carousel: {
-    icon: '🎨',
-    title: 'Creating carousel images',
-    tips: [
-      'Designing beautiful slides...',
-      'Making your content visual...',
-      'Crafting scroll-stopping graphics...',
-    ],
-  },
-  complete: {
-    icon: '🎉',
-    title: 'All done!',
-    tips: [
-      'Your content is ready!',
-    ],
-  },
-};
-
-// Stage order for progress indicator dots
-const TEXT_GENERATION_STAGE_ORDER = ['init', 'context', 'voice', 'generate', 'validate', 'complete'];
-
 // Dynamic welcome message generator
 function getWelcomeMessage(userName?: string, generationsUsed?: number): { headline: string; subheadline: string } {
   const hour = new Date().getHours();
@@ -147,6 +73,7 @@ export default function AppContent() {
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
   const { user } = useAuth();
   const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
+  const { isFreeUser, freeGenerationsRemaining } = useSubscription();
   const formRef = useRef<HTMLDivElement>(null);
 
   // Teams onboarding banner (dismissible via localStorage)
@@ -160,7 +87,15 @@ export default function AppContent() {
   }, [isTeamsUser, activeVoice]);
 
   // Usage stats for dynamic messaging
-  const [usageStats, setUsageStats] = useState<{ generationsUsed?: number } | null>(null);
+  const [usageStats, setUsageStats] = useState<{
+    generationsUsed?: number;
+    generationsLimit?: number;
+    generationsRemaining?: number;
+    videoMinutesUsed?: number;
+    videoMinutesLimit?: number;
+    contentKitsCreated?: number;
+    isUnlimited?: boolean;
+  } | null>(null);
 
   // Check for pending checkout from signup flow
   const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
@@ -171,7 +106,15 @@ export default function AppContent() {
       try {
         const response = await api.stripe.getUsageLimits();
         if (response.success && response.data) {
-          setUsageStats({ generationsUsed: response.data.generationsUsed || 0 });
+          setUsageStats({
+            generationsUsed: response.data.generationsUsed || 0,
+            generationsLimit: response.data.generationsLimit,
+            generationsRemaining: response.data.generationsRemaining,
+            videoMinutesUsed: response.data.videoMinutesUsed,
+            videoMinutesLimit: response.data.videoMinutesLimit,
+            contentKitsCreated: response.data.contentKitsCreated,
+            isUnlimited: response.data.isUnlimited,
+          });
         }
       } catch (err) {
         // Silently fail - not critical for UX
@@ -184,10 +127,6 @@ export default function AppContent() {
   // Real-time progress from SSE (including carousel status)
   const { progress, isComplete: progressComplete, hasError: progressError, carouselReady, carouselFailed } = useGenerationProgress(requestId);
 
-  // Derive progress step and current stage from real SSE events
-  const progressStep = progress ? mapStepToIndex(progress.step) : 0;
-  const currentStage = progress?.step || 'init';
-  const [currentTipIndex, setCurrentTipIndex] = useState(0);
 
   // Carousel state - now handled by backend background job
   const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[] | null>(null);
@@ -228,28 +167,6 @@ export default function AppContent() {
       requestNotificationPermission();
     }
   }, [generating]);
-
-  // Rotate tips every 4 seconds during generation (based on current stage)
-  useEffect(() => {
-    if (!generating) {
-      setCurrentTipIndex(0);
-      return;
-    }
-
-    const stageTips = TEXT_GENERATION_STAGES[currentStage]?.tips || [];
-    if (stageTips.length <= 1) return;
-
-    const tipTimer = setInterval(() => {
-      setCurrentTipIndex((prev) => (prev + 1) % stageTips.length);
-    }, 4000);
-
-    return () => clearInterval(tipTimer);
-  }, [generating, currentStage]);
-
-  // Reset tip index when stage changes
-  useEffect(() => {
-    setCurrentTipIndex(0);
-  }, [currentStage]);
 
   // Handle carousel loading when Instagram platform is selected
   // Backend generates carousel in background and notifies via SSE
@@ -435,7 +352,7 @@ export default function AppContent() {
           {/* Welcome Header */}
           {isFirstTime ? (
             <WelcomeBanner
-              userName={undefined}
+              userName={user?.name}
               onDismiss={dismissWelcome}
               onScrollToForm={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
             />
@@ -458,7 +375,7 @@ export default function AppContent() {
                   {generationsUsed > 0 && (
                     <div className="relative group">
                       {/* Ambient glow */}
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-2xl opacity-20 blur group-hover:opacity-30 transition-opacity" />
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent-purple rounded-2xl opacity-20 blur group-hover:opacity-30 transition-opacity" />
 
                       <div className="relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                         <div className="flex items-center justify-between">
@@ -495,7 +412,7 @@ export default function AppContent() {
                                 </defs>
                               </svg>
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-2xl font-black bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+                                <span className="text-2xl font-black bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                                   {generationsUsed}
                                 </span>
                               </div>
@@ -506,7 +423,7 @@ export default function AppContent() {
                               <p className="text-sm text-gray-400 mb-1">This month</p>
                               <p className="text-2xl font-bold text-white">{generationsUsed} {generationsUsed === 1 ? 'piece' : 'pieces'} created</p>
                               {generationsUsed >= 10 && (
-                                <p className="text-xs text-[#00D4FF] mt-1 flex items-center gap-1">
+                                <p className="text-xs text-primary mt-1 flex items-center gap-1">
                                   <span>🔥</span> On fire!
                                 </p>
                               )}
@@ -515,7 +432,7 @@ export default function AppContent() {
 
                           {/* Right: Milestone badge */}
                           {generationsUsed >= 5 && (
-                            <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 border border-[#00D4FF]/30">
+                            <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary/20 to-accent-purple/20 border border-primary/30">
                               <p className="text-xs text-gray-400">Streak</p>
                               <p className="text-xl font-bold text-white">Active Creator</p>
                             </div>
@@ -527,6 +444,40 @@ export default function AppContent() {
                 </div>
               );
             })()
+          )}
+
+          {/* Usage Dashboard Widget */}
+          {usageStats && !isFreeUser && (usageStats.generationsUsed ?? 0) > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="p-4 bg-card border border-border rounded-xl">
+                <p className="text-xs text-muted-foreground mb-1">Generations</p>
+                <p className="text-xl font-bold text-foreground">
+                  {usageStats.generationsUsed}
+                  {!usageStats.isUnlimited && usageStats.generationsLimit ? (
+                    <span className="text-sm font-normal text-muted-foreground"> / {usageStats.generationsLimit}</span>
+                  ) : null}
+                </p>
+              </div>
+              <div className="p-4 bg-card border border-border rounded-xl">
+                <p className="text-xs text-muted-foreground mb-1">Video Minutes</p>
+                <p className="text-xl font-bold text-foreground">
+                  {usageStats.videoMinutesUsed ?? 0}
+                  {usageStats.videoMinutesLimit && usageStats.videoMinutesLimit > 0 ? (
+                    <span className="text-sm font-normal text-muted-foreground"> / {usageStats.videoMinutesLimit}</span>
+                  ) : null}
+                </p>
+              </div>
+              <div className="p-4 bg-card border border-border rounded-xl">
+                <p className="text-xs text-muted-foreground mb-1">Content Kits</p>
+                <p className="text-xl font-bold text-foreground">{usageStats.contentKitsCreated ?? 0}</p>
+              </div>
+              <div className="p-4 bg-card border border-border rounded-xl">
+                <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+                <p className="text-xl font-bold text-foreground">
+                  {usageStats.isUnlimited ? '∞' : usageStats.generationsRemaining ?? 0}
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Teams Onboarding Banner (zero-voice state) */}
@@ -577,6 +528,23 @@ export default function AppContent() {
             </div>
           )}
 
+          {/* Free User Quota Counter */}
+          {isFreeUser && (
+            <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/10 border border-accent-yellow/30 rounded-lg text-sm">
+              <span className="text-lg">⚡</span>
+              <span className="font-medium text-foreground">
+                {freeGenerationsRemaining > 0
+                  ? `${freeGenerationsRemaining} of 2 free generation${freeGenerationsRemaining !== 1 ? 's' : ''} remaining`
+                  : 'Free generations used up'}
+              </span>
+              {freeGenerationsRemaining <= 0 && (
+                <a href="/app/billing" className="ml-auto text-primary font-semibold hover:underline text-sm">
+                  Upgrade
+                </a>
+              )}
+            </div>
+          )}
+
           {/* Input Form */}
           <div ref={formRef}>
             <FirstGeneration
@@ -597,7 +565,7 @@ export default function AppContent() {
                 <p className="text-sm text-text-secondary mb-4">Subscribe to unlock unlimited content creation.</p>
                 <button
                   onClick={() => router.push('/app/billing')}
-                  className="bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all hover:scale-[1.02]"
+                  className="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all hover:scale-[1.02]"
                 >
                   View Plans →
                 </button>
@@ -611,66 +579,12 @@ export default function AppContent() {
         </div>
       )}
 
-      {generating && (
-        <div className="max-w-2xl mx-auto text-center animate-fade-in py-12">
-          {/* Stage Icon & Title */}
-          <div className="text-5xl mb-3 animate-bounce">
-            {TEXT_GENERATION_STAGES[currentStage]?.icon || '⏳'}
-          </div>
-          <p className="text-body font-semibold mb-1">
-            {TEXT_GENERATION_STAGES[currentStage]?.title || 'Processing...'}
-          </p>
-
-          {/* Rotating Tip */}
-          <p className="text-small text-text-secondary mb-6 min-h-[40px] transition-opacity duration-500">
-            {TEXT_GENERATION_STAGES[currentStage]?.tips[currentTipIndex] || 'Working on it...'}
-          </p>
-
-          {/* Progress Bar - Gradient with pulse */}
-          <div className="w-full max-w-sm mx-auto mb-3">
-            <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] h-2.5 rounded-full transition-all duration-500 relative shadow-lg shadow-[#00D4FF]/25"
-                style={{ width: `${progress?.percent || 5}%` }}
-              >
-                <div className="absolute inset-0 bg-white/20 animate-pulse" />
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Percentage */}
-          <p className="text-small text-text-secondary font-medium mb-4">
-            {progress?.percent || 5}% complete
-          </p>
-
-          {/* Stage indicator dots */}
-          <div className="flex justify-center gap-2 mt-4">
-            {TEXT_GENERATION_STAGE_ORDER.map((stage, idx) => {
-              const currentIdx = TEXT_GENERATION_STAGE_ORDER.indexOf(currentStage);
-              const isComplete = idx < currentIdx;
-              const isCurrent = stage === currentStage || (currentStage === 'carousel' && stage === 'validate');
-              return (
-                <div
-                  key={stage}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    isComplete ? 'bg-gradient-to-r from-[#00D4FF] to-[#B794F6]' :
-                    isCurrent ? 'bg-gradient-to-r from-[#00D4FF] to-[#B794F6] animate-pulse scale-125 shadow-md shadow-[#00D4FF]/50' :
-                    'bg-bg-secondary'
-                  }`}
-                  title={TEXT_GENERATION_STAGES[stage]?.title}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {hasResults && !generating && (
         <div className="animate-fade-in">
           {/* Success Header */}
           <div className="text-center mb-12">
             <div className="text-6xl mb-4 animate-bounce">{videoClips.length > 0 ? '🎬' : '✨'}</div>
-            <h2 className="text-display text-4xl mb-2 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+            <h2 className="text-display text-4xl mb-2 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
               {videoClips.length > 0 ? 'Your Content Kit is Ready!' : 'Your Content is Ready!'}
             </h2>
             <p className="text-body text-text-secondary mb-6">

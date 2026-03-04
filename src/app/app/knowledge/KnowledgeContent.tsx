@@ -20,6 +20,7 @@ import { MboxProgressUI } from '@/components/mbox-progress-ui';
 import { CONTENT_SOURCE_CONFIG, ContentSourceType } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 
 // ============================================
 // HELPERS
@@ -177,6 +178,9 @@ export default function KnowledgeContent() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: string } | null>(null);
+
   // Derived state
   const hasContent = contentItems.length > 0;
   const totalChunks = contentStats?.totalChunks || 0;
@@ -221,24 +225,30 @@ export default function KnowledgeContent() {
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`)) return;
-
-    setBulkDeleting(true);
-    try {
-      await Promise.all(Array.from(selectedIds).map(id => deleteContent(id).catch(() => {})));
-      setSelectedIds(new Set());
-      setSelectionMode(false);
-    } finally {
-      setBulkDeleting(false);
-    }
+    setDeleteConfirm({ type: 'bulk' });
   };
 
-  const handleDelete = async (contentId: string) => {
-    if (confirm('Delete this content?')) {
-      await deleteContent(contentId);
+  const handleDelete = (contentId: string) => {
+    setDeleteConfirm({ type: 'single', id: contentId });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    if (deleteConfirm.type === 'bulk') {
+      setBulkDeleting(true);
+      try {
+        await Promise.all(Array.from(selectedIds).map(id => deleteContent(id).catch(() => {})));
+        setSelectedIds(new Set());
+        setSelectionMode(false);
+      } finally {
+        setBulkDeleting(false);
+      }
+    } else if (deleteConfirm.id) {
+      await deleteContent(deleteConfirm.id);
     }
+    setDeleteConfirm(null);
   };
 
   // File upload handlers
@@ -379,7 +389,7 @@ export default function KnowledgeContent() {
 
             {/* Quick Help */}
             <div className="relative group mt-4">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
               <div className="relative p-4 bg-card border border-border rounded-xl">
                 <div className="flex items-start gap-3">
                   <span className="text-xl">💡</span>
@@ -478,7 +488,7 @@ export default function KnowledgeContent() {
           {/* Voice Strength Indicator */}
           {hasContent && (
             <div className="relative group mb-6">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
               <div className="relative p-5 bg-card border border-border rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -489,7 +499,7 @@ export default function KnowledgeContent() {
                         <InfoTooltip text="This measures how well EchoMe knows your voice. Add more of your content to improve it. 'Strong' or higher = your generated content will closely match your writing style." />
                       </p>
                       <p className="text-xs text-text-secondary">
-                        {totalItems} source{totalItems !== 1 ? 's' : ''} added • <span className="font-semibold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{totalChunks.toLocaleString()}</span> knowledge nuggets learned
+                        {totalItems} source{totalItems !== 1 ? 's' : ''} added • <span className="font-semibold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">{totalChunks.toLocaleString()}</span> knowledge nuggets learned
                       </p>
                     </div>
                   </div>
@@ -498,7 +508,7 @@ export default function KnowledgeContent() {
                     <button
                       onClick={refresh}
                       disabled={loading}
-                      className="text-text-secondary hover:text-[#00D4FF] transition-colors text-sm"
+                      className="text-text-secondary hover:text-primary transition-colors text-sm"
                     >
                       ↻
                     </button>
@@ -507,7 +517,7 @@ export default function KnowledgeContent() {
                 {/* Progress Bar */}
                 <div className="w-full bg-bg-tertiary rounded-full h-2.5 overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] h-2.5 rounded-full transition-all duration-500 shadow-md shadow-[#00D4FF]/25"
+                    className="bg-gradient-to-r from-primary to-accent-purple h-2.5 rounded-full transition-all duration-500 shadow-md shadow-primary/25"
                     style={{ width: `${voiceStrength.percent}%` }}
                   />
                 </div>
@@ -744,6 +754,21 @@ export default function KnowledgeContent() {
         onClose={() => setShowBlogModal(false)}
         onImportComplete={refresh}
         knowledgeBaseId={selectedKb ?? undefined}
+      />
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={deleteConfirm !== null}
+        title={deleteConfirm?.type === 'bulk' ? 'Delete Items' : 'Delete Content'}
+        message={
+          deleteConfirm?.type === 'bulk'
+            ? `Delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`
+            : 'Delete this content? This cannot be undone.'
+        }
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm(null)}
       />
     </div>
   );

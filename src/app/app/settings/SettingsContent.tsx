@@ -1,20 +1,35 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 
 type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing' | 'referral';
+const VALID_TABS: SettingsTab[] = ['profile', 'account', 'preferences', 'billing', 'referral'];
 
 export default function SettingsContent() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams.get('tab') as SettingsTab | null;
+  const [activeTab, setActiveTab] = useState<SettingsTab>(
+    tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'profile'
+  );
+
+  const handleTabChange = useCallback((tab: SettingsTab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    router.replace(url.pathname + url.search, { scroll: false });
+  }, [router]);
+  const [resetPasswordSending, setResetPasswordSending] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -224,7 +239,7 @@ export default function SettingsContent() {
       {/* Tabs */}
       <div className="flex gap-2 mb-8 border-b border-border overflow-x-auto">
         <button
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabChange('profile')}
           className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'profile'
               ? 'border-accent text-accent'
@@ -234,7 +249,7 @@ export default function SettingsContent() {
           Profile
         </button>
         <button
-          onClick={() => setActiveTab('account')}
+          onClick={() => handleTabChange('account')}
           className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'account'
               ? 'border-accent text-accent'
@@ -244,7 +259,7 @@ export default function SettingsContent() {
           Account
         </button>
         <button
-          onClick={() => setActiveTab('preferences')}
+          onClick={() => handleTabChange('preferences')}
           className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'preferences'
               ? 'border-accent text-accent'
@@ -254,7 +269,7 @@ export default function SettingsContent() {
           Preferences
         </button>
         <button
-          onClick={() => setActiveTab('billing')}
+          onClick={() => handleTabChange('billing')}
           className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'billing'
               ? 'border-accent text-accent'
@@ -264,7 +279,7 @@ export default function SettingsContent() {
           Billing
         </button>
         <button
-          onClick={() => setActiveTab('referral')}
+          onClick={() => handleTabChange('referral')}
           className={`px-6 py-3 text-body font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'referral'
               ? 'border-accent text-accent'
@@ -581,48 +596,31 @@ export default function SettingsContent() {
         <div className="space-y-6">
           {/* Change Password */}
           <div className="card">
-            <h3 className="text-subheading text-xl mb-4">Change Password</h3>
-            <div className="space-y-4 opacity-50">
-              <div>
-                <label className="block text-small font-medium text-text-primary mb-2">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  disabled
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg cursor-not-allowed"
-                />
-              </div>
-              <div>
-                <label className="block text-small font-medium text-text-primary mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  disabled
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg cursor-not-allowed"
-                />
-              </div>
-              <div>
-                <label className="block text-small font-medium text-text-primary mb-2">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  disabled
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg cursor-not-allowed"
-                />
-              </div>
-              <button
-                onClick={() => toast.info("Use 'Forgot Password' from the login page to reset your password.")}
-                className="btn-primary cursor-not-allowed"
-              >
-                Update Password
-              </button>
-            </div>
+            <h3 className="text-subheading text-xl mb-2">Change Password</h3>
+            <p className="text-body text-text-secondary mb-4">
+              We&apos;ll send a password reset link to your email address.
+            </p>
+            <button
+              onClick={async () => {
+                if (!user?.email) return;
+                setResetPasswordSending(true);
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+                    redirectTo: `${window.location.origin}/auth/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success('Password reset email sent! Check your inbox.');
+                } catch {
+                  toast.error('Failed to send reset email. Please try again.');
+                } finally {
+                  setResetPasswordSending(false);
+                }
+              }}
+              disabled={resetPasswordSending}
+              className="btn-primary"
+            >
+              {resetPasswordSending ? 'Sending...' : 'Send Reset Email'}
+            </button>
           </div>
 
           {/* Delete Account */}
@@ -632,12 +630,34 @@ export default function SettingsContent() {
               Once you delete your account, there is no going back. Please be certain.
             </p>
             <button
-              onClick={() => toast.info('To delete your account, please contact support at ara.mamourian@tryechome.com')}
+              onClick={() => setShowDeleteConfirm(true)}
               className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
             >
               Delete Account
             </button>
           </div>
+
+          <ConfirmDialog
+            isOpen={showDeleteConfirm}
+            title="Delete Account"
+            message={
+              <>
+                To delete your account and all associated data, please contact our support team at{' '}
+                <a href="mailto:support@tryechome.com" className="text-primary underline font-medium">
+                  support@tryechome.com
+                </a>.
+                This action is permanent and cannot be undone.
+              </>
+            }
+            confirmLabel="Email Support"
+            cancelLabel="Cancel"
+            variant="danger"
+            onConfirm={() => {
+              window.location.href = 'mailto:support@tryechome.com?subject=Account%20Deletion%20Request';
+              setShowDeleteConfirm(false);
+            }}
+            onCancel={() => setShowDeleteConfirm(false)}
+          />
         </div>
       )}
 
@@ -692,7 +712,7 @@ export default function SettingsContent() {
                 </button>
               </div>
               <p className="text-xs text-text-secondary mt-2">
-                Choose your preferred color theme
+                Choose your preferred color theme. Dark mode coming soon.
               </p>
             </div>
 

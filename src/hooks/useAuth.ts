@@ -61,12 +61,14 @@ export function useAuth(): UseAuthReturn {
         setUser(response.data.user);
         // Check for stored redirect path (from 401 session expiry), URL param, or default to /app
         const storedRedirect = localStorage.getItem('redirectAfterLogin');
-        if (storedRedirect) {
+        if (storedRedirect && storedRedirect.startsWith('/') && !storedRedirect.startsWith('//')) {
           localStorage.removeItem('redirectAfterLogin');
           router.push(storedRedirect);
         } else {
+          localStorage.removeItem('redirectAfterLogin');
           const urlParams = new URLSearchParams(window.location.search);
-          const redirectTo = urlParams.get('redirect') || '/app';
+          const redirect = urlParams.get('redirect');
+          const redirectTo = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/app';
           router.push(redirectTo);
         }
       } else {

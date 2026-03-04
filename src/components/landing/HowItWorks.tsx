@@ -36,12 +36,12 @@ export function HowItWorks() {
     <AnimatedSection>
       <section id="how" className="py-24 px-6 bg-white relative overflow-hidden">
         {/* Single subtle gradient */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-[#1C1C1E]">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground">
               How It Works
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
@@ -55,13 +55,13 @@ export function HowItWorks() {
               const Icon = step.icon;
               return (
                 <div key={step.num} className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-3xl blur-lg opacity-0 group-hover:opacity-15 transition-opacity" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent-purple rounded-3xl blur-lg opacity-0 group-hover:opacity-15 transition-opacity" />
                   <div className="relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all h-full">
-                    <div className="w-12 h-12 mb-4 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 mb-4 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-sm font-bold text-[#00D4FF] mb-2">Step {step.num}</div>
-                    <h3 className="text-lg font-bold text-[#1C1C1E] mb-3 leading-tight">{step.title}</h3>
+                    <div className="text-sm font-bold text-primary mb-2">Step {step.num}</div>
+                    <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">{step.title}</h3>
                     <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
                   </div>
                 </div>
@@ -73,8 +73,8 @@ export function HowItWorks() {
           <div className="text-center mt-16">
             <Link
               href="/auth/signup"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
-                         rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white
+                         rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
                          shadow-lg text-lg group"
             >
               Try It Free

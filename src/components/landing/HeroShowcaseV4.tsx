@@ -36,7 +36,7 @@ export function HeroShowcaseV4() {
   return (
     <div className="relative flex flex-col items-center gap-6">
       {/* Ambient glow */}
-      <div className="absolute -inset-8 bg-gradient-to-b from-[#00D4FF]/10 via-[#B794F6]/10 to-transparent rounded-[40px] blur-3xl pointer-events-none" />
+      <div className="absolute -inset-8 bg-gradient-to-b from-primary/10 via-accent-purple/10 to-transparent rounded-[40px] blur-3xl pointer-events-none" />
 
       {/* Input: Raw Video */}
       <div
@@ -72,7 +72,7 @@ export function HeroShowcaseV4() {
             {/* Processing spinner */}
             {phase === 'processing' && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
+                <Loader2 className="w-10 h-10 text-primary animate-spin" />
               </div>
             )}
           </div>
@@ -85,7 +85,7 @@ export function HeroShowcaseV4() {
       {/* Arrow Down */}
       <div className="relative">
         <ArrowRight
-          className={`w-6 h-6 text-[#00D4FF] rotate-90 transition-all duration-500 ${
+          className={`w-6 h-6 text-primary rotate-90 transition-all duration-500 ${
             phase === 'transforming'
               ? 'scale-125 opacity-100'
               : phase === 'processing'
@@ -99,7 +99,7 @@ export function HeroShowcaseV4() {
       <div className="relative w-full max-w-sm">
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg">
               <LayoutGrid className="w-5 h-5 text-white" />
             </div>
             <span className="text-white/80 font-medium text-sm">Output</span>
@@ -109,14 +109,14 @@ export function HeroShowcaseV4() {
           <div className="grid grid-cols-2 gap-3">
             {/* Clips Preview */}
             <div
-              className={`relative aspect-square border border-[#00D4FF]/30 rounded-lg overflow-hidden transition-all duration-300 ${
+              className={`relative aspect-square border border-primary/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '0ms' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5" />
               <Image
                 src="/showcase/instagram-reel.png"
                 alt="Clip preview"
@@ -132,14 +132,14 @@ export function HeroShowcaseV4() {
 
             {/* Carousels Preview */}
             <div
-              className={`relative aspect-square border border-[#B794F6]/30 rounded-lg overflow-hidden transition-all duration-300 ${
+              className={`relative aspect-square border border-accent-purple/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '100ms' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 to-accent-purple/5" />
               <Image
                 src="/showcase/carousel-1.png"
                 alt="Carousel preview"
@@ -155,14 +155,14 @@ export function HeroShowcaseV4() {
 
             {/* Posts Preview */}
             <div
-              className={`relative aspect-square border border-[#00D4FF]/30 rounded-lg overflow-hidden transition-all duration-300 ${
+              className={`relative aspect-square border border-primary/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '200ms' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/20 to-[#00D4FF]/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5" />
               <Image
                 src="/showcase/linkedin-post.png"
                 alt="Post preview"
@@ -178,14 +178,14 @@ export function HeroShowcaseV4() {
 
             {/* Calendar Preview */}
             <div
-              className={`relative aspect-square border border-[#B794F6]/30 rounded-lg overflow-hidden transition-all duration-300 ${
+              className={`relative aspect-square border border-accent-purple/30 rounded-lg overflow-hidden transition-all duration-300 ${
                 phase === 'output' || phase === 'complete'
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4'
               }`}
               style={{ transitionDelay: '300ms' }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#B794F6]/20 to-[#B794F6]/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 to-accent-purple/5" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <Calendar className="w-12 h-12 text-white/40" />
               </div>

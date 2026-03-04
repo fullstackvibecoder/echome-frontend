@@ -31,15 +31,15 @@ export function CreatorRadarSection() {
     <AnimatedSection>
       <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
         {/* Single subtle gradient */}
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#B794F6]/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent-purple/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-[#1C1C1E]">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground">
               Turn Other People's Ideas
               <br />
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 Into Your Content
               </span>
             </h2>
@@ -56,15 +56,15 @@ export function CreatorRadarSection() {
               return (
                 <div key={index} className="relative flex items-center">
                   <div className="flex-1 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
-                    <div className="w-12 h-12 mb-4 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-xl flex items-center justify-center shadow-md">
+                    <div className="w-12 h-12 mb-4 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-md">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-bold text-[#1C1C1E] mb-2 text-lg">{step.title}</h3>
+                    <h3 className="font-bold text-foreground mb-2 text-lg">{step.title}</h3>
                     <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
                   </div>
                   {index < steps.length - 1 && (
                     <div className="hidden lg:flex items-center justify-center px-2">
-                      <ArrowRight className="w-6 h-6 text-[#00D4FF]" />
+                      <ArrowRight className="w-6 h-6 text-primary" />
                     </div>
                   )}
                 </div>
@@ -73,8 +73,8 @@ export function CreatorRadarSection() {
           </div>
 
           {/* Clarification Box */}
-          <div className="bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/20 rounded-2xl p-8 text-center">
-            <p className="text-2xl font-bold text-[#1C1C1E] mb-2">
+          <div className="bg-gradient-to-r from-primary/10 to-accent-purple/10 border border-primary/20 rounded-2xl p-8 text-center">
+            <p className="text-2xl font-bold text-foreground mb-2">
               Same ideas, your words. Always.
             </p>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">

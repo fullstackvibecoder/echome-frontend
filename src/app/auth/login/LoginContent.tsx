@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, loginSchema } from '@/hooks/useAuthForm';
 import { OAuthButtons } from '@/components/oauth-buttons';
 
 export default function LoginContent() {
   const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
 
   const { errors, isLoading, generalError, handleSubmit } = useAuthForm({
     schema: loginSchema,
@@ -29,7 +32,7 @@ export default function LoginContent() {
       <form action={handleSubmit} className="space-y-4">
         {/* General Error */}
         {generalError && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-sm">
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-sm" role="alert" aria-live="polite">
             <p className="text-destructive">{generalError}</p>
             <p className="mt-2 text-muted-foreground">
               Don&apos;t have an account?{' '}
@@ -56,13 +59,15 @@ export default function LoginContent() {
             name="email"
             type="email"
             required
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-error' : undefined}
             className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
               errors.email ? 'border-destructive' : 'border-border'
             }`}
             placeholder="you@example.com"
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-destructive">{errors.email}</p>
+            <p id="email-error" className="mt-1 text-sm text-destructive">{errors.email}</p>
           )}
         </div>
 
@@ -82,18 +87,30 @@ export default function LoginContent() {
               Forgot password?
             </Link>
           </div>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
-              errors.password ? 'border-destructive' : 'border-border'
-            }`}
-            placeholder="••••••••"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+                errors.password ? 'border-destructive' : 'border-border'
+              }`}
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-destructive">{errors.password}</p>
+            <p id="password-error" className="mt-1 text-sm text-destructive">{errors.password}</p>
           )}
         </div>
 

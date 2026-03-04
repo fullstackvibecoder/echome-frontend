@@ -181,7 +181,19 @@ export default function ContentKitDetailContent() {
   }, [linkedReel?.status, refresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCopy = async (content: string, contentId: string) => {
-    await navigator.clipboard.writeText(content);
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch {
+      // Fallback for older browsers or restricted contexts
+      const textarea = document.createElement('textarea');
+      textarea.value = content;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
     setCopiedId(contentId);
     setTimeout(() => setCopiedId(null), 2000);
   };

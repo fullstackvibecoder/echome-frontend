@@ -8,7 +8,7 @@ export function HeroShowcase() {
   return (
     <div className="relative flex flex-col items-center">
       {/* Ambient glow behind the whole showcase */}
-      <div className="absolute -inset-8 bg-gradient-to-b from-[#00D4FF]/10 via-[#B794F6]/10 to-[#FF6B9D]/10 rounded-[40px] blur-3xl pointer-events-none" />
+      <div className="absolute -inset-8 bg-gradient-to-b from-primary/10 via-accent-purple/10 to-accent-pink/10 rounded-[40px] blur-3xl pointer-events-none" />
 
       {/* ── Zone 1: Raw Video Input ── */}
       <div
@@ -79,11 +79,11 @@ export function HeroShowcase() {
         >
           {/* Pulsing ring */}
           <div
-            className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#B794F6] animate-spark-ping"
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent-purple animate-spark-ping"
             style={{ animationDelay: '1000ms' }}
           />
           {/* Solid circle */}
-          <div className="relative w-9 h-9 bg-gradient-to-br from-[#00D4FF] to-[#B794F6] rounded-full flex items-center justify-center shadow-lg shadow-[#00D4FF]/25">
+          <div className="relative w-9 h-9 bg-gradient-to-br from-primary to-accent-purple rounded-full flex items-center justify-center shadow-lg shadow-primary/25">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
         </div>
@@ -93,7 +93,7 @@ export function HeroShowcase() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 rounded-full bg-[#B794F6]/60 animate-particle-fall"
+              className="absolute w-1 h-1 rounded-full bg-accent-purple/60 animate-particle-fall"
               style={{
                 left: `${6 + i * 4}px`,
                 animationDelay: `${900 + i * 400}ms`,
@@ -121,7 +121,7 @@ export function HeroShowcase() {
 
         {/* Floating "47 pieces" badge */}
         <div
-          className="absolute -top-2 -right-2 md:right-0 px-3 py-1.5 bg-gradient-to-br from-[#FFD93D] to-[#FF6B9D] rounded-xl shadow-lg transform rotate-6 opacity-0 animate-hero-fade-in-up"
+          className="absolute -top-2 -right-2 md:right-0 px-3 py-1.5 bg-gradient-to-br from-accent-yellow to-accent-pink rounded-xl shadow-lg transform rotate-6 opacity-0 animate-hero-fade-in-up"
           style={{ animationDelay: '2000ms' }}
         >
           <span className="text-white text-xs font-bold">47 pieces</span>

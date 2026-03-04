@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Video } from 'lucide-react';
+import { ArrowRight, Video, Pause, Play } from 'lucide-react';
 
 type OutputType = 'text' | 'reel' | 'tweet-carousel' | 'bg-carousel';
 
@@ -32,28 +32,39 @@ const outputs: Output[] = [
 export function HeroProductDemo() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
+  const startCycling = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
       setIsVisible(false);
-
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % outputs.length);
         setIsVisible(true);
       }, 300);
     }, 1800);
-
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!isPaused) {
+      startCycling();
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPaused, startCycling]);
 
   const currentOutput = outputs[currentIndex];
 
   return (
     <div className="relative w-full max-w-5xl mx-auto py-4">
       {/* Ambient glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/5 via-transparent to-[#B794F6]/5 rounded-3xl blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-purple/5 rounded-3xl blur-3xl" />
 
-      <div className="relative flex items-center justify-center gap-8 lg:gap-12">
+      <div className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
         {/* Input: Stacked Videos */}
         <div className="relative">
           <div className="relative w-[280px] lg:w-[340px]">
@@ -106,14 +117,14 @@ export function HeroProductDemo() {
 
         {/* Arrow */}
         <div className="relative">
-          <ArrowRight className="w-8 h-8 text-[#00D4FF]" />
+          <ArrowRight className="w-8 h-8 text-primary" />
         </div>
 
         {/* Output: Cycling through individual items */}
         <div className="relative">
           <div className="relative w-[280px] lg:w-[340px]">
             {/* Output Card - Fixed height container to prevent page jog */}
-            <div className="relative" style={{ height: '604px' }}>
+            <div className="relative min-h-[400px] lg:min-h-[604px]">
               <div
                 className={`relative h-full flex items-center justify-center transition-all duration-300 ${
                   isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
@@ -161,7 +172,7 @@ export function HeroProductDemo() {
                   <div className="relative w-[340px]">
                     {/* Platform badge */}
                     <div className="absolute -top-3 left-4 z-10">
-                      <div className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#0099CC] shadow-lg">
+                      <div className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-primary to-primary-dark shadow-lg">
                         <p className="text-white text-xs font-bold">{currentOutput.label}</p>
                       </div>
                     </div>
@@ -177,7 +188,7 @@ export function HeroProductDemo() {
                       />
 
                       {/* Glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#00D4FF]/10 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/10 via-transparent to-transparent pointer-events-none" />
                     </div>
                   </div>
                 )}
@@ -219,8 +230,15 @@ export function HeroProductDemo() {
               </div>
             </div>
 
-            <div className="mt-3 text-center">
-              <p className="text-white/60 text-xs">
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setIsPaused(!isPaused)}
+                aria-label={isPaused ? 'Play auto-cycling' : 'Pause auto-cycling'}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
+                {isPaused ? <Play className="w-3 h-3 text-white/70" /> : <Pause className="w-3 h-3 text-white/70" />}
+              </button>
+              <p className="text-white/60 text-xs" aria-live="polite">
                 {currentIndex + 1} of {outputs.length}
               </p>
             </div>

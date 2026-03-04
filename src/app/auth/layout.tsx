@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AuthLayout({
   children,
@@ -10,15 +11,18 @@ export default function AuthLayout({
       {/* Background decoration */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[var(--accent-purple)]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-purple/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Logo */}
+      {/* Logo — matches marketing pages */}
       <Link
         href="/"
-        className="absolute top-8 left-8 text-2xl font-bold text-primary"
+        className="absolute top-8 left-8 flex items-center space-x-2 group"
       >
-        EchoMe
+        <Image src="/media/echome-logo.svg" alt="EchoMe" width={36} height={36} className="object-contain transition-transform group-hover:scale-110" />
+        <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
+          EchoMe
+        </span>
       </Link>
 
       {/* Auth content */}

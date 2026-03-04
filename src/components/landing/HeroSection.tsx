@@ -7,10 +7,10 @@ import { HeroProductDemo } from './HeroProductDemo';
 export function HeroSection() {
   return (
     <section className="min-h-screen flex items-center px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-foreground to-gray-900" />
 
       {/* Single ambient gradient for depth */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00D4FF]/8 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-[1400px] mx-auto pt-24 pb-16 w-full relative z-10">
         <div className="flex flex-col items-center text-center">
@@ -19,7 +19,7 @@ export function HeroSection() {
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur border border-white/20 rounded-full mb-6 opacity-0 animate-fade-in"
             style={{ animationDelay: '0ms' }}
           >
-            <Upload className="w-4 h-4 text-[#00D4FF]" />
+            <Upload className="w-4 h-4 text-primary" />
             <span className="text-white/90 font-medium text-sm">For creators who&apos;ve already made the content</span>
           </div>
 
@@ -30,7 +30,7 @@ export function HeroSection() {
           >
             <span className="text-white">Your Video. Your Voice.</span>
             <br />
-            <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
               15 Posts in 3 Minutes.
             </span>
           </h1>
@@ -50,8 +50,8 @@ export function HeroSection() {
           >
             <Link
               href="/auth/signup"
-              className="px-10 py-5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white
-                         rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all
+              className="px-10 py-5 bg-gradient-to-r from-primary to-primary-dark text-white
+                         rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
                          shadow-lg text-xl flex items-center gap-2 group w-full sm:w-auto justify-center"
             >
               Try It Free
@@ -61,14 +61,14 @@ export function HeroSection() {
               href="#output-showcase"
               className="text-white/80 hover:text-white font-medium text-lg flex items-center gap-2 transition-colors group"
             >
-              <Play className="w-5 h-5 text-[#00D4FF] group-hover:scale-110 transition-transform" />
+              <Play className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
               See Example Output
             </Link>
           </div>
 
           {/* Trust signal — right under CTA */}
           <p
-            className="text-sm text-white/50 font-light mb-10 opacity-0 animate-fade-in"
+            className="text-sm text-white/70 font-normal mb-10 opacity-0 animate-fade-in"
             style={{ animationDelay: '500ms' }}
           >
             No credit card required — 2 free generations
@@ -79,17 +79,17 @@ export function HeroSection() {
             className="flex flex-wrap items-center justify-center gap-6 mb-10 opacity-0 animate-fade-in"
             style={{ animationDelay: '550ms' }}
           >
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur border border-white/10 rounded-full">
-              <span className="text-[#00D4FF] font-bold text-sm">500+</span>
-              <span className="text-white/70 text-sm">creators onboard</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
+              <span className="text-primary font-bold text-base">500+</span>
+              <span className="text-white/80 text-base">creators onboard</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur border border-white/10 rounded-full">
-              <span className="text-[#B794F6] font-bold text-sm">50,000+</span>
-              <span className="text-white/70 text-sm">pieces generated</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
+              <span className="text-accent-purple font-bold text-base">50,000+</span>
+              <span className="text-white/80 text-base">pieces generated</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur border border-white/10 rounded-full">
-              <span className="text-[#00D4FF] font-bold text-sm">4.9/5</span>
-              <span className="text-white/70 text-sm">voice accuracy</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
+              <span className="text-primary font-bold text-base">4.9/5</span>
+              <span className="text-white/80 text-base">voice accuracy</span>
             </div>
           </div>
 

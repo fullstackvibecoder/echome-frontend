@@ -45,6 +45,7 @@ export function VoiceSwitcher() {
 
   return (
     <div ref={dropdownRef} className="relative px-4 py-3 border-b border-border">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-3">Active Voice</p>
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={loading}
@@ -61,7 +62,7 @@ export function VoiceSwitcher() {
             {activeVoice?.name || 'Select Voice'}
           </p>
           <p className={`text-xs ${voiceLimit > 0 && voiceCount >= voiceLimit ? 'text-amber-500 font-medium' : 'text-muted-foreground'}`}>
-            {voiceLimit > 0 ? `${voiceCount} / ${voiceLimit} voices${voiceCount >= voiceLimit ? ' (limit reached)' : ''}` : `${voices.length} voice${voices.length !== 1 ? 's' : ''}`}
+            {voiceCount} of {voiceLimit || voices.length} voice{(voiceLimit || voices.length) !== 1 ? 's' : ''}{voiceLimit > 0 && voiceCount >= voiceLimit ? ' (limit reached)' : ''}
           </p>
         </div>
 

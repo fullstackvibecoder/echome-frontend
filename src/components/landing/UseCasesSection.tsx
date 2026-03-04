@@ -7,8 +7,8 @@ const useCases = [
   {
     role: 'Podcaster',
     icon: Mic,
-    color: 'from-[#00D4FF] to-[#0099CC]',
-    borderColor: 'border-[#00D4FF]/30',
+    color: 'from-primary to-primary-dark',
+    borderColor: 'border-primary/30',
     input: '1 podcast episode',
     outputs: ['5 viral reels', '12 social posts', '3 carousels', 'Newsletter'],
     impact: 'Saves 8 hours/week',
@@ -17,8 +17,8 @@ const useCases = [
   {
     role: 'Real Estate Agent',
     icon: Home,
-    color: 'from-[#B794F6] to-[#9775D8]',
-    borderColor: 'border-[#B794F6]/30',
+    color: 'from-accent-purple to-[#9775D8]',
+    borderColor: 'border-accent-purple/30',
     input: '1 property tour',
     outputs: ['4 listing reels', '6 market posts', '2 carousels', 'Email campaign'],
     impact: 'Saves 6 hours/listing',
@@ -51,18 +51,18 @@ export function UseCasesSection() {
     <AnimatedSection>
       <section className="py-32 px-6 bg-white relative overflow-hidden">
         {/* Ambient gradients */}
-        <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-[#00D4FF]/5 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] bg-[#B794F6]/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] bg-accent-purple/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00D4FF]/10 border border-[#00D4FF]/20 rounded-full mb-6">
-              <span className="text-[#00D4FF] font-semibold text-sm">Use Cases</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+              <span className="text-primary font-semibold text-sm">Use Cases</span>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-[#1C1C1E] leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
               Built for
-              <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 {' '}How You Create
               </span>
             </h2>
