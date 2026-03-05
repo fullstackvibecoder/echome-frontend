@@ -564,7 +564,7 @@ export default function KnowledgeContent() {
           />
 
           {/* ZONE 1 — Ask Your Voice */}
-          <AskYourVoice disabled={!hasContent} />
+          <AskYourVoice disabled={!hasContent} kbId={selectedKb} />
 
           {/* ZONE 2 — Voice Strength Dashboard */}
           <VoiceIntelligenceDashboard

@@ -17,9 +17,10 @@ const SUGGESTED_PROMPTS = [
 
 interface AskYourVoiceProps {
   disabled?: boolean;
+  kbId?: string | null;
 }
 
-export function AskYourVoice({ disabled }: AskYourVoiceProps) {
+export function AskYourVoice({ disabled, kbId }: AskYourVoiceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,9 @@ export function AskYourVoice({ disabled }: AskYourVoiceProps) {
     const history = messages.slice(-6).map(m => ({ role: m.role, content: m.content }));
 
     try {
-      const rawResponse = await api.help.chat(text, history);
+      const rawResponse = kbId
+        ? await api.kb.chat(kbId, text, history)
+        : await api.help.chat(text, history);
 
       let fullContent = '';
       const lines = rawResponse.split('\n');
@@ -47,6 +50,8 @@ export function AskYourVoice({ disabled }: AskYourVoiceProps) {
           if (payload === '[DONE]') break;
           try {
             const parsed = JSON.parse(payload);
+            if (parsed.type === 'done') break;
+            if (parsed.type === 'error') { fullContent = parsed.message || 'Something went wrong.'; break; }
             if (parsed.content) fullContent += parsed.content;
             if (parsed.text) fullContent += parsed.text;
           } catch {
@@ -62,7 +67,7 @@ export function AskYourVoice({ disabled }: AskYourVoiceProps) {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages]);
+  }, [input, loading, messages, kbId]);
 
   const handleClear = () => {
     setMessages([]);

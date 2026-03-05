@@ -552,6 +552,17 @@ export const api = {
       );
       return response.data;
     },
+
+    /** Chat with your KB content (returns SSE stream) */
+    chat: async (kbId: string, query: string, conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []) => {
+      const response = await apiClient.post(`/kb/${kbId}/chat`, { query, conversationHistory }, {
+        responseType: 'text',
+        timeout: 60000,
+        headers: { Accept: 'text/event-stream' },
+        transformResponse: [(data: string) => data],
+      });
+      return response.data as string;
+    },
   },
 
   // -------- FILE UPLOADS --------
