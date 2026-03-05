@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -13,114 +13,165 @@ import { SocialImportModal } from '@/components/social-import-modal';
 import { BlogImportModal } from '@/components/blog-import-modal';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { UnifiedContentItem } from '@/types';
+import { UnifiedContentItem, ContentSourceType, CONTENT_SOURCE_CONFIG } from '@/types';
 import { parseMboxFile } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
-import { CONTENT_SOURCE_CONFIG, ContentSourceType } from '@/types';
-import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { VoiceIntelligenceDashboard } from './components/VoiceIntelligenceDashboard';
+import { AddContentSection } from './components/AddContentSection';
+import { KBSourceFilterChips } from './components/KBSourceFilterChips';
+import { KBContentCard } from './components/KBContentCard';
 
 // ============================================
 // HELPERS
 // ============================================
 
-function getVoiceStrength(chunks: number): { level: string; color: string; percent: number } {
-  if (chunks >= 5000) return { level: 'Excellent', color: 'text-emerald-500', percent: 100 };
-  if (chunks >= 2000) return { level: 'Strong', color: 'text-emerald-500', percent: 85 };
-  if (chunks >= 500) return { level: 'Good', color: 'text-accent', percent: 60 };
-  if (chunks >= 100) return { level: 'Building', color: 'text-amber-500', percent: 35 };
-  return { level: 'Getting started', color: 'text-text-secondary', percent: 10 };
-}
+const SOURCE_ICONS: Record<string, string> = {
+  file_upload: '📄',
+  paste_text: '✍️',
+  paste_social: '📱',
+  paste_email: '📧',
+  voice_recording: '🎤',
+  mbox_import: '📥',
+  youtube_import: '🎬',
+  instagram_import: '📸',
+  blog_import: '🌐',
+  generation: '✨',
+  'clip-finder': '🎥',
+};
 
-function getSourceIcon(sourceType: ContentSourceType): string {
-  const icons: Record<ContentSourceType, string> = {
-    file_upload: '📄',
-    paste_text: '✍️',
-    paste_social: '📱',
-    paste_email: '📧',
-    voice_recording: '🎤',
-    mbox_import: '📥',
-    youtube_import: '🎬',
-    instagram_import: '📸',
-    blog_import: '🌐',
-    generation: '✨',
-    'clip-finder': '🎥',
-  };
-  return icons[sourceType] || '📄';
-}
-
-function formatDate(dateStr: string): string {
+function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function StatusDot({ status }: { status: string }) {
+  if (status === 'completed') return <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />;
+  if (status === 'processing' || status === 'uploading') {
+    return <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />;
+  }
+  if (status === 'failed') return <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />;
+  return <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />;
+}
+
+function getStoredViewMode(): 'list' | 'grid' {
+  if (typeof window === 'undefined') return 'list';
+  return (localStorage.getItem('echome_kb_view_mode') as 'list' | 'grid') || 'list';
+}
+
 // ============================================
-// KB LIST ITEM COMPONENT
+// KB LIST ITEM COMPONENT (enhanced)
 // ============================================
 
 interface KBListItemProps {
   item: UnifiedContentItem;
+  isExpanded: boolean;
   selectionMode: boolean;
   isSelected: boolean;
   onSelect: () => void;
+  onToggleExpand: () => void;
   onDelete: () => void;
 }
 
-function KBListItem({ item, selectionMode, isSelected, onSelect, onDelete }: KBListItemProps) {
+function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onToggleExpand, onDelete }: KBListItemProps) {
   const [hovered, setHovered] = useState(false);
+  const config = CONTENT_SOURCE_CONFIG[item.sourceType as ContentSourceType];
+  const icon = SOURCE_ICONS[item.sourceType] || '📄';
 
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`
-        flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer
-        ${isSelected ? 'bg-accent/10 border border-accent/30' : 'hover:bg-bg-secondary border border-transparent'}
-      `}
-      onClick={selectionMode ? onSelect : undefined}
-    >
-      {/* Checkbox */}
-      {(selectionMode || hovered) && (
-        <div
-          onClick={(e) => { e.stopPropagation(); onSelect(); }}
-          className={`
-            w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 cursor-pointer
-            ${isSelected ? 'bg-accent border-accent text-white' : 'border-border hover:border-accent'}
-          `}
-        >
-          {isSelected && <span className="text-xs">✓</span>}
-        </div>
-      )}
+    <div>
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className={`
+          flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer
+          ${isSelected ? 'bg-accent/10 border border-accent/30' : 'hover:bg-bg-secondary border border-transparent'}
+        `}
+        onClick={selectionMode ? onSelect : onToggleExpand}
+      >
+        {/* Checkbox */}
+        {(selectionMode || hovered) && (
+          <div
+            onClick={(e) => { e.stopPropagation(); onSelect(); }}
+            className={`
+              w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 cursor-pointer
+              ${isSelected ? 'bg-accent border-accent text-white' : 'border-border hover:border-accent'}
+            `}
+          >
+            {isSelected && <span className="text-xs">✓</span>}
+          </div>
+        )}
 
-      {/* Title */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
-        {item.description && (
-          <p className="text-xs text-text-secondary truncate">{item.description}</p>
+        {/* Source icon */}
+        <span className="text-base flex-shrink-0" title={config?.label || item.sourceType}>{icon}</span>
+
+        {/* Title + description */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+          {item.description && (
+            <p className="text-xs text-text-secondary truncate">{item.description}</p>
+          )}
+        </div>
+
+        {/* Status + nuggets */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <StatusDot status={item.status} />
+          <span className="text-xs text-text-secondary whitespace-nowrap">
+            {item.chunkCount || 0} nuggets
+          </span>
+        </div>
+
+        {/* Date */}
+        <div className="flex-shrink-0 text-xs text-text-tertiary w-16 text-right hidden sm:block">
+          {formatRelativeDate(item.createdAt)}
+        </div>
+
+        {/* Delete */}
+        {hovered && !selectionMode && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="flex-shrink-0 p-1 text-text-tertiary hover:text-error transition-colors"
+            title="Delete"
+          >
+            🗑️
+          </button>
         )}
       </div>
 
-      {/* Knowledge Nuggets */}
-      <div className="flex-shrink-0 text-xs text-text-secondary">
-        {item.chunkCount || 0} knowledge nuggets
-      </div>
-
-      {/* Date */}
-      <div className="flex-shrink-0 text-xs text-text-tertiary w-16 text-right">
-        {formatDate(item.createdAt)}
-      </div>
-
-      {/* Delete */}
-      {hovered && !selectionMode && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="flex-shrink-0 p-1 text-text-tertiary hover:text-error transition-colors"
-          title="Delete"
-        >
-          🗑️
-        </button>
+      {/* Expanded detail */}
+      {isExpanded && (
+        <div className="ml-11 mr-3 mb-2 p-3 bg-bg-secondary rounded-lg border border-border space-y-2">
+          {item.description && (
+            <p className="text-xs text-text-secondary">{item.description}</p>
+          )}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary">
+            <span>Type: {config?.label || item.sourceType}</span>
+            {item.fileType && <span>File: {item.fileType}</span>}
+            {item.fileSize ? <span>Size: {(item.fileSize / 1024).toFixed(0)} KB</span> : null}
+            <span>Added: {new Date(item.createdAt).toLocaleDateString()}</span>
+          </div>
+          {item.status === 'failed' && item.errorMessage && (
+            <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p className="text-xs text-red-600 dark:text-red-400">{item.errorMessage}</p>
+            </div>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="text-xs text-error hover:text-error/80 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
       )}
     </div>
   );
@@ -133,7 +184,6 @@ function KBListItem({ item, selectionMode, isSelected, onSelect, onDelete }: KBL
 export default function KnowledgeContent() {
   const { voices, isTeamsUser, activeVoice } = useVoiceContext();
   const {
-    kbs,
     contentItems,
     contentStats,
     loading,
@@ -157,6 +207,7 @@ export default function KnowledgeContent() {
     return voices.filter(v => v.knowledgeBaseId === selectedKb);
   }, [voices, isTeamsUser, selectedKb]);
 
+  // Modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
@@ -171,7 +222,13 @@ export default function KnowledgeContent() {
     chunksCreated: number;
   } | null>(null);
   const mboxInputRef = useRef<HTMLInputElement>(null);
+
+  // Library state
   const [searchTerm, setSearchTerm] = useState('');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -181,48 +238,72 @@ export default function KnowledgeContent() {
   // Delete confirmation state
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: string } | null>(null);
 
+  // Load persisted view mode
+  useEffect(() => {
+    setViewMode(getStoredViewMode());
+  }, []);
+
   // Derived state
   const hasContent = contentItems.length > 0;
   const totalChunks = contentStats?.totalChunks || 0;
   const totalItems = contentStats?.totalItems || 0;
-  const voiceStrength = getVoiceStrength(totalChunks);
+  const bySourceType = contentStats?.bySourceType || {};
 
-  // Filter and group content
-  const filteredContent = contentItems.filter((item) =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Available filter types (only types with items)
+  const availableFilters = useMemo(() => {
+    const typeCounts: Record<string, number> = {};
+    contentItems.forEach(item => {
+      typeCounts[item.sourceType] = (typeCounts[item.sourceType] || 0) + 1;
+    });
+    return Object.entries(typeCounts)
+      .map(([type, count]) => ({ type: type as ContentSourceType, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [contentItems]);
 
-  // Group by source type
-  const groupedByType = filteredContent.reduce((acc, item) => {
-    const type = item.sourceType as ContentSourceType;
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(item);
-    return acc;
-  }, {} as Record<ContentSourceType, typeof filteredContent>);
+  // Display content: filtered + searched + sorted
+  const displayContent = useMemo(() => {
+    let items = [...contentItems];
+
+    // Source filter
+    if (sourceFilter !== 'all') {
+      items = items.filter(item => item.sourceType === sourceFilter);
+    }
+
+    // Search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      items = items.filter(item =>
+        item.title.toLowerCase().includes(term) ||
+        item.description?.toLowerCase().includes(term)
+      );
+    }
+
+    // Sort
+    items.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortBy === 'recent' ? dateB - dateA : dateA - dateB;
+    });
+
+    return items;
+  }, [contentItems, sourceFilter, searchTerm, sortBy]);
 
   // Selection helpers
   const selectedCount = selectedIds.size;
-  const allSelected = filteredContent.length > 0 && selectedIds.size === filteredContent.length;
+  const allSelected = displayContent.length > 0 && selectedIds.size === displayContent.length;
 
   const handleSelectItem = (itemId: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(itemId)) {
-        next.delete(itemId);
-      } else {
-        next.add(itemId);
-      }
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
       return next;
     });
   };
 
   const handleSelectAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredContent.map((item) => item.id)));
-    }
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(displayContent.map(item => item.id)));
   };
 
   const handleBulkDelete = () => {
@@ -250,6 +331,26 @@ export default function KnowledgeContent() {
     }
     setDeleteConfirm(null);
   };
+
+  const toggleViewMode = useCallback(() => {
+    setViewMode(prev => {
+      const next = prev === 'list' ? 'grid' : 'list';
+      localStorage.setItem('echome_kb_view_mode', next);
+      return next;
+    });
+  }, []);
+
+  // Modal opener (used by child components)
+  const handleOpenModal = useCallback((modal: string) => {
+    switch (modal) {
+      case 'voice': setShowVoiceModal(true); break;
+      case 'social': setShowSocialModal(true); break;
+      case 'blog': setShowBlogModal(true); break;
+      case 'email': setShowMboxInstructions(true); break;
+      case 'paste': setShowPasteModal(true); break;
+      case 'upload': setShowUploadModal(true); break;
+    }
+  }, []);
 
   // File upload handlers
   const handleUpload = async () => {
@@ -295,7 +396,6 @@ export default function KnowledgeContent() {
         return;
       }
 
-      const totalBatches = Math.ceil(parseResult.emails.length / 50);
       setMboxProgress(70);
       setMboxStatus(`Uploading ${parseResult.emails.length} emails...`);
 
@@ -389,37 +489,6 @@ export default function KnowledgeContent() {
         <>
           <UpgradeBanner />
 
-          {/* Header with Guidance */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-text-primary mb-1">
-              Your Echosystem
-              <InfoTooltip text="Your Knowledge Base is your voice DNA. Everything you add here teaches EchoMe how YOU write and speak. The more you add, the more authentic your generated content sounds." />
-            </h1>
-            <p className="text-text-secondary text-sm max-w-2xl">
-              This is where Echo learns <span className="text-text-primary font-medium">your</span> voice.
-              The more you add, the better Echo writes like you.
-            </p>
-
-            {/* Quick Help */}
-            <div className="relative group mt-4">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
-              <div className="relative p-4 bg-card border border-border rounded-xl">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">💡</span>
-                  <div className="flex-1">
-                    <p className="text-sm text-text-primary font-medium mb-1">
-                      What should I add?
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      Anything <span className="font-medium">you&apos;ve written</span> — emails, social posts, blog articles, scripts.
-                      Echo analyzes your word choices, tone, and style to generate content that sounds like you.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Voice has no KB (EchoTeams) */}
           {isTeamsUser && activeVoice && !activeVoice.knowledgeBaseId && (
             <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-sm">
@@ -445,109 +514,28 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* Add Content Section */}
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-wider text-text-secondary font-medium mb-3">
-              Add to your Echosystem
-            </p>
-            <div className="flex flex-wrap gap-2 stagger-children">
-              <button
-                onClick={() => setShowVoiceModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
-                title="Record yourself talking — we'll transcribe it"
-              >
-                <span>🎤</span> Voice
-              </button>
-              <button
-                onClick={() => setShowSocialModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
-                title="Import from YouTube or Instagram"
-              >
-                <span>📱</span> Social
-              </button>
-              <button
-                onClick={() => setShowBlogModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
-                title="Import articles from your blog"
-              >
-                <span>📝</span> Blog
-              </button>
-              <button
-                onClick={() => setShowMboxInstructions(true)}
-                disabled={mboxUploading}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium disabled:opacity-50"
-                title="Import emails you've sent"
-              >
-                <span>📧</span> Email
-              </button>
-              <button
-                onClick={() => setShowPasteModal(true)}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-[#00D4FF] hover:bg-[#00D4FF]/5 transition-all text-sm font-medium"
-                title="Copy & paste any text you've written"
-              >
-                <span>✍️</span> Paste
-              </button>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="btn-primary flex items-center gap-2"
-                title="Upload documents (PDF, Word, TXT)"
-              >
-                <span>📤</span> Upload
-              </button>
-              <InfoTooltip text="Upload blog posts, articles, PDFs, docs, or email exports. EchoMe analyzes your writing patterns to match your unique voice." />
-            </div>
-          </div>
+          {/* ZONE 1 — Voice Intelligence Dashboard */}
+          <VoiceIntelligenceDashboard
+            contentStats={contentStats || { totalItems: 0, totalChunks: 0, totalSize: 0, bySourceType: {} }}
+            totalItems={totalItems}
+            totalChunks={totalChunks}
+            loading={loading}
+            onRefresh={refresh}
+            onOpenModal={handleOpenModal}
+          />
 
-          {/* Voice Strength Indicator */}
-          {hasContent && (
-            <div className="relative group mb-6">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
-              <div className="relative p-5 bg-card border border-border rounded-xl card-lift">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🎯</span>
-                    <div>
-                      <p className="text-sm font-medium text-text-primary">
-                        Echo Training Progress
-                        <InfoTooltip text="This measures how well EchoMe knows your voice. Add more of your content to improve it. 'Strong' or higher = your generated content will closely match your writing style." />
-                      </p>
-                      <p className="text-xs text-text-secondary">
-                        {totalItems} source{totalItems !== 1 ? 's' : ''} added • <span className="font-semibold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">{totalChunks.toLocaleString()}</span> knowledge nuggets learned
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right flex items-center gap-3">
-                    <span className={`text-sm font-semibold ${voiceStrength.color}`}>{voiceStrength.level}</span>
-                    <button
-                      onClick={refresh}
-                      disabled={loading}
-                      className="text-text-secondary hover:text-primary transition-colors text-sm"
-                    >
-                      ↻
-                    </button>
-                  </div>
-                </div>
-                {/* Progress Bar */}
-                <div className="w-full bg-bg-tertiary rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-primary to-accent-purple h-2.5 rounded-full transition-all duration-500 shadow-md shadow-primary/25"
-                    style={{ width: `${voiceStrength.percent}%` }}
-                  />
-                </div>
-                {totalChunks < 500 && (
-                  <p className="text-xs text-text-secondary mt-2">
-                    Keep adding content to improve voice accuracy. Aim for 500+ knowledge nuggets.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          {/* ZONE 2 — Smart Add Content */}
+          <AddContentSection
+            bySourceType={bySourceType}
+            mboxUploading={mboxUploading}
+            onOpenModal={handleOpenModal}
+          />
 
           {/* Empty State */}
           {!hasContent && (
             <div className="text-center py-10 px-6 bg-bg-secondary rounded-xl border border-border">
               <div className="text-5xl mb-4">✨</div>
-              <h3 className="text-lg font-semibold mb-2">Your Echosystem is empty</h3>
+              <h3 className="text-lg font-semibold mb-2">Your Knowledge Base is empty</h3>
               <p className="text-text-secondary text-sm max-w-md mx-auto mb-4">
                 Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos — it only takes a minute!
               </p>
@@ -568,16 +556,19 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* Content List */}
+          {/* ZONE 3 — Content Library */}
           {hasContent && (
             <div className="space-y-4">
-              {/* Section Header */}
-              <p className="text-xs uppercase tracking-wider text-text-secondary font-medium">
-                Your Content Library
-              </p>
+              {/* Filter Chips */}
+              <KBSourceFilterChips
+                availableTypes={availableFilters}
+                activeFilter={sourceFilter}
+                onFilterChange={setSourceFilter}
+                totalCount={contentItems.length}
+              />
 
-              {/* Search & Bulk Actions */}
-              <div className="flex items-center gap-3">
+              {/* Controls Row */}
+              <div className="flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 max-w-xs">
                   <input
                     type="text"
@@ -588,6 +579,27 @@ export default function KnowledgeContent() {
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">🔍</span>
                 </div>
+
+                {/* Sort */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'recent' | 'oldest')}
+                  className="px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary text-text-primary"
+                >
+                  <option value="recent">Recent</option>
+                  <option value="oldest">Oldest</option>
+                </select>
+
+                {/* View toggle */}
+                <button
+                  onClick={toggleViewMode}
+                  className="px-3 py-2 text-sm border border-border rounded-lg hover:border-accent transition-colors"
+                  title={viewMode === 'list' ? 'Switch to grid' : 'Switch to list'}
+                >
+                  {viewMode === 'list' ? '▦' : '☰'}
+                </button>
+
+                {/* Select mode */}
                 {!selectionMode ? (
                   <button
                     onClick={() => setSelectionMode(true)}
@@ -604,7 +616,7 @@ export default function KnowledgeContent() {
                         onChange={handleSelectAll}
                         className="w-4 h-4 rounded border-accent text-accent focus:ring-accent"
                       />
-                      All ({filteredContent.length})
+                      All ({displayContent.length})
                     </label>
                     <button
                       onClick={handleBulkDelete}
@@ -623,44 +635,46 @@ export default function KnowledgeContent() {
                 )}
               </div>
 
-              {/* Grouped List */}
-              {Object.entries(groupedByType).map(([type, items]) => {
-                const config = CONTENT_SOURCE_CONFIG[type as ContentSourceType];
-                const icon = getSourceIcon(type as ContentSourceType);
-                const totalChunksInGroup = items.reduce((sum, item) => sum + (item.chunkCount || 0), 0);
-
-                return (
-                  <div key={type} className="space-y-1">
-                    {/* Group Header */}
-                    <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-                      <span>{icon}</span>
-                      <span className="font-medium text-text-primary">{config?.label || type}</span>
-                      <span className="text-text-secondary">({items.length})</span>
-                      <span className="text-text-tertiary">•</span>
-                      <span className="text-text-secondary text-xs">{totalChunksInGroup.toLocaleString()} knowledge nuggets</span>
-                    </div>
-
-                    {/* Items */}
-                    <div className="space-y-1">
-                      {items.map((item) => (
-                        <KBListItem
-                          key={item.id}
-                          item={item}
-                          selectionMode={selectionMode}
-                          isSelected={selectedIds.has(item.id)}
-                          onSelect={() => handleSelectItem(item.id)}
-                          onDelete={() => handleDelete(item.id)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+              {/* Content Items */}
+              {viewMode === 'list' ? (
+                <div className="space-y-1">
+                  {displayContent.map((item) => (
+                    <KBListItem
+                      key={item.id}
+                      item={item}
+                      isExpanded={expandedItemId === item.id}
+                      selectionMode={selectionMode}
+                      isSelected={selectedIds.has(item.id)}
+                      onSelect={() => handleSelectItem(item.id)}
+                      onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
+                      onDelete={() => handleDelete(item.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {displayContent.map((item) => (
+                    <KBContentCard
+                      key={item.id}
+                      item={item}
+                      isExpanded={expandedItemId === item.id}
+                      selectionMode={selectionMode}
+                      isSelected={selectedIds.has(item.id)}
+                      onSelect={() => handleSelectItem(item.id)}
+                      onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
+                      onDelete={() => handleDelete(item.id)}
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* No Results */}
-              {filteredContent.length === 0 && searchTerm && (
+              {displayContent.length === 0 && (searchTerm || sourceFilter !== 'all') && (
                 <div className="text-center py-8 text-text-secondary">
-                  No results for &ldquo;{searchTerm}&rdquo;
+                  {searchTerm
+                    ? <>No results for &ldquo;{searchTerm}&rdquo;</>
+                    : 'No items for this filter'
+                  }
                 </div>
               )}
             </div>
@@ -669,7 +683,7 @@ export default function KnowledgeContent() {
       )}
 
       {/* ============================================ */}
-      {/* MODALS */}
+      {/* MODALS (all unchanged) */}
       {/* ============================================ */}
 
       {/* Upload Modal */}
