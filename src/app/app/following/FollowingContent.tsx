@@ -7,6 +7,7 @@ import { extractErrorMessage } from '@/lib/error-utils';
 import { Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { AppPageHeader } from '@/components/app-page-header';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -368,43 +369,39 @@ export default function FollowingContent() {
   return (
     <div className="container mx-auto px-6 py-8 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-display text-3xl mb-1">Following</h1>
-          <p className="text-body text-text-secondary">
-            Track YouTube creators and repurpose their ideas in your voice
-            <InfoTooltip text="When creators you follow post new content, you can repurpose their ideas into your own posts — written in YOUR voice, not theirs." />
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePollAll}
-            disabled={pollingAll || creators.length === 0}
-            className="btn-secondary px-4 py-2 flex items-center gap-2 disabled:opacity-50"
-          >
-            {pollingAll ? (
-              <>
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Pulling...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Pull Fresh Content
-                <InfoTooltip text="Checks all followed creators for new uploads since the last check. New content appears with a 'NEW' badge." />
-              </>
-            )}
-          </button>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn-primary px-4 py-2 flex items-center gap-2"
-          >
-            <span>+</span> Follow Creator
-          </button>
-        </div>
-      </div>
+      <AppPageHeader
+        title="Following"
+        description="Track YouTube creators and repurpose their ideas in your voice"
+        actions={
+          <>
+            <button
+              onClick={handlePollAll}
+              disabled={pollingAll || creators.length === 0}
+              className="btn-secondary px-4 py-2 flex items-center gap-2 disabled:opacity-50"
+            >
+              {pollingAll ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Pulling...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Pull Fresh Content
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary px-4 py-2 flex items-center gap-2"
+            >
+              <span>+</span> Follow Creator
+            </button>
+          </>
+        }
+      />
 
       <UpgradeBanner />
 
@@ -415,14 +412,17 @@ export default function FollowingContent() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+        <div className="py-8 space-y-6 animate-fade-in stagger-children">
+          <div className="skeleton h-12 rounded-xl" />
+          <div className="skeleton h-12 rounded-xl" />
+          <div className="skeleton h-48 rounded-xl" />
+          <div className="skeleton h-48 rounded-xl" />
         </div>
       ) : creators.length === 0 ? (
         <div className="card py-12 px-8">
           <div className="max-w-xl mx-auto text-center mb-10">
             <div className="text-6xl mb-4">👥</div>
-            <h2 className="text-display text-2xl mb-2">Follow creators you admire</h2>
+            <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Follow creators you admire</h2>
             <p className="text-body text-text-secondary">
               Track YouTube creators and repurpose their best ideas into your own content, matched to your voice.
             </p>
@@ -518,7 +518,7 @@ export default function FollowingContent() {
             <div className="mb-6 p-4 bg-bg-secondary rounded-lg">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {creators.map((creator) => (
-                  <div key={creator.id} className="flex items-center gap-3 p-3 bg-bg-primary rounded-lg">
+                  <div key={creator.id} className="flex items-center gap-3 p-3 bg-bg-primary rounded-lg card-lift">
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                       {creator.creator_avatar_url ? (
                         <img src={creator.creator_avatar_url} alt="" className="w-full h-full object-cover" />
@@ -567,8 +567,10 @@ export default function FollowingContent() {
 
           {/* Content Feed */}
           {loadingContent ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+            <div className="py-8 space-y-4 animate-fade-in stagger-children">
+              <div className="skeleton h-32 rounded-xl" />
+              <div className="skeleton h-32 rounded-xl" />
+              <div className="skeleton h-32 rounded-xl" />
             </div>
           ) : filteredContent.length === 0 ? (
             <div className="card text-center py-12">
@@ -579,7 +581,7 @@ export default function FollowingContent() {
               {filteredContent.map((content) => (
                 <div
                   key={content.id}
-                  className="card transition-shadow"
+                  className="card card-lift transition-shadow"
                 >
                   <div className="flex gap-4">
                     {/* Thumbnail */}

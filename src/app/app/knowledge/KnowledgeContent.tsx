@@ -229,6 +229,7 @@ export default function KnowledgeContent() {
   const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [listExpanded, setListExpanded] = useState(false);
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -451,7 +452,7 @@ export default function KnowledgeContent() {
 
       {/* Loading */}
       {loading && (
-        <div className="py-8 space-y-6 animate-fade-in">
+        <div className="py-8 space-y-6 animate-fade-in stagger-children">
           <div className="skeleton h-8 w-48" />
           <div className="skeleton h-4 w-72" />
           <div className="flex flex-wrap gap-2">
@@ -636,37 +637,64 @@ export default function KnowledgeContent() {
               </div>
 
               {/* Content Items */}
-              {viewMode === 'list' ? (
-                <div className="space-y-1">
-                  {displayContent.map((item) => (
-                    <KBListItem
-                      key={item.id}
-                      item={item}
-                      isExpanded={expandedItemId === item.id}
-                      selectionMode={selectionMode}
-                      isSelected={selectedIds.has(item.id)}
-                      onSelect={() => handleSelectItem(item.id)}
-                      onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
-                      onDelete={() => handleDelete(item.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {displayContent.map((item) => (
-                    <KBContentCard
-                      key={item.id}
-                      item={item}
-                      isExpanded={expandedItemId === item.id}
-                      selectionMode={selectionMode}
-                      isSelected={selectedIds.has(item.id)}
-                      onSelect={() => handleSelectItem(item.id)}
-                      onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
-                      onDelete={() => handleDelete(item.id)}
-                    />
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const visibleItems = listExpanded || searchTerm || sourceFilter !== 'all'
+                  ? displayContent
+                  : displayContent.slice(0, 5);
+                const hiddenCount = displayContent.length - visibleItems.length;
+
+                return viewMode === 'list' ? (
+                  <>
+                    <div className="space-y-1">
+                      {visibleItems.map((item) => (
+                        <KBListItem
+                          key={item.id}
+                          item={item}
+                          isExpanded={expandedItemId === item.id}
+                          selectionMode={selectionMode}
+                          isSelected={selectedIds.has(item.id)}
+                          onSelect={() => handleSelectItem(item.id)}
+                          onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
+                          onDelete={() => handleDelete(item.id)}
+                        />
+                      ))}
+                    </div>
+                    {displayContent.length > 5 && !searchTerm && sourceFilter === 'all' && (
+                      <button
+                        onClick={() => setListExpanded(!listExpanded)}
+                        className="w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                      >
+                        {listExpanded ? 'Show less' : `Show all (${displayContent.length})`}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {visibleItems.map((item) => (
+                        <KBContentCard
+                          key={item.id}
+                          item={item}
+                          isExpanded={expandedItemId === item.id}
+                          selectionMode={selectionMode}
+                          isSelected={selectedIds.has(item.id)}
+                          onSelect={() => handleSelectItem(item.id)}
+                          onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
+                          onDelete={() => handleDelete(item.id)}
+                        />
+                      ))}
+                    </div>
+                    {displayContent.length > 5 && !searchTerm && sourceFilter === 'all' && (
+                      <button
+                        onClick={() => setListExpanded(!listExpanded)}
+                        className="w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                      >
+                        {listExpanded ? 'Show less' : `Show all (${displayContent.length})`}
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* No Results */}
               {displayContent.length === 0 && (searchTerm || sourceFilter !== 'all') && (

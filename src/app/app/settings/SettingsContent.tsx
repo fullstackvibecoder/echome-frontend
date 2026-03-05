@@ -9,6 +9,7 @@ import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { AppPageHeader } from '@/components/app-page-header';
 
 type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing' | 'referral';
 const VALID_TABS: SettingsTab[] = ['profile', 'account', 'preferences', 'billing', 'referral'];
@@ -229,12 +230,10 @@ export default function SettingsContent() {
   return (
     <div className="container mx-auto px-6 py-8 max-w-6xl">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-display text-4xl mb-2">Settings</h1>
-        <p className="text-body text-text-secondary">
-          Manage your account and profile
-        </p>
-      </div>
+      <AppPageHeader
+        title="Settings"
+        description="Manage your account and profile"
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-8 border-b border-border overflow-x-auto">
@@ -292,7 +291,7 @@ export default function SettingsContent() {
 
       {/* Profile Tab */}
       {activeTab === 'profile' && (
-        <div className="space-y-6">
+        <div className="space-y-6 stagger-children">
           {/* Profile Info Card */}
           <div className="card">
             <div className="flex items-center justify-between mb-6">

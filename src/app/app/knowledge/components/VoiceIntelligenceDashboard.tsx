@@ -68,7 +68,7 @@ export function VoiceIntelligenceDashboard({
       {/* Header + Stats Strip */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-text-primary">Knowledge Base</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Knowledge Base</h1>
           <InfoTooltip text="Everything you add here teaches EchoMe how you write and speak. The more you add, the more authentic your generated content sounds." />
         </div>
         <div className="flex items-center gap-3 text-sm text-text-secondary">
@@ -97,7 +97,9 @@ export function VoiceIntelligenceDashboard({
 
       {/* Segmented Voice Strength Meter */}
       {totalChunks > 0 && (
-        <div className="p-4 bg-card border border-border rounded-xl">
+        <div className="relative group p-4 bg-card border border-border rounded-xl card-lift">
+          {/* Glow effect on hover */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur -z-10" />
           {/* Segment labels */}
           <div className="flex mb-1.5">
             {SEGMENTS.map((seg, i) => (

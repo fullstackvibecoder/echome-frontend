@@ -466,7 +466,7 @@ function BillingContentInner() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Billing & Subscription</h1>
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Billing & Subscription</h1>
         <p className="text-muted-foreground">
           Manage your subscription and billing preferences
         </p>

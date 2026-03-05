@@ -24,6 +24,7 @@ import {
 import type { NormalizedContent } from '@/lib/content-normalizer';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { AppPageHeader } from '@/components/app-page-header';
 
 function ContentLibraryInner() {
   const router = useRouter();
@@ -86,24 +87,19 @@ function ContentLibraryInner() {
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-display text-2xl mb-1">
-            Content Library
-            <InfoTooltip text="Each Content Kit contains posts for every platform generated from a single input. Click any kit to view, edit, copy, or download." />
-          </h1>
-          <p className="text-body text-text-secondary">
-            Your generated content, clips, and carousels
-          </p>
-        </div>
-        <Link
-          href="/app"
-          className="btn-primary flex items-center gap-2"
-        >
-          <span>+</span>
-          <span>Create New</span>
-        </Link>
-      </div>
+      <AppPageHeader
+        title="Content Library"
+        description="Your generated content, clips, and carousels"
+        actions={
+          <Link
+            href="/app"
+            className="btn-primary flex items-center gap-2"
+          >
+            <span>+</span>
+            <span>Create New</span>
+          </Link>
+        }
+      />
 
       <UpgradeBanner />
 
@@ -215,7 +211,7 @@ function ContentLibraryInner() {
       {/* Loading State */}
       {isLoading && items.length === 0 && (
         <div className="py-8 space-y-6 animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
             <div className="skeleton h-64 rounded-xl" />
             <div className="skeleton h-64 rounded-xl" />
             <div className="skeleton h-64 rounded-xl" />

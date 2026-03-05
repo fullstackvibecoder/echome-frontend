@@ -7,6 +7,7 @@ import { api, TeamVoice, TeamVoiceInput } from '@/lib/api-client';
 import { KnowledgeBase, SocialIntegration } from '@/types';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { AppPageHeader } from '@/components/app-page-header';
 
 interface VoiceIntegrationAssignment {
   integrationId: string;
@@ -125,8 +126,13 @@ export default function TeamVoicesContent() {
 
   if (voiceLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 animate-fade-in stagger-children">
+        <div className="skeleton h-10 w-48" />
+        <div className="skeleton h-4 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="skeleton h-48 rounded-xl" />
+          <div className="skeleton h-48 rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -319,8 +325,13 @@ export default function TeamVoicesContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 animate-fade-in stagger-children">
+        <div className="skeleton h-10 w-48" />
+        <div className="skeleton h-4 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="skeleton h-48 rounded-xl" />
+          <div className="skeleton h-48 rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -328,36 +339,34 @@ export default function TeamVoicesContent() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-bold">Team Voices</h1>
-            {voiceLimit > 0 && (
-              <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${isAtLimit ? 'text-amber-600 bg-amber-500/10' : 'text-muted-foreground bg-muted'}`}>
-                {voiceCount} of {voiceLimit}
-              </span>
+      <AppPageHeader
+        title="Team Voices"
+        description="Manage multiple voice profiles for your team"
+        stats={
+          voiceLimit > 0 ? (
+            <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${isAtLimit ? 'text-amber-600 bg-amber-500/10' : 'text-muted-foreground bg-muted'}`}>
+              {voiceCount} of {voiceLimit}
+            </span>
+          ) : undefined
+        }
+        actions={
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={openCreateModal}
+              disabled={isAtLimit}
+              className={`btn-primary flex items-center gap-2 ${isAtLimit ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <Plus className="w-4 h-4" />
+              Add Voice
+            </button>
+            {isAtLimit && (
+              <a href="/app/billing" className="text-xs text-amber-600 hover:underline">
+                Upgrade for more voices
+              </a>
             )}
           </div>
-          <p className="text-muted-foreground">
-            Manage multiple voice profiles for your team
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <button
-            onClick={openCreateModal}
-            disabled={isAtLimit}
-            className={`flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium transition-colors ${isAtLimit ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'}`}
-          >
-            <Plus className="w-4 h-4" />
-            Add Voice
-          </button>
-          {isAtLimit && (
-            <a href="/app/billing" className="text-xs text-amber-600 hover:underline">
-              Upgrade for more voices
-            </a>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       {/* Welcome Banner (post-checkout) */}
       {showWelcome && (
@@ -437,7 +446,7 @@ export default function TeamVoicesContent() {
 
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent-purple/20 text-primary flex items-center justify-center text-lg font-bold flex-shrink-0">
                     {voice.name.charAt(0).toUpperCase()}
                   </div>
 

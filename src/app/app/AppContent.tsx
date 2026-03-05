@@ -400,7 +400,7 @@ export default function AppContent() {
               return (
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h1 className="text-xl font-semibold text-foreground">{headline}</h1>
+                    <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">{headline}</h1>
                     <p className="text-sm text-muted-foreground">{subheadline}</p>
                   </div>
                   {generationsUsed > 0 && (
@@ -475,7 +475,7 @@ export default function AppContent() {
 
           {/* Free User Quota Counter */}
           {isFreeUser && (
-            <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/10 border border-accent-yellow/30 rounded-lg text-sm">
+            <div className="mb-4 flex items-center gap-2 px-4 py-2.5 glass border border-accent-yellow/30 rounded-lg text-sm">
               <span className="text-lg">⚡</span>
               <span className="font-medium text-foreground">
                 {freeGenerationsRemaining > 0

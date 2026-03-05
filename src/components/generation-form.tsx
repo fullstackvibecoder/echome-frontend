@@ -420,12 +420,13 @@ export function GenerationForm({
     }
   }, [quotaErrorFromParent, refreshSubscription]);
 
-  // Free users can't use video/repurpose — switch to text if needed
+  // Free users who exhausted generations can't use video/repurpose — switch to text if needed
+  const freeUserExhausted = isFreeUser && freeGenerationsRemaining <= 0;
   useEffect(() => {
-    if (isFreeUser && (inputType === 'video' || inputType === 'repurpose' || inputType === 'url')) {
+    if (freeUserExhausted && (inputType === 'video' || inputType === 'repurpose' || inputType === 'url')) {
       setInputType('text');
     }
-  }, [isFreeUser, inputType]);
+  }, [freeUserExhausted, inputType]);
 
   // Video processing state (Clip Finder)
   const [videoProcessing, setVideoProcessing] = useState(false);
@@ -974,16 +975,16 @@ export function GenerationForm({
         <>
           <div className="flex items-center gap-1 mb-2">
             <span className="text-xs text-text-secondary font-medium">Input Mode</span>
-            <InfoTooltip text="Text and Voice are available with your 2 free generations. Video and URL unlock when you subscribe." />
+            <InfoTooltip text="All input modes including Video are available with your 2 free generations. Subscribe for unlimited access." />
           </div>
           <div className="flex items-center gap-2 mb-4 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
             <button
-              onClick={() => { if (!isFreeUser) { setInputType('video'); clearFile(); } }}
-              disabled={isFreeUser}
-              title={isFreeUser ? 'Requires subscription' : undefined}
+              onClick={() => { if (!freeUserExhausted) { setInputType('video'); clearFile(); } }}
+              disabled={freeUserExhausted}
+              title={freeUserExhausted ? 'Requires subscription' : undefined}
               className={`
                 flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-                ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
+                ${freeUserExhausted ? 'opacity-50 cursor-not-allowed' : ''}
                 ${
                   inputType === 'video'
                     ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
@@ -991,7 +992,7 @@ export function GenerationForm({
                 }
               `}
             >
-              🎥 Video {isFreeUser && '🔒'}
+              🎥 Video {freeUserExhausted && '🔒'}
             </button>
             <button
               onClick={() => { setInputType('text'); clearFile(); }}

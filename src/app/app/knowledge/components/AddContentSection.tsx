@@ -57,7 +57,7 @@ export function AddContentSection({ bySourceType, mboxUploading, onOpenModal }: 
 
   return (
     <div className="mb-6">
-      <p className="text-xs uppercase tracking-wider text-text-secondary font-medium mb-3">
+      <p className="text-xs uppercase tracking-wider font-medium mb-3 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
         Add Content
       </p>
       <div className="flex flex-wrap items-center gap-2">
