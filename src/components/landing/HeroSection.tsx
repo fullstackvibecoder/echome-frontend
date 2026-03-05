@@ -80,16 +80,16 @@ export function HeroSection() {
             style={{ animationDelay: '550ms' }}
           >
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-primary font-bold text-base">500+</span>
-              <span className="text-white/80 text-base">creators onboard</span>
+              <span className="text-primary font-bold text-base">6</span>
+              <span className="text-white/80 text-base">platforms supported</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-accent-purple font-bold text-base">50,000+</span>
-              <span className="text-white/80 text-base">pieces generated</span>
+              <span className="text-accent-purple font-bold text-base">Your voice</span>
+              <span className="text-white/80 text-base">not generic AI</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-primary font-bold text-base">4.9/5</span>
-              <span className="text-white/80 text-base">voice accuracy</span>
+              <span className="text-primary font-bold text-base">2 min</span>
+              <span className="text-white/80 text-base">to set up</span>
             </div>
           </div>
 

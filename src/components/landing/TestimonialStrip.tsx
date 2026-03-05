@@ -3,40 +3,21 @@
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 import { SectionCTA } from './SectionCTA';
 
-const testimonials = [
-  {
-    quote: "I uploaded a 45-minute podcast and got a week's worth of LinkedIn posts that actually sounded like me. Not generic AI slop.",
-    name: 'Jordan M.',
-    role: 'B2B Creator',
-    initials: 'JM',
-  },
-  {
-    quote: "The carousel generator alone is worth it. I used to spend 2 hours per carousel in Canva. Now it's done before my coffee is cold.",
-    name: 'Priya S.',
-    role: 'Marketing Consultant',
-    initials: 'PS',
-  },
-  {
-    quote: "My team manages 4 creator accounts. EchoMe Teams keeps each voice profile separate — no cross-contamination. Game changer.",
-    name: 'Alex R.',
-    role: 'Agency Owner',
-    initials: 'AR',
-  },
-  {
-    quote: "I record one video a week and EchoMe turns it into 15+ pieces of content across every platform. My engagement tripled in 2 months.",
-    name: 'Marcus T.',
-    role: 'YouTube Educator',
-    initials: 'MT',
-  },
-  {
-    quote: "Finally an AI tool that doesn't make me sound like everyone else. It actually picks up my sarcasm and casual tone.",
-    name: 'Sarah K.',
-    role: 'Solopreneur & Podcaster',
-    initials: 'SK',
-  },
+// TODO: Replace with real testimonials once collected
+const testimonials: { quote: string; name: string; role: string; initials: string }[] = [
+  // Example format:
+  // {
+  //   quote: "Actual user testimonial here.",
+  //   name: 'Full Name',
+  //   role: 'Role / Title',
+  //   initials: 'FN',
+  // },
 ];
 
 export function TestimonialStrip() {
+  // Hide entire section until real testimonials are added
+  if (testimonials.length === 0) return null;
+
   return (
     <AnimatedSection>
       <section className="py-20 px-6 bg-foreground relative overflow-hidden">
@@ -74,7 +55,7 @@ export function TestimonialStrip() {
             ))}
           </div>
 
-          <SectionCTA headline="Join 500+ creators making content that sounds like them" buttonText="Start Free" trust="No credit card required" />
+          <SectionCTA headline="Start creating content that sounds like you" buttonText="Start Free" trust="No credit card required" />
         </div>
       </section>
     </AnimatedSection>
