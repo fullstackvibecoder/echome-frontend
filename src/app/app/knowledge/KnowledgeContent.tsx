@@ -19,8 +19,11 @@ import { isMboxFile } from '@/lib/file-utils';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { AppPageHeader } from '@/components/app-page-header';
 import { VoiceIntelligenceDashboard } from './components/VoiceIntelligenceDashboard';
-import { AddContentSection } from './components/AddContentSection';
+import { AskYourVoice } from './components/AskYourVoice';
+import { SourceCategoryCards } from './components/SourceCategoryCards';
+import { VoiceGuidanceChip } from './components/VoiceGuidanceChip';
 import { KBSourceFilterChips } from './components/KBSourceFilterChips';
 import { KBContentCard } from './components/KBContentCard';
 
@@ -62,6 +65,12 @@ function StatusDot({ status }: { status: string }) {
   }
   if (status === 'failed') return <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />;
   return <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />;
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function getStoredViewMode(): 'list' | 'grid' {
@@ -353,6 +362,16 @@ export default function KnowledgeContent() {
     }
   }, []);
 
+  // Content library ref for scroll-to
+  const contentLibraryRef = useRef<HTMLDivElement>(null);
+
+  const handleFilterByCategory = useCallback((sourceType: string) => {
+    setSourceFilter(sourceType);
+    setTimeout(() => {
+      contentLibraryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, []);
+
   // File upload handlers
   const handleUpload = async () => {
     if (!selectedKb) return;
@@ -515,28 +534,65 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* ZONE 1 — Voice Intelligence Dashboard */}
+          {/* ZONE 0 — Header */}
+          <AppPageHeader
+            title="Voice Profile"
+            description="Your writing DNA — everything EchoMe uses to match your voice"
+            stats={
+              <span className="text-xs text-text-secondary ml-2">
+                {totalItems} sources · {totalChunks.toLocaleString()} nuggets{contentStats && contentStats.totalSize > 0 ? ` · ${formatSize(contentStats.totalSize)}` : ''}
+              </span>
+            }
+            actions={
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={refresh}
+                  disabled={loading}
+                  className="text-text-secondary hover:text-primary transition-colors p-2"
+                  title="Refresh"
+                >
+                  ↻
+                </button>
+                <button
+                  onClick={() => handleOpenModal('paste')}
+                  className="btn-primary text-sm"
+                >
+                  + Add Content
+                </button>
+              </div>
+            }
+          />
+
+          {/* ZONE 1 — Ask Your Voice */}
+          <AskYourVoice disabled={!hasContent} />
+
+          {/* ZONE 2 — Voice Strength Dashboard */}
           <VoiceIntelligenceDashboard
             contentStats={contentStats || { totalItems: 0, totalChunks: 0, totalSize: 0, bySourceType: {} }}
-            totalItems={totalItems}
             totalChunks={totalChunks}
-            loading={loading}
-            onRefresh={refresh}
+          />
+
+          {/* Voice Guidance Chip */}
+          <VoiceGuidanceChip
+            totalChunks={totalChunks}
+            bySourceType={bySourceType}
             onOpenModal={handleOpenModal}
           />
 
-          {/* ZONE 2 — Smart Add Content */}
-          <AddContentSection
+          {/* ZONE 3 — Source Category Cards */}
+          <SourceCategoryCards
             bySourceType={bySourceType}
+            contentItems={contentItems}
             mboxUploading={mboxUploading}
             onOpenModal={handleOpenModal}
+            onFilterByCategory={handleFilterByCategory}
           />
 
           {/* Empty State */}
           {!hasContent && (
             <div className="text-center py-10 px-6 bg-bg-secondary rounded-xl border border-border">
               <div className="text-5xl mb-4">✨</div>
-              <h3 className="text-lg font-semibold mb-2">Your Knowledge Base is empty</h3>
+              <h3 className="text-lg font-semibold mb-2">Your Voice Profile is empty</h3>
               <p className="text-text-secondary text-sm max-w-md mx-auto mb-4">
                 Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos — it only takes a minute!
               </p>
@@ -557,9 +613,26 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* ZONE 3 — Content Library */}
+          {/* ZONE 4 — Content Library */}
           {hasContent && (
-            <div className="space-y-4">
+            <div ref={contentLibraryRef} className="space-y-4">
+              {/* Section label */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-text-primary">Content Library <span className="text-text-tertiary font-normal">({contentItems.length})</span></h2>
+              </div>
+
+              {/* Search bar (prominent) */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search content..."
+                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-xl input-glow"
+                />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm">🔍</span>
+              </div>
+
               {/* Filter Chips */}
               <KBSourceFilterChips
                 availableTypes={availableFilters}
@@ -570,16 +643,6 @@ export default function KnowledgeContent() {
 
               {/* Controls Row */}
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="relative flex-1 max-w-xs">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search..."
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg input-glow"
-                  />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">🔍</span>
-                </div>
 
                 {/* Sort */}
                 <select
