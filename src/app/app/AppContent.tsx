@@ -2,16 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { useGenerationProgress } from '@/hooks/useGenerationProgress';
 import { usePendingCheckout } from '@/hooks/usePendingCheckout';
-import { FirstGeneration } from '@/components/first-generation';
+import { GenerationForm } from '@/components/generation-form';
 import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
 import { setActiveGeneration, clearActiveGeneration } from '@/components/generation-banner';
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
-import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
+import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset, GenerationRequest } from '@/types';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,6 +67,17 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
   };
 }
 
+function formatRelativeTime(date: Date | string): string {
+  const diffMs = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(date).toLocaleDateString();
+}
+
 export default function AppContent() {
   const router = useRouter();
   const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
@@ -97,6 +109,9 @@ export default function AppContent() {
     isUnlimited?: boolean;
   } | null>(null);
 
+  // Recent content kits for returning users
+  const [recentKits, setRecentKits] = useState<GenerationRequest[]>([]);
+
   // Check for pending checkout from signup flow
   const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
 
@@ -122,6 +137,13 @@ export default function AppContent() {
       }
     };
     loadUsageStats();
+  }, []);
+
+  // Load recent content kits for returning users
+  useEffect(() => {
+    api.generation.listRequests({ limit: 3, offset: 0 }).then(res => {
+      if (res.success && res.data) setRecentKits(res.data.filter((r: GenerationRequest) => r.status === 'completed'));
+    }).catch(() => {});
   }, []);
 
   // Real-time progress from SSE (including carousel status)
@@ -376,83 +398,15 @@ export default function AppContent() {
               const generationsUsed = usageStats?.generationsUsed || 0;
 
               return (
-                <div className="mb-8">
-                  {/* Welcome Header */}
-                  <div className="mb-6">
-                    <h1 className="text-display text-2xl mb-1 text-foreground">{headline}</h1>
-                    <p className="text-body text-text-secondary">
-                      {subheadline}
-                    </p>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-xl font-semibold text-foreground">{headline}</h1>
+                    <p className="text-sm text-muted-foreground">{subheadline}</p>
                   </div>
-
-                  {/* Stats Card - Only show if user has created content */}
                   {generationsUsed > 0 && (
-                    <div className="relative group">
-                      {/* Ambient glow */}
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent-purple rounded-2xl opacity-20 blur group-hover:opacity-30 transition-opacity" />
-
-                      <div className="relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                        <div className="flex items-center justify-between">
-                          {/* Left: Stats */}
-                          <div className="flex items-center gap-6">
-                            {/* Circular progress for generations */}
-                            <div className="relative">
-                              <svg className="w-20 h-20 transform -rotate-90">
-                                <circle
-                                  cx="40"
-                                  cy="40"
-                                  r="36"
-                                  stroke="currentColor"
-                                  strokeWidth="6"
-                                  fill="none"
-                                  className="text-gray-700"
-                                />
-                                <circle
-                                  cx="40"
-                                  cy="40"
-                                  r="36"
-                                  stroke="url(#gradient)"
-                                  strokeWidth="6"
-                                  fill="none"
-                                  strokeDasharray={`${Math.min(generationsUsed * 10, 226)} 226`}
-                                  className="transition-all duration-1000"
-                                  strokeLinecap="round"
-                                />
-                                <defs>
-                                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#00D4FF" />
-                                    <stop offset="100%" stopColor="#B794F6" />
-                                  </linearGradient>
-                                </defs>
-                              </svg>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-2xl font-black bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                                  {generationsUsed}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Text stats */}
-                            <div>
-                              <p className="text-sm text-gray-400 mb-1">This month</p>
-                              <p className="text-2xl font-bold text-white">{generationsUsed} {generationsUsed === 1 ? 'piece' : 'pieces'} created</p>
-                              {generationsUsed >= 10 && (
-                                <p className="text-xs text-primary mt-1 flex items-center gap-1">
-                                  <span>🔥</span> On fire!
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Right: Milestone badge */}
-                          {generationsUsed >= 5 && (
-                            <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary/20 to-accent-purple/20 border border-primary/30">
-                              <p className="text-xs text-gray-400">Streak</p>
-                              <p className="text-xl font-bold text-white">Active Creator</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-sm">
+                      <span className="font-bold text-primary">{generationsUsed}</span>
+                      <span className="text-muted-foreground">created this month</span>
                     </div>
                   )}
                 </div>
@@ -519,29 +473,6 @@ export default function AppContent() {
             </div>
           )}
 
-          {/* Active Voice Indicator (teams users) */}
-          {isTeamsUser && activeVoice && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/20 rounded-lg text-sm">
-                <span className="text-primary font-medium">Generating as:</span>
-                <span className="font-semibold text-foreground">{activeVoice.name}</span>
-                {activeVoice.profileRole && (
-                  <span className="text-muted-foreground">({activeVoice.profileRole})</span>
-                )}
-              </div>
-              {!activeVoice.knowledgeBaseId && (
-                <a
-                  href="/app/team-voices"
-                  className="flex items-center gap-1.5 mt-1.5 px-4 py-1.5 text-xs text-amber-600 hover:text-amber-700"
-                >
-                  <span>&#9888;</span>
-                  This voice has no Knowledge Base linked. Content may not match this voice&apos;s style.
-                  <span className="underline ml-1">Set up voice</span>
-                </a>
-              )}
-            </div>
-          )}
-
           {/* Free User Quota Counter */}
           {isFreeUser && (
             <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/10 border border-accent-yellow/30 rounded-lg text-sm">
@@ -561,14 +492,38 @@ export default function AppContent() {
 
           {/* Input Form */}
           <div ref={formRef}>
-            <FirstGeneration
+            <GenerationForm
               onGenerate={handleGenerate}
               onRepurpose={handleRepurpose}
               onVideoProcessing={handleVideoProcessing}
               generating={false}
               isQuotaError={isQuotaError}
+              activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
             />
           </div>
+
+          {/* Recent Content Kits */}
+          {recentKits.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Recent</h2>
+                <Link href="/app/content-kit" className="text-sm text-primary hover:underline">View all</Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 stagger-children">
+                {recentKits.map(kit => (
+                  <Link key={kit.id} href={`/app/content-kit/${kit.id}`}
+                    className="p-4 bg-card border border-border rounded-xl card-lift transition-all">
+                    <p className="font-medium text-sm truncate mb-1">{kit.generatedTitle || kit.inputText?.slice(0, 50) || 'Untitled'}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{kit.platforms?.length || 0} platforms</span>
+                      <span>&middot;</span>
+                      <span>{formatRelativeTime(kit.createdAt)}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Error */}
           {error && (

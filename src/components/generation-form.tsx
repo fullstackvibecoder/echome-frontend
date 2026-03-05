@@ -338,6 +338,7 @@ interface FirstGenerationProps {
     platforms: Platform[],
     options?: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig }
   ) => void;
+  activeVoice?: { id: string; name: string; profileRole?: string; knowledgeBaseId?: string };
   onVideoProcessing?: (data: {
     upload: VideoUpload;
     clips: VideoClip[];
@@ -360,12 +361,13 @@ const ALL_PLATFORMS: Platform[] = [
 // Extended input type to include repurpose and url
 type ExtendedInputType = InputType | 'repurpose' | 'url';
 
-export function FirstGeneration({
+export function GenerationForm({
   onGenerate,
   onRepurpose,
   onVideoProcessing,
   generating,
   isQuotaError: quotaErrorFromParent,
+  activeVoice,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
@@ -945,79 +947,92 @@ export function FirstGeneration({
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-display text-2xl mb-2 text-foreground">
-            From raw footage to ready-to-post in 3 minutes
+            What would you like to create?
           </h2>
           <p className="text-body text-text-secondary">
-            Upload any video — unedited Zoom call, raw footage, podcast recording. Get clips with captions, carousels, and social posts. Or start with text, voice, or a URL.
+            {inputType === 'text' && <>Describe your topic and get content for every platform in your voice.</>}
+            {inputType === 'audio' && <>Speak your idea and we&apos;ll turn it into content for every platform.</>}
+            {(inputType === 'video' || inputType === 'url') && <>Upload a video and get clips, captions, carousels, and posts for every platform.</>}
+            {inputType === 'repurpose' && <>Pick existing content to repurpose across all your platforms.</>}
             <InfoTooltip text="One generation creates content for ALL platforms at once — Instagram, LinkedIn, Blog, Email, TikTok, and Video Script." />
           </p>
         </div>
 
+      {/* Active Voice Indicator (teams users) */}
+      {activeVoice && (
+        <div className="flex items-center gap-2 px-3 py-1.5 mb-4 bg-primary/5 border border-primary/20 rounded-lg text-sm">
+          <span className="text-primary font-medium">Voice:</span>
+          <span className="font-semibold">{activeVoice.name}</span>
+          {!activeVoice.knowledgeBaseId && (
+            <a href="/app/team-voices" className="ml-auto text-xs text-amber-600 underline">No KB linked</a>
+          )}
+        </div>
+      )}
+
       {/* Input Type Tabs */}
-      <div className="flex items-center gap-1 mb-2">
-        <span className="text-xs text-text-secondary font-medium">Input Mode</span>
-        <InfoTooltip text="Text and Voice are available with your 2 free generations. Video, URL, and Repurpose unlock when you subscribe." />
-      </div>
-      <div className="flex items-center gap-2 mb-6 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
-        <button
-          onClick={() => { setInputType('text'); clearFile(); }}
-          className={`
-            flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-            ${
-              inputType === 'text'
-                ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-            }
-          `}
-        >
-          ✍️ Text
-        </button>
-        <button
-          onClick={() => { setInputType('audio'); clearFile(); }}
-          className={`
-            flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-            ${
-              inputType === 'audio'
-                ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-            }
-          `}
-        >
-          🎤 Voice
-        </button>
-        <button
-          onClick={() => { if (!isFreeUser) { setInputType('video'); clearFile(); } }}
-          disabled={isFreeUser}
-          title={isFreeUser ? 'Requires subscription' : undefined}
-          className={`
-            flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-            ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
-            ${
-              inputType === 'video'
-                ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-            }
-          `}
-        >
-          🎥 Video {isFreeUser && '🔒'}
-        </button>
-        <button
-          onClick={() => { if (!isFreeUser) { setInputType('repurpose'); clearFile(); } }}
-          disabled={isFreeUser}
-          title={isFreeUser ? 'Requires subscription' : undefined}
-          className={`
-            flex-1 px-4 py-2 rounded-lg text-body font-medium transition-all
-            ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
-            ${
-              inputType === 'repurpose'
-                ? 'bg-accent text-white'
-                : 'text-text-secondary hover:text-text-primary'
-            }
-          `}
-        >
-          🔄 Repurpose {isFreeUser && '🔒'}
-        </button>
-      </div>
+      {inputType !== 'repurpose' && (
+        <>
+          <div className="flex items-center gap-1 mb-2">
+            <span className="text-xs text-text-secondary font-medium">Input Mode</span>
+            <InfoTooltip text="Text and Voice are available with your 2 free generations. Video and URL unlock when you subscribe." />
+          </div>
+          <div className="flex items-center gap-2 mb-4 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
+            <button
+              onClick={() => { setInputType('text'); clearFile(); }}
+              className={`
+                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
+                ${
+                  inputType === 'text'
+                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
+                }
+              `}
+            >
+              ✍️ Text
+            </button>
+            <button
+              onClick={() => { setInputType('audio'); clearFile(); }}
+              className={`
+                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
+                ${
+                  inputType === 'audio'
+                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
+                }
+              `}
+            >
+              🎤 Voice
+            </button>
+            <button
+              onClick={() => { if (!isFreeUser) { setInputType('video'); clearFile(); } }}
+              disabled={isFreeUser}
+              title={isFreeUser ? 'Requires subscription' : undefined}
+              className={`
+                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
+                ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
+                ${
+                  inputType === 'video'
+                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
+                }
+              `}
+            >
+              🎥 Video {isFreeUser && '🔒'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Repurpose toggle */}
+      <button
+        onClick={() => { setInputType(inputType === 'repurpose' ? 'text' : 'repurpose'); clearFile(); }}
+        disabled={isFreeUser}
+        className={`mb-6 flex items-center gap-2 text-sm transition-colors ${
+          isFreeUser ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        🔄 {inputType === 'repurpose' ? 'Back to create' : 'Or repurpose existing content'} {isFreeUser && '🔒'}
+      </button>
 
       {/* Input Area */}
       {inputType === 'text' && (
@@ -1339,148 +1354,159 @@ export function FirstGeneration({
         </div>
       )}
 
-      {/* Carousel Design Preset Option */}
-      <div className="mt-6 p-4 bg-bg-secondary rounded-lg border border-border">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <label className="text-body font-medium text-text-primary block mb-1">
-              Carousel Style
-              <InfoTooltip text="Controls the look of your Instagram carousel slides. 'Auto' picks the best design. 'Upload Custom' lets you use your own branded background." />
-            </label>
-            <p className="text-small text-text-secondary">
-              Choose a design preset for your Instagram carousel
-            </p>
-          </div>
-          <select
-            value={carouselDesignOption}
-            onChange={(e) => handleDesignOptionChange(e.target.value as CarouselDesignOption)}
-            disabled={generating || uploading}
-            className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
-          >
-            {DESIGN_PRESET_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                {opt.label}{opt.disabled ? ' (Coming Soon)' : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Show description for selected preset */}
-        <p className="mt-2 text-small text-text-secondary">
-          {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
-        </p>
-
-        {/* Conditional Upload Field */}
-        {carouselDesignOption === 'upload' && (
-          <div className="mt-4 pt-4 border-t border-border">
-            <input
-              type="file"
-              ref={carouselBgInputRef}
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleCarouselBgFileSelect}
-              className="hidden"
-            />
-            {!carouselBgFile ? (
-              <button
-                onClick={() => carouselBgInputRef.current?.click()}
-                className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
-                  carouselBgDragActive
-                    ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
-                    : 'border-border text-text-secondary hover:border-accent hover:text-accent'
-                }`}
+      {/* Options disclosure — Carousel & Caption Style */}
+      <details className="mt-6 group/options">
+        <summary className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors select-none list-none">
+          <svg className="w-4 h-4 transition-transform group-open/options:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          Options
+        </summary>
+        <div className="mt-3 space-y-4">
+          {/* Carousel Design Preset Option */}
+          <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <label className="text-body font-medium text-text-primary block mb-1">
+                  Carousel Style
+                  <InfoTooltip text="Controls the look of your Instagram carousel slides. 'Auto' picks the best design. 'Upload Custom' lets you use your own branded background." />
+                </label>
+                <p className="text-small text-text-secondary">
+                  Choose a design preset for your Instagram carousel
+                </p>
+              </div>
+              <select
+                value={carouselDesignOption}
+                onChange={(e) => handleDesignOptionChange(e.target.value as CarouselDesignOption)}
                 disabled={generating || uploading}
-                onDragEnter={handleCarouselBgDragEnter}
-                onDragOver={handleDragOver}
-                onDragLeave={handleCarouselBgDragLeave}
-                onDrop={handleCarouselBgDrop}
+                className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
               >
-                {carouselBgDragActive
-                  ? 'Drop image here'
-                  : 'Drag & drop or click to upload background image (JPEG, PNG, WebP)'}
-              </button>
-            ) : (
-              <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🖼️</span>
-                  <div>
-                    <p className="text-body font-medium">{carouselBgFile.name}</p>
-                    <p className="text-small text-text-secondary">
-                      {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
+                {DESIGN_PRESET_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                    {opt.label}{opt.disabled ? ' (Coming Soon)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Show description for selected preset */}
+            <p className="mt-2 text-small text-text-secondary">
+              {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
+            </p>
+
+            {/* Conditional Upload Field */}
+            {carouselDesignOption === 'upload' && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <input
+                  type="file"
+                  ref={carouselBgInputRef}
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleCarouselBgFileSelect}
+                  className="hidden"
+                />
+                {!carouselBgFile ? (
+                  <button
+                    onClick={() => carouselBgInputRef.current?.click()}
+                    className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
+                      carouselBgDragActive
+                        ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
+                        : 'border-border text-text-secondary hover:border-accent hover:text-accent'
+                    }`}
+                    disabled={generating || uploading}
+                    onDragEnter={handleCarouselBgDragEnter}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleCarouselBgDragLeave}
+                    onDrop={handleCarouselBgDrop}
+                  >
+                    {carouselBgDragActive
+                      ? 'Drop image here'
+                      : 'Drag & drop or click to upload background image (JPEG, PNG, WebP)'}
+                  </button>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🖼️</span>
+                      <div>
+                        <p className="text-body font-medium">{carouselBgFile.name}</p>
+                        <p className="text-small text-text-secondary">
+                          {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setCarouselBgFile(null);
+                        if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+                      }}
+                      className="text-small text-error hover:underline"
+                      disabled={generating || uploading}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Conditional Snapshot Picker */}
+            {carouselDesignOption === 'video-snapshot' && (
+              <div className="mt-4 pt-4 border-t border-border">
+                {currentUploadId ? (
+                  <SnapshotPicker
+                    uploadId={currentUploadId}
+                    selectedUrl={selectedSnapshot?.thumbnailUrl}
+                    onSelect={(snapshot) => setSelectedSnapshot(snapshot)}
+                    disabled={generating || uploading || videoProcessing}
+                  />
+                ) : (
+                  <div className="p-4 text-center bg-bg-primary rounded-lg">
+                    <div className="text-3xl mb-2">🎥</div>
+                    <p className="text-body text-text-secondary">
+                      Upload a video first to see available snapshots
+                    </p>
+                    <p className="text-small text-text-secondary mt-1">
+                      Frames will be automatically extracted during processing
                     </p>
                   </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Caption Style Option - Only show for video/URL input */}
+          {(inputType === 'video' || inputType === 'url') && (
+            <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+              <div className="flex items-center justify-between gap-4 mb-3">
+                <div className="flex-1">
+                  <label className="text-body font-medium text-text-primary block mb-1">
+                    Caption Style
+                    <InfoTooltip text="The visual style of word-by-word captions on your video clips. 'Modern' is the most popular TikTok/Reels look." />
+                  </label>
+                  <p className="text-small text-text-secondary">
+                    Choose how captions appear on your video clips
+                  </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setCarouselBgFile(null);
-                    if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-                  }}
-                  className="text-small text-error hover:underline"
-                  disabled={generating || uploading}
+                <select
+                  value={captionStyle}
+                  onChange={(e) => setCaptionStyle(e.target.value as CaptionStyleOption)}
+                  disabled={generating || uploading || videoProcessing}
+                  className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[140px]"
                 >
-                  Remove
-                </button>
+                  {CAPTION_STYLE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Conditional Snapshot Picker */}
-        {carouselDesignOption === 'video-snapshot' && (
-          <div className="mt-4 pt-4 border-t border-border">
-            {currentUploadId ? (
-              <SnapshotPicker
-                uploadId={currentUploadId}
-                selectedUrl={selectedSnapshot?.thumbnailUrl}
-                onSelect={(snapshot) => setSelectedSnapshot(snapshot)}
-                disabled={generating || uploading || videoProcessing}
-              />
-            ) : (
-              <div className="p-4 text-center bg-bg-primary rounded-lg">
-                <div className="text-3xl mb-2">🎥</div>
-                <p className="text-body text-text-secondary">
-                  Upload a video first to see available snapshots
-                </p>
-                <p className="text-small text-text-secondary mt-1">
-                  Frames will be automatically extracted during processing
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Caption Style Option - Only show for video/URL input */}
-      {(inputType === 'video' || inputType === 'url') && (
-        <div className="mt-4 p-4 bg-bg-secondary rounded-lg border border-border">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <div className="flex-1">
-              <label className="text-body font-medium text-text-primary block mb-1">
-                Caption Style
-                <InfoTooltip text="The visual style of word-by-word captions on your video clips. 'Modern' is the most popular TikTok/Reels look." />
-              </label>
+              {/* Style description */}
               <p className="text-small text-text-secondary">
-                Choose how captions appear on your video clips
+                {CAPTION_STYLE_OPTIONS.find(opt => opt.value === captionStyle)?.description}
               </p>
             </div>
-            <select
-              value={captionStyle}
-              onChange={(e) => setCaptionStyle(e.target.value as CaptionStyleOption)}
-              disabled={generating || uploading || videoProcessing}
-              className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[140px]"
-            >
-              {CAPTION_STYLE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          {/* Style description */}
-          <p className="text-small text-text-secondary">
-            {CAPTION_STYLE_OPTIONS.find(opt => opt.value === captionStyle)?.description}
-          </p>
+          )}
         </div>
-      )}
+      </details>
 
       {/* Reel Configuration - Coming Soon */}
       {(inputType === 'video' || inputType === 'url') && (

@@ -13,7 +13,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/app' },
+  { id: 'create', label: 'Create', icon: '✨', path: '/app' },
   { id: 'following', label: 'Following', icon: '👥', path: '/app/following' },
   { id: 'knowledge', label: 'Knowledge Base', icon: '📚', path: '/app/knowledge' },
   { id: 'content-kit', label: 'Content Kit', icon: '📦', path: '/app/content-kit' },
@@ -49,7 +49,7 @@ export function useAppNavigation(): UseAppNavigationReturn {
       return pathname === '/app';
     }
     return pathname.startsWith(item.path);
-  })?.id || 'dashboard';
+  })?.id || 'create';
 
   const navigate = (path: string) => {
     router.push(path);
