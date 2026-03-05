@@ -33,7 +33,17 @@ export function HeroProductDemo() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Detect mobile to pause auto-cycling (prevents layout jumps from varying content sizes)
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023px)');
+    setIsMobile(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
 
   const startCycling = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -47,7 +57,7 @@ export function HeroProductDemo() {
   }, []);
 
   useEffect(() => {
-    if (!isPaused) {
+    if (!isPaused && !isMobile) {
       startCycling();
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -55,7 +65,7 @@ export function HeroProductDemo() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPaused, startCycling]);
+  }, [isPaused, isMobile, startCycling]);
 
   const currentOutput = outputs[currentIndex];
 
@@ -231,16 +241,53 @@ export function HeroProductDemo() {
             </div>
 
             <div className="mt-3 flex items-center justify-center gap-3">
-              <button
-                onClick={() => setIsPaused(!isPaused)}
-                aria-label={isPaused ? 'Play auto-cycling' : 'Pause auto-cycling'}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              >
-                {isPaused ? <Play className="w-3 h-3 text-white/70" /> : <Pause className="w-3 h-3 text-white/70" />}
-              </button>
-              <p className="text-white/60 text-xs" aria-live="polite">
-                {currentIndex + 1} of {outputs.length}
-              </p>
+              {/* Mobile: prev/next buttons. Desktop: pause/play */}
+              {isMobile ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setIsVisible(false);
+                      setTimeout(() => {
+                        setCurrentIndex((prev) => (prev - 1 + outputs.length) % outputs.length);
+                        setIsVisible(true);
+                      }, 200);
+                    }}
+                    aria-label="Previous"
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  >
+                    <ArrowRight className="w-3 h-3 text-white/70 rotate-180" />
+                  </button>
+                  <p className="text-white/60 text-xs" aria-live="polite">
+                    {currentIndex + 1} of {outputs.length}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsVisible(false);
+                      setTimeout(() => {
+                        setCurrentIndex((prev) => (prev + 1) % outputs.length);
+                        setIsVisible(true);
+                      }, 200);
+                    }}
+                    aria-label="Next"
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  >
+                    <ArrowRight className="w-3 h-3 text-white/70" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsPaused(!isPaused)}
+                    aria-label={isPaused ? 'Play auto-cycling' : 'Pause auto-cycling'}
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  >
+                    {isPaused ? <Play className="w-3 h-3 text-white/70" /> : <Pause className="w-3 h-3 text-white/70" />}
+                  </button>
+                  <p className="text-white/60 text-xs" aria-live="polite">
+                    {currentIndex + 1} of {outputs.length}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

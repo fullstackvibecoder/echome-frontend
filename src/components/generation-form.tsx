@@ -947,13 +947,13 @@ export function GenerationForm({
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-display text-2xl mb-2 text-foreground">
-            What would you like to create?
+            Drop a video. Get everything.
           </h2>
           <p className="text-body text-text-secondary">
-            {inputType === 'text' && <>Describe your topic and get content for every platform in your voice.</>}
-            {inputType === 'audio' && <>Speak your idea and we&apos;ll turn it into content for every platform.</>}
-            {(inputType === 'video' || inputType === 'url') && <>Upload a video and get clips, captions, carousels, and posts for every platform.</>}
-            {inputType === 'repurpose' && <>Pick existing content to repurpose across all your platforms.</>}
+            {(inputType === 'video' || inputType === 'url') && <>Clips, captions, carousels, and posts for every platform — in your voice.</>}
+            {inputType === 'text' && <>Or describe a topic — we&apos;ll create content for every platform in your voice.</>}
+            {inputType === 'audio' && <>Or speak your idea — we&apos;ll turn it into content for every platform in your voice.</>}
+            {inputType === 'repurpose' && <>Pick existing content to repurpose across every platform — in your voice.</>}
             <InfoTooltip text="One generation creates content for ALL platforms at once — Instagram, LinkedIn, Blog, Email, TikTok, and Video Script." />
           </p>
         </div>
@@ -977,6 +977,22 @@ export function GenerationForm({
             <InfoTooltip text="Text and Voice are available with your 2 free generations. Video and URL unlock when you subscribe." />
           </div>
           <div className="flex items-center gap-2 mb-4 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
+            <button
+              onClick={() => { if (!isFreeUser) { setInputType('video'); clearFile(); } }}
+              disabled={isFreeUser}
+              title={isFreeUser ? 'Requires subscription' : undefined}
+              className={`
+                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
+                ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
+                ${
+                  inputType === 'video'
+                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
+                }
+              `}
+            >
+              🎥 Video {isFreeUser && '🔒'}
+            </button>
             <button
               onClick={() => { setInputType('text'); clearFile(); }}
               className={`
@@ -1002,22 +1018,6 @@ export function GenerationForm({
               `}
             >
               🎤 Voice
-            </button>
-            <button
-              onClick={() => { if (!isFreeUser) { setInputType('video'); clearFile(); } }}
-              disabled={isFreeUser}
-              title={isFreeUser ? 'Requires subscription' : undefined}
-              className={`
-                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-                ${isFreeUser ? 'opacity-50 cursor-not-allowed' : ''}
-                ${
-                  inputType === 'video'
-                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-                }
-              `}
-            >
-              🎥 Video {isFreeUser && '🔒'}
             </button>
           </div>
         </>
