@@ -78,6 +78,11 @@ export function AskYourVoice({ disabled, kbId }: AskYourVoiceProps) {
 
   return (
     <div className="mb-6">
+      {/* Beta label */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-sm font-medium text-text-primary">Ask Your Voice</span>
+        <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-accent/10 text-accent rounded-md">Beta</span>
+      </div>
       {/* Input bar */}
       <div className="relative">
         <form onSubmit={e => { e.preventDefault(); sendMessage(); }}>
