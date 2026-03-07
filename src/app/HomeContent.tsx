@@ -13,6 +13,7 @@ import { OutputShowcase } from '@/components/landing/OutputShowcase';
 import { TestimonialStrip } from '@/components/landing/TestimonialStrip';
 import { NotChatGPTSection } from '@/components/landing/NotChatGPTSection';
 import { SiteFooter } from '@/components/landing/SiteFooter';
+import { CommunitySection } from '@/components/landing/CommunitySection';
 
 export default function HomeContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,6 +44,7 @@ export default function HomeContent() {
               <a href="#how" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>How It Works</a>
               <a href="#output-showcase" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Examples</a>
               <a href="#pricing" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Pricing</a>
+              <a href="#community" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Community</a>
               <Link
                 href="/auth/login"
                 className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}
@@ -69,6 +71,7 @@ export default function HomeContent() {
                 <a href="#how" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">How It Works</a>
                 <a href="#output-showcase" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Examples</a>
                 <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Pricing</a>
+                <a href="#community" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Community</a>
                 <Link
                   href="/auth/login"
                   onClick={() => setIsMenuOpen(false)}
@@ -525,6 +528,9 @@ export default function HomeContent() {
           </div>
         </div>
       </section>
+
+      {/* Community */}
+      <CommunitySection />
 
       </main>
 

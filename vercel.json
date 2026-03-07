@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "meet.tryechome.com"
+        }
+      ],
+      "destination": "https://us05web.zoom.us/j/85766549995?pwd=FBIk4GSsQYu4koYiSjcIbDYmq9ogkw.1",
+      "permanent": false
+    }
+  ]
+}

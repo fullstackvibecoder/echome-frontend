@@ -21,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'reels', label: 'Reel Maker', icon: '🎬', path: '/app/reels', comingSoon: true },
   { id: 'trends', label: 'Trends', icon: '🔥', path: '/app/trends', comingSoon: true },
   { id: 'calendar', label: 'Calendar', icon: '📅', path: '/app/calendar' },
+  { id: 'community', label: 'Community', icon: '🏠', path: '/community' },
   { id: 'billing', label: 'Billing', icon: '💳', path: '/app/billing' },
   { id: 'settings', label: 'Settings', icon: '⚙️', path: '/app/settings' },
 ];

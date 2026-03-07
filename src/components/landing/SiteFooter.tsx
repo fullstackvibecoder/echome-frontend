@@ -40,6 +40,7 @@ export function SiteFooter() {
             <ul className="space-y-3 text-white/70 font-light">
               <li><a href="#how" className="hover:text-primary transition-colors duration-200">How It Works</a></li>
               <li><a href="#pricing" className="hover:text-primary transition-colors duration-200">Pricing</a></li>
+              <li><Link href="/community" className="hover:text-primary transition-colors duration-200">Community</Link></li>
             </ul>
           </div>
 
