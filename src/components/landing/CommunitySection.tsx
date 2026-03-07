@@ -13,6 +13,8 @@ import {
   Users,
   ArrowRight,
   ExternalLink,
+  Sparkles,
+  Mic,
 } from 'lucide-react';
 import {
   OFFICE_HOURS_CONFIG,
@@ -209,6 +211,20 @@ export function CommunitySection() {
                     <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">
                       {nextSession?.title || 'Weekly Office Hours'}
                     </h3>
+
+                    {/* Guest Speaker Highlight */}
+                    {nextSession?.guest && (
+                      <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center flex-shrink-0">
+                          <Mic className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold text-sm">{nextSession.guest.name}</p>
+                          <p className="text-white/60 text-xs">{nextSession.guest.title}</p>
+                        </div>
+                      </div>
+                    )}
+
                     <p className="text-white/70 font-light mb-6 max-w-lg leading-relaxed">
                       {nextSession?.description ||
                         'Join us every Wednesday for live Q&A, EchoMe tips, and guest speakers from across the creator economy.'}
@@ -292,6 +308,75 @@ export function CommunitySection() {
                 </div>
               ))}
             </div>
+
+            {/* Free Trial CTA */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent-purple/10 to-primary/10 border-2 border-primary/20 p-6 md:p-8">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
+              <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-extrabold text-foreground">Try EchoMe Before the Call</h3>
+                  </div>
+                  <p className="text-gray-600 text-sm max-w-lg">
+                    Get 2 free generations — no credit card required. Upload a video and see your content kit before office hours so you can bring real questions to the session.
+                  </p>
+                </div>
+                <Link
+                  href="/auth/signup"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap flex-shrink-0"
+                >
+                  Start Free Trial
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Upcoming Sessions Pipeline */}
+            {UPCOMING_SESSIONS.length > 1 && (
+              <div>
+                <h3 className="text-xl font-bold text-foreground mb-4">Upcoming Sessions</h3>
+                <div className="space-y-3">
+                  {UPCOMING_SESSIONS.slice(1).map((session) => {
+                    const sessionDate = new Date(session.date);
+                    const month = sessionDate.toLocaleDateString('en-US', { month: 'short' });
+                    const day = sessionDate.getDate();
+                    return (
+                      <div
+                        key={session.id}
+                        className="flex items-start gap-4 p-5 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                      >
+                        {/* Date Block */}
+                        <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary/10 to-accent-purple/10 rounded-xl flex flex-col items-center justify-center border border-primary/10">
+                          <span className="text-xs font-semibold text-primary uppercase leading-none">{month}</span>
+                          <span className="text-lg font-extrabold text-foreground leading-none mt-0.5">{day}</span>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-foreground mb-1 leading-snug">{session.title}</h4>
+                          {session.guest && (
+                            <p className="text-sm text-primary font-medium mb-1">
+                              with {session.guest.name} — {session.guest.title}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-500 line-clamp-2">{session.description}</p>
+                          <div className="flex gap-2 mt-2">
+                            {session.tags.slice(0, 3).map((tag) => (
+                              <span
+                                key={tag}
+                                className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Past Sessions */}
             {PAST_SESSIONS.length > 0 && (

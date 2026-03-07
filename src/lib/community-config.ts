@@ -55,13 +55,83 @@ export const OFFICE_HOURS_CONFIG = {
 export const UPCOMING_SESSIONS: OfficeHoursSession[] = [
   {
     id: 'session-001',
-    title: 'Content Strategy That Actually Works for Realtors',
+    title: 'Content That Sells Homes: Real Estate Marketing with Jess Lenouvel',
     description:
-      'Learn how top-performing real estate agents use video content to build authority and generate leads — and how EchoMe fits into the workflow.',
+      'Jess Lenouvel, founder of The Listings Lab — one of North America\'s largest real estate coaching and marketing method providers — joins us to share what her clients pay thousands for monthly. This is not a sales call. Strictly an EchoMe help session and Q&A with a real estate industry titan who understands content at the highest level.',
     date: '2026-03-11T16:30:00.000Z', // Wed Mar 11, 11:30am ET
     durationMinutes: 60,
+    guest: {
+      name: 'Jess Lenouvel',
+      title: 'Founder, The Listings Lab',
+    },
     zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
-    tags: ['real estate', 'content strategy', 'getting started'],
+    tags: ['real estate', 'content strategy', 'marketing'],
+  },
+  {
+    id: 'session-002',
+    title: 'Building a Personal Brand Through Video: Lessons from a 7-Figure Creator',
+    description:
+      'A deep dive into how top YouTube and podcast creators structure their content pipelines, repurpose across platforms, and maintain authentic voice at scale.',
+    date: '2026-03-18T16:30:00.000Z', // Wed Mar 18
+    durationMinutes: 60,
+    guest: {
+      name: 'Marcus Chen',
+      title: 'Creator & YouTube Strategist',
+    },
+    zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
+    tags: ['creator economy', 'youtube', 'personal brand'],
+  },
+  {
+    id: 'session-003',
+    title: 'AI-Powered Content for Coaches & Consultants',
+    description:
+      'How coaches and consultants can use AI to scale their thought leadership without losing the personal touch that builds trust with clients.',
+    date: '2026-03-25T16:30:00.000Z', // Wed Mar 25
+    durationMinutes: 60,
+    guest: {
+      name: 'Priya Sharma',
+      title: 'Business Coach & Content Strategist',
+    },
+    zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
+    tags: ['coaching', 'consulting', 'thought leadership'],
+  },
+  {
+    id: 'session-004',
+    title: 'From Listing to Closing: Content Workflows for Real Estate Teams',
+    description:
+      'EchoMe best practices session focused on real estate teams — how to manage multiple agent voices, automate listing content, and keep social feeds active without burning out.',
+    date: '2026-04-01T16:30:00.000Z', // Wed Apr 1
+    durationMinutes: 60,
+    zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
+    tags: ['real estate', 'teams', 'workflow'],
+  },
+  {
+    id: 'session-005',
+    title: 'E-Commerce Content at Scale: Product Videos to Social Posts',
+    description:
+      'How DTC brands and e-commerce sellers can turn product videos and unboxings into scroll-stopping social content across every platform.',
+    date: '2026-04-08T16:30:00.000Z', // Wed Apr 8
+    durationMinutes: 60,
+    guest: {
+      name: 'Jordan Taylor',
+      title: 'DTC Brand Strategist',
+    },
+    zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
+    tags: ['e-commerce', 'DTC', 'product content'],
+  },
+  {
+    id: 'session-006',
+    title: 'The Fitness Creator Playbook: Video Content That Builds Community',
+    description:
+      'A fitness industry creator shares how trainers and wellness brands can use short-form video to grow audiences, sell programs, and build loyal communities.',
+    date: '2026-04-15T16:30:00.000Z', // Wed Apr 15
+    durationMinutes: 60,
+    guest: {
+      name: 'Aisha Williams',
+      title: 'Fitness Creator & Brand Consultant',
+    },
+    zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
+    tags: ['fitness', 'wellness', 'community building'],
   },
 ];
 
