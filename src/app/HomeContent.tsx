@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Check, Mail, Users } from 'lucide-react';
+import { Menu, X, Check, Mail, Users, ArrowRight } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
@@ -531,6 +531,72 @@ export default function HomeContent() {
 
       {/* Community */}
       <CommunitySection />
+
+      {/* Affiliate Program */}
+      <section className="py-20 px-6 bg-gradient-to-br from-foreground via-gray-900 to-foreground text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/15 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/10 to-transparent rounded-full blur-3xl" />
+
+        <div className="relative max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary/25 rounded-full mb-6">
+                <span className="text-lg">💰</span>
+                <span className="text-primary font-semibold text-sm">Affiliate Program</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
+                Earn <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">25% Recurring</span>
+                <br />
+                Sharing EchoMe
+              </h2>
+              <p className="text-white/70 font-light text-lg mb-6 leading-relaxed">
+                Love what EchoMe does for your content? Share it with your audience and earn 25% of every subscription - not just the first month, every month they stay.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/affiliates"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  Learn More
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a
+                  href="https://echo.affonso.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
+                >
+                  Join Program
+                </a>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { plan: 'Echo', price: '$29/mo', commission: '$7.25', color: 'from-primary/20 to-primary/5' },
+                { plan: 'Echo Studio', price: '$49/mo', commission: '$12.25', color: 'from-primary/25 to-primary/10', popular: true },
+                { plan: 'Echo Pro', price: '$99/mo', commission: '$24.75', color: 'from-accent-purple/20 to-accent-purple/5' },
+              ].map((tier) => (
+                <div
+                  key={tier.plan}
+                  className={`flex items-center justify-between p-4 bg-gradient-to-r ${tier.color} rounded-xl border ${
+                    tier.popular ? 'border-primary/30' : 'border-white/10'
+                  }`}
+                >
+                  <div>
+                    <span className="font-bold text-white">{tier.plan}</span>
+                    <span className="text-white/50 text-sm ml-2">{tier.price}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl font-extrabold text-primary">{tier.commission}</span>
+                    <span className="text-white/50 text-sm">/mo per referral</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       </main>
 

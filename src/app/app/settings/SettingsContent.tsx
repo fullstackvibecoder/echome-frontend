@@ -896,6 +896,43 @@ export default function SettingsContent() {
       {/* Referral Tab */}
       {activeTab === 'referral' && (
         <div className="space-y-6">
+          {/* Quick Share Card */}
+          <div className="card">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl flex items-center justify-center text-2xl">
+                🔗
+              </div>
+              <div className="flex-1">
+                <h3 className="text-subheading text-xl mb-1">Your Referral Link</h3>
+                <p className="text-body text-text-secondary text-sm">
+                  Share this link with anyone. When they sign up and subscribe, you earn 25% recurring.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={`https://tryechome.com/?via=${user?.email?.split('@')[0] || 'you'}`}
+                className="flex-1 px-4 py-3 bg-bg-secondary border border-border rounded-lg text-sm text-text-secondary font-mono"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://tryechome.com/?via=${user?.email?.split('@')[0] || 'you'}`);
+                  toast.success('Referral link copied!');
+                }}
+                className="px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
+              >
+                Copy Link
+              </button>
+            </div>
+
+            <p className="text-xs text-text-secondary mt-3">
+              Not an affiliate yet? <a href="https://echo.affonso.io" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Sign up first</a> to activate tracking and start earning commissions.
+            </p>
+          </div>
+
           {/* Refer & Earn Card */}
           <div className="card">
             <div className="flex items-start gap-4 mb-6">
@@ -930,14 +967,22 @@ export default function SettingsContent() {
                 </ul>
               </div>
 
-              <a
-                href="https://echo.affonso.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary w-full text-center block"
-              >
-                Become an Affiliate →
-              </a>
+              <div className="flex gap-3">
+                <a
+                  href="https://echo.affonso.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary flex-1 text-center block"
+                >
+                  Become an Affiliate
+                </a>
+                <a
+                  href="/affiliates"
+                  className="px-4 py-2 border-2 border-border text-text-secondary rounded-lg hover:border-accent hover:text-accent transition-colors text-center flex items-center justify-center"
+                >
+                  Learn More
+                </a>
+              </div>
 
               <p className="text-xs text-text-secondary text-center">
                 Already an affiliate? <a href="https://echo.affonso.io" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Log in to your dashboard</a> to get your link and track earnings.
