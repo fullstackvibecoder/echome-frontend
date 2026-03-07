@@ -61,8 +61,8 @@ export default function AffiliatesContent() {
       {/* Hero */}
       <section className="pt-32 pb-20 px-6 relative overflow-hidden">
         {/* Background decoration */}
-        <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-br from-[#B794F6]/10 to-[#FF6B9D]/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-br from-[#B794F6]/10 to-[#FF6B9D]/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -98,7 +98,7 @@ export default function AffiliatesContent() {
             <div className="relative flex justify-center">
               <div className="relative">
                 {/* Glow effect behind mascot */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-3xl opacity-20 scale-75" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-3xl opacity-20 scale-75 pointer-events-none" />
                 <Image
                   src="/media/echo-mascot.svg"
                   alt="Echo - Your AI Content Assistant"

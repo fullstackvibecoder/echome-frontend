@@ -8,7 +8,7 @@ export function SiteFooter() {
   return (
     <footer className="relative py-20 px-6 bg-gradient-to-br from-foreground via-foreground to-foreground text-white overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent-purple" />
-      <div className="absolute top-10 right-20 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
+      <div className="absolute top-10 right-20 w-64 h-64 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-12 mb-16">

@@ -72,7 +72,7 @@ export function HeroProductDemo() {
   return (
     <div className="relative w-full max-w-5xl mx-auto py-4">
       {/* Ambient glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-purple/5 rounded-3xl blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-purple/5 rounded-3xl blur-3xl pointer-events-none" />
 
       <div className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
         {/* Input: Stacked Videos */}

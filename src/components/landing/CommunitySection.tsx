@@ -188,8 +188,8 @@ export function CommunitySection() {
           <div className="space-y-8">
             {/* Hero Card */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-foreground via-gray-900 to-foreground p-8 md:p-12 shadow-2xl">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/15 to-transparent rounded-full blur-3xl" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/15 to-transparent rounded-full blur-3xl pointer-events-none" />
 
               <div className="relative z-10">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
@@ -311,7 +311,7 @@ export function CommunitySection() {
 
             {/* Free Trial CTA */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent-purple/10 to-primary/10 border-2 border-primary/20 p-6 md:p-8">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl pointer-events-none" />
               <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
