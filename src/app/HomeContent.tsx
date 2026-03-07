@@ -537,7 +537,7 @@ export default function HomeContent() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/15 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/10 to-transparent rounded-full blur-3xl" />
 
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative z-10 max-w-5xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary/25 rounded-full mb-6">
@@ -552,23 +552,13 @@ export default function HomeContent() {
               <p className="text-white/70 font-light text-lg mb-6 leading-relaxed">
                 Love what EchoMe does for your content? Share it with your audience and earn 25% of every subscription - not just the first month, every month they stay.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/affiliates"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-                >
-                  Learn More
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <a
-                  href="https://echo.affonso.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
-                >
-                  Join Program
-                </a>
-              </div>
+              <Link
+                href="/affiliates"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+              >
+                Learn More
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
