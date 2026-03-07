@@ -127,7 +127,7 @@ export default function HomeContent() {
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              Start with 2 free generations — no credit card required.
+              Start with 2 free generations - no credit card required.
               <br />
               <span className="text-base">Then choose a plan that works with your creative rhythm.</span>
             </p>

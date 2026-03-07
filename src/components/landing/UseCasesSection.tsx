@@ -32,7 +32,7 @@ const useCases = [
     input: '1 lesson recording',
     outputs: ['3 tutorial clips', '8 LinkedIn posts', '2 Twitter threads', 'Blog post'],
     impact: 'Saves 10 hours/week',
-    description: 'Extract teaching moments from your lessons. Build authority while you teach—no extra work required.',
+    description: 'Extract teaching moments from your lessons. Build authority while you teach-no extra work required.',
   },
   {
     role: 'Consultant',

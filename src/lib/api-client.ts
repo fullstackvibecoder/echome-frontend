@@ -76,11 +76,17 @@ apiClient.interceptors.request.use(
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.access_token) {
-          localStorage.setItem('authToken', session.access_token);
-          token = session.access_token;
+          // Verify the refreshed session belongs to the same user
+          const currentPayload = JSON.parse(atob(token.split('.')[1]));
+          const newPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+          if (currentPayload.sub === newPayload.sub) {
+            localStorage.setItem('authToken', session.access_token);
+            token = session.access_token;
+          }
+          // If different user, skip - proceed with existing token
         }
       } catch {
-        // If refresh fails, proceed with existing token — 401 interceptor will handle it
+        // If refresh fails, proceed with existing token - 401 interceptor will handle it
       }
     }
 
@@ -123,7 +129,7 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 402 Payment Required — subscription needed for this feature
+    // Handle 402 Payment Required - subscription needed for this feature
     if (error.response?.status === 402 && typeof window !== 'undefined') {
       import('sonner').then(({ toast }) => {
         toast.error('Subscription required', {
@@ -137,7 +143,7 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // Handle 403 Forbidden — quota/subscription limit reached
+    // Handle 403 Forbidden - quota/subscription limit reached
     if (error.response?.status === 403) {
       const message = error.response?.data?.error || error.response?.data?.message || '';
       const isQuotaError = /free generation|generation limit|subscribe|upgrade/i.test(message);
@@ -175,23 +181,16 @@ if (typeof window !== 'undefined') {
     }
 
     if (session?.access_token) {
-      // Guard against silent session swaps: if the user is already logged in
-      // via email/password, don't let an implicit OAuth session overwrite them.
-      // Only accept TOKEN_REFRESHED (same user) or explicit SIGNED_IN events.
-      if (event === 'TOKEN_REFRESHED') {
-        localStorage.setItem('authToken', session.access_token);
-      } else if (event === 'SIGNED_IN') {
-        // Check if this is a different user than what's currently stored
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        // Guard against silent session swaps: if the user is already logged in,
+        // don't let a different Supabase session (e.g., Chrome's Google account) overwrite their token.
         const currentToken = localStorage.getItem('authToken');
         if (currentToken) {
           try {
-            // Decode the JWT payload (base64) to compare user IDs
             const currentPayload = JSON.parse(atob(currentToken.split('.')[1]));
             const newPayload = JSON.parse(atob(session.access_token.split('.')[1]));
             if (currentPayload.sub !== newPayload.sub) {
-              // Different user — this is an unwanted session swap (e.g., Chrome
-              // Google account leaking into Supabase). Ignore it.
-              console.warn('[auth] Blocked session swap to different user', {
+              console.warn(`[auth] Blocked ${event} session swap to different user`, {
                 current: currentPayload.email,
                 incoming: newPayload.email,
               });
@@ -203,7 +202,7 @@ if (typeof window !== 'undefined') {
         }
         localStorage.setItem('authToken', session.access_token);
       } else if (event === 'INITIAL_SESSION') {
-        // Initial page load — only set if no token exists yet
+        // Initial page load - only set if no token exists yet
         if (!localStorage.getItem('authToken')) {
           localStorage.setItem('authToken', session.access_token);
         }
@@ -266,6 +265,8 @@ export const api = {
 
     logout: () => {
       localStorage.removeItem('authToken');
+      // Clear Supabase's internal session so it doesn't resurrect on next load
+      supabase.auth.signOut().catch(() => {});
     },
 
     getCurrentUser: async () => {
@@ -941,7 +942,7 @@ export const api = {
             fileName: i === 0 ? fileName : `${fileName} (batch ${i + 1})`,
             parseStats: i === 0 ? parseStats : undefined, // Only include stats on first batch
           }, {
-            timeout: 30000, // Processing is async now — this just queues the batch
+            timeout: 30000, // Processing is async now - this just queues the batch
           });
 
           const result = response.data;
@@ -2493,7 +2494,7 @@ export const api = {
         responseType: 'text',
         timeout: 60000,
         headers: { Accept: 'text/event-stream' },
-        // Axios doesn't natively stream SSE — we return raw text for manual parsing
+        // Axios doesn't natively stream SSE - we return raw text for manual parsing
         transformResponse: [(data: string) => data],
       });
       return response.data as string;

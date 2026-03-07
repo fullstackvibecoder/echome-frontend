@@ -14,7 +14,7 @@ export default function AuthLayout({
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-purple/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Logo — matches marketing pages */}
+      {/* Logo - matches marketing pages */}
       <Link
         href="/"
         className="absolute top-8 left-8 flex items-center space-x-2 group"

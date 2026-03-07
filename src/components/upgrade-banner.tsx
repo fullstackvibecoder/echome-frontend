@@ -9,7 +9,7 @@ const DISMISS_KEY = 'upgradeBannerDismissedAt';
 const DISMISS_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
- * UpgradeBanner — Shows a persistent CTA for free users who have exhausted
+ * UpgradeBanner - Shows a persistent CTA for free users who have exhausted
  * their 2 free generations. Renders nothing for paid/trial users or
  * free users who still have generations remaining. Can be dismissed for 24h.
  */

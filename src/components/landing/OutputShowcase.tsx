@@ -168,7 +168,7 @@ export function OutputShowcase() {
                     Six platforms. One video. Full text content ready to post.
                   </p>
                   <p className="text-gray-600 text-base leading-relaxed max-w-3xl mx-auto">
-                    LinkedIn, Twitter/X, Instagram, TikTok, Blog Post, and Newsletter—all generated with your voice and tone. Each includes a Copy button and Add to Calendar integration.
+                    LinkedIn, Twitter/X, Instagram, TikTok, Blog Post, and Newsletter-all generated with your voice and tone. Each includes a Copy button and Add to Calendar integration.
                   </p>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export function OutputShowcase() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <p className="text-sm text-gray-500 font-light mt-3">
-              Upload a video and see the magic — no credit card required
+              Upload a video and see the magic - no credit card required
             </p>
           </div>
         </div>

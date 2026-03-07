@@ -319,7 +319,7 @@ export function CommunitySection() {
                     <h3 className="text-lg font-extrabold text-foreground">Try EchoMe Before the Call</h3>
                   </div>
                   <p className="text-gray-600 text-sm max-w-lg">
-                    Get 2 free generations — no credit card required. Upload a video and see your content kit before office hours so you can bring real questions to the session.
+                    Get 2 free generations - no credit card required. Upload a video and see your content kit before office hours so you can bring real questions to the session.
                   </p>
                 </div>
                 <Link
@@ -356,7 +356,7 @@ export function CommunitySection() {
                           <h4 className="font-bold text-foreground mb-1 leading-snug">{session.title}</h4>
                           {session.guest && (
                             <p className="text-sm text-primary font-medium mb-1">
-                              with {session.guest.name} — {session.guest.title}
+                              with {session.guest.name} - {session.guest.title}
                             </p>
                           )}
                           <p className="text-sm text-gray-500 line-clamp-2">{session.description}</p>

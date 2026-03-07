@@ -227,13 +227,13 @@ function BillingContentInner() {
                   const contentResponse = await api.kb.getContent(kbResponse.data![0].id);
                   const hasContent = contentResponse.success && contentResponse.data && contentResponse.data.items.length > 0;
                   if (!hasContent) {
-                    // New user with empty KB — onboard first, then team voices
+                    // New user with empty KB - onboard first, then team voices
                     localStorage.setItem('postOnboardingRedirect', '/app/team-voices?welcome=true');
                     window.location.href = '/onboarding';
                     return;
                   }
                 } else {
-                  // No KB at all — definitely needs onboarding first
+                  // No KB at all - definitely needs onboarding first
                   localStorage.setItem('postOnboardingRedirect', '/app/team-voices?welcome=true');
                   window.location.href = '/onboarding';
                   return;
@@ -270,12 +270,12 @@ function BillingContentInner() {
               }
             }
           } else {
-            // No knowledge base at all — definitely needs onboarding
+            // No knowledge base at all - definitely needs onboarding
             window.location.href = '/onboarding';
             return;
           }
         } catch {
-          // If check fails, don't block — just stay on billing
+          // If check fails, don't block - just stay on billing
         }
         // Clear the URL params
         window.history.replaceState({}, '', '/app/billing');
@@ -283,7 +283,7 @@ function BillingContentInner() {
         setError('Checkout was canceled. No charges were made.');
         window.history.replaceState({}, '', '/app/billing');
       } else if (searchParams.get('plan')) {
-        // User clicked a specific plan from the paywall — auto-trigger checkout after data loads
+        // User clicked a specific plan from the paywall - auto-trigger checkout after data loads
         // Handled in the second useEffect below once plans are loaded
       } else if (searchParams.get('upgrade') === 'true') {
         // User was redirected here because they need a subscription
@@ -769,7 +769,7 @@ function BillingContentInner() {
                   { label: 'Video Processing', key: 'videoMinutesPerMonth', format: (v: number | string) => v === -1 ? 'Unlimited' : `${Math.floor(Number(v) / 60)} hrs` },
                   { label: 'Clips per Video', key: 'clipsPerVideo', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
                   { label: 'Creator Radar Slots', key: 'creatorRadar', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
-                  { label: 'Email Import', key: 'emailImportMaxEmails', format: (v: number | string) => v === 0 ? '—' : v === -1 ? 'Unlimited' : `Up to ${v}` },
+                  { label: 'Email Import', key: 'emailImportMaxEmails', format: (v: number | string) => v === 0 ? '-' : v === -1 ? 'Unlimited' : `Up to ${v}` },
                   { label: 'Export Quality', key: 'exportQuality', format: (v: number | string) => String(v) },
                 ] as const).map(row => (
                   <tr key={row.label} className="hover:bg-muted/30 transition-colors">
@@ -788,7 +788,7 @@ function BillingContentInner() {
                     <td key={plan.id} className="px-4 py-3 text-center">
                       {plan.features.some(f => f.toLowerCase().includes('priority processing'))
                         ? <Check className="w-4 h-4 text-primary mx-auto" />
-                        : <span className="text-muted-foreground">—</span>}
+                        : <span className="text-muted-foreground">-</span>}
                     </td>
                   ))}
                 </tr>
@@ -798,7 +798,7 @@ function BillingContentInner() {
                     <td key={plan.id} className="px-4 py-3 text-center">
                       {plan.features.some(f => f.toLowerCase().includes('priority support'))
                         ? <Check className="w-4 h-4 text-primary mx-auto" />
-                        : <span className="text-muted-foreground">—</span>}
+                        : <span className="text-muted-foreground">-</span>}
                     </td>
                   ))}
                 </tr>

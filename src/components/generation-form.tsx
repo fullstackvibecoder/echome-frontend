@@ -420,7 +420,7 @@ export function GenerationForm({
     }
   }, [quotaErrorFromParent, refreshSubscription]);
 
-  // Free users who exhausted generations can't use video/repurpose — switch to text if needed
+  // Free users who exhausted generations can't use video/repurpose - switch to text if needed
   const freeUserExhausted = isFreeUser && freeGenerationsRemaining <= 0;
   useEffect(() => {
     if (freeUserExhausted && (inputType === 'video' || inputType === 'repurpose' || inputType === 'url')) {
@@ -951,11 +951,11 @@ export function GenerationForm({
             Drop a video. Get everything.
           </h2>
           <p className="text-body text-text-secondary">
-            {(inputType === 'video' || inputType === 'url') && <>Clips, captions, carousels, and posts for every platform — in your voice.</>}
-            {inputType === 'text' && <>Or describe a topic — we&apos;ll create content for every platform in your voice.</>}
-            {inputType === 'audio' && <>Or speak your idea — we&apos;ll turn it into content for every platform in your voice.</>}
-            {inputType === 'repurpose' && <>Pick existing content to repurpose across every platform — in your voice.</>}
-            <InfoTooltip text="One generation creates content for ALL platforms at once — Instagram, LinkedIn, Blog, Email, TikTok, and Video Script." />
+            {(inputType === 'video' || inputType === 'url') && <>Clips, captions, carousels, and posts for every platform - in your voice.</>}
+            {inputType === 'text' && <>Or describe a topic - we&apos;ll create content for every platform in your voice.</>}
+            {inputType === 'audio' && <>Or speak your idea - we&apos;ll turn it into content for every platform in your voice.</>}
+            {inputType === 'repurpose' && <>Pick existing content to repurpose across every platform - in your voice.</>}
+            <InfoTooltip text="One generation creates content for ALL platforms at once - Instagram, LinkedIn, Blog, Email, TikTok, and Video Script." />
           </p>
         </div>
 
@@ -1252,7 +1252,7 @@ export function GenerationForm({
                 <div className="text-5xl mb-3">🔗</div>
                 <p className="text-body text-text-secondary">
                   Paste a YouTube or Instagram video URL to extract clips
-                  <InfoTooltip text="Paste a YouTube or Instagram video URL. We'll download, extract clips, and generate content — same as uploading a file." />
+                  <InfoTooltip text="Paste a YouTube or Instagram video URL. We'll download, extract clips, and generate content - same as uploading a file." />
                 </p>
               </div>
               <div className="space-y-4">
@@ -1355,7 +1355,7 @@ export function GenerationForm({
         </div>
       )}
 
-      {/* Options disclosure — Carousel & Caption Style */}
+      {/* Options disclosure - Carousel & Caption Style */}
       <details className="mt-6 group/options">
         <summary className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors select-none list-none">
           <svg className="w-4 h-4 transition-transform group-open/options:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1518,7 +1518,7 @@ export function GenerationForm({
             <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
           </div>
           <p className="text-small text-text-secondary mt-2">
-            Animated carousel reels with text overlays — coming soon.
+            Animated carousel reels with text overlays - coming soon.
           </p>
         </div>
       )}
@@ -1552,7 +1552,7 @@ export function GenerationForm({
 
       {/* Helper Text */}
       <p className="text-small text-text-secondary mt-2 mb-6">
-        {inputType === 'text' && (<>Press ⌘+Enter to generate<InfoTooltip text="Describe your content idea in detail — the more context you give, the better your results. You can paste existing text, share a topic, or describe what you want to talk about." /></>)}
+        {inputType === 'text' && (<>Press ⌘+Enter to generate<InfoTooltip text="Describe your content idea in detail - the more context you give, the better your results. You can paste existing text, share a topic, or describe what you want to talk about." /></>)}
         {inputType === 'repurpose' && selectedContent && (
           <>Selected: {selectedContent.title || 'Content'}</>
         )}
@@ -1572,7 +1572,7 @@ export function GenerationForm({
             {[
               'Unlimited content generation',
               'Video clip extraction',
-              'Creator Radar — follow & repurpose',
+              'Creator Radar - follow & repurpose',
               'Instagram carousels',
               'Priority processing',
             ].map((feature) => (
@@ -1596,7 +1596,7 @@ export function GenerationForm({
                     : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-foreground hover:border-[#00D4FF] hover:scale-[1.02]'
                 }`}
               >
-                <span>{plan.name} — {plan.price}</span>
+                <span>{plan.name} - {plan.price}</span>
                 <span className="text-sm">{plan.popular ? 'Most Popular →' : 'Subscribe →'}</span>
               </button>
             ))}
@@ -1611,7 +1611,7 @@ export function GenerationForm({
           {isFreeUser && freeGenerationsRemaining > 0 && (
             <div className="mb-4 p-3 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-xl flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">
-                ✨ Free Plan — {freeGenerationsUsed} of {freeGenerationsLimit} generations used
+                ✨ Free Plan - {freeGenerationsUsed} of {freeGenerationsLimit} generations used
               </span>
               <button
                 onClick={() => router.push('/app/billing')}

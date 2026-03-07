@@ -132,7 +132,7 @@ export function ContentListItem({
           </span>
         )}
         {item.platforms.length === 0 && (
-          <span className="text-text-tertiary text-sm">—</span>
+          <span className="text-text-tertiary text-sm">-</span>
         )}
       </div>
 
@@ -156,7 +156,7 @@ export function ContentListItem({
         {item.score ? (
           <span className="text-accent font-medium">{item.score}%</span>
         ) : (
-          <span className="text-text-tertiary">—</span>
+          <span className="text-text-tertiary">-</span>
         )}
       </div>
 

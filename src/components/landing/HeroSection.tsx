@@ -40,10 +40,10 @@ export function HeroSection() {
             className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
             style={{ animationDelay: '300ms' }}
           >
-            Drop in any video — get clips, carousels, and social posts that actually sound like you.
+            Drop in any video - get clips, carousels, and social posts that actually sound like you.
           </p>
 
-          {/* CTAs — ABOVE the demo */}
+          {/* CTAs - ABOVE the demo */}
           <div
             className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-3 opacity-0 animate-fade-in"
             style={{ animationDelay: '400ms' }}
@@ -66,12 +66,12 @@ export function HeroSection() {
             </Link>
           </div>
 
-          {/* Trust signal — right under CTA */}
+          {/* Trust signal - right under CTA */}
           <p
             className="text-sm text-white/70 font-normal mb-10 opacity-0 animate-fade-in"
             style={{ animationDelay: '500ms' }}
           >
-            No credit card required — 2 free generations
+            No credit card required - 2 free generations
           </p>
 
           {/* Social proof bar */}

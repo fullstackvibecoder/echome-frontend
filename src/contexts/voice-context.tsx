@@ -56,7 +56,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         return;
       }
     } catch {
-      // Endpoint may not be deployed yet — use tier-based fallback
+      // Endpoint may not be deployed yet - use tier-based fallback
     }
 
     // Fallback: derive limit from tier, count from local voices state
@@ -100,7 +100,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Voices came back empty — retry once after 2s (webhook race condition)
+        // Voices came back empty - retry once after 2s (webhook race condition)
         await new Promise(resolve => setTimeout(resolve, 2000));
         const retryResponse = await api.teamVoices.list();
         if (retryResponse.success && retryResponse.data && retryResponse.data.length > 0) {
@@ -110,7 +110,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Still 0 voices after retry — create default voice from user's profile
+        // Still 0 voices after retry - create default voice from user's profile
         if (!hasAttemptedFallbackRef.current) {
           hasAttemptedFallbackRef.current = true;
           try {
@@ -125,7 +125,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
               return;
             }
           } catch {
-            // Endpoint may not be deployed yet — fall back to basic create
+            // Endpoint may not be deployed yet - fall back to basic create
             try {
               const kbResponse = await api.kb.list();
               const defaultKb = kbResponse.success && kbResponse.data
@@ -150,7 +150,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // All attempts exhausted — set empty state
+        // All attempts exhausted - set empty state
         setVoices([]);
         setActiveVoice(null);
       }

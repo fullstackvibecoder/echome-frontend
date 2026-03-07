@@ -25,7 +25,7 @@ function getGuidance(
   // Only 1 source type
   if (sourceTypes.length === 1 && totalChunks > 0) {
     return {
-      message: 'Add variety — try a different content type for a richer voice profile',
+      message: 'Add variety - try a different content type for a richer voice profile',
       action: 'Add content',
       modal: 'paste',
     };

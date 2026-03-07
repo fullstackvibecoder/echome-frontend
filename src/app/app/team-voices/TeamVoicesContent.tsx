@@ -385,9 +385,9 @@ export default function TeamVoicesContent() {
             Your default voice has been created from your profile. Here&apos;s how to get started:
           </p>
           <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-            <li><strong>Edit your default voice</strong> — add a Knowledge Base and profile context</li>
-            <li><strong>Create additional voices</strong> — each with their own KB and style</li>
-            <li><strong>Switch voices</strong> — use the voice switcher in the sidebar when generating content</li>
+            <li><strong>Edit your default voice</strong> - add a Knowledge Base and profile context</li>
+            <li><strong>Create additional voices</strong> - each with their own KB and style</li>
+            <li><strong>Switch voices</strong> - use the voice switcher in the sidebar when generating content</li>
           </ol>
         </div>
       )}
@@ -410,7 +410,7 @@ export default function TeamVoicesContent() {
           <div className="text-5xl mb-4">🎙️</div>
           <h3 className="text-lg font-semibold mb-2">No voices yet</h3>
           <p className="text-muted-foreground mb-2 max-w-md mx-auto">
-            Voices let you manage distinct creator identities — each with their own knowledge base, writing style, and profile context.
+            Voices let you manage distinct creator identities - each with their own knowledge base, writing style, and profile context.
           </p>
           <p className="text-sm text-muted-foreground mb-6">Create your first voice to get started.</p>
           <button

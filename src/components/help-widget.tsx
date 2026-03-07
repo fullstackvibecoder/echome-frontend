@@ -16,11 +16,11 @@ interface FAQItem {
 const PUBLIC_FAQS: FAQItem[] = [
   {
     question: 'What is EchoMe?',
-    answer: 'EchoMe is an AI content tool that learns YOUR unique voice. Upload a video, and it generates social posts, carousels, blog articles, and email newsletters — all written the way you actually write and speak.',
+    answer: 'EchoMe is an AI content tool that learns YOUR unique voice. Upload a video, and it generates social posts, carousels, blog articles, and email newsletters - all written the way you actually write and speak.',
   },
   {
     question: 'How do free generations work?',
-    answer: 'You get 2 free lifetime generations — no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
+    answer: 'You get 2 free lifetime generations - no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
   },
   {
     question: 'What can I upload to train my voice?',
@@ -28,7 +28,7 @@ const PUBLIC_FAQS: FAQItem[] = [
   },
   {
     question: 'How is this different from ChatGPT?',
-    answer: 'ChatGPT writes generic AI content. EchoMe learns YOUR specific voice — your word choices, sentence patterns, and tone — so generated content sounds like you wrote it, not a robot.',
+    answer: 'ChatGPT writes generic AI content. EchoMe learns YOUR specific voice - your word choices, sentence patterns, and tone - so generated content sounds like you wrote it, not a robot.',
   },
   {
     question: 'What video formats are supported?',
@@ -36,7 +36,7 @@ const PUBLIC_FAQS: FAQItem[] = [
   },
   {
     question: 'How much does it cost?',
-    answer: 'Plans start at $29/mo (Echo), $49/mo (Echo Studio — most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
+    answer: 'Plans start at $29/mo (Echo), $49/mo (Echo Studio - most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
   },
 ];
 
@@ -115,7 +115,7 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
     try {
       const rawResponse = await api.help.chat(query, history);
 
-      // Parse SSE response — each line is "data: ..." or "data: [DONE]"
+      // Parse SSE response - each line is "data: ..." or "data: [DONE]"
       let fullContent = '';
       const lines = rawResponse.split('\n');
       for (const line of lines) {

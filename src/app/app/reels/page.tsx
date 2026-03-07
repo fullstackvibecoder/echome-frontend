@@ -8,7 +8,7 @@ export default function ReelsPage() {
         <div className="text-6xl">🎬</div>
         <h1 className="text-2xl font-bold">Reel Maker</h1>
         <p className="text-text-secondary">
-          We&apos;re rebuilding Reel Maker from the ground up — animated carousel backgrounds with text overlays, one click from your content kit.
+          We&apos;re rebuilding Reel Maker from the ground up - animated carousel backgrounds with text overlays, one click from your content kit.
         </p>
         <span className="inline-block text-sm bg-accent/20 text-accent px-3 py-1 rounded-full font-medium">
           Coming Soon

@@ -22,7 +22,7 @@ export default function AffiliatesContent() {
     },
     {
       q: "Do I earn on renewals?",
-      a: "Yes! You earn 25% on every payment your referral makes — not just the first one. As long as they stay subscribed, you keep earning."
+      a: "Yes! You earn 25% on every payment your referral makes - not just the first one. As long as they stay subscribed, you keep earning."
     },
     {
       q: "What if someone I refer upgrades their plan?",
@@ -127,7 +127,7 @@ export default function AffiliatesContent() {
             Simple, Generous Commissions
           </h2>
           <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            Earn 25% of every payment your referrals make. Not just the first month — every month they stay subscribed.
+            Earn 25% of every payment your referrals make. Not just the first month - every month they stay subscribed.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -270,7 +270,7 @@ export default function AffiliatesContent() {
               { title: "Video Scripts", desc: "Ready-to-use scripts for TikTok, Reels, and YouTube", icon: "🎬" },
               { title: "Email Templates", desc: "Swipe copy for newsletters and cold outreach", icon: "📧" },
               { title: "Social Posts", desc: "LinkedIn, Twitter, and Instagram templates", icon: "📱" },
-              { title: "Monthly Payouts", desc: "PayPal, Wise, or crypto — your choice", icon: "💰" },
+              { title: "Monthly Payouts", desc: "PayPal, Wise, or crypto - your choice", icon: "💰" },
             ].map((item, i) => (
               <div key={i} className="p-6 bg-white rounded-xl border border-gray-200">
                 <div className="text-3xl mb-3">{item.icon}</div>
@@ -327,7 +327,7 @@ export default function AffiliatesContent() {
             rel="noopener noreferrer"
             className="inline-block px-10 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-lg hover:shadow-xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all"
           >
-            Become an Affiliate — It&apos;s Free
+            Become an Affiliate - It&apos;s Free
           </a>
           <p className="text-white/50 text-sm mt-4">
             Already an affiliate? <a href="https://echo.affonso.io" target="_blank" rel="noopener noreferrer" className="text-[#00D4FF] hover:underline">Log in to your dashboard</a>

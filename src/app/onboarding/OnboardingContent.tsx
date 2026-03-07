@@ -421,7 +421,7 @@ export default function OnboardingContent() {
         setContentItems((prev) =>
           prev.map((item) =>
             item.id === tempId
-              ? { ...item, status: 'error' as ContentStatus, error: 'No emails found — use your "Sent" folder' }
+              ? { ...item, status: 'error' as ContentStatus, error: 'No emails found - use your "Sent" folder' }
               : item
           )
         );
@@ -758,7 +758,7 @@ export default function OnboardingContent() {
                 type="text"
                 value={profileContext.cta}
                 onChange={(e) => updateProfileContextField('cta', e.target.value)}
-                placeholder="e.g., Confident Leader OS — my signature course"
+                placeholder="e.g., Confident Leader OS - my signature course"
                 maxLength={200}
                 className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
               />

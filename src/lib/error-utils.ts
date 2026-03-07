@@ -2,9 +2,9 @@
  * Unified error extraction utility
  *
  * Handles all backend response formats:
- * 1. { error: { message, code } }     — standard AppError format
- * 2. { error: "string" }              — flat string format (legacy routes)
- * 3. { error: "msg", details: [...] } — validation errors
+ * 1. { error: { message, code } }     - standard AppError format
+ * 2. { error: "string" }              - flat string format (legacy routes)
+ * 3. { error: "msg", details: [...] } - validation errors
  *
  * Also handles: Axios errors, plain Error objects, network failures, unknowns.
  */

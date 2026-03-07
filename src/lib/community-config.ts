@@ -57,7 +57,7 @@ export const UPCOMING_SESSIONS: OfficeHoursSession[] = [
     id: 'session-001',
     title: 'Content That Sells Homes: Real Estate Marketing with Jess Lenouvel',
     description:
-      'Jess Lenouvel, founder of The Listings Lab — one of North America\'s largest real estate coaching and marketing method providers — joins us to share what her clients pay thousands for monthly. This is not a sales call. Strictly an EchoMe help session and Q&A with a real estate industry titan who understands content at the highest level.',
+      'Jess Lenouvel, founder of The Listings Lab - one of North America\'s largest real estate coaching and marketing method providers - joins us to share what her clients pay thousands for monthly. This is not a sales call. Strictly an EchoMe help session and Q&A with a real estate industry titan who understands content at the highest level.',
     date: '2026-03-11T16:30:00.000Z', // Wed Mar 11, 11:30am ET
     durationMinutes: 60,
     guest: {
@@ -99,7 +99,7 @@ export const UPCOMING_SESSIONS: OfficeHoursSession[] = [
     id: 'session-004',
     title: 'From Listing to Closing: Content Workflows for Real Estate Teams',
     description:
-      'EchoMe best practices session focused on real estate teams — how to manage multiple agent voices, automate listing content, and keep social feeds active without burning out.',
+      'EchoMe best practices session focused on real estate teams - how to manage multiple agent voices, automate listing content, and keep social feeds active without burning out.',
     date: '2026-04-01T16:30:00.000Z', // Wed Apr 1
     durationMinutes: 60,
     zoomLink: OFFICE_HOURS_CONFIG.zoomLink,
@@ -146,25 +146,25 @@ export const FAQS: FAQItem[] = [
   {
     question: 'What is EchoMe?',
     answer:
-      'EchoMe is an AI content platform that learns YOUR unique voice. Upload a video, and it generates social posts, carousels, blog articles, and email newsletters — all written the way you actually write and speak.',
+      'EchoMe is an AI content platform that learns YOUR unique voice. Upload a video, and it generates social posts, carousels, blog articles, and email newsletters - all written the way you actually write and speak.',
     category: 'getting-started',
   },
   {
     question: 'How do free generations work?',
     answer:
-      'You get 2 free lifetime generations — no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
+      'You get 2 free lifetime generations - no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
     category: 'getting-started',
   },
   {
     question: 'How is this different from ChatGPT?',
     answer:
-      'ChatGPT writes generic AI content. EchoMe learns YOUR specific voice — your word choices, sentence patterns, and tone — so generated content sounds like you wrote it, not a robot.',
+      'ChatGPT writes generic AI content. EchoMe learns YOUR specific voice - your word choices, sentence patterns, and tone - so generated content sounds like you wrote it, not a robot.',
     category: 'getting-started',
   },
   {
     question: 'Do I need to be technical to use EchoMe?',
     answer:
-      'Not at all. Upload a video or paste a link, and EchoMe handles everything — transcription, clip finding, voice matching, and content generation. If you can upload a file, you can use EchoMe.',
+      'Not at all. Upload a video or paste a link, and EchoMe handles everything - transcription, clip finding, voice matching, and content generation. If you can upload a file, you can use EchoMe.',
     category: 'getting-started',
   },
 
@@ -204,7 +204,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'Can I edit the generated content?',
     answer:
-      'Absolutely. All generated content is fully editable. Think of EchoMe as your first draft machine — it gives you a strong starting point in your voice that you can refine as needed.',
+      'Absolutely. All generated content is fully editable. Think of EchoMe as your first draft machine - it gives you a strong starting point in your voice that you can refine as needed.',
     category: 'content-generation',
   },
 
@@ -212,7 +212,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'How much does it cost?',
     answer:
-      'Plans start at $29/mo (Echo), $49/mo (Echo Studio — most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
+      'Plans start at $29/mo (Echo), $49/mo (Echo Studio - most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
     category: 'billing',
   },
   {
@@ -232,13 +232,13 @@ export const FAQS: FAQItem[] = [
   {
     question: 'What is Ask Your Voice?',
     answer:
-      'Ask Your Voice is a chat interface that lets you have a conversation with your own knowledge base. Ask questions, brainstorm ideas, or get insights — all grounded in your own content and voice.',
+      'Ask Your Voice is a chat interface that lets you have a conversation with your own knowledge base. Ask questions, brainstorm ideas, or get insights - all grounded in your own content and voice.',
     category: 'features',
   },
   {
     question: 'What is Creator Radar?',
     answer:
-      'Creator Radar lets you follow other creators and thought leaders. When they post new content, you can repurpose it in your own voice with one click — great for staying current and adding your perspective.',
+      'Creator Radar lets you follow other creators and thought leaders. When they post new content, you can repurpose it in your own voice with one click - great for staying current and adding your perspective.',
     category: 'features',
   },
   {
@@ -252,7 +252,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'My generation failed. What should I do?',
     answer:
-      'First, try generating again — occasional timeouts can happen with large files. If it persists, check that your video file is under 5GB and in a supported format (MP4, MOV, AVI, WebM). You can also reach out during our weekly office hours for live help.',
+      'First, try generating again - occasional timeouts can happen with large files. If it persists, check that your video file is under 5GB and in a supported format (MP4, MOV, AVI, WebM). You can also reach out during our weekly office hours for live help.',
     category: 'troubleshooting',
   },
   {
@@ -264,7 +264,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'The generated content doesn\'t sound like me. How do I fix it?',
     answer:
-      'Add more content to your Knowledge Base — the more examples of your writing and speaking style, the better the match. We recommend at least 5-10 pieces of varied content (blogs, social posts, transcripts) for optimal voice matching.',
+      'Add more content to your Knowledge Base - the more examples of your writing and speaking style, the better the match. We recommend at least 5-10 pieces of varied content (blogs, social posts, transcripts) for optimal voice matching.',
     category: 'troubleshooting',
   },
 ];

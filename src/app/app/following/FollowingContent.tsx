@@ -146,7 +146,7 @@ export default function FollowingContent() {
             ));
           }
         } catch (contentErr) {
-          // Content loading failed but creator was followed successfully — not critical
+          // Content loading failed but creator was followed successfully - not critical
           console.error('Failed to load initial content:', contentErr);
         }
       } else if (!response.success) {

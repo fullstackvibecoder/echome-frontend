@@ -471,7 +471,7 @@ export default function SettingsContent() {
                         type="text"
                         value={profileCta}
                         onChange={(e) => setProfileCta(e.target.value)}
-                        placeholder="e.g., Confident Leader OS — my $497 self-paced course"
+                        placeholder="e.g., Confident Leader OS - my $497 self-paced course"
                         maxLength={200}
                         className="w-full px-4 py-3 border-2 border-border rounded-lg input-glow"
                       />
@@ -917,7 +917,7 @@ export default function SettingsContent() {
                   <li>Sign up as an affiliate (free, takes 2 minutes)</li>
                   <li>Get your unique referral link</li>
                   <li>Share with friends, followers, or your audience</li>
-                  <li>Earn 25% of every subscription they purchase — forever</li>
+                  <li>Earn 25% of every subscription they purchase - forever</li>
                 </ol>
               </div>
 

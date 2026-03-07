@@ -28,7 +28,7 @@ export function NotChatGPTSection() {
 
           {/* Comparison Cards */}
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* ChatGPT — muted */}
+            {/* ChatGPT - muted */}
             <div className="bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-2xl p-8 opacity-80">
               <div className="w-12 h-12 mb-6 bg-white/5 rounded-xl flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-white/40" />
@@ -54,7 +54,7 @@ export function NotChatGPTSection() {
               </div>
             </div>
 
-            {/* EchoMe — highlighted winner */}
+            {/* EchoMe - highlighted winner */}
             <div className="relative bg-gradient-to-br from-primary/15 to-accent-purple/15 border-2 border-primary/40 rounded-2xl p-8 shadow-[0_0_40px_-10px_rgba(0,212,255,0.3)]">
               <div className="w-14 h-14 mb-6 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
                 <Video className="w-7 h-7 text-white" />
@@ -97,7 +97,7 @@ export function NotChatGPTSection() {
             <p className="text-lg text-white/60 mb-8">
               Just upload. The system already knows your voice.
             </p>
-            <SectionCTA headline="" buttonText="Try It Free" trust="2 free generations — no credit card required" />
+            <SectionCTA headline="" buttonText="Try It Free" trust="2 free generations - no credit card required" />
           </div>
         </div>
       </section>

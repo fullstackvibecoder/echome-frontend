@@ -376,7 +376,7 @@ function ProvidersTab() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* AI Providers — internal tracking */}
+      {/* AI Providers - internal tracking */}
       <ProviderCard
         name="OpenAI"
         color="bg-emerald-500"
@@ -642,7 +642,7 @@ function ErrorHealthMonitor() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground truncate">{err.error_message}</p>
                   <p className="text-xs text-muted-foreground">
-                    {err.error_type}{err.endpoint ? ` — ${err.endpoint}` : ''}
+                    {err.error_type}{err.endpoint ? ` - ${err.endpoint}` : ''}
                   </p>
                 </div>
               </div>
@@ -830,7 +830,7 @@ export default function AdminContent() {
         </select>
       </div>
 
-      {/* Business Metrics — always visible */}
+      {/* Business Metrics - always visible */}
       <BusinessMetrics />
 
       {/* Error Health Monitor */}

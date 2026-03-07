@@ -36,7 +36,7 @@ export default function CallbackContent() {
               }
             }
           } catch {
-            // If content check fails, skip onboarding — better to land on dashboard
+            // If content check fails, skip onboarding - better to land on dashboard
             // than to loop through onboarding for existing users
             hasContent = true;
           }

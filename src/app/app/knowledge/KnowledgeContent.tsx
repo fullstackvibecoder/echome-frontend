@@ -534,10 +534,10 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* ZONE 0 — Header */}
+          {/* ZONE 0 - Header */}
           <AppPageHeader
             title="Voice Profile"
-            description="Your writing DNA — everything EchoMe uses to match your voice"
+            description="Your writing DNA - everything EchoMe uses to match your voice"
             stats={
               <span className="text-xs text-text-secondary ml-2">
                 {totalItems} sources · {totalChunks.toLocaleString()} nuggets{contentStats && contentStats.totalSize > 0 ? ` · ${formatSize(contentStats.totalSize)}` : ''}
@@ -563,10 +563,10 @@ export default function KnowledgeContent() {
             }
           />
 
-          {/* ZONE 1 — Ask Your Voice */}
+          {/* ZONE 1 - Ask Your Voice */}
           <AskYourVoice disabled={!hasContent} kbId={selectedKb} />
 
-          {/* ZONE 2 — Voice Strength Dashboard */}
+          {/* ZONE 2 - Voice Strength Dashboard */}
           <VoiceIntelligenceDashboard
             contentStats={contentStats || { totalItems: 0, totalChunks: 0, totalSize: 0, bySourceType: {} }}
             totalChunks={totalChunks}
@@ -579,7 +579,7 @@ export default function KnowledgeContent() {
             onOpenModal={handleOpenModal}
           />
 
-          {/* ZONE 3 — Source Category Cards */}
+          {/* ZONE 3 - Source Category Cards */}
           <SourceCategoryCards
             bySourceType={bySourceType}
             contentItems={contentItems}
@@ -594,7 +594,7 @@ export default function KnowledgeContent() {
               <div className="text-5xl mb-4">✨</div>
               <h3 className="text-lg font-semibold mb-2">Your Voice Profile is empty</h3>
               <p className="text-text-secondary text-sm max-w-md mx-auto mb-4">
-                Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos — it only takes a minute!
+                Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos - it only takes a minute!
               </p>
               <div className="flex justify-center gap-3">
                 <button
@@ -613,7 +613,7 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* ZONE 4 — Content Library */}
+          {/* ZONE 4 - Content Library */}
           {hasContent && (
             <div ref={contentLibraryRef} className="space-y-4">
               {/* Section label */}

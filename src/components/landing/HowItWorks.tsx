@@ -81,7 +81,7 @@ export function HowItWorks() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <p className="text-sm text-gray-500 font-light mt-3">
-              No credit card required — 2 free generations
+              No credit card required - 2 free generations
             </p>
           </div>
         </div>
