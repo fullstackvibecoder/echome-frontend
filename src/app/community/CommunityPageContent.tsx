@@ -22,7 +22,7 @@ export default function CommunityPageContent() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation - matches homepage */}
       <nav
-        className={`fixed w-full z-50 transition-all duration-300 ${
+        className={`fixed w-full z-[999] transition-all duration-300 pointer-events-auto ${
           scrolled
             ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-lg'
             : 'bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm'
