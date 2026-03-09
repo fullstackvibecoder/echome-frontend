@@ -583,7 +583,18 @@ export interface AuthTokens {
 // IMAGE GENERATION TYPES
 // ============================================
 
-export type ImageStyle = 'professional' | 'casual' | 'creative' | 'minimalist';
+export type ImageStyle =
+  | 'professional'
+  | 'casual'
+  | 'creative'
+  | 'minimalist'
+  | 'editorial'
+  | 'illustration'
+  | '3d-render'
+  | 'watercolor'
+  | 'cinematic'
+  | 'flat-design'
+  | 'gradient-abstract';
 export type ImageAspectRatio = '16:9' | '1:1' | '4:3';
 
 export interface ImageGenerationOptions {

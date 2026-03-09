@@ -4,19 +4,39 @@
  * Blog Post Section
  *
  * Full-width blog content display with:
- * - Auto-generated header image (via DALL-E / FLUX)
+ * - On-demand header image with style picker
  * - Formatted markdown rendering
  * - Copy, download, and schedule actions
  */
 
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Download, RefreshCw, Copy, Check, Maximize2, X, ImagePlus, CalendarPlus } from 'lucide-react';
+import { Copy, Check, ImagePlus, CalendarPlus, ChevronDown } from 'lucide-react';
 import { BlogHeaderPreview } from '@/components/blog-header-preview';
 import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
-import { downloadImage } from '@/lib/download';
 import api from '@/lib/api-client';
-import type { GeneratedImage } from '@/types';
+import type { GeneratedImage, ImageStyle } from '@/types';
+
+interface StyleOption {
+  value: ImageStyle;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+const IMAGE_STYLES: StyleOption[] = [
+  { value: 'editorial', label: 'Editorial', icon: '📰', description: 'Magazine photography' },
+  { value: 'cinematic', label: 'Cinematic', icon: '🎬', description: 'Dramatic & filmic' },
+  { value: 'illustration', label: 'Illustration', icon: '✏️', description: 'Modern hand-drawn' },
+  { value: '3d-render', label: '3D Render', icon: '🧊', description: 'Clean & tech-forward' },
+  { value: 'watercolor', label: 'Watercolor', icon: '🎨', description: 'Soft & organic' },
+  { value: 'flat-design', label: 'Flat Design', icon: '🔷', description: 'Bold geometric' },
+  { value: 'gradient-abstract', label: 'Gradient', icon: '🌈', description: 'Abstract & vibrant' },
+  { value: 'minimalist', label: 'Minimalist', icon: '◻️', description: 'Clean & simple' },
+  { value: 'professional', label: 'Professional', icon: '💼', description: 'Business editorial' },
+  { value: 'creative', label: 'Creative', icon: '✨', description: 'Artistic & striking' },
+  { value: 'casual', label: 'Casual', icon: '☀️', description: 'Warm & friendly' },
+];
 
 interface BlogPostSectionProps {
   content: string;
@@ -36,20 +56,24 @@ export function BlogPostSection({
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [selectedStyle, setSelectedStyle] = useState<ImageStyle>('editorial');
+  const [showStylePicker, setShowStylePicker] = useState(false);
+
   // Extract a title from the blog content (first # or ## heading)
   const titleMatch = content.match(/^#{1,2}\s+(.+)$/m);
   const blogTitle = titleMatch ? titleMatch[1] : 'Blog Post';
 
-  // No auto-generation — header image is generated on-demand to avoid
-  // burning API credits every time the content kit page is opened
+  const currentStyleDef = IMAGE_STYLES.find(s => s.value === selectedStyle) || IMAGE_STYLES[0];
 
-  const generateHeaderImage = async () => {
+  const generateHeaderImage = async (style?: ImageStyle) => {
+    const useStyle = style || selectedStyle;
     setIsGenerating(true);
     setGenerateError(null);
+    setShowStylePicker(false);
     try {
       const response = await api.images.generateBlogHeader(
         sourceContent || content.substring(0, 500),
-        { style: 'professional' },
+        { style: useStyle },
         content,
       );
       if (response.data?.image) {
@@ -69,7 +93,6 @@ export function BlogPostSection({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const textarea = document.createElement('textarea');
       textarea.value = content;
       document.body.appendChild(textarea);
@@ -92,24 +115,53 @@ export function BlogPostSection({
         {/* Header Image Area */}
         <div className="relative">
           {blogImage ? (
-            <BlogHeaderPreview
-              image={blogImage}
-              onRegenerate={generateHeaderImage}
-              isRegenerating={isGenerating}
-              className="p-6 pb-0"
-            />
+            <div>
+              <BlogHeaderPreview
+                image={blogImage}
+                onRegenerate={() => generateHeaderImage()}
+                isRegenerating={isGenerating}
+                className="p-6 pb-0"
+              />
+              {/* Style switcher below generated image */}
+              <div className="px-6 pt-3 pb-1 flex items-center gap-2">
+                <span className="text-xs text-text-secondary">Style:</span>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStylePicker(!showStylePicker)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    <span>{currentStyleDef.icon}</span>
+                    <span>{currentStyleDef.label}</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                  {showStylePicker && (
+                    <StylePickerDropdown
+                      styles={IMAGE_STYLES}
+                      selected={selectedStyle}
+                      onSelect={(style) => {
+                        setSelectedStyle(style);
+                        generateHeaderImage(style);
+                      }}
+                      onClose={() => setShowStylePicker(false)}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="relative aspect-[21/9] bg-gradient-to-br from-emerald-500/10 via-bg-tertiary to-primary/10 flex items-center justify-center">
               {isGenerating ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-text-secondary text-sm">Generating header image...</p>
+                  <p className="text-text-secondary text-sm">
+                    Generating {currentStyleDef.label.toLowerCase()} header...
+                  </p>
                 </div>
               ) : generateError ? (
                 <div className="flex flex-col items-center gap-3">
                   <p className="text-text-secondary text-sm">{generateError}</p>
                   <button
-                    onClick={generateHeaderImage}
+                    onClick={() => generateHeaderImage()}
                     className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors"
                   >
                     <ImagePlus className="w-4 h-4" />
@@ -117,13 +169,33 @@ export function BlogPostSection({
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={generateHeaderImage}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition-colors"
-                >
-                  <ImagePlus className="w-4 h-4" />
-                  Generate Header Image
-                </button>
+                <div className="flex flex-col items-center gap-4">
+                  {/* Style grid */}
+                  <p className="text-text-secondary text-sm font-medium">Choose a style for your header image</p>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-w-lg px-4">
+                    {IMAGE_STYLES.map((style) => (
+                      <button
+                        key={style.value}
+                        onClick={() => setSelectedStyle(style.value)}
+                        className={`flex flex-col items-center gap-1 p-2 rounded-lg text-center transition-all ${
+                          selectedStyle === style.value
+                            ? 'bg-accent/15 ring-1 ring-accent text-accent'
+                            : 'bg-bg-tertiary/50 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                        }`}
+                      >
+                        <span className="text-lg">{style.icon}</span>
+                        <span className="text-[10px] font-medium leading-tight">{style.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => generateHeaderImage()}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                    Generate {currentStyleDef.label} Header
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -193,6 +265,43 @@ export function BlogPostSection({
         </div>
       </div>
     </section>
+  );
+}
+
+/** Dropdown for switching style after an image is already generated */
+function StylePickerDropdown({
+  styles,
+  selected,
+  onSelect,
+  onClose,
+}: {
+  styles: StyleOption[];
+  selected: ImageStyle;
+  onSelect: (style: ImageStyle) => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      {/* Dropdown */}
+      <div className="absolute left-0 top-full mt-1 z-50 bg-bg-secondary border border-border rounded-xl shadow-xl p-2 w-64 grid grid-cols-3 gap-1">
+        {styles.map((style) => (
+          <button
+            key={style.value}
+            onClick={() => onSelect(style.value)}
+            className={`flex flex-col items-center gap-0.5 p-2 rounded-lg text-center transition-all ${
+              selected === style.value
+                ? 'bg-accent/15 text-accent'
+                : 'hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <span className="text-base">{style.icon}</span>
+            <span className="text-[10px] font-medium leading-tight">{style.label}</span>
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
