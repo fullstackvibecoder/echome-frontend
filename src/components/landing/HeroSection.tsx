@@ -7,7 +7,7 @@ import { HeroProductDemo } from './HeroProductDemo';
 export function HeroSection() {
   return (
     <section className="min-h-screen flex items-center px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-foreground to-gray-900" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-foreground to-gray-900 pointer-events-none" />
 
       {/* Single ambient gradient for depth */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
