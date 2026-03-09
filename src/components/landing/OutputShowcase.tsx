@@ -177,7 +177,7 @@ export function OutputShowcase() {
 
           {/* Mid-page CTA */}
           <div className="text-center mt-16">
-            <Link
+            <a
               href="/auth/signup"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white
                          rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
@@ -185,7 +185,7 @@ export function OutputShowcase() {
             >
               Get Your Content Kit
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </a>
             <p className="text-sm text-gray-500 font-light mt-3">
               Upload a video and see the magic - no credit card required
             </p>

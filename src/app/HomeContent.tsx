@@ -45,18 +45,18 @@ export default function HomeContent() {
               <a href="#output-showcase" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Examples</a>
               <a href="#pricing" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Pricing</a>
               <a href="#community" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Community</a>
-              <Link
+              <a
                 href="/auth/login"
                 className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}
               >
                 Sign In
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/auth/signup"
                 className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
               >
                 Try Free
-              </Link>
+              </a>
             </div>
 
             <button aria-label="Toggle navigation menu" aria-expanded={isMenuOpen} className={`md:hidden ${scrolled ? 'text-foreground' : 'text-white'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -72,20 +72,20 @@ export default function HomeContent() {
                 <a href="#output-showcase" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Examples</a>
                 <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Pricing</a>
                 <a href="#community" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Community</a>
-                <Link
+                <a
                   href="/auth/login"
                   onClick={() => setIsMenuOpen(false)}
                   className="text-left text-foreground hover:text-primary transition font-medium"
                 >
                   Sign In
-                </Link>
-                <Link
+                </a>
+                <a
                   href="/auth/signup"
                   onClick={() => setIsMenuOpen(false)}
                   className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg transition-all text-center shadow-md"
                 >
                   Try Free
-                </Link>
+                </a>
               </div>
             </div>
           )}
@@ -175,9 +175,9 @@ export default function HomeContent() {
                       <span className="text-sm font-light text-gray-500">forever</span>
                     </div>
                   </div>
-                  <Link href="/auth/signup" className="relative w-full px-4 py-3 bg-gray-100 text-foreground rounded-xl font-bold hover:bg-gray-200 transition-all duration-300 block text-center text-sm border border-gray-200">
+                  <a href="/auth/signup" className="relative w-full px-4 py-3 bg-gray-100 text-foreground rounded-xl font-bold hover:bg-gray-200 transition-all duration-300 block text-center text-sm border border-gray-200">
                     Start Free
-                  </Link>
+                  </a>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-gray-200">
@@ -219,9 +219,9 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <Link href="/auth/signup?plan=echo" className="relative w-full px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                  <a href="/auth/signup?plan=echo" className="relative w-full px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
                     Go Echo
-                  </Link>
+                  </a>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-gray-200">
@@ -269,9 +269,9 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <Link href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gradient-to-r from-foreground to-foreground text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
+                  <a href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gradient-to-r from-foreground to-foreground text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
                     Go Studio
-                  </Link>
+                  </a>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-white/30">
@@ -318,9 +318,9 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <Link href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                  <a href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
                     Go Pro
-                  </Link>
+                  </a>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-gray-200">
@@ -385,9 +385,9 @@ export default function HomeContent() {
                         </div>
                       )}
                     </div>
-                    <Link href="/auth/signup?plan=echo-teams-2" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                    <a href="/auth/signup?plan=echo-teams-2" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
                       Get Started
-                    </Link>
+                    </a>
                   </div>
                   <div className="flex-1">
                     <div className="space-y-3 pt-4 border-t-2 border-gray-200">
@@ -437,9 +437,9 @@ export default function HomeContent() {
                         </div>
                       )}
                     </div>
-                    <Link href="/auth/signup?plan=echo-teams-5" className="relative w-full px-4 py-3 bg-gradient-to-r from-foreground to-foreground text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
+                    <a href="/auth/signup?plan=echo-teams-5" className="relative w-full px-4 py-3 bg-gradient-to-r from-foreground to-foreground text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
                       Get Started
-                    </Link>
+                    </a>
                   </div>
                   <div className="flex-1">
                     <div className="space-y-3 pt-4 border-t-2 border-white/30">
@@ -486,9 +486,9 @@ export default function HomeContent() {
                         </div>
                       )}
                     </div>
-                    <Link href="/auth/signup?plan=echo-teams-10" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                    <a href="/auth/signup?plan=echo-teams-10" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
                       Get Started
-                    </Link>
+                    </a>
                   </div>
                   <div className="flex-1">
                     <div className="space-y-3 pt-4 border-t-2 border-gray-200">

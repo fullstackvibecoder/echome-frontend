@@ -48,7 +48,7 @@ export function HeroSection() {
             className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-3 opacity-0 animate-fade-in"
             style={{ animationDelay: '400ms' }}
           >
-            <Link
+            <a
               href="/auth/signup"
               className="px-10 py-5 bg-gradient-to-r from-primary to-primary-dark text-white
                          rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
@@ -56,7 +56,7 @@ export function HeroSection() {
             >
               Try It Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </a>
             <Link
               href="#output-showcase"
               className="text-white/80 hover:text-white font-medium text-lg flex items-center gap-2 transition-colors group"

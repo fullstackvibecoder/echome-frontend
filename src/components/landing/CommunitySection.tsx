@@ -322,13 +322,13 @@ export function CommunitySection() {
                     Get 2 free generations - no credit card required. Upload a video and see your content kit before office hours so you can bring real questions to the session.
                   </p>
                 </div>
-                <Link
+                <a
                   href="/auth/signup"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap flex-shrink-0"
                 >
                   Start Free Trial
                   <ArrowRight className="w-4 h-4" />
-                </Link>
+                </a>
               </div>
             </div>
 
@@ -502,13 +502,13 @@ export function CommunitySection() {
                   <Video className="w-4 h-4" />
                   Office Hours
                 </button>
-                <Link
+                <a
                   href="/auth/signup"
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-foreground rounded-xl font-semibold hover:border-primary/30 hover:text-primary transition-all"
                 >
                   Sign Up Free
                   <ArrowRight className="w-4 h-4" />
-                </Link>
+                </a>
               </div>
             </div>
           </div>

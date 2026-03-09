@@ -47,8 +47,8 @@ export function SiteFooter() {
           <div>
             <h4 className="font-extrabold text-lg mb-6 bg-gradient-to-r from-accent-purple to-accent-pink bg-clip-text text-transparent">Company</h4>
             <ul className="space-y-3 text-white/70 font-light">
-              <li><Link href="/auth/login" className="hover:text-accent-purple transition-colors duration-200">Sign In</Link></li>
-              <li><Link href="/auth/signup" className="hover:text-accent-purple transition-colors duration-200">Sign Up</Link></li>
+              <li><a href="/auth/login" className="hover:text-accent-purple transition-colors duration-200">Sign In</a></li>
+              <li><a href="/auth/signup" className="hover:text-accent-purple transition-colors duration-200">Sign Up</a></li>
               <li><Link href="/affiliates" className="hover:text-accent-purple transition-colors duration-200">Affiliates</Link></li>
               <li><Link href="/privacy" className="hover:text-accent-purple transition-colors duration-200">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-accent-purple transition-colors duration-200">Terms of Service</Link></li>
