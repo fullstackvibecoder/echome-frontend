@@ -182,19 +182,37 @@ if (typeof window !== 'undefined') {
 
     if (session?.access_token) {
       if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
-        // Guard against silent session swaps: if the user is already logged in,
-        // don't let a different Supabase session (e.g., Chrome's Google account) overwrite their token.
+        // Guard against silent session swaps: if the user is already logged in
+        // with a valid (non-expired) token, don't let a different Supabase session
+        // (e.g., Chrome's Google account) overwrite their token.
         const currentToken = localStorage.getItem('authToken');
         if (currentToken) {
           try {
             const currentPayload = JSON.parse(atob(currentToken.split('.')[1]));
             const newPayload = JSON.parse(atob(session.access_token.split('.')[1]));
+            const nowSec = Math.floor(Date.now() / 1000);
+            const currentExpired = currentPayload.exp && currentPayload.exp < nowSec;
             if (currentPayload.sub !== newPayload.sub) {
-              console.warn(`[auth] Blocked ${event} session swap to different user`, {
-                current: currentPayload.email,
-                incoming: newPayload.email,
-              });
-              return;
+              if (currentExpired) {
+                // Current token is expired - accept the new session
+                console.info(`[auth] Accepting new session (previous token expired)`, {
+                  expired: currentPayload.email,
+                  incoming: newPayload.email,
+                });
+              } else if (event === 'SIGNED_IN') {
+                // Explicit sign-in action - user intentionally switching accounts
+                console.info(`[auth] Accepting explicit sign-in for different user`, {
+                  previous: currentPayload.email,
+                  incoming: newPayload.email,
+                });
+              } else {
+                // TOKEN_REFRESHED for a different user while current is still valid - block it
+                console.warn(`[auth] Blocked ${event} session swap to different user`, {
+                  current: currentPayload.email,
+                  incoming: newPayload.email,
+                });
+                return;
+              }
             }
           } catch {
             // If JWT decode fails, accept the new token as fallback

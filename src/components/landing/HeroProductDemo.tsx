@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Video, Pause, Play } from 'lucide-react';
+import { ArrowRight, Video } from 'lucide-react';
 
 type OutputType = 'text' | 'reel' | 'tweet-carousel' | 'bg-carousel';
 
@@ -32,7 +32,6 @@ const outputs: Output[] = [
 export function HeroProductDemo() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -57,7 +56,7 @@ export function HeroProductDemo() {
   }, []);
 
   useEffect(() => {
-    if (!isPaused && !isMobile) {
+    if (!isMobile) {
       startCycling();
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -65,7 +64,7 @@ export function HeroProductDemo() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPaused, isMobile, startCycling]);
+  }, [isMobile, startCycling]);
 
   const currentOutput = outputs[currentIndex];
 
@@ -93,8 +92,15 @@ export function HeroProductDemo() {
                 alt="Solo video recording"
                 width={340}
                 height={227}
-                className="w-full h-auto"
+                className="w-full h-auto animate-ken-burns"
               />
+              {/* REC indicator */}
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-rec-pulse" />
+                <span className="text-red-400 text-[10px] font-bold tracking-wider uppercase">REC</span>
+              </div>
+              {/* Scan line overlay */}
+              <div className="absolute inset-0 pointer-events-none animate-scan-line" />
             </div>
 
             <div className="mt-2 text-center">
@@ -115,8 +121,15 @@ export function HeroProductDemo() {
                 alt="Multi-person Zoom recording"
                 width={340}
                 height={227}
-                className="w-full h-auto"
+                className="w-full h-auto animate-ken-burns-alt"
               />
+              {/* REC indicator */}
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-rec-pulse" />
+                <span className="text-red-400 text-[10px] font-bold tracking-wider uppercase">REC</span>
+              </div>
+              {/* Scan line overlay */}
+              <div className="absolute inset-0 pointer-events-none animate-scan-line" />
             </div>
 
             <div className="mt-2 text-center">
@@ -241,7 +254,7 @@ export function HeroProductDemo() {
             </div>
 
             <div className="mt-3 flex items-center justify-center gap-3">
-              {/* Mobile: prev/next buttons. Desktop: pause/play */}
+              {/* Mobile: prev/next buttons. Desktop: counter only */}
               {isMobile ? (
                 <>
                   <button
@@ -275,18 +288,9 @@ export function HeroProductDemo() {
                   </button>
                 </>
               ) : (
-                <>
-                  <button
-                    onClick={() => setIsPaused(!isPaused)}
-                    aria-label={isPaused ? 'Play auto-cycling' : 'Pause auto-cycling'}
-                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                  >
-                    {isPaused ? <Play className="w-3 h-3 text-white/70" /> : <Pause className="w-3 h-3 text-white/70" />}
-                  </button>
-                  <p className="text-white/60 text-xs" aria-live="polite">
-                    {currentIndex + 1} of {outputs.length}
-                  </p>
-                </>
+                <p className="text-white/60 text-xs" aria-live="polite">
+                  {currentIndex + 1} of {outputs.length}
+                </p>
               )}
             </div>
           </div>

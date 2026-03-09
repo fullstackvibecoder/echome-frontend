@@ -21,6 +21,7 @@ import { ContentCategory, LinkedReelSummary } from '@/types';
 import { CalendarPlus } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
+import { BlogPostSection } from '@/components/blog-post-section';
 
 // Progress step component
 function ProgressStep({
@@ -359,6 +360,8 @@ export default function ContentKitDetailContent() {
   };
 
   const platformContent = getPlatformContent();
+  const blogContent = platformContent.find(p => p.platform === 'blog');
+  const nonBlogContent = platformContent.filter(p => p.platform !== 'blog');
   const hasClips = detail?.clips && detail.clips.length > 0;
   const hasWrittenContent = platformContent.length > 0;
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
@@ -679,8 +682,8 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
-          {/* Written Content Section */}
-          {hasWrittenContent && (
+          {/* Written Content Section (excludes blog — blog gets its own section below) */}
+          {nonBlogContent.length > 0 && (
             <section id="written-content-section">
               <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
                 <span>✍️</span>
@@ -691,7 +694,7 @@ export default function ContentKitDetailContent() {
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {platformContent.map(({ platform, content }) => {
+                {nonBlogContent.map(({ platform, content }) => {
                   const config = PLATFORM_CONFIG[platform];
                   if (!config || !content) return null;
                   const isExpanded = expandedPlatform === platform;
@@ -760,6 +763,16 @@ export default function ContentKitDetailContent() {
                 })}
               </div>
             </section>
+          )}
+
+          {/* Blog Post Section — full-width with header image and formatted markdown */}
+          {blogContent && (
+            <BlogPostSection
+              content={blogContent.content}
+              contentKitId={item.id}
+              sourceContent={item.title}
+              onSchedule={() => setQuickScheduleConfig({ type: 'platform', platform: 'blog' })}
+            />
           )}
 
           {/* Instagram Carousel Loading State - show when carousel is expected but not ready */}

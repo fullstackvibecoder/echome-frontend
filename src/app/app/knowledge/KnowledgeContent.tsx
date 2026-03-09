@@ -553,15 +553,61 @@ export default function KnowledgeContent() {
                 >
                   ↻
                 </button>
-                <button
-                  onClick={() => handleOpenModal('paste')}
-                  className="btn-primary text-sm"
-                >
-                  + Add Content
-                </button>
               </div>
             }
           />
+
+          {/* Add Content — always-visible input method buttons */}
+          <div className="mb-2">
+            <p className="text-xs uppercase tracking-wider text-text-secondary font-medium mb-3">
+              Add to your Voice Profile
+            </p>
+            <div className="flex flex-wrap gap-2 stagger-children">
+              <button
+                onClick={() => handleOpenModal('voice')}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Record yourself talking - we'll transcribe it"
+              >
+                <span>🎤</span> Voice
+              </button>
+              <button
+                onClick={() => handleOpenModal('social')}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Import from YouTube or Instagram"
+              >
+                <span>📱</span> Social
+              </button>
+              <button
+                onClick={() => handleOpenModal('blog')}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Import articles from your blog"
+              >
+                <span>📝</span> Blog
+              </button>
+              <button
+                onClick={() => handleOpenModal('email')}
+                disabled={mboxUploading}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium disabled:opacity-50"
+                title="Import emails you've sent"
+              >
+                <span>📧</span> Email
+              </button>
+              <button
+                onClick={() => handleOpenModal('paste')}
+                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
+                title="Copy and paste any text you've written"
+              >
+                <span>✍️</span> Paste
+              </button>
+              <button
+                onClick={() => handleOpenModal('upload')}
+                className="btn-primary flex items-center gap-2"
+                title="Upload documents (PDF, Word, TXT, MBOX)"
+              >
+                <span>📤</span> Upload
+              </button>
+            </div>
+          </div>
 
           {/* ZONE 1 - Ask Your Voice */}
           <AskYourVoice disabled={!hasContent} kbId={selectedKb} />

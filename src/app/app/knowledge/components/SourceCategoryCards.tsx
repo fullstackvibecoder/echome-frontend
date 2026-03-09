@@ -56,37 +56,49 @@ export function SourceCategoryCards({
           const isEmailDisabled = cat.modal === 'email' && mboxUploading;
 
           return (
-            <button
+            <div
               key={cat.label}
-              onClick={() => {
-                if (isEmpty) {
-                  onOpenModal(cat.modal);
-                } else {
-                  // Filter to first matching source type that has items
-                  const matchingType = cat.sourceTypes.find(st => (bySourceType[st] || 0) > 0);
-                  if (matchingType) onFilterByCategory(matchingType);
-                }
-              }}
-              disabled={isEmailDisabled}
               className={`
                 relative p-4 rounded-xl border text-center transition-all
                 ${isEmpty
-                  ? 'border-dashed border-border hover:border-accent hover:bg-accent/5'
+                  ? 'border-dashed border-border'
                   : 'border-border bg-card card-lift'
                 }
-                disabled:opacity-50 disabled:cursor-not-allowed
+                ${isEmailDisabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
-              <div className="text-2xl mb-1">{cat.icon}</div>
-              <div className="text-sm font-medium text-text-primary">{cat.label}</div>
-              {isEmpty ? (
-                <div className="text-xs text-accent font-medium mt-1">+ Add</div>
-              ) : (
-                <div className="text-xs text-text-secondary mt-1">
-                  {itemCount} item{itemCount !== 1 ? 's' : ''} · {nuggetCount} nuggets
-                </div>
+              <button
+                onClick={() => {
+                  if (!isEmpty) {
+                    const matchingType = cat.sourceTypes.find(st => (bySourceType[st] || 0) > 0);
+                    if (matchingType) onFilterByCategory(matchingType);
+                  } else {
+                    onOpenModal(cat.modal);
+                  }
+                }}
+                disabled={isEmailDisabled}
+                className="w-full"
+              >
+                <div className="text-2xl mb-1">{cat.icon}</div>
+                <div className="text-sm font-medium text-text-primary">{cat.label}</div>
+                {isEmpty ? (
+                  <div className="text-xs text-accent font-medium mt-1">+ Add</div>
+                ) : (
+                  <div className="text-xs text-text-secondary mt-1">
+                    {itemCount} item{itemCount !== 1 ? 's' : ''} · {nuggetCount} nuggets
+                  </div>
+                )}
+              </button>
+              {!isEmpty && (
+                <button
+                  onClick={() => onOpenModal(cat.modal)}
+                  disabled={isEmailDisabled}
+                  className="mt-2 text-xs text-accent hover:text-accent/80 font-medium transition-colors disabled:opacity-50"
+                >
+                  + Add more
+                </button>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
