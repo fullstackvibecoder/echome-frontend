@@ -9,7 +9,7 @@
  * - Copy, download, and schedule actions
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Download, RefreshCw, Copy, Check, Maximize2, X, ImagePlus, CalendarPlus } from 'lucide-react';
 import { BlogHeaderPreview } from '@/components/blog-header-preview';
@@ -36,19 +36,12 @@ export function BlogPostSection({
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const hasAttemptedGeneration = useRef(false);
-
   // Extract a title from the blog content (first # or ## heading)
   const titleMatch = content.match(/^#{1,2}\s+(.+)$/m);
   const blogTitle = titleMatch ? titleMatch[1] : 'Blog Post';
 
-  // Auto-generate header image on first render
-  useEffect(() => {
-    if (hasAttemptedGeneration.current || blogImage) return;
-    hasAttemptedGeneration.current = true;
-    generateHeaderImage();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // No auto-generation — header image is generated on-demand to avoid
+  // burning API credits every time the content kit page is opened
 
   const generateHeaderImage = async () => {
     setIsGenerating(true);
