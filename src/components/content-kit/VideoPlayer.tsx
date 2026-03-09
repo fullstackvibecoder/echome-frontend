@@ -56,6 +56,19 @@ export function VideoPlayer({
     '1:1': 'aspect-square',
   };
 
+  // Reset player state when the video source changes (e.g. switching clips)
+  useEffect(() => {
+    setIsPlaying(false);
+    setShowOverlay(true);
+    setCurrentTime(0);
+    setVideoDuration(duration || 0);
+
+    const video = videoRef.current;
+    if (video) {
+      video.load(); // Force the browser to load the new source
+    }
+  }, [src, duration]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -90,7 +103,7 @@ export function VideoPlayer({
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', handleEnded);
     };
-  }, [onPlay, onEnded]);
+  }, [src, onPlay, onEnded]);
 
   const togglePlay = () => {
     const video = videoRef.current;
