@@ -324,11 +324,13 @@ export default function ContentKitDetailContent() {
     });
   };
 
-  // Get platform content from content kit or generated_content table
+  // Get platform content from content kit + generated_content table (merged)
+  // Blog and other slow-generating platforms may finish after the content kit
+  // is created, so we merge both sources to avoid missing late-arriving content.
   const getPlatformContent = () => {
-    const results: { platform: string; content: string }[] = [];
+    const platformMap = new Map<string, string>();
 
-    // First try contentKit (unified content_kits table)
+    // Start with contentKit (unified content_kits table)
     if (detail?.contentKit) {
       const kit = detail.contentKit;
       const kitContent = [
@@ -340,23 +342,22 @@ export default function ContentKitDetailContent() {
         { platform: 'email', content: kit.contentEmail },
         { platform: 'youtube', content: kit.contentYoutube },
         { platform: 'video-script', content: kit.contentVideoScript },
-      ].filter(p => p.content);
-      results.push(...kitContent as { platform: string; content: string }[]);
+      ];
+      for (const { platform, content } of kitContent) {
+        if (content) platformMap.set(platform, content);
+      }
     }
 
-    // Fall back to content array (generated_content table)
-    if (results.length === 0 && detail?.content && detail.content.length > 0) {
+    // Merge in generated_content table (picks up late-arriving platforms like blog)
+    if (detail?.content && detail.content.length > 0) {
       for (const item of detail.content) {
-        if (item.content && item.platform) {
-          results.push({
-            platform: item.platform,
-            content: item.content,
-          });
+        if (item.content && item.platform && !platformMap.has(item.platform)) {
+          platformMap.set(item.platform, item.content);
         }
       }
     }
 
-    return results;
+    return Array.from(platformMap.entries()).map(([platform, content]) => ({ platform, content }));
   };
 
   const platformContent = getPlatformContent();
