@@ -27,10 +27,10 @@ export function HeroSection() {
             className="text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-[1.1] opacity-0 animate-fade-in"
             style={{ animationDelay: '200ms' }}
           >
-            <span className="text-white">Your Next Month of Content</span>
+            <span className="text-white">Your Audience Can Already Tell</span>
             <br />
             <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-              Is Already on Your Phone.
+              When It Sounds Like AI.
             </span>
           </h1>
 
@@ -39,7 +39,7 @@ export function HeroSection() {
             className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
             style={{ animationDelay: '300ms' }}
           >
-            Drop a video. Get a full content kit - in your voice, in 3 minutes.
+            Drop a video. EchoMe builds a voice profile from your history - and writes everything through it.
           </p>
 
           {/* CTAs - ABOVE the demo */}
