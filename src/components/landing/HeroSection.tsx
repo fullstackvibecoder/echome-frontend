@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { ArrowRight, Play, Upload } from 'lucide-react';
-import { HeroProductDemo } from './HeroProductDemo';
+import { HeroDemoVideo } from './HeroDemoVideo';
 
 export function HeroSection() {
   return (
@@ -57,13 +56,13 @@ export function HeroSection() {
               Try It Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
-            <Link
-              href="#output-showcase"
+            <a
+              href="#demo"
               className="text-white/80 hover:text-white font-medium text-lg flex items-center gap-2 transition-colors group"
             >
               <Play className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-              See Example Output
-            </Link>
+              Watch Demo
+            </a>
           </div>
 
           {/* Trust signal - right under CTA */}
@@ -93,9 +92,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Product Demo */}
-          <div className="w-full opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <HeroProductDemo />
+          {/* Product Demo Video */}
+          <div id="demo" className="w-full opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <HeroDemoVideo />
           </div>
         </div>
       </div>
