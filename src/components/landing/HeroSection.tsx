@@ -27,10 +27,10 @@ export function HeroSection() {
             className="text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-[1.1] opacity-0 animate-fade-in"
             style={{ animationDelay: '200ms' }}
           >
-            <span className="text-white">Your Video. Your Voice.</span>
+            <span className="text-white">Your Next Month of Content</span>
             <br />
             <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-              15 Posts in 3 Minutes.
+              Is Already on Your Phone.
             </span>
           </h1>
 
@@ -39,7 +39,7 @@ export function HeroSection() {
             className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
             style={{ animationDelay: '300ms' }}
           >
-            Drop in any video - get clips, carousels, and social posts that actually sound like you.
+            One video - clips, carousels, blogs, and social posts that actually sound like you. In 3 minutes.
           </p>
 
           {/* CTAs - ABOVE the demo */}
