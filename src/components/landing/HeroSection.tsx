@@ -39,7 +39,7 @@ export function HeroSection() {
             className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
             style={{ animationDelay: '300ms' }}
           >
-            One video - clips, carousels, blogs, and social posts that actually sound like you. In 3 minutes.
+            Drop a video. Get a full content kit - in your voice, in 3 minutes.
           </p>
 
           {/* CTAs - ABOVE the demo */}
