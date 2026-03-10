@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Play } from 'lucide-react';
-import Image from 'next/image';
 
 const YOUTUBE_VIDEO_ID = 'rpTc2wZXnG8';
 const THUMBNAIL_URL = `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`;
@@ -23,12 +22,11 @@ export function HeroDemoVideo() {
             className="relative w-full aspect-video group cursor-pointer"
             aria-label="Play demo video"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={THUMBNAIL_URL}
               alt="EchoMe product demo"
-              fill
-              className="object-cover"
-              priority
+              className="absolute inset-0 w-full h-full object-cover"
             />
 
             {/* Dark overlay */}
