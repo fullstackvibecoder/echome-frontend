@@ -2,13 +2,13 @@
 
 export const ACCEPTED_FILE_TYPES = {
   'application/pdf': ['.pdf'],
-  'video/mp4': ['.mp4'],
-  'video/quicktime': ['.mov'],
   'text/plain': ['.txt'],
   'image/jpeg': ['.jpg', '.jpeg'],
   'image/png': ['.png'],
   'audio/wav': ['.wav'],
   'audio/mpeg': ['.mp3'],
+  'audio/webm': ['.webm'],
+  'audio/mp4': ['.m4a'],
   // MBOX files can have various MIME types depending on OS/browser
   'application/mbox': ['.mbox'],
   'application/octet-stream': ['.mbox'],
@@ -52,6 +52,14 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
   const isPdf = file.name.toLowerCase().endsWith('.pdf') ||
                 file.type === 'application/pdf' ||
                 file.type === 'application/x-pdf';
+
+  // Give specific guidance for video files
+  if (file.type.startsWith('video/') || ['.mp4', '.mov', '.avi', '.mkv', '.webm'].includes(fileExtension)) {
+    return {
+      valid: false,
+      error: 'Video files can\'t be added to the Knowledge Base. Use the Clip Finder to process videos.',
+    };
+  }
 
   if (!acceptedTypes.includes(file.type) && !acceptedExtensions.includes(fileExtension) && !isPdf) {
     console.log('[file-utils] Rejected file:', { name: file.name, type: file.type, extension: fileExtension });
