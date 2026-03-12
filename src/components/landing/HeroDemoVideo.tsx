@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Play } from 'lucide-react';
 
-const YOUTUBE_VIDEO_ID = 'rpTc2wZXnG8';
+const YOUTUBE_VIDEO_ID = 'rAyOxuoLzhE';
 const THUMBNAIL_URL = `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`;
 
 export function HeroDemoVideo() {
