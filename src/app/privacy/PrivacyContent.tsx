@@ -38,7 +38,7 @@ export default function PrivacyContent() {
                 <h2 className="text-xl font-medium text-[#1C1C1E]">
                   Effective Date
                 </h2>
-                <p className="text-sm text-stone-600">January 15, 2025</p>
+                <p className="text-sm text-stone-600">March 12, 2026</p>
               </div>
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -80,14 +80,17 @@ export default function PrivacyContent() {
 
               <div className="pl-4 border-l-2 border-[#00D4FF]">
                 <h3 className="text-base font-medium text-stone-800 mb-2">
-                  B. Imported Content
+                  B. Imported & Uploaded Content
                 </h3>
                 <ul className="text-stone-700 text-sm space-y-1">
                   <li>
                     • Social media posts, captions, and metadata (with your
                     consent via OAuth)
                   </li>
-                  <li>• Uploaded files (video, audio, text)</li>
+                  <li>• YouTube video transcripts imported via URL or connected account</li>
+                  <li>• Voice and audio recordings (transcribed via AI speech-to-text)</li>
+                  <li>• Uploaded files (audio, text, documents, email archives)</li>
+                  <li>• Video files processed through our Clip Finder tool</li>
                   <li>
                     • User-provided tags, prompt inputs, and form responses
                   </li>
@@ -110,8 +113,29 @@ export default function PrivacyContent() {
                 </h3>
                 <ul className="text-stone-700 text-sm space-y-1">
                   <li>
-                    • Processed via a third-party service (we don&apos;t store card
-                    details)
+                    • Processed securely via Stripe (we do not store your card
+                    details on our servers)
+                  </li>
+                </ul>
+              </div>
+
+              <div className="pl-4 border-l-2 border-[#00D4FF]">
+                <h3 className="text-base font-medium text-stone-800 mb-2">
+                  E. Third-Party Account Data
+                </h3>
+                <ul className="text-stone-700 text-sm space-y-1">
+                  <li>
+                    • When you connect accounts via Google OAuth, we may access
+                    your YouTube channel data (video metadata, transcripts) and
+                    Google Drive files you explicitly select
+                  </li>
+                  <li>
+                    • When you connect Instagram, we access your public posts,
+                    captions, and profile metadata
+                  </li>
+                  <li>
+                    • We only access data within the scopes you authorize and do
+                    not access private messages, contacts, or unrelated account data
                   </li>
                 </ul>
               </div>
@@ -132,9 +156,13 @@ export default function PrivacyContent() {
               We use your data to:
             </p>
             <ul className="text-stone-700 text-sm space-y-2 pl-4">
-              <li>• Build Your Echo</li>
-              <li>• Generate content (e.g., blogs, threads, clips)</li>
+              <li>• Build Your Echo (your personalized voice profile)</li>
+              <li>• Generate content (e.g., blogs, carousels, social posts, video clips)</li>
+              <li>• Transcribe voice recordings and audio using AI speech-to-text</li>
+              <li>• Process and analyze video content for clip extraction</li>
+              <li>• Import and analyze YouTube transcripts and social media content</li>
               <li>• Provide account access and customer support</li>
+              <li>• Process payments and manage subscriptions</li>
               <li>• Improve product functionality and user experience</li>
               <li>• Communicate updates, changes, or promotions</li>
               <li>• Ensure platform integrity and security</li>
@@ -153,7 +181,7 @@ export default function PrivacyContent() {
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
               Your data is stored securely using third-party services (e.g.
-              AWS, Supabase, Pinecone) located in the U.S., Canada, and the
+              Supabase, Pinecone, Railway) located in the U.S. and the
               EU. By using EchoMe, you consent to the transfer and processing
               of your data in these jurisdictions.
             </p>
@@ -215,11 +243,16 @@ export default function PrivacyContent() {
               We use trusted services to deliver EchoMe:
             </p>
             <ul className="text-stone-700 text-sm space-y-2 pl-4 mb-4">
-              <li>• Authentication (e.g. Supabase, Clerk)</li>
-              <li>• Storage (e.g. AWS, S3)</li>
-              <li>• Vector storage (e.g. Pinecone)</li>
-              <li>• LLMs (e.g. OpenAI, Anthropic)</li>
-              <li>• Analytics & CRM (e.g. Plausible, HubSpot)</li>
+              <li>• Authentication (Supabase, Google OAuth)</li>
+              <li>• AI & Language Models (OpenAI, Anthropic Claude)</li>
+              <li>• Speech-to-Text Transcription (OpenAI Whisper)</li>
+              <li>• Vector Storage (Pinecone)</li>
+              <li>• Database & File Storage (Supabase)</li>
+              <li>• Payment Processing (Stripe)</li>
+              <li>• Email Delivery (Resend)</li>
+              <li>• Social Media Data (Instagram, YouTube)</li>
+              <li>• Hosting & Infrastructure (Railway, Vercel)</li>
+              <li>• Analytics (Plausible)</li>
             </ul>
             <p className="text-stone-700 leading-relaxed">
               These vendors only access your data as needed to deliver their

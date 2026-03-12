@@ -46,7 +46,7 @@ export default function TermsContent() {
                 <h2 className="text-xl font-medium text-[#1C1C1E]">
                   Effective Date
                 </h2>
-                <p className="text-sm text-stone-600">February 2, 2026</p>
+                <p className="text-sm text-stone-600">March 12, 2026</p>
               </div>
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -97,14 +97,17 @@ export default function TermsContent() {
               You may use EchoMe to:
             </p>
             <ul className="text-stone-700 text-sm space-y-2 pl-4">
-              <li>• Upload content (videos, audio, text)</li>
+              <li>• Upload content (audio recordings, text, documents, email archives)</li>
+              <li>• Record voice memos that are transcribed using AI speech-to-text</li>
+              <li>• Import YouTube video transcripts via URL or connected account</li>
               <li>
-                • Connect social accounts to import your historical posts
+                • Connect social accounts (Instagram, YouTube, Google) to import your content
               </li>
-              <li>• Build Your Echo</li>
+              <li>• Process videos through our Clip Finder to extract highlights</li>
+              <li>• Build Your Echo (your personalized voice profile)</li>
               <li>
-                • Generate content including blogs, carousels, clips,
-                transcripts, and other formats
+                • Generate content including blogs, carousels, social posts,
+                video clips, and other formats
               </li>
             </ul>
           </div>
@@ -125,9 +128,11 @@ export default function TermsContent() {
               responsible for all activity under your account.
             </p>
             <p className="text-stone-700 leading-relaxed">
-              You may connect third-party services (e.g. Instagram, TikTok,
-              LinkedIn) via OAuth. You authorize EchoMe to access permitted
-              data as described in our Privacy Policy.
+              You may connect third-party services (e.g. Instagram, YouTube,
+              Google) via OAuth. You authorize EchoMe to access permitted
+              data within the scopes you approve, as described in our Privacy Policy.
+              You may revoke access to connected accounts at any time through
+              your account settings or the third-party platform.
             </p>
           </div>
 
@@ -142,9 +147,11 @@ export default function TermsContent() {
               </h2>
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
-              When you connect a social platform, you explicitly authorize us
-              to access, import, store, and process content from your accounts
-              (e.g. captions, posts, timestamps) to generate personalized
+              When you connect a social platform or import content, you
+              explicitly authorize us to access, import, store, and process
+              content from your accounts (e.g. captions, posts, video
+              transcripts, timestamps) and uploaded files (e.g. audio
+              recordings, documents, email archives) to generate personalized
               outputs. All imported data is used solely to power your EchoMe
               experience.
             </p>
@@ -201,7 +208,8 @@ export default function TermsContent() {
             <p className="text-stone-700 leading-relaxed mb-4">
               EchoMe is offered on a subscription basis with optional credit
               top-ups. Plans are billed monthly or annually. All fees are in
-              [USD or CAD] and non-refundable, except where required by law.
+              USD and non-refundable, except where required by law. Payment
+              is processed securely through Stripe.
             </p>
             <p className="text-stone-700 leading-relaxed">
               You may cancel anytime, but access will remain active until the
