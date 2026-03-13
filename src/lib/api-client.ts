@@ -2516,6 +2516,28 @@ export const api = {
     },
   },
 
+  // -------- ADMIN BROADCAST --------
+  adminBroadcast: {
+    preview: async (segmentName: string, subject: string, body: string): Promise<BroadcastPreviewResponse> => {
+      const res = await apiClient.post('/admin/broadcast/segment', {
+        segmentName,
+        subject,
+        body,
+        dryRun: true,
+      });
+      return res.data;
+    },
+    send: async (segmentName: string, subject: string, body: string): Promise<BroadcastSendResponse> => {
+      const res = await apiClient.post('/admin/broadcast/segment', {
+        segmentName,
+        subject,
+        body,
+        dryRun: false,
+      }, { timeout: 120000 });
+      return res.data;
+    },
+  },
+
   // -------- ADMIN ERROR HEALTH --------
   adminErrors: {
     /** Get error health status (green/yellow/red) with counts and recent errors */
@@ -3245,6 +3267,39 @@ export const api = {
       return response.data as ApiResponse<{ created: number }>;
     },
   },
+
+  // -------- DESCRIPT STUDIO --------
+  descript: {
+    createProject: async (data: { title: string; source: DescriptCreateSource }) => {
+      const response = await apiClient.post('/descript/projects', data);
+      return response.data as { project: DescriptProject; job: DescriptJob };
+    },
+
+    listProjects: async (params?: { limit?: number; offset?: number; status?: string }) => {
+      const response = await apiClient.get('/descript/projects', { params });
+      return response.data as DescriptProject[];
+    },
+
+    getProject: async (id: string) => {
+      const response = await apiClient.get(`/descript/projects/${id}`);
+      return response.data as { project: DescriptProject; jobs: DescriptJob[] };
+    },
+
+    runEdit: async (projectId: string, data: { prompt: string; model?: string }) => {
+      const response = await apiClient.post(`/descript/projects/${projectId}/edit`, data);
+      return response.data as { job: DescriptJob };
+    },
+
+    pollJobStatus: async (jobId: string) => {
+      const response = await apiClient.get(`/descript/jobs/${jobId}/status`);
+      return response.data as DescriptJob;
+    },
+
+    deleteProject: async (id: string) => {
+      const response = await apiClient.delete(`/descript/projects/${id}`);
+      return response.data as { deleted: boolean };
+    },
+  },
 };
 
 // -------- TEAM VOICE TYPES --------
@@ -3343,6 +3398,24 @@ export interface AdminSegmentationData {
   segments: AdminUserSegment[];
   totalUsers: number;
   lastUpdated: string;
+}
+
+export interface BroadcastPreviewResponse {
+  success: boolean;
+  dryRun: true;
+  recipientCount: number;
+  sampleRecipients: Array<{ email: string; fullName: string | null }>;
+  subject: string;
+  htmlPreview: string;
+  senderSignature: { name: string; title: string };
+}
+
+export interface BroadcastSendResponse {
+  success: boolean;
+  dryRun: false;
+  sent: number;
+  failed: number;
+  errors: string[];
 }
 
 export interface AdminErrorHealth {
@@ -3813,5 +3886,47 @@ export interface TrendCopyWithTrend extends TrendCopy {
   trend?: Trend;
   creative_brief?: TrendCreativeBrief;
 }
+
+// -------- DESCRIPT STUDIO TYPES --------
+
+export type DescriptProjectStatus = 'creating' | 'ready' | 'editing' | 'failed';
+export type DescriptJobType = 'import' | 'agent_edit';
+export type DescriptJobStatusValue = 'running' | 'stopped' | 'cancelled' | 'failed';
+
+export interface DescriptProject {
+  id: string;
+  user_id: string;
+  descript_project_id?: string;
+  title: string;
+  project_url?: string;
+  status: DescriptProjectStatus;
+  source_type: 'clips' | 'urls';
+  source_metadata?: Record<string, unknown>;
+  error_message?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DescriptJob {
+  id: string;
+  project_id: string;
+  user_id: string;
+  descript_job_id: string;
+  job_type: DescriptJobType;
+  status: DescriptJobStatusValue;
+  prompt?: string;
+  model?: string;
+  progress_label?: string;
+  result_data?: Record<string, unknown>;
+  error_message?: string;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DescriptCreateSource =
+  | { type: 'clips'; clipIds: string[] }
+  | { type: 'urls'; urls: string[] };
 
 export default api;

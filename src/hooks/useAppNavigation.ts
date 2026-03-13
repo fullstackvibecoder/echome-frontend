@@ -31,6 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
 /** Admin-only nav items (appended when user is admin) */
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { id: 'admin', label: 'Admin', icon: '📊', path: '/app/admin' },
+  { id: 'descript', label: 'Descript Studio', icon: '🎬', path: '/app/descript', adminOnly: true },
 ];
 
 interface UseAppNavigationReturn {
@@ -47,7 +48,8 @@ export function useAppNavigation(): UseAppNavigationReturn {
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useNavigationContext();
 
   // Determine active nav item based on current path
-  const activeItem = NAV_ITEMS.find((item) => {
+  const allItems = [...NAV_ITEMS, ...ADMIN_NAV_ITEMS];
+  const activeItem = allItems.find((item) => {
     if (item.path === '/app') {
       return pathname === '/app';
     }
