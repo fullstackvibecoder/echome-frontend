@@ -1237,4 +1237,145 @@ export interface LinkedReelSummary {
 export interface ContentKitDetailWithReel extends ContentKitDetail {
   reelContent?: ReelContentStructure;
   reel?: LinkedReelSummary;
+  trendingAudioSuggestion?: string;
+}
+
+// ============================================
+// AI B-ROLL TYPES
+// ============================================
+
+export type BRollSourceType = 'ai_generated' | 'extracted';
+export type BRollStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface AIGeneratedBRoll {
+  id: string;
+  userId: string;
+  contentKitId?: string;
+  klingTaskId?: string;
+  prompt: string;
+  sourceType: BRollSourceType;
+  status: BRollStatus;
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  durationSeconds?: number;
+  aspectRatio: '9:16' | '16:9' | '1:1';
+  costCents?: number;
+  errorMessage?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface BRollGenerateInput {
+  contentKitId?: string;
+  prompt?: string;
+  sourceImageUrl?: string;
+  duration: 5 | 10;
+  aspectRatio?: '9:16' | '16:9' | '1:1';
+}
+
+// ============================================
+// B-ROLL EXTRACTION TYPES
+// ============================================
+
+export interface BRollScores {
+  motionScore: number;
+  sceneScore: number;
+  faceScore: number;
+  overallScore: number;
+}
+
+export interface VideoClipDetailWithBRoll extends VideoClipDetail {
+  clipType?: 'talking' | 'broll';
+  brollScores?: BRollScores;
+  speedMultiplier?: number;
+}
+
+export interface ExtractBRollInput {
+  maxClips?: number;
+  speedUp?: 1 | 1.5 | 2;
+  useVisionScoring?: boolean;
+}
+
+// ============================================
+// B-ROLL REEL COMPOSITION TYPES
+// ============================================
+
+export type TextOverlayStyleId = 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards';
+
+export interface TextOverlayStyle {
+  id: TextOverlayStyleId;
+  name: string;
+  description: string;
+  fontWeight: string;
+  position: 'center' | 'bottom' | 'top';
+  backgroundColor?: string;
+  textColor: string;
+  previewImageUrl?: string;
+}
+
+export interface TextOverlaySegment {
+  clipIndex: number;
+  text: string;
+  position: 'top' | 'center' | 'bottom';
+}
+
+export interface BRollReelComposition {
+  id: string;
+  userId: string;
+  reelProjectId?: string;
+  brollSource: 'library' | 'ai' | 'extracted';
+  brollClipIds: string[];
+  templateStyle: TextOverlayStyleId;
+  textOverlays: TextOverlaySegment[];
+  status: BRollStatus;
+  outputUrl?: string;
+  thumbnailUrl?: string;
+  createdAt: string;
+}
+
+export interface ComposeBRollReelInput {
+  brollClipIds: string[];
+  templateStyle: TextOverlayStyleId;
+  contentKitId?: string;
+  musicTrackId?: string;
+  generateText?: boolean;
+}
+
+// ============================================
+// CURATED ASSETS TYPES
+// ============================================
+
+export type CuratedAssetType = 'b_roll' | 'caption_template' | 'reel_script';
+
+export interface CuratedAsset {
+  id: string;
+  type: CuratedAssetType;
+  title: string;
+  description?: string;
+  category: string;
+  niche?: string;
+  month: number;
+  year: number;
+  mediaUrl?: string;
+  content?: string;
+  thumbnailUrl?: string;
+  minTier: 'free' | 'starter' | 'creator' | 'studio';
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CuratedAssetInput {
+  type: CuratedAssetType;
+  title: string;
+  description?: string;
+  category: string;
+  niche?: string;
+  month: number;
+  year: number;
+  mediaUrl?: string;
+  content?: string;
+  thumbnailUrl?: string;
+  minTier?: 'free' | 'starter' | 'creator' | 'studio';
+  sortOrder?: number;
 }

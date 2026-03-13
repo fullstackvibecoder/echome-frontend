@@ -3,25 +3,51 @@
 /**
  * Reel Maker Landing Page
  *
- * Template picker with grid view of available templates.
- * Users select a template to start creating a new reel.
+ * Template picker with grid view, recent projects, and B-Roll Reels wizard.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import type { ReelTemplate, ReelProject } from '@/types';
 import { TemplateCard } from '@/components/reels/TemplateCard';
 import { ReelProjectCard } from '@/components/reels/ReelProjectCard';
+import { BRollReelWizard } from '@/components/reels/BRollReelWizard';
 
 export default function ReelsContent() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  // Redirect non-admins
+  useEffect(() => {
+    if (!authLoading && user && !user.isAdmin) {
+      router.replace('/app');
+    }
+  }, [authLoading, user, router]);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user?.isAdmin) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">This feature is not available yet.</p>
+      </div>
+    );
+  }
   const [templates, setTemplates] = useState<ReelTemplate[]>([]);
   const [recentProjects, setRecentProjects] = useState<ReelProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'templates' | 'projects'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'projects' | 'broll'>('templates');
+  const [showBRollWizard, setShowBRollWizard] = useState(false);
 
   // Fetch templates and recent projects
   useEffect(() => {
@@ -43,7 +69,6 @@ export default function ReelsContent() {
           setRecentProjects(projectsRes.data);
         }
       } catch (err: any) {
-        // Check if it's a 404 (backend not deployed) or other error
         if (err?.response?.status === 404) {
           setError('Reel Maker API is not available yet. Please ensure the backend is deployed with the latest changes.');
         } else {
@@ -58,7 +83,6 @@ export default function ReelsContent() {
   }, []);
 
   const handleTemplateSelect = useCallback((template: ReelTemplate) => {
-    // Navigate to editor with template pre-selected
     router.push(`/app/reels/new?template=${template.id}`);
   }, [router]);
 
@@ -99,18 +123,29 @@ export default function ReelsContent() {
         <div>
           <h1 className="text-display text-3xl mb-2">Reel Maker</h1>
           <p className="text-body text-text-secondary">
-            Create professional reels with beat-synced transitions
+            Create professional reels with beat-synced transitions and AI B-roll
           </p>
         </div>
-        {recentProjects.length > 0 && (
-          <Link
-            href="/app/reels/new"
-            className="btn-primary flex items-center gap-2"
-          >
-            <span>+</span>
-            <span>New Reel</span>
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          {activeTab === 'broll' && (
+            <button
+              onClick={() => setShowBRollWizard(true)}
+              className="btn-primary flex items-center gap-2"
+            >
+              <span>+</span>
+              <span>New B-Roll Reel</span>
+            </button>
+          )}
+          {activeTab !== 'broll' && recentProjects.length > 0 && (
+            <Link
+              href="/app/reels/new"
+              className="btn-primary flex items-center gap-2"
+            >
+              <span>+</span>
+              <span>New Reel</span>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -134,6 +169,16 @@ export default function ReelsContent() {
           }`}
         >
           My Reels ({recentProjects.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('broll')}
+          className={`pb-3 px-2 text-sm font-medium transition-colors ${
+            activeTab === 'broll'
+              ? 'text-accent border-b-2 border-accent'
+              : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          B-Roll Reels
         </button>
       </div>
 
@@ -196,6 +241,48 @@ export default function ReelsContent() {
                   onClick={() => handleProjectClick(project)}
                 />
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* B-Roll Reels Tab */}
+      {activeTab === 'broll' && (
+        <div>
+          {showBRollWizard ? (
+            <BRollReelWizard
+              onComplete={() => {
+                setShowBRollWizard(false);
+              }}
+              onCancel={() => setShowBRollWizard(false)}
+            />
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-8 h-8 text-text-secondary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M7 4V2m0 2a2 2 0 012 2v1a2 2 0 01-2 2 2 2 0 01-2-2V6a2 2 0 012-2zm0 10v2m0-2a2 2 0 01-2-2v-1a2 2 0 012-2 2 2 0 012 2v1a2 2 0 01-2 2zM17 4V2m0 2a2 2 0 012 2v1a2 2 0 01-2 2 2 2 0 01-2-2V6a2 2 0 012-2zm0 10v2m0-2a2 2 0 01-2-2v-1a2 2 0 012-2 2 2 0 012 2v1a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-text-primary mb-2">B-Roll Reels</h3>
+              <p className="text-text-secondary mb-6 max-w-md mx-auto">
+                Combine AI-generated or extracted B-roll with voice-matched text overlays to create ready-to-post reels.
+              </p>
+              <button
+                onClick={() => setShowBRollWizard(true)}
+                className="btn-primary"
+              >
+                Create B-Roll Reel
+              </button>
             </div>
           )}
         </div>

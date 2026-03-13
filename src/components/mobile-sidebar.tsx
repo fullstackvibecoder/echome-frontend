@@ -22,8 +22,9 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const { isTeamsUser } = useVoiceContext();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Filter nav items: hide teamsOnly items for non-teams users
-  const visibleNavItems = [...NAV_ITEMS.filter(item => !item.teamsOnly || isTeamsUser), ...(user?.isAdmin ? ADMIN_NAV_ITEMS : [])];
+  const isAdmin = !!user?.isAdmin;
+  // Filter nav items: hide teamsOnly for non-teams, adminOnly for non-admins
+  const visibleNavItems = [...NAV_ITEMS.filter(item => (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin)), ...(isAdmin ? ADMIN_NAV_ITEMS : [])];
 
   // Escape key to close
   useEffect(() => {
@@ -78,17 +79,17 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             <button
               key={item.id}
               onClick={() => {
-                if (item.comingSoon) return;
+                if (item.comingSoon && !isAdmin) return;
                 if (isFirstTime && HINT_ITEMS.has(item.id)) markSidebarHintSeen(item.id);
                 navigate(item.path);
               }}
-              disabled={item.comingSoon}
+              disabled={item.comingSoon && !isAdmin}
               aria-current={activeItem === item.id ? 'page' : undefined}
               className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-lg
                 font-medium transition-all duration-200
                 ${
-                  item.comingSoon
+                  item.comingSoon && !isAdmin
                     ? 'text-muted-foreground/40 cursor-not-allowed opacity-40'
                     : activeItem === item.id
                       ? 'bg-gradient-to-r from-primary to-primary-dark text-primary-foreground shadow-sm'
@@ -101,7 +102,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               {isFirstTime && HINT_ITEMS.has(item.id) && !sidebarHintsSeen[item.id] && (
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               )}
-              {item.comingSoon && (
+              {item.comingSoon && !isAdmin && (
                 <span className="text-xs font-semibold bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full" title="Coming soon">
                   Soon
                 </span>

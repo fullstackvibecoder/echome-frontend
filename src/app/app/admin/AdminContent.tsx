@@ -15,7 +15,7 @@ import {
 
 // ==================== Types ====================
 
-type Tab = 'overview' | 'services' | 'users' | 'trends' | 'providers';
+type Tab = 'overview' | 'services' | 'users' | 'trends' | 'providers' | 'curated';
 
 interface ProviderDataEntry {
   provider: string;
@@ -801,6 +801,7 @@ export default function AdminContent() {
     { id: 'users', label: 'Users' },
     { id: 'trends', label: 'Trends' },
     { id: 'providers', label: 'Providers' },
+    { id: 'curated', label: 'Curated Assets' },
   ];
 
   // Generate month options (last 6 months)
@@ -859,6 +860,245 @@ export default function AdminContent() {
       {tab === 'users' && <UsersTab month={month} />}
       {tab === 'trends' && <TrendsTab month={month} />}
       {tab === 'providers' && <ProvidersTab />}
+      {tab === 'curated' && <CuratedAssetsTab />}
+    </div>
+  );
+}
+
+// ==================== Tab: Curated Assets ====================
+
+function CuratedAssetsTab() {
+  const [assets, setAssets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'b_roll' as 'b_roll' | 'caption_template' | 'reel_script',
+    title: '',
+    description: '',
+    category: '',
+    niche: '',
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    mediaUrl: '',
+    content: '',
+    thumbnailUrl: '',
+    minTier: 'free' as 'free' | 'starter' | 'creator' | 'studio',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const fetchAssets = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.curatedAssets.list({ limit: 50 });
+      if (response.success && response.data) {
+        setAssets(response.data);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchAssets(); }, [fetchAssets]);
+
+  const handleCreate = async () => {
+    setSaving(true);
+    try {
+      await api.curatedAssets.create({
+        type: formData.type,
+        title: formData.title,
+        description: formData.description || undefined,
+        category: formData.category,
+        niche: formData.niche || undefined,
+        month: formData.month,
+        year: formData.year,
+        mediaUrl: formData.mediaUrl || undefined,
+        content: formData.content || undefined,
+        thumbnailUrl: formData.thumbnailUrl || undefined,
+        minTier: formData.minTier,
+      });
+      setShowForm(false);
+      setFormData({
+        type: 'b_roll', title: '', description: '', category: '', niche: '',
+        month: new Date().getMonth() + 1, year: new Date().getFullYear(),
+        mediaUrl: '', content: '', thumbnailUrl: '', minTier: 'free',
+      });
+      fetchAssets();
+    } catch {
+      // silent
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this asset?')) return;
+    try {
+      await api.curatedAssets.delete(id);
+      fetchAssets();
+    } catch {
+      // silent
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Curated Assets ({assets.length})</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          {showForm ? 'Cancel' : '+ Add Asset'}
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Type</label>
+              <select
+                value={formData.type}
+                onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+              >
+                <option value="b_roll">B-Roll</option>
+                <option value="caption_template">Caption Template</option>
+                <option value="reel_script">Reel Script</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Min Tier</label>
+              <select
+                value={formData.minTier}
+                onChange={e => setFormData({ ...formData, minTier: e.target.value as any })}
+                className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+              >
+                <option value="free">Free</option>
+                <option value="starter">Starter</option>
+                <option value="creator">Creator</option>
+                <option value="studio">Studio</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Title</label>
+            <input
+              value={formData.title}
+              onChange={e => setFormData({ ...formData, title: e.target.value })}
+              className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+              placeholder="Asset title"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Category</label>
+              <input
+                value={formData.category}
+                onChange={e => setFormData({ ...formData, category: e.target.value })}
+                className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                placeholder="e.g. Business, Lifestyle"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Month / Year</label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="number"
+                  min={1} max={12}
+                  value={formData.month}
+                  onChange={e => setFormData({ ...formData, month: parseInt(e.target.value) })}
+                  className="w-20 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                />
+                <input
+                  type="number"
+                  min={2024}
+                  value={formData.year}
+                  onChange={e => setFormData({ ...formData, year: parseInt(e.target.value) })}
+                  className="w-24 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          </div>
+          {formData.type === 'b_roll' && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Media URL</label>
+              <input
+                value={formData.mediaUrl}
+                onChange={e => setFormData({ ...formData, mediaUrl: e.target.value })}
+                className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                placeholder="https://..."
+              />
+            </div>
+          )}
+          {(formData.type === 'caption_template' || formData.type === 'reel_script') && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Content</label>
+              <textarea
+                value={formData.content}
+                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm min-h-[100px]"
+                placeholder="Script or template text..."
+              />
+            </div>
+          )}
+          <button
+            onClick={handleCreate}
+            disabled={saving || !formData.title || !formData.category}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Create Asset'}
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : assets.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">No curated assets yet</div>
+      ) : (
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Title</th>
+                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Type</th>
+                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Category</th>
+                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Month</th>
+                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Tier</th>
+                <th className="text-right px-4 py-2 font-medium text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.map((asset: any) => (
+                <tr key={asset.id} className="border-b border-border last:border-0">
+                  <td className="px-4 py-3 text-foreground">{asset.title}</td>
+                  <td className="px-4 py-3">
+                    <span className="px-2 py-0.5 bg-muted rounded text-xs text-muted-foreground">
+                      {asset.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{asset.category}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{asset.month}/{asset.year}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{asset.minTier}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleDelete(asset.id)}
+                      className="text-red-400 hover:text-red-300 text-xs"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

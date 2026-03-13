@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
 import { SnapshotPicker } from './SnapshotPicker';
 import { InfoTooltip } from './info-tooltip';
 
@@ -410,6 +411,7 @@ export function GenerationForm({
 
   // Subscription & free generation state
   const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate, refresh: refreshSubscription } = useSubscription();
+  const { user } = useAuth();
   const router = useRouter();
 
   // Refresh subscription state when a quota error comes back from the backend
@@ -1509,16 +1511,23 @@ export function GenerationForm({
         </div>
       </details>
 
-      {/* Reel Configuration - Coming Soon */}
+      {/* Reel Configuration - Coming Soon (live for admins) */}
       {(inputType === 'video' || inputType === 'url') && (
-        <div className="mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20 opacity-50 pointer-events-none">
+        <div className={`mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20 ${!user?.isAdmin ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="flex items-center gap-2">
             <span className="text-xl">🎬</span>
             <h3 className="text-body font-semibold text-text-primary">Video Reel</h3>
-            <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
+            {!user?.isAdmin && (
+              <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
+            )}
           </div>
           <p className="text-small text-text-secondary mt-2">
-            Animated carousel reels with text overlays - coming soon.
+            {user?.isAdmin ? (
+              <>After generation, create animated reels from your carousel slides or compose B-roll reels with text overlays in the{' '}
+              <a href="/app/reels" className="text-accent hover:underline">Reel Maker</a>.</>
+            ) : (
+              <>Animated carousel reels with text overlays - coming soon.</>
+            )}
           </p>
         </div>
       )}

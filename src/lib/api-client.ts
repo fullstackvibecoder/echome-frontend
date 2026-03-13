@@ -1765,6 +1765,16 @@ export const api = {
         };
       };
     },
+
+    /** Extract B-roll from uploaded video */
+    extractBRoll: async (uploadId: string, data: import('../types').ExtractBRollInput) => {
+      const response = await apiClient.post(`/clips/${uploadId}/extract-broll`, {
+        max_clips: data.maxClips,
+        speed_up: data.speedUp,
+        use_vision_scoring: data.useVisionScoring,
+      }, { timeout: GENERATION_TIMEOUT });
+      return response.data as ApiResponse<{ jobId: string; status: string }>;
+    },
   },
 
   // -------- CONTENT KITS --------
@@ -1975,11 +1985,17 @@ export const api = {
       };
     },
 
-    /** Generate animated MP4 reel from carousel slides (one-click) */
-    generateCarouselReel: async (kitId: string) => {
+    /** Generate animated MP4 reel from carousel slides */
+    generateCarouselReel: async (kitId: string, options?: {
+      musicTrackId?: string;
+      smartTiming?: boolean;
+    }) => {
       const response = await apiClient.post(
         `/content-kits/${kitId}/generate-carousel-reel`,
-        {},
+        {
+          music_track_id: options?.musicTrackId,
+          smart_timing: options?.smartTiming,
+        },
         { timeout: GENERATION_TIMEOUT }
       );
       return response.data as {
@@ -1987,6 +2003,7 @@ export const api = {
         data: {
           projectId: string;
           status: string;
+          trendingAudioName?: string;
         };
       };
     },
@@ -2992,6 +3009,229 @@ export const api = {
         ...raw,
         data: raw.data ? transformTeamVoice(raw.data) : undefined,
       } as ApiResponse<TeamVoice>;
+    },
+  },
+
+  // -------- B-ROLL --------
+  broll: {
+    _transform: (b: any): import('../types').AIGeneratedBRoll => ({
+      id: b.id,
+      userId: b.user_id,
+      contentKitId: b.content_kit_id,
+      klingTaskId: b.kling_task_id,
+      prompt: b.prompt,
+      sourceType: b.source_type,
+      status: b.status,
+      videoUrl: b.video_url,
+      thumbnailUrl: b.thumbnail_url,
+      durationSeconds: b.duration_seconds,
+      aspectRatio: b.aspect_ratio || '9:16',
+      costCents: b.cost_cents,
+      errorMessage: b.error_message,
+      createdAt: b.created_at,
+      completedAt: b.completed_at,
+    }),
+
+    /** Generate AI B-roll via Kling */
+    generate: async (data: import('../types').BRollGenerateInput) => {
+      const response = await apiClient.post('/broll/generate', {
+        content_kit_id: data.contentKitId,
+        prompt: data.prompt,
+        source_image_url: data.sourceImageUrl,
+        duration: data.duration,
+        aspect_ratio: data.aspectRatio || '9:16',
+      }, { timeout: GENERATION_TIMEOUT });
+      const raw = response.data as ApiResponse<any>;
+      return {
+        ...raw,
+        data: raw.data ? api.broll._transform(raw.data) : null,
+      } as ApiResponse<import('../types').AIGeneratedBRoll>;
+    },
+
+    /** Get B-roll generation status */
+    getStatus: async (id: string) => {
+      const response = await apiClient.get(`/broll/${id}/status`, { timeout: LIST_TIMEOUT });
+      const raw = response.data as ApiResponse<any>;
+      return {
+        ...raw,
+        data: raw.data ? api.broll._transform(raw.data) : null,
+      } as ApiResponse<import('../types').AIGeneratedBRoll>;
+    },
+
+    /** List user's B-roll clips */
+    list: async (params?: { limit?: number; offset?: number }) => {
+      const response = await apiClient.get('/broll', { params, timeout: LIST_TIMEOUT });
+      const raw = response.data as ApiResponse<any[]>;
+      return {
+        ...raw,
+        data: raw.data?.map(api.broll._transform) || [],
+      } as ApiResponse<import('../types').AIGeneratedBRoll[]>;
+    },
+
+    /** Delete a B-roll clip */
+    delete: async (id: string) => {
+      const response = await apiClient.delete(`/broll/${id}`, { timeout: DELETE_TIMEOUT });
+      return response.data as ApiResponse<{ deleted: true }>;
+    },
+
+    /** Poll B-roll generation until complete */
+    pollStatus: async (
+      id: string,
+      onProgress?: (broll: import('../types').AIGeneratedBRoll) => void,
+      intervalMs: number = 5000,
+      maxAttempts: number = 200 // ~16 minutes max
+    ): Promise<import('../types').AIGeneratedBRoll> => {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const poll = async () => {
+          try {
+            const response = await api.broll.getStatus(id);
+            const data = response.data;
+            if (!data) { reject(new Error('No status data')); return; }
+            if (onProgress) onProgress(data);
+            if (data.status === 'completed' || data.status === 'failed') {
+              resolve(data);
+              return;
+            }
+            attempts++;
+            if (attempts >= maxAttempts) { reject(new Error('B-roll generation timed out')); return; }
+            setTimeout(poll, intervalMs);
+          } catch (error) { reject(error); }
+        };
+        poll();
+      });
+    },
+  },
+
+  // -------- B-ROLL REEL COMPOSITION --------
+  brollReels: {
+    /** Compose a B-roll reel with text overlays */
+    compose: async (data: import('../types').ComposeBRollReelInput) => {
+      const response = await apiClient.post('/reels/compose-broll', {
+        broll_clip_ids: data.brollClipIds,
+        template_style: data.templateStyle,
+        content_kit_id: data.contentKitId,
+        music_track_id: data.musicTrackId,
+        generate_text: data.generateText,
+      }, { timeout: GENERATION_TIMEOUT });
+      return response.data as ApiResponse<import('../types').BRollReelComposition>;
+    },
+
+    /** Get text overlay style definitions */
+    getStyles: async () => {
+      const response = await apiClient.get('/reels/text-overlay-styles', { timeout: LIST_TIMEOUT });
+      return response.data as ApiResponse<import('../types').TextOverlayStyle[]>;
+    },
+  },
+
+  // -------- CURATED ASSETS --------
+  curatedAssets: {
+    _transform: (a: any): import('../types').CuratedAsset => ({
+      id: a.id,
+      type: a.type,
+      title: a.title,
+      description: a.description,
+      category: a.category,
+      niche: a.niche,
+      month: a.month,
+      year: a.year,
+      mediaUrl: a.media_url,
+      content: a.content,
+      thumbnailUrl: a.thumbnail_url,
+      minTier: a.min_tier || 'free',
+      isActive: a.is_active,
+      sortOrder: a.sort_order,
+      createdAt: a.created_at,
+    }),
+
+    /** List curated assets (with filters) */
+    list: async (params?: {
+      type?: import('../types').CuratedAssetType;
+      category?: string;
+      month?: number;
+      year?: number;
+      limit?: number;
+      offset?: number;
+    }) => {
+      const response = await apiClient.get('/curated-assets', { params, timeout: LIST_TIMEOUT });
+      const raw = response.data as ApiResponse<any[]>;
+      return {
+        ...raw,
+        data: raw.data?.map(api.curatedAssets._transform) || [],
+      } as ApiResponse<import('../types').CuratedAsset[]>;
+    },
+
+    /** Create curated asset (admin) */
+    create: async (data: import('../types').CuratedAssetInput) => {
+      const response = await apiClient.post('/curated-assets', {
+        type: data.type,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        niche: data.niche,
+        month: data.month,
+        year: data.year,
+        media_url: data.mediaUrl,
+        content: data.content,
+        thumbnail_url: data.thumbnailUrl,
+        min_tier: data.minTier || 'free',
+        sort_order: data.sortOrder || 0,
+      });
+      const raw = response.data as ApiResponse<any>;
+      return {
+        ...raw,
+        data: raw.data ? api.curatedAssets._transform(raw.data) : null,
+      } as ApiResponse<import('../types').CuratedAsset>;
+    },
+
+    /** Update curated asset (admin) */
+    update: async (id: string, data: Partial<import('../types').CuratedAssetInput>) => {
+      const payload: Record<string, unknown> = {};
+      if (data.type !== undefined) payload.type = data.type;
+      if (data.title !== undefined) payload.title = data.title;
+      if (data.description !== undefined) payload.description = data.description;
+      if (data.category !== undefined) payload.category = data.category;
+      if (data.niche !== undefined) payload.niche = data.niche;
+      if (data.month !== undefined) payload.month = data.month;
+      if (data.year !== undefined) payload.year = data.year;
+      if (data.mediaUrl !== undefined) payload.media_url = data.mediaUrl;
+      if (data.content !== undefined) payload.content = data.content;
+      if (data.thumbnailUrl !== undefined) payload.thumbnail_url = data.thumbnailUrl;
+      if (data.minTier !== undefined) payload.min_tier = data.minTier;
+      if (data.sortOrder !== undefined) payload.sort_order = data.sortOrder;
+      const response = await apiClient.patch(`/curated-assets/${id}`, payload);
+      const raw = response.data as ApiResponse<any>;
+      return {
+        ...raw,
+        data: raw.data ? api.curatedAssets._transform(raw.data) : null,
+      } as ApiResponse<import('../types').CuratedAsset>;
+    },
+
+    /** Delete curated asset (admin) */
+    delete: async (id: string) => {
+      const response = await apiClient.delete(`/curated-assets/${id}`, { timeout: DELETE_TIMEOUT });
+      return response.data as ApiResponse<{ deleted: true }>;
+    },
+
+    /** Bulk create curated assets (admin) */
+    bulkCreate: async (assets: import('../types').CuratedAssetInput[]) => {
+      const response = await apiClient.post('/curated-assets/bulk', {
+        assets: assets.map(a => ({
+          type: a.type,
+          title: a.title,
+          description: a.description,
+          category: a.category,
+          niche: a.niche,
+          month: a.month,
+          year: a.year,
+          media_url: a.mediaUrl,
+          content: a.content,
+          thumbnail_url: a.thumbnailUrl,
+          min_tier: a.minTier || 'free',
+          sort_order: a.sortOrder || 0,
+        })),
+      });
+      return response.data as ApiResponse<{ created: number }>;
     },
   },
 };
