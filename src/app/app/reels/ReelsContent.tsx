@@ -33,24 +33,9 @@ export default function ReelsContent() {
     }
   }, [authLoading, user, router]);
 
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user?.isAdmin) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground">This feature is not available yet.</p>
-      </div>
-    );
-  }
-
   // Fetch templates and recent projects
   useEffect(() => {
+    if (!user?.isAdmin) return; // Skip fetch for non-admins
     async function fetchData() {
       try {
         setIsLoading(true);
@@ -80,7 +65,7 @@ export default function ReelsContent() {
     }
 
     fetchData();
-  }, []);
+  }, [user]);
 
   const handleTemplateSelect = useCallback((template: ReelTemplate) => {
     router.push(`/app/reels/new?template=${template.id}`);
@@ -89,6 +74,23 @@ export default function ReelsContent() {
   const handleProjectClick = useCallback((project: ReelProject) => {
     router.push(`/app/reels/${project.id}`);
   }, [router]);
+
+  // Early returns AFTER all hooks
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user?.isAdmin) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">This feature is not available yet.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

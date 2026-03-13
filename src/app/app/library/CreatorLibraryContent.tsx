@@ -46,6 +46,7 @@ export default function CreatorLibraryContent() {
 
   // Fetch assets when filters change
   useEffect(() => {
+    if (!user?.isAdmin) return; // Skip fetch for non-admins
     async function fetchAssets() {
       setIsLoading(true);
       setError(null);
