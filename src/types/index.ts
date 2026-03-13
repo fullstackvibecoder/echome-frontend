@@ -1341,6 +1341,12 @@ export interface ComposeBRollReelInput {
   generateText?: boolean;
 }
 
+/** Response from POST /api/reels/compose-broll (not the full composition — just a project ID for polling) */
+export interface ComposeBRollReelResponse {
+  projectId: string;
+  status: string;
+}
+
 // ============================================
 // CURATED ASSETS TYPES
 // ============================================

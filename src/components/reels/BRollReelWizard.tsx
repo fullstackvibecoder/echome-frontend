@@ -233,13 +233,17 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     setRegeneratingText(true);
     setTextError(null);
     try {
-      const res = await api.brollReels.compose({
-        brollClipIds: selectedClips.map((c) => c.id),
-        templateStyle: selectedStyle,
-        generateText: true,
-      });
-      if (res.success && res.data?.textOverlays) {
-        setTextSegments(res.data.textOverlays);
+      // Fetch text overlay styles to get suggested text for the style
+      const stylesRes = await api.brollReels.getStyles();
+      if (stylesRes.success && stylesRes.data) {
+        // Generate placeholder text based on clip count and style
+        const placeholders = selectedClips.map((_, i) => ({
+          clipIndex: i,
+          text: '',
+          position: 'center' as const,
+        }));
+        setTextSegments(placeholders);
+        setTextError('Auto-generation coming soon. Type your own text for now.');
       }
     } catch {
       setTextError('Could not generate text. You can still type your own overlays.');
@@ -280,10 +284,11 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
         generateText: textSegments.some(s => s.text.trim()),
       });
 
-      const projectId = (res.data as any)?.projectId || res.data?.reelProjectId;
-      if (!res.success || !projectId) {
+      if (!res.success || !res.data?.projectId) {
         throw new Error('submit_failed');
       }
+
+      const projectId = res.data.projectId;
       setGenerateProgress(15);
 
       // Step 2: Poll for completion

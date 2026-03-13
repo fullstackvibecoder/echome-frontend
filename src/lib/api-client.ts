@@ -3105,7 +3105,7 @@ export const api = {
 
   // -------- B-ROLL REEL COMPOSITION --------
   brollReels: {
-    /** Compose a B-roll reel with text overlays */
+    /** Compose a B-roll reel with text overlays — returns project ID for polling */
     compose: async (data: import('../types').ComposeBRollReelInput) => {
       const response = await apiClient.post('/reels/compose-broll', {
         broll_clip_ids: data.brollClipIds,
@@ -3114,7 +3114,14 @@ export const api = {
         music_track_id: data.musicTrackId,
         generate_text: data.generateText,
       }, { timeout: GENERATION_TIMEOUT });
-      return response.data as ApiResponse<import('../types').BRollReelComposition>;
+      const raw = response.data as ApiResponse<any>;
+      return {
+        ...raw,
+        data: raw.data ? {
+          projectId: raw.data.project_id || raw.data.projectId,
+          status: raw.data.status,
+        } : null,
+      } as ApiResponse<import('../types').ComposeBRollReelResponse>;
     },
 
     /** Get text overlay style definitions */
