@@ -1569,12 +1569,12 @@ export function GenerationForm({
 
       {/* Free generation paywall - replaces generate button when exhausted */}
       {isFreeUser && freeGenerationsRemaining <= 0 ? (
-        <div className="mt-6 p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center">
+        <div className="mt-6 p-8 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-2xl text-center">
           <div className="text-4xl mb-3">🔒</div>
-          <h3 className="text-xl font-bold text-foreground mb-2">
+          <h3 className="text-xl font-bold text-white mb-2">
             You&apos;ve used your {freeGenerationsLimit} free generations
           </h3>
-          <p className="text-text-secondary mb-6">
+          <p className="text-gray-400 mb-6">
             You&apos;ve seen what EchoMe can do. Subscribe to unlock:
           </p>
           <div className="text-left max-w-sm mx-auto mb-6 space-y-2">
@@ -1585,7 +1585,7 @@ export function GenerationForm({
               'Instagram carousels',
               'Priority processing',
             ].map((feature) => (
-              <div key={feature} className="flex items-center gap-2 text-sm text-foreground">
+              <div key={feature} className="flex items-center gap-2 text-sm text-gray-200">
                 <span className="text-green-500">✓</span> {feature}
               </div>
             ))}
@@ -1602,7 +1602,7 @@ export function GenerationForm({
                 className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between ${
                   plan.popular
                     ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                    : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-foreground hover:border-[#00D4FF] hover:scale-[1.02]'
+                    : 'bg-gray-800 border-2 border-gray-600 text-gray-200 hover:border-[#00D4FF] hover:scale-[1.02]'
                 }`}
               >
                 <span>{plan.name} - {plan.price}</span>
@@ -1610,7 +1610,7 @@ export function GenerationForm({
               </button>
             ))}
           </div>
-          <p className="text-xs text-text-secondary mt-4">
+          <p className="text-xs text-gray-500 mt-4">
             Previously generated content is still available in your Content Library.
           </p>
         </div>
