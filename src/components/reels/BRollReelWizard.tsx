@@ -280,11 +280,10 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
         generateText: textSegments.some(s => s.text.trim()),
       });
 
-      if (!res.success || !res.data?.reelProjectId) {
+      const projectId = (res.data as any)?.projectId || res.data?.reelProjectId;
+      if (!res.success || !projectId) {
         throw new Error('submit_failed');
       }
-
-      const projectId = res.data.reelProjectId;
       setGenerateProgress(15);
 
       // Step 2: Poll for completion
