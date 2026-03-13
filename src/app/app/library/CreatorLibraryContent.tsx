@@ -35,6 +35,7 @@ export default function CreatorLibraryContent() {
   const [assets, setAssets] = useState<CuratedAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const { isFreeUser } = useSubscription();
 
   // Redirect non-admins
@@ -63,15 +64,17 @@ export default function CreatorLibraryContent() {
       } catch (err: any) {
         if (err?.response?.status === 404) {
           setAssets([]);
+        } else if (err?.message?.includes('network') || err?.message?.includes('fetch') || err?.message?.includes('Failed to fetch')) {
+          setError('Network error — please check your connection and try again.');
         } else {
-          setError('Failed to load library');
+          setError('Could not load the library. Please try again.');
         }
       } finally {
         setIsLoading(false);
       }
     }
     fetchAssets();
-  }, [activeType, selectedMonth, selectedYear, activeCategory]);
+  }, [activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
 
   if (authLoading) {
     return (
@@ -216,8 +219,14 @@ export default function CreatorLibraryContent() {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center mb-6">
-              <p className="text-red-400">{error}</p>
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center mb-6">
+              <p className="text-red-400 mb-3">{error}</p>
+              <button
+                onClick={() => setRetryKey((k) => k + 1)}
+                className="text-sm text-accent hover:underline"
+              >
+                Try Again
+              </button>
             </div>
           )}
 

@@ -158,6 +158,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   // Step 3 – Text
   const [textSegments, setTextSegments] = useState<TextOverlaySegment[]>([]);
   const [regeneratingText, setRegeneratingText] = useState(false);
+  const [textError, setTextError] = useState<string | null>(null);
 
   // Step 4 – Music
   const [musicTracks, setMusicTracks] = useState<MusicTrackSummary[]>([]);
@@ -165,6 +166,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   const [musicVolume, setMusicVolume] = useState(0.8);
   const [beatSyncEnabled, setBeatSyncEnabled] = useState(false);
   const [loadingMusic, setLoadingMusic] = useState(false);
+  const [musicError, setMusicError] = useState<string | null>(null);
 
   // Step 5 – Generate
   const [isGenerating, setIsGenerating] = useState(false);
@@ -213,13 +215,14 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
 
   const fetchMusicTracks = async () => {
     setLoadingMusic(true);
+    setMusicError(null);
     try {
       const res = await api.reels.listMusic({ limit: 50 });
       if (res.success && res.data) {
         setMusicTracks(res.data);
       }
     } catch {
-      // silent – user can skip music
+      setMusicError('Could not load music library. You can skip this step or try again.');
     } finally {
       setLoadingMusic(false);
     }
@@ -228,6 +231,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   const handleRegenerateText = useCallback(async () => {
     if (!selectedStyle || selectedClips.length === 0) return;
     setRegeneratingText(true);
+    setTextError(null);
     try {
       const res = await api.brollReels.compose({
         brollClipIds: selectedClips.map((c) => c.id),
@@ -238,7 +242,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
         setTextSegments(res.data.textOverlays);
       }
     } catch {
-      // keep existing text
+      setTextError('Could not generate text. You can still type your own overlays.');
     } finally {
       setRegeneratingText(false);
     }
@@ -247,15 +251,17 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   const handleMusicSelect = async (track: MusicTrackSummary | null) => {
     if (!track) {
       setSelectedMusic(null);
+      setMusicError(null);
       return;
     }
+    setMusicError(null);
     try {
       const res = await api.reels.getMusicTrack(track.id);
       if (res.success && res.data) {
         setSelectedMusic(res.data);
       }
     } catch {
-      // silent
+      setMusicError('Could not load this track. Please try another or skip music.');
     }
   };
 
@@ -263,25 +269,82 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     if (!selectedStyle || selectedClips.length === 0) return;
     setIsGenerating(true);
     setGenerateError(null);
-    setGenerateProgress(0);
+    setGenerateProgress(5);
 
     try {
+      // Step 1: Submit composition request
       const res = await api.brollReels.compose({
         brollClipIds: selectedClips.map((c) => c.id),
         templateStyle: selectedStyle,
         musicTrackId: selectedMusic?.id,
-        generateText: false,
+        generateText: textSegments.some(s => s.text.trim()),
       });
 
-      if (res.success && res.data) {
-        setComposition(res.data);
-        setGenerateProgress(100);
-        onComplete?.(res.data);
-      } else {
-        setGenerateError('Failed to generate reel. Please try again.');
+      if (!res.success || !res.data?.reelProjectId) {
+        throw new Error('submit_failed');
       }
-    } catch {
-      setGenerateError('Something went wrong. Please try again.');
+
+      const projectId = res.data.reelProjectId;
+      setGenerateProgress(15);
+
+      // Step 2: Poll for completion
+      const maxAttempts = 120; // 10 minutes at 5s intervals
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise((r) => setTimeout(r, 5000));
+
+        try {
+          const statusRes = await api.reels.getRenderStatus(projectId);
+          const status = statusRes.data;
+
+          if (status?.status === 'completed') {
+            setGenerateProgress(100);
+            const result: BRollReelComposition = {
+              id: projectId,
+              userId: '',
+              reelProjectId: projectId,
+              brollSource: 'library',
+              brollClipIds: selectedClips.map((c) => c.id),
+              templateStyle: selectedStyle!,
+              textOverlays: textSegments,
+              status: 'completed',
+              outputUrl: status.outputUrl || '',
+              thumbnailUrl: status.thumbnailUrl || '',
+              createdAt: new Date().toISOString(),
+            };
+            setComposition(result);
+            onComplete?.(result);
+            return;
+          }
+
+          if (status?.status === 'failed') {
+            throw new Error(status.errorMessage || 'render_failed');
+          }
+
+          // Increment progress gradually (15% → 90%)
+          const newProgress = Math.min(15 + Math.round((attempt / maxAttempts) * 75), 90);
+          setGenerateProgress(newProgress);
+        } catch (pollErr: any) {
+          if (pollErr?.message === 'render_failed' || pollErr?.message?.includes('failed')) {
+            throw pollErr;
+          }
+          // Transient network error — keep polling
+        }
+      }
+
+      throw new Error('timeout');
+    } catch (err: any) {
+      const msg = err?.message || '';
+      if (msg.includes('timeout')) {
+        setGenerateError('Reel generation is taking longer than expected. Check back in your Reel Maker projects.');
+      } else if (msg.includes('not configured') || msg.includes('503')) {
+        setGenerateError('AI video service is temporarily unavailable. Please try again shortly.');
+      } else if (msg === 'submit_failed') {
+        setGenerateError('Failed to start reel generation. Please check your clips and try again.');
+      } else if (msg.includes('render_failed') || msg.includes('failed')) {
+        setGenerateError('Reel rendering failed. Try different clips or a shorter selection.');
+      } else {
+        setGenerateError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -534,6 +597,12 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
             </button>
           </div>
 
+          {textError && (
+            <p className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+              {textError}
+            </p>
+          )}
+
           {textSegments.map((segment, i) => (
             <div key={i} className="space-y-1">
               <label className="text-xs text-text-secondary">
@@ -565,6 +634,18 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
 
   const renderMusicStep = () => (
     <div className="space-y-6">
+      {musicError && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 flex items-center justify-between">
+          <p className="text-sm text-amber-400">{musicError}</p>
+          <button
+            onClick={fetchMusicTracks}
+            className="text-sm text-accent hover:underline ml-3 flex-shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {loadingMusic ? (
         <div className="text-center py-12">
           <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3" />

@@ -145,7 +145,19 @@ export function BRollGenerator({
     } catch (err: any) {
       if (abortRef.current) return;
       setPhase('error');
-      setErrorMessage(err?.message || 'Something went wrong');
+      // Map technical errors to user-friendly messages
+      const rawMsg = err?.message || '';
+      if (rawMsg.includes('not configured') || rawMsg.includes('503')) {
+        setErrorMessage('AI video generation is temporarily unavailable. Please try again in a few minutes.');
+      } else if (rawMsg.includes('timed out') || rawMsg.includes('timeout')) {
+        setErrorMessage('Generation is taking longer than expected. Please try again — shorter clips (5s) are faster.');
+      } else if (rawMsg.includes('quota') || rawMsg.includes('limit') || rawMsg.includes('402')) {
+        setErrorMessage('You\'ve reached the generation limit. Please upgrade your plan or try again later.');
+      } else if (rawMsg.includes('network') || rawMsg.includes('fetch') || rawMsg.includes('Failed to fetch')) {
+        setErrorMessage('Network error — please check your connection and try again.');
+      } else {
+        setErrorMessage(rawMsg || 'Something went wrong. Please try again.');
+      }
       setStatusMessage('');
     }
   };

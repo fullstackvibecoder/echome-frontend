@@ -25,6 +25,7 @@ export default function ReelsContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'templates' | 'projects' | 'broll'>('templates');
   const [showBRollWizard, setShowBRollWizard] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   // Redirect non-admins
   useEffect(() => {
@@ -55,9 +56,11 @@ export default function ReelsContent() {
         }
       } catch (err: any) {
         if (err?.response?.status === 404) {
-          setError('Reel Maker API is not available yet. Please ensure the backend is deployed with the latest changes.');
+          setError('Reel Maker is temporarily unavailable. Please try again in a few minutes.');
+        } else if (err?.message?.includes('network') || err?.message?.includes('fetch') || err?.message?.includes('Failed to fetch')) {
+          setError('Network error — please check your connection and try again.');
         } else {
-          setError(err instanceof Error ? err.message : 'Failed to load data');
+          setError('Something went wrong loading Reel Maker. Please try again.');
         }
       } finally {
         setIsLoading(false);
@@ -65,7 +68,7 @@ export default function ReelsContent() {
     }
 
     fetchData();
-  }, [user]);
+  }, [user, retryKey]);
 
   const handleTemplateSelect = useCallback((template: ReelTemplate) => {
     router.push(`/app/reels/new?template=${template.id}`);
@@ -105,13 +108,18 @@ export default function ReelsContent() {
   if (error) {
     return (
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center">
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+          <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-red-400 mb-3">{error}</p>
           <button
-            onClick={() => window.location.reload()}
-            className="mt-2 text-sm text-accent hover:underline"
+            onClick={() => setRetryKey((k) => k + 1)}
+            className="btn-primary text-sm px-6"
           >
-            Try again
+            Try Again
           </button>
         </div>
       </div>
