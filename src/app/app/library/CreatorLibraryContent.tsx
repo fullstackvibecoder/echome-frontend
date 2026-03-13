@@ -7,7 +7,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import api from '@/lib/api-client';
 import type { CuratedAsset, CuratedAssetType } from '@/types';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -25,8 +24,7 @@ const MONTH_NAMES = [
 ];
 
 export default function CreatorLibraryContent() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const now = new Date();
   const [activeType, setActiveType] = useState<CuratedAssetType>('b_roll');
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
@@ -38,17 +36,10 @@ export default function CreatorLibraryContent() {
   const [retryKey, setRetryKey] = useState(0);
   const { isFreeUser } = useSubscription();
 
-  // Redirect non-admins
-  useEffect(() => {
-    if (!authLoading && user && !user.isAdmin) {
-      router.replace('/app');
-    }
-  }, [authLoading, user, router]);
-
   // Fetch assets when filters change
   useEffect(() => {
     if (authLoading) return; // Wait for auth to resolve
-    if (!user?.isAdmin) return; // Skip fetch for non-admins
+    if (isFreeUser) return; // Skip fetch for free users
     async function fetchAssets() {
       setIsLoading(true);
       setError(null);
@@ -75,20 +66,12 @@ export default function CreatorLibraryContent() {
       }
     }
     fetchAssets();
-  }, [authLoading, user?.isAdmin, activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
+  }, [authLoading, isFreeUser, activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
 
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user?.isAdmin) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground">This feature is not available yet.</p>
       </div>
     );
   }

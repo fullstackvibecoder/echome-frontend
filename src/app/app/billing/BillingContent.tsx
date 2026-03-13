@@ -28,6 +28,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       '1080p exports',
       '250MB file upload limit',
       'Manual document upload only',
+      'Monthly Creator Library (B-roll, captions, scripts)',
     ],
     limits: {
       videoMinutesPerMonth: 120,
@@ -56,6 +57,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       '750MB file upload limit',
       'Email import (up to 50 emails)',
       'Priority processing queue',
+      'Monthly Creator Library (B-roll, captions, scripts)',
     ],
     limits: {
       videoMinutesPerMonth: 300,
@@ -85,6 +87,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Email import (up to 100 emails)',
       'Priority processing queue',
       'Priority support',
+      'Monthly Creator Library (B-roll, captions, scripts)',
     ],
     limits: {
       videoMinutesPerMonth: -1,
@@ -113,6 +116,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Up to 15 clips per video',
       '5GB file upload limit',
       'Priority support',
+      'Monthly Creator Library (B-roll, captions, scripts)',
     ],
     limits: {
       videoMinutesPerMonth: -1,
@@ -142,6 +146,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Up to 15 clips per video',
       '5GB file upload limit',
       'Priority support',
+      'Monthly Creator Library (B-roll, captions, scripts)',
     ],
     limits: {
       videoMinutesPerMonth: -1,
@@ -171,6 +176,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Up to 15 clips per video',
       '5GB file upload limit',
       'Priority support',
+      'Monthly Creator Library (B-roll, captions, scripts)',
     ],
     limits: {
       videoMinutesPerMonth: -1,
@@ -799,6 +805,14 @@ function BillingContentInner() {
                       {plan.features.some(f => f.toLowerCase().includes('priority support'))
                         ? <Check className="w-4 h-4 text-primary mx-auto" />
                         : <span className="text-muted-foreground">-</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-medium text-foreground">Creator Library</td>
+                  {individualPlans.map(plan => (
+                    <td key={plan.id} className="px-4 py-3 text-center">
+                      <Check className="w-4 h-4 text-primary mx-auto" />
                     </td>
                   ))}
                 </tr>

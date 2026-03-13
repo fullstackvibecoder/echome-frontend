@@ -232,7 +232,8 @@ export default function HomeContent() {
                       '3 Creator Radar slots',
                       'Standard carousel templates',
                       '1080p exports',
-                      'Manual document upload only'
+                      'Manual document upload only',
+                      'Monthly Creator Library (B-roll, captions, scripts)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -284,7 +285,8 @@ export default function HomeContent() {
                       '1080p exports',
                       '750MB file upload limit',
                       'Email import (up to 50 emails)',
-                      'Priority processing queue'
+                      'Priority processing queue',
+                      'Monthly Creator Library (B-roll, captions, scripts)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -334,7 +336,8 @@ export default function HomeContent() {
                       '5GB file upload limit',
                       'Email import (up to 100 emails)',
                       'Priority processing queue',
-                      'Priority support'
+                      'Priority support',
+                      'Monthly Creator Library (B-roll, captions, scripts)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -401,6 +404,7 @@ export default function HomeContent() {
                         'Up to 15 clips per video',
                         '5GB file upload limit',
                         'Priority support',
+                        'Monthly Creator Library (B-roll, captions, scripts)',
                       ].map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -453,6 +457,7 @@ export default function HomeContent() {
                         'Up to 15 clips per video',
                         '5GB file upload limit',
                         'Priority support',
+                        'Monthly Creator Library (B-roll, captions, scripts)',
                       ].map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -502,6 +507,7 @@ export default function HomeContent() {
                         'Up to 15 clips per video',
                         '5GB file upload limit',
                         'Priority support',
+                        'Monthly Creator Library (B-roll, captions, scripts)',
                       ].map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
