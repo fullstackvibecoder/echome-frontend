@@ -47,6 +47,7 @@ export default function CreatorLibraryContent() {
 
   // Fetch assets when filters change
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to resolve
     if (!user?.isAdmin) return; // Skip fetch for non-admins
     async function fetchAssets() {
       setIsLoading(true);
@@ -65,7 +66,7 @@ export default function CreatorLibraryContent() {
         if (err?.response?.status === 404) {
           setAssets([]);
         } else if (err?.message?.includes('network') || err?.message?.includes('fetch') || err?.message?.includes('Failed to fetch')) {
-          setError('Network error — please check your connection and try again.');
+          setError('Network error - please check your connection and try again.');
         } else {
           setError('Could not load the library. Please try again.');
         }
@@ -74,7 +75,7 @@ export default function CreatorLibraryContent() {
       }
     }
     fetchAssets();
-  }, [activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
+  }, [authLoading, user?.isAdmin, activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
 
   if (authLoading) {
     return (
