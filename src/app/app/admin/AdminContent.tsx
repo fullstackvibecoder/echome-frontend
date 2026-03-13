@@ -11,6 +11,8 @@ import {
   AdminDailyTrend,
   AdminBusinessMetrics,
   AdminErrorHealth,
+  AdminSegmentationData,
+  AdminUserSegment,
 } from '@/lib/api-client';
 
 // ==================== Types ====================
@@ -667,13 +669,28 @@ function formatCurrency(amount: number): string {
 function BusinessMetrics() {
   const [data, setData] = useState<AdminBusinessMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
+  const fetchMetrics = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    try {
+      const res = await api.adminMetrics.get();
+      if (res.success) {
+        setData(res.data);
+        setLastRefreshed(new Date());
+      }
+    } catch (err) {
+      console.error('Failed to load business metrics', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    api.adminMetrics.get()
-      .then(res => { if (res.success) setData(res.data); })
-      .catch(err => console.error('Failed to load business metrics', err))
-      .finally(() => setLoading(false));
-  }, []);
+    fetchMetrics();
+  }, [fetchMetrics]);
 
   if (loading) {
     return (
@@ -698,6 +715,30 @@ function BusinessMetrics() {
 
   return (
     <div className="space-y-4">
+      {/* Refresh row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {lastRefreshed && (
+            <span className="text-xs text-muted-foreground">
+              Refreshed {timeAgo(lastRefreshed.toISOString())}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => fetchMetrics(true)}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted border border-border rounded-lg transition-colors disabled:opacity-50"
+        >
+          <svg
+            className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+
       {/* Top-level stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard label="MRR" value={formatCurrency(data.mrr)} sub="Paying only" />
@@ -771,6 +812,133 @@ function BusinessMetrics() {
   );
 }
 
+// ==================== User Segmentation ====================
+
+const SEGMENT_COLORS: Record<string, { border: string; bg: string; text: string; dot: string }> = {
+  'Converted': { border: 'border-l-emerald-500', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  'Hit the Wall': { border: 'border-l-amber-500', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+  'Tried Once': { border: 'border-l-orange-500', bg: 'bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', dot: 'bg-orange-500' },
+  'Never Generated': { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' },
+  'Active Trial': { border: 'border-l-blue-500', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
+  'Trial Expired': { border: 'border-l-red-500', bg: 'bg-red-500/10', text: 'text-red-600 dark:text-red-400', dot: 'bg-red-500' },
+};
+
+const DEFAULT_SEGMENT_COLOR = { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' };
+
+function UserSegmentation() {
+  const [data, setData] = useState<AdminSegmentationData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.adminMetrics.getSegments()
+      .then(res => { if (res.success) setData(res.data); })
+      .catch(err => console.error('Failed to load segments', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-5 bg-muted rounded w-40 animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-card rounded-xl border border-border p-5 animate-pulse">
+              <div className="h-4 bg-muted rounded w-28 mb-2" />
+              <div className="h-8 bg-muted rounded w-12 mb-1" />
+              <div className="h-3 bg-muted rounded w-40" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">User Segments ({data.totalUsers} total)</h2>
+        <span className="text-xs text-muted-foreground">Updated {timeAgo(data.lastUpdated)}</span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {data.segments.map((segment) => {
+          const colors = SEGMENT_COLORS[segment.name] || DEFAULT_SEGMENT_COLOR;
+          const isExpanded = expandedSegment === segment.name;
+
+          return (
+            <div
+              key={segment.name}
+              className={`bg-card rounded-xl border border-border border-l-4 ${colors.border} transition-all ${isExpanded ? 'md:col-span-2 lg:col-span-3' : ''}`}
+            >
+              <button
+                onClick={() => setExpandedSegment(isExpanded ? null : segment.name)}
+                className="w-full p-4 text-left hover:bg-muted/30 transition-colors rounded-xl"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`w-2 h-2 rounded-full ${colors.dot} shrink-0`} />
+                    <span className={`text-sm font-semibold ${colors.text}`}>{segment.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-foreground">{segment.count}</span>
+                    <svg
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{segment.description}</p>
+              </button>
+
+              {isExpanded && segment.users.length > 0 && (
+                <div className="border-t border-border overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-3 pl-5 font-medium text-muted-foreground">Email</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Joined</th>
+                        <th className="text-right p-3 font-medium text-muted-foreground">Gens</th>
+                        <th className="text-right p-3 pr-5 font-medium text-muted-foreground">Last Active</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {segment.users.map((u, i) => (
+                        <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
+                          <td className="p-3 pl-5 text-foreground font-mono text-xs">{u.email}</td>
+                          <td className="p-3 text-muted-foreground">{u.fullName || '--'}</td>
+                          <td className="p-3 text-muted-foreground whitespace-nowrap">
+                            {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </td>
+                          <td className="p-3 text-right font-medium text-foreground">{u.generationCount}</td>
+                          <td className="p-3 pr-5 text-right text-muted-foreground whitespace-nowrap">
+                            {u.lastActiveAt ? timeAgo(u.lastActiveAt) : 'Never'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {isExpanded && segment.users.length === 0 && (
+                <div className="border-t border-border px-5 py-3">
+                  <p className="text-sm text-muted-foreground">No users in this segment</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ==================== Main ====================
 
 export default function AdminContent() {
@@ -833,6 +1001,9 @@ export default function AdminContent() {
 
       {/* Business Metrics - always visible */}
       <BusinessMetrics />
+
+      {/* User Segmentation */}
+      <UserSegmentation />
 
       {/* Error Health Monitor */}
       <ErrorHealthMonitor />

@@ -2510,6 +2510,10 @@ export const api = {
       const response = await apiClient.get('/admin/metrics');
       return response.data as { success: boolean; data: AdminBusinessMetrics; fromCache?: boolean };
     },
+    getSegments: async (): Promise<{ success: boolean; data: AdminSegmentationData }> => {
+      const res = await apiClient.get('/admin/metrics/segments');
+      return res.data;
+    },
   },
 
   // -------- ADMIN ERROR HEALTH --------
@@ -3326,6 +3330,19 @@ export interface AdminBusinessMetrics {
   conversionRate: number | null;
   convertedCount: number;
   canceledTrialCount: number;
+}
+
+export interface AdminUserSegment {
+  name: string;
+  description: string;
+  count: number;
+  users: { email: string; fullName: string | null; createdAt: string; lastActiveAt: string | null; generationCount: number }[];
+}
+
+export interface AdminSegmentationData {
+  segments: AdminUserSegment[];
+  totalUsers: number;
+  lastUpdated: string;
 }
 
 export interface AdminErrorHealth {
