@@ -19,6 +19,12 @@ import { BRollReelWizard } from '@/components/reels/BRollReelWizard';
 export default function ReelsContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const [templates, setTemplates] = useState<ReelTemplate[]>([]);
+  const [recentProjects, setRecentProjects] = useState<ReelProject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'templates' | 'projects' | 'broll'>('templates');
+  const [showBRollWizard, setShowBRollWizard] = useState(false);
 
   // Redirect non-admins
   useEffect(() => {
@@ -42,12 +48,6 @@ export default function ReelsContent() {
       </div>
     );
   }
-  const [templates, setTemplates] = useState<ReelTemplate[]>([]);
-  const [recentProjects, setRecentProjects] = useState<ReelProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'templates' | 'projects' | 'broll'>('templates');
-  const [showBRollWizard, setShowBRollWizard] = useState(false);
 
   // Fetch templates and recent projects
   useEffect(() => {

@@ -44,22 +44,6 @@ export default function CreatorLibraryContent() {
     }
   }, [authLoading, user, router]);
 
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user?.isAdmin) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground">This feature is not available yet.</p>
-      </div>
-    );
-  }
-
   // Fetch assets when filters change
   useEffect(() => {
     async function fetchAssets() {
@@ -87,6 +71,22 @@ export default function CreatorLibraryContent() {
     }
     fetchAssets();
   }, [activeType, selectedMonth, selectedYear, activeCategory]);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user?.isAdmin) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">This feature is not available yet.</p>
+      </div>
+    );
+  }
 
   const categories = ['all', ...new Set(assets.map(a => a.category).filter(Boolean))];
 
