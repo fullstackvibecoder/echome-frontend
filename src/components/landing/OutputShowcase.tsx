@@ -96,6 +96,8 @@ export function OutputShowcase() {
                         alt={reel.label}
                         width={300}
                         height={533}
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        loading="lazy"
                         className="w-full h-auto"
                       />
                     </div>
@@ -120,6 +122,8 @@ export function OutputShowcase() {
                           alt={carousel.label}
                           width={400}
                           height={400}
+                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                          loading="lazy"
                           className="w-full h-auto"
                         />
                       </div>
@@ -138,6 +142,8 @@ export function OutputShowcase() {
                           alt={carousel.label}
                           width={400}
                           height={400}
+                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                          loading="lazy"
                           className="w-full h-auto"
                         />
                       </div>
@@ -160,6 +166,8 @@ export function OutputShowcase() {
                     alt="Text content for all platforms"
                     width={1200}
                     height={600}
+                    sizes="(max-width: 768px) 100vw, 1200px"
+                    loading="lazy"
                     className="w-full h-auto"
                   />
                 </div>

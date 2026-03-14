@@ -63,7 +63,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
           <button
             ref={closeButtonRef}
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
+            className="p-2.5 -m-2.5 text-muted-foreground hover:text-foreground"
             aria-label="Close menu"
           >
             <X className="w-6 h-6" />

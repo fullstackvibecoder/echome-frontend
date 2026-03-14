@@ -89,6 +89,7 @@ function SignupForm() {
             required
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'name-error' : undefined}
+            autoComplete="name"
             className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
               errors.name ? 'border-destructive' : 'border-border'
             }`}
@@ -111,6 +112,8 @@ function SignupForm() {
             required
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'signup-email-error' : undefined}
+            autoComplete="email"
+            inputMode="email"
             className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
               errors.email ? 'border-destructive' : 'border-border'
             }`}
@@ -136,7 +139,8 @@ function SignupForm() {
               onChange={(e) => setPassword(e.target.value)}
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? 'signup-password-error' : 'password-requirements'}
-              className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+              autoComplete="new-password"
+              className={`w-full px-4 py-3 pr-14 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
                 errors.password ? 'border-destructive' : 'border-border'
               }`}
               placeholder="••••••••"
@@ -144,7 +148,7 @@ function SignupForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-3 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -204,7 +208,8 @@ function SignupForm() {
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               required
-              className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+              autoComplete="new-password"
+              className={`w-full px-4 py-3 pr-14 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
                 errors.confirmPassword ? 'border-destructive' : 'border-border'
               }`}
               placeholder="••••••••"
@@ -212,7 +217,7 @@ function SignupForm() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-3 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
             >
               {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

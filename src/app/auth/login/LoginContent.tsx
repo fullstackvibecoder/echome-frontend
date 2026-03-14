@@ -61,6 +61,8 @@ export default function LoginContent() {
             required
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
+            autoComplete="email"
+            inputMode="email"
             className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
               errors.email ? 'border-destructive' : 'border-border'
             }`}
@@ -95,7 +97,8 @@ export default function LoginContent() {
               required
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? 'password-error' : undefined}
-              className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
+              autoComplete="current-password"
+              className={`w-full px-4 py-3 pr-14 border-2 rounded-lg focus:outline-none focus:border-primary transition-colors bg-input ${
                 errors.password ? 'border-destructive' : 'border-border'
               }`}
               placeholder="••••••••"
@@ -103,7 +106,7 @@ export default function LoginContent() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-3 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

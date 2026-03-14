@@ -26,6 +26,7 @@ export function HeroDemoVideo() {
             <img
               src={THUMBNAIL_URL}
               alt="EchoMe product demo"
+              fetchPriority="high"
               className="absolute inset-0 w-full h-full object-cover"
             />
 
