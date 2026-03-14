@@ -24,7 +24,7 @@ interface SocialImportModalProps {
   knowledgeBaseId?: string;
 }
 
-type Platform = 'youtube' | 'blog';
+type Platform = 'youtube' | 'instagram' | 'blog';
 type ImportStatus = 'idle' | 'importing' | 'error';
 type SyncStatus = 'idle' | 'syncing' | 'polling' | 'success' | 'error';
 
@@ -48,6 +48,13 @@ const PLATFORM_CONFIG: Record<Platform, {
     placeholder: 'Paste any YouTube link',
     hint: 'Works with any link format - videos, channels, playlists, or share links',
     color: 'bg-red-500',
+  },
+  instagram: {
+    name: 'Instagram',
+    icon: '📷',
+    placeholder: 'https://instagram.com/username or post URL',
+    hint: 'Import a profile (up to 50 posts) or a single post/reel',
+    color: 'bg-pink-500',
   },
   blog: {
     name: 'Blog',
