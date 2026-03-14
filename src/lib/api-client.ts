@@ -315,6 +315,58 @@ export const api = {
     },
   },
 
+  // -------- ACCOUNT MANAGEMENT --------
+  account: {
+    getDataSummary: async (): Promise<ApiResponse<{
+      knowledgeBaseItems: number;
+      generatedContent: number;
+      files: number;
+      hasSubscription: boolean;
+      subscriptionTier: string | null;
+    }>> => {
+      const response = await apiClient.get('/account/data-summary');
+      return response.data;
+    },
+
+    submitFeedback: async (data: {
+      reason: string;
+      details?: string;
+      userType: 'free' | 'paid';
+      subscriptionTier?: string;
+    }): Promise<ApiResponse<{
+      feedbackId: string;
+      offeredCoupon: string | null;
+      couponDescription: string | null;
+    }>> => {
+      const response = await apiClient.post('/account/cancel-feedback', data);
+      return response.data;
+    },
+
+    applyWinback: async (feedbackId: string): Promise<ApiResponse<{ applied: boolean }>> => {
+      const response = await apiClient.post('/account/apply-winback', { feedbackId });
+      return response.data;
+    },
+
+    cancelSubscription: async (feedbackId?: string): Promise<ApiResponse<{ cancelAtPeriodEnd: string | null }>> => {
+      const response = await apiClient.post('/account/cancel-subscription', { feedbackId });
+      return response.data;
+    },
+
+    deleteAccount: async (feedbackId?: string): Promise<ApiResponse<{
+      stripeCancel: boolean;
+      stripeCustomerDeleted: boolean;
+      pineconeDeleted: boolean;
+      storageDeleted: boolean;
+      authDeleted: boolean;
+    }>> => {
+      const response = await apiClient.post('/account/delete', {
+        confirmation: 'DELETE',
+        feedbackId,
+      }, { timeout: DELETE_TIMEOUT });
+      return response.data;
+    },
+  },
+
   // -------- CONTENT GENERATION --------
   generation: {
     generate: async (data: Partial<GenerationRequest>) => {

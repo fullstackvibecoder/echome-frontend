@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { UserProfile, UserProfileUpdate, UsageSummary } from '@/types';
@@ -16,6 +17,7 @@ const VALID_TABS: SettingsTab[] = ['profile', 'account', 'preferences', 'billing
 
 export default function SettingsContent() {
   const { user } = useAuth();
+  const { isFreeUser, tier } = useSubscription();
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams.get('tab') as SettingsTab | null;
@@ -30,7 +32,19 @@ export default function SettingsContent() {
     router.replace(url.pathname + url.search, { scroll: false });
   }, [router]);
   const [resetPasswordSending, setResetPasswordSending] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Account deletion / cancellation flow
+  type DeleteStep = 'idle' | 'reason' | 'offer' | 'confirm' | 'deleting' | 'done';
+  const [deleteStep, setDeleteStep] = useState<DeleteStep>('idle');
+  const [deleteReason, setDeleteReason] = useState<string>('');
+  const [deleteDetails, setDeleteDetails] = useState('');
+  const [feedbackId, setFeedbackId] = useState<string | null>(null);
+  const [offeredCoupon, setOfferedCoupon] = useState<string | null>(null);
+  const [couponDescription, setCouponDescription] = useState<string | null>(null);
+  const [dataSummary, setDataSummary] = useState<{ knowledgeBaseItems: number; generatedContent: number; files: number } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState<string | null>(null);
 
   // Profile state
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -622,41 +636,272 @@ export default function SettingsContent() {
             </button>
           </div>
 
-          {/* Delete Account */}
+          {/* Account Deletion / Cancellation */}
           <div className="card border-2 border-error/20">
             <h3 className="text-subheading text-xl mb-2 text-error">Danger Zone</h3>
-            <p className="text-body text-text-secondary mb-4">
-              Once you delete your account, there is no going back. Please be certain.
-            </p>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
-            >
-              Delete Account
-            </button>
-          </div>
 
-          <ConfirmDialog
-            isOpen={showDeleteConfirm}
-            title="Delete Account"
-            message={
+            {/* Step: Idle — show button */}
+            {deleteStep === 'idle' && (
               <>
-                To delete your account and all associated data, please contact our support team at{' '}
-                <a href="mailto:support@tryechome.com" className="text-primary underline font-medium">
-                  support@tryechome.com
-                </a>.
-                This action is permanent and cannot be undone.
+                <p className="text-body text-text-secondary mb-4">
+                  {isFreeUser
+                    ? 'Delete your account and all associated data permanently.'
+                    : 'Cancel your subscription or delete your account.'}
+                </p>
+                <button
+                  onClick={async () => {
+                    setDeleteStep('reason');
+                    setDeleteError(null);
+                    try {
+                      const res = await api.account.getDataSummary();
+                      if (res.success && res.data) setDataSummary(res.data);
+                    } catch { /* ignore */ }
+                  }}
+                  className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
+                >
+                  {isFreeUser ? 'Delete Account' : 'Cancel / Delete Account'}
+                </button>
               </>
-            }
-            confirmLabel="Email Support"
-            cancelLabel="Cancel"
-            variant="danger"
-            onConfirm={() => {
-              window.location.href = 'mailto:support@tryechome.com?subject=Account%20Deletion%20Request';
-              setShowDeleteConfirm(false);
-            }}
-            onCancel={() => setShowDeleteConfirm(false)}
-          />
+            )}
+
+            {/* Step: Reason — collect feedback */}
+            {deleteStep === 'reason' && (
+              <div className="space-y-4">
+                <p className="text-body text-text-secondary">
+                  We&apos;re sorry to see you go. Can you tell us why?
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { value: 'too_expensive', label: 'Too expensive' },
+                    { value: 'not_using', label: "I'm not using it enough" },
+                    { value: 'missing_features', label: 'Missing features I need' },
+                    { value: 'switched', label: 'Switched to another tool' },
+                    { value: 'other', label: 'Other' },
+                  ].map((opt) => (
+                    <label key={opt.value} className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-surface-secondary transition-colors">
+                      <input
+                        type="radio"
+                        name="cancelReason"
+                        value={opt.value}
+                        checked={deleteReason === opt.value}
+                        onChange={() => setDeleteReason(opt.value)}
+                        className="w-4 h-4 text-accent"
+                      />
+                      <span className="text-body">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {(deleteReason === 'other' || deleteReason === 'missing_features') && (
+                  <textarea
+                    value={deleteDetails}
+                    onChange={(e) => setDeleteDetails(e.target.value)}
+                    placeholder={deleteReason === 'missing_features' ? 'What features would you like to see?' : 'Tell us more...'}
+                    className="w-full p-3 border border-border rounded-lg text-body bg-surface min-h-[80px] resize-none"
+                    maxLength={2000}
+                  />
+                )}
+                {deleteError && <p className="text-sm text-error">{deleteError}</p>}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setDeleteStep('idle'); setDeleteReason(''); setDeleteDetails(''); setDeleteError(null); }}
+                    className="btn-secondary"
+                  >
+                    Never mind
+                  </button>
+                  <button
+                    disabled={!deleteReason}
+                    onClick={async () => {
+                      try {
+                        setDeleteError(null);
+                        const res = await api.account.submitFeedback({
+                          reason: deleteReason,
+                          details: deleteDetails || undefined,
+                          userType: isFreeUser ? 'free' : 'paid',
+                          subscriptionTier: isFreeUser ? undefined : tier,
+                        });
+                        if (res.success && res.data) {
+                          setFeedbackId(res.data.feedbackId);
+                          setOfferedCoupon(res.data.offeredCoupon);
+                          setCouponDescription(res.data.couponDescription);
+                          // Paid users with a coupon offer → show offer step
+                          // Otherwise → go straight to confirm
+                          if (!isFreeUser && res.data.offeredCoupon) {
+                            setDeleteStep('offer');
+                          } else {
+                            setDeleteStep('confirm');
+                          }
+                        }
+                      } catch (err) {
+                        setDeleteError(extractErrorMessage(err));
+                      }
+                    }}
+                    className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors disabled:opacity-50"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step: Offer — win-back coupon for paid users */}
+            {deleteStep === 'offer' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-accent/10 border border-accent/30 rounded-lg">
+                  <h4 className="text-subheading text-lg mb-2">We&apos;d love you to stay!</h4>
+                  <p className="text-body text-text-secondary mb-3">
+                    How about <strong>{couponDescription}</strong>? We&apos;ll apply it to your subscription immediately.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setDeleteError(null);
+                        if (feedbackId) {
+                          await api.account.applyWinback(feedbackId);
+                        }
+                        toast.success('Discount applied! Thanks for staying.');
+                        setDeleteStep('idle');
+                        setDeleteReason('');
+                        setDeleteDetails('');
+                      } catch (err) {
+                        setDeleteError(extractErrorMessage(err));
+                      }
+                    }}
+                    className="btn-primary"
+                  >
+                    Apply Discount & Stay
+                  </button>
+                </div>
+                {deleteError && <p className="text-sm text-error">{deleteError}</p>}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setDeleteStep('idle'); setDeleteReason(''); setDeleteDetails(''); }}
+                    className="btn-secondary"
+                  >
+                    Never mind
+                  </button>
+                  <button
+                    onClick={() => setDeleteStep('confirm')}
+                    className="text-sm text-text-secondary underline hover:text-error transition-colors"
+                  >
+                    No thanks, continue with cancellation
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step: Confirm — show data summary and type DELETE */}
+            {deleteStep === 'confirm' && (
+              <div className="space-y-4">
+                {!isFreeUser && (
+                  <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg">
+                    <p className="text-body text-text-secondary">
+                      <strong>Cancel subscription only?</strong> You&apos;ll keep access until your current billing period ends. Your data stays safe.
+                    </p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          setDeleteError(null);
+                          const res = await api.account.cancelSubscription(feedbackId || undefined);
+                          if (res.success && res.data) {
+                            setCancelAtPeriodEnd(res.data.cancelAtPeriodEnd);
+                            toast.success(
+                              res.data.cancelAtPeriodEnd
+                                ? `Subscription cancelled. Access continues until ${new Date(res.data.cancelAtPeriodEnd).toLocaleDateString()}.`
+                                : 'Subscription cancelled.'
+                            );
+                            setDeleteStep('idle');
+                            setDeleteReason('');
+                            setDeleteDetails('');
+                          }
+                        } catch (err) {
+                          setDeleteError(extractErrorMessage(err));
+                        }
+                      }}
+                      className="mt-3 btn-secondary"
+                    >
+                      Just Cancel Subscription
+                    </button>
+                  </div>
+                )}
+
+                <div className="p-4 bg-error/5 border border-error/20 rounded-lg">
+                  <h4 className="text-subheading text-lg mb-2 text-error">Permanent Deletion</h4>
+                  <p className="text-body text-text-secondary mb-3">
+                    This will permanently delete:
+                  </p>
+                  <ul className="list-disc list-inside text-body text-text-secondary space-y-1 mb-3">
+                    {dataSummary && (
+                      <>
+                        <li>{dataSummary.knowledgeBaseItems} knowledge base item{dataSummary.knowledgeBaseItems !== 1 ? 's' : ''}</li>
+                        <li>{dataSummary.generatedContent} generated content item{dataSummary.generatedContent !== 1 ? 's' : ''}</li>
+                        <li>{dataSummary.files} uploaded file{dataSummary.files !== 1 ? 's' : ''}</li>
+                      </>
+                    )}
+                    <li>All voice data and embeddings</li>
+                    <li>Your profile and settings</li>
+                    {!isFreeUser && <li>Your subscription (cancelled immediately)</li>}
+                  </ul>
+                  <p className="text-body text-text-secondary mb-3">
+                    Type <strong>DELETE</strong> to confirm:
+                  </p>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="Type DELETE"
+                    className="w-full p-3 border border-border rounded-lg text-body bg-surface mb-3"
+                    autoComplete="off"
+                  />
+                  {deleteError && <p className="text-sm text-error mb-3">{deleteError}</p>}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => { setDeleteStep('idle'); setDeleteReason(''); setDeleteDetails(''); setDeleteConfirmText(''); }}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      disabled={deleteConfirmText !== 'DELETE'}
+                      onClick={async () => {
+                        try {
+                          setDeleteError(null);
+                          setDeleteStep('deleting');
+                          await api.account.deleteAccount(feedbackId || undefined);
+                          setDeleteStep('done');
+                        } catch (err) {
+                          setDeleteError(extractErrorMessage(err));
+                          setDeleteStep('confirm');
+                        }
+                      }}
+                      className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors disabled:opacity-50"
+                    >
+                      Delete My Account Forever
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step: Deleting — spinner */}
+            {deleteStep === 'deleting' && (
+              <div className="flex flex-col items-center py-8 gap-4">
+                <div className="w-8 h-8 border-3 border-error border-t-transparent rounded-full animate-spin" />
+                <p className="text-body text-text-secondary">Deleting your account and all data...</p>
+              </div>
+            )}
+
+            {/* Step: Done — redirect to home */}
+            {deleteStep === 'done' && (
+              <div className="flex flex-col items-center py-8 gap-4">
+                <p className="text-body text-text-secondary">Your account has been deleted. Redirecting...</p>
+                {(() => {
+                  // Auto-redirect after showing message
+                  setTimeout(() => { window.location.href = '/'; }, 2000);
+                  return null;
+                })()}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
