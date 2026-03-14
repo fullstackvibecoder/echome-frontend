@@ -2451,6 +2451,73 @@ export const api = {
     },
   },
 
+  // -------- TREND DISCOVERY --------
+  trendDiscovery: {
+    /** List discovered trends */
+    list: async (params?: { category?: string; platform?: string; limit?: number; offset?: number }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.category) queryParams.set('category', params.category);
+      if (params?.platform) queryParams.set('platform', params.platform);
+      if (params?.limit) queryParams.set('limit', String(params.limit));
+      if (params?.offset) queryParams.set('offset', String(params.offset));
+      const response = await apiClient.get(`/trends/discover?${queryParams.toString()}`);
+      return response.data as {
+        success: boolean;
+        trends: TrendingReel[];
+        pagination: { total: number; limit: number; offset: number };
+      };
+    },
+
+    /** Get single trend detail */
+    get: async (id: string) => {
+      const response = await apiClient.get(`/trends/discover/${id}`);
+      return response.data as { success: boolean; trend: TrendingReel };
+    },
+
+    /** Admin: refresh trends via web search */
+    refresh: async (data?: { platform?: string; categories?: string[] }) => {
+      const response = await apiClient.post('/trends/discover/refresh', data || {});
+      return response.data as { success: boolean; message: string; trends: TrendingReel[] };
+    },
+
+    /** Generate a reel from a discovered trend */
+    generateReel: async (trendId: string, data?: { brollAssetId?: string }) => {
+      const response = await apiClient.post(`/trends/discover/${trendId}/generate`, data || {}, { timeout: GENERATION_TIMEOUT });
+      return response.data as {
+        success: boolean;
+        reel: TrendUserReel;
+        caption: string;
+        hashtags: string[];
+        message: string;
+      };
+    },
+
+    /** List user's generated trend reels */
+    listReels: async (params?: { limit?: number; offset?: number }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.limit) queryParams.set('limit', String(params.limit));
+      if (params?.offset) queryParams.set('offset', String(params.offset));
+      const response = await apiClient.get(`/trends/reels?${queryParams.toString()}`);
+      return response.data as {
+        success: boolean;
+        reels: TrendUserReel[];
+        pagination: { total: number; limit: number; offset: number };
+      };
+    },
+
+    /** Get generated reel detail */
+    getReel: async (id: string) => {
+      const response = await apiClient.get(`/trends/reels/${id}`);
+      return response.data as { success: boolean; reel: TrendUserReel };
+    },
+
+    /** Polish reel with Descript */
+    polishReel: async (reelId: string, data?: { prompt?: string }) => {
+      const response = await apiClient.post(`/trends/reels/${reelId}/polish`, data || {});
+      return response.data as { success: boolean; project: unknown; job: unknown; message: string };
+    },
+  },
+
   // -------- ADMIN USAGE --------
   adminUsage: {
     /** Get platform-wide usage overview for a month */
@@ -3885,6 +3952,47 @@ export interface TrendCopy {
 export interface TrendCopyWithTrend extends TrendCopy {
   trend?: Trend;
   creative_brief?: TrendCreativeBrief;
+}
+
+// -------- TREND DISCOVERY TYPES --------
+
+export interface TrendingReel {
+  id: string;
+  title: string;
+  platform: string;
+  audio_name?: string;
+  audio_artist?: string;
+  category?: string;
+  use_case?: string;
+  script_template?: string;
+  caption_template?: string;
+  hashtags?: string[];
+  source_url?: string;
+  discovery_metadata?: Record<string, unknown>;
+  expires_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TrendUserReelStatus = 'generating' | 'ready' | 'failed';
+
+export interface TrendUserReel {
+  id: string;
+  user_id: string;
+  trending_reel_id: string;
+  status: TrendUserReelStatus;
+  broll_asset_id?: string;
+  broll_url?: string;
+  overlay_texts?: string[];
+  generated_caption?: string;
+  output_url?: string;
+  output_storage_path?: string;
+  descript_project_id?: string;
+  error_message?: string;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  trending_reels?: TrendingReel;
 }
 
 // -------- DESCRIPT STUDIO TYPES --------
