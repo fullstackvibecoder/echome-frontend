@@ -3,28 +3,25 @@
 /**
  * Reel Maker Landing Page
  *
- * Template picker with grid view, recent projects, and B-Roll Reels wizard.
+ * Simplified 2-tab layout: Create Reel | My Reels
+ * "Create Reel" shows the 3-step B-Roll wizard directly.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
-import type { ReelTemplate, ReelProject } from '@/types';
-import { TemplateCard } from '@/components/reels/TemplateCard';
+import type { ReelProject } from '@/types';
 import { ReelProjectCard } from '@/components/reels/ReelProjectCard';
 import { BRollReelWizard } from '@/components/reels/BRollReelWizard';
 
 export default function ReelsContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [templates, setTemplates] = useState<ReelTemplate[]>([]);
   const [recentProjects, setRecentProjects] = useState<ReelProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'templates' | 'projects' | 'broll'>('templates');
-  const [showBRollWizard, setShowBRollWizard] = useState(false);
+  const [activeTab, setActiveTab] = useState<'create' | 'projects'>('create');
   const [retryKey, setRetryKey] = useState(0);
 
   // Redirect non-admins
@@ -34,22 +31,15 @@ export default function ReelsContent() {
     }
   }, [authLoading, user, router]);
 
-  // Fetch templates and recent projects
+  // Fetch recent projects
   useEffect(() => {
-    if (!user?.isAdmin) return; // Skip fetch for non-admins
+    if (!user?.isAdmin) return;
     async function fetchData() {
       try {
         setIsLoading(true);
         setError(null);
 
-        const [templatesRes, projectsRes] = await Promise.all([
-          api.reels.listTemplates(),
-          api.reels.listProjects({ limit: 6 }),
-        ]);
-
-        if (templatesRes.success && templatesRes.data) {
-          setTemplates(templatesRes.data);
-        }
+        const projectsRes = await api.reels.listProjects({ limit: 20 });
 
         if (projectsRes.success && projectsRes.data) {
           setRecentProjects(projectsRes.data);
@@ -69,10 +59,6 @@ export default function ReelsContent() {
 
     fetchData();
   }, [user, retryKey]);
-
-  const handleTemplateSelect = useCallback((template: ReelTemplate) => {
-    router.push(`/app/reels/new?template=${template.id}`);
-  }, [router]);
 
   const handleProjectClick = useCallback((project: ReelProject) => {
     router.push(`/app/reels/${project.id}`);
@@ -133,42 +119,22 @@ export default function ReelsContent() {
         <div>
           <h1 className="text-display text-3xl mb-2">Reel Maker</h1>
           <p className="text-body text-text-secondary">
-            Create professional reels with beat-synced transitions and AI B-roll
+            Create reels with curated B-roll and AI-generated text in your voice
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {activeTab === 'broll' && (
-            <button
-              onClick={() => setShowBRollWizard(true)}
-              className="btn-primary flex items-center gap-2"
-            >
-              <span>+</span>
-              <span>New B-Roll Reel</span>
-            </button>
-          )}
-          {activeTab !== 'broll' && recentProjects.length > 0 && (
-            <Link
-              href="/app/reels/new"
-              className="btn-primary flex items-center gap-2"
-            >
-              <span>+</span>
-              <span>New Reel</span>
-            </Link>
-          )}
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b border-border">
         <button
-          onClick={() => setActiveTab('templates')}
+          onClick={() => setActiveTab('create')}
           className={`pb-3 px-2 text-sm font-medium transition-colors ${
-            activeTab === 'templates'
+            activeTab === 'create'
               ? 'text-accent border-b-2 border-accent'
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          Templates
+          Create Reel
         </button>
         <button
           onClick={() => setActiveTab('projects')}
@@ -178,40 +144,22 @@ export default function ReelsContent() {
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          My Reels ({recentProjects.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('broll')}
-          className={`pb-3 px-2 text-sm font-medium transition-colors ${
-            activeTab === 'broll'
-              ? 'text-accent border-b-2 border-accent'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          B-Roll Reels
+          My Reels
         </button>
       </div>
 
-      {/* Templates Tab */}
-      {activeTab === 'templates' && (
-        <div>
-          <p className="text-text-secondary mb-6">
-            Choose a template to get started. Each template is designed for specific content types.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                onClick={() => handleTemplateSelect(template)}
-              />
-            ))}
-          </div>
-        </div>
+      {/* Create Reel Tab */}
+      {activeTab === 'create' && (
+        <BRollReelWizard
+          onComplete={() => {
+            // Refresh projects list
+            setRetryKey((k) => k + 1);
+          }}
+          onCancel={() => setActiveTab('projects')}
+        />
       )}
 
-      {/* Projects Tab */}
+      {/* My Reels Tab */}
       {activeTab === 'projects' && (
         <div>
           {recentProjects.length === 0 ? (
@@ -233,13 +181,13 @@ export default function ReelsContent() {
               </div>
               <h3 className="text-lg font-medium text-text-primary mb-2">No reels yet</h3>
               <p className="text-text-secondary mb-6">
-                Create your first reel by selecting a template above.
+                Create your first reel to get started.
               </p>
               <button
-                onClick={() => setActiveTab('templates')}
+                onClick={() => setActiveTab('create')}
                 className="btn-primary"
               >
-                Browse Templates
+                Create Reel
               </button>
             </div>
           ) : (
@@ -251,48 +199,6 @@ export default function ReelsContent() {
                   onClick={() => handleProjectClick(project)}
                 />
               ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* B-Roll Reels Tab */}
-      {activeTab === 'broll' && (
-        <div>
-          {showBRollWizard ? (
-            <BRollReelWizard
-              onComplete={() => {
-                setShowBRollWizard(false);
-              }}
-              onCancel={() => setShowBRollWizard(false)}
-            />
-          ) : (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-surface-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-text-secondary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M7 4V2m0 2a2 2 0 012 2v1a2 2 0 01-2 2 2 2 0 01-2-2V6a2 2 0 012-2zm0 10v2m0-2a2 2 0 01-2-2v-1a2 2 0 012-2 2 2 0 012 2v1a2 2 0 01-2 2zM17 4V2m0 2a2 2 0 012 2v1a2 2 0 01-2 2 2 2 0 01-2-2V6a2 2 0 012-2zm0 10v2m0-2a2 2 0 01-2-2v-1a2 2 0 012-2 2 2 0 012 2v1a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-text-primary mb-2">B-Roll Reels</h3>
-              <p className="text-text-secondary mb-6 max-w-md mx-auto">
-                Combine AI-generated or extracted B-roll with voice-matched text overlays to create ready-to-post reels.
-              </p>
-              <button
-                onClick={() => setShowBRollWizard(true)}
-                className="btn-primary"
-              >
-                Create B-Roll Reel
-              </button>
             </div>
           )}
         </div>

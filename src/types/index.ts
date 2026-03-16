@@ -1339,6 +1339,8 @@ export interface ComposeBRollReelInput {
   contentKitId?: string;
   musicTrackId?: string;
   generateText?: boolean;
+  topic?: string;
+  textOverlays?: Array<{ text: string; position: string }>;
 }
 
 /** Response from POST /api/reels/compose-broll (not the full composition — just a project ID for polling) */

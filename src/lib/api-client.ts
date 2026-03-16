@@ -3258,6 +3258,8 @@ export const api = {
         content_kit_id: data.contentKitId,
         music_track_id: data.musicTrackId,
         generate_text: data.generateText,
+        topic: data.topic,
+        text_overlays: data.textOverlays,
       }, { timeout: GENERATION_TIMEOUT });
       const raw = response.data as ApiResponse<any>;
       return {
@@ -3273,6 +3275,21 @@ export const api = {
     getStyles: async () => {
       const response = await apiClient.get('/reels/text-overlay-styles', { timeout: LIST_TIMEOUT });
       return response.data as ApiResponse<import('../types').TextOverlayStyle[]>;
+    },
+
+    /** Preview AI-generated text overlays without starting a render */
+    previewTextOverlays: async (data: { topic: string; clipCount: number }) => {
+      const response = await apiClient.post('/reels/preview-text-overlays', {
+        topic: data.topic,
+        clip_count: data.clipCount,
+      }, { timeout: GENERATION_TIMEOUT });
+      const raw = response.data as ApiResponse<any>;
+      return {
+        ...raw,
+        data: raw.data ? {
+          overlays: raw.data.overlays as Array<{ text: string; position: string }>,
+        } : null,
+      } as ApiResponse<{ overlays: Array<{ text: string; position: string }> }>;
     },
   },
 

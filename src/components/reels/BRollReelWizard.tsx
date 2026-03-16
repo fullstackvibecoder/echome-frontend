@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * B-Roll Reel Wizard
+ * B-Roll Reel Wizard (Revamped)
  *
- * Multi-step wizard for composing B-roll reels with text overlays.
- * Steps: Source -> Style -> Text -> Music -> Generate
+ * Simplified 3-step wizard: Choose Clips -> Describe & Style -> Review & Generate
+ * Centers on curated B-roll + AI text overlays.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,14 +12,10 @@ import api from '@/lib/api-client';
 import type {
   AIGeneratedBRoll,
   TextOverlayStyleId,
-  TextOverlaySegment,
   BRollReelComposition,
-  MusicTrackSummary,
-  MusicTrack,
 } from '@/types';
+import { CuratedBRollPicker } from '@/components/broll/CuratedBRollPicker';
 import { BRollLibrary } from '@/components/broll/BRollLibrary';
-import { BRollGenerator } from '@/components/broll/BRollGenerator';
-import { MusicPicker } from '@/components/reels/MusicPicker';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,14 +26,12 @@ interface BRollReelWizardProps {
   onCancel?: () => void;
 }
 
-type WizardStep = 'source' | 'style' | 'text' | 'music' | 'generate';
+type WizardStep = 'clips' | 'describe' | 'review';
 
 const STEPS: { key: WizardStep; label: string }[] = [
-  { key: 'source', label: 'Source' },
-  { key: 'style', label: 'Style' },
-  { key: 'text', label: 'Text' },
-  { key: 'music', label: 'Music' },
-  { key: 'generate', label: 'Generate' },
+  { key: 'clips', label: 'Choose Clips' },
+  { key: 'describe', label: 'Describe & Style' },
+  { key: 'review', label: 'Review & Generate' },
 ];
 
 interface StyleOption {
@@ -95,7 +89,6 @@ function StepIndicator({
 
         return (
           <div key={step.key} className="flex items-center flex-1 last:flex-none">
-            {/* Step circle */}
             <div className="flex flex-col items-center">
               <div
                 className={`
@@ -125,7 +118,6 @@ function StepIndicator({
               </span>
             </div>
 
-            {/* Connecting line */}
             {i < steps.length - 1 && (
               <div
                 className={`h-0.5 flex-1 mx-2 mt-[-1rem] ${
@@ -146,29 +138,20 @@ function StepIndicator({
 
 export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) {
   // Wizard navigation
-  const [currentStep, setCurrentStep] = useState<WizardStep>('source');
+  const [currentStep, setCurrentStep] = useState<WizardStep>('clips');
 
-  // Step 1 – Source
-  const [selectedClips, setSelectedClips] = useState<AIGeneratedBRoll[]>([]);
-  const [showGenerator, setShowGenerator] = useState(false);
+  // Step 1 - Choose Clips
+  const [selectedClipIds, setSelectedClipIds] = useState<string[]>([]);
+  const [showAILibrary, setShowAILibrary] = useState(false);
 
-  // Step 2 – Style
-  const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId | null>(null);
+  // Step 2 - Describe & Style
+  const [topic, setTopic] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
 
-  // Step 3 – Text
-  const [textSegments, setTextSegments] = useState<TextOverlaySegment[]>([]);
-  const [regeneratingText, setRegeneratingText] = useState(false);
-  const [textError, setTextError] = useState<string | null>(null);
-
-  // Step 4 – Music
-  const [musicTracks, setMusicTracks] = useState<MusicTrackSummary[]>([]);
-  const [selectedMusic, setSelectedMusic] = useState<MusicTrack | null>(null);
-  const [musicVolume, setMusicVolume] = useState(0.8);
-  const [beatSyncEnabled, setBeatSyncEnabled] = useState(false);
-  const [loadingMusic, setLoadingMusic] = useState(false);
-  const [musicError, setMusicError] = useState<string | null>(null);
-
-  // Step 5 – Generate
+  // Step 3 - Review & Generate
+  const [overlays, setOverlays] = useState<Array<{ text: string; position: string }>>([]);
+  const [loadingOverlays, setLoadingOverlays] = useState(false);
+  const [overlayError, setOverlayError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);
   const [composition, setComposition] = useState<BRollReelComposition | null>(null);
@@ -192,96 +175,50 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     }
   };
 
-  // Initialize text segments when entering step 3
+  // Fetch AI text overlays on entering review step
   useEffect(() => {
-    if (currentStep === 'text' && textSegments.length === 0 && selectedClips.length > 0) {
-      setTextSegments(
-        selectedClips.map((_, i) => ({
-          clipIndex: i,
-          text: '',
-          position: 'center' as const,
-        }))
-      );
-    }
-  }, [currentStep, selectedClips, textSegments.length]);
-
-  // Fetch music tracks when entering step 4
-  useEffect(() => {
-    if (currentStep === 'music' && musicTracks.length === 0) {
-      fetchMusicTracks();
+    if (currentStep === 'review' && overlays.length === 0 && topic.trim()) {
+      fetchOverlays();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 
-  const fetchMusicTracks = async () => {
-    setLoadingMusic(true);
-    setMusicError(null);
+  const fetchOverlays = useCallback(async () => {
+    setLoadingOverlays(true);
+    setOverlayError(null);
     try {
-      const res = await api.reels.listMusic({ limit: 50 });
-      if (res.success && res.data) {
-        setMusicTracks(res.data);
+      const res = await api.brollReels.previewTextOverlays({
+        topic: topic.trim(),
+        clipCount: selectedClipIds.length,
+      });
+      if (res.success && res.data?.overlays) {
+        setOverlays(res.data.overlays);
+      } else {
+        setOverlayError('Could not generate text. You can type your own overlays below.');
+        // Initialize empty overlays
+        setOverlays(selectedClipIds.map(() => ({ text: '', position: 'center' })));
       }
     } catch {
-      setMusicError('Could not load music library. You can skip this step or try again.');
+      setOverlayError('Could not generate text. You can type your own overlays below.');
+      setOverlays(selectedClipIds.map(() => ({ text: '', position: 'center' })));
     } finally {
-      setLoadingMusic(false);
+      setLoadingOverlays(false);
     }
-  };
-
-  const handleRegenerateText = useCallback(async () => {
-    if (!selectedStyle || selectedClips.length === 0) return;
-    setRegeneratingText(true);
-    setTextError(null);
-    try {
-      // Fetch text overlay styles to get suggested text for the style
-      const stylesRes = await api.brollReels.getStyles();
-      if (stylesRes.success && stylesRes.data) {
-        // Generate placeholder text based on clip count and style
-        const placeholders = selectedClips.map((_, i) => ({
-          clipIndex: i,
-          text: '',
-          position: 'center' as const,
-        }));
-        setTextSegments(placeholders);
-        setTextError('Auto-generation coming soon. Type your own text for now.');
-      }
-    } catch {
-      setTextError('Could not generate text. You can still type your own overlays.');
-    } finally {
-      setRegeneratingText(false);
-    }
-  }, [selectedStyle, selectedClips]);
-
-  const handleMusicSelect = async (track: MusicTrackSummary | null) => {
-    if (!track) {
-      setSelectedMusic(null);
-      setMusicError(null);
-      return;
-    }
-    setMusicError(null);
-    try {
-      const res = await api.reels.getMusicTrack(track.id);
-      if (res.success && res.data) {
-        setSelectedMusic(res.data);
-      }
-    } catch {
-      setMusicError('Could not load this track. Please try another or skip music.');
-    }
-  };
+  }, [topic, selectedClipIds]);
 
   const handleGenerate = async () => {
-    if (!selectedStyle || selectedClips.length === 0) return;
+    if (!selectedStyle || selectedClipIds.length === 0) return;
     setIsGenerating(true);
     setGenerateError(null);
     setGenerateProgress(5);
 
     try {
-      // Step 1: Submit composition request
       const res = await api.brollReels.compose({
-        brollClipIds: selectedClips.map((c) => c.id),
+        brollClipIds: selectedClipIds,
         templateStyle: selectedStyle,
-        musicTrackId: selectedMusic?.id,
-        generateText: textSegments.some(s => s.text.trim()),
+        generateText: false,
+        topic: topic.trim() || undefined,
+        textOverlays: overlays.filter((o) => o.text.trim()),
       });
 
       if (!res.success || !res.data?.projectId) {
@@ -291,8 +228,8 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
       const projectId = res.data.projectId;
       setGenerateProgress(15);
 
-      // Step 2: Poll for completion
-      const maxAttempts = 120; // 10 minutes at 5s intervals
+      // Poll for completion
+      const maxAttempts = 120;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         await new Promise((r) => setTimeout(r, 5000));
 
@@ -307,9 +244,9 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
               userId: '',
               reelProjectId: projectId,
               brollSource: 'library',
-              brollClipIds: selectedClips.map((c) => c.id),
-              templateStyle: selectedStyle!,
-              textOverlays: textSegments,
+              brollClipIds: selectedClipIds,
+              templateStyle: selectedStyle,
+              textOverlays: overlays.map((o, i) => ({ clipIndex: i, text: o.text, position: o.position as 'top' | 'center' | 'bottom' })),
               status: 'completed',
               outputUrl: status.outputUrl || '',
               thumbnailUrl: status.thumbnailUrl || '',
@@ -324,14 +261,12 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
             throw new Error(status.errorMessage || 'render_failed');
           }
 
-          // Increment progress gradually (15% → 90%)
           const newProgress = Math.min(15 + Math.round((attempt / maxAttempts) * 75), 90);
           setGenerateProgress(newProgress);
         } catch (pollErr: any) {
           if (pollErr?.message === 'render_failed' || pollErr?.message?.includes('failed')) {
             throw pollErr;
           }
-          // Transient network error — keep polling
         }
       }
 
@@ -339,7 +274,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     } catch (err: any) {
       const msg = err?.message || '';
       if (msg.includes('timeout')) {
-        setGenerateError('Reel generation is taking longer than expected. Check back in your Reel Maker projects.');
+        setGenerateError('Reel generation is taking longer than expected. Check back in My Reels.');
       } else if (msg.includes('not configured') || msg.includes('503')) {
         setGenerateError('AI video service is temporarily unavailable. Please try again shortly.');
       } else if (msg === 'submit_failed') {
@@ -354,57 +289,41 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     }
   };
 
-  const handleSelectionChange = (ids: string[]) => {
-    // Keep clips in the order they were selected, adding new ones
-    setSelectedClips((prev) => {
-      const existing = prev.filter((c) => ids.includes(c.id));
-      // For newly added IDs, create placeholder entries
-      const newIds = ids.filter((id) => !existing.find((c) => c.id === id));
-      const newClips: AIGeneratedBRoll[] = newIds.map((id) => ({
-        id,
-        userId: '',
-        prompt: '',
-        sourceType: 'ai_generated' as const,
-        status: 'completed' as const,
-        aspectRatio: '9:16' as const,
-        createdAt: '',
-      }));
-      return [...existing, ...newClips];
-    });
+  const handleClipSelectionChange = (ids: string[]) => {
+    setSelectedClipIds(ids);
   };
 
-  const handleGeneratorComplete = (clip: AIGeneratedBRoll) => {
-    setSelectedClips((prev) => [...prev, clip]);
-    setShowGenerator(false);
+  const handleAILibrarySelectionChange = (ids: string[]) => {
+    setSelectedClipIds(ids);
   };
 
-  const updateSegmentText = (index: number, text: string) => {
-    setTextSegments((prev) =>
-      prev.map((seg, i) => (i === index ? { ...seg, text } : seg))
+  const updateOverlayText = (index: number, text: string) => {
+    setOverlays((prev) =>
+      prev.map((o, i) => (i === index ? { ...o, text } : o))
     );
   };
 
   // ---------------------------------------------------------------------------
-  // Step 1 – Source Selection
+  // Step 1 - Choose Clips
   // ---------------------------------------------------------------------------
 
-  const renderSourceStep = () => (
+  const renderClipsStep = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-text-primary mb-2">Select B-Roll Clips</h2>
+        <h2 className="text-lg font-medium text-text-primary mb-2">Choose B-Roll Clips</h2>
         <p className="text-text-secondary text-sm">
-          Choose one or more clips from your library, or generate new ones.
+          Select 1-3 clips from the curated library, or use your own AI-generated clips.
         </p>
       </div>
 
-      {/* Selected clips count */}
-      {selectedClips.length > 0 && (
+      {/* Selected count */}
+      {selectedClipIds.length > 0 && (
         <div className="bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 flex items-center justify-between">
           <span className="text-sm text-accent font-medium">
-            {selectedClips.length} clip{selectedClips.length !== 1 ? 's' : ''} selected
+            {selectedClipIds.length} clip{selectedClipIds.length !== 1 ? 's' : ''} selected
           </span>
           <button
-            onClick={() => setSelectedClips([])}
+            onClick={() => setSelectedClipIds([])}
             className="text-xs text-text-secondary hover:text-accent"
           >
             Clear all
@@ -412,220 +331,123 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
         </div>
       )}
 
-      {/* Generator toggle */}
-      {showGenerator ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-text-primary">Generate New Clip</h3>
-            <button
-              onClick={() => setShowGenerator(false)}
-              className="text-sm text-text-secondary hover:text-accent"
-            >
-              Back to Library
-            </button>
+      {/* Curated clips (primary) */}
+      <CuratedBRollPicker
+        selectedIds={selectedClipIds}
+        onSelectionChange={handleClipSelectionChange}
+      />
+
+      {/* AI-generated clips (secondary, collapsible) */}
+      <div className="border border-border rounded-xl overflow-hidden">
+        <button
+          onClick={() => setShowAILibrary(!showAILibrary)}
+          className="w-full px-4 py-3 flex items-center justify-between text-sm text-text-secondary hover:text-text-primary transition-colors"
+        >
+          <span>Or use your AI-generated clips</span>
+          <svg
+            className={`w-4 h-4 transition-transform ${showAILibrary ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {showAILibrary && (
+          <div className="px-4 pb-4">
+            <BRollLibrary
+              selectable
+              selectedIds={selectedClipIds}
+              onSelectionChange={handleAILibrarySelectionChange}
+            />
           </div>
-          <BRollGenerator onGenerated={handleGeneratorComplete} />
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <button
-            onClick={() => setShowGenerator(true)}
-            className="w-full py-3 border-2 border-dashed border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm font-medium"
-          >
-            Or Generate New
-          </button>
-          <BRollLibrary
-            selectable
-            selectedIds={selectedClips.map((c) => c.id)}
-            onSelectionChange={handleSelectionChange}
-          />
-        </div>
-      )}
-    </div>
-  );
-
-  // ---------------------------------------------------------------------------
-  // Step 2 – Style Selection
-  // ---------------------------------------------------------------------------
-
-  const renderStyleStep = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-medium text-text-primary mb-2">Choose a Style</h2>
-        <p className="text-text-secondary text-sm">
-          Pick a text overlay style for your reel.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {STYLE_OPTIONS.map((style) => (
-          <button
-            key={style.id}
-            onClick={() => setSelectedStyle(style.id)}
-            className={`
-              aspect-[9/16] bg-surface-secondary rounded-xl border-2 cursor-pointer
-              flex flex-col items-center justify-center p-4 text-center transition-all
-              ${
-                selectedStyle === style.id
-                  ? 'border-accent bg-accent/5'
-                  : 'border-border hover:border-text-tertiary'
-              }
-            `}
-          >
-            {/* Visual mockup */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-2">
-              {style.id === 'bold_impact' && (
-                <div className="space-y-1">
-                  {style.mockupLines.map((line) => (
-                    <p key={line} className="text-2xl font-black uppercase text-text-primary tracking-tight">
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {style.id === 'minimal_clean' && (
-                <div className="space-y-1">
-                  {style.mockupLines.map((line) => (
-                    <p key={line} className="text-lg font-light text-text-secondary tracking-wide">
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {style.id === 'brand_gradient' && (
-                <div className="bg-gradient-to-r from-accent/80 to-purple-500/80 rounded-lg px-4 py-3">
-                  {style.mockupLines.map((line) => (
-                    <p key={line} className="text-lg font-bold text-white">
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {style.id === 'story_cards' && (
-                <div className="bg-white/90 dark:bg-black/60 rounded-lg px-4 py-3 shadow-sm">
-                  {style.mockupLines.map((line) => (
-                    <p key={line} className="text-lg font-semibold text-text-primary">
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-4">
-              <p className="text-sm font-medium text-text-primary">{style.name}</p>
-              <p className="text-xs text-text-secondary mt-0.5">{style.description}</p>
-            </div>
-          </button>
-        ))}
+        )}
       </div>
     </div>
   );
 
   // ---------------------------------------------------------------------------
-  // Step 3 – Text Overlay Editor
+  // Step 2 - Describe & Style
   // ---------------------------------------------------------------------------
 
-  const renderTextStep = () => (
+  const renderDescribeStep = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-text-primary mb-2">Edit Text Overlays</h2>
+        <h2 className="text-lg font-medium text-text-primary mb-2">Describe & Style</h2>
         <p className="text-text-secondary text-sm">
-          Add or edit the text that appears on each clip.
+          Tell us what this reel is about and pick a text style. We'll generate voice-matched overlays.
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Phone preview – left */}
-        <div className="mx-auto md:mx-0 flex-shrink-0">
-          <div className="w-[240px] aspect-[9/16] bg-black rounded-2xl overflow-hidden relative border border-border">
-            {/* Show first selected clip thumbnail or placeholder */}
-            {selectedClips[0]?.thumbnailUrl ? (
-              <img
-                src={selectedClips[0].thumbnailUrl}
-                alt="Preview"
-                className="w-full h-full object-cover opacity-60"
-              />
-            ) : (
-              <div className="w-full h-full bg-surface-secondary" />
-            )}
+      {/* Topic textarea */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-text-primary">
+          What's this reel about?
+        </label>
+        <textarea
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="e.g., 3 tips for staging a home before listing"
+          rows={3}
+          className="w-full px-4 py-3 bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+          maxLength={2000}
+        />
+        <p className="text-xs text-text-tertiary text-right">{topic.length}/2000</p>
+      </div>
 
-            {/* Overlay text preview */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-              {textSegments[0]?.text ? (
-                <div
-                  className={`
-                    px-3 py-2 rounded-lg text-center
-                    ${selectedStyle === 'bold_impact' ? 'text-white text-xl font-black uppercase' : ''}
-                    ${selectedStyle === 'minimal_clean' ? 'text-white text-base font-light tracking-wide' : ''}
-                    ${selectedStyle === 'brand_gradient' ? 'bg-gradient-to-r from-accent/80 to-purple-500/80 text-white text-base font-bold rounded-lg' : ''}
-                    ${selectedStyle === 'story_cards' ? 'bg-white/90 dark:bg-black/60 text-text-primary text-base font-semibold rounded-lg shadow-sm' : ''}
-                  `}
-                >
-                  {textSegments[0].text}
-                </div>
-              ) : (
-                <p className="text-white/40 text-sm">Text preview</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Text fields – right */}
-        <div className="flex-1 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-text-secondary">
-              {textSegments.length} segment{textSegments.length !== 1 ? 's' : ''}
-            </p>
+      {/* Style picker */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-text-primary">Text Style</label>
+        <div className="grid grid-cols-2 gap-4">
+          {STYLE_OPTIONS.map((style) => (
             <button
-              onClick={handleRegenerateText}
-              disabled={regeneratingText}
-              className="text-sm text-accent hover:text-accent/80 disabled:opacity-50 flex items-center gap-1"
+              key={style.id}
+              onClick={() => setSelectedStyle(style.id)}
+              className={`
+                aspect-[9/16] bg-surface-secondary rounded-xl border-2 cursor-pointer
+                flex flex-col items-center justify-center p-4 text-center transition-all
+                ${
+                  selectedStyle === style.id
+                    ? 'border-accent bg-accent/5'
+                    : 'border-border hover:border-text-tertiary'
+                }
+              `}
             >
-              {regeneratingText ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Regenerate Text
-                </>
-              )}
-            </button>
-          </div>
-
-          {textError && (
-            <p className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-              {textError}
-            </p>
-          )}
-
-          {textSegments.map((segment, i) => (
-            <div key={i} className="space-y-1">
-              <label className="text-xs text-text-secondary">
-                Clip {i + 1}
-                {selectedClips[i]?.prompt && (
-                  <span className="ml-1 text-text-tertiary">
-                    — {selectedClips[i].prompt.slice(0, 40)}
-                    {selectedClips[i].prompt.length > 40 ? '...' : ''}
-                  </span>
+              <div className="flex-1 flex flex-col items-center justify-center gap-2">
+                {style.id === 'bold_impact' && (
+                  <div className="space-y-1">
+                    {style.mockupLines.map((line) => (
+                      <p key={line} className="text-2xl font-black uppercase text-text-primary tracking-tight">{line}</p>
+                    ))}
+                  </div>
                 )}
-              </label>
-              <input
-                type="text"
-                value={segment.text}
-                onChange={(e) => updateSegmentText(i, e.target.value)}
-                placeholder={`Text for clip ${i + 1}...`}
-                className="w-full px-4 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-            </div>
+                {style.id === 'minimal_clean' && (
+                  <div className="space-y-1">
+                    {style.mockupLines.map((line) => (
+                      <p key={line} className="text-lg font-light text-text-secondary tracking-wide">{line}</p>
+                    ))}
+                  </div>
+                )}
+                {style.id === 'brand_gradient' && (
+                  <div className="bg-gradient-to-r from-accent/80 to-purple-500/80 rounded-lg px-4 py-3">
+                    {style.mockupLines.map((line) => (
+                      <p key={line} className="text-lg font-bold text-white">{line}</p>
+                    ))}
+                  </div>
+                )}
+                {style.id === 'story_cards' && (
+                  <div className="bg-white/90 dark:bg-black/60 rounded-lg px-4 py-3 shadow-sm">
+                    {style.mockupLines.map((line) => (
+                      <p key={line} className="text-lg font-semibold text-text-primary">{line}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="mt-4">
+                <p className="text-sm font-medium text-text-primary">{style.name}</p>
+                <p className="text-xs text-text-secondary mt-0.5">{style.description}</p>
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -633,62 +455,10 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   );
 
   // ---------------------------------------------------------------------------
-  // Step 4 – Music
+  // Step 3 - Review & Generate
   // ---------------------------------------------------------------------------
 
-  const renderMusicStep = () => (
-    <div className="space-y-6">
-      {musicError && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 flex items-center justify-between">
-          <p className="text-sm text-amber-400">{musicError}</p>
-          <button
-            onClick={fetchMusicTracks}
-            className="text-sm text-accent hover:underline ml-3 flex-shrink-0"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {loadingMusic ? (
-        <div className="text-center py-12">
-          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-text-secondary text-sm">Loading music library...</p>
-        </div>
-      ) : (
-        <>
-          <MusicPicker
-            tracks={musicTracks}
-            selectedTrack={selectedMusic}
-            onSelect={handleMusicSelect}
-            volume={musicVolume}
-            onVolumeChange={setMusicVolume}
-            beatSyncEnabled={beatSyncEnabled}
-            onBeatSyncChange={setBeatSyncEnabled}
-            musicRequired={false}
-          />
-
-          {/* Prominent skip button */}
-          {!selectedMusic && (
-            <div className="text-center">
-              <button
-                onClick={goNext}
-                className="text-base font-medium text-text-secondary hover:text-accent transition-colors py-2 px-6 border border-border rounded-lg hover:border-accent"
-              >
-                Skip — continue without music
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-
-  // ---------------------------------------------------------------------------
-  // Step 5 – Generate
-  // ---------------------------------------------------------------------------
-
-  const renderGenerateStep = () => {
+  const renderReviewStep = () => {
     // Progress screen
     if (isGenerating) {
       return (
@@ -702,7 +472,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
           </div>
           <h2 className="text-xl font-medium text-text-primary mb-2">Creating your reel...</h2>
           <p className="text-text-secondary">
-            This may take a moment. We are composing your clips, overlays, and audio.
+            Composing clips with text overlays. This may take a moment.
           </p>
           <div className="w-full max-w-md mx-auto h-2 bg-surface-secondary rounded-full overflow-hidden mt-6">
             <div
@@ -723,9 +493,9 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-xl font-medium text-text-primary">Your B-Roll Reel is Ready!</h2>
+          <h2 className="text-xl font-medium text-text-primary">Your Reel is Ready!</h2>
           {composition.outputUrl && (
-            <div className="max-w-xs mx-auto">
+            <div className="max-w-xs mx-auto space-y-4">
               <div className="aspect-[9/16] bg-black rounded-xl overflow-hidden">
                 <video
                   src={composition.outputUrl}
@@ -734,6 +504,18 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
                   className="w-full h-full object-contain"
                 />
               </div>
+              <a
+                href={composition.outputUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary w-full inline-flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Reel
+              </a>
             </div>
           )}
         </div>
@@ -758,102 +540,108 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
       );
     }
 
-    // Summary before generating
+    // Loading overlays
+    if (loadingOverlays) {
+      return (
+        <div className="text-center py-12">
+          <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <h2 className="text-lg font-medium text-text-primary mb-2">Generating text overlays...</h2>
+          <p className="text-text-secondary text-sm">
+            Creating voice-matched text for your reel based on your topic.
+          </p>
+        </div>
+      );
+    }
+
+    // Review with editable overlays
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-medium text-text-primary mb-2">Review &amp; Generate</h2>
+          <h2 className="text-lg font-medium text-text-primary mb-2">Review & Generate</h2>
           <p className="text-text-secondary text-sm">
-            Double-check your selections before generating.
+            Edit the AI-generated text overlays, then generate your reel.
           </p>
         </div>
 
-        {/* Summary card */}
-        <div className="bg-surface-secondary rounded-xl border border-border p-6 space-y-5">
-          {/* Clips */}
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                {selectedClips.length} B-Roll Clip{selectedClips.length !== 1 ? 's' : ''}
-              </p>
-              <div className="flex gap-2 mt-2 overflow-x-auto">
-                {selectedClips.map((clip) => (
-                  <div key={clip.id} className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface">
-                    {clip.thumbnailUrl ? (
-                      <img src={clip.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-surface flex items-center justify-center">
-                        <svg className="w-6 h-6 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        </svg>
-                      </div>
-                    )}
+        {overlayError && (
+          <p className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+            {overlayError}
+          </p>
+        )}
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Phone preview */}
+          <div className="mx-auto md:mx-0 flex-shrink-0">
+            <div className="w-[240px] aspect-[9/16] bg-black rounded-2xl overflow-hidden relative border border-border">
+              <div className="w-full h-full bg-surface-secondary" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                {overlays[0]?.text ? (
+                  <div
+                    className={`
+                      px-3 py-2 rounded-lg text-center
+                      ${selectedStyle === 'bold_impact' ? 'text-white text-xl font-black uppercase' : ''}
+                      ${selectedStyle === 'minimal_clean' ? 'text-white text-base font-light tracking-wide' : ''}
+                      ${selectedStyle === 'brand_gradient' ? 'bg-gradient-to-r from-accent/80 to-purple-500/80 text-white text-base font-bold rounded-lg' : ''}
+                      ${selectedStyle === 'story_cards' ? 'bg-white/90 dark:bg-black/60 text-text-primary text-base font-semibold rounded-lg shadow-sm' : ''}
+                    `}
+                  >
+                    {overlays[0].text}
                   </div>
-                ))}
+                ) : (
+                  <p className="text-white/40 text-sm">Text preview</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Style */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                {STYLE_OPTIONS.find((s) => s.id === selectedStyle)?.name || 'No style'}
+          {/* Editable overlay fields */}
+          <div className="flex-1 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-text-secondary">
+                {overlays.length} segment{overlays.length !== 1 ? 's' : ''}
               </p>
-              <p className="text-xs text-text-secondary">
-                {STYLE_OPTIONS.find((s) => s.id === selectedStyle)?.description}
-              </p>
+              <button
+                onClick={fetchOverlays}
+                disabled={loadingOverlays || !topic.trim()}
+                className="text-sm text-accent hover:text-accent/80 disabled:opacity-50 flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Regenerate
+              </button>
             </div>
-          </div>
 
-          {/* Text */}
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                {textSegments.filter((s) => s.text.trim()).length} text overlay{textSegments.filter((s) => s.text.trim()).length !== 1 ? 's' : ''}
-              </p>
-              {textSegments.filter((s) => s.text.trim()).length > 0 && (
-                <ul className="mt-1 space-y-0.5">
-                  {textSegments.filter((s) => s.text.trim()).map((seg, i) => (
-                    <li key={i} className="text-xs text-text-secondary truncate max-w-xs">
-                      &ldquo;{seg.text}&rdquo;
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
+            {overlays.map((overlay, i) => (
+              <div key={i} className="space-y-1">
+                <label className="text-xs text-text-secondary">Segment {i + 1}</label>
+                <input
+                  type="text"
+                  value={overlay.text}
+                  onChange={(e) => updateOverlayText(i, e.target.value)}
+                  placeholder={`Text for segment ${i + 1}...`}
+                  className="w-full px-4 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+            ))}
 
-          {/* Music */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-              </svg>
-            </div>
-            <div>
-              {selectedMusic ? (
-                <>
-                  <p className="text-sm font-medium text-text-primary">{selectedMusic.name}</p>
-                  <p className="text-xs text-text-secondary">{selectedMusic.artist}</p>
-                </>
-              ) : (
-                <p className="text-sm text-text-secondary">No music selected</p>
+            {/* Summary */}
+            <div className="bg-surface-secondary rounded-lg border border-border p-4 space-y-2 mt-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-text-secondary">Clips:</span>
+                <span className="text-text-primary font-medium">{selectedClipIds.length}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-text-secondary">Style:</span>
+                <span className="text-text-primary font-medium">
+                  {STYLE_OPTIONS.find((s) => s.id === selectedStyle)?.name}
+                </span>
+              </div>
+              {topic && (
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-text-secondary flex-shrink-0">Topic:</span>
+                  <span className="text-text-primary truncate">{topic}</span>
+                </div>
               )}
             </div>
           </div>
@@ -864,7 +652,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
           onClick={handleGenerate}
           className="btn-primary w-full text-lg py-4"
         >
-          Generate B-Roll Reel
+          Generate Reel
         </button>
       </div>
     );
@@ -876,16 +664,12 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
 
   const canGoNext = (): boolean => {
     switch (currentStep) {
-      case 'source':
-        return selectedClips.length >= 1;
-      case 'style':
+      case 'clips':
+        return selectedClipIds.length >= 1;
+      case 'describe':
         return selectedStyle !== null;
-      case 'text':
-        return true; // text is optional
-      case 'music':
-        return true; // music is optional
-      case 'generate':
-        return false; // handled by generate button
+      case 'review':
+        return false;
       default:
         return false;
     }
@@ -893,19 +677,15 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      {/* Step indicator */}
       <StepIndicator steps={STEPS} currentStep={currentStep} />
 
-      {/* Step content */}
       <div className="min-h-[400px]">
-        {currentStep === 'source' && renderSourceStep()}
-        {currentStep === 'style' && renderStyleStep()}
-        {currentStep === 'text' && renderTextStep()}
-        {currentStep === 'music' && renderMusicStep()}
-        {currentStep === 'generate' && renderGenerateStep()}
+        {currentStep === 'clips' && renderClipsStep()}
+        {currentStep === 'describe' && renderDescribeStep()}
+        {currentStep === 'review' && renderReviewStep()}
       </div>
 
-      {/* Navigation buttons */}
+      {/* Navigation */}
       {!isGenerating && !composition && (
         <div className="flex items-center justify-between pt-6 border-t border-border">
           <button
@@ -915,7 +695,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
             {stepIndex === 0 ? 'Cancel' : 'Back'}
           </button>
 
-          {currentStep !== 'generate' && (
+          {currentStep !== 'review' && (
             <button
               onClick={goNext}
               disabled={!canGoNext()}
