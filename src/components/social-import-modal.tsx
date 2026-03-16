@@ -25,7 +25,7 @@ interface SocialImportModalProps {
 }
 
 type Platform = 'youtube' | 'instagram' | 'blog';
-type ImportStatus = 'idle' | 'importing' | 'error';
+type ImportStatus = 'idle' | 'importing' | 'polling' | 'success' | 'error';
 type SyncStatus = 'idle' | 'syncing' | 'polling' | 'success' | 'error';
 
 interface ConnectedAccount {
@@ -115,6 +115,9 @@ export function SocialImportModal({
   const [status, setStatus] = useState<ImportStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [isOwnContent, setIsOwnContent] = useState(true);
+  const [importJobId, setImportJobId] = useState<string | null>(null);
+  const [importPollCount, setImportPollCount] = useState(0);
+  const [importContentCount, setImportContentCount] = useState<number | undefined>();
 
   // Fetch connected accounts status
   const fetchAccountStatus = useCallback(async () => {
@@ -168,12 +171,55 @@ export function SocialImportModal({
       setStatus('idle');
       setError(null);
       setIsOwnContent(true);
+      setImportJobId(null);
+      setImportPollCount(0);
+      setImportContentCount(undefined);
       setSyncStatus({});
       setSyncJobId(null);
       setSyncPollCount(0);
       setSyncError(null);
     }
   }, [isOpen]);
+
+  // Poll for URL import job status
+  useEffect(() => {
+    if (status !== 'polling' || !importJobId) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const result = await api.kbContent.getSocialImportStatus(importJobId);
+
+        if (result.job) {
+          if (result.job.status === 'completed') {
+            setStatus('success');
+            setImportContentCount(result.job.contentCount);
+            clearInterval(pollInterval);
+            onImportComplete?.({
+              jobId: importJobId,
+              platform: result.job.platform,
+              contentCount: result.job.contentCount,
+            });
+          } else if (result.job.status === 'failed') {
+            setStatus('error');
+            setError(result.job.message || 'Import failed');
+            clearInterval(pollInterval);
+          }
+        }
+
+        setImportPollCount(prev => prev + 1);
+
+        if (importPollCount > 60) {
+          clearInterval(pollInterval);
+          setStatus('error');
+          setError('Import is taking longer than expected. The job is still processing in the background — check your Knowledge Base in a few minutes.');
+        }
+      } catch (err) {
+        console.error('Import poll error:', err);
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [status, importJobId, importPollCount, onImportComplete]);
 
   // Poll for Google sync job status
   useEffect(() => {
@@ -293,11 +339,9 @@ export function SocialImportModal({
       });
 
       if (result.success) {
-        onImportComplete?.({
-          jobId: result.jobId,
-          platform: selectedPlatform,
-        });
-        onClose();
+        setImportJobId(result.jobId);
+        setStatus('polling');
+        setImportPollCount(0);
       } else {
         throw new Error('Failed to start import');
       }
@@ -355,6 +399,93 @@ export function SocialImportModal({
         {/* Content */}
         <div className="p-6">
           {/* ============ URL IMPORT SECTION ============ */}
+          {/* ============ IMPORTING / POLLING STATE ============ */}
+          {(status === 'importing' || status === 'polling') && selectedPlatform && (
+            <div className="py-12 text-center">
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl ${PLATFORM_CONFIG[selectedPlatform].color}`}>
+                  {PLATFORM_CONFIG[selectedPlatform].icon}
+                </div>
+                <svg
+                  className="absolute inset-0 w-20 h-20 animate-spin"
+                  viewBox="0 0 100 100"
+                >
+                  <circle
+                    className="text-gray-200 dark:text-gray-600"
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    strokeWidth="8"
+                    stroke="currentColor"
+                  />
+                  <circle
+                    className="text-indigo-500"
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    strokeWidth="8"
+                    stroke="currentColor"
+                    strokeDasharray="280"
+                    strokeDashoffset="200"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                {status === 'importing'
+                  ? `Starting ${PLATFORM_CONFIG[selectedPlatform].name} Import...`
+                  : `Importing from ${PLATFORM_CONFIG[selectedPlatform].name}...`}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                {status === 'polling'
+                  ? `Scraping and processing ${PLATFORM_CONFIG[selectedPlatform].name} content...`
+                  : 'Connecting...'}
+              </p>
+
+              {status === 'polling' && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+                  {importPollCount < 12
+                    ? 'This usually takes 1-2 minutes'
+                    : importPollCount < 36
+                    ? 'Still processing... profiles with many posts take longer'
+                    : 'Almost there...'}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ============ SUCCESS STATE ============ */}
+          {status === 'success' && selectedPlatform && (
+            <div className="py-12 text-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Import Complete!
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                {importContentCount
+                  ? `${importContentCount} ${PLATFORM_CONFIG[selectedPlatform].name} posts added to your knowledge base.`
+                  : `${PLATFORM_CONFIG[selectedPlatform].name} content has been added to your knowledge base.`}
+              </p>
+
+              <button
+                onClick={onClose}
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg
+                         transition-colors font-medium"
+              >
+                Done
+              </button>
+            </div>
+          )}
+
+          {/* ============ IDLE / ERROR STATE ============ */}
           {(status === 'idle' || status === 'error') && (
             <>
               {/* Platform Selection */}
