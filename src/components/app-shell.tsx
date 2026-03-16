@@ -45,7 +45,7 @@ export function AppShell({ children }: AppShellProps) {
         {showExpiredBanner && (
           <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 flex items-center justify-between gap-3">
             <p className="text-sm text-amber-700 dark:text-amber-400">
-              Your subscription has ended. Resubscribe to unlock all features.
+              Your subscription has ended. Resubscribe to keep generating.
             </p>
             <Link
               href="/app/billing"

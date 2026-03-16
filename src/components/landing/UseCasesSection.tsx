@@ -12,7 +12,7 @@ const useCases = [
     input: '1 podcast episode',
     outputs: ['5 viral reels', '12 social posts', '3 carousels', 'Newsletter'],
     impact: 'Saves 8 hours/week',
-    description: 'Turn your weekly episode into a complete content calendar. Every conversation becomes weeks of social content.',
+    description: 'Your conversations already contain the ideas. Echo pulls them out and writes the rest.',
   },
   {
     role: 'Real Estate Agent',
@@ -22,7 +22,7 @@ const useCases = [
     input: '1 property tour',
     outputs: ['4 listing reels', '6 market posts', '2 carousels', 'Email campaign'],
     impact: 'Saves 6 hours/listing',
-    description: 'Transform property tours into multi-platform listing campaigns. Every walkthrough becomes content that sells.',
+    description: 'You already know the property. Echo writes the listing content from your walkthrough, in your voice.',
   },
   {
     role: 'Course Creator',
@@ -32,7 +32,7 @@ const useCases = [
     input: '1 lesson recording',
     outputs: ['3 tutorial clips', '8 LinkedIn posts', '2 Twitter threads', 'Blog post'],
     impact: 'Saves 10 hours/week',
-    description: 'Extract teaching moments from your lessons. Build authority while you teach-no extra work required.',
+    description: 'Your lessons already have the teaching moments. Echo finds them and writes the authority content.',
   },
   {
     role: 'Consultant',
@@ -42,7 +42,7 @@ const useCases = [
     input: '1 client session',
     outputs: ['5 expertise clips', '10 thought posts', '3 carousels', 'Case study'],
     impact: 'Saves 12 hours/month',
-    description: 'Turn client work into authority content. Every session demonstrates your expertise to future clients.',
+    description: 'Your expertise is in the sessions. Echo turns it into content that shows future clients what you know.',
   },
 ];
 
@@ -61,13 +61,13 @@ export function UseCasesSection() {
               <span className="text-primary font-semibold text-sm">Use Cases</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
-              Built for
+              Built Around
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                {' '}How You Create
+                {' '}What You Already Do
               </span>
             </h2>
             <p className="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
-              Whatever you're already recording, EchoMe turns it into a complete content strategy.
+              You&apos;re already recording. EchoMe turns that into a full content strategy, in your voice.
             </p>
           </div>
 
@@ -124,7 +124,7 @@ export function UseCasesSection() {
           {/* Bottom CTA */}
           <div className="text-center mt-16">
             <p className="text-gray-500 text-lg">
-              Don't see your role? EchoMe works with any video content you're already creating.
+              If you create content in any form, EchoMe already has something to work with.
             </p>
           </div>
         </div>

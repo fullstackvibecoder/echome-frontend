@@ -151,7 +151,7 @@ export function CommunitySection() {
             </span>
           </h2>
           <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto">
-            Weekly office hours, expert guests, and a growing community of creators helping each other get the most out of EchoMe.
+            Weekly office hours, expert guests, and real conversations about using EchoMe well.
           </p>
         </div>
 
@@ -283,7 +283,7 @@ export function CommunitySection() {
                 {
                   icon: <Users className="w-5 h-5 text-primary" />,
                   title: 'Expert Guests',
-                  description: 'Industry leaders and creators share strategies you can apply immediately.',
+                  description: 'Creators and operators share what actually works.',
                 },
                 {
                   icon: <MessageCircle className="w-5 h-5 text-accent-purple" />,
@@ -293,7 +293,7 @@ export function CommunitySection() {
                 {
                   icon: <Video className="w-5 h-5 text-accent-pink" />,
                   title: 'Best Practices',
-                  description: 'Tips, workflows, and creative techniques to maximize your content output.',
+                  description: 'Workflows and techniques for getting better results.',
                 },
               ].map((item, idx) => (
                 <div
@@ -319,14 +319,14 @@ export function CommunitySection() {
                     <h3 className="text-lg font-extrabold text-foreground">Try EchoMe Before the Call</h3>
                   </div>
                   <p className="text-gray-600 text-sm max-w-lg">
-                    Get 2 free generations - no credit card required. Upload a video and see your content kit before office hours so you can bring real questions to the session.
+                    2 free generations, no credit card. Try it before the call so you show up with real questions.
                   </p>
                 </div>
                 <a
                   href="/auth/signup"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap flex-shrink-0"
                 >
-                  Start Free Trial
+                  Start Free
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>

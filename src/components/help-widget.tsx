@@ -16,27 +16,27 @@ interface FAQItem {
 const PUBLIC_FAQS: FAQItem[] = [
   {
     question: 'What is EchoMe?',
-    answer: 'EchoMe is an AI content tool that learns YOUR unique voice. Upload a video, and it generates social posts, carousels, blog articles, and email newsletters - all written the way you actually write and speak.',
+    answer: 'EchoMe generates content from your existing work. It reads your past writing, videos, and emails, then uses that context to produce new content that sounds like you.',
   },
   {
     question: 'How do free generations work?',
-    answer: 'You get 2 free lifetime generations - no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
+    answer: '2 free generations, no credit card. Each generation produces content across all platforms at once - Instagram, LinkedIn, Blog, Email, TikTok, and Video Script.',
   },
   {
-    question: 'What can I upload to train my voice?',
-    answer: 'Blog posts, articles, PDFs, Word docs, social media posts, email exports (.mbox), voice recordings, and YouTube/Instagram imports. The more you add, the better EchoMe matches your style.',
+    question: 'What can I add to my Knowledge Base?',
+    answer: 'Blog posts, articles, PDFs, Word docs, social media posts, email exports (.mbox), voice recordings, and YouTube/Instagram imports. More context means better output.',
   },
   {
     question: 'How is this different from ChatGPT?',
-    answer: 'ChatGPT writes generic AI content. EchoMe learns YOUR specific voice - your word choices, sentence patterns, and tone - so generated content sounds like you wrote it, not a robot.',
+    answer: 'ChatGPT writes from prompts. EchoMe writes from your history - your actual words, ideas, and perspective. The output is grounded in what you know and how you think.',
   },
   {
     question: 'What video formats are supported?',
-    answer: 'MP4, MOV, AVI, and WebM files up to 5GB. We transcribe the audio, find the best clips, add captions, and generate a full content kit from your video.',
+    answer: 'MP4, MOV, AVI, and WebM up to 5GB. The system transcribes, finds the best clips, adds captions, and generates a content kit.',
   },
   {
     question: 'How much does it cost?',
-    answer: 'Plans start at $29/mo (Echo), $49/mo (Echo Studio - most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
+    answer: '$29/mo (Echo), $49/mo (Echo Studio), or $99/mo (Echo Pro). 2 free generations to try it. Annual billing saves 17%.',
   },
 ];
 

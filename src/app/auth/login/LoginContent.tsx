@@ -24,7 +24,7 @@ export default function LoginContent() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 text-foreground">Welcome Back</h1>
         <p className="text-muted-foreground">
-          Sign in to continue creating authentic content
+          Sign in to pick up where you left off
         </p>
       </div>
 

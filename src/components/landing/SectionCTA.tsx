@@ -10,7 +10,7 @@ interface SectionCTAProps {
 
 export function SectionCTA({
   headline = 'Ready to sound like yourself?',
-  buttonText = 'Try It Free',
+  buttonText = 'Start Free',
   href = '/auth/signup',
   trust = 'No credit card required',
 }: SectionCTAProps) {

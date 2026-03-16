@@ -8,26 +8,26 @@ const steps = [
   {
     num: 1,
     icon: Database,
-    title: 'Build Your Knowledge Base',
-    desc: 'Upload YouTube channel link, blog URL, sent emails (MBOX), or just talk into the mic. The system ingests your words, tone, and patterns.',
+    title: 'Give It Your History',
+    desc: 'Drop in a YouTube link, blog URL, email export, or just talk. The system reads your words, tone, and patterns.',
   },
   {
     num: 2,
     icon: Upload,
-    title: 'Upload a Video',
-    desc: 'Drop in any video. Zoom recording, podcast, phone video, raw and unedited. Up to 5GB.',
+    title: 'Drop a Video',
+    desc: 'Any video. Zoom call, podcast, phone recording, raw and unedited. Up to 5GB.',
   },
   {
     num: 3,
     icon: Sparkles,
-    title: 'Get Your Content Kit',
-    desc: 'In 2–5 minutes: extracted clips with captions, tweet-style carousels, social posts, blog drafts. All voice-matched.',
+    title: 'Get a Content Kit',
+    desc: 'Clips, captions, carousels, social posts, blog drafts. All grounded in your voice and your ideas.',
   },
   {
     num: 4,
     icon: Calendar,
-    title: 'Schedule & Post',
-    desc: 'Load everything into the built-in content calendar. Post directly to social platforms. One video becomes a week of content.',
+    title: 'Post It',
+    desc: 'Everything goes into a content calendar. One video, a week of content, all yours.',
   },
 ];
 
@@ -45,7 +45,7 @@ export function HowItWorks() {
               How It Works
             </h2>
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-              Four steps. Upload a video, get a full content kit - all matched to your voice.
+              Four steps. Your history goes in, your content comes out.
             </p>
           </div>
 
@@ -77,11 +77,11 @@ export function HowItWorks() {
                          rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
                          shadow-lg text-lg group"
             >
-              Try It Free
+              Start Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
             <p className="text-sm text-gray-500 font-light mt-3">
-              No credit card required - 2 free generations
+              No credit card. 2 free generations.
             </p>
           </div>
         </div>

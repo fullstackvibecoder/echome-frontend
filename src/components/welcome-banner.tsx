@@ -24,7 +24,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
       {/* Header */}
       <div className="flex items-start justify-between mb-1">
         <h1 className="text-display text-4xl">
-          Your voice is ready{userName ? `, ${userName}` : ''}
+          Ready to go{userName ? `, ${userName}` : ''}
         </h1>
         <button
           onClick={handleDismiss}
@@ -37,7 +37,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
         </button>
       </div>
       <p className="text-body text-text-secondary mb-6">
-        EchoMe has learned your writing style. Try generating your first piece of content below.
+        The system has your context. Generate something and see how it sounds.
       </p>
 
       {/* Quick Hint Cards */}
@@ -50,7 +50,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
           <div className="text-2xl mb-2">✨</div>
           <h3 className="text-body font-semibold mb-1">Generate</h3>
           <p className="text-small text-text-secondary mb-3">
-            Type a topic and generate content in your voice.
+            Pick a topic. The system writes it in your voice.
           </p>
           <span className="text-small text-accent font-medium group-hover:underline">
             Try it now &rarr;
@@ -65,7 +65,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
           <div className="text-2xl mb-2">📖</div>
           <h3 className="text-body font-semibold mb-1">Knowledge Base</h3>
           <p className="text-small text-text-secondary mb-3">
-            Add more samples to improve your voice profile.
+            More context means better output. Add more of your work.
           </p>
           <span className="text-small text-accent font-medium group-hover:underline">
             Open KB &rarr;
@@ -80,7 +80,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
           <div className="text-2xl mb-2">📂</div>
           <h3 className="text-body font-semibold mb-1">Content Kit</h3>
           <p className="text-small text-text-secondary mb-3">
-            All generated content is saved here for easy access.
+            Everything generated lives here.
           </p>
           <span className="text-small text-accent font-medium group-hover:underline">
             View Kit &rarr;

@@ -15,14 +15,14 @@ export const individualPlans: PlanData[] = [
   {
     name: 'Free',
     slug: '',
-    description: 'Try EchoMe with no commitment',
+    description: 'See if it gets your voice right',
     monthlyPrice: 0,
     annualPrice: 0,
     buttonText: 'Start Free',
     accentColor: 'primary',
     features: [
       '2 free generations',
-      'Basic voice matching',
+      'Voice matching from your content',
       '1 platform per generation',
       'Standard templates',
     ],
@@ -30,7 +30,7 @@ export const individualPlans: PlanData[] = [
   {
     name: 'Echo',
     slug: 'echo',
-    description: 'For creators with growing video libraries',
+    description: 'For creators with a body of work to draw from',
     monthlyPrice: 29,
     annualPrice: 290,
     buttonText: 'Go Echo',
@@ -38,7 +38,7 @@ export const individualPlans: PlanData[] = [
     features: [
       '2 hours of video processing',
       '5 clips per video',
-      '1 Knowledge Base (your voice profile)',
+      '1 Knowledge Base',
       '3 Creator Radar slots',
       'Standard carousel templates',
       '1080p exports',
@@ -48,7 +48,7 @@ export const individualPlans: PlanData[] = [
   {
     name: 'Echo Studio',
     slug: 'echo-studio',
-    description: 'For video creators proliferating content at scale',
+    description: 'For creators who publish frequently and take their output seriously',
     monthlyPrice: 49,
     annualPrice: 490,
     buttonText: 'Go Studio',
@@ -58,7 +58,7 @@ export const individualPlans: PlanData[] = [
     features: [
       'Up to 5 hours of video processing',
       'Up to 10 clips per video',
-      'Advanced voice matching',
+      'Deep voice matching',
       'Up to 10 Creator Radar slots',
       'All templates + custom colors',
       '1080p exports',
@@ -70,7 +70,7 @@ export const individualPlans: PlanData[] = [
   {
     name: 'Echo Pro',
     slug: 'echo-pro',
-    description: 'For agencies managing multiple creator video libraries',
+    description: 'For agencies and teams managing multiple voices',
     monthlyPrice: 99,
     annualPrice: 990,
     buttonText: 'Go Pro',
@@ -78,7 +78,7 @@ export const individualPlans: PlanData[] = [
     features: [
       'Unlimited video processing',
       'Up to 15 clips per video',
-      'Premium voice matching',
+      'Full voice matching pipeline',
       'Unlimited Creator Radar',
       'Custom carousel design system',
       '1080p exports',

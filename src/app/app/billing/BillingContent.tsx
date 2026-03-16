@@ -50,7 +50,7 @@ const FALLBACK_PLANS: StripePlan[] = [
     features: [
       'Up to 5 hours of video processing',
       'Up to 10 clips per video',
-      'Advanced voice matching',
+      'Deep voice matching',
       'Up to 10 Creator Radar slots',
       'All carousel templates + custom colors',
       '1080p exports',
@@ -79,7 +79,7 @@ const FALLBACK_PLANS: StripePlan[] = [
     features: [
       'Unlimited video processing',
       'Up to 15 clips per video',
-      'Premium voice matching',
+      'Full voice matching pipeline',
       'Unlimited Creator Radar',
       'Custom carousel design system',
       '1080p exports',
@@ -298,7 +298,7 @@ function BillingContentInner() {
         if (tierName) {
           setError(`This feature requires ${tierName} or higher. Please upgrade your plan to continue.`);
         } else {
-          setSuccessMessage('Choose a plan to unlock unlimited content creation.');
+          setSuccessMessage('Choose a plan to keep generating from your knowledge base.');
         }
         window.history.replaceState({}, '', '/app/billing');
       }

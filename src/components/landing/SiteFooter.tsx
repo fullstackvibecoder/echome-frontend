@@ -23,7 +23,7 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="text-white/80 font-light text-lg leading-relaxed mb-6">
-              Video-first content platform. One video becomes a week of content, all in your voice.
+              Context-aware content generation. Your history, your voice, your output.
             </p>
             <div className="flex gap-3">
               <a href="https://x.com/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">

@@ -7,22 +7,22 @@ const sources = [
   {
     icon: Youtube,
     title: 'YouTube Channel',
-    desc: 'Paste your channel link. Every old video gets transcribed and indexed.',
+    desc: 'Paste a link. Your back catalog gets transcribed and indexed.',
   },
   {
     icon: Link2,
     title: 'Blog / Website',
-    desc: 'Paste your URL. All published writing gets pulled in.',
+    desc: 'Paste a URL. Published writing gets pulled in automatically.',
   },
   {
     icon: Mail,
-    title: 'Sent Emails (MBOX)',
-    desc: 'Export from Gmail via takeout.google.com. Your writing patterns, word choices, tone.',
+    title: 'Sent Emails',
+    desc: 'Export from Gmail. Your real writing patterns, word choices, tone.',
   },
   {
     icon: Mic,
     title: 'Voice Recording',
-    desc: 'Hit record in the app. Just talk. The system transcribes and stores it.',
+    desc: 'Just talk. The system transcribes and stores it.',
   },
 ];
 
@@ -37,14 +37,14 @@ export function KnowledgeBaseSection() {
           {/* Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground">
-              How Echo Learns
+              The Context
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                {' '}Your Voice
+                {' '}Behind Your Voice
               </span>
             </h2>
 
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              Upload your past content. Echo indexes your words, tone, and patterns to build a voice model. The more you add, the better it sounds like you.
+              You&apos;ve already created the content. Echo reads it, indexes your language and ideas, and uses that context every time it writes for you.
             </p>
           </div>
 
@@ -66,9 +66,9 @@ export function KnowledgeBaseSection() {
 
           {/* KB Explanation */}
           <div className="bg-gradient-to-r from-foreground to-foreground rounded-2xl p-8 md:p-10 text-center">
-            <h3 className="text-2xl font-bold text-white mb-4">What Are "Chunks"?</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">Why Does It Sound Like You?</h3>
             <p className="text-white/70 max-w-3xl mx-auto leading-relaxed text-lg">
-              Pieces of your past content that get recalled when generating new output. That's why Echo sounds like <span className="text-white font-semibold">you</span>, not a template.
+              Every generation pulls from pieces of your actual writing. Your ideas, your phrasing, your perspective. That&apos;s the difference between content <span className="text-white font-semibold">from</span> you and content <span className="text-white font-semibold">about</span> you.
             </p>
           </div>
         </div>

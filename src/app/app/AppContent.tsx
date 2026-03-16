@@ -531,7 +531,7 @@ export default function AppContent() {
               <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center">
                 <div className="text-3xl mb-2">🔒</div>
                 <h3 className="text-lg font-bold text-foreground mb-1">Free generations used</h3>
-                <p className="text-sm text-text-secondary mb-4">Subscribe to unlock unlimited content creation.</p>
+                <p className="text-sm text-text-secondary mb-4">Subscribe to keep generating from your knowledge base.</p>
                 <button
                   onClick={() => router.push('/app/billing')}
                   className="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all hover:scale-[1.02]"

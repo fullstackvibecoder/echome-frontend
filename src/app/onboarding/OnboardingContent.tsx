@@ -566,13 +566,13 @@ export default function OnboardingContent() {
         {/* --- Hero (compact) --- */}
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
-            Teach EchoMe Your{' '}
+            Show Us Your{' '}
             <span className="bg-gradient-to-r from-primary via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent animate-gradient-x bg-[length:200%_200%]">
               Voice
             </span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Add at least {MIN_CONTENT_ITEMS} writing samples so content sounds like you, not a robot.
+            Drop in {MIN_CONTENT_ITEMS} pieces of your existing work. That&apos;s all the system needs.
           </p>
         </div>
 
@@ -609,7 +609,7 @@ export default function OnboardingContent() {
         {/* --- Celebration banner --- */}
         {isReady && (
           <div className="mb-6 bg-primary/10 border border-primary/20 rounded-xl p-4 text-center animate-fade-in">
-            <p className="font-semibold text-primary mb-2">Your voice is ready!</p>
+            <p className="font-semibold text-primary mb-2">Good to go.</p>
             <button
               onClick={handleStartCreating}
               className="relative overflow-hidden px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors animate-shimmer-sweep"
@@ -617,7 +617,7 @@ export default function OnboardingContent() {
               Start Creating <ArrowRight className="inline ml-1 w-4 h-4" />
             </button>
             <p className="text-xs text-muted-foreground mt-2">
-              Or keep adding for even better results
+              More context means better output
             </p>
           </div>
         )}
@@ -626,7 +626,7 @@ export default function OnboardingContent() {
         <div className="bg-card border border-border rounded-xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <h2 className="text-sm font-semibold">Your Profile</h2>
-            <span className="text-xs text-muted-foreground">- appears on carousel slides</span>
+            <span className="text-xs text-muted-foreground">- used on carousels and content</span>
           </div>
           <div className="flex items-start gap-4">
             {/* Avatar */}
@@ -717,7 +717,7 @@ export default function OnboardingContent() {
         <div className="bg-card border border-border rounded-xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <h2 className="text-sm font-semibold">Tell Us About You</h2>
-            <span className="text-xs text-muted-foreground">- helps personalize your content</span>
+            <span className="text-xs text-muted-foreground">- gives the system more context</span>
           </div>
           <div className="space-y-3">
             <div>
@@ -799,7 +799,7 @@ export default function OnboardingContent() {
         {/* ========== ADD CONTENT CARD ========== */}
         <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
           <div className="px-4 pt-4 pb-0">
-            <h2 className="text-sm font-semibold mb-3">Train Your Voice</h2>
+            <h2 className="text-sm font-semibold mb-3">Add Your Work</h2>
           </div>
 
           {/* Tabs */}
@@ -828,7 +828,7 @@ export default function OnboardingContent() {
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="Paste a blog post, email, LinkedIn post, or anything you've written..."
+                  placeholder="Paste something you've written - blog post, email, social post, anything..."
                   rows={4}
                   className="w-full px-3 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
                 />
@@ -856,7 +856,7 @@ export default function OnboardingContent() {
                     ) : (
                       <Check className="w-3.5 h-3.5" />
                     )}
-                    Add to My Voice
+                    Add
                   </button>
                 </div>
               </div>
@@ -982,7 +982,7 @@ export default function OnboardingContent() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground pb-6">
-          Without voice training, content will sound generic
+          Without your content, the system has nothing to work with
         </p>
       </div>
     </div>

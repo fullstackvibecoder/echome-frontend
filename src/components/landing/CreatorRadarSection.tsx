@@ -17,7 +17,7 @@ const steps = [
   {
     icon: Sparkles,
     title: 'Hit Repurpose',
-    desc: 'EchoMe generates a full content kit from their video, filtered through your knowledge base.',
+    desc: 'Echo generates content from their video, grounded in your context and your perspective.',
   },
   {
     icon: MessageSquare,
@@ -45,7 +45,7 @@ export function CreatorRadarSection() {
             </h2>
 
             <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
-              Follow creators in your space. Repurpose their videos through your voice. It's idea synthesis at scale, not plagiarism.
+              Follow creators in your space. Their ideas get filtered through your knowledge base and come out in your voice.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export function CreatorRadarSection() {
               Same ideas, your words. Always.
             </p>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              You're not copying their content. You're synthesizing their ideas through your knowledge base, creating original output that sounds like you.
+              Their ideas, your context, your voice. The output is original because the perspective is yours.
             </p>
           </div>
         </div>

@@ -74,7 +74,7 @@ export default function AffiliatesContent() {
                 Earn <span className="bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">25% Recurring</span> Sharing a Tool You Love
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Recommend EchoMe to creators, marketers, and businesses. Get paid every month they stay subscribed.
+                Send people who take their content seriously. Get paid every month they stay.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <a

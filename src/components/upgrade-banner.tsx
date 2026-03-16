@@ -47,7 +47,7 @@ export function UpgradeBanner() {
           Your 2 free generations are used up
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Subscribe to unlock unlimited content creation, video clips, and more.
+          Subscribe to keep generating from your knowledge base.
         </p>
       </div>
       <Link

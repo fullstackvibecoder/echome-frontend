@@ -39,7 +39,7 @@ function SignupForm() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 text-foreground">Create Your Echo</h1>
         <p className="text-muted-foreground">
-          Join 500+ creators making authentic content
+          Start generating content that sounds like you wrote it
         </p>
       </div>
 
@@ -47,15 +47,15 @@ function SignupForm() {
       <ul className="space-y-2 mb-8 text-sm text-muted-foreground">
         <li className="flex items-center gap-2">
           <span className="text-primary">✓</span>
-          2 free generations - no credit card required
+          2 free generations, no credit card
         </li>
         <li className="flex items-center gap-2">
           <span className="text-primary">✓</span>
-          Content generated in your unique voice
+          Learns from your existing content
         </li>
         <li className="flex items-center gap-2">
           <span className="text-primary">✓</span>
-          Cross-platform posts in seconds
+          Output grounded in your voice and ideas
         </li>
       </ul>
 
@@ -269,7 +269,7 @@ export default function SignupContent() {
         <div className="card animate-fade-in">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2 text-foreground">Create Your Echo</h1>
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">One moment...</p>
           </div>
         </div>
       }

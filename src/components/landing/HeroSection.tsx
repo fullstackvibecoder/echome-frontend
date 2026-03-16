@@ -19,7 +19,7 @@ export function HeroSection() {
             style={{ animationDelay: '0ms' }}
           >
             <Upload className="w-4 h-4 text-primary" />
-            <span className="text-white/90 font-medium text-sm">For creators who&apos;ve already made the content</span>
+            <span className="text-white/90 font-medium text-sm">For creators who already have a body of work</span>
           </div>
 
           {/* Headline */}
@@ -27,10 +27,10 @@ export function HeroSection() {
             className="text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-[1.1] opacity-0 animate-fade-in"
             style={{ animationDelay: '200ms' }}
           >
-            <span className="text-white">Your Audience Can Already Tell</span>
+            <span className="text-white">It Already Knows</span>
             <br />
             <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-              When It Sounds Like AI.
+              How You Think.
             </span>
           </h1>
 
@@ -39,7 +39,7 @@ export function HeroSection() {
             className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
             style={{ animationDelay: '300ms' }}
           >
-            Drop a video. EchoMe builds a voice profile from your history - and writes everything through it.
+            EchoMe reads your past content, learns your voice, and generates new work that sounds like it came from you.
           </p>
 
           {/* CTAs - ABOVE the demo */}
@@ -53,7 +53,7 @@ export function HeroSection() {
                          rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
                          shadow-lg text-xl flex items-center gap-2 group w-full sm:w-auto justify-center"
             >
-              Try It Free
+              Start Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
             <a
@@ -70,7 +70,7 @@ export function HeroSection() {
             className="text-sm text-white/70 font-normal mb-10 opacity-0 animate-fade-in"
             style={{ animationDelay: '500ms' }}
           >
-            No credit card required - 2 free generations
+            No credit card. 2 free generations.
           </p>
 
           {/* Social proof bar */}
@@ -79,16 +79,16 @@ export function HeroSection() {
             style={{ animationDelay: '550ms' }}
           >
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-primary font-bold text-base">6</span>
-              <span className="text-white/80 text-base">platforms supported</span>
+              <span className="text-primary font-bold text-base">Context-aware</span>
+              <span className="text-white/80 text-base">not prompt-driven</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
               <span className="text-accent-purple font-bold text-base">Your voice</span>
               <span className="text-white/80 text-base">not generic AI</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-primary font-bold text-base">2 min</span>
-              <span className="text-white/80 text-base">to set up</span>
+              <span className="text-primary font-bold text-base">Learns</span>
+              <span className="text-white/80 text-base">from what you&apos;ve already made</span>
             </div>
           </div>
 

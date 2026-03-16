@@ -168,7 +168,7 @@ export default function HomeContent() {
               <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border-2 border-gray-200 p-6 flex flex-col shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-foreground mb-2">Free</h3>
-                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">Try EchoMe with no commitment</p>
+                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">See if it gets your voice right</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold text-foreground">$0</span>
@@ -183,7 +183,7 @@ export default function HomeContent() {
                   <div className="space-y-3 pt-4 border-t-2 border-gray-200">
                     {[
                       '2 free generations',
-                      'Basic voice matching',
+                      'Voice matching from your content',
                       '1 platform per generation',
                       'Standard templates',
                     ].map((feature, idx) => (
@@ -205,7 +205,7 @@ export default function HomeContent() {
               <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-gray-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-foreground mb-2">Echo</h3>
-                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">For creators with growing video libraries</p>
+                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">For creators with a body of work to draw from</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
@@ -256,7 +256,7 @@ export default function HomeContent() {
                 </div>
                 <div className="mb-6 mt-3">
                   <h3 className="text-2xl font-extrabold text-white mb-2">Echo Studio</h3>
-                  <p className="text-xs font-light text-white/90 mb-4 leading-relaxed">For video creators proliferating content at scale</p>
+                  <p className="text-xs font-light text-white/90 mb-4 leading-relaxed">For creators who publish frequently and take their output seriously</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold text-white drop-shadow-lg">
@@ -279,7 +279,7 @@ export default function HomeContent() {
                     {[
                       'Up to 5 hours of video processing',
                       'Up to 10 clips per video',
-                      'Advanced voice matching',
+                      'Deep voice matching',
                       'Up to 10 Creator Radar slots',
                       'All templates + custom colors',
                       '1080p exports',
@@ -306,7 +306,7 @@ export default function HomeContent() {
               <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-accent-purple/40 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-foreground mb-2">Echo Pro</h3>
-                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">For agencies managing multiple creator video libraries</p>
+                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">For agencies and teams managing multiple voices</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
@@ -329,7 +329,7 @@ export default function HomeContent() {
                     {[
                       'Unlimited video processing',
                       'Up to 15 clips per video',
-                      'Premium voice matching',
+                      'Full voice matching pipeline',
                       'Unlimited Creator Radar',
                       'Custom carousel design system',
                       '1080p exports',

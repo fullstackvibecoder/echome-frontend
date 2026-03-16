@@ -22,7 +22,7 @@ export function NotChatGPTSection() {
             </h2>
 
             <p className="text-xl text-gray-300 font-light max-w-2xl mx-auto leading-relaxed">
-              ChatGPT generates content from prompts. Echo generates content from your videos, filtered through your knowledge base. No prompt engineering required.
+              ChatGPT writes from prompts. Echo writes from context - your history, your voice, your ideas. No prompt engineering. No &ldquo;act like me&rdquo; instructions.
             </p>
           </div>
 
@@ -71,7 +71,7 @@ export function NotChatGPTSection() {
                   <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                     <ArrowRight className="w-3 h-3 text-primary" />
                   </span>
-                  Voice-matched output from your KB
+                  Output grounded in your history
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -92,12 +92,12 @@ export function NotChatGPTSection() {
           {/* Bottom CTA */}
           <div className="mt-16 text-center">
             <p className="text-2xl font-bold text-white mb-2">
-              No prompt engineering. No &ldquo;act like me&rdquo; instructions.
+              The system already knows your voice.
             </p>
             <p className="text-lg text-white/60 mb-8">
-              Just upload. The system already knows your voice.
+              Upload your work. It handles the rest.
             </p>
-            <SectionCTA headline="" buttonText="Try It Free" trust="2 free generations - no credit card required" />
+            <SectionCTA headline="" buttonText="Start Free" trust="2 free generations. No credit card." />
           </div>
         </div>
       </section>
