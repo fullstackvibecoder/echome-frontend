@@ -1300,7 +1300,7 @@ export interface ExtractBRollInput {
 // B-ROLL REEL COMPOSITION TYPES
 // ============================================
 
-export type TextOverlayStyleId = 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards';
+export type TextOverlayStyleId = 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards' | 'outlined_stroke' | 'subtitle_bar' | 'neon_glow';
 
 export interface TextOverlayStyle {
   id: TextOverlayStyleId;

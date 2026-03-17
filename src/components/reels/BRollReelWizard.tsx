@@ -66,7 +66,94 @@ const STYLE_OPTIONS: StyleOption[] = [
     description: 'Card-style overlays like IG stories',
     mockupLines: ['Swipe-ready', 'stories'],
   },
+  {
+    id: 'outlined_stroke',
+    name: 'Outlined',
+    description: 'Bold outlined text, no background',
+    mockupLines: ['STAND', 'OUT'],
+  },
+  {
+    id: 'subtitle_bar',
+    name: 'Auto-Caption',
+    description: 'Bottom pill bar like IG captions',
+    mockupLines: ['auto-generated captions'],
+  },
+  {
+    id: 'neon_glow',
+    name: 'Neon Glow',
+    description: 'Glowing text with color halo',
+    mockupLines: ['glow', 'up'],
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// Shared Styled Text Overlay Component
+// ---------------------------------------------------------------------------
+
+function StyledTextOverlay({ text, styleId }: { text: string; styleId: TextOverlayStyleId }) {
+  if (!text) {
+    return <p className="text-white/40 text-sm">Text preview</p>;
+  }
+
+  switch (styleId) {
+    case 'bold_impact':
+      return (
+        <div className="px-3 py-2 rounded-lg text-center text-white text-xl font-black uppercase">
+          {text}
+        </div>
+      );
+    case 'minimal_clean':
+      return (
+        <div className="px-3 py-2 rounded-lg text-center text-white text-base font-light tracking-wide">
+          {text}
+        </div>
+      );
+    case 'brand_gradient':
+      return (
+        <div className="px-4 py-3 rounded-lg text-center bg-gradient-to-r from-accent/80 to-purple-500/80 text-white text-base font-bold">
+          {text}
+        </div>
+      );
+    case 'story_cards':
+      return (
+        <div className="px-4 py-3 rounded-lg text-center bg-white/90 dark:bg-black/60 text-text-primary text-base font-semibold shadow-sm">
+          {text}
+        </div>
+      );
+    case 'outlined_stroke':
+      return (
+        <div
+          className="px-3 py-2 text-center text-white text-2xl font-black uppercase"
+          style={{ WebkitTextStroke: '2px black' }}
+        >
+          {text}
+        </div>
+      );
+    case 'subtitle_bar':
+      return (
+        <div className="absolute bottom-6 left-3 right-3 flex justify-center">
+          <div className="bg-black/70 rounded-full px-5 py-2 text-white text-sm text-center">
+            {text}
+          </div>
+        </div>
+      );
+    case 'neon_glow':
+      return (
+        <div
+          className="px-3 py-2 text-center text-white text-xl font-bold"
+          style={{ textShadow: '0 0 20px #a78bfa, 0 0 40px #a78bfa' }}
+        >
+          {text}
+        </div>
+      );
+    default:
+      return (
+        <div className="px-3 py-2 rounded-lg text-center text-white text-base">
+          {text}
+        </div>
+      );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Step Indicator
@@ -148,6 +235,8 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   // Step 2 - Describe & Style
   const [topic, setTopic] = useState('');
   const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
+  const [activePreviewStyleIndex, setActivePreviewStyleIndex] = useState(0);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
 
   // Step 3 - Review & Generate
   const [overlays, setOverlays] = useState<Array<{ text: string; position: string }>>([]);
@@ -157,6 +246,25 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   const [generateProgress, setGenerateProgress] = useState(0);
   const [composition, setComposition] = useState<BRollReelComposition | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // Style auto-rotation for step 2
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!isAutoRotating || currentStep !== 'describe') return;
+    const timer = setInterval(() => {
+      setActivePreviewStyleIndex((i) => (i + 1) % STYLE_OPTIONS.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [isAutoRotating, currentStep]);
+
+  // Sync selectedStyle when auto-rotating
+  useEffect(() => {
+    if (isAutoRotating && currentStep === 'describe') {
+      setSelectedStyle(STYLE_OPTIONS[activePreviewStyleIndex].id);
+    }
+  }, [activePreviewStyleIndex, isAutoRotating, currentStep]);
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -174,6 +282,15 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     if (stepIndex > 0) {
       setCurrentStep(STEPS[stepIndex - 1].key);
     }
+  };
+
+  // Preview text: first ~6 words of topic, or style's mockup fallback
+  const getPreviewText = (style: StyleOption): string => {
+    if (topic.trim()) {
+      const words = topic.trim().split(/\s+/).slice(0, 6);
+      return words.join(' ') + (topic.trim().split(/\s+/).length > 6 ? '...' : '');
+    }
+    return style.mockupLines.join(' ');
   };
 
   // Fetch AI text overlays on entering review step
@@ -370,92 +487,123 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
   );
 
   // ---------------------------------------------------------------------------
-  // Step 2 - Describe & Style
+  // Step 2 - Describe & Style (Redesigned)
   // ---------------------------------------------------------------------------
 
-  const renderDescribeStep = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-medium text-text-primary mb-2">Describe & Style</h2>
-        <p className="text-text-secondary text-sm">
-          Tell us what this reel is about and pick a text style. We'll generate voice-matched overlays.
-        </p>
-      </div>
+  const renderDescribeStep = () => {
+    const currentPreviewStyle = STYLE_OPTIONS[activePreviewStyleIndex];
+    const previewText = getPreviewText(currentPreviewStyle);
 
-      {/* Topic textarea */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-text-primary">
-          What's this reel about?
-        </label>
-        <textarea
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="e.g., 3 tips for staging a home before listing"
-          rows={3}
-          className="w-full px-4 py-3 bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-          maxLength={2000}
-        />
-        <p className="text-xs text-text-tertiary text-right">{topic.length}/2000</p>
-      </div>
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-medium text-text-primary mb-2">Describe & Style</h2>
+          <p className="text-text-secondary text-sm">
+            Tell us what this reel is about and pick a text style. We&apos;ll generate voice-matched overlays.
+          </p>
+        </div>
 
-      {/* Style picker */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-text-primary">Text Style</label>
-        <div className="grid grid-cols-2 gap-4">
-          {STYLE_OPTIONS.map((style) => (
-            <button
-              key={style.id}
-              onClick={() => setSelectedStyle(style.id)}
-              className={`
-                aspect-[9/16] bg-surface-secondary rounded-xl border-2 cursor-pointer
-                flex flex-col items-center justify-center p-4 text-center transition-all
-                ${
-                  selectedStyle === style.id
-                    ? 'border-accent bg-accent/5'
-                    : 'border-border hover:border-text-tertiary'
-                }
-              `}
-            >
-              <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                {style.id === 'bold_impact' && (
-                  <div className="space-y-1">
-                    {style.mockupLines.map((line) => (
-                      <p key={line} className="text-2xl font-black uppercase text-text-primary tracking-tight">{line}</p>
-                    ))}
-                  </div>
-                )}
-                {style.id === 'minimal_clean' && (
-                  <div className="space-y-1">
-                    {style.mockupLines.map((line) => (
-                      <p key={line} className="text-lg font-light text-text-secondary tracking-wide">{line}</p>
-                    ))}
-                  </div>
-                )}
-                {style.id === 'brand_gradient' && (
-                  <div className="bg-gradient-to-r from-accent/80 to-purple-500/80 rounded-lg px-4 py-3">
-                    {style.mockupLines.map((line) => (
-                      <p key={line} className="text-lg font-bold text-white">{line}</p>
-                    ))}
-                  </div>
-                )}
-                {style.id === 'story_cards' && (
-                  <div className="bg-white/90 dark:bg-black/60 rounded-lg px-4 py-3 shadow-sm">
-                    {style.mockupLines.map((line) => (
-                      <p key={line} className="text-lg font-semibold text-text-primary">{line}</p>
-                    ))}
-                  </div>
-                )}
+        {/* Topic textarea */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-text-primary">
+            What&apos;s this reel about?
+          </label>
+          <textarea
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="e.g., 3 tips for staging a home before listing"
+            rows={3}
+            className="w-full px-4 py-3 bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+            maxLength={2000}
+          />
+          <p className="text-xs text-text-tertiary text-right">{topic.length}/2000</p>
+        </div>
+
+        {/* Single rotating preview */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-[240px] aspect-[9/16] bg-black rounded-2xl overflow-hidden relative border border-border">
+            {selectedClipUrl ? (
+              <video
+                src={selectedClipUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-b from-surface-secondary to-black/80" />
+            )}
+            {/* Text overlay — positioned based on style */}
+            {currentPreviewStyle.id === 'subtitle_bar' ? (
+              <StyledTextOverlay text={previewText} styleId={currentPreviewStyle.id} />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                <StyledTextOverlay text={previewText} styleId={currentPreviewStyle.id} />
               </div>
-              <div className="mt-4">
-                <p className="text-sm font-medium text-text-primary">{style.name}</p>
-                <p className="text-xs text-text-secondary mt-0.5">{style.description}</p>
-              </div>
-            </button>
-          ))}
+            )}
+            {/* Style name badge */}
+            <div className="absolute top-3 left-3 bg-black/60 rounded-full px-3 py-1">
+              <span className="text-xs text-white/80 font-medium">{currentPreviewStyle.name}</span>
+            </div>
+          </div>
+
+          {/* Auto-preview toggle */}
+          <button
+            onClick={() => setIsAutoRotating(!isAutoRotating)}
+            className="text-xs text-text-tertiary hover:text-accent transition-colors flex items-center gap-1"
+          >
+            {isAutoRotating ? (
+              <>
+                <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Auto-previewing
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                </svg>
+                Resume auto-preview
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Horizontal style chip row */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-text-primary">Text Style</label>
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+            {STYLE_OPTIONS.map((style, i) => (
+              <button
+                key={style.id}
+                onClick={() => {
+                  setSelectedStyle(style.id);
+                  setActivePreviewStyleIndex(i);
+                  setIsAutoRotating(false);
+                }}
+                className={`
+                  flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all
+                  ${
+                    selectedStyle === style.id
+                      ? 'bg-accent text-white ring-2 ring-accent ring-offset-2 ring-offset-surface'
+                      : 'bg-surface-secondary text-text-secondary hover:text-text-primary border border-border'
+                  }
+                `}
+              >
+                {style.name}
+              </button>
+            ))}
+          </div>
+          {/* Selected style description */}
+          <p className="text-xs text-text-tertiary">
+            {STYLE_OPTIONS.find((s) => s.id === selectedStyle)?.description}
+          </p>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ---------------------------------------------------------------------------
   // Step 3 - Review & Generate
@@ -588,23 +736,13 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
               ) : (
                 <div className="w-full h-full bg-surface-secondary" />
               )}
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-                {overlays[0]?.text ? (
-                  <div
-                    className={`
-                      px-3 py-2 rounded-lg text-center
-                      ${selectedStyle === 'bold_impact' ? 'text-white text-xl font-black uppercase' : ''}
-                      ${selectedStyle === 'minimal_clean' ? 'text-white text-base font-light tracking-wide' : ''}
-                      ${selectedStyle === 'brand_gradient' ? 'bg-gradient-to-r from-accent/80 to-purple-500/80 text-white text-base font-bold rounded-lg' : ''}
-                      ${selectedStyle === 'story_cards' ? 'bg-white/90 dark:bg-black/60 text-text-primary text-base font-semibold rounded-lg shadow-sm' : ''}
-                    `}
-                  >
-                    {overlays[0].text}
-                  </div>
-                ) : (
-                  <p className="text-white/40 text-sm">Text preview</p>
-                )}
-              </div>
+              {selectedStyle === 'subtitle_bar' ? (
+                <StyledTextOverlay text={overlays[0]?.text || ''} styleId={selectedStyle} />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                  <StyledTextOverlay text={overlays[0]?.text || ''} styleId={selectedStyle} />
+                </div>
+              )}
             </div>
           </div>
 
