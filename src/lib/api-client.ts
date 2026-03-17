@@ -1690,7 +1690,7 @@ export const api = {
       minClipDuration?: number;
       maxClipDuration?: number;
       targetFormat?: 'portrait' | 'landscape' | 'square';
-      captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+      captionStyle?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
       generateContent?: boolean;
       knowledgeBaseId?: string;
       /**
@@ -2021,7 +2021,7 @@ export const api = {
         }>;
         musicTrackId?: string;
         addCaptions?: boolean;
-        captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+        captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
       }
     ) => {
       const response = await apiClient.post(
@@ -3714,7 +3714,7 @@ export interface VideoClip {
   height?: number;
   faceCropApplied?: boolean; // Whether GPT-4 Vision face detection was used
   faceCropCenter?: { x: number; y: number }; // Face center coordinates (0-1)
-  captionStyle: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+  captionStyle: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
   captionConfig?: Record<string, unknown>;
   hasCaptions: boolean;
   exports: ClipExport[];

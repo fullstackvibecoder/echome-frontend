@@ -74,7 +74,7 @@ export default function ReelEditorContent() {
   const [title, setTitle] = useState('');
   const [reelContext, setReelContext] = useState(''); // Context/description for AI text overlay generation
   const [addCaptions, setAddCaptions] = useState(false);
-  const [captionPreset, setCaptionPreset] = useState<'modern' | 'classic' | 'bold'>('modern');
+  const [captionPreset, setCaptionPreset] = useState<'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word'>('modern');
   const [musicVolume, setMusicVolume] = useState(0.3);
   const [beatSyncEnabled, setBeatSyncEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -160,7 +160,7 @@ export default function ReelEditorContent() {
             setClips(data.clips);
             setTitle(data.project.title || '');
             setAddCaptions(data.project.addCaptions);
-            setCaptionPreset(data.project.captionPreset as 'modern' | 'classic' | 'bold');
+            setCaptionPreset(data.project.captionPreset as typeof captionPreset);
             setMusicVolume(data.project.musicVolume);
             setBeatSyncEnabled(data.project.beatSyncEnabled);
 
@@ -746,7 +746,7 @@ export default function ReelEditorContent() {
                   Caption Style
                 </label>
                 <div className="flex gap-3">
-                  {(['modern', 'classic', 'bold'] as const).map((preset) => (
+                  {(['modern', 'classic', 'bold', 'highlight', 'karaoke', 'underline', 'word_by_word'] as const).map((preset) => (
                     <button
                       key={preset}
                       onClick={() => setCaptionPreset(preset)}
@@ -758,7 +758,7 @@ export default function ReelEditorContent() {
                         }
                       `}
                     >
-                      {preset.charAt(0).toUpperCase() + preset.slice(1)}
+                      {{ modern: 'Modern', classic: 'Classic', bold: 'Bold', highlight: 'Highlight', karaoke: 'Karaoke', underline: 'Underline', word_by_word: 'Word Pop' }[preset]}
                     </button>
                   ))}
                 </div>

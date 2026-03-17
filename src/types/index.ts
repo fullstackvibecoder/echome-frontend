@@ -1103,7 +1103,7 @@ export interface CreateReelProjectInput {
   musicTrackId?: string;
   title?: string;
   addCaptions?: boolean;
-  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
   contentKitId?: string;
   /** Context/description for AI text overlay generation (standalone reels) */
   context?: string;
@@ -1118,7 +1118,7 @@ export interface UpdateReelProjectInput {
   musicVolume?: number;
   beatSyncEnabled?: boolean;
   addCaptions?: boolean;
-  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
 }
 
 /**
@@ -1213,7 +1213,7 @@ export interface CreateReelFromKitInput {
   }>;
   musicTrackId?: string;
   addCaptions?: boolean;
-  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+  captionPreset?: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
 }
 
 /**

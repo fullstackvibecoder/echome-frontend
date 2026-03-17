@@ -315,12 +315,15 @@ const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; descr
 ];
 
 // Caption style options for video clips
-type CaptionStyleOption = 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight';
+type CaptionStyleOption = 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
 
 const CAPTION_STYLE_OPTIONS: { value: CaptionStyleOption; label: string; description: string }[] = [
   { value: 'modern', label: 'Modern', description: 'Bold white text with shadow - TikTok/Reels style' },
   { value: 'bold', label: 'Bold', description: 'Large yellow text - maximum impact' },
-  { value: 'highlight', label: 'Highlight', description: 'Word-by-word emphasis - trending style' },
+  { value: 'highlight', label: 'Highlight', description: 'Active word pops in color - full line visible' },
+  { value: 'karaoke', label: 'Karaoke', description: 'Words fill with color as they\'re spoken' },
+  { value: 'underline', label: 'Underline', description: 'Active word underlined - clean, professional' },
+  { value: 'word_by_word', label: 'Word Pop', description: 'Only a few words visible - fast-paced style' },
   { value: 'classic', label: 'Classic', description: 'White text on dark box - traditional subtitles' },
   { value: 'minimal', label: 'Minimal', description: 'Clean subtle styling - professional look' },
 ];
