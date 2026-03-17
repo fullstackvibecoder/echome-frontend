@@ -2792,10 +2792,10 @@ export const api = {
     _transformRenderStatus: (s: any): ReelRenderStatus => ({
       status: s.status,
       progress: s.progress,
-      errorMessage: s.error_message,
-      outputUrl: s.output_url,
-      thumbnailUrl: s.thumbnail_url,
-      outputDurationMs: s.output_duration_ms,
+      errorMessage: s.error_message ?? s.errorMessage,
+      outputUrl: s.output_url ?? s.outputUrl,
+      thumbnailUrl: s.thumbnail_url ?? s.thumbnailUrl,
+      outputDurationMs: s.output_duration_ms ?? s.outputDurationMs,
     }),
 
     _transformSegment: (s: any): TemplateSegment => ({

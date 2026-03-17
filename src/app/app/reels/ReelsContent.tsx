@@ -23,6 +23,7 @@ export default function ReelsContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'create' | 'projects'>('create');
   const [retryKey, setRetryKey] = useState(0);
+  const [viewingProject, setViewingProject] = useState<ReelProject | null>(null);
 
   // Redirect non-admins
   useEffect(() => {
@@ -61,8 +62,10 @@ export default function ReelsContent() {
   }, [user, retryKey, activeTab]);
 
   const handleProjectClick = useCallback((project: ReelProject) => {
-    router.push(`/app/reels/${project.id}`);
-  }, [router]);
+    if (project.status === 'completed' && project.outputUrl) {
+      setViewingProject(project);
+    }
+  }, []);
 
   // Early returns AFTER all hooks
   if (authLoading) {
@@ -202,6 +205,44 @@ export default function ReelsContent() {
               ))}
             </div>
           )}
+        </div>
+      )}
+      {/* Video viewer modal */}
+      {viewingProject && viewingProject.outputUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setViewingProject(null)}
+        >
+          <div
+            className="relative max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setViewingProject(null)}
+              className="absolute -top-10 right-0 text-white/70 hover:text-white text-sm"
+            >
+              Close
+            </button>
+            <div className="aspect-[9/16] bg-black rounded-xl overflow-hidden">
+              <video
+                src={viewingProject.outputUrl}
+                controls
+                autoPlay
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="mt-4 flex gap-3">
+              <a
+                href={viewingProject.outputUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary flex-1 text-center text-sm py-2"
+              >
+                Download
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>

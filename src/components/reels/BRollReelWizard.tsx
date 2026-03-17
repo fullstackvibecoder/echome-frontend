@@ -142,6 +142,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
 
   // Step 1 - Choose Clips
   const [selectedClipIds, setSelectedClipIds] = useState<string[]>([]);
+  const [selectedClipUrl, setSelectedClipUrl] = useState<string | null>(null);
   const [showAILibrary, setShowAILibrary] = useState(false);
 
   // Step 2 - Describe & Style
@@ -289,12 +290,14 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
     }
   };
 
-  const handleClipSelectionChange = (ids: string[]) => {
+  const handleClipSelectionChange = (ids: string[], mediaUrl?: string) => {
     setSelectedClipIds(ids);
+    setSelectedClipUrl(mediaUrl || null);
   };
 
   const handleAILibrarySelectionChange = (ids: string[]) => {
     setSelectedClipIds(ids);
+    setSelectedClipUrl(null);
   };
 
   const updateOverlayText = (index: number, text: string) => {
@@ -570,10 +573,21 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
         )}
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Phone preview */}
+          {/* Phone preview with actual video */}
           <div className="mx-auto md:mx-0 flex-shrink-0">
             <div className="w-[240px] aspect-[9/16] bg-black rounded-2xl overflow-hidden relative border border-border">
-              <div className="w-full h-full bg-surface-secondary" />
+              {selectedClipUrl ? (
+                <video
+                  src={selectedClipUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-surface-secondary" />
+              )}
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                 {overlays[0]?.text ? (
                   <div

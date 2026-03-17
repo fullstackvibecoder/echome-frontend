@@ -6,7 +6,7 @@ import type { CuratedAsset } from '@/types';
 
 interface CuratedBRollPickerProps {
   selectedIds: string[];
-  onSelectionChange: (ids: string[]) => void;
+  onSelectionChange: (ids: string[], mediaUrl?: string) => void;
 }
 
 export function CuratedBRollPicker({ selectedIds, onSelectionChange }: CuratedBRollPickerProps) {
@@ -41,7 +41,8 @@ export function CuratedBRollPicker({ selectedIds, onSelectionChange }: CuratedBR
   const handleSelect = (id: string) => {
     // Single selection — toggle or replace
     const next = selectedIds.includes(id) ? [] : [id];
-    onSelectionChange(next);
+    const clip = clips.find((c) => c.id === id);
+    onSelectionChange(next, clip?.mediaUrl || undefined);
   };
 
   if (loading) {
