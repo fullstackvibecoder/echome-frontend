@@ -312,7 +312,7 @@ export function BRollReelWizard({ onComplete, onCancel }: BRollReelWizardProps) 
       <div>
         <h2 className="text-lg font-medium text-text-primary mb-2">Choose B-Roll Clips</h2>
         <p className="text-text-secondary text-sm">
-          Select 1-3 clips from the curated library, or use your own AI-generated clips.
+          Select a clip from the curated library, or use your own AI-generated clip.
         </p>
       </div>
 

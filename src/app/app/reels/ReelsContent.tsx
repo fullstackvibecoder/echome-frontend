@@ -58,7 +58,7 @@ export default function ReelsContent() {
     }
 
     fetchData();
-  }, [user, retryKey]);
+  }, [user, retryKey, activeTab]);
 
   const handleProjectClick = useCallback((project: ReelProject) => {
     router.push(`/app/reels/${project.id}`);
@@ -152,8 +152,9 @@ export default function ReelsContent() {
       {activeTab === 'create' && (
         <BRollReelWizard
           onComplete={() => {
-            // Refresh projects list
-            setRetryKey((k) => k + 1);
+            // Don't refresh here — it remounts the wizard and loses the completion screen.
+            // User will see the result in the wizard's own "Your Reel is Ready" view.
+            // Projects list refreshes when they switch to "My Reels" tab.
           }}
           onCancel={() => setActiveTab('projects')}
         />

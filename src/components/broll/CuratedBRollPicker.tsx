@@ -39,9 +39,8 @@ export function CuratedBRollPicker({ selectedIds, onSelectionChange }: CuratedBR
     : clips.filter((c) => c.category === activeCategory);
 
   const handleSelect = (id: string) => {
-    const next = selectedIds.includes(id)
-      ? selectedIds.filter((s) => s !== id)
-      : [...selectedIds, id];
+    // Single selection — toggle or replace
+    const next = selectedIds.includes(id) ? [] : [id];
     onSelectionChange(next);
   };
 
