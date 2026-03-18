@@ -10,7 +10,7 @@
  * - Bulk actions
  */
 
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
@@ -29,8 +29,15 @@ import { AppPageHeader } from '@/components/app-page-header';
 
 function ContentLibraryInner() {
   const router = useRouter();
-  const { voices, isTeamsUser } = useVoiceContext();
+  const { voices, isTeamsUser, activeVoice } = useVoiceContext();
   const [voiceFilter, setVoiceFilter] = useState<string>('all');
+
+  // Initialize voice filter to active voice when in teams mode
+  useEffect(() => {
+    if (isTeamsUser && activeVoice?.id && voiceFilter === 'all') {
+      setVoiceFilter(activeVoice.id);
+    }
+  }, [isTeamsUser, activeVoice?.id]);
 
   const {
     items: rawItems,
@@ -82,6 +89,17 @@ function ContentLibraryInner() {
     })).filter(g => g.items.length > 0);
   }, [rawGroups, voiceFilter, isTeamsUser]);
 
+  // Recalculate stats based on voice-filtered items (not raw unfiltered)
+  const filteredStats = useMemo(() => {
+    return {
+      total: items.length,
+      videos: items.filter(i => (i.clipCount || 0) > 0).length,
+      written: items.filter(i => (i.platformCount || 0) > 0).length,
+      carousels: 0,
+      processing: items.filter(i => i.status === 'processing' || i.status === 'pending').length,
+    };
+  }, [items]);
+
   const selectedCount = state.selectedIds.size;
   const showBulkActions = selectedCount > 0;
 
@@ -108,30 +126,30 @@ function ContentLibraryInner() {
       <div className="mb-6 bg-card border border-border rounded-xl p-5">
         <div className="flex items-center gap-6 text-sm flex-wrap">
           <div>
-            <span className="text-3xl font-bold text-foreground">{stats.total}</span>
+            <span className="text-3xl font-bold text-foreground">{filteredStats.total}</span>
             <span className="text-text-secondary ml-2">Total pieces</span>
           </div>
           <div className="h-8 w-px bg-border" />
           <div className="flex items-center gap-5 text-text-secondary">
             <div className="flex items-center gap-1.5">
               <Video className="w-4 h-4" />
-              <span>{stats.videos} videos</span>
+              <span>{filteredStats.videos} videos</span>
             </div>
             <div className="flex items-center gap-1.5">
               <PenLine className="w-4 h-4" />
-              <span>{stats.written} written</span>
+              <span>{filteredStats.written} written</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Image className="w-4 h-4" />
-              <span>{stats.carousels} carousels</span>
+              <span>{filteredStats.carousels} carousels</span>
             </div>
           </div>
-          {stats.processing > 0 && (
+          {filteredStats.processing > 0 && (
             <>
               <div className="h-8 w-px bg-border" />
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                <span className="text-accent font-medium">{stats.processing} processing</span>
+                <span className="text-accent font-medium">{filteredStats.processing} processing</span>
               </div>
             </>
           )}
