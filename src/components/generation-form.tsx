@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { SnapshotPicker } from './SnapshotPicker';
 import { InfoTooltip } from './info-tooltip';
 import { StylePicker, StyleOption } from './style-picker';
+import { setActiveGeneration } from './generation-banner';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -634,6 +635,9 @@ export function GenerationForm({
       const jobId = processResponse.data.jobId;
       setVideoProcessingStatus('Transcribing audio...');
       setVideoProcessingProgress(40);
+
+      // Wire video processing into the global progress drawer
+      setActiveGeneration(upload.id);
 
       // Step 3: Poll for completion
       await pollProcessingStatus(upload.id, jobId);
