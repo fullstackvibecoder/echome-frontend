@@ -10,7 +10,7 @@
  * - Bulk actions
  */
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
@@ -29,15 +29,8 @@ import { AppPageHeader } from '@/components/app-page-header';
 
 function ContentLibraryInner() {
   const router = useRouter();
-  const { voices, isTeamsUser, activeVoice } = useVoiceContext();
+  const { voices, isTeamsUser } = useVoiceContext();
   const [voiceFilter, setVoiceFilter] = useState<string>('all');
-
-  // Initialize voice filter to active voice when in teams mode
-  useEffect(() => {
-    if (isTeamsUser && activeVoice?.id && voiceFilter === 'all') {
-      setVoiceFilter(activeVoice.id);
-    }
-  }, [isTeamsUser, activeVoice?.id]);
 
   const {
     items: rawItems,
