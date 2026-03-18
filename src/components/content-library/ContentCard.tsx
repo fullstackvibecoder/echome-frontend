@@ -8,19 +8,33 @@
  */
 
 import { useState } from 'react';
-import { Video, Sparkles, Image, Package, Clapperboard, Target } from 'lucide-react';
-import type { NormalizedContent, ContentType } from '@/lib/content-normalizer';
+import { Target } from 'lucide-react';
+import type { NormalizedContent } from '@/lib/content-normalizer';
 import { STATUS_CONFIG, CONTENT_TYPE_CONFIG } from '@/lib/content-normalizer';
 import { PlatformIcon, type Platform } from '@/components/shared/PlatformIcon';
 
-/** Lucide icon + gradient for thumbnail fallback per content type */
-const CONTENT_TYPE_VISUALS: Record<ContentType, { icon: typeof Video; gradient: string }> = {
-  clip: { icon: Clapperboard, gradient: 'from-cyan-500/20 to-blue-500/10' },
-  generated: { icon: Sparkles, gradient: 'from-violet-500/20 to-purple-500/10' },
-  carousel: { icon: Image, gradient: 'from-pink-500/20 to-rose-500/10' },
-  kit: { icon: Package, gradient: 'from-amber-500/15 to-orange-500/10' },
-  'video-upload': { icon: Video, gradient: 'from-blue-500/20 to-cyan-500/10' },
-};
+/**
+ * Deterministic gradient palette based on title string.
+ * Each card gets a unique-ish gradient so the grid looks varied.
+ */
+const GRADIENTS = [
+  'from-violet-600 to-indigo-500',
+  'from-cyan-600 to-teal-500',
+  'from-rose-600 to-pink-500',
+  'from-amber-600 to-orange-500',
+  'from-emerald-600 to-green-500',
+  'from-blue-600 to-sky-500',
+  'from-fuchsia-600 to-purple-500',
+  'from-teal-600 to-cyan-500',
+];
+
+function getGradient(title: string): string {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = title.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
+}
 
 interface ContentCardProps {
   item: NormalizedContent;
@@ -101,15 +115,18 @@ export function ContentCard({
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        ) : (() => {
-          const visual = CONTENT_TYPE_VISUALS[item.type] || CONTENT_TYPE_VISUALS.kit;
-          const FallbackIcon = visual.icon;
-          return (
-            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${visual.gradient}`}>
-              <FallbackIcon className="w-12 h-12 text-text-tertiary/50" strokeWidth={1.2} />
-            </div>
-          );
-        })()}
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${getGradient(item.title)} p-5 flex flex-col justify-end`}>
+            <p className="text-white/90 font-semibold text-sm leading-snug line-clamp-3 drop-shadow-sm">
+              {item.title}
+            </p>
+            {item.previewText && (
+              <p className="text-white/50 text-xs mt-1.5 line-clamp-2 leading-relaxed">
+                {item.previewText}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Type Badge */}
         <div
