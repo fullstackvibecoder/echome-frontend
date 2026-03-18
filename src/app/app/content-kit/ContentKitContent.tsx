@@ -22,6 +22,7 @@ import {
   BulkActionsBar,
 } from '@/components/content-library';
 import type { NormalizedContent } from '@/lib/content-normalizer';
+import { Video, PenLine, Image, Plus, RefreshCw, Package } from 'lucide-react';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { AppPageHeader } from '@/components/app-page-header';
@@ -95,7 +96,7 @@ function ContentLibraryInner() {
             href="/app"
             className="btn-primary flex items-center gap-2"
           >
-            <span>+</span>
+            <Plus className="w-4 h-4" />
             <span>Create New</span>
           </Link>
         }
@@ -104,50 +105,45 @@ function ContentLibraryInner() {
       <UpgradeBanner />
 
       {/* Stats Card */}
-      <div className="relative group mb-6">
-        {/* Subtle glow */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
-
-        <div className="relative bg-card border border-border rounded-xl p-6 card-lift">
-          <div className="flex items-center gap-6 text-sm">
-            <div>
-              <span className="text-3xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent">{stats.total}</span>
-              <span className="text-text-secondary ml-2">Total pieces</span>
-            </div>
-            <div className="h-8 w-px bg-border" />
-            <div className="flex items-center gap-6 text-text-secondary">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🎬</span>
-                <span>{stats.videos} videos</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">✍️</span>
-                <span>{stats.written} written</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🎨</span>
-                <span>{stats.carousels} carousels</span>
-              </div>
-            </div>
-            {stats.processing > 0 && (
-              <>
-                <div className="h-8 w-px bg-border" />
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#00D4FF] rounded-full animate-pulse" />
-                  <span className="text-[#00D4FF] font-medium">{stats.processing} processing</span>
-                </div>
-              </>
-            )}
-            <div className="flex-1" />
-            <button
-              onClick={refresh}
-              disabled={isLoading}
-              className="flex items-center gap-2 text-text-secondary hover:text-[#00D4FF] transition-colors"
-            >
-              <span className={isLoading ? 'animate-spin' : ''}>↻</span>
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
+      <div className="mb-6 bg-card border border-border rounded-xl p-5">
+        <div className="flex items-center gap-6 text-sm flex-wrap">
+          <div>
+            <span className="text-3xl font-bold text-foreground">{stats.total}</span>
+            <span className="text-text-secondary ml-2">Total pieces</span>
           </div>
+          <div className="h-8 w-px bg-border" />
+          <div className="flex items-center gap-5 text-text-secondary">
+            <div className="flex items-center gap-1.5">
+              <Video className="w-4 h-4" />
+              <span>{stats.videos} videos</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <PenLine className="w-4 h-4" />
+              <span>{stats.written} written</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Image className="w-4 h-4" />
+              <span>{stats.carousels} carousels</span>
+            </div>
+          </div>
+          {stats.processing > 0 && (
+            <>
+              <div className="h-8 w-px bg-border" />
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                <span className="text-accent font-medium">{stats.processing} processing</span>
+              </div>
+            </>
+          )}
+          <div className="flex-1" />
+          <button
+            onClick={refresh}
+            disabled={isLoading}
+            className="flex items-center gap-1.5 text-text-secondary hover:text-accent transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
       </div>
 
@@ -224,8 +220,10 @@ function ContentLibraryInner() {
 
       {/* Empty State */}
       {!isLoading && items.length === 0 && !error && (
-        <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border card-lift">
-          <div className="text-6xl mb-4">📦</div>
+        <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+            <Package className="w-7 h-7 text-accent" />
+          </div>
           <h3 className="text-xl font-semibold mb-2">No content yet</h3>
           <p className="text-text-secondary mb-6">
             {state.searchQuery || state.contentTypeFilter !== 'all' || state.platformFilters.length > 0

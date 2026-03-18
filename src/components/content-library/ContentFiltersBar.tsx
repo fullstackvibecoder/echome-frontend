@@ -7,6 +7,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { Video, PenLine, Image, Clock, Search, X } from 'lucide-react';
 import { PlatformIcon, type Platform } from '@/components/shared/PlatformIcon';
 import type {
   ContentFiltersBarProps,
@@ -18,12 +19,12 @@ import type {
 } from './types';
 
 // Content type filter config
-const CONTENT_TYPE_FILTERS: { id: ContentTypeFilter; label: string; icon?: string }[] = [
+const CONTENT_TYPE_FILTERS: { id: ContentTypeFilter; label: string; icon?: React.ComponentType<{ className?: string }> }[] = [
   { id: 'all', label: 'All' },
-  { id: 'videos', label: 'Videos', icon: '🎬' },
-  { id: 'written', label: 'Written', icon: '📝' },
-  { id: 'carousels', label: 'Carousels', icon: '📸' },
-  { id: 'processing', label: 'Processing', icon: '⏳' },
+  { id: 'videos', label: 'Videos', icon: Video },
+  { id: 'written', label: 'Written', icon: PenLine },
+  { id: 'carousels', label: 'Carousels', icon: Image },
+  { id: 'processing', label: 'Processing', icon: Clock },
 ];
 
 // Platform filter config with brand icons
@@ -99,14 +100,14 @@ export function ContentFiltersBar({
             className="w-full pl-10 pr-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
           />
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary">
-            🔍
+            <Search className="w-4 h-4" />
           </span>
           {localSearch && (
             <button
               onClick={() => setLocalSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -169,7 +170,7 @@ export function ContentFiltersBar({
                   : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary border border-border'
               }`}
             >
-              {filter.icon && <span className="mr-1">{filter.icon}</span>}
+              {filter.icon && <filter.icon className="w-4 h-4 inline-block mr-1 -mt-0.5" />}
               {filter.label}
             </button>
           );
