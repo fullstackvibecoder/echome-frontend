@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 142" width="80" height="142">
+  <rect width="80" height="142" fill="#1a1a2e"/>
+  <text x="40" y="64" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Hello</text>
+  <text x="40" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#00D4FF">World</text>
+</svg>

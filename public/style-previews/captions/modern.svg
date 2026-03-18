@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 142" width="80" height="142">
+  <rect width="80" height="142" fill="#1a1a2e"/>
+  <text x="40" y="68" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8)">
+    <tspan x="40" dy="0">Hello</tspan>
+    <tspan x="40" dy="14">World</tspan>
+  </text>
+  <!-- text shadow via filter -->
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <text x="40" y="68" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white" filter="url(#shadow)">
+    <tspan x="40" dy="0">Hello</tspan>
+    <tspan x="40" dy="14">World</tspan>
+  </text>
+</svg>

@@ -9,6 +9,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
 import { SnapshotPicker } from './SnapshotPicker';
 import { InfoTooltip } from './info-tooltip';
+import { StylePicker, StyleOption } from './style-picker';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -303,29 +304,29 @@ const VIDEO_PROCESSING_STAGES: Record<string, {
   },
 };
 
-// Carousel design preset options for the dropdown
+// Carousel design preset options — visual thumbnail grid
 type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
 
-const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
-  { value: 'auto', label: 'Auto', description: 'Smart template selection based on content' },
-  { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
-  { value: 'text-box', label: 'Text Box', description: 'Clean text overlay on gradient' },
-  { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
-  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Use a frame from your uploaded video' },
+const CAROUSEL_STYLE_OPTIONS: StyleOption[] = [
+  { value: 'auto', label: 'Pick for me', thumbnail: '/style-previews/slides/pick-for-me.svg' },
+  { value: 'tweet-style', label: 'Quote Card', thumbnail: '/style-previews/slides/quote-card.svg' },
+  { value: 'text-box', label: 'Text on Color', thumbnail: '/style-previews/slides/text-on-color.svg' },
+  { value: 'upload', label: 'My Own Image', thumbnail: '/style-previews/slides/my-own-image.svg' },
+  { value: 'video-snapshot', label: 'Video Frame', thumbnail: '/style-previews/slides/video-frame.svg' },
 ];
 
-// Caption style options for video clips
+// Caption style options — visual thumbnail grid (video input only)
 type CaptionStyleOption = 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
 
-const CAPTION_STYLE_OPTIONS: { value: CaptionStyleOption; label: string; description: string }[] = [
-  { value: 'modern', label: 'Modern', description: 'Bold white text with shadow - TikTok/Reels style' },
-  { value: 'bold', label: 'Bold', description: 'Large yellow text - maximum impact' },
-  { value: 'highlight', label: 'Highlight', description: 'Active word pops in color - full line visible' },
-  { value: 'karaoke', label: 'Karaoke', description: 'Words fill with color as they\'re spoken' },
-  { value: 'underline', label: 'Underline', description: 'Active word underlined - clean, professional' },
-  { value: 'word_by_word', label: 'Word Pop', description: 'Only a few words visible - fast-paced style' },
-  { value: 'classic', label: 'Classic', description: 'White text on dark box - traditional subtitles' },
-  { value: 'minimal', label: 'Minimal', description: 'Clean subtle styling - professional look' },
+const CAPTION_STYLE_GRID: StyleOption[] = [
+  { value: 'modern', label: 'Modern', thumbnail: '/style-previews/captions/modern.svg', badge: 'Popular' },
+  { value: 'bold', label: 'Big & Bold', thumbnail: '/style-previews/captions/big-bold.svg' },
+  { value: 'highlight', label: 'Color Pop', thumbnail: '/style-previews/captions/color-pop.svg' },
+  { value: 'karaoke', label: 'Karaoke', thumbnail: '/style-previews/captions/karaoke.svg' },
+  { value: 'underline', label: 'Underline', thumbnail: '/style-previews/captions/underline.svg' },
+  { value: 'word_by_word', label: 'One at a Time', thumbnail: '/style-previews/captions/one-at-a-time.svg' },
+  { value: 'classic', label: 'Subtitle Bar', thumbnail: '/style-previews/captions/subtitle-bar.svg' },
+  { value: 'minimal', label: 'Clean & Simple', thumbnail: '/style-previews/captions/clean-simple.svg' },
 ];
 
 interface FirstGenerationProps {
@@ -950,344 +951,44 @@ export function GenerationForm({
       <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
 
       <div className="relative card backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-2 border-white/20 shadow-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-display text-2xl mb-2 text-foreground">
-            Drop a video. Get everything.
+        {/* Header — changes per input mode */}
+        <div className="text-center mb-6">
+          <h2 className="text-display text-2xl mb-1.5 text-foreground">
+            {inputType === 'video' && 'Drop a video, get everything'}
+            {inputType === 'text' && 'Describe your idea'}
+            {inputType === 'audio' && 'Speak your idea'}
+            {inputType === 'repurpose' && 'Repurpose existing content'}
           </h2>
           <p className="text-body text-text-secondary">
-            {(inputType === 'video' || inputType === 'url') && <>Clips, captions, carousels, and posts for every platform - in your voice.</>}
-            {inputType === 'text' && <>Or describe a topic - we&apos;ll create content for every platform in your voice.</>}
-            {inputType === 'audio' && <>Or speak your idea - we&apos;ll turn it into content for every platform in your voice.</>}
-            {inputType === 'repurpose' && <>Pick existing content to repurpose across every platform - in your voice.</>}
-            <InfoTooltip text="One generation creates content for ALL platforms at once - Instagram, LinkedIn, Blog, Email, TikTok, and Video Script." />
+            {inputType === 'video' && 'Clips, captions, carousels, and posts — all in your voice.'}
+            {inputType === 'text' && 'We\u2019ll turn your prompt into carousels, posts, and emails — in your voice.'}
+            {inputType === 'audio' && 'Record a quick voice note and we\u2019ll create carousels, posts, and emails from it.'}
+            {inputType === 'repurpose' && 'Pick content to repurpose across every platform.'}
           </p>
-        </div>
-
-      {/* Active Voice Indicator (teams users) */}
-      {activeVoice && (
-        <div className="flex items-center gap-2 px-3 py-1.5 mb-4 bg-primary/5 border border-primary/20 rounded-lg text-sm">
-          <span className="text-primary font-medium">Voice:</span>
-          <span className="font-semibold">{activeVoice.name}</span>
-          {!activeVoice.knowledgeBaseId && (
-            <a href="/app/team-voices" className="ml-auto text-xs text-amber-600 underline">No KB linked</a>
-          )}
-        </div>
-      )}
-
-      {/* Input Type Tabs */}
-      {inputType !== 'repurpose' && (
-        <>
-          <div className="flex items-center gap-1 mb-2">
-            <span className="text-xs text-text-secondary font-medium">Input Mode</span>
-            <InfoTooltip text="All input modes including Video are available with your 2 free generations. Subscribe for unlimited access." />
-          </div>
-          <div className="flex items-center gap-2 mb-4 p-1 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-white/10">
-            <button
-              onClick={() => { if (!freeUserExhausted) { setInputType('video'); clearFile(); } }}
-              disabled={freeUserExhausted}
-              title={freeUserExhausted ? 'Requires subscription' : undefined}
-              className={`
-                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-                ${freeUserExhausted ? 'opacity-50 cursor-not-allowed' : ''}
-                ${
-                  inputType === 'video'
-                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-                }
-              `}
-            >
-              🎥 Video {freeUserExhausted && '🔒'}
-            </button>
-            <button
-              onClick={() => { setInputType('text'); clearFile(); }}
-              className={`
-                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-                ${
-                  inputType === 'text'
-                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-                }
-              `}
-            >
-              ✍️ Text
-            </button>
-            <button
-              onClick={() => { setInputType('audio'); clearFile(); }}
-              className={`
-                flex-1 px-4 py-2.5 rounded-lg text-body font-medium transition-all
-                ${
-                  inputType === 'audio'
-                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg shadow-[#00D4FF]/25'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-white/50 dark:hover:bg-white/5'
-                }
-              `}
-            >
-              🎤 Voice
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Repurpose toggle */}
-      <button
-        onClick={() => { setInputType(inputType === 'repurpose' ? 'text' : 'repurpose'); clearFile(); }}
-        disabled={isFreeUser}
-        className={`mb-6 flex items-center gap-2 text-sm transition-colors ${
-          isFreeUser ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'text-muted-foreground hover:text-foreground'
-        }`}
-      >
-        🔄 {inputType === 'repurpose' ? 'Back to create' : 'Or repurpose existing content'} {isFreeUser && '🔒'}
-      </button>
-
-      {/* Input Area */}
-      {inputType === 'text' && (
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="I need content about..."
-          className="w-full h-40 px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors resize-none text-body"
-          disabled={generating}
-        />
-      )}
-
-      {inputType === 'audio' && (
-        <VoiceInputPanel
-          onTranscribed={(text) => {
-            setInput(text);
-            setInputType('text'); // Switch to text mode with transcription
-          }}
-          disabled={generating || uploading}
-        />
-      )}
-
-      {inputType === 'video' && (
-        <div
-          className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
-            videoDragActive
-              ? 'border-[#00D4FF] bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 scale-[1.02] shadow-2xl shadow-[#00D4FF]/20'
-              : 'border-gray-300 dark:border-white/20 hover:border-[#00D4FF]/50 hover:bg-gradient-to-br hover:from-[#00D4FF]/5 hover:to-[#B794F6]/5'
-          }`}
-          onDragEnter={handleVideoDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleVideoDragLeave}
-          onDrop={handleVideoDrop}
-        >
-          {/* Gradient border animation on hover */}
-          <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-[#00D4FF] to-[#B794F6] opacity-0 ${videoDragActive ? 'opacity-20' : 'group-hover:opacity-10'} transition-opacity blur-xl`} />
-          <input
-            type="file"
-            ref={videoInputRef}
-            accept="video/*,.mp4,.mov,.avi,.webm"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          {videoProcessing ? (
-            <div className="py-4">
-              {/* Stage Icon & Title */}
-              <div className="text-5xl mb-3 animate-bounce">
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}
-              </div>
-              <p className="text-body font-semibold mb-1">
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || videoProcessingStatus}
-              </p>
-
-              {/* Rotating Tip */}
-              <p className="text-small text-text-secondary mb-4 min-h-[40px] transition-opacity duration-500">
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips[currentTipIndex] || 'Processing...'}
-              </p>
-
-              {/* Progress Bar */}
-              <div className="w-full max-w-sm mx-auto mb-3">
-                <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
-                    style={{ width: `${videoProcessingProgress}%` }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Percentage */}
-              <p className="text-small text-text-secondary font-medium">
-                {videoProcessingProgress}% complete
-              </p>
-
-              {/* Stage indicators */}
-              <div className="flex justify-center gap-2 mt-4">
-                {['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'].map((stage, idx) => {
-                  const stageOrder = ['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'];
-                  const currentIdx = stageOrder.indexOf(videoProcessingStage);
-                  const isComplete = idx < currentIdx;
-                  const isCurrent = stage === videoProcessingStage;
-                  return (
-                    <div
-                      key={stage}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        isComplete ? 'bg-accent' :
-                        isCurrent ? 'bg-accent animate-pulse scale-125' :
-                        'bg-bg-secondary'
-                      }`}
-                      title={VIDEO_PROCESSING_STAGES[stage]?.title}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ) : !selectedFile ? (
-            <div className="relative">
-              {videoDragActive ? (
-                <>
-                  <div className="text-7xl mb-4 animate-bounce">📥</div>
-                  <p className="text-xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent mb-2">
-                    Drop your video here
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Release to upload
-                  </p>
-                </>
-              ) : (
-                <>
-                  {/* Animated gradient icon background */}
-                  <div className="relative inline-block mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-2xl opacity-30 animate-pulse" />
-                    <div className="relative w-24 h-24 bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 rounded-full flex items-center justify-center border-2 border-white/20">
-                      <span className="text-5xl">🎥</span>
-                    </div>
-                  </div>
-
-                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 font-medium">
-                    Drag & drop your video or click to browse
-                  </p>
-
-                  <button
-                    onClick={() => videoInputRef.current?.click()}
-                    className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all shadow-lg mb-4"
-                    disabled={generating || uploading || videoProcessing}
-                  >
-                    Select Video File
-                  </button>
-
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Supports MP4, MOV, AVI, WebM • Up to 5GB
-                    <InfoTooltip text="Supports MP4, MOV, AVI, and WebM. We'll transcribe audio, find the best clips, add captions, and generate a full content kit." />
-                  </p>
-                </>
+          {activeVoice && (
+            <div className="inline-flex items-center gap-2 px-3 py-1 mt-2 bg-primary/5 border border-primary/20 rounded-full text-sm">
+              <span className="text-primary font-medium">Voice:</span>
+              <span className="font-semibold">{activeVoice.name}</span>
+              {!activeVoice.knowledgeBaseId && (
+                <a href="/app/team-voices" className="text-xs text-amber-600 underline">No KB linked</a>
               )}
             </div>
-          ) : (
-            <>
-              <div className="text-5xl mb-4">✅</div>
-              <p className="text-body font-medium mb-2">{selectedFile.name}</p>
-              <p className="text-small text-text-secondary mb-4">
-                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-              <button
-                onClick={clearFile}
-                className="text-small text-error hover:underline"
-                disabled={generating || uploading}
-              >
-                Remove file
-              </button>
-            </>
           )}
         </div>
-      )}
 
-      {inputType === 'url' && (
-        <div className="border-2 border-border rounded-lg p-6">
-          {videoProcessing ? (
-            <div className="text-center py-4">
-              {/* Stage Icon & Title */}
-              <div className="text-5xl mb-3 animate-bounce">
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}
-              </div>
-              <p className="text-body font-semibold mb-1">
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || videoProcessingStatus}
-              </p>
-
-              {/* Rotating Tip */}
-              <p className="text-small text-text-secondary mb-4 min-h-[40px] transition-opacity duration-500">
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips[currentTipIndex] || 'Processing...'}
-              </p>
-
-              {/* Progress Bar */}
-              <div className="w-full max-w-sm mx-auto mb-3">
-                <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
-                    style={{ width: `${videoProcessingProgress}%` }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Percentage */}
-              <p className="text-small text-text-secondary font-medium">
-                {videoProcessingProgress}% complete
-              </p>
-
-              {/* Stage indicators */}
-              <div className="flex justify-center gap-2 mt-4">
-                {['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'].map((stage, idx) => {
-                  const stageOrder = ['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'];
-                  const currentIdx = stageOrder.indexOf(videoProcessingStage);
-                  const isComplete = idx < currentIdx;
-                  const isCurrent = stage === videoProcessingStage;
-                  return (
-                    <div
-                      key={stage}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        isComplete ? 'bg-accent' :
-                        isCurrent ? 'bg-accent animate-pulse scale-125' :
-                        'bg-bg-secondary'
-                      }`}
-                      title={VIDEO_PROCESSING_STAGES[stage]?.title}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-3">🔗</div>
-                <p className="text-body text-text-secondary">
-                  Paste a YouTube or Instagram video URL to extract clips
-                  <InfoTooltip text="Paste a YouTube or Instagram video URL. We'll download, extract clips, and generate content - same as uploading a file." />
-                </p>
-              </div>
-              <div className="space-y-4">
-                <input
-                  type="url"
-                  value={videoUrl}
-                  onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
-                  placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..."
-                  className="w-full px-4 py-3 border-2 border-border rounded-lg focus:outline-none focus:border-accent transition-colors text-body bg-background text-foreground"
-                  disabled={generating || videoProcessing}
-                />
-                {urlError && (
-                  <p className="text-small text-error">{urlError}</p>
-                )}
-                <div className="flex items-center gap-4 text-small text-text-secondary">
-                  <span className="flex items-center gap-1">
-                    <span className="text-red-500">▶️</span> YouTube
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-pink-500">📷</span> Instagram Reels
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {inputType === 'repurpose' && (
+      {/* ─── Primary Input Area ─── */}
+      {inputType === 'repurpose' ? (
+        /* Repurpose content list */
         <div className="border-2 border-border rounded-lg overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 bg-bg-secondary border-b border-border">
+            <span className="text-sm font-medium text-text-secondary">Select content to repurpose</span>
+            <button
+              onClick={() => { setInputType('video'); clearFile(); }}
+              className="text-xs text-accent hover:underline"
+            >
+              Back to create
+            </button>
+          </div>
           {loadingContent ? (
             <div className="p-8 text-center">
               <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -1358,161 +1059,336 @@ export function GenerationForm({
             </div>
           )}
         </div>
-      )}
-
-      {/* Options disclosure - Carousel & Caption Style */}
-      <details className="mt-6 group/options">
-        <summary className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors select-none list-none">
-          <svg className="w-4 h-4 transition-transform group-open/options:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-          Options
-        </summary>
-        <div className="mt-3 space-y-4">
-          {/* Carousel Design Preset Option */}
-          <div className="p-4 bg-bg-secondary rounded-lg border border-border">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <label className="text-body font-medium text-text-primary block mb-1">
-                  Carousel Style
-                  <InfoTooltip text="Controls the look of your Instagram carousel slides. 'Auto' picks the best design. 'Upload Custom' lets you use your own branded background." />
-                </label>
-                <p className="text-small text-text-secondary">
-                  Choose a design preset for your Instagram carousel
+      ) : inputType === 'text' ? (
+        /* Text input mode */
+        <div>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Describe your content idea, paste a script, or share a topic..."
+            className="w-full h-44 px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:border-[#00D4FF] transition-colors resize-none text-body"
+            disabled={generating}
+          />
+          <p className="text-xs text-text-secondary mt-1.5">Press ⌘+Enter to generate</p>
+        </div>
+      ) : inputType === 'audio' ? (
+        /* Voice recording mode */
+        <VoiceInputPanel
+          onTranscribed={(text) => {
+            setInput(text);
+            setInputType('text');
+          }}
+          disabled={generating || uploading}
+        />
+      ) : (
+        /* Video upload — the hero input, wrapped in a tinted container */
+        <div className="rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/50 dark:from-white/[0.03] dark:to-white/[0.01] border border-gray-200/60 dark:border-white/10 p-1">
+          <div
+            className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
+              videoDragActive
+                ? 'border-[#00D4FF] bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 scale-[1.01] shadow-lg shadow-[#00D4FF]/20'
+                : 'border-[#00D4FF]/40 dark:border-[#00D4FF]/30 hover:border-[#00D4FF]/70'
+            }`}
+            onDragEnter={handleVideoDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleVideoDragLeave}
+            onDrop={handleVideoDrop}
+          >
+            <input
+              type="file"
+              ref={videoInputRef}
+              accept="video/*,.mp4,.mov,.avi,.webm"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            {videoProcessing ? (
+              <div className="py-4">
+                <div className="text-5xl mb-3 animate-bounce">
+                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}
+                </div>
+                <p className="text-body font-semibold mb-1">
+                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || videoProcessingStatus}
                 </p>
+                <p className="text-small text-text-secondary mb-4 min-h-[40px] transition-opacity duration-500">
+                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips[currentTipIndex] || 'Processing...'}
+                </p>
+                <div className="w-full max-w-sm mx-auto mb-3">
+                  <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
+                      style={{ width: `${videoProcessingProgress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-small text-text-secondary font-medium">
+                  {videoProcessingProgress}% complete
+                </p>
+                <div className="flex justify-center gap-2 mt-4">
+                  {['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'].map((stage, idx) => {
+                    const stageOrder = ['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'];
+                    const currentIdx = stageOrder.indexOf(videoProcessingStage);
+                    const isComplete = idx < currentIdx;
+                    const isCurrent = stage === videoProcessingStage;
+                    return (
+                      <div
+                        key={stage}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          isComplete ? 'bg-accent' :
+                          isCurrent ? 'bg-accent animate-pulse scale-125' :
+                          'bg-bg-secondary'
+                        }`}
+                        title={VIDEO_PROCESSING_STAGES[stage]?.title}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-              <select
-                value={carouselDesignOption}
-                onChange={(e) => handleDesignOptionChange(e.target.value as CarouselDesignOption)}
-                disabled={generating || uploading}
-                className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[160px]"
-              >
-                {DESIGN_PRESET_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                    {opt.label}{opt.disabled ? ' (Coming Soon)' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Show description for selected preset */}
-            <p className="mt-2 text-small text-text-secondary">
-              {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
-            </p>
-
-            {/* Conditional Upload Field */}
-            {carouselDesignOption === 'upload' && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <input
-                  type="file"
-                  ref={carouselBgInputRef}
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleCarouselBgFileSelect}
-                  className="hidden"
-                />
-                {!carouselBgFile ? (
-                  <button
-                    onClick={() => carouselBgInputRef.current?.click()}
-                    className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
-                      carouselBgDragActive
-                        ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
-                        : 'border-border text-text-secondary hover:border-accent hover:text-accent'
-                    }`}
-                    disabled={generating || uploading}
-                    onDragEnter={handleCarouselBgDragEnter}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleCarouselBgDragLeave}
-                    onDrop={handleCarouselBgDrop}
-                  >
-                    {carouselBgDragActive
-                      ? 'Drop image here'
-                      : 'Drag & drop or click to upload background image (JPEG, PNG, WebP)'}
-                  </button>
+            ) : !selectedFile ? (
+              <div className="relative">
+                {videoDragActive ? (
+                  <>
+                    <div className="text-6xl mb-3 animate-bounce">📥</div>
+                    <p className="text-xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent mb-1">
+                      Drop your video here
+                    </p>
+                    <p className="text-sm text-gray-500">Release to upload</p>
+                  </>
                 ) : (
-                  <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🖼️</span>
-                      <div>
-                        <p className="text-body font-medium">{carouselBgFile.name}</p>
-                        <p className="text-small text-text-secondary">
-                          {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                  <>
+                    <div className="relative inline-block mb-4">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-2xl opacity-30 animate-pulse" />
+                      <div className="relative w-20 h-20 bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 rounded-full flex items-center justify-center border-2 border-white/20">
+                        <svg className="w-10 h-10 text-[#00D4FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setCarouselBgFile(null);
-                        if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-                      }}
-                      className="text-small text-error hover:underline"
-                      disabled={generating || uploading}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Conditional Snapshot Picker */}
-            {carouselDesignOption === 'video-snapshot' && (
-              <div className="mt-4 pt-4 border-t border-border">
-                {currentUploadId ? (
-                  <SnapshotPicker
-                    uploadId={currentUploadId}
-                    selectedUrl={selectedSnapshot?.thumbnailUrl}
-                    onSelect={(snapshot) => setSelectedSnapshot(snapshot)}
-                    disabled={generating || uploading || videoProcessing}
-                  />
-                ) : (
-                  <div className="p-4 text-center bg-bg-primary rounded-lg">
-                    <div className="text-3xl mb-2">🎥</div>
-                    <p className="text-body text-text-secondary">
-                      Upload a video first to see available snapshots
+                    <p className="text-lg text-gray-600 dark:text-gray-300 mb-4 font-medium">
+                      Drag & drop your video or click to browse
                     </p>
-                    <p className="text-small text-text-secondary mt-1">
-                      Frames will be automatically extracted during processing
+
+                    <button
+                      onClick={() => videoInputRef.current?.click()}
+                      className="px-8 py-3.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-base hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all shadow-lg mb-3"
+                      disabled={generating || uploading || videoProcessing}
+                    >
+                      Select Video File
+                    </button>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      MP4, MOV, AVI, WebM • Up to 5GB
                     </p>
-                  </div>
+                  </>
                 )}
               </div>
+            ) : (
+              <>
+                <div className="text-4xl mb-3">✅</div>
+                <p className="text-body font-medium mb-1">{selectedFile.name}</p>
+                <p className="text-small text-text-secondary mb-3">
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+                <button
+                  onClick={clearFile}
+                  className="text-small text-error hover:underline"
+                  disabled={generating || uploading}
+                >
+                  Remove file
+                </button>
+              </>
             )}
           </div>
 
-          {/* Caption Style Option - Only show for video/URL input */}
-          {(inputType === 'video' || inputType === 'url') && (
-            <div className="p-4 bg-bg-secondary rounded-lg border border-border">
-              <div className="flex items-center justify-between gap-4 mb-3">
-                <div className="flex-1">
-                  <label className="text-body font-medium text-text-primary block mb-1">
-                    Caption Style
-                    <InfoTooltip text="The visual style of word-by-word captions on your video clips. 'Modern' is the most popular TikTok/Reels look." />
-                  </label>
+          {/* Secondary input modes — inside the tinted container */}
+          {!videoProcessing && (
+            <div className="pt-3 pb-2">
+              <p className="text-sm text-center font-medium mb-2.5" style={{ color: '#1a1a2e' }}>No video? No problem.</p>
+              <div className="flex items-stretch justify-center gap-2">
+                <button
+                  onClick={() => { setInputType('text'); clearFile(); }}
+                  className="flex-1 max-w-[200px] flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-lg border-2 border-[#00D4FF]/30 dark:border-[#00D4FF]/25 bg-white dark:bg-white/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-md transition-all group"
+                >
+                  <span className="text-sm font-semibold group-hover:text-[#00D4FF] transition-colors" style={{ color: '#1a1a2e' }}>✍️ Type or paste text</span>
+                  <span className="text-[11px] text-[#555] dark:text-[#aaa]">Describe an idea or topic</span>
+                </button>
+                <button
+                  onClick={() => { setInputType('audio'); clearFile(); }}
+                  className="flex-1 max-w-[200px] flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-lg border-2 border-[#00D4FF]/30 dark:border-[#00D4FF]/25 bg-white dark:bg-white/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-md transition-all group"
+                >
+                  <span className="text-sm font-semibold group-hover:text-[#00D4FF] transition-colors" style={{ color: '#1a1a2e' }}>🎤 Record voice</span>
+                  <span className="text-[11px] text-[#555] dark:text-[#aaa]">Speak your content idea</span>
+                </button>
+                {!isFreeUser && (
+                  <button
+                    onClick={() => { setInputType('repurpose'); clearFile(); }}
+                    className="flex-1 max-w-[200px] flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-lg border-2 border-[#00D4FF]/30 dark:border-[#00D4FF]/25 bg-white dark:bg-white/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-md transition-all group"
+                  >
+                    <span className="text-sm font-semibold group-hover:text-[#00D4FF] transition-colors" style={{ color: '#1a1a2e' }}>🔄 Repurpose</span>
+                    <span className="text-[11px] text-[#555] dark:text-[#aaa]">From followed creators</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Back to video buttons (shown when in text/voice mode) */}
+      {(inputType === 'text' || inputType === 'audio') && (
+        <div className="flex items-center justify-center gap-2 mt-3">
+          {!freeUserExhausted && (
+            <button
+              onClick={() => { setInputType('video'); clearFile(); }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/15 bg-white dark:bg-white/5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all shadow-sm hover:shadow"
+            >
+              🎥 Upload a video instead
+            </button>
+          )}
+          {inputType === 'text' && (
+            <button
+              onClick={() => { setInputType('audio'); clearFile(); }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/15 bg-white dark:bg-white/5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all shadow-sm hover:shadow"
+            >
+              🎤 Record voice
+            </button>
+          )}
+          {inputType === 'audio' && (
+            <button
+              onClick={() => { setInputType('text'); clearFile(); }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/15 bg-white dark:bg-white/5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all shadow-sm hover:shadow"
+            >
+              ✍️ Type text
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ─── "You'll get" output strip ─── */}
+      {inputType !== 'repurpose' && (
+        <div className="mt-5 flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+          {(inputType === 'video') && (
+            <span className="flex items-center gap-1">✂️ Clips</span>
+          )}
+          <span>•</span>
+          <span className="flex items-center gap-1">📸 Carousel</span>
+          <span>•</span>
+          <span className="flex items-center gap-1">📝 Posts</span>
+          <span>•</span>
+          <span className="flex items-center gap-1">✉️ Email</span>
+          {(inputType === 'video') && (
+            <>
+              <span>•</span>
+              <span className="flex items-center gap-1">💬 Captions</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ─── Caption Look (video/url input only) ─── */}
+      {(inputType === 'video' || inputType === 'url') && (
+        <StylePicker
+          label="Caption Look"
+          options={CAPTION_STYLE_GRID}
+          value={captionStyle}
+          onChange={(v) => setCaptionStyle(v as CaptionStyleOption)}
+          columns={4}
+          aspect="portrait"
+          disabled={generating || uploading || videoProcessing}
+        />
+      )}
+
+      {/* ─── Carousel Look (always visible) ─── */}
+      <StylePicker
+        label="Carousel Look"
+        options={CAROUSEL_STYLE_OPTIONS}
+        value={carouselDesignOption}
+        onChange={(v) => handleDesignOptionChange(v as CarouselDesignOption)}
+        columns={5}
+        aspect="square"
+        disabled={generating || uploading}
+      />
+
+      {/* Conditional: "My Own Image" upload zone */}
+      {carouselDesignOption === 'upload' && (
+        <div className="mt-3 p-4 bg-bg-secondary rounded-lg border border-border">
+          <input
+            type="file"
+            ref={carouselBgInputRef}
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleCarouselBgFileSelect}
+            className="hidden"
+          />
+          {!carouselBgFile ? (
+            <button
+              onClick={() => carouselBgInputRef.current?.click()}
+              className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
+                carouselBgDragActive
+                  ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
+                  : 'border-border text-text-secondary hover:border-accent hover:text-accent'
+              }`}
+              disabled={generating || uploading}
+              onDragEnter={handleCarouselBgDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleCarouselBgDragLeave}
+              onDrop={handleCarouselBgDrop}
+            >
+              {carouselBgDragActive
+                ? 'Drop image here'
+                : 'Drag & drop or click to upload background image (JPEG, PNG, WebP)'}
+            </button>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🖼️</span>
+                <div>
+                  <p className="text-body font-medium">{carouselBgFile.name}</p>
                   <p className="text-small text-text-secondary">
-                    Choose how captions appear on your video clips
+                    {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
-                <select
-                  value={captionStyle}
-                  onChange={(e) => setCaptionStyle(e.target.value as CaptionStyleOption)}
-                  disabled={generating || uploading || videoProcessing}
-                  className="px-4 py-2 border border-border rounded-lg bg-bg-primary text-body focus:outline-none focus:border-accent min-w-[140px]"
-                >
-                  {CAPTION_STYLE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
               </div>
-              {/* Style description */}
-              <p className="text-small text-text-secondary">
-                {CAPTION_STYLE_OPTIONS.find(opt => opt.value === captionStyle)?.description}
+              <button
+                onClick={() => {
+                  setCarouselBgFile(null);
+                  if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
+                }}
+                className="text-small text-error hover:underline"
+                disabled={generating || uploading}
+              >
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Conditional: "Video Frame" snapshot picker */}
+      {carouselDesignOption === 'video-snapshot' && (
+        <div className="mt-3 p-4 bg-bg-secondary rounded-lg border border-border">
+          {currentUploadId ? (
+            <SnapshotPicker
+              uploadId={currentUploadId}
+              selectedUrl={selectedSnapshot?.thumbnailUrl}
+              onSelect={(snapshot) => setSelectedSnapshot(snapshot)}
+              disabled={generating || uploading || videoProcessing}
+            />
+          ) : (
+            <div className="p-4 text-center bg-bg-primary rounded-lg">
+              <div className="text-3xl mb-2">🎥</div>
+              <p className="text-body text-text-secondary">
+                Upload a video first to see available snapshots
+              </p>
+              <p className="text-small text-text-secondary mt-1">
+                Frames will be automatically extracted during processing
               </p>
             </div>
           )}
         </div>
-      </details>
+      )}
 
       {/* Reel Configuration - Coming Soon (live for admins) */}
       {(inputType === 'video' || inputType === 'url') && (
@@ -1563,12 +1439,11 @@ export function GenerationForm({
       )}
 
       {/* Helper Text */}
-      <p className="text-small text-text-secondary mt-2 mb-6">
-        {inputType === 'text' && (<>Press ⌘+Enter to generate<InfoTooltip text="Describe your content idea in detail - the more context you give, the better your results. You can paste existing text, share a topic, or describe what you want to talk about." /></>)}
-        {inputType === 'repurpose' && selectedContent && (
-          <>Selected: {selectedContent.title || 'Content'}</>
-        )}
-      </p>
+      {inputType === 'repurpose' && selectedContent && (
+        <p className="text-small text-text-secondary mt-2 mb-6">
+          Selected: {selectedContent.title || 'Content'}
+        </p>
+      )}
 
       {/* Free generation paywall - replaces generate button when exhausted */}
       {isFreeUser && freeGenerationsRemaining <= 0 ? (
@@ -1634,37 +1509,35 @@ export function GenerationForm({
             </div>
           )}
 
-          {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={generating || uploading || videoProcessing || !isReady}
-            className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {uploading ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Uploading...
-              </span>
-            ) : videoProcessing ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="text-lg">{VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}</span>
-                {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || 'Processing video...'}
-              </span>
-            ) : generating ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {inputType === 'repurpose' ? 'Repurposing...' : 'Generating...'}
-              </span>
-            ) : inputType === 'repurpose' ? (
-              'Repurpose Content'
-            ) : inputType === 'url' ? (
-              'Extract Clips & Generate Content'
-            ) : inputType === 'video' ? (
-              'Extract Clips & Generate Content'
-            ) : (
-              'Generate Content'
-            )}
-          </button>
+          {/* Generate Button — sticky at viewport bottom */}
+          <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-white via-white dark:from-gray-900 dark:via-gray-900 to-transparent -mx-6 px-6">
+            <button
+              onClick={handleGenerate}
+              disabled={generating || uploading || videoProcessing || !isReady}
+              className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Uploading...
+                </span>
+              ) : videoProcessing ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="text-lg">{VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}</span>
+                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || 'Processing video...'}
+                </span>
+              ) : generating ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {inputType === 'repurpose' ? 'Repurposing...' : 'Creating...'}
+                </span>
+              ) : inputType === 'repurpose' ? (
+                'Repurpose Content'
+              ) : (
+                'Create My Content'
+              )}
+            </button>
+          </div>
         </>
       )}
 

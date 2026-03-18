@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- video frame background - mimics a blurred video still -->
+  <rect width="80" height="80" rx="6" fill="#1a1a2e"/>
+  <!-- fake video scene: person silhouette talking -->
+  <ellipse cx="40" cy="28" rx="10" ry="11" fill="#2d2d44"/>
+  <rect x="26" y="38" width="28" height="28" rx="4" fill="#2d2d44"/>
+  <!-- text overlay on the frame -->
+  <rect x="8" y="48" width="64" height="18" rx="3" fill="black" opacity="0.5"/>
+  <rect x="14" y="52" width="44" height="3" rx="1" fill="white" opacity="0.9"/>
+  <rect x="14" y="58" width="32" height="2.5" rx="1" fill="white" opacity="0.6"/>
+  <!-- play icon overlay hint -->
+  <polygon points="36,22 36,34 46,28" fill="white" opacity="0.3"/>
+  <!-- slide indicator dots -->
+  <circle cx="34" cy="73" r="1.5" fill="white" opacity="0.9"/>
+  <circle cx="40" cy="73" r="1.5" fill="white" opacity="0.4"/>
+  <circle cx="46" cy="73" r="1.5" fill="white" opacity="0.4"/>
+</svg>

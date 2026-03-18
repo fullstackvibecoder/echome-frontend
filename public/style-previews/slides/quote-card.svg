@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <rect width="80" height="80" rx="6" fill="#F8F9FA"/>
+  <!-- card inset with shadow -->
+  <rect x="6" y="10" width="68" height="55" rx="4" fill="white" stroke="#E5E7EB" stroke-width="0.5"/>
+  <!-- blue accent bar -->
+  <rect x="12" y="18" width="3" height="24" rx="1.5" fill="#1DA1F2"/>
+  <!-- quote text lines -->
+  <rect x="20" y="19" width="44" height="3" rx="1" fill="#374151"/>
+  <rect x="20" y="26" width="38" height="3" rx="1" fill="#374151"/>
+  <rect x="20" y="33" width="42" height="3" rx="1" fill="#374151"/>
+  <!-- author name -->
+  <circle cx="18" cy="50" r="4" fill="#E5E7EB"/>
+  <rect x="25" y="48" width="24" height="2.5" rx="1" fill="#9CA3AF"/>
+  <rect x="25" y="53" width="16" height="2" rx="1" fill="#D1D5DB"/>
+  <!-- slide indicator dots -->
+  <circle cx="34" cy="73" r="1.5" fill="#1DA1F2"/>
+  <circle cx="40" cy="73" r="1.5" fill="#D1D5DB"/>
+  <circle cx="46" cy="73" r="1.5" fill="#D1D5DB"/>
+</svg>
