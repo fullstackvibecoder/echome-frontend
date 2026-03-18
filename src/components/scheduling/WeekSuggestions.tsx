@@ -6,15 +6,11 @@ import {
   ChevronUp,
   CheckCircle2,
   AlertTriangle,
-  GraduationCap,
-  User,
-  AlertCircle,
-  Star,
+  CalendarDays,
+  Clock,
 } from 'lucide-react';
 import {
   WeeklyAnalysis,
-  ContentCategory,
-  CONTENT_CATEGORY_CONFIG,
   ScheduleSuggestion,
 } from '@/types';
 
@@ -24,22 +20,16 @@ interface WeekSuggestionsProps {
   onApplySuggestion?: (suggestion: ScheduleSuggestion) => void;
 }
 
-const CATEGORY_ICONS: Record<ContentCategory, typeof GraduationCap> = {
-  authority: GraduationCap,
-  personal_story: User,
-  pain_problem: AlertCircle,
-  testimonial: Star,
-};
+const WEEKLY_TARGET = { min: 5, max: 7 };
 
-const TLL_TARGETS: Record<ContentCategory, { min: number; max: number }> = {
-  authority: { min: 2, max: 3 },
-  personal_story: { min: 2, max: 3 },
-  pain_problem: { min: 1, max: 2 },
-  testimonial: { min: 1, max: 2 },
-};
+function getFrequencyStatus(count: number): 'low' | 'good' | 'high' {
+  if (count < WEEKLY_TARGET.min) return 'low';
+  if (count > WEEKLY_TARGET.max) return 'high';
+  return 'good';
+}
 
 /**
- * Compact content mix strip with expandable details
+ * Compact posting cadence strip with expandable suggested slots
  */
 export function WeekSuggestions({
   analysis,
@@ -52,13 +42,9 @@ export function WeekSuggestions({
     return (
       <div className="bg-card rounded-lg border border-border px-4 py-3">
         <div className="animate-pulse flex items-center gap-4">
-          <div className="h-4 bg-muted rounded w-24" />
-          <div className="flex gap-3 flex-1">
-            <div className="h-4 bg-muted rounded w-16" />
-            <div className="h-4 bg-muted rounded w-16" />
-            <div className="h-4 bg-muted rounded w-16" />
-            <div className="h-4 bg-muted rounded w-16" />
-          </div>
+          <div className="h-4 bg-muted rounded w-32" />
+          <div className="flex-1" />
+          <div className="h-4 bg-muted rounded w-20" />
         </div>
       </div>
     );
@@ -68,162 +54,94 @@ export function WeekSuggestions({
     return null;
   }
 
-  const { currentStats, recommendations, suggestions, isBalanced, totalScheduled } = analysis;
+  const { suggestions, totalScheduled } = analysis;
+  const status = getFrequencyStatus(totalScheduled);
+  const hasSuggestions = suggestions.length > 0;
 
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden">
       {/* Compact Strip */}
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full px-4 py-3 flex items-center gap-4 hover:bg-muted/50 transition-colors"
+        onClick={() => hasSuggestions && setExpanded(!expanded)}
+        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors ${
+          hasSuggestions ? 'hover:bg-muted/50 cursor-pointer' : 'cursor-default'
+        }`}
       >
         {/* Status indicator */}
-        {isBalanced ? (
+        {status === 'good' ? (
           <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
         ) : (
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
         )}
 
-        {/* Category counts inline */}
-        <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto">
-          {(Object.keys(TLL_TARGETS) as ContentCategory[]).map(category => {
-            const count = currentStats[category] || 0;
-            const target = TLL_TARGETS[category];
-            const Icon = CATEGORY_ICONS[category];
-            const isLow = count < target.min;
-            const isGood = count >= target.min && count <= target.max;
-
-            return (
-              <div key={category} className="flex items-center gap-1.5 flex-shrink-0">
-                <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className={`text-sm font-semibold tabular-nums ${
-                  isGood ? 'text-emerald-600 dark:text-emerald-400'
-                    : isLow ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-primary'
-                }`}>
-                  {count}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  /{target.max}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Total + expand toggle */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs text-muted-foreground hidden sm:inline">
-            {totalScheduled} this week
+        {/* Posting cadence */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className={`text-lg font-bold tabular-nums ${
+            status === 'good' ? 'text-emerald-600 dark:text-emerald-400'
+              : status === 'low' ? 'text-amber-600 dark:text-amber-400'
+              : 'text-primary'
+          }`}>
+            {totalScheduled}
           </span>
-          {expanded ? (
-            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          )}
+          <span className="text-sm text-muted-foreground">
+            posts this week
+          </span>
+          <span className="text-xs text-muted-foreground/60 hidden sm:inline">
+            (aim for {WEEKLY_TARGET.min}-{WEEKLY_TARGET.max})
+          </span>
         </div>
+
+        {/* Expand toggle (only if suggestions exist) */}
+        {hasSuggestions && (
+          <div className="flex items-center gap-1.5 flex-shrink-0 text-muted-foreground">
+            <span className="text-xs hidden sm:inline">
+              {suggestions.length} suggested slot{suggestions.length !== 1 ? 's' : ''}
+            </span>
+            {expanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </div>
+        )}
       </button>
 
-      {/* Expanded Details */}
-      {expanded && (
-        <div className="border-t border-border">
-          {/* Category Detail Cards */}
-          <div className="px-4 py-3">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(Object.keys(TLL_TARGETS) as ContentCategory[]).map(category => {
-                const count = currentStats[category] || 0;
-                const target = TLL_TARGETS[category];
-                const Icon = CATEGORY_ICONS[category];
-                const config = CONTENT_CATEGORY_CONFIG[category];
-                const isLow = count < target.min;
-                const isGood = count >= target.min && count <= target.max;
+      {/* Expanded: Suggested Time Slots */}
+      {expanded && hasSuggestions && (
+        <div className="border-t border-border px-4 py-3">
+          <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+            Best times to post
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.slice(0, 6).map((suggestion, index) => {
+              const suggestedDate = new Date(suggestion.suggestedTime);
 
-                return (
-                  <div
-                    key={category}
-                    className={`p-3 rounded-lg border ${
-                      isGood
-                        ? 'border-emerald-500/20 bg-emerald-500/5'
-                        : isLow
-                        ? 'border-amber-500/20 bg-amber-500/5'
-                        : 'border-primary/20 bg-primary/5'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {config.label.split('/')[0]}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-xl font-bold ${
-                        isGood ? 'text-emerald-600 dark:text-emerald-400'
-                          : isLow ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-primary'
-                      }`}>
-                        {count}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        / {target.min}-{target.max}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              return (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApplySuggestion?.(suggestion);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm"
+                >
+                  <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="font-medium text-foreground">
+                    {suggestedDate.toLocaleDateString('en-US', {
+                      weekday: 'short',
+                    })}
+                  </span>
+                  <Clock className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    {suggestedDate.toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-
-          {/* Recommendations */}
-          {recommendations.length > 0 && (
-            <div className="px-4 py-3 border-t border-border">
-              <ul className="space-y-1.5">
-                {recommendations.slice(0, 3).map((rec, index) => (
-                  <li
-                    key={index}
-                    className="text-sm text-muted-foreground flex items-start gap-2"
-                  >
-                    <span className="text-amber-500 mt-0.5 flex-shrink-0">-</span>
-                    {rec.message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Suggested Slots */}
-          {suggestions.length > 0 && (
-            <div className="px-4 py-3 border-t border-border">
-              <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                Suggested slots
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {suggestions.slice(0, 4).map((suggestion, index) => {
-                  const Icon = CATEGORY_ICONS[suggestion.suggestedCategory];
-                  const suggestedDate = new Date(suggestion.suggestedTime);
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => onApplySuggestion?.(suggestion)}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="font-medium text-foreground">
-                        {suggestedDate.toLocaleDateString('en-US', {
-                          weekday: 'short',
-                        })}
-                        {' '}
-                        {suggestedDate.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
