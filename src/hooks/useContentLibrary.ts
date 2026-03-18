@@ -570,10 +570,18 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
     try {
       // Delete based on item type - route to correct API
+      // Note: 'kit' items in the content library are built from generation_requests,
+      // so their sourceId is a generation_request_id, NOT a content_kit_id.
+      // We must use api.generation.deleteRequest() for these.
       const deletePromises = selectedItems.map(item => {
         switch (item.type) {
           case 'kit':
-            // Content kit - delete the kit
+            // Items shown as "kits" are sourced from generation_requests table.
+            // Their sourceId/generationRequestId is a generation_request_id.
+            if (item.generationRequestId) {
+              return api.generation.deleteRequest(item.generationRequestId).catch(() => null);
+            }
+            // Fallback: if somehow it's an actual content_kit row
             return api.contentKits.delete(item.sourceId).catch(() => null);
           case 'video-upload':
             // Video upload - delete the upload (which soft-deletes)
@@ -588,7 +596,10 @@ export function useContentLibrary(): UseContentLibraryReturn {
             // Generated content - delete via generation API
             return api.generation.deleteRequest(item.generationRequestId || item.sourceId).catch(() => null);
           default:
-            // Fallback to content kit delete
+            // Fallback: try generation request first, then content kit
+            if (item.generationRequestId) {
+              return api.generation.deleteRequest(item.generationRequestId).catch(() => null);
+            }
             return api.contentKits.delete(item.sourceId).catch(() => null);
         }
       });
