@@ -75,6 +75,27 @@ function StatusDot({ status }: { status: string }) {
   return <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />;
 }
 
+function buildContentSummary(bySourceType: Record<string, number>): string {
+  const labels: Record<string, string> = {
+    voice_recording: 'voice',
+    youtube_import: 'YouTube',
+    instagram_import: 'Instagram',
+    blog_import: 'blog',
+    mbox_import: 'email',
+    paste_text: 'writing',
+    paste_social: 'social',
+    paste_email: 'email',
+    file_upload: 'files',
+  };
+  const activeTypes = Object.entries(bySourceType)
+    .filter(([, count]) => count > 0)
+    .map(([type]) => labels[type] || type)
+    .filter((v, i, a) => a.indexOf(v) === i); // dedupe
+  const total = Object.values(bySourceType).reduce((a, b) => a + b, 0);
+  if (total === 0) return '';
+  return `Trained on ${total} source${total !== 1 ? 's' : ''} across ${activeTypes.join(', ')}`;
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -566,13 +587,20 @@ export default function KnowledgeContent() {
             }
           />
 
-          {/* ZONE 1 - Voice Strength (tier badge) */}
+          {/* ZONE 1 - Ask Your Voice (hero — most important feature) */}
+          <AskYourVoice
+            disabled={!hasContent}
+            kbId={selectedKb}
+            contentSummary={hasContent ? buildContentSummary(bySourceType) : undefined}
+          />
+
+          {/* ZONE 2 - Voice Strength (tier badge) */}
           <VoiceIntelligenceDashboard
             contentStats={contentStats || { totalItems: 0, totalChunks: 0, totalSize: 0, bySourceType: {} }}
             totalChunks={totalChunks}
           />
 
-          {/* ZONE 2 - Source Category Cards (also serves as Add Content) */}
+          {/* ZONE 3 - Source Category Cards (also serves as Add Content) */}
           <SourceCategoryCards
             bySourceType={bySourceType}
             contentItems={contentItems}
@@ -580,9 +608,6 @@ export default function KnowledgeContent() {
             onOpenModal={handleOpenModal}
             onFilterByCategory={handleFilterByCategory}
           />
-
-          {/* ZONE 3 - Ask Your Voice */}
-          <AskYourVoice disabled={!hasContent} kbId={selectedKb} />
 
           {/* Empty State */}
           {!hasContent && (
