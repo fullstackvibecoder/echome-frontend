@@ -434,6 +434,21 @@ export function GenerationForm({
     }
   }, [freeUserExhausted, inputType]);
 
+  // Rotating microcopy for upload zone
+  const UPLOAD_HINTS = [
+    'Drop a podcast, interview, or talking-head video',
+    'Works best with 2–60 minute videos',
+    'We\u2019ll find the best clips automatically',
+    'One video = clips, posts, carousels, and emails',
+  ];
+  const [hintIndex, setHintIndex] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHintIndex(prev => (prev + 1) % UPLOAD_HINTS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Video processing state (Clip Finder)
   const [videoProcessing, setVideoProcessing] = useState(false);
   const [videoProcessingStatus, setVideoProcessingStatus] = useState<string | null>(null);
@@ -1167,8 +1182,8 @@ export function GenerationForm({
                       </div>
                     </div>
 
-                    <p className="text-lg text-gray-600 dark:text-gray-300 mb-4 font-medium">
-                      Drag & drop your video or click to browse
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 min-h-[20px] transition-opacity duration-500" key={hintIndex}>
+                      {UPLOAD_HINTS[hintIndex]}
                     </p>
 
                     <button
@@ -1179,7 +1194,7 @@ export function GenerationForm({
                       Select Video File
                     </button>
 
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       MP4, MOV, AVI, WebM • Up to 5GB
                     </p>
                   </>
@@ -1267,38 +1282,62 @@ export function GenerationForm({
         </div>
       )}
 
-      {/* ─── "You'll get" output strip ─── */}
+      {/* ─── How it works + You'll get ─── */}
       {inputType !== 'repurpose' && (
-        <div className="mt-5 flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-          {(inputType === 'video') && (
-            <span className="flex items-center gap-1">✂️ Clips</span>
-          )}
-          <span>•</span>
-          <span className="flex items-center gap-1">📸 Carousel</span>
-          <span>•</span>
-          <span className="flex items-center gap-1">📝 Posts</span>
-          <span>•</span>
-          <span className="flex items-center gap-1">✉️ Email</span>
-          {(inputType === 'video') && (
-            <>
-              <span>•</span>
-              <span className="flex items-center gap-1">💬 Captions</span>
-            </>
-          )}
+        <div className="mt-6 space-y-3">
+          {/* 3-step process */}
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">1</span>
+              <span>{inputType === 'video' ? 'Upload' : inputType === 'audio' ? 'Record' : 'Describe'}</span>
+            </span>
+            <span className="w-4 border-t border-gray-300 dark:border-gray-600" />
+            <span className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">2</span>
+              <span>AI creates</span>
+            </span>
+            <span className="w-4 border-t border-gray-300 dark:border-gray-600" />
+            <span className="flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">3</span>
+              <span>Download everything</span>
+            </span>
+          </div>
+
+          {/* Output types */}
+          <div className="flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+            {(inputType === 'video') && (
+              <span className="flex items-center gap-1">✂️ Clips</span>
+            )}
+            <span>•</span>
+            <span className="flex items-center gap-1">📸 Carousel</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">📝 Posts</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">✉️ Email</span>
+            {(inputType === 'video') && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1">💬 Captions</span>
+              </>
+            )}
+          </div>
         </div>
       )}
 
       {/* ─── Caption Look (video/url input only) ─── */}
       {(inputType === 'video' || inputType === 'url') && (
-        <StylePicker
-          label="Caption Look"
-          options={CAPTION_STYLE_GRID}
-          value={captionStyle}
-          onChange={(v) => setCaptionStyle(v as CaptionStyleOption)}
-          columns={4}
-          aspect="portrait"
-          disabled={generating || uploading || videoProcessing}
-        />
+        <>
+          <StylePicker
+            label="Caption Look"
+            options={CAPTION_STYLE_GRID}
+            value={captionStyle}
+            onChange={(v) => setCaptionStyle(v as CaptionStyleOption)}
+            columns={4}
+            aspect="portrait"
+            disabled={generating || uploading || videoProcessing}
+          />
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5 ml-0.5">How captions appear on your video clips</p>
+        </>
       )}
 
       {/* ─── Carousel Look (always visible) ─── */}
