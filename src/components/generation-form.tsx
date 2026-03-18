@@ -382,6 +382,7 @@ export function GenerationForm({
   const [uploadProgress, setUploadProgress] = useState(0);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [videoDragActive, setVideoDragActive] = useState(false);
+  const formCardRef = useRef<HTMLDivElement>(null);
 
   // Carousel design preset state
   const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
@@ -567,6 +568,11 @@ export function GenerationForm({
       setVideoProcessingProgress(0);
       setCurrentTipIndex(0);
       setUploadError(null);
+
+      // Scroll the form into view so user sees the progress
+      setTimeout(() => {
+        formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
 
       // Step 1: Upload the video
       const uploadResponse = await api.clips.upload(
@@ -965,7 +971,7 @@ export function GenerationForm({
       {/* Ambient glow behind card */}
       <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
 
-      <div className="relative card backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-2 border-white/20 shadow-2xl">
+      <div ref={formCardRef} className="relative card backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-2 border-white/20 shadow-2xl">
         {/* Header — changes per input mode */}
         <div className="text-center mb-6">
           <h2 className="text-display text-2xl mb-1.5 text-foreground">
@@ -1160,6 +1166,13 @@ export function GenerationForm({
                     );
                   })}
                 </div>
+
+                {/* Navigate away message — shows after upload phase */}
+                {videoProcessingStage !== 'uploading' && (
+                  <p className="text-xs text-text-tertiary mt-4">
+                    You can navigate away — we&apos;ll email you when it&apos;s ready.
+                  </p>
+                )}
               </div>
             ) : !selectedFile ? (
               <div className="relative">
