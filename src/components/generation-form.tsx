@@ -1510,7 +1510,7 @@ export function GenerationForm({
           )}
 
           {/* Generate Button — sticky at viewport bottom */}
-          <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-white via-white dark:from-gray-900 dark:via-gray-900 to-transparent -mx-6 px-6">
+          <div className="sticky bottom-0 pt-3 pb-2 bg-white dark:bg-gray-900 -mx-6 px-6 shadow-[0_-8px_16px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_-8px_16px_-4px_rgba(0,0,0,0.3)]">
             <button
               onClick={handleGenerate}
               disabled={generating || uploading || videoProcessing || !isReady}
