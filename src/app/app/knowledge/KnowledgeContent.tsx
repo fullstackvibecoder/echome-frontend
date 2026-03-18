@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { X, Mic, MessageSquare, FileText, Mail, PenLine, Upload, Search, Trash2, RefreshCw } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -23,7 +23,7 @@ import { AppPageHeader } from '@/components/app-page-header';
 import { VoiceIntelligenceDashboard } from './components/VoiceIntelligenceDashboard';
 import { AskYourVoice } from './components/AskYourVoice';
 import { SourceCategoryCards } from './components/SourceCategoryCards';
-import { VoiceGuidanceChip } from './components/VoiceGuidanceChip';
+// VoiceGuidanceChip removed — guidance now integrated into VoiceIntelligenceDashboard
 import { KBSourceFilterChips } from './components/KBSourceFilterChips';
 import { KBContentCard } from './components/KBContentCard';
 
@@ -31,19 +31,27 @@ import { KBContentCard } from './components/KBContentCard';
 // HELPERS
 // ============================================
 
-const SOURCE_ICONS: Record<string, string> = {
-  file_upload: '📄',
-  paste_text: '✍️',
-  paste_social: '📱',
-  paste_email: '📧',
-  voice_recording: '🎤',
-  mbox_import: '📥',
-  youtube_import: '🎬',
-  instagram_import: '📸',
-  blog_import: '🌐',
-  generation: '✨',
-  'clip-finder': '🎥',
+import type { LucideIcon } from 'lucide-react';
+import { Play, Camera, Video, Sparkles } from 'lucide-react';
+
+const SOURCE_ICON_MAP: Record<string, LucideIcon> = {
+  file_upload: Upload,
+  paste_text: PenLine,
+  paste_social: MessageSquare,
+  paste_email: Mail,
+  voice_recording: Mic,
+  mbox_import: Mail,
+  youtube_import: Play,
+  instagram_import: Camera,
+  blog_import: FileText,
+  generation: Sparkles,
+  'clip-finder': Video,
 };
+
+function SourceIcon({ type, className }: { type: string; className?: string }) {
+  const Icon = SOURCE_ICON_MAP[type] || FileText;
+  return <Icon className={className || 'w-4 h-4'} />;
+}
 
 function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -95,7 +103,6 @@ interface KBListItemProps {
 function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onToggleExpand, onDelete }: KBListItemProps) {
   const [hovered, setHovered] = useState(false);
   const config = CONTENT_SOURCE_CONFIG[item.sourceType as ContentSourceType];
-  const icon = SOURCE_ICONS[item.sourceType] || '📄';
 
   return (
     <div>
@@ -122,7 +129,9 @@ function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onT
         )}
 
         {/* Source icon */}
-        <span className="text-base flex-shrink-0" title={config?.label || item.sourceType}>{icon}</span>
+        <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-bg-secondary flex items-center justify-center" title={config?.label || item.sourceType}>
+          <SourceIcon type={item.sourceType} className="w-3.5 h-3.5 text-text-secondary" />
+        </div>
 
         {/* Title + description */}
         <div className="flex-1 min-w-0">
@@ -132,11 +141,11 @@ function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onT
           )}
         </div>
 
-        {/* Status + nuggets */}
+        {/* Status + patterns */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <StatusDot status={item.status} />
           <span className="text-xs text-text-secondary whitespace-nowrap">
-            {item.chunkCount || 0} nuggets
+            {item.chunkCount || 0} patterns
           </span>
         </div>
 
@@ -152,7 +161,7 @@ function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onT
             className="flex-shrink-0 p-1 text-text-tertiary hover:text-error transition-colors"
             title="Delete"
           >
-            🗑️
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
@@ -523,7 +532,7 @@ export default function KnowledgeContent() {
           {/* Voice Linking Info (EchoTeams) */}
           {isTeamsUser && linkedVoices.length > 0 && (
             <div className="mb-6 p-3 bg-accent/5 border border-accent/20 rounded-lg flex items-center gap-2 text-sm">
-              <span className="text-accent">🎙️</span>
+              <Mic className="w-4 h-4 text-accent flex-shrink-0" />
               <span className="text-text-secondary">
                 Used by: {linkedVoices.map(v => (
                   <span key={v.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/10 rounded-full text-xs font-medium text-accent mx-0.5">
@@ -537,95 +546,33 @@ export default function KnowledgeContent() {
           {/* ZONE 0 - Header */}
           <AppPageHeader
             title="Voice Profile"
-            description="Your writing DNA - everything EchoMe uses to match your voice"
+            description="Everything EchoMe uses to match your voice"
             stats={
-              <span className="text-xs text-text-secondary ml-2">
-                {totalItems} sources · {totalChunks.toLocaleString()} nuggets{contentStats && contentStats.totalSize > 0 ? ` · ${formatSize(contentStats.totalSize)}` : ''}
-              </span>
+              hasContent ? (
+                <span className="text-xs text-text-secondary ml-2">
+                  {totalItems} sources · {totalChunks.toLocaleString()} patterns{contentStats && contentStats.totalSize > 0 ? ` · ${formatSize(contentStats.totalSize)}` : ''}
+                </span>
+              ) : null
             }
             actions={
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={refresh}
-                  disabled={loading}
-                  className="text-text-secondary hover:text-primary transition-colors p-2"
-                  title="Refresh"
-                >
-                  ↻
-                </button>
-              </div>
+              <button
+                onClick={refresh}
+                disabled={loading}
+                className="text-text-secondary hover:text-primary transition-colors p-2"
+                title="Refresh"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
             }
           />
 
-          {/* Add Content — always-visible input method buttons */}
-          <div className="mb-2">
-            <p className="text-xs uppercase tracking-wider text-text-secondary font-medium mb-3">
-              Add to your Voice Profile
-            </p>
-            <div className="flex flex-wrap gap-2 stagger-children">
-              <button
-                onClick={() => handleOpenModal('voice')}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
-                title="Record yourself talking - we'll transcribe it"
-              >
-                <span>🎤</span> Voice
-              </button>
-              <button
-                onClick={() => handleOpenModal('social')}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
-                title="Import from YouTube or Instagram"
-              >
-                <span>📱</span> Social
-              </button>
-              <button
-                onClick={() => handleOpenModal('blog')}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
-                title="Import articles from your blog"
-              >
-                <span>📝</span> Blog
-              </button>
-              <button
-                onClick={() => handleOpenModal('email')}
-                disabled={mboxUploading}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium disabled:opacity-50"
-                title="Import emails you've sent"
-              >
-                <span>📧</span> Email
-              </button>
-              <button
-                onClick={() => handleOpenModal('paste')}
-                className="group flex items-center gap-2 px-4 py-2.5 border-2 border-border rounded-xl hover:border-accent hover:bg-accent/5 transition-all text-sm font-medium"
-                title="Copy and paste any text you've written"
-              >
-                <span>✍️</span> Paste
-              </button>
-              <button
-                onClick={() => handleOpenModal('upload')}
-                className="btn-primary flex items-center gap-2"
-                title="Upload documents (PDF, Word, TXT, MBOX)"
-              >
-                <span>📤</span> Upload
-              </button>
-            </div>
-          </div>
-
-          {/* ZONE 1 - Ask Your Voice */}
-          <AskYourVoice disabled={!hasContent} kbId={selectedKb} />
-
-          {/* ZONE 2 - Voice Strength Dashboard */}
+          {/* ZONE 1 - Voice Strength (tier badge) */}
           <VoiceIntelligenceDashboard
             contentStats={contentStats || { totalItems: 0, totalChunks: 0, totalSize: 0, bySourceType: {} }}
             totalChunks={totalChunks}
           />
 
-          {/* Voice Guidance Chip */}
-          <VoiceGuidanceChip
-            totalChunks={totalChunks}
-            bySourceType={bySourceType}
-            onOpenModal={handleOpenModal}
-          />
-
-          {/* ZONE 3 - Source Category Cards */}
+          {/* ZONE 2 - Source Category Cards (also serves as Add Content) */}
           <SourceCategoryCards
             bySourceType={bySourceType}
             contentItems={contentItems}
@@ -634,26 +581,31 @@ export default function KnowledgeContent() {
             onFilterByCategory={handleFilterByCategory}
           />
 
+          {/* ZONE 3 - Ask Your Voice */}
+          <AskYourVoice disabled={!hasContent} kbId={selectedKb} />
+
           {/* Empty State */}
           {!hasContent && (
             <div className="text-center py-10 px-6 bg-bg-secondary rounded-xl border border-border">
-              <div className="text-5xl mb-4">✨</div>
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-accent" />
+              </div>
               <h3 className="text-lg font-semibold mb-2">Your Voice Profile is empty</h3>
               <p className="text-text-secondary text-sm max-w-md mx-auto mb-4">
-                Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos - it only takes a minute!
+                Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos.
               </p>
               <div className="flex justify-center gap-3">
                 <button
                   onClick={() => setShowPasteModal(true)}
-                  className="px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 text-sm font-medium"
                 >
-                  Paste Text
+                  <PenLine className="w-4 h-4" /> Paste Text
                 </button>
                 <button
                   onClick={() => setShowSocialModal(true)}
-                  className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 text-sm font-medium"
                 >
-                  Import YouTube
+                  <Play className="w-4 h-4" /> Import YouTube
                 </button>
               </div>
             </div>
@@ -676,7 +628,7 @@ export default function KnowledgeContent() {
                   placeholder="Search content..."
                   className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-xl input-glow"
                 />
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm">🔍</span>
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
               </div>
 
               {/* Filter Chips */}

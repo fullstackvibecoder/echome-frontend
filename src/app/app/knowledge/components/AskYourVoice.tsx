@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { MessageCircle, Send } from 'lucide-react';
 import { api } from '@/lib/api-client';
 
 interface Message {
@@ -94,7 +95,7 @@ export function AskYourVoice({ disabled, kbId }: AskYourVoiceProps) {
             disabled={disabled || loading}
             className="w-full pl-10 pr-20 py-3.5 text-sm border border-border rounded-xl input-glow bg-bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base">🔍</span>
+          <MessageCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
           <button
             type="submit"
             disabled={disabled || loading || !input.trim()}

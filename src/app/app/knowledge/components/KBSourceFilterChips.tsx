@@ -1,19 +1,32 @@
 'use client';
 
+import {
+  Upload,
+  PenLine,
+  MessageSquare,
+  Mail,
+  Mic,
+  Play,
+  Camera,
+  FileText,
+  Sparkles,
+  Video,
+  type LucideIcon,
+} from 'lucide-react';
 import { ContentSourceType, CONTENT_SOURCE_CONFIG } from '@/types';
 
-const SOURCE_ICONS: Record<string, string> = {
-  file_upload: '📄',
-  paste_text: '✍️',
-  paste_social: '📱',
-  paste_email: '📧',
-  voice_recording: '🎤',
-  mbox_import: '📥',
-  youtube_import: '🎬',
-  instagram_import: '📸',
-  blog_import: '🌐',
-  generation: '✨',
-  'clip-finder': '🎥',
+const SOURCE_ICONS: Record<string, LucideIcon> = {
+  file_upload: Upload,
+  paste_text: PenLine,
+  paste_social: MessageSquare,
+  paste_email: Mail,
+  voice_recording: Mic,
+  mbox_import: Mail,
+  youtube_import: Play,
+  instagram_import: Camera,
+  blog_import: FileText,
+  generation: Sparkles,
+  'clip-finder': Video,
 };
 
 interface KBSourceFilterChipsProps {
@@ -53,7 +66,7 @@ export function KBSourceFilterChips({
 
       {availableTypes.map(({ type, count }) => {
         const config = CONTENT_SOURCE_CONFIG[type];
-        const icon = SOURCE_ICONS[type] || '📄';
+        const Icon = SOURCE_ICONS[type] || Upload;
         const isActive = activeFilter === type;
 
         return (
@@ -69,7 +82,7 @@ export function KBSourceFilterChips({
               }
             `}
           >
-            <span className="text-xs">{icon}</span>
+            <Icon className="w-3.5 h-3.5" />
             <span>{config?.label || type}</span>
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
               isActive ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-secondary'
