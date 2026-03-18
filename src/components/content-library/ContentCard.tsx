@@ -8,9 +8,19 @@
  */
 
 import { useState } from 'react';
-import type { NormalizedContent } from '@/lib/content-normalizer';
+import { Video, Sparkles, Image, Package, Clapperboard, Target } from 'lucide-react';
+import type { NormalizedContent, ContentType } from '@/lib/content-normalizer';
 import { STATUS_CONFIG, CONTENT_TYPE_CONFIG } from '@/lib/content-normalizer';
 import { PlatformIcon, type Platform } from '@/components/shared/PlatformIcon';
+
+/** Lucide icon + gradient for thumbnail fallback per content type */
+const CONTENT_TYPE_VISUALS: Record<ContentType, { icon: typeof Video; gradient: string }> = {
+  clip: { icon: Clapperboard, gradient: 'from-cyan-500/20 to-blue-500/10' },
+  generated: { icon: Sparkles, gradient: 'from-violet-500/20 to-purple-500/10' },
+  carousel: { icon: Image, gradient: 'from-pink-500/20 to-rose-500/10' },
+  kit: { icon: Package, gradient: 'from-amber-500/15 to-orange-500/10' },
+  'video-upload': { icon: Video, gradient: 'from-blue-500/20 to-cyan-500/10' },
+};
 
 interface ContentCardProps {
   item: NormalizedContent;
@@ -91,17 +101,21 @@ export function ContentCard({
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/10 to-accent/5">
-            <span className="text-5xl">{typeConfig.icon}</span>
-          </div>
-        )}
+        ) : (() => {
+          const visual = CONTENT_TYPE_VISUALS[item.type] || CONTENT_TYPE_VISUALS.kit;
+          const FallbackIcon = visual.icon;
+          return (
+            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${visual.gradient}`}>
+              <FallbackIcon className="w-12 h-12 text-text-tertiary/50" strokeWidth={1.2} />
+            </div>
+          );
+        })()}
 
         {/* Type Badge */}
         <div
           className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-medium ${typeConfig.color}`}
         >
-          {typeConfig.icon} {typeConfig.label}
+          {typeConfig.label}
         </div>
 
         {/* Clip/Slide Count Badge */}
@@ -171,7 +185,7 @@ export function ContentCard({
           {/* Score Badge */}
           {item.score && item.score > 0 && (
             <div className="flex items-center gap-1 text-accent">
-              <span>🎯</span>
+              <Target className="w-3 h-3" />
               <span className="font-medium">{item.score}%</span>
             </div>
           )}

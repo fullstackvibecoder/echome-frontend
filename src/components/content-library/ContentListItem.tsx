@@ -8,9 +8,18 @@
  */
 
 import { useState } from 'react';
-import type { NormalizedContent } from '@/lib/content-normalizer';
+import { Video, Sparkles, Image, Package, Clapperboard } from 'lucide-react';
+import type { NormalizedContent, ContentType } from '@/lib/content-normalizer';
 import { STATUS_CONFIG, CONTENT_TYPE_CONFIG } from '@/lib/content-normalizer';
 import { PlatformIcon, type Platform } from '@/components/shared/PlatformIcon';
+
+const CONTENT_TYPE_ICONS: Record<ContentType, typeof Video> = {
+  clip: Clapperboard,
+  generated: Sparkles,
+  carousel: Image,
+  kit: Package,
+  'video-upload': Video,
+};
 
 interface ContentListItemProps {
   item: NormalizedContent;
@@ -90,11 +99,14 @@ export function ContentListItem({
             alt={item.title}
             className="w-full h-full object-cover"
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl">
-            {typeConfig.icon}
-          </div>
-        )}
+        ) : (() => {
+          const FallbackIcon = CONTENT_TYPE_ICONS[item.type] || Package;
+          return (
+            <div className="w-full h-full flex items-center justify-center">
+              <FallbackIcon className="w-6 h-6 text-text-tertiary/60" strokeWidth={1.5} />
+            </div>
+          );
+        })()}
       </div>
 
       {/* Title & Description */}
