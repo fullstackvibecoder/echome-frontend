@@ -8,6 +8,7 @@ import { Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { AppPageHeader } from '@/components/app-page-header';
+import { StylePicker, StyleOption } from '@/components/style-picker';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -21,12 +22,14 @@ const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
   { id: 'video-script', label: 'Video Script', icon: '🎬' },
 ];
 
-// Carousel design preset options
+// Carousel design preset options — visual thumbnail grid
 type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
-const DESIGN_PRESET_OPTIONS: { value: CarouselDesignOption; label: string; description: string; disabled?: boolean }[] = [
-  { value: 'tweet-style', label: 'Tweet Style', description: 'Twitter/X post card look' },
-  { value: 'upload', label: 'Upload Custom', description: 'Use your own background image' },
-  { value: 'video-snapshot', label: 'Video Snapshots', description: 'Use a frame from your uploaded video' },
+const CAROUSEL_STYLE_OPTIONS: StyleOption[] = [
+  { value: 'auto', label: 'Pick for me', thumbnail: '/style-previews/slides/pick-for-me.svg' },
+  { value: 'tweet-style', label: 'Quote Card', thumbnail: '/style-previews/slides/quote-card.svg' },
+  { value: 'text-box', label: 'Text on Color', thumbnail: '/style-previews/slides/text-on-color.svg' },
+  { value: 'upload', label: 'My Own Image', thumbnail: '/style-previews/slides/my-own-image.svg' },
+  { value: 'video-snapshot', label: 'Video Frame', thumbnail: '/style-previews/slides/video-frame.svg' },
 ];
 
 // Extended content with creator info
@@ -60,7 +63,7 @@ export default function FollowingContent() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('tweet-style');
+  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
   const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
   const carouselBgInputRef = useRef<HTMLInputElement>(null);
   const [carouselBgDragActive, setCarouselBgDragActive] = useState(false);
@@ -240,7 +243,7 @@ export default function FollowingContent() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
-    setCarouselDesignOption('tweet-style'); // Default to tweet-style for better carousels
+    setCarouselDesignOption('auto'); // Default to auto
     setCarouselBgFile(null);
   };
 
@@ -316,9 +319,8 @@ export default function FollowingContent() {
       }
 
       // Build design preset config
-      // video-snapshot is coming soon and disabled, so default to tweet-style if somehow selected
       const designPreset: DesignPreset = (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot')
-        ? 'tweet-style'
+        ? 'auto'
         : carouselDesignOption;
       let carouselBackground: { type: 'image'; imageUrl: string } | undefined;
 
@@ -803,28 +805,21 @@ export default function FollowingContent() {
                   </div>
                 </div>
 
-                {/* Carousel Design Preset */}
+                {/* Carousel Look — visual thumbnail picker */}
                 {selectedPlatforms.includes('instagram') && (
-                  <div className="p-4 bg-muted rounded-lg space-y-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <label className="font-medium text-foreground">Carousel Style</label>
-                        <p className="text-small text-muted-foreground">Design preset for Instagram carousel</p>
-                      </div>
-                      <select
-                        value={carouselDesignOption}
-                        onChange={(e) => handleDesignOptionChange(e.target.value as CarouselDesignOption)}
-                        className="px-4 py-2 border border-border rounded-lg bg-background text-foreground"
-                      >
-                        {DESIGN_PRESET_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                            {opt.label}{opt.disabled ? ' (Coming Soon)' : ''}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {carouselDesignOption === 'upload' ? (
-                      <div className="space-y-2">
+                  <div>
+                    <StylePicker
+                      label="Carousel Look"
+                      options={CAROUSEL_STYLE_OPTIONS}
+                      value={carouselDesignOption}
+                      onChange={(v) => handleDesignOptionChange(v as CarouselDesignOption)}
+                      columns={5}
+                      aspect="square"
+                    />
+
+                    {/* Upload zone for "My Own Image" */}
+                    {carouselDesignOption === 'upload' && (
+                      <div className="mt-3 space-y-2">
                         <input
                           ref={carouselBgInputRef}
                           type="file"
@@ -867,26 +862,11 @@ export default function FollowingContent() {
                                 ✕
                               </button>
                             </div>
-                          ) : carouselBgDragActive ? (
-                            <>
-                              <span className="text-2xl">📥</span>
-                              <span className="text-accent font-medium">Drop image here</span>
-                            </>
                           ) : (
-                            <>
-                              <span className="text-2xl">📷</span>
-                              <span className="text-foreground">Drag & drop or click to upload background image</span>
-                            </>
+                            <span className="text-muted-foreground text-sm">Drag & drop or click to upload background image</span>
                           )}
                         </label>
-                        <p className="text-small text-muted-foreground">
-                          Your text will be overlaid on this image. Recommended: 1080x1080px
-                        </p>
                       </div>
-                    ) : (
-                      <p className="text-small text-muted-foreground">
-                        {DESIGN_PRESET_OPTIONS.find(opt => opt.value === carouselDesignOption)?.description}
-                      </p>
                     )}
                   </div>
                 )}
