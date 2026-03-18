@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshCw, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useScheduling } from '@/hooks/useScheduling';
 import {
@@ -10,7 +10,6 @@ import {
   WeekSuggestions,
 } from '@/components/scheduling';
 import { ScheduledPost, ContentCategory } from '@/types';
-import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { AppPageHeader } from '@/components/app-page-header';
 
@@ -29,22 +28,14 @@ export default function CalendarContent() {
     refresh,
   } = useScheduling();
 
-  const [view, setView] = useState<'month' | 'week'>('week');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
 
-  // Handle clicking on a scheduled post (opens edit modal)
   const handlePostClick = (post: ScheduledPost) => {
     setEditingPost(post);
     setModalOpen(true);
   };
 
-  // Empty slots are not interactive - users schedule from content kits
-  const handleSlotClick = () => {
-    // No-op - scheduling happens from content kit pages
-  };
-
-  // Handle updating a scheduled post
   const handleUpdate = async (
     id: string,
     data: {
@@ -57,7 +48,6 @@ export default function CalendarContent() {
     await updateSchedule(id, data);
   };
 
-  // Handle deleting a scheduled post
   const handleDelete = async (id: string) => {
     await deleteSchedule(id);
   };
@@ -67,8 +57,6 @@ export default function CalendarContent() {
       {/* Page Header */}
       <AppPageHeader
         title="Content Calendar"
-        description="View and manage your scheduled content"
-        icon={<Calendar className="w-6 h-6 text-primary" />}
         actions={
           <>
             <button
@@ -94,57 +82,28 @@ export default function CalendarContent() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+        <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
           {error}
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 stagger-children">
-        {/* Calendar - takes 2 columns */}
-        <div className="lg:col-span-2">
-          <ScheduleCalendar
-            scheduledPosts={scheduledPosts}
-            currentWeekStart={currentWeekStart}
-            onWeekChange={setCurrentWeekStart}
-            onPostClick={handlePostClick}
-            onSlotClick={handleSlotClick}
-            view={view}
-            onViewChange={setView}
-          />
-        </div>
-
-        {/* Sidebar - content balance and tips */}
-        <div className="space-y-6">
-          {/* Content Mix Balance */}
-          <WeekSuggestions
-            analysis={weeklyAnalysis}
-            loading={loading}
-          />
-
-          {/* How to Schedule */}
-          <div className="bg-card rounded-xl border border-border overflow-hidden card-lift">
-            <div className="px-4 py-3 border-b border-border">
-              <h3 className="font-semibold text-foreground">How to Schedule</h3>
-            </div>
-            <div className="p-4 space-y-3 text-sm text-muted-foreground">
-              <p>
-                To add content to your calendar:
-              </p>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>Go to your <Link href="/app" className="text-primary hover:underline">Content Kits</Link></li>
-                <li>Open a content kit</li>
-                <li>Click &quot;Add to Calendar&quot; on any content piece</li>
-              </ol>
-              <p className="text-xs text-muted-foreground mt-3">
-                This ensures every scheduled post is linked to actual content you&apos;ve created.
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Content Mix Strip */}
+      <div className="mb-4">
+        <WeekSuggestions
+          analysis={weeklyAnalysis}
+          loading={loading}
+        />
       </div>
 
-      {/* Edit Modal - only for editing existing posts */}
+      {/* Calendar — full width */}
+      <ScheduleCalendar
+        scheduledPosts={scheduledPosts}
+        currentWeekStart={currentWeekStart}
+        onWeekChange={setCurrentWeekStart}
+        onPostClick={handlePostClick}
+      />
+
+      {/* Edit Modal */}
       {editingPost && (
         <ScheduleModal
           isOpen={modalOpen}
@@ -152,7 +111,7 @@ export default function CalendarContent() {
             setModalOpen(false);
             setEditingPost(null);
           }}
-          onSave={async () => {}} // Not used for edit-only modal
+          onSave={async () => {}}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           onMarkPosted={markAsPosted}

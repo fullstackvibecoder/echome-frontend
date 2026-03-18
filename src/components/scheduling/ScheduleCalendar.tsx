@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useMemo, useEffect, type ReactElement } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Check,
   X,
   Clock,
-  List,
+  Plus,
+  Sparkles,
 } from 'lucide-react';
+import Link from 'next/link';
 import {
   ScheduledPost,
   ContentCategory,
@@ -21,9 +22,6 @@ interface ScheduleCalendarProps {
   currentWeekStart: string;
   onWeekChange: (weekStart: string) => void;
   onPostClick?: (post: ScheduledPost) => void;
-  onSlotClick?: (date: Date) => void;
-  view?: 'month' | 'week';
-  onViewChange?: (view: 'month' | 'week') => void;
 }
 
 // Hook to detect mobile viewport
@@ -44,24 +42,17 @@ function useIsMobile() {
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const FULL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-// Time slots for week view
-const TIME_SLOTS = [
-  { label: 'Morning', time: '08:00', slot: 'morning' },
-  { label: 'Lunch', time: '12:00', slot: 'lunch' },
-  { label: 'Evening', time: '17:00', slot: 'evening' },
-];
-
 /**
- * Get category color classes
+ * Get category color classes (dark-mode safe)
  */
 function getCategoryColor(category?: ContentCategory): string {
   if (!category) return 'bg-muted border-border text-muted-foreground';
 
   const colors: Record<ContentCategory, string> = {
-    authority: 'bg-blue-100 border-blue-300 text-blue-800',
-    personal_story: 'bg-purple-100 border-purple-300 text-purple-800',
-    pain_problem: 'bg-orange-100 border-orange-300 text-orange-800',
-    testimonial: 'bg-green-100 border-green-300 text-green-800',
+    authority: 'bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300',
+    personal_story: 'bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-300',
+    pain_problem: 'bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-300',
+    testimonial: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
   };
 
   return colors[category];
@@ -73,7 +64,7 @@ function getCategoryColor(category?: ContentCategory): string {
 function getStatusIcon(status: ScheduledPost['status']) {
   switch (status) {
     case 'posted':
-      return <Check className="w-3 h-3 text-green-600" />;
+      return <Check className="w-3 h-3 text-emerald-500" />;
     case 'skipped':
       return <X className="w-3 h-3 text-muted-foreground" />;
     default:
@@ -89,9 +80,6 @@ export function ScheduleCalendar({
   currentWeekStart,
   onWeekChange,
   onPostClick,
-  onSlotClick,
-  view = 'week',
-  onViewChange,
 }: ScheduleCalendarProps) {
   const weekStart = new Date(currentWeekStart);
   const isMobile = useIsMobile();
@@ -170,6 +158,8 @@ export function ScheduleCalendar({
     );
   };
 
+  const hasAnyPosts = scheduledPosts.length > 0;
+
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden">
       {/* Header */}
@@ -192,43 +182,35 @@ export function ScheduleCalendar({
           <span className="font-medium text-foreground ml-1 sm:ml-2 text-sm sm:text-base">{weekRangeStr}</span>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          <button
-            onClick={goToToday}
-            className="px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors touch-manipulation"
-          >
-            Today
-          </button>
-
-          {/* View toggle - hidden on mobile since we auto-show list view */}
-          {onViewChange && !isMobile && (
-            <div className="hidden sm:flex items-center bg-muted rounded-md p-0.5">
-              <button
-                onClick={() => onViewChange('week')}
-                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                  view === 'week'
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Week
-              </button>
-              <button
-                onClick={() => onViewChange('month')}
-                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                  view === 'month'
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Month
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          onClick={goToToday}
+          className="px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors touch-manipulation"
+        >
+          Today
+        </button>
       </div>
 
-      {/* Mobile List View - Shows agenda-style list on small screens */}
+      {/* Full-calendar empty state */}
+      {!hasAnyPosts && !isMobile && (
+        <div className="flex flex-col items-center justify-center py-20 px-6">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Sparkles className="w-6 h-6 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">No content scheduled</h3>
+          <p className="text-sm text-muted-foreground mb-4 text-center max-w-sm">
+            Create content first, then add it to your calendar from any content kit.
+          </p>
+          <Link
+            href="/app"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5"
+          >
+            <Sparkles className="w-4 h-4" />
+            Create Content
+          </Link>
+        </div>
+      )}
+
+      {/* Mobile List View */}
       {isMobile && (
         <div className="divide-y divide-border">
           {weekDays.map((day, dayIndex) => {
@@ -243,13 +225,12 @@ export function ScheduleCalendar({
                   className={`flex items-center justify-between px-4 py-3 ${
                     isTodayDate ? 'bg-primary/10' : 'bg-muted'
                   }`}
-                  onClick={() => onSlotClick?.(day)}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                         isTodayDate
-                          ? 'bg-primary text-white'
+                          ? 'bg-primary text-primary-foreground'
                           : 'bg-card border border-border text-muted-foreground'
                       }`}
                     >
@@ -265,10 +246,13 @@ export function ScheduleCalendar({
                     </div>
                   </div>
                   {dayPosts.length === 0 && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="opacity-40">📝</span>
-                      <span>Tap to add content</span>
-                    </div>
+                    <Link
+                      href="/app"
+                      className="p-2 text-muted-foreground/40 hover:text-primary transition-colors"
+                      aria-label="Create content"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </Link>
                   )}
                 </div>
 
@@ -317,8 +301,8 @@ export function ScheduleCalendar({
         </div>
       )}
 
-      {/* Week View - Hidden on mobile */}
-      {view === 'week' && !isMobile && (
+      {/* Week View - Hidden on mobile, hidden when fully empty */}
+      {hasAnyPosts && !isMobile && (
         <div className="grid grid-cols-7 min-h-[500px]">
           {weekDays.map((day, dayIndex) => {
             const dateKey = day.toISOString().split('T')[0];
@@ -328,7 +312,7 @@ export function ScheduleCalendar({
               <div
                 key={dateKey}
                 className={`border-r border-border last:border-r-0 ${
-                  isToday(day) ? 'bg-primary/10' : ''
+                  isToday(day) ? 'bg-primary/5' : ''
                 }`}
               >
                 {/* Day Header */}
@@ -354,31 +338,22 @@ export function ScheduleCalendar({
                 </div>
 
                 {/* Day Content */}
-                <div
-                  className="p-2 min-h-[400px] space-y-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => onSlotClick?.(day)}
-                >
+                <div className="p-2 min-h-[400px] space-y-2">
                   {dayPosts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-3">
-                      <div className="flex gap-2 opacity-30">
-                        <span>🎯</span>
-                        <span>💡</span>
-                        <span>🗣️</span>
-                        <span>⭐</span>
-                      </div>
-                      <div className="flex items-center">
-                        <CalendarIcon className="w-4 h-4 mr-1" />
-                        <span className="hidden md:inline">Click to schedule</span>
-                      </div>
+                    <div className="flex items-center justify-center h-full">
+                      <Link
+                        href="/app"
+                        className="p-3 text-muted-foreground/30 hover:text-primary/60 transition-colors rounded-lg hover:bg-muted/50"
+                        aria-label={`Create content for ${DAYS[dayIndex]}`}
+                      >
+                        <Plus className="w-5 h-5" />
+                      </Link>
                     </div>
                   ) : (
                     dayPosts.map(post => (
                       <div
                         key={post.id}
-                        onClick={e => {
-                          e.stopPropagation();
-                          onPostClick?.(post);
-                        }}
+                        onClick={() => onPostClick?.(post)}
                         className={`p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow ${getCategoryColor(
                           post.contentCategory
                         )} ${
@@ -423,118 +398,6 @@ export function ScheduleCalendar({
           })}
         </div>
       )}
-
-      {/* Month View - Simplified, hidden on mobile */}
-      {view === 'month' && !isMobile && (
-        <div className="p-4">
-          <div className="grid grid-cols-7 gap-1">
-            {/* Day headers */}
-            {DAYS.map(day => (
-              <div
-                key={day}
-                className="text-center text-xs font-medium text-muted-foreground py-2"
-              >
-                {day}
-              </div>
-            ))}
-
-            {/* Generate month grid */}
-            {(() => {
-              const monthStart = new Date(weekStart);
-              monthStart.setDate(1);
-              const startDay = monthStart.getDay();
-              const offset = startDay === 0 ? 6 : startDay - 1;
-
-              const daysInMonth = new Date(
-                monthStart.getFullYear(),
-                monthStart.getMonth() + 1,
-                0
-              ).getDate();
-
-              const cells: ReactElement[] = [];
-
-              // Empty cells before month starts
-              for (let i = 0; i < offset; i++) {
-                cells.push(
-                  <div key={`empty-${i}`} className="aspect-square" />
-                );
-              }
-
-              // Days of the month
-              for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(
-                  monthStart.getFullYear(),
-                  monthStart.getMonth(),
-                  day
-                );
-                const dateKey = date.toISOString().split('T')[0];
-                const dayPosts = postsByDate[dateKey] || [];
-                const isTodayDate = isToday(date);
-
-                cells.push(
-                  <div
-                    key={day}
-                    onClick={() => onSlotClick?.(date)}
-                    className={`aspect-square border rounded-md p-1 cursor-pointer hover:bg-muted transition-colors ${
-                      isTodayDate ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                  >
-                    <div
-                      className={`text-xs font-medium ${
-                        isTodayDate ? 'text-primary' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {day}
-                    </div>
-                    {dayPosts.length > 0 && (
-                      <div className="mt-1 flex flex-wrap gap-0.5">
-                        {dayPosts.slice(0, 3).map(post => (
-                          <div
-                            key={post.id}
-                            className={`w-2 h-2 rounded-full ${
-                              post.contentCategory
-                                ? getCategoryColor(post.contentCategory).split(' ')[0]
-                                : 'bg-muted'
-                            }`}
-                            title={post.title || 'Scheduled'}
-                          />
-                        ))}
-                        {dayPosts.length > 3 && (
-                          <span className="text-[8px] text-muted-foreground">
-                            +{dayPosts.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return cells;
-            })()}
-          </div>
-        </div>
-      )}
-
-      {/* Legend - Hidden on mobile for cleaner UI */}
-      <div className="hidden sm:block px-4 py-2 border-t border-border bg-muted">
-        <div className="flex items-center justify-center gap-4 text-xs">
-          {(Object.keys(CONTENT_CATEGORY_CONFIG) as ContentCategory[]).map(
-            category => (
-              <div key={category} className="flex items-center gap-1">
-                <div
-                  className={`w-3 h-3 rounded ${
-                    getCategoryColor(category).split(' ')[0]
-                  }`}
-                />
-                <span className="text-muted-foreground">
-                  {CONTENT_CATEGORY_CONFIG[category].label.split('/')[0]}
-                </span>
-              </div>
-            )
-          )}
-        </div>
-      </div>
     </div>
   );
 }
