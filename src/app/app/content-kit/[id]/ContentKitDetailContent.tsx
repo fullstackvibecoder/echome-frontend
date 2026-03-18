@@ -18,11 +18,12 @@ import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
-import { ContentCategory, LinkedReelSummary, MusicTrackSummary } from '@/types';
+import { ContentCategory } from '@/types';
 import { CalendarPlus } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
 import { BlogPostSection } from '@/components/blog-post-section';
+import { VideoReelSection } from '@/components/content-kit/VideoReelSection';
 
 // Progress step component
 function ProgressStep({
@@ -85,24 +86,7 @@ export default function ContentKitDetailContent() {
   } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
-  // Carousel reel state
-  const [linkedReel, setLinkedReel] = useState<LinkedReelSummary | null>(null);
-  const [isGeneratingCarouselReel, setIsGeneratingCarouselReel] = useState(false);
-  const [carouselReelError, setCarouselReelError] = useState<string | null>(null);
-
-  // Reel options state (Phase 1: music + smart timing)
-  const [reelOptionsOpen, setReelOptionsOpen] = useState(false);
-  const [smartTimingEnabled, setSmartTimingEnabled] = useState(true);
-  const [selectedMusicTrackId, setSelectedMusicTrackId] = useState<string | null>(null);
-  const [trendingAudioSuggestion, setTrendingAudioSuggestion] = useState<string | null>(null);
-
-  // Music tracks for reel options
-  const [musicTracks, setMusicTracks] = useState<MusicTrackSummary[]>([]);
-  const [musicTracksLoaded, setMusicTracksLoaded] = useState(false);
-
-  // B-Roll extraction state (Phase 3)
-  const [isExtractingBRoll, setIsExtractingBRoll] = useState(false);
-  const [brollSpeedUp, setBrollSpeedUp] = useState<1 | 1.5 | 2>(1);
+  // Reel/B-Roll state moved to useVideoReel hook via VideoReelSection
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -160,81 +144,7 @@ export default function ContentKitDetailContent() {
     }
   }, [hasCarouselCheck, contentKitId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch music tracks when reel options panel is opened
-  useEffect(() => {
-    if (reelOptionsOpen && !musicTracksLoaded) {
-      setMusicTracksLoaded(true);
-      api.reels.listMusic({ limit: 20 }).then((res) => {
-        if (res.success && res.data) {
-          setMusicTracks(res.data);
-        }
-      }).catch(() => { /* silent */ });
-    }
-  }, [reelOptionsOpen, musicTracksLoaded]);
-
-  // Fetch linked reel data when content kit loads
-  useEffect(() => {
-    if (contentKitId && (detail as any)?.reel) {
-      setLinkedReel((detail as any).reel);
-    }
-  }, [contentKitId, detail]);
-
-  // Handler to generate carousel reel
-  const handleGenerateCarouselReel = async () => {
-    if (!contentKitId || isGeneratingCarouselReel) return;
-    setIsGeneratingCarouselReel(true);
-    setCarouselReelError(null);
-    setTrendingAudioSuggestion(null);
-    try {
-      const response = await api.contentKits.generateCarouselReel(contentKitId, {
-        musicTrackId: selectedMusicTrackId || undefined,
-        smartTiming: smartTimingEnabled,
-      });
-      if (response.success) {
-        if (response.data?.trendingAudioName) {
-          setTrendingAudioSuggestion(response.data.trendingAudioName);
-        }
-        refresh();
-      }
-    } catch (err: any) {
-      console.error('Failed to start carousel reel:', err);
-      setCarouselReelError(err?.response?.data?.error?.message || 'Failed to start reel generation');
-      setIsGeneratingCarouselReel(false);
-    }
-  };
-
-  // Handler to extract B-roll from uploaded video (Phase 3)
-  const handleExtractBRoll = async () => {
-    const uploadId = detail?.contentKit?.videoUploadId;
-    if (!uploadId || isExtractingBRoll) return;
-    setIsExtractingBRoll(true);
-    try {
-      await api.clips.extractBRoll(uploadId, {
-        maxClips: 5,
-        speedUp: brollSpeedUp,
-        useVisionScoring: false,
-      });
-      // Refresh to get the extracted clips
-      refresh();
-    } catch (err: any) {
-      console.error('Failed to extract B-roll:', err);
-    } finally {
-      setIsExtractingBRoll(false);
-    }
-  };
-
-  // Poll for carousel reel completion when processing
-  useEffect(() => {
-    if (!linkedReel || linkedReel.status !== 'processing') {
-      setIsGeneratingCarouselReel(false);
-      return;
-    }
-    setIsGeneratingCarouselReel(true);
-    const interval = setInterval(() => {
-      refresh();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [linkedReel?.status, refresh]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Reel/B-Roll handlers moved to useVideoReel hook
 
   const handleCopy = async (content: string, contentId: string) => {
     try {
@@ -1058,229 +968,25 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
-          {/* Carousel Reel Section */}
-          <section id="reel-section" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <span>Video Reel</span>
-              </h2>
-            </div>
-
-            {/* No carousel → show prompt */}
-            {!hasCarousel && (
-              <div className="p-8 text-center bg-bg-secondary rounded-xl border border-border">
-                <div className="text-4xl mb-3">🎬</div>
-                <h3 className="text-lg font-semibold mb-1">Generate a carousel first</h3>
-                <p className="text-sm text-text-secondary">A carousel is needed to create an animated reel.</p>
-              </div>
-            )}
-
-            {/* Has carousel, no reel yet → generate with options */}
-            {hasCarousel && (!linkedReel || linkedReel.status === 'failed') && !isGeneratingCarouselReel && (
-              <div className="p-6 bg-bg-secondary rounded-xl border border-border">
-                <div className="text-center mb-4">
-                  <div className="text-4xl mb-3">🎬</div>
-                  <h3 className="text-lg font-semibold mb-2">Generate Reel from Carousel</h3>
-                  <p className="text-sm text-text-secondary">
-                    Turn your {detail?.carousel?.slides?.length || 0} carousel slides into a beat-synced animated reel.
-                  </p>
-                </div>
-
-                {/* Reel Options Panel (admin only) */}
-                {isAdmin && <div className="mb-4">
-                  <button
-                    onClick={() => setReelOptionsOpen(!reelOptionsOpen)}
-                    className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-                  >
-                    <span className={`transition-transform ${reelOptionsOpen ? 'rotate-90' : ''}`}>&#9654;</span>
-                    Reel Options
-                  </button>
-
-                  {reelOptionsOpen && (
-                    <div className="mt-3 bg-surface-secondary rounded-xl p-4 border border-border space-y-4">
-                      {/* Smart Timing Toggle */}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-text-primary">Smart Timing</p>
-                          <p className="text-xs text-text-secondary">Adjusts slide duration based on text length</p>
-                        </div>
-                        <button
-                          onClick={() => setSmartTimingEnabled(!smartTimingEnabled)}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${smartTimingEnabled ? 'bg-accent' : 'bg-border'}`}
-                        >
-                          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${smartTimingEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                        </button>
-                      </div>
-
-                      {/* Music Track Selection */}
-                      <div>
-                        <p className="text-sm font-medium text-text-primary mb-2">Music Track</p>
-                        <select
-                          value={selectedMusicTrackId || ''}
-                          onChange={(e) => setSelectedMusicTrackId(e.target.value || null)}
-                          className="w-full px-3 py-2 bg-bg-primary border border-border rounded-lg text-sm text-text-primary focus:ring-2 focus:ring-accent focus:border-accent"
-                        >
-                          <option value="">No music</option>
-                          {musicTracks.map((track) => (
-                            <option key={track.id} value={track.id}>
-                              {track.name}{track.artist ? ` — ${track.artist}` : ''}{track.tempo ? ` (${track.tempo} BPM)` : ''}
-                            </option>
-                          ))}
-                        </select>
-                        {musicTracks.length === 0 && (
-                          <p className="text-xs text-text-secondary mt-1">No music tracks available yet.</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>}
-
-                {carouselReelError && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
-                    {carouselReelError}
-                  </div>
-                )}
-
-                <button
-                  onClick={handleGenerateCarouselReel}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-500 hover:to-pink-500 transition-all"
-                >
-                  Generate Reel from Carousel
-                </button>
-              </div>
-            )}
-
-            {/* Processing state */}
-            {isGeneratingCarouselReel && linkedReel?.status === 'processing' && (
-              <div className="p-8 bg-bg-secondary rounded-xl border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
-                  <div>
-                    <p className="font-medium text-text-primary">Generating your reel...</p>
-                    <p className="text-sm text-text-secondary">Animating slides with motion effects. This takes about 20-30 seconds.</p>
-                  </div>
-                </div>
-                <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
-                  <div className="h-full bg-accent rounded-full animate-pulse" style={{ width: '60%' }} />
-                </div>
-              </div>
-            )}
-
-            {/* Completed state → video player + download */}
-            {linkedReel?.status === 'completed' && linkedReel.outputUrl && (
-              <div className="bg-bg-secondary rounded-xl border border-border overflow-hidden">
-                <div className="aspect-[9/16] max-h-[500px] bg-black flex items-center justify-center">
-                  <video
-                    src={linkedReel.outputUrl}
-                    controls
-                    playsInline
-                    className="max-h-full max-w-full"
-                    poster={linkedReel.thumbnailUrl || undefined}
-                  />
-                </div>
-                <div className="p-4 flex items-center justify-between">
-                  <div className="text-sm text-text-secondary">
-                    {linkedReel.outputDurationMs && (
-                      <span>{(linkedReel.outputDurationMs / 1000).toFixed(1)}s</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={linkedReel.outputUrl}
-                      download="carousel-reel.mp4"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
-                    >
-                      Download MP4
-                    </a>
-                    <button
-                      onClick={handleGenerateCarouselReel}
-                      className="flex items-center gap-2 px-4 py-2 bg-bg-tertiary text-text-secondary rounded-lg hover:text-text-primary transition-colors text-sm"
-                    >
-                      Regenerate
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Trending Audio Suggestion */}
-            {trendingAudioSuggestion && (
-              <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-lg">🎵</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-text-primary mb-1">Trending Audio Suggestion</p>
-                    <p className="text-sm text-text-secondary mb-2">&ldquo;{trendingAudioSuggestion}&rdquo;</p>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(trendingAudioSuggestion);
-                      }}
-                      className="text-xs px-3 py-1 bg-accent/10 text-accent rounded-full hover:bg-accent/20 transition-colors"
-                    >
-                      Copy Name
-                    </button>
-                    <p className="text-xs text-text-tertiary mt-2">Add this audio when posting to Instagram/TikTok for max reach.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* B-Roll Extraction Section (Phase 3) — admin only */}
-          {isAdmin && detail?.contentKit?.videoUploadId && (
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-text-primary">B-Roll Clips</h2>
-                  <p className="text-sm text-text-secondary">Extract silent, visual-only moments from your video</p>
-                </div>
-              </div>
-
-              <div className="bg-bg-secondary rounded-xl border border-border p-6">
-                {/* Speed selector */}
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-sm font-medium text-text-primary">Speed</span>
-                  <div className="flex gap-2">
-                    {([1, 1.5, 2] as const).map((speed) => (
-                      <button
-                        key={speed}
-                        onClick={() => setBrollSpeedUp(speed)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                          brollSpeedUp === speed
-                            ? 'bg-accent text-white'
-                            : 'bg-surface-secondary text-text-secondary hover:text-text-primary'
-                        }`}
-                      >
-                        {speed}x
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleExtractBRoll}
-                  disabled={isExtractingBRoll}
-                  className="px-6 py-2.5 bg-bg-tertiary text-text-primary border border-border rounded-lg hover:bg-surface-secondary transition-colors text-sm font-medium disabled:opacity-50"
-                >
-                  {isExtractingBRoll ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                      Extracting B-Roll...
-                    </span>
-                  ) : (
-                    'Extract B-Roll'
-                  )}
-                </button>
-              </div>
-            </section>
+          {/* Video Reel + B-Roll (only shown when carousel or video upload exists) */}
+          {(hasCarousel || (isAdmin && detail?.contentKit?.videoUploadId)) && (
+            <VideoReelSection
+              contentKitId={contentKitId}
+              videoUploadId={detail?.contentKit?.videoUploadId}
+              reel={(detail as any)?.reel}
+              hasCarousel={hasCarousel}
+              slideCount={detail?.carousel?.slides?.length || 0}
+              isAdmin={isAdmin}
+              refresh={refresh}
+            />
           )}
 
           {/* Empty State */}
           {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (
             <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
-              <div className="text-6xl mb-4">📭</div>
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+                <CalendarPlus className="w-7 h-7 text-accent" />
+              </div>
               <h3 className="text-xl font-semibold mb-2">No content available</h3>
               <p className="text-text-secondary mb-6">
                 This content kit doesn&apos;t have any content yet.
