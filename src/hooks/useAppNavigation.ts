@@ -2,37 +2,87 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useNavigationContext } from '@/contexts/navigation-context';
+import {
+  Sparkles,
+  Users,
+  Brain,
+  Package,
+  Mic,
+  Film,
+  FolderOpen,
+  TrendingUp,
+  CalendarDays,
+  MessageCircle,
+  CreditCard,
+  Settings,
+  BarChart3,
+  Clapperboard,
+  type LucideIcon,
+} from 'lucide-react';
 
 export interface NavItem {
   id: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   path: string;
   comingSoon?: boolean;
   teamsOnly?: boolean;
   adminOnly?: boolean;
 }
 
-export const NAV_ITEMS: NavItem[] = [
-  { id: 'create', label: 'Create', icon: '✨', path: '/app' },
-  { id: 'following', label: 'Following', icon: '👥', path: '/app/following' },
-  { id: 'knowledge', label: 'Knowledge Base', icon: '📚', path: '/app/knowledge' },
-  { id: 'content-kit', label: 'Content Kit', icon: '📦', path: '/app/content-kit' },
-  { id: 'team-voices', label: 'Team Voices', icon: '🎙️', path: '/app/team-voices', teamsOnly: true },
-  { id: 'reels', label: 'Reel Maker', icon: '🎬', path: '/app/reels', adminOnly: true },
-  { id: 'library', label: 'Creator Library', icon: '📁', path: '/app/library' },
-  { id: 'trends', label: 'Trends', icon: '🔥', path: '/app/trends', adminOnly: true },
-  { id: 'calendar', label: 'Calendar', icon: '📅', path: '/app/calendar' },
-  { id: 'community', label: 'Community', icon: '🏠', path: '/community' },
-  { id: 'billing', label: 'Billing', icon: '💳', path: '/app/billing' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', path: '/app/settings' },
+export interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+export const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Create',
+    items: [
+      { id: 'create', label: 'Create', icon: Sparkles, path: '/app' },
+      { id: 'content-kit', label: 'Content Kit', icon: Package, path: '/app/content-kit' },
+      { id: 'reels', label: 'Reel Maker', icon: Film, path: '/app/reels', adminOnly: true },
+    ],
+  },
+  {
+    label: 'Your Voice',
+    items: [
+      { id: 'knowledge', label: 'Knowledge Base', icon: Brain, path: '/app/knowledge' },
+      { id: 'team-voices', label: 'Team Voices', icon: Mic, path: '/app/team-voices', teamsOnly: true },
+      { id: 'library', label: 'Creator Library', icon: FolderOpen, path: '/app/library' },
+    ],
+  },
+  {
+    label: 'Discover',
+    items: [
+      { id: 'following', label: 'Following', icon: Users, path: '/app/following' },
+      { id: 'trends', label: 'Trends', icon: TrendingUp, path: '/app/trends', adminOnly: true },
+      { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
+      { id: 'community', label: 'Community', icon: MessageCircle, path: '/community' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { id: 'billing', label: 'Billing', icon: CreditCard, path: '/app/billing' },
+      { id: 'settings', label: 'Settings', icon: Settings, path: '/app/settings' },
+    ],
+  },
 ];
 
-/** Admin-only nav items (appended when user is admin) */
-export const ADMIN_NAV_ITEMS: NavItem[] = [
-  { id: 'admin', label: 'Admin', icon: '📊', path: '/app/admin' },
-  { id: 'descript', label: 'Descript Studio', icon: '🎬', path: '/app/descript', adminOnly: true },
-];
+/** Admin-only nav group (appended when user is admin) */
+export const ADMIN_NAV_GROUP: NavGroup = {
+  label: 'Admin',
+  items: [
+    { id: 'admin', label: 'Admin', icon: BarChart3, path: '/app/admin' },
+    { id: 'descript', label: 'Descript Studio', icon: Clapperboard, path: '/app/descript', adminOnly: true },
+  ],
+};
+
+/** Flat list of all items (for active-item matching) */
+export function getAllNavItems(): NavItem[] {
+  return [...NAV_GROUPS.flatMap(g => g.items), ...ADMIN_NAV_GROUP.items];
+}
 
 interface UseAppNavigationReturn {
   activeItem: string;
@@ -48,7 +98,7 @@ export function useAppNavigation(): UseAppNavigationReturn {
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useNavigationContext();
 
   // Determine active nav item based on current path
-  const allItems = [...NAV_ITEMS, ...ADMIN_NAV_ITEMS];
+  const allItems = getAllNavItems();
   const activeItem = allItems.find((item) => {
     if (item.path === '/app') {
       return pathname === '/app';
