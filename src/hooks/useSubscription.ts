@@ -103,24 +103,28 @@ export function useSubscription(): UseSubscriptionReturn {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const justPaid = urlParams.get('success') === 'true';
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
 
     fetchSubscription(justPaid).then(() => {
       // If user just paid but tier is still 'free', poll a few times for webhook to land
       if (justPaid) {
         let retries = 0;
-        const poll = setInterval(async () => {
+        pollInterval = setInterval(async () => {
           retries++;
           const res = await api.stripe.getSubscription(true).catch(() => null);
           if (res?.success && res.data?.isSubscribed) {
             setSubscription(res.data);
-            clearInterval(poll);
+            if (pollInterval) clearInterval(pollInterval);
           } else if (retries >= 5) {
-            clearInterval(poll);
+            if (pollInterval) clearInterval(pollInterval);
           }
         }, 2000);
-        return () => clearInterval(poll);
       }
     });
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [fetchSubscription]);
 
   // Computed values
