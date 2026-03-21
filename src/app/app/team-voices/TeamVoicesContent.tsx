@@ -124,39 +124,6 @@ export default function TeamVoicesContent() {
 
   const isAtLimit = voiceLimit > 0 && voiceCount >= voiceLimit;
 
-  if (voiceLoading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 animate-fade-in stagger-children">
-        <div className="skeleton h-10 w-48" />
-        <div className="skeleton h-4 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="skeleton h-48 rounded-xl" />
-          <div className="skeleton h-48 rounded-xl" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!isTeamsUser) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">🎙️</div>
-          <h1 className="text-3xl font-bold mb-2">Team Voices</h1>
-          <p className="text-muted-foreground mb-6">
-            Manage multiple distinct voices from a single account. Perfect for agencies, teams, and multi-brand creators.
-          </p>
-          <a
-            href="/app/billing"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-          >
-            Upgrade to EchoTeams
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   const openCreateModal = () => {
     setEditingVoice(null);
     const defaultKb = knowledgeBases.find(kb => kb.is_default) || knowledgeBases[0];
@@ -322,6 +289,40 @@ export default function TeamVoicesContent() {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  // Conditional renders - moved after all hooks to comply with Rules of Hooks
+  if (voiceLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 animate-fade-in stagger-children">
+        <div className="skeleton h-10 w-48" />
+        <div className="skeleton h-4 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="skeleton h-48 rounded-xl" />
+          <div className="skeleton h-48 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isTeamsUser) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">🎙️</div>
+          <h1 className="text-3xl font-bold mb-2">Team Voices</h1>
+          <p className="text-muted-foreground mb-6">
+            Manage multiple distinct voices from a single account. Perfect for agencies, teams, and multi-brand creators.
+          </p>
+          <a
+            href="/app/billing"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Upgrade to EchoTeams
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
