@@ -766,7 +766,7 @@ export default function DevelopersContent() {
                   <tr className="border-b border-border/50"><td className="py-2">All GET requests (reads)</td><td className="py-2 text-right text-green-400">Free</td></tr>
                   <tr className="border-b border-border/50"><td className="py-2">POST /api/generate</td><td className="py-2 text-right">10 credits</td></tr>
                   <tr className="border-b border-border/50"><td className="py-2">POST /api/kb, PUT /api/kb/*</td><td className="py-2 text-right">2 credits</td></tr>
-                  <tr className="border-b border-border/50"><td className="py-2">POST /api/voice, PUT /api/voice/*</td><td className="py-2 text-right">5 credits</td></tr>
+                  <tr className="border-b border-border/50"><td className="py-2">POST /api/voice/profile/refresh</td><td className="py-2 text-right">5 credits</td></tr>
                   <tr><td className="py-2">DELETE operations</td><td className="py-2 text-right text-green-400">Free</td></tr>
                 </tbody>
               </table>
