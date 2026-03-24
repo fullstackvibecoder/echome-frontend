@@ -968,8 +968,8 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
-          {/* Video Reel + B-Roll (only shown when carousel or video upload exists) */}
-          {(hasCarousel || (isAdmin && detail?.contentKit?.videoUploadId)) && (
+          {/* Video Reel + B-Roll (admin-only — not yet functional for end users) */}
+          {isAdmin && (hasCarousel || detail?.contentKit?.videoUploadId) && (
             <VideoReelSection
               contentKitId={contentKitId}
               videoUploadId={detail?.contentKit?.videoUploadId}
