@@ -17,6 +17,7 @@ import {
   Settings,
   BarChart3,
   Clapperboard,
+  Code,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -65,6 +66,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Account',
     items: [
       { id: 'billing', label: 'Billing', icon: CreditCard, path: '/app/billing' },
+      { id: 'developers', label: 'Developers', icon: Code, path: '/app/developers' },
       { id: 'settings', label: 'Settings', icon: Settings, path: '/app/settings' },
     ],
   },

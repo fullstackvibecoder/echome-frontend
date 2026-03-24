@@ -367,6 +367,94 @@ export const api = {
     },
   },
 
+  // -------- API KEYS --------
+  apiKeys: {
+    list: async (): Promise<ApiResponse<any[]>> => {
+      const response = await apiClient.get('/account/api-keys');
+      return response.data;
+    },
+
+    create: async (data: { name: string; scopes?: string[] }): Promise<ApiResponse<any>> => {
+      const response = await apiClient.post('/account/api-keys', data);
+      return response.data;
+    },
+
+    revoke: async (keyId: string): Promise<ApiResponse<{ message: string }>> => {
+      const response = await apiClient.delete(`/account/api-keys/${keyId}`);
+      return response.data;
+    },
+
+    getUsage: async (keyId: string, days?: number): Promise<ApiResponse<any>> => {
+      const response = await apiClient.get(`/account/api-keys/${keyId}/usage`, { params: { days } });
+      return response.data;
+    },
+  },
+
+  // -------- API CREDITS --------
+  apiCredits: {
+    getBalance: async (): Promise<ApiResponse<{
+      balance: number;
+      lifetime_purchased: number;
+      lifetime_used: number;
+      auto_reload: {
+        enabled: boolean;
+        threshold: number | null;
+        pack_id: string | null;
+        has_payment_method: boolean;
+      };
+    }>> => {
+      const response = await apiClient.get('/account/api-credits');
+      return response.data;
+    },
+
+    getTransactions: async (params?: { limit?: number; offset?: number; type?: string }): Promise<ApiResponse<any[]>> => {
+      const response = await apiClient.get('/account/api-credits/transactions', { params });
+      return response.data;
+    },
+
+    getPacks: async (): Promise<ApiResponse<Array<{
+      id: string;
+      name: string;
+      credits: number;
+      price: number;
+      priceInCents: number;
+    }>>> => {
+      const response = await apiClient.get('/account/api-credits/packs');
+      return response.data;
+    },
+
+    checkout: async (data: { packId: string; successUrl: string; cancelUrl: string }): Promise<ApiResponse<{ sessionId: string; url: string }>> => {
+      const response = await apiClient.post('/account/api-credits/checkout', data);
+      return response.data;
+    },
+
+    updateAutoReload: async (config: {
+      enabled: boolean;
+      threshold?: number;
+      packId?: string;
+      stripePaymentMethodId?: string;
+    }): Promise<ApiResponse<{ message: string }>> => {
+      const response = await apiClient.post('/account/api-credits/auto-reload', config);
+      return response.data;
+    },
+
+    getPaymentMethods: async (): Promise<ApiResponse<Array<{
+      id: string;
+      brand: string;
+      last4: string;
+      exp_month: number;
+      exp_year: number;
+    }>>> => {
+      const response = await apiClient.get('/account/api-credits/payment-methods');
+      return response.data;
+    },
+
+    setupPaymentMethod: async (data: { returnUrl: string }): Promise<ApiResponse<{ url: string }>> => {
+      const response = await apiClient.post('/account/api-credits/setup-payment-method', data);
+      return response.data;
+    },
+  },
+
   // -------- CONTENT GENERATION --------
   generation: {
     generate: async (data: Partial<GenerationRequest>) => {
