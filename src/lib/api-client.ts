@@ -928,6 +928,35 @@ export const api = {
         message?: string;
       };
     },
+
+    getStrength: async () => {
+      const response = await apiClient.get('/voice/strength');
+      return response.data as {
+        success: boolean;
+        data?: {
+          overallStrength: number;
+          waveformData: number[];
+          profileCompleteness: {
+            samplesAnalyzed: number;
+            signaturePhrasesFound: number;
+            toneMarkersFound: number;
+            sourceDiversity: number;
+          };
+          recentPerformance: {
+            avgVoiceScore: number;
+            avgEmbeddingSimilarity: number;
+            generationCount: number;
+          };
+          dimensionBreakdown: {
+            signaturePresence: number;
+            avoidAbsence: number;
+            styleAlignment: number;
+            aiBlacklistAbsence: number;
+            embeddingSimilarity: number | null;
+          };
+        };
+      };
+    },
   },
 
   // -------- KB CONTENT (PASTE, VOICE, MBOX, SOCIAL) --------

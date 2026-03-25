@@ -827,3 +827,14 @@ body {
 .border-accent {
   border-color: var(--accent);
 }
+
+/* Voice waveform breathing animation */
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.05); }
+}
+
+/* Dark mode waveform glow */
+.dark {
+  --waveform-glow: 0 0 8px rgba(0, 212, 255, 0.2);
+}
