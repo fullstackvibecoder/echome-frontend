@@ -218,6 +218,9 @@ export interface VideoClipDetail {
   createdAt: string;
   // Template-aware segment metadata
   segmentMetadata?: VideoClipSegmentMetadata;
+  // Split-screen variant (for 2+ speaker clips)
+  splitScreenUrl?: string;
+  splitScreenLayout?: 'stacked' | 'sidebar' | 'pip';
 }
 
 export type TemplateType =

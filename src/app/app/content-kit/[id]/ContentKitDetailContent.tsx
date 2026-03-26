@@ -71,6 +71,7 @@ export default function ContentKitDetailContent() {
   const { activeVoice, isTeamsUser } = useVoiceContext();
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [activeClipIndex, setActiveClipIndex] = useState(0);
+  const [showSplitScreen, setShowSplitScreen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
   const [resizedCarousel, setResizedCarousel] = useState<{
@@ -521,7 +522,11 @@ export default function ContentKitDetailContent() {
                   {detail.clips[activeClipIndex] && (
                     <>
                       <VideoPlayer
-                        src={detail.clips[activeClipIndex].exports?.[0]?.url || ''}
+                        src={
+                          showSplitScreen && detail.clips[activeClipIndex].splitScreenUrl
+                            ? detail.clips[activeClipIndex].splitScreenUrl!
+                            : detail.clips[activeClipIndex].exports?.[0]?.url || ''
+                        }
                         poster={detail.clips[activeClipIndex].thumbnailUrl}
                         aspectRatio="9:16"
                         viralityScore={detail.clips[activeClipIndex].viralityScore}
@@ -548,10 +553,26 @@ export default function ContentKitDetailContent() {
                               CC ✓
                             </span>
                           )}
+                          {detail.clips[activeClipIndex].splitScreenUrl && (
+                            <button
+                              onClick={() => setShowSplitScreen(!showSplitScreen)}
+                              className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
+                                showSplitScreen
+                                  ? 'bg-accent/20 text-accent'
+                                  : 'bg-bg-tertiary text-text-secondary hover:bg-accent/10 hover:text-accent'
+                              }`}
+                            >
+                              {showSplitScreen ? '⬜ Single' : '⬛ Split View'}
+                            </button>
+                          )}
                           <div className="ml-auto flex items-center gap-2">
-                            {detail.clips[activeClipIndex].exports?.[0]?.url && (
+                            {(detail.clips[activeClipIndex].exports?.[0]?.url || detail.clips[activeClipIndex].splitScreenUrl) && (
                               <a
-                                href={detail.clips[activeClipIndex].exports[0].url}
+                                href={
+                                  showSplitScreen && detail.clips[activeClipIndex].splitScreenUrl
+                                    ? detail.clips[activeClipIndex].splitScreenUrl!
+                                    : detail.clips[activeClipIndex].exports[0]?.url || ''
+                                }
                                 download
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors"
                               >
@@ -605,7 +626,7 @@ export default function ContentKitDetailContent() {
                       {detail.clips.map((clip, index) => (
                         <button
                           key={clip.id}
-                          onClick={() => setActiveClipIndex(index)}
+                          onClick={() => { setActiveClipIndex(index); setShowSplitScreen(false); }}
                           className={`
                             relative rounded-lg overflow-hidden border-2 transition-all
                             ${index === activeClipIndex

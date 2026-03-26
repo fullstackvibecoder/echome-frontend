@@ -55,7 +55,7 @@ export function StylePicker({
       ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
       : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4';
 
-  const aspectClass = aspect === 'portrait' ? 'aspect-[9/16]' : 'aspect-square';
+  const aspectClass = aspect === 'portrait' ? 'aspect-[3/4]' : 'aspect-square';
 
   return (
     <div className="mt-6">
