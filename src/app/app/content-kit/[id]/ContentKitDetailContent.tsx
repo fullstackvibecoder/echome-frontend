@@ -556,13 +556,13 @@ export default function ContentKitDetailContent() {
                           {detail.clips[activeClipIndex].splitScreenUrl && (
                             <button
                               onClick={() => setShowSplitScreen(!showSplitScreen)}
-                              className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
-                                showSplitScreen
-                                  ? 'bg-accent/20 text-accent'
-                                  : 'bg-bg-tertiary text-text-secondary hover:bg-accent/10 hover:text-accent'
-                              }`}
+                              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all bg-bg-tertiary hover:bg-bg-secondary border border-border"
                             >
-                              {showSplitScreen ? '⬜ Single' : '⬛ Split View'}
+                              <span className={showSplitScreen ? 'text-text-secondary' : 'text-text-primary'}>Single</span>
+                              <div className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${showSplitScreen ? 'bg-accent' : 'bg-gray-400 dark:bg-gray-600'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${showSplitScreen ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                              </div>
+                              <span className={showSplitScreen ? 'text-accent font-bold' : 'text-text-secondary'}>Split</span>
                             </button>
                           )}
                           <div className="ml-auto flex items-center gap-2">
