@@ -570,6 +570,9 @@ export const api = {
           sortOrder: clip.sort_order ?? clip.sortOrder ?? 0,
           isSelected: clip.is_selected ?? clip.isSelected ?? true,
           createdAt: clip.created_at || clip.createdAt,
+          // Split-screen variant
+          splitScreenUrl: clip.split_screen_url || clip.splitScreenUrl,
+          splitScreenLayout: clip.split_screen_layout || clip.splitScreenLayout,
           // Template-aware segment metadata (from top-level columns or nested metadata)
           segmentMetadata: (clip.suggested_segment_id || clip.metadata?.suggested_segment_id) ? {
             suggestedSegmentId: clip.suggested_segment_id || clip.metadata?.suggested_segment_id,
