@@ -1861,6 +1861,14 @@ export const api = {
 
       const { createUpload } = await import('@mux/upchunk');
 
+      // Prevent navigation/close during upload
+      const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = 'Video upload in progress. Are you sure you want to leave?';
+        return e.returnValue;
+      };
+      window.addEventListener('beforeunload', beforeUnloadHandler);
+
       await new Promise<void>((resolve, reject) => {
         const upload = createUpload({
           endpoint: muxUploadUrl,
@@ -1888,11 +1896,13 @@ export const api = {
 
         upload.on('success', () => {
           console.log('[api-client] UpChunk upload complete');
+          window.removeEventListener('beforeunload', beforeUnloadHandler);
           resolve();
         });
 
         upload.on('error', (err: { detail: { message: string } }) => {
           console.error('[api-client] UpChunk upload error:', err.detail);
+          window.removeEventListener('beforeunload', beforeUnloadHandler);
           reject(new Error(`Mux upload failed: ${err.detail.message}`));
         });
       });
@@ -1900,7 +1910,8 @@ export const api = {
       if (onProgress) onProgress(85);
 
       // Step 3: Wait for Mux to transcode and webhook to fire
-      // Poll the upload status until mux_mp4_url is populated
+      // Re-add navigation guard for the transcoding wait phase
+      window.addEventListener('beforeunload', beforeUnloadHandler);
       console.log('[api-client] Waiting for Mux transcoding...');
 
       const maxWaitMs = 20 * 60 * 1000; // 20 minutes max (large HEVC files can take 15+ min to transcode)
@@ -1926,6 +1937,7 @@ export const api = {
           // (static rendition can take extra time after asset is ready for large files)
           if (upload?.status === 'pending' && upload?.muxAssetId && upload?.muxMp4Url) {
             console.log('[api-client] Mux transcoding complete, ready for processing');
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
             if (onProgress) onProgress(100);
 
             return {
@@ -1943,6 +1955,7 @@ export const api = {
         }
       }
 
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
       throw new Error('Mux transcoding timed out. Your video may still be processing — try clicking Process in a few minutes.');
     },
 
