@@ -7,8 +7,10 @@
  * poster images, and overlay controls.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { formatDuration } from '@/lib/content-kit-utils';
+import { CaptionOverlay } from './CaptionOverlay';
+import { CaptionSegment, CaptionStylePreset } from '@/lib/caption-parser';
 
 type AspectRatio = '16:9' | '9:16' | '1:1';
 
@@ -26,6 +28,11 @@ interface VideoPlayerProps {
   onPlay?: () => void;
   onEnded?: () => void;
   className?: string;
+  // Caption overlay
+  captionSegments?: CaptionSegment[];
+  captionStyle?: CaptionStylePreset;
+  captionsEnabled?: boolean;
+  viewMode?: 'single' | 'split';
 }
 
 export function VideoPlayer({
@@ -42,6 +49,10 @@ export function VideoPlayer({
   onPlay,
   onEnded,
   className = '',
+  captionSegments,
+  captionStyle = 'modern',
+  captionsEnabled = false,
+  viewMode = 'single',
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -49,6 +60,28 @@ export function VideoPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(duration || 0);
   const [showOverlay, setShowOverlay] = useState(true);
+
+  // High-precision time tracking for caption sync (rAF loop while playing)
+  const [captionTime, setCaptionTime] = useState(0);
+  const rafRef = useRef<number>(0);
+
+  const updateCaptionTime = useCallback(() => {
+    if (videoRef.current) {
+      setCaptionTime(videoRef.current.currentTime);
+    }
+    rafRef.current = requestAnimationFrame(updateCaptionTime);
+  }, []);
+
+  useEffect(() => {
+    if (isPlaying && captionsEnabled && captionSegments?.length) {
+      rafRef.current = requestAnimationFrame(updateCaptionTime);
+    } else {
+      cancelAnimationFrame(rafRef.current);
+      // Sync on pause/seek via the regular timeupdate
+      if (videoRef.current) setCaptionTime(videoRef.current.currentTime);
+    }
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [isPlaying, captionsEnabled, captionSegments, updateCaptionTime]);
 
   const aspectClasses: Record<AspectRatio, string> = {
     '16:9': 'aspect-video',
@@ -152,6 +185,17 @@ export function VideoPlayer({
         preload="metadata"
         className="w-full h-full object-contain"
       />
+
+      {/* Caption Overlay */}
+      {captionsEnabled && captionSegments && captionSegments.length > 0 && (
+        <CaptionOverlay
+          segments={captionSegments}
+          currentTime={captionTime}
+          isVisible={captionsEnabled}
+          style={captionStyle}
+          viewMode={viewMode}
+        />
+      )}
 
       {/* Virality Score Badge */}
       {viralityScore !== undefined && viralityScore > 0 && (

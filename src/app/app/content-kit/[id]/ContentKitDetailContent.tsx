@@ -7,7 +7,7 @@
  * written content, carousels, and share options.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
@@ -72,6 +72,9 @@ export default function ContentKitDetailContent() {
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const [showSplitScreen, setShowSplitScreen] = useState(false);
+  const [captionsEnabled, setCaptionsEnabled] = useState(true);
+  const [captionSegments, setCaptionSegments] = useState<import('@/lib/caption-parser').CaptionSegment[]>([]);
+  const [captionStyle, setCaptionStyle] = useState<import('@/lib/caption-parser').CaptionStylePreset>('modern');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
   const [resizedCarousel, setResizedCarousel] = useState<{
@@ -87,7 +90,47 @@ export default function ContentKitDetailContent() {
   } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
-  // Reel/B-Roll state moved to useVideoReel hook via VideoReelSection
+  // Fetch caption data when active clip changes (for overlay mode)
+  useEffect(() => {
+    const clip = detail?.clips?.[activeClipIndex];
+    if (!clip || clip.captionsBurnedIn !== false) {
+      setCaptionSegments([]);
+      return;
+    }
+
+    // Fetch caption segments from API
+    const fetchCaptions = async () => {
+      try {
+        const { api } = await import('@/lib/api-client');
+        const uploadId = clip.videoUploadId || (detail as any)?.uploadId || id;
+        const response = await api.clips.get(uploadId);
+        // Use transcript segments from the upload if available
+        const upload = response?.data?.upload;
+        if (upload?.transcriptSegments?.length) {
+          const filtered = upload.transcriptSegments
+            .filter((seg: any) => seg.start < clip.endTime && seg.end > clip.startTime)
+            .map((seg: any) => ({
+              text: seg.text,
+              start: Math.max(0, seg.start - clip.startTime),
+              end: Math.min(clip.duration, seg.end - clip.startTime),
+              words: seg.words?.map((w: any) => ({
+                word: w.word,
+                start: Math.max(0, w.start - clip.startTime),
+                end: Math.min(clip.duration, w.end - clip.startTime),
+              })).filter((w: any) => w.start < clip.duration && w.end > 0) || [],
+            }))
+            .filter((seg: any) => seg.end > seg.start);
+          setCaptionSegments(filtered);
+        }
+        if (clip.captionStyle) setCaptionStyle(clip.captionStyle as any);
+      } catch (err) {
+        console.warn('Failed to fetch caption data:', err);
+        setCaptionSegments([]);
+      }
+    };
+
+    fetchCaptions();
+  }, [activeClipIndex, detail, id]);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -533,6 +576,10 @@ export default function ContentKitDetailContent() {
                         duration={detail.clips[activeClipIndex].duration}
                         title={detail.clips[activeClipIndex].title}
                         className="max-h-[500px]"
+                        captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
+                        captionStyle={captionStyle}
+                        captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
+                        viewMode={showSplitScreen ? 'split' : 'single'}
                       />
                       <div className="p-4">
                         <h3 className="font-semibold text-lg mb-2">
@@ -549,9 +596,16 @@ export default function ContentKitDetailContent() {
                              detail.clips[activeClipIndex].format === 'landscape' ? '🖥️ Horizontal' : '⬜ Square'}
                           </span>
                           {detail.clips[activeClipIndex].hasCaptions && (
-                            <span className="text-xs bg-success/10 text-success px-2.5 py-1 rounded-full font-medium">
-                              CC ✓
-                            </span>
+                            <button
+                              onClick={() => setCaptionsEnabled(!captionsEnabled)}
+                              className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
+                                captionsEnabled
+                                  ? 'bg-success/10 text-success'
+                                  : 'bg-text-secondary/10 text-text-secondary'
+                              }`}
+                            >
+                              CC {captionsEnabled ? '✓' : ''}
+                            </button>
                           )}
                           {detail.clips[activeClipIndex].splitScreenUrl && (
                             <button
