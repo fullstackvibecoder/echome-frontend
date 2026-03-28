@@ -1903,7 +1903,7 @@ export const api = {
       // Poll the upload status until mux_mp4_url is populated
       console.log('[api-client] Waiting for Mux transcoding...');
 
-      const maxWaitMs = 5 * 60 * 1000; // 5 minutes max
+      const maxWaitMs = 20 * 60 * 1000; // 20 minutes max (large HEVC files can take 15+ min to transcode)
       const pollIntervalMs = 3000;
       const startTime = Date.now();
 
@@ -1922,8 +1922,9 @@ export const api = {
             throw new Error(upload.statusMessage || 'Mux transcoding failed');
           }
 
-          // Upload is ready when status is 'pending' (set by webhook) and we can proceed
-          if (upload?.status === 'pending' && upload?.muxAssetId) {
+          // Upload is ready when webhook has set the asset ID and MP4 URL
+          // (static rendition can take extra time after asset is ready for large files)
+          if (upload?.status === 'pending' && upload?.muxAssetId && upload?.muxMp4Url) {
             console.log('[api-client] Mux transcoding complete, ready for processing');
             if (onProgress) onProgress(100);
 
@@ -1942,7 +1943,7 @@ export const api = {
         }
       }
 
-      throw new Error('Mux transcoding timed out after 5 minutes');
+      throw new Error('Mux transcoding timed out. Your video may still be processing — try clicking Process in a few minutes.');
     },
 
     /** Start processing pipeline for a video */
