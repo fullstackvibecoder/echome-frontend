@@ -1653,7 +1653,22 @@ export const api = {
         };
       }
 
-      // For large files (>50MB), use direct upload to storage
+      // Try Mux direct upload first (faster, resumable, handles any size)
+      // Falls back to Supabase if Mux is not configured on the backend
+      try {
+        return await api.clips.uploadViaMux(data.file, {
+          knowledgeBaseId: data.knowledgeBaseId,
+          title: data.title,
+        }, onProgress);
+      } catch (muxErr: any) {
+        // 503 = Mux not configured, fall through to legacy upload
+        if (muxErr?.response?.status !== 503) {
+          throw muxErr; // Real error, don't swallow
+        }
+        console.log('[api-client] Mux not configured, falling back to direct upload');
+      }
+
+      // Fallback: for large files (>50MB), use direct upload to Supabase storage
       const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
       if (data.file.size > LARGE_FILE_THRESHOLD) {
         return api.clips.uploadDirect(data.file, {
@@ -1802,6 +1817,118 @@ export const api = {
           message: string;
         };
       };
+    },
+
+    /**
+     * Upload via Mux direct upload (resumable, any size, CDN-backed).
+     * Mux transcodes the video and fires a webhook when ready.
+     * We poll the upload status until the webhook has set mux_mp4_url.
+     */
+    uploadViaMux: async (
+      file: File,
+      options?: {
+        knowledgeBaseId?: string;
+        title?: string;
+      },
+      onProgress?: (progress: number) => void
+    ) => {
+      // Step 1: Get Mux upload URL from our backend
+      console.log('[api-client] Initializing Mux upload:', {
+        filename: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      const initResponse = await apiClient.post('/clips/upload/mux-init', {
+        filename: file.name,
+        mimeType: file.type || 'video/mp4',
+        fileSizeBytes: file.size,
+        knowledgeBaseId: options?.knowledgeBaseId,
+        title: options?.title,
+      });
+
+      if (!initResponse.data.success || !initResponse.data.data) {
+        throw new Error('Failed to initialize Mux upload');
+      }
+
+      const { uploadId, muxUploadUrl } = initResponse.data.data;
+      console.log('[api-client] Got Mux upload URL:', uploadId);
+      if (onProgress) onProgress(5);
+
+      // Step 2: Upload file directly to Mux via PUT
+      // Mux direct uploads accept a simple PUT with the file as the body
+      console.log('[api-client] Uploading to Mux CDN...');
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', muxUploadUrl);
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && onProgress) {
+            const pct = Math.round((event.loaded / event.total) * 100);
+            onProgress(Math.max(5, Math.min(pct, 85)));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            console.log('[api-client] Mux upload complete');
+            resolve();
+          } else {
+            reject(new Error(`Mux upload failed: HTTP ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Mux upload failed: network error'));
+        xhr.send(file);
+      });
+
+      if (onProgress) onProgress(85);
+
+      // Step 3: Wait for Mux to transcode and webhook to fire
+      // Poll the upload status until mux_mp4_url is populated
+      console.log('[api-client] Waiting for Mux transcoding...');
+
+      const maxWaitMs = 5 * 60 * 1000; // 5 minutes max
+      const pollIntervalMs = 3000;
+      const startTime = Date.now();
+
+      while (Date.now() - startTime < maxWaitMs) {
+        await new Promise(r => setTimeout(r, pollIntervalMs));
+
+        const elapsed = Date.now() - startTime;
+        // Progress 85-95% during transcoding wait
+        if (onProgress) onProgress(85 + Math.min(10, Math.round((elapsed / maxWaitMs) * 10)));
+
+        try {
+          const statusResponse = await apiClient.get(`/clips/${uploadId}`);
+          const upload = statusResponse.data?.data?.upload;
+
+          if (upload?.status === 'failed') {
+            throw new Error(upload.statusMessage || 'Mux transcoding failed');
+          }
+
+          // Upload is ready when status is 'pending' (set by webhook) and we can proceed
+          if (upload?.status === 'pending' && upload?.muxAssetId) {
+            console.log('[api-client] Mux transcoding complete, ready for processing');
+            if (onProgress) onProgress(100);
+
+            return {
+              success: true,
+              data: {
+                upload,
+                message: 'Video uploaded and transcoded via Mux',
+              },
+            };
+          }
+        } catch (pollErr: any) {
+          // Don't throw on poll errors, just keep trying
+          if (pollErr?.message?.includes('failed')) throw pollErr;
+          console.warn('[api-client] Poll error, retrying:', pollErr?.message);
+        }
+      }
+
+      throw new Error('Mux transcoding timed out after 5 minutes');
     },
 
     /** Start processing pipeline for a video */
@@ -3811,6 +3938,11 @@ export interface VideoUpload {
   processedAt?: string;
   deletedAt?: string;
   thumbnailUrl?: string;
+  // Mux Video (when using Mux for ingest)
+  muxUploadId?: string;
+  muxAssetId?: string;
+  muxPlaybackId?: string;
+  muxMp4Url?: string;
   contentKitTitle?: string; // Smart title from linked content kit
   platforms?: string[]; // Platforms with content from linked content kit
 }
