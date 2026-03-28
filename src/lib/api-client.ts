@@ -1865,14 +1865,25 @@ export const api = {
         const upload = createUpload({
           endpoint: muxUploadUrl,
           file,
-          chunkSize: 16 * 1024, // 16MB chunks (in KB for upchunk)
+          chunkSize: 10 * 1024, // 10MB chunks (in KB for upchunk) — reliable on mobile
           maxFileSize: 50 * 1024 * 1024 * 1024, // 50GB
         });
+
+        let lastReportedPct = 0;
 
         upload.on('progress', (progress: { detail: number }) => {
           const pct = Math.round(progress.detail);
           console.log('[api-client] Upload progress:', pct + '%');
           if (onProgress) onProgress(Math.max(5, Math.min(pct, 85)));
+
+          // Report progress to backend every 10% for UI tracking
+          if (pct - lastReportedPct >= 10) {
+            lastReportedPct = pct;
+            apiClient.post(`/clips/upload/${uploadId}/upload-progress`, {
+              bytesUploaded: Math.round((pct / 100) * file.size),
+              totalBytes: file.size,
+            }).catch(() => {}); // Non-critical
+          }
         });
 
         upload.on('success', () => {
