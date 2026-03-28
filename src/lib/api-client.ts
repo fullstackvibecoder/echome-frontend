@@ -1855,32 +1855,35 @@ export const api = {
       console.log('[api-client] Got Mux upload URL:', uploadId);
       if (onProgress) onProgress(5);
 
-      // Step 2: Upload file directly to Mux via PUT
-      // Mux direct uploads accept a simple PUT with the file as the body
-      console.log('[api-client] Uploading to Mux CDN...');
+      // Step 2: Upload file to Mux via UpChunk (chunked, resumable, parallel)
+      // Splits large files into chunks for faster upload with automatic retry
+      console.log('[api-client] Uploading to Mux CDN via UpChunk...');
+
+      const { createUpload } = await import('@mux/upchunk');
 
       await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', muxUploadUrl);
+        const upload = createUpload({
+          endpoint: muxUploadUrl,
+          file,
+          chunkSize: 16 * 1024, // 16MB chunks (in KB for upchunk)
+          maxFileSize: 50 * 1024 * 1024 * 1024, // 50GB
+        });
 
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable && onProgress) {
-            const pct = Math.round((event.loaded / event.total) * 100);
-            onProgress(Math.max(5, Math.min(pct, 85)));
-          }
-        };
+        upload.on('progress', (progress: { detail: number }) => {
+          const pct = Math.round(progress.detail);
+          console.log('[api-client] Upload progress:', pct + '%');
+          if (onProgress) onProgress(Math.max(5, Math.min(pct, 85)));
+        });
 
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            console.log('[api-client] Mux upload complete');
-            resolve();
-          } else {
-            reject(new Error(`Mux upload failed: HTTP ${xhr.status}`));
-          }
-        };
+        upload.on('success', () => {
+          console.log('[api-client] UpChunk upload complete');
+          resolve();
+        });
 
-        xhr.onerror = () => reject(new Error('Mux upload failed: network error'));
-        xhr.send(file);
+        upload.on('error', (err: { detail: { message: string } }) => {
+          console.error('[api-client] UpChunk upload error:', err.detail);
+          reject(new Error(`Mux upload failed: ${err.detail.message}`));
+        });
       });
 
       if (onProgress) onProgress(85);
