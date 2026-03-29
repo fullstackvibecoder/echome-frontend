@@ -108,22 +108,41 @@ export function getActiveSegment(
 
 /**
  * Find the active word within a segment for word-level styles.
- * Returns the index of the active word, or -1 if none.
+ * Returns the index of the active word.
+ *
+ * Handles gaps between word timestamps (common in Deepgram output) by
+ * snapping to the nearest word rather than returning -1, which would
+ * cause flickering highlights.
  */
 export function getActiveWordIndex(
   segment: CaptionSegment,
   currentTime: number,
-  leadTimeMs: number = 40 // 40ms lead for snappier feel
+  leadTimeMs: number = 0 // No lead — sync exactly with speech
 ): number {
   if (!segment.words.length) return -1;
-  const adjustedTime = currentTime + leadTimeMs / 1000;
+  const t = currentTime + leadTimeMs / 1000;
 
+  // Exact match — time falls within a word's range
   for (let i = 0; i < segment.words.length; i++) {
-    const word = segment.words[i];
-    if (adjustedTime >= word.start && adjustedTime <= word.end) {
+    if (t >= segment.words[i].start && t <= segment.words[i].end) {
       return i;
     }
   }
+
+  // Gap handling — time falls between two words, snap to the nearest one
+  // This prevents flicker during the small gaps in Deepgram timestamps
+  for (let i = 0; i < segment.words.length - 1; i++) {
+    if (t > segment.words[i].end && t < segment.words[i + 1].start) {
+      // In a gap — hold the previous word (feels more natural than jumping early)
+      return i;
+    }
+  }
+
+  // Before first word — highlight first
+  if (t < segment.words[0].start) return 0;
+  // After last word — hold last
+  if (t > segment.words[segment.words.length - 1].end) return segment.words.length - 1;
+
   return -1;
 }
 

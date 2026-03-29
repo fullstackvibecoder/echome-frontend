@@ -126,7 +126,7 @@ export function CaptionOverlay({
   viewMode,
 }: CaptionOverlayProps) {
   const activeSegment = useMemo(
-    () => getActiveSegment(segments, currentTime, isWordLevelStyle(style) ? 40 : 0),
+    () => getActiveSegment(segments, currentTime, 0),
     [segments, currentTime, style]
   );
 
@@ -217,9 +217,12 @@ function WordLevelCaption({
   const activeIdx = getActiveWordIndex(segment, currentTime);
 
   // Show a window of words around the active word (not the full segment)
+  // Active word sits at ~1/3 from the left so upcoming words are visible
   const windowSize = style === 'word_by_word' ? 4 : 8;
-  const start = Math.max(0, activeIdx - Math.floor(windowSize / 3));
-  const end = Math.min(segment.words.length, start + windowSize);
+  const idealStart = Math.max(0, activeIdx - Math.floor(windowSize / 3));
+  // Clamp end to segment length, then adjust start to keep window full
+  const end = Math.min(segment.words.length, idealStart + windowSize);
+  const start = Math.max(0, end - windowSize);
   const visibleWords = segment.words.slice(start, end);
 
   return (

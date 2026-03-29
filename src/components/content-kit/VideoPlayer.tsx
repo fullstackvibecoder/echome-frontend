@@ -61,24 +61,40 @@ export function VideoPlayer({
   const [videoDuration, setVideoDuration] = useState(duration || 0);
   const [showOverlay, setShowOverlay] = useState(true);
 
-  // High-precision time tracking for caption sync (rAF loop while playing)
+  // High-precision time tracking for caption sync
+  // Updates at ~30fps (every other rAF frame) to balance smoothness with performance.
+  // Only triggers a React re-render when time changes by >30ms, which is enough
+  // for word-level highlight accuracy without causing excessive renders.
   const [captionTime, setCaptionTime] = useState(0);
   const rafRef = useRef<number>(0);
+  const lastCaptionTimeRef = useRef(0);
+  const frameSkipRef = useRef(0);
 
   const updateCaptionTime = useCallback(() => {
-    if (videoRef.current) {
-      setCaptionTime(videoRef.current.currentTime);
+    frameSkipRef.current++;
+    // Update every 2nd frame (~30fps) — smooth enough for word highlights
+    if (frameSkipRef.current % 2 === 0 && videoRef.current) {
+      const t = videoRef.current.currentTime;
+      // Only re-render if time changed by >30ms (avoids redundant renders)
+      if (Math.abs(t - lastCaptionTimeRef.current) > 0.03) {
+        lastCaptionTimeRef.current = t;
+        setCaptionTime(t);
+      }
     }
     rafRef.current = requestAnimationFrame(updateCaptionTime);
   }, []);
 
   useEffect(() => {
     if (isPlaying && captionsEnabled && captionSegments?.length) {
+      frameSkipRef.current = 0;
       rafRef.current = requestAnimationFrame(updateCaptionTime);
     } else {
       cancelAnimationFrame(rafRef.current);
       // Sync on pause/seek via the regular timeupdate
-      if (videoRef.current) setCaptionTime(videoRef.current.currentTime);
+      if (videoRef.current) {
+        lastCaptionTimeRef.current = videoRef.current.currentTime;
+        setCaptionTime(videoRef.current.currentTime);
+      }
     }
     return () => cancelAnimationFrame(rafRef.current);
   }, [isPlaying, captionsEnabled, captionSegments, updateCaptionTime]);
