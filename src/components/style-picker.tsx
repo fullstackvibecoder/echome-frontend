@@ -61,7 +61,7 @@ export function StylePicker({
     <div className="mt-6">
       {/* Section Header */}
       <h3 className="font-headline font-bold text-base mb-3">
-        {label} <span className="text-text-secondary font-normal">(optional)</span>
+        {label} <span className="text-foreground/50 font-normal">(optional)</span>
       </h3>
 
       {/* Thumbnail Grid */}

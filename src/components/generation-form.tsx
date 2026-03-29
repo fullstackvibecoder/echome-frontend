@@ -169,10 +169,10 @@ function VoiceInputPanel({
               <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
             </svg>
           </button>
-          <p className="text-body text-text-secondary mb-2">
+          <p className="text-body text-foreground/60 mb-2">
             Click to start recording
           </p>
-          <p className="text-small text-text-secondary">
+          <p className="text-small text-foreground/60">
             Speak your content idea and we&apos;ll transcribe it
             <InfoTooltip text="Speak naturally about your content idea. We'll transcribe your words and generate content from them." />
           </p>
@@ -190,7 +190,7 @@ function VoiceInputPanel({
           <p className="text-2xl font-bold text-red-500 mb-1">
             {formatDuration(duration)}
           </p>
-          <p className="text-body text-text-secondary">
+          <p className="text-body text-foreground/60">
             Recording... Click to stop
           </p>
           <div className="flex justify-center gap-1 mt-3">
@@ -211,7 +211,7 @@ function VoiceInputPanel({
       {state === 'transcribing' && (
         <>
           <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-body text-text-secondary">
+          <p className="text-body text-foreground/60">
             Transcribing your voice...
           </p>
         </>
@@ -931,7 +931,7 @@ export function GenerationForm({
             {inputType === 'audio' && 'Speak your idea'}
             {inputType === 'repurpose' && 'Repurpose existing content'}
           </h2>
-          <p className="text-base text-slate-lavender font-medium max-w-lg mx-auto">
+          <p className="text-base text-foreground/60 font-medium max-w-lg mx-auto">
             {inputType === 'video' && 'Clips, captions, carousels, and posts — all in your voice.'}
             {inputType === 'text' && 'We\u2019ll turn your prompt into carousels, posts, and emails — in your voice.'}
             {inputType === 'audio' && 'Record a quick voice note and we\u2019ll create carousels, posts, and emails from it.'}
@@ -953,7 +953,7 @@ export function GenerationForm({
         /* Repurpose content list */
         <div className="border-2 border-border rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2 bg-bg-secondary border-b border-border">
-            <span className="text-sm font-medium text-text-secondary">Select content to repurpose</span>
+            <span className="text-sm font-medium text-foreground/60">Select content to repurpose</span>
             <button
               onClick={() => { setInputType('video'); clearFile(); }}
               className="text-xs text-accent hover:underline"
@@ -964,15 +964,15 @@ export function GenerationForm({
           {loadingContent ? (
             <div className="p-8 text-center">
               <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-body text-text-secondary">Loading content from followed creators...</p>
+              <p className="text-body text-foreground/60">Loading content from followed creators...</p>
             </div>
           ) : pendingContent.length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-5xl mb-4">👥</div>
-              <p className="text-body text-text-secondary mb-4">
+              <p className="text-body text-foreground/60 mb-4">
                 No content available for repurposing yet
               </p>
-              <p className="text-small text-text-secondary">
+              <p className="text-small text-foreground/60">
                 Follow creators in the Following page to see their content here
               </p>
             </div>
@@ -1000,7 +1000,7 @@ export function GenerationForm({
                     <p className="text-body font-medium line-clamp-2 mb-1">
                       {content.title || 'Untitled Content'}
                     </p>
-                    <div className="flex items-center gap-2 text-small text-text-secondary">
+                    <div className="flex items-center gap-2 text-small text-foreground/60">
                       <span className={content.platform === 'youtube' ? 'text-red-500' : 'text-pink-500'}>
                         {content.platform === 'youtube' ? '▶️' : '📷'}
                       </span>
@@ -1013,7 +1013,7 @@ export function GenerationForm({
                       )}
                     </div>
                     {content.extraction_status === 'completed' && content.transcript && (
-                      <p className="text-small text-text-secondary mt-1 line-clamp-2">
+                      <p className="text-small text-foreground/60 mt-1 line-clamp-2">
                         {content.transcript.substring(0, 150)}...
                       </p>
                     )}
@@ -1042,7 +1042,7 @@ export function GenerationForm({
             className="w-full h-44 px-5 py-4 bg-surface-container-low border-none rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all resize-none text-body"
             disabled={generating}
           />
-          <p className="text-xs text-text-secondary mt-1.5">Press ⌘+Enter to generate</p>
+          <p className="text-xs text-foreground/60 mt-1.5">Press ⌘+Enter to generate</p>
         </div>
       ) : inputType === 'audio' ? (
         /* Voice recording mode */
@@ -1104,7 +1104,7 @@ export function GenerationForm({
                             ) : isActive ? (
                               <Loader2 className="w-3.5 h-3.5 text-accent animate-spin" />
                             ) : (
-                              <StageIcon className="w-3.5 h-3.5 text-text-secondary opacity-40" />
+                              <StageIcon className="w-3.5 h-3.5 text-foreground/60 opacity-40" />
                             )}
                           </div>
                           {!isLast && (
@@ -1125,11 +1125,11 @@ export function GenerationForm({
                           {isActive ? (
                             <div className="bg-accent/5 rounded-lg px-3 py-2 border-l-2 border-accent -ml-1">
                               <p className="text-sm font-semibold text-accent">{stage.title}</p>
-                              <p className="text-xs text-text-secondary mt-0.5">{stage.description}</p>
+                              <p className="text-xs text-foreground/60 mt-0.5">{stage.description}</p>
                             </div>
                           ) : (
                             <p className={`text-sm pt-1 ${
-                              isCompleted ? 'font-medium text-text-primary' : 'text-text-secondary opacity-50'
+                              isCompleted ? 'font-medium text-foreground' : 'text-foreground/60 opacity-50'
                             }`}>
                               {stage.title}
                             </p>
@@ -1153,7 +1153,7 @@ export function GenerationForm({
                 </div>
 
                 {/* Footer: elapsed + estimate */}
-                <div className="flex justify-between mt-3 text-xs text-text-secondary">
+                <div className="flex justify-between mt-3 text-xs text-foreground/60">
                   <span className="flex items-center gap-1.5 tabular-nums">
                     <span className="w-1 h-1 rounded-full bg-accent" />
                     {formatElapsed(elapsedSeconds)} elapsed
@@ -1165,7 +1165,7 @@ export function GenerationForm({
                 {videoProcessingStage !== 'uploading' && (
                   <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-accent/10 border border-accent/20 rounded-xl">
                     <ShieldCheck className="w-4 h-4 text-accent flex-shrink-0" />
-                    <p className="text-xs text-text-secondary leading-tight">
+                    <p className="text-xs text-foreground/60 leading-tight">
                       Upload complete — you can leave this page. We&apos;ll notify you when your content kit is ready.
                     </p>
                   </div>
@@ -1190,7 +1190,7 @@ export function GenerationForm({
                     </div>
 
                     <h3 className="font-headline font-bold text-xl mb-1">Upload Source Video</h3>
-                    <p className="text-sm text-slate-lavender mb-4 min-h-[20px] transition-opacity duration-500" key={hintIndex}>
+                    <p className="text-sm text-foreground/60 mb-4 min-h-[20px] transition-opacity duration-500" key={hintIndex}>
                       {UPLOAD_HINTS[hintIndex]}
                     </p>
 
@@ -1202,7 +1202,7 @@ export function GenerationForm({
                       Select Video File
                     </button>
 
-                    <p className="text-xs text-slate-lavender/70">
+                    <p className="text-xs text-foreground/60/70">
                       MP4, MOV, AVI, WebM • Up to 50GB
                     </p>
                   </>
@@ -1212,7 +1212,7 @@ export function GenerationForm({
               <>
                 <div className="text-4xl mb-3">✅</div>
                 <p className="text-body font-medium mb-1">{selectedFile.name}</p>
-                <p className="text-small text-text-secondary mb-3">
+                <p className="text-small text-foreground/60 mb-3">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
                 <button
@@ -1229,21 +1229,21 @@ export function GenerationForm({
           {/* Secondary input modes — inside the tinted container */}
           {!videoProcessing && (
             <div className="pt-4 pb-2">
-              <p className="text-sm text-center font-medium text-on-surface-variant mb-3">No video? No problem.</p>
+              <p className="text-sm text-center font-medium text-foreground/70 mb-3">No video? No problem.</p>
               <div className="flex items-stretch justify-center gap-3">
                 <button
                   onClick={() => { setInputType('text'); clearFile(); }}
                   className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
                 >
                   <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">✍️ Type or paste text</span>
-                  <span className="text-[11px] text-slate-lavender">Describe an idea or topic</span>
+                  <span className="text-[11px] text-foreground/60">Describe an idea or topic</span>
                 </button>
                 <button
                   onClick={() => { setInputType('audio'); clearFile(); }}
                   className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
                 >
                   <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">🎤 Record voice</span>
-                  <span className="text-[11px] text-slate-lavender">Speak your content idea</span>
+                  <span className="text-[11px] text-foreground/60">Speak your content idea</span>
                 </button>
                 {!isFreeUser && (
                   <button
@@ -1251,7 +1251,7 @@ export function GenerationForm({
                     className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
                   >
                     <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">🔄 Repurpose</span>
-                    <span className="text-[11px] text-slate-lavender">From followed creators</span>
+                    <span className="text-[11px] text-foreground/60">From followed creators</span>
                   </button>
                 )}
               </div>
@@ -1266,7 +1266,7 @@ export function GenerationForm({
           {!freeUserExhausted && (
             <button
               onClick={() => { setInputType('video'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-foreground/70 hover:border-primary/40 hover:text-primary transition-all"
             >
               🎥 Upload a video instead
             </button>
@@ -1274,7 +1274,7 @@ export function GenerationForm({
           {inputType === 'text' && (
             <button
               onClick={() => { setInputType('audio'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-foreground/70 hover:border-primary/40 hover:text-primary transition-all"
             >
               🎤 Record voice
             </button>
@@ -1282,7 +1282,7 @@ export function GenerationForm({
           {inputType === 'audio' && (
             <button
               onClick={() => { setInputType('text'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-foreground/70 hover:border-primary/40 hover:text-primary transition-all"
             >
               ✍️ Type text
             </button>
@@ -1361,7 +1361,7 @@ export function GenerationForm({
               className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
                 carouselBgDragActive
                   ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
-                  : 'border-border text-text-secondary hover:border-accent hover:text-accent'
+                  : 'border-border text-foreground/60 hover:border-accent hover:text-accent'
               }`}
               disabled={generating || uploading}
               onDragEnter={handleCarouselBgDragEnter}
@@ -1379,7 +1379,7 @@ export function GenerationForm({
                 <span className="text-2xl">🖼️</span>
                 <div>
                   <p className="text-body font-medium">{carouselBgFile.name}</p>
-                  <p className="text-small text-text-secondary">
+                  <p className="text-small text-foreground/60">
                     {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
@@ -1412,10 +1412,10 @@ export function GenerationForm({
           ) : (
             <div className="p-4 text-center bg-bg-primary rounded-lg">
               <div className="text-3xl mb-2">🎥</div>
-              <p className="text-body text-text-secondary">
+              <p className="text-body text-foreground/60">
                 Upload a video first to see available snapshots
               </p>
-              <p className="text-small text-text-secondary mt-1">
+              <p className="text-small text-foreground/60 mt-1">
                 Frames will be automatically extracted during processing
               </p>
             </div>
@@ -1428,12 +1428,12 @@ export function GenerationForm({
         <div className={`mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20 ${!user?.isAdmin ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="flex items-center gap-2">
             <span className="text-xl">🎬</span>
-            <h3 className="text-body font-semibold text-text-primary">Video Reel</h3>
+            <h3 className="text-body font-semibold text-foreground">Video Reel</h3>
             {!user?.isAdmin && (
               <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
             )}
           </div>
-          <p className="text-small text-text-secondary mt-2">
+          <p className="text-small text-foreground/60 mt-2">
             {user?.isAdmin ? (
               <>After generation, create animated reels from your carousel slides or compose B-roll reels with text overlays in the{' '}
               <a href="/app/reels" className="text-accent hover:underline">Reel Maker</a>.</>
@@ -1451,7 +1451,7 @@ export function GenerationForm({
             // Quota exceeded - show upgrade prompt
             <div className="text-center">
               <div className="text-error font-medium mb-2">Video Minutes Exceeded</div>
-              <p className="text-text-secondary text-small mb-3">
+              <p className="text-foreground/60 text-small mb-3">
                 You&apos;ve used all your video processing minutes for this month.
               </p>
               <a
@@ -1489,7 +1489,7 @@ export function GenerationForm({
 
       {/* Helper Text */}
       {inputType === 'repurpose' && selectedContent && (
-        <p className="text-small text-text-secondary mt-2 mb-6">
+        <p className="text-small text-foreground/60 mt-2 mb-6">
           Selected: {selectedContent.title || 'Content'}
         </p>
       )}
@@ -1592,7 +1592,7 @@ export function GenerationForm({
 
       {/* Info */}
       <div className="mt-6 p-4 bg-primary/5 rounded-2xl">
-        <p className="text-sm text-slate-lavender text-center font-medium">
+        <p className="text-sm text-foreground/60 text-center font-medium">
           {(inputType === 'video' || inputType === 'url')
             ? '🎬 Video processing may take 2-5 minutes depending on length'
             : '✨ This usually takes 30-60 seconds'}

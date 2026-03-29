@@ -54,7 +54,7 @@ export function Sidebar() {
         {visibleGroups.map((group, groupIndex) => (
           <div key={group.label}>
             {/* Section label */}
-            <p className="px-3 mb-1.5 text-[10px] uppercase tracking-[0.15em] font-semibold text-slate-lavender">
+            <p className="px-3 mb-1.5 text-[10px] uppercase tracking-[0.15em] font-bold text-foreground/50">
               {group.label}
             </p>
             {/* Items */}
@@ -85,12 +85,12 @@ export function Sidebar() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate text-foreground">{user.name}</p>
-              <p className="text-xs text-slate-lavender truncate font-medium">{user.email}</p>
+              <p className="text-xs text-foreground/50 truncate font-medium">{user.email}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-slate-lavender hover:text-destructive hover:bg-destructive/5 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-foreground/50 hover:text-destructive hover:bg-destructive/5 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             Logout
@@ -140,7 +140,7 @@ function SidebarItem({
             ? 'text-muted-foreground/60 cursor-not-allowed'
             : isActive
               ? 'bg-primary text-white shadow-md shadow-primary/20 active-glow'
-              : 'text-slate-lavender hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
+              : 'text-foreground/70 hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
         }
       `}
     >

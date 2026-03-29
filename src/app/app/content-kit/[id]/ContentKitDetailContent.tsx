@@ -737,7 +737,7 @@ export default function ContentKitDetailContent() {
                                 }}
                                 className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                               >
-                                {exportingClip ? 'Exporting...' : '⬇ Single'}
+                                {exportingClip ? 'Exporting...' : 'Download Single'}
                               </button>
                               <button
                                 disabled={exportingClip}
@@ -749,7 +749,7 @@ export default function ContentKitDetailContent() {
                                 }}
                                 className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                               >
-                                ⬇ Split
+                                Download Split
                               </button>
                             </>
                           ) : (
@@ -763,7 +763,7 @@ export default function ContentKitDetailContent() {
                               }}
                               className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                             >
-                              {exportingClip ? 'Exporting...' : '⬇ Download'}
+                              {exportingClip ? 'Exporting...' : 'Download'}
                             </button>
                           )
                         )}
