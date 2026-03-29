@@ -29,10 +29,21 @@ interface CaptionOverlayProps {
 }
 
 // CSS styles for each preset — matches backend CAPTION_PRESETS from captioning.ts
-// Font sizes scaled from backend ASS values (designed for 1080p) to player container.
-// Backend: 52-96px at 1080w → Frontend: ~14-26px at ~300px container width.
-// Using cqi (container query inline) isn't widely supported, so we use a percentage
-// of the container via the parent's relative positioning.
+// Uses multiple text-shadows to simulate the thick ASS outline (OutlineWidth: 4-5)
+// that made burned-in captions crisp and readable against any background.
+const OUTLINE_SHADOW = [
+  '-1px -1px 0 #000', '1px -1px 0 #000', '-1px 1px 0 #000', '1px 1px 0 #000',
+  '-2px 0 0 #000', '2px 0 0 #000', '0 -2px 0 #000', '0 2px 0 #000',
+  '0 0 4px rgba(0,0,0,0.8)',
+].join(', ');
+
+const HEAVY_OUTLINE_SHADOW = [
+  '-1px -1px 0 #000', '1px -1px 0 #000', '-1px 1px 0 #000', '1px 1px 0 #000',
+  '-2px 0 0 #000', '2px 0 0 #000', '0 -2px 0 #000', '0 2px 0 #000',
+  '-2px -2px 0 #000', '2px -2px 0 #000', '-2px 2px 0 #000', '2px 2px 0 #000',
+  '0 0 6px rgba(0,0,0,0.9)',
+].join(', ');
+
 const STYLE_CONFIG: Record<
   CaptionStylePreset,
   {
@@ -51,7 +62,7 @@ const STYLE_CONFIG: Record<
     fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadow: '1px 1px 3px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.7)',
+    textShadow: OUTLINE_SHADOW,
   },
   classic: {
     fontFamily: "'Inter', sans-serif",
@@ -59,7 +70,7 @@ const STYLE_CONFIG: Record<
     fontWeight: '400',
     color: '#FFFFFF',
     textShadow: 'none',
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     padding: '3px 10px',
     borderRadius: '4px',
   },
@@ -68,42 +79,42 @@ const STYLE_CONFIG: Record<
     fontSize: '22px',
     fontWeight: '400',
     color: '#FFFF00',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
+    textShadow: HEAVY_OUTLINE_SHADOW,
   },
   minimal: {
     fontFamily: "'Inter', sans-serif",
     fontSize: '14px',
     fontWeight: '400',
     color: '#FFFFFF',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+    textShadow: OUTLINE_SHADOW,
   },
   highlight: {
     fontFamily: "'Montserrat', sans-serif",
     fontSize: '20px',
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
+    textShadow: HEAVY_OUTLINE_SHADOW,
   },
   karaoke: {
     fontFamily: "'Montserrat', sans-serif",
     fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
+    textShadow: HEAVY_OUTLINE_SHADOW,
   },
   underline: {
     fontFamily: "'Montserrat', sans-serif",
     fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
+    textShadow: HEAVY_OUTLINE_SHADOW,
   },
   word_by_word: {
     fontFamily: "'Montserrat', sans-serif",
     fontSize: '20px',
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
+    textShadow: HEAVY_OUTLINE_SHADOW,
   },
 };
 
@@ -225,17 +236,24 @@ function WordLevelCaption({
         };
 
         if (style === 'word_by_word' || style === 'highlight') {
+          // Active word pops yellow with slight scale
           wordStyle.color = isActive ? '#FFFF00' : config.color;
-          wordStyle.transform = isActive ? 'scale(1.12)' : 'scale(1)';
+          wordStyle.transform = isActive ? 'scale(1.15)' : 'scale(1)';
+          if (isActive) {
+            wordStyle.textShadow = HEAVY_OUTLINE_SHADOW;
+          }
         } else if (style === 'karaoke') {
-          const fill = isActive ? getKaraokeFill(word, currentTime) : isPast ? 100 : 0;
-          wordStyle.background = `linear-gradient(90deg, #FFFF00 ${fill}%, ${config.color} ${fill}%)`;
-          wordStyle.WebkitBackgroundClip = 'text';
-          wordStyle.WebkitTextFillColor = 'transparent';
-          wordStyle.backgroundClip = 'text';
+          // Active word turns yellow, past words stay yellow, future white
+          // Using solid color swap instead of gradient-clip (which kills text-shadow)
+          wordStyle.color = isPast || isActive ? '#FFFF00' : config.color;
+          if (isActive) {
+            wordStyle.transform = 'scale(1.1)';
+            wordStyle.textShadow = HEAVY_OUTLINE_SHADOW;
+          }
         } else if (style === 'underline') {
           wordStyle.borderBottom = isActive ? '3px solid #FFFF00' : 'none';
           wordStyle.paddingBottom = '2px';
+          if (isActive) wordStyle.color = '#FFFF00';
         }
 
         return (
