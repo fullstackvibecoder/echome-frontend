@@ -726,7 +726,7 @@ export default function ContentKitDetailContent() {
                       <div className="ml-auto flex items-center gap-3">
                         {detail.clips[activeClipIndex].exports?.[0]?.url && (
                           detail.clips[activeClipIndex].splitScreenUrl ? (
-                            <div className="flex rounded-full overflow-hidden border border-[#3A3A3C]">
+                            <>
                               <button
                                 disabled={exportingClip}
                                 onClick={async () => {
@@ -735,7 +735,7 @@ export default function ContentKitDetailContent() {
                                   if (clip.captionsBurnedIn !== false) { window.open(clip.exports[0]?.url, '_blank'); return; }
                                   try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                                 }}
-                                className="px-4 py-1.5 bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors disabled:opacity-50 border-r border-[#3A3A3C]"
+                                className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                               >
                                 {exportingClip ? 'Exporting...' : '⬇ Single'}
                               </button>
@@ -747,11 +747,11 @@ export default function ContentKitDetailContent() {
                                   if (clip.captionsBurnedIn !== false) { window.open(clip.splitScreenUrl, '_blank'); return; }
                                   try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'split', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                                 }}
-                                className="px-4 py-1.5 bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors disabled:opacity-50"
+                                className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                               >
                                 ⬇ Split
                               </button>
-                            </div>
+                            </>
                           ) : (
                             <button
                               disabled={exportingClip}
@@ -761,7 +761,7 @@ export default function ContentKitDetailContent() {
                                 if (clip.captionsBurnedIn !== false) { window.open(clip.exports[0]?.url, '_blank'); return; }
                                 try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                               }}
-                              className="px-4 py-1.5 bg-white/10 text-white text-xs font-semibold rounded-full border border-[#3A3A3C] hover:bg-white/20 transition-colors disabled:opacity-50"
+                              className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                             >
                               {exportingClip ? 'Exporting...' : '⬇ Download'}
                             </button>

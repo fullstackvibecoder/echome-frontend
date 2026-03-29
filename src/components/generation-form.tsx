@@ -1332,21 +1332,7 @@ export function GenerationForm({
         </div>
       )}
 
-      {/* ─── Caption Look (video/url input only) ─── */}
-      {(inputType === 'video' || inputType === 'url') && (
-        <>
-          <StylePicker
-            label="Caption Look"
-            options={CAPTION_STYLE_GRID}
-            value={captionStyle}
-            onChange={(v) => setCaptionStyle(v as CaptionStyleOption)}
-            columns={4}
-            aspect="portrait"
-            disabled={generating || uploading || videoProcessing}
-          />
-          <p className="text-[11px] text-gray-400 dark:text-gray-300 mt-1.5 ml-0.5">How captions appear on your video clips</p>
-        </>
-      )}
+      {/* Caption style is now selected post-generation in the clip editor */}
 
       {/* ─── Carousel Look (always visible) ─── */}
       <StylePicker

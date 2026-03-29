@@ -43,7 +43,7 @@ const POSITIONS: { value: CaptionPosition; label: string; icon: React.ReactNode 
 
 export function CaptionPositionControl({ value, onChange, disabled }: CaptionPositionControlProps) {
   return (
-    <div className="flex items-center rounded-full bg-bg-tertiary border border-border overflow-hidden">
+    <div className="flex items-center rounded-lg bg-black/20 border border-[#3A3A3C] overflow-hidden">
       {POSITIONS.map((pos) => {
         const isSelected = pos.value === value;
         return (
@@ -54,8 +54,8 @@ export function CaptionPositionControl({ value, onChange, disabled }: CaptionPos
             title={pos.label}
             className={`flex items-center justify-center w-7 h-7 transition-colors ${
               isSelected
-                ? 'bg-accent text-white'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
+                ? 'bg-[#3A3A3C] text-[#00D4FF]'
+                : 'text-white/40 hover:text-white hover:bg-white/10'
             } disabled:opacity-50`}
           >
             {pos.icon}
