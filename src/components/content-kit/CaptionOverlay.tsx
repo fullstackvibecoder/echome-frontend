@@ -10,7 +10,6 @@
  * Positioning adapts to single (bottom) vs split (center seam) view.
  */
 
-import { useMemo } from 'react';
 import {
   CaptionSegment,
   CaptionStylePreset,
@@ -61,14 +60,14 @@ const STYLE_CONFIG: Record<
   }
 > = {
   modern: {
-    fontFamily: "'Montserrat', sans-serif",
+    fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
     fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
     textShadow: OUTLINE_SHADOW,
   },
   classic: {
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "var(--font-inter), 'Inter', sans-serif",
     fontSize: '15px',
     fontWeight: '400',
     color: '#FFFFFF',
@@ -78,42 +77,42 @@ const STYLE_CONFIG: Record<
     borderRadius: '4px',
   },
   bold: {
-    fontFamily: "'Bebas Neue', sans-serif",
+    fontFamily: "var(--font-bebas-neue), 'Bebas Neue', sans-serif",
     fontSize: '22px',
     fontWeight: '400',
     color: '#FFFF00',
     textShadow: HEAVY_OUTLINE_SHADOW,
   },
   minimal: {
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "var(--font-inter), 'Inter', sans-serif",
     fontSize: '14px',
     fontWeight: '400',
     color: '#FFFFFF',
     textShadow: OUTLINE_SHADOW,
   },
   highlight: {
-    fontFamily: "'Montserrat', sans-serif",
+    fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
     fontSize: '20px',
     fontWeight: '800',
     color: '#FFFFFF',
     textShadow: HEAVY_OUTLINE_SHADOW,
   },
   karaoke: {
-    fontFamily: "'Montserrat', sans-serif",
+    fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
     fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
     textShadow: HEAVY_OUTLINE_SHADOW,
   },
   underline: {
-    fontFamily: "'Montserrat', sans-serif",
+    fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
     fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
     textShadow: HEAVY_OUTLINE_SHADOW,
   },
   word_by_word: {
-    fontFamily: "'Montserrat', sans-serif",
+    fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif",
     fontSize: '20px',
     fontWeight: '800',
     color: '#FFFFFF',
@@ -135,10 +134,7 @@ export function CaptionOverlay({
   viewMode,
   position,
 }: CaptionOverlayProps) {
-  const activeSegment = useMemo(
-    () => getActiveSegment(segments, currentTime, 0),
-    [segments, currentTime, style]
-  );
+  const activeSegment = getActiveSegment(segments, currentTime, 0);
 
   if (!isVisible || !activeSegment) return null;
 

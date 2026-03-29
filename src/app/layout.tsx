@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Toaster } from 'sonner';
-import { satoshi, manrope } from '@/lib/fonts';
+import { satoshi, manrope, montserrat, inter, bebasNeue } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -95,7 +95,7 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={`${satoshi.variable} ${manrope.variable} font-sans antialiased`}>
+      <body className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
         <Toaster position="top-right" richColors closeButton />
       </body>

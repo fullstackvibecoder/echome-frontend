@@ -1,10 +1,32 @@
 import localFont from "next/font/local";
-import { Manrope } from "next/font/google";
+import { Manrope, Montserrat, Inter, Bebas_Neue } from "next/font/google";
 
 export const manrope = Manrope({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-manrope",
+  display: "swap",
+});
+
+// Caption overlay fonts — preloaded to prevent FOUT during playback
+export const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "700", "800"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
+export const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+export const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-bebas-neue",
   display: "swap",
 });
 
