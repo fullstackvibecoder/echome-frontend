@@ -11,6 +11,8 @@ import { SnapshotPicker } from './SnapshotPicker';
 import { InfoTooltip } from './info-tooltip';
 import { StylePicker, StyleOption } from './style-picker';
 import { setActiveGeneration } from './generation-banner';
+import { showErrorToast } from '@/lib/toast';
+import { Upload, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, type LucideIcon } from 'lucide-react';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -30,7 +32,18 @@ function getErrorMessage(err: unknown): string {
   }
   // Standard Error object
   if (err instanceof Error) {
-    return err.message;
+    const msg = err.message;
+    // Translate raw upload/network errors into user-friendly messages
+    if (msg.includes('Server responded with 0') || msg.includes('Mux upload failed')) {
+      return 'Video upload was interrupted. Please check your connection and try again.';
+    }
+    if (msg.includes('transcoding timed out')) {
+      return 'Video processing is taking longer than expected. Your video may still be processing — check your library in a few minutes.';
+    }
+    if (msg.includes('transcoding failed')) {
+      return 'Video processing failed. Please try uploading again or use a different video format.';
+    }
+    return msg;
   }
   // Fallback
   return 'An unexpected error occurred';
@@ -217,93 +230,30 @@ function VoiceInputPanel({
 // VIDEO PROCESSING TIPS - Engaging messages per stage
 // ============================================
 
-const VIDEO_PROCESSING_STAGES: Record<string, {
-  icon: string;
+const VIDEO_PROCESSING_STAGES: Array<{
+  key: string;
+  icon: LucideIcon;
   title: string;
-  tips: string[];
-}> = {
-  uploading: {
-    icon: '📤',
-    title: 'Uploading your video',
-    tips: [
-      'Preparing your video for the magic to begin...',
-      'Great content starts with great source material!',
-      'Your video is on its way to our processing servers...',
-      'Almost there! Getting your video ready for analysis...',
-    ],
-  },
-  transcribing: {
-    icon: '🎧',
-    title: 'Transcribing audio',
-    tips: [
-      'Listening carefully to every word...',
-      'Echo is picking up all the nuances in your speech',
-      'Converting your voice into text with precision',
-      'Fun fact: We can detect multiple speakers automatically!',
-      'Capturing timestamps for perfect caption sync...',
-    ],
-  },
-  analyzing: {
-    icon: '🧠',
-    title: 'Analyzing content',
-    tips: [
-      'Looking for those viral-worthy moments...',
-      'Finding the hooks that will grab attention',
-      'Identifying your most engaging segments',
-      'Scoring clips for engagement potential',
-      'Echo is learning what makes your content unique!',
-    ],
-  },
-  extracting: {
-    icon: '✂️',
-    title: 'Extracting clips',
-    tips: [
-      'Cutting out the best parts for you...',
-      'Creating clips optimized for social media',
-      'Quality over quantity - selecting only the best moments',
-      'Each clip is crafted to stand on its own',
-      'Adding smart face-tracking for vertical formats...',
-    ],
-  },
-  captioning: {
-    icon: '💬',
-    title: 'Adding captions',
-    tips: [
-      'Making your content accessible to everyone!',
-      '85% of social media videos are watched without sound',
-      'Word-by-word timing for that professional look',
-      'Captions boost engagement by up to 80%',
-      'Styling your captions for maximum impact...',
-    ],
-  },
-  generating: {
-    icon: '✨',
-    title: 'Generating content kit',
-    tips: [
-      'Writing captions that match your voice...',
-      'Creating platform-optimized versions',
-      'Crafting LinkedIn posts with authority',
-      'Building Instagram carousels that pop',
-      'Your content kit is almost ready!',
-    ],
-  },
-  pending: {
-    icon: '⏳',
-    title: 'Queued for processing',
-    tips: [
-      'Your video is in line for the spotlight!',
-      'Preparing processing resources...',
-    ],
-  },
-  completed: {
-    icon: '🎉',
-    title: 'Processing complete',
-    tips: [
-      'Your clips are ready to shine!',
-      'Time to share your best moments with the world!',
-    ],
-  },
-};
+  description: string;
+}> = [
+  { key: 'uploading',    icon: Upload,           title: 'Uploading video',        description: 'Sending your video to our processing servers...' },
+  { key: 'transcribing', icon: Headphones,       title: 'Transcribing audio',     description: 'Converting speech to text with speaker detection.' },
+  { key: 'analyzing',    icon: Brain,            title: 'Analyzing content',      description: 'Identifying the most engaging moments in your video.' },
+  { key: 'extracting',   icon: Scissors,         title: 'Extracting clips',       description: 'Cutting highlight clips optimized for social media.' },
+  { key: 'captioning',   icon: MessageSquareText, title: 'Adding captions',       description: 'Generating word-level captions for accessibility.' },
+  { key: 'generating',   icon: Sparkles,         title: 'Generating content kit', description: 'Writing platform-optimized posts from your transcript.' },
+];
+
+// Lookup map for poll function and button text
+const VIDEO_PROCESSING_STAGES_MAP = Object.fromEntries(
+  VIDEO_PROCESSING_STAGES.map(s => [s.key, s])
+) as Record<string, (typeof VIDEO_PROCESSING_STAGES)[number]>;
+
+function formatElapsed(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  if (mins === 0) return `${seconds}s`;
+  return `${mins} min`;
+}
 
 // Carousel design preset options — visual thumbnail grid
 type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
@@ -456,9 +406,10 @@ export function GenerationForm({
   const [videoProcessingStatus, setVideoProcessingStatus] = useState<string | null>(null);
   const [videoProcessingProgress, setVideoProcessingProgress] = useState(0);
   const [videoProcessingStage, setVideoProcessingStage] = useState<string>('uploading');
-  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const tipRotationRef = useRef<NodeJS.Timeout | null>(null);
+  const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load pending content when repurpose mode is selected
   useEffect(() => {
@@ -517,44 +468,36 @@ export function GenerationForm({
       if (processingIntervalRef.current) {
         clearInterval(processingIntervalRef.current);
       }
-      if (tipRotationRef.current) {
-        clearInterval(tipRotationRef.current);
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
       }
     };
   }, []);
 
-  // Rotate tips during video processing
+  // Elapsed time tracker during video processing
   useEffect(() => {
-    if (videoProcessing && videoProcessingStage) {
-      // Reset tip index when stage changes
-      setCurrentTipIndex(0);
+    if (videoProcessing) {
+      const startTime = processingStartTime || Date.now();
+      if (!processingStartTime) setProcessingStartTime(startTime);
 
-      // Clear any existing rotation
-      if (tipRotationRef.current) {
-        clearInterval(tipRotationRef.current);
-      }
-
-      // Start rotating tips every 4 seconds
-      tipRotationRef.current = setInterval(() => {
-        const stageTips = VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips || [];
-        if (stageTips.length > 1) {
-          setCurrentTipIndex(prev => (prev + 1) % stageTips.length);
-        }
-      }, 4000);
+      elapsedTimerRef.current = setInterval(() => {
+        setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
     } else {
-      // Clear rotation when not processing
-      if (tipRotationRef.current) {
-        clearInterval(tipRotationRef.current);
-        tipRotationRef.current = null;
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
+        elapsedTimerRef.current = null;
       }
+      setProcessingStartTime(null);
+      setElapsedSeconds(0);
     }
 
     return () => {
-      if (tipRotationRef.current) {
-        clearInterval(tipRotationRef.current);
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
       }
     };
-  }, [videoProcessing, videoProcessingStage]);
+  }, [videoProcessing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Process video through Clip Finder pipeline
   const processVideoWithClipFinder = async (
@@ -567,7 +510,6 @@ export function GenerationForm({
       setVideoProcessingStage('uploading');
       setVideoProcessingStatus('Uploading video...');
       setVideoProcessingProgress(0);
-      setCurrentTipIndex(0);
       setUploadError(null);
 
       // Scroll the form into view so user sees the progress
@@ -610,6 +552,7 @@ export function GenerationForm({
           }
         } catch (bgErr) {
           console.warn('Failed to upload carousel background, using default:', bgErr);
+          showErrorToast(bgErr, 'uploading background image');
         }
       } else if (carouselDesignOption === 'video-snapshot' && selectedSnapshot) {
         // Use the selected video snapshot
@@ -644,9 +587,11 @@ export function GenerationForm({
 
     } catch (err) {
       console.error('Video processing error:', err);
-      setUploadError(getErrorMessage(err));
+      const errorMsg = getErrorMessage(err);
+      setUploadError(errorMsg);
       setVideoProcessing(false);
       setVideoProcessingStatus(null);
+      showErrorToast(err, 'processing video');
     }
   };
 
@@ -677,7 +622,7 @@ export function GenerationForm({
 
             // Update stage and progress
             setVideoProcessingStage(status);
-            const stageInfo = VIDEO_PROCESSING_STAGES[status];
+            const stageInfo = VIDEO_PROCESSING_STAGES_MAP[status];
             setVideoProcessingStatus(stageInfo?.title || `Processing: ${status}`);
             setVideoProcessingProgress(progressByStatus[status] || 50);
 
@@ -929,7 +874,9 @@ export function GenerationForm({
         await processVideoWithClipFinder(selectedFile, 'upload');
         clearFile();
       } catch (err) {
-        setUploadError(getErrorMessage(err));
+        const errorMsg = getErrorMessage(err);
+        setUploadError(errorMsg);
+        showErrorToast(err, 'uploading video');
       }
       return;
     }
@@ -1128,54 +1075,100 @@ export function GenerationForm({
               className="hidden"
             />
             {videoProcessing ? (
-              <div className="py-4">
-                <div className="text-5xl mb-3 animate-bounce">
-                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}
-                </div>
-                <p className="text-body font-semibold mb-1">
-                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || videoProcessingStatus}
-                </p>
-                <p className="text-small text-text-secondary mb-4 min-h-[40px] transition-opacity duration-500">
-                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.tips[currentTipIndex] || 'Processing...'}
-                </p>
-                <div className="w-full max-w-sm mx-auto mb-3">
-                  <div className="bg-bg-secondary rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-accent to-accent/70 h-2.5 rounded-full transition-all duration-500 relative"
-                      style={{ width: `${videoProcessingProgress}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-                <p className="text-small text-text-secondary font-medium">
-                  {videoProcessingProgress}% complete
-                </p>
-                <div className="flex justify-center gap-2 mt-4">
-                  {['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'].map((stage, idx) => {
-                    const stageOrder = ['uploading', 'transcribing', 'analyzing', 'extracting', 'captioning', 'generating'];
-                    const currentIdx = stageOrder.indexOf(videoProcessingStage);
-                    const isComplete = idx < currentIdx;
-                    const isCurrent = stage === videoProcessingStage;
+              <div className="py-6 px-2 text-left">
+                {/* Vertical Step Timeline */}
+                <div className="space-y-0">
+                  {VIDEO_PROCESSING_STAGES.map((stage, idx) => {
+                    const activeIdx = VIDEO_PROCESSING_STAGES.findIndex(s => s.key === videoProcessingStage);
+                    const isCompleted = activeIdx >= 0 ? idx < activeIdx : videoProcessingStage === 'completed';
+                    const isActive = idx === activeIdx;
+                    const isFuture = !isCompleted && !isActive;
+                    const isLast = idx === VIDEO_PROCESSING_STAGES.length - 1;
+                    const StageIcon = stage.icon;
+
                     return (
-                      <div
-                        key={stage}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          isComplete ? 'bg-accent' :
-                          isCurrent ? 'bg-accent animate-pulse scale-125' :
-                          'bg-bg-secondary'
-                        }`}
-                        title={VIDEO_PROCESSING_STAGES[stage]?.title}
-                      />
+                      <div key={stage.key} className="flex gap-3">
+                        {/* Icon column with connecting line */}
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                              isCompleted
+                                ? 'bg-accent text-white'
+                                : isActive
+                                ? 'bg-accent/15 border-2 border-accent'
+                                : 'bg-bg-secondary border border-border'
+                            }`}
+                          >
+                            {isCompleted ? (
+                              <CheckCircle className="w-4 h-4" />
+                            ) : isActive ? (
+                              <Loader2 className="w-3.5 h-3.5 text-accent animate-spin" />
+                            ) : (
+                              <StageIcon className="w-3.5 h-3.5 text-text-secondary opacity-40" />
+                            )}
+                          </div>
+                          {!isLast && (
+                            <div
+                              className={`w-0.5 flex-1 min-h-[16px] transition-all duration-300 ${
+                                isCompleted
+                                  ? 'bg-accent'
+                                  : isActive
+                                  ? 'bg-accent/30'
+                                  : 'border-l border-dashed border-border'
+                              }`}
+                            />
+                          )}
+                        </div>
+
+                        {/* Text content */}
+                        <div className={`pb-3 ${isActive ? 'pb-4' : ''}`}>
+                          {isActive ? (
+                            <div className="bg-accent/5 rounded-lg px-3 py-2 border-l-2 border-accent -ml-1">
+                              <p className="text-sm font-semibold text-accent">{stage.title}</p>
+                              <p className="text-xs text-text-secondary mt-0.5">{stage.description}</p>
+                            </div>
+                          ) : (
+                            <p className={`text-sm pt-1 ${
+                              isCompleted ? 'font-medium text-text-primary' : 'text-text-secondary opacity-50'
+                            }`}>
+                              {stage.title}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
 
-                {/* Navigate away message — shows after upload phase */}
+                {/* Progress Bar with shimmer */}
+                <div className="mt-5">
+                  <div className="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent rounded-full relative overflow-hidden transition-all duration-700 ease-out"
+                      style={{ width: `${Math.max(videoProcessingProgress, 2)}%` }}
+                    >
+                      <div className="absolute inset-0 animate-shimmer-sweep" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer: elapsed + estimate */}
+                <div className="flex justify-between mt-3 text-xs text-text-secondary">
+                  <span className="flex items-center gap-1.5 tabular-nums">
+                    <span className="w-1 h-1 rounded-full bg-accent" />
+                    {formatElapsed(elapsedSeconds)} elapsed
+                  </span>
+                  <span>Usually 5-15 min</span>
+                </div>
+
+                {/* Navigate-away banner — after upload completes */}
                 {videoProcessingStage !== 'uploading' && (
-                  <p className="text-xs text-text-tertiary mt-4">
-                    You can navigate away — we&apos;ll email you when it&apos;s ready.
-                  </p>
+                  <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-accent/10 border border-accent/20 rounded-xl">
+                    <ShieldCheck className="w-4 h-4 text-accent flex-shrink-0" />
+                    <p className="text-xs text-text-secondary leading-tight">
+                      Upload complete — you can leave this page. We&apos;ll notify you when your content kit is ready.
+                    </p>
+                  </div>
                 )}
               </div>
             ) : !selectedFile ? (
@@ -1488,8 +1481,24 @@ export function GenerationForm({
               </a>
             </div>
           ) : (
-            // Regular error
-            <p className="text-error text-small text-center">{uploadError}</p>
+            // Regular error with retry
+            <div className="text-center">
+              <p className="text-error text-small mb-3">{uploadError}</p>
+              {selectedFile && (
+                <button
+                  onClick={() => {
+                    setUploadError(null);
+                    processVideoWithClipFinder(selectedFile, 'upload');
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-small font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Try Again
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -1579,8 +1588,8 @@ export function GenerationForm({
                 </span>
               ) : videoProcessing ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="text-lg">{VIDEO_PROCESSING_STAGES[videoProcessingStage]?.icon || '⏳'}</span>
-                  {VIDEO_PROCESSING_STAGES[videoProcessingStage]?.title || 'Processing video...'}
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {VIDEO_PROCESSING_STAGES_MAP[videoProcessingStage]?.title || 'Processing video...'}
                 </span>
               ) : generating ? (
                 <span className="flex items-center justify-center gap-2">
