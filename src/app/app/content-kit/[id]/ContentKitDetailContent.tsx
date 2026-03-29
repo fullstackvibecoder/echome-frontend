@@ -23,6 +23,9 @@ import { ContentCategory } from '@/types';
 import { CalendarPlus } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
+import { CaptionStylePopover } from '@/components/content-kit/CaptionStylePopover';
+import { CaptionPositionControl } from '@/components/content-kit/CaptionPositionControl';
+import type { CaptionPosition } from '@/components/content-kit/CaptionOverlay';
 import { BlogPostSection } from '@/components/blog-post-section';
 import { VideoReelSection } from '@/components/content-kit/VideoReelSection';
 
@@ -75,8 +78,10 @@ export default function ContentKitDetailContent() {
   const [showSplitScreen, setShowSplitScreen] = useState(false);
   const [captionsEnabled, setCaptionsEnabled] = useState(true);
   const [captionSegments, setCaptionSegments] = useState<import('@/lib/caption-parser').CaptionSegment[]>([]);
-  const [captionStyle, setCaptionStyle] = useState<import('@/lib/caption-parser').CaptionStylePreset>('modern');
+  const [captionStyle, setCaptionStyle] = useState<import('@/lib/caption-parser').CaptionStylePreset>('highlight');
+  const [captionPosition, setCaptionPosition] = useState<CaptionPosition>('bottom');
   const [exportingClip, setExportingClip] = useState(false);
+  const persistTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
   const [resizedCarousel, setResizedCarousel] = useState<{
@@ -125,6 +130,7 @@ export default function ContentKitDetailContent() {
           setCaptionSegments(filtered);
         }
         if (clip.captionStyle) setCaptionStyle(clip.captionStyle as any);
+        if (clip.captionPosition) setCaptionPosition(clip.captionPosition as CaptionPosition);
       } catch (err) {
         console.warn('Failed to fetch caption data:', err);
         setCaptionSegments([]);
@@ -133,6 +139,35 @@ export default function ContentKitDetailContent() {
 
     fetchCaptions();
   }, [activeClipIndex, detail, id]);
+
+  // Debounced persist for caption style/position changes
+  const persistCaptionSetting = useCallback((field: string, value: string) => {
+    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
+    persistTimerRef.current = setTimeout(async () => {
+      const clip = detail?.clips?.[activeClipIndex];
+      if (!clip) return;
+      const uploadId = clip.videoUploadId || id;
+      try {
+        await api.clips.updateClip(uploadId, clip.id, { [field]: value });
+      } catch (err) {
+        console.warn('Failed to persist caption setting:', err);
+      }
+    }, 500);
+  }, [detail, activeClipIndex, id]);
+
+  const handleStyleChange = useCallback((style: import('@/lib/caption-parser').CaptionStylePreset) => {
+    setCaptionStyle(style);
+    persistCaptionSetting('captionStyle', style);
+  }, [persistCaptionSetting]);
+
+  const handlePositionChange = useCallback((position: CaptionPosition) => {
+    setCaptionPosition(position);
+    persistCaptionSetting('captionPosition', position);
+  }, [persistCaptionSetting]);
+
+  // Is the current clip an overlay clip (not burned-in)?
+  const activeClip = detail?.clips?.[activeClipIndex];
+  const isOverlayClip = activeClip?.captionsBurnedIn === false && activeClip?.hasCaptions;
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -591,6 +626,7 @@ export default function ContentKitDetailContent() {
                         captionStyle={captionStyle}
                         captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
                         viewMode={showSplitScreen ? 'split' : 'single'}
+                        captionPosition={captionPosition}
                       />
                       <div className="p-4">
                         <h3 className="font-semibold text-lg mb-2">
@@ -617,6 +653,18 @@ export default function ContentKitDetailContent() {
                             >
                               CC {captionsEnabled ? '✓' : ''}
                             </button>
+                          )}
+                          {isOverlayClip && captionsEnabled && (
+                            <>
+                              <CaptionStylePopover
+                                value={captionStyle}
+                                onChange={handleStyleChange}
+                              />
+                              <CaptionPositionControl
+                                value={captionPosition}
+                                onChange={handlePositionChange}
+                              />
+                            </>
                           )}
                           {detail.clips[activeClipIndex].splitScreenUrl && (
                             <button

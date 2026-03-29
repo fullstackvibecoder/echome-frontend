@@ -33,6 +33,7 @@ interface VideoPlayerProps {
   captionStyle?: CaptionStylePreset;
   captionsEnabled?: boolean;
   viewMode?: 'single' | 'split';
+  captionPosition?: 'bottom' | 'center' | 'top';
 }
 
 export function VideoPlayer({
@@ -53,6 +54,7 @@ export function VideoPlayer({
   captionStyle = 'modern',
   captionsEnabled = false,
   viewMode = 'single',
+  captionPosition,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -210,6 +212,7 @@ export function VideoPlayer({
           isVisible={captionsEnabled}
           style={captionStyle}
           viewMode={viewMode}
+          position={captionPosition}
         />
       )}
 

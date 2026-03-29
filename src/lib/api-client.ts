@@ -562,6 +562,7 @@ export const api = {
           captionsBurnedIn: clip.captions_burned_in ?? clip.captionsBurnedIn ?? true,
           captionUrl: clip.caption_url || clip.captionUrl,
           captionStyle: clip.caption_style || clip.captionStyle || 'modern',
+          captionPosition: clip.caption_position || clip.captionPosition || 'bottom',
           srtPath: clip.srt_path || clip.srtPath,
           thumbnailUrl: clip.thumbnail_url || clip.thumbnailUrl,
           exports: clip.exports?.map((exp: any) => ({
@@ -2051,6 +2052,7 @@ export const api = {
       title?: string;
       isSelected?: boolean;
       captionStyle?: string;
+      captionPosition?: 'bottom' | 'center' | 'top';
       startTime?: number;
       endTime?: number;
     }) => {
@@ -4004,6 +4006,7 @@ export interface VideoClip {
   hasCaptions: boolean;
   captionsBurnedIn: boolean;
   captionUrl?: string;
+  captionPosition?: 'bottom' | 'center' | 'top';
   exports: ClipExport[];
   thumbnailPath?: string;
   thumbnailUrl?: string;

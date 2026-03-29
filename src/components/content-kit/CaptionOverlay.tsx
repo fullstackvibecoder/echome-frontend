@@ -20,12 +20,15 @@ import {
   isWordLevelStyle,
 } from '@/lib/caption-parser';
 
+export type CaptionPosition = 'bottom' | 'center' | 'top';
+
 interface CaptionOverlayProps {
   segments: CaptionSegment[];
   currentTime: number;
   isVisible: boolean;
   style: CaptionStylePreset;
   viewMode: 'single' | 'split';
+  position?: CaptionPosition;
 }
 
 // CSS styles for each preset — matches backend CAPTION_PRESETS from captioning.ts
@@ -118,12 +121,19 @@ const STYLE_CONFIG: Record<
   },
 };
 
+const POSITION_STYLES: Record<CaptionPosition, React.CSSProperties> = {
+  bottom: { bottom: '18%' },
+  center: { top: '50%', transform: 'translateY(-50%)' },
+  top: { top: '12%' },
+};
+
 export function CaptionOverlay({
   segments,
   currentTime,
   isVisible,
   style,
   viewMode,
+  position,
 }: CaptionOverlayProps) {
   const activeSegment = useMemo(
     () => getActiveSegment(segments, currentTime, 0),
@@ -135,11 +145,9 @@ export function CaptionOverlay({
   const config = STYLE_CONFIG[style];
   const isWordLevel = isWordLevelStyle(style);
 
-  // Position: bottom for single view, center for split-screen
-  const positionStyle: React.CSSProperties =
-    viewMode === 'split'
-      ? { top: '50%', transform: 'translateY(-50%)' } // center seam
-      : { bottom: '18%' }; // above controls area
+  // Position: use explicit position if set, otherwise default based on viewMode
+  const effectivePosition = position || (viewMode === 'split' ? 'center' : 'bottom');
+  const positionStyle = POSITION_STYLES[effectivePosition];
 
   // For line-level styles, show only a short window of text (~12 words max)
   const displayText = !isWordLevel
