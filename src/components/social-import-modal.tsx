@@ -185,9 +185,11 @@ export function SocialImportModal({
   useEffect(() => {
     if (status !== 'polling' || !importJobId) return;
 
+    let consecutiveErrors = 0;
     const pollInterval = setInterval(async () => {
       try {
         const result = await api.kbContent.getSocialImportStatus(importJobId);
+        consecutiveErrors = 0;
 
         if (result.job) {
           if (result.job.status === 'completed') {
@@ -215,6 +217,12 @@ export function SocialImportModal({
         }
       } catch (err) {
         console.error('Import poll error:', err);
+        consecutiveErrors++;
+        if (consecutiveErrors >= 5) {
+          setStatus('error');
+          setError('Lost connection while checking import status. The import may still be processing — check your Knowledge Base in a few minutes.');
+          clearInterval(pollInterval);
+        }
       }
     }, 5000);
 
@@ -225,9 +233,11 @@ export function SocialImportModal({
   useEffect(() => {
     if (syncStatus.google !== 'polling' || !syncJobId) return;
 
+    let consecutiveSyncErrors = 0;
     const pollInterval = setInterval(async () => {
       try {
         const result = await api.social.getGoogleSyncStatus(syncJobId);
+        consecutiveSyncErrors = 0;
 
         if (result.success && result.data) {
           if (result.data.status === 'completed') {
@@ -255,6 +265,12 @@ export function SocialImportModal({
         }
       } catch (err) {
         console.error('Sync poll error:', err);
+        consecutiveSyncErrors++;
+        if (consecutiveSyncErrors >= 5) {
+          setSyncStatus(prev => ({ ...prev, google: 'error' }));
+          setSyncError('Lost connection while checking sync status. The sync may still be processing — check back in a few minutes.');
+          clearInterval(pollInterval);
+        }
       }
     }, 5000);
 
@@ -316,6 +332,7 @@ export function SocialImportModal({
       fetchAccountStatus();
     } catch (err) {
       console.error('Disconnect error:', err);
+      showErrorToast(err, 'disconnecting account');
     }
   };
 

@@ -9,6 +9,7 @@ import {
   DescriptJob,
   DescriptCreateSource,
 } from '@/lib/api-client';
+import { showErrorToast } from '@/lib/toast';
 
 // ==================== Types ====================
 
@@ -132,6 +133,7 @@ export default function DescriptContent() {
       setProjects(data);
     } catch (err) {
       console.error('Failed to fetch projects', err);
+      showErrorToast(err, 'loading projects');
     } finally {
       setLoadingProjects(false);
     }
@@ -152,6 +154,7 @@ export default function DescriptContent() {
       setDetailJobs(data.jobs);
     } catch (err) {
       console.error('Failed to fetch project detail', err);
+      showErrorToast(err, 'loading project details');
     } finally {
       setLoadingDetail(false);
     }
@@ -224,7 +227,7 @@ export default function DescriptContent() {
       setNewTitle('');
       setNewUrls('');
     } catch (err: any) {
-      alert(err?.response?.data?.error || err.message || 'Failed to create project');
+      showErrorToast(err, 'creating project');
     } finally {
       setCreating(false);
     }
@@ -241,7 +244,7 @@ export default function DescriptContent() {
       const data = await api.descript.getProject(selectedProjectId);
       setDetailProject(data.project);
     } catch (err: any) {
-      alert(err?.response?.data?.error || err.message || 'Failed to run edit');
+      showErrorToast(err, 'running edit');
     } finally {
       setRunningEdit(false);
     }
@@ -256,7 +259,7 @@ export default function DescriptContent() {
       }
       fetchProjects();
     } catch (err: any) {
-      alert(err?.response?.data?.error || err.message || 'Failed to delete');
+      showErrorToast(err, 'deleting project');
     }
   };
 

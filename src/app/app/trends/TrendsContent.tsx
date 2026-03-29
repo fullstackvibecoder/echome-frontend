@@ -7,6 +7,7 @@ import {
   TrendUserReel,
 } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
+import { showErrorToast } from '@/lib/toast';
 
 // Category badge colors
 const CATEGORY_COLORS: Record<string, string> = {
@@ -101,6 +102,7 @@ export default function TrendsContent() {
       await loadData();
     } catch (err) {
       console.error('Failed to refresh trends:', err);
+      showErrorToast(err, 'refreshing trends');
     } finally {
       setRefreshing(false);
     }

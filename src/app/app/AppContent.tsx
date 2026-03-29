@@ -18,6 +18,7 @@ import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { useSubscription } from '@/hooks/useSubscription';
+import { showErrorToast } from '@/lib/toast';
 import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
@@ -298,6 +299,7 @@ export default function AppContent() {
         }
       } catch (uploadErr) {
         console.error('Error uploading carousel background:', uploadErr);
+        showErrorToast(uploadErr, 'uploading background image');
       }
     }
 

@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { Download, RefreshCw, Maximize2, X } from 'lucide-react';
 import { downloadImage } from '@/lib/download';
+import { showErrorToast } from '@/lib/toast';
 import type { GeneratedImage } from '@/types';
 
 export interface BlogHeaderPreviewProps {
@@ -36,6 +37,7 @@ export function BlogHeaderPreview({
       await downloadImage(image.publicUrl, filename);
     } catch (error) {
       console.error('Download failed:', error);
+      showErrorToast(error, 'downloading image');
     } finally {
       setDownloading(false);
     }

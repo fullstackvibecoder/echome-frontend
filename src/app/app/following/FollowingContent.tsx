@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { showErrorToast } from '@/lib/toast';
 import { Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
@@ -117,6 +118,7 @@ export default function FollowingContent() {
       setAllContent(flatContent);
     } catch (err) {
       console.error('Failed to load content:', err);
+      showErrorToast(err, 'loading creator content');
     } finally {
       setLoadingContent(false);
     }
@@ -174,6 +176,7 @@ export default function FollowingContent() {
       }
     } catch (err) {
       console.error('Failed to unfollow:', err);
+      showErrorToast(err, 'unfollowing creator');
     }
   };
 
@@ -192,6 +195,7 @@ export default function FollowingContent() {
       }
     } catch (err) {
       console.error('Failed to poll:', err);
+      showErrorToast(err, 'syncing creator content');
     } finally {
       setPolling(null);
     }
@@ -205,6 +209,7 @@ export default function FollowingContent() {
       await loadData();
     } catch (err) {
       console.error('Failed to poll all:', err);
+      showErrorToast(err, 'syncing all creators');
     } finally {
       setPollingAll(false);
     }

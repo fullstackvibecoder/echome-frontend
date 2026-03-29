@@ -360,7 +360,11 @@ export default function KnowledgeContent() {
     if (deleteConfirm.type === 'bulk') {
       setBulkDeleting(true);
       try {
-        await Promise.all(Array.from(selectedIds).map(id => deleteContent(id).catch(() => {})));
+        const results = await Promise.allSettled(Array.from(selectedIds).map(id => deleteContent(id)));
+        const failures = results.filter(r => r.status === 'rejected');
+        if (failures.length > 0) {
+          toast.error(`Failed to delete ${failures.length} item${failures.length > 1 ? 's' : ''}. Please try again.`);
+        }
         setSelectedIds(new Set());
         setSelectionMode(false);
       } finally {

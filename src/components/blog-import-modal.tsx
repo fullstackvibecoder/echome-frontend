@@ -52,9 +52,11 @@ export function BlogImportModal({
   useEffect(() => {
     if (status !== 'polling' || !jobId) return;
 
+    let consecutiveErrors = 0;
     const pollInterval = setInterval(async () => {
       try {
         const result = await api.kbContent.getSocialImportStatus(jobId);
+        consecutiveErrors = 0;
 
         if (result.job) {
           if (result.job.status === 'completed') {
@@ -82,6 +84,12 @@ export function BlogImportModal({
         }
       } catch (err) {
         console.error('Poll error:', err);
+        consecutiveErrors++;
+        if (consecutiveErrors >= 5) {
+          setStatus('error');
+          setError('Lost connection while checking import status. The import may still be processing — check your Knowledge Base in a few minutes.');
+          clearInterval(pollInterval);
+        }
       }
     }, 5000);
 

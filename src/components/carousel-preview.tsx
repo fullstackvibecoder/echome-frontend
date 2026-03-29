@@ -15,6 +15,7 @@ import {
   Maximize2,
 } from 'lucide-react';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
+import { showErrorToast } from '@/lib/toast';
 
 export interface CarouselSlide {
   slideNumber: number;
@@ -48,6 +49,7 @@ export function CarouselPreview({
       await downloadCarouselImages(slides, contentId);
     } catch (error) {
       console.error('Failed to download carousel:', error);
+      showErrorToast(error, 'downloading carousel');
     } finally {
       setDownloading(false);
     }

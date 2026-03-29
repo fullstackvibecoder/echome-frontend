@@ -7,6 +7,7 @@ import { api, TeamVoice, TeamVoiceInput } from '@/lib/api-client';
 import { KnowledgeBase, SocialIntegration } from '@/types';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { showErrorToast } from '@/lib/toast';
 import { AppPageHeader } from '@/components/app-page-header';
 
 interface VoiceIntegrationAssignment {
@@ -115,6 +116,7 @@ export default function TeamVoicesContent() {
         }
       } catch (err) {
         console.error('Failed to load data:', err);
+        showErrorToast(err, 'loading voice data');
       } finally {
         setLoading(false);
       }

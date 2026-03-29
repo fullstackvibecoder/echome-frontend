@@ -16,6 +16,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
+import { showErrorToast } from '@/lib/toast';
 import type {
   ReelTemplate,
   ReelProject,
@@ -251,6 +252,7 @@ export default function ReelEditorContent() {
       }
     } catch (err) {
       console.error('Failed to load music track:', err);
+      showErrorToast(err, 'loading music track');
     }
   }, []);
 
