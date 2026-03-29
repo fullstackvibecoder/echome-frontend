@@ -126,13 +126,18 @@ export function CaptionOverlay({
       ? { top: '50%', transform: 'translateY(-50%)' } // center seam
       : { bottom: '18%' }; // above controls area
 
+  // For line-level styles, show only a short window of text (~12 words max)
+  const displayText = !isWordLevel
+    ? getVisibleText(activeSegment.text, currentTime, activeSegment)
+    : '';
+
   return (
     <div
       className="absolute left-0 right-0 flex justify-center pointer-events-none z-20 px-4"
       style={positionStyle}
     >
       <div
-        className="text-center max-w-[90%] leading-tight"
+        className="text-center max-w-[85%] leading-snug"
         style={{
           fontFamily: config.fontFamily,
           fontSize: config.fontSize,
@@ -140,7 +145,7 @@ export function CaptionOverlay({
           color: config.color,
           textShadow: config.textShadow,
           backgroundColor: config.backgroundColor,
-          padding: config.padding,
+          padding: config.padding || '4px 8px',
           borderRadius: config.borderRadius,
         }}
       >
@@ -152,14 +157,37 @@ export function CaptionOverlay({
             config={config}
           />
         ) : (
-          <span>{activeSegment.text}</span>
+          <span>{displayText}</span>
         )}
       </div>
     </div>
   );
 }
 
-/** Renders word-level animated captions */
+/**
+ * For line-level styles, show a rolling window of ~10-12 words from the segment
+ * based on current playback time, instead of dumping the entire segment.
+ */
+function getVisibleText(
+  fullText: string,
+  currentTime: number,
+  segment: CaptionSegment
+): string {
+  const words = fullText.split(/\s+/);
+  if (words.length <= 12) return fullText;
+
+  // Estimate which word we're at based on time position within the segment
+  const progress = Math.max(0, Math.min(1,
+    (currentTime - segment.start) / (segment.end - segment.start)
+  ));
+  const estimatedWordIdx = Math.floor(progress * words.length);
+  const start = Math.max(0, estimatedWordIdx - 3);
+  const end = Math.min(words.length, start + 10);
+
+  return words.slice(start, end).join(' ');
+}
+
+/** Renders word-level animated captions — shows a window of ~8 words */
 function WordLevelCaption({
   segment,
   currentTime,
@@ -173,42 +201,18 @@ function WordLevelCaption({
 }) {
   const activeIdx = getActiveWordIndex(segment, currentTime);
 
-  if (style === 'word_by_word') {
-    // Show only a window of ~4 words centered on the active word
-    const windowSize = 4;
-    const start = Math.max(0, activeIdx - Math.floor(windowSize / 2));
-    const end = Math.min(segment.words.length, start + windowSize);
-    const visibleWords = segment.words.slice(start, end);
-
-    return (
-      <span>
-        {visibleWords.map((word, i) => {
-          const globalIdx = start + i;
-          const isActive = globalIdx === activeIdx;
-          return (
-            <span
-              key={`${word.start}-${i}`}
-              style={{
-                color: isActive ? '#FFFF00' : config.color,
-                transform: isActive ? 'scale(1.15)' : 'scale(1)',
-                display: 'inline-block',
-                transition: 'color 0.1s, transform 0.1s',
-                marginRight: '0.25em',
-              }}
-            >
-              {word.word}
-            </span>
-          );
-        })}
-      </span>
-    );
-  }
+  // Show a window of words around the active word (not the full segment)
+  const windowSize = style === 'word_by_word' ? 4 : 8;
+  const start = Math.max(0, activeIdx - Math.floor(windowSize / 3));
+  const end = Math.min(segment.words.length, start + windowSize);
+  const visibleWords = segment.words.slice(start, end);
 
   return (
     <span>
-      {segment.words.map((word, i) => {
-        const isActive = i === activeIdx;
-        const isPast = i < activeIdx;
+      {visibleWords.map((word, i) => {
+        const globalIdx = start + i;
+        const isActive = globalIdx === activeIdx;
+        const isPast = globalIdx < activeIdx;
 
         let wordStyle: React.CSSProperties = {
           display: 'inline-block',
@@ -216,9 +220,9 @@ function WordLevelCaption({
           transition: 'color 0.1s, transform 0.1s',
         };
 
-        if (style === 'highlight') {
+        if (style === 'word_by_word' || style === 'highlight') {
           wordStyle.color = isActive ? '#FFFF00' : config.color;
-          wordStyle.transform = isActive ? 'scale(1.1)' : 'scale(1)';
+          wordStyle.transform = isActive ? 'scale(1.12)' : 'scale(1)';
         } else if (style === 'karaoke') {
           const fill = isActive ? getKaraokeFill(word, currentTime) : isPast ? 100 : 0;
           wordStyle.background = `linear-gradient(90deg, #FFFF00 ${fill}%, ${config.color} ${fill}%)`;
