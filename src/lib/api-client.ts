@@ -559,6 +559,10 @@ export const api = {
           faceCropApplied: clip.face_crop_applied ?? clip.faceCropApplied,
           faceCropCenter: clip.face_crop_center || clip.faceCropCenter,
           hasCaptions: clip.has_captions ?? clip.hasCaptions,
+          captionsBurnedIn: clip.captions_burned_in ?? clip.captionsBurnedIn ?? true,
+          captionUrl: clip.caption_url || clip.captionUrl,
+          captionStyle: clip.caption_style || clip.captionStyle || 'modern',
+          srtPath: clip.srt_path || clip.srtPath,
           thumbnailUrl: clip.thumbnail_url || clip.thumbnailUrl,
           exports: clip.exports?.map((exp: any) => ({
             format: exp.format,
@@ -3997,6 +4001,8 @@ export interface VideoClip {
   captionStyle: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
   captionConfig?: Record<string, unknown>;
   hasCaptions: boolean;
+  captionsBurnedIn: boolean;
+  captionUrl?: string;
   exports: ClipExport[];
   thumbnailPath?: string;
   thumbnailUrl?: string;
