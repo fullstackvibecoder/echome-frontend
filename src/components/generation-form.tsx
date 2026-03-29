@@ -925,7 +925,7 @@ export function GenerationForm({
       <div ref={formCardRef} className="relative backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border border-outline-variant/40 dark:border-white/10 rounded-[2rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_90px_rgba(0,0,0,0.06)] transition-shadow">
         {/* Header — changes per input mode */}
         <div className="text-center mb-8">
-          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">
+          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
             {inputType === 'video' && 'Drop a video, get everything'}
             {inputType === 'text' && 'Describe your idea'}
             {inputType === 'audio' && 'Speak your idea'}

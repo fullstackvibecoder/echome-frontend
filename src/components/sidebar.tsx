@@ -40,7 +40,7 @@ export function Sidebar() {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-headline font-black text-sm">
             E
           </div>
-          <span className="text-xl font-black tracking-tight text-foreground font-headline group-hover:text-primary transition-colors">
+          <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white font-headline group-hover:text-primary transition-colors">
             EchoMe
           </span>
         </button>
