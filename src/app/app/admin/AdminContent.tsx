@@ -1032,11 +1032,11 @@ const SEGMENT_COLORS: Record<string, { border: string; bg: string; text: string;
   'Converted (Free → Paid)': { border: 'border-l-emerald-500', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
   'Hit the Wall': { border: 'border-l-amber-500', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
   'Tried Once': { border: 'border-l-orange-500', bg: 'bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', dot: 'bg-orange-500' },
-  'Never Generated': { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' },
+  'Never Generated': { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-300', dot: 'bg-gray-400' },
   'All Paid': { border: 'border-l-purple-500', bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', dot: 'bg-purple-500' },
 };
 
-const DEFAULT_SEGMENT_COLOR = { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' };
+const DEFAULT_SEGMENT_COLOR = { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-300', dot: 'bg-gray-400' };
 
 function UserSegmentation() {
   const [data, setData] = useState<AdminSegmentationData | null>(null);

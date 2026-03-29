@@ -87,13 +87,14 @@
   --secondary: #2a2a2c; /* Slightly lighter than background for contrast */
   --secondary-foreground: #f3f1ec; /* Soft Ivory - light text on dark bg */
   --muted: #3a3a3c; /* Muted background */
-  --muted-foreground: #a1a1a6; /* Gray text */
+  --muted-foreground: #c8c8cc; /* Light gray — WCAG AA on #1c1c1e (7.5:1) */
   --accent: #00D4FF; /* Electric Cyan - Brand Primary */
   --accent-foreground: #ffffff; /* White text on accent */
   --destructive: oklch(0.704 0.191 22.216);
   --border: #3a3a3c; /* Subtle border */
   --input: #2a2a2c; /* Input background */
   --ring: #00D4FF; /* Electric Cyan */
+  --slate-lavender: #d4c8e0; /* Lighter lavender for dark mode — WCAG AA on #1c1c1e (8:1) */
   --chart-1: #3a8e9c; /* Deep Cyan */
   --chart-2: #9b8baf; /* Slate Lavender */
   --chart-3: #b4a398; /* Clay Taupe */

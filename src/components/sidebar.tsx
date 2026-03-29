@@ -137,7 +137,7 @@ function SidebarItem({
         focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
         ${
           disabled
-            ? 'text-slate-lavender/40 cursor-not-allowed opacity-40'
+            ? 'text-muted-foreground/60 cursor-not-allowed'
             : isActive
               ? 'bg-primary text-white shadow-md shadow-primary/20 active-glow'
               : 'text-slate-lavender hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'

@@ -1294,7 +1294,7 @@ export function GenerationForm({
       {inputType !== 'repurpose' && (
         <div className="mt-6 space-y-3">
           {/* 3-step process */}
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-300">
             <span className="flex items-center gap-1.5">
               <span className="w-5 h-5 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold">1</span>
               <span>{inputType === 'video' ? 'Upload' : inputType === 'audio' ? 'Record' : 'Describe'}</span>
@@ -1312,7 +1312,7 @@ export function GenerationForm({
           </div>
 
           {/* Output types */}
-          <div className="flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+          <div className="flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-gray-300">
             {(inputType === 'video') && (
               <span className="flex items-center gap-1">✂️ Clips</span>
             )}
@@ -1344,7 +1344,7 @@ export function GenerationForm({
             aspect="portrait"
             disabled={generating || uploading || videoProcessing}
           />
-          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5 ml-0.5">How captions appear on your video clips</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-300 mt-1.5 ml-0.5">How captions appear on your video clips</p>
         </>
       )}
 

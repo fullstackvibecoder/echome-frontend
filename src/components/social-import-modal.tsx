@@ -456,14 +456,14 @@ export function SocialImportModal({
                   ? `Starting ${PLATFORM_CONFIG[selectedPlatform].name} Import...`
                   : `Importing from ${PLATFORM_CONFIG[selectedPlatform].name}...`}
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <p className="text-gray-500 dark:text-gray-300 text-sm">
                 {status === 'polling'
                   ? `Scraping and processing ${PLATFORM_CONFIG[selectedPlatform].name} content...`
                   : 'Connecting...'}
               </p>
 
               {status === 'polling' && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+                <p className="text-xs text-gray-400 dark:text-gray-300 mt-4">
                   {importPollCount < 12
                     ? 'This usually takes 1-2 minutes'
                     : importPollCount < 36
@@ -486,7 +486,7 @@ export function SocialImportModal({
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Import Complete!
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+              <p className="text-gray-500 dark:text-gray-300 text-sm mb-6">
                 {importContentCount
                   ? `${importContentCount} ${PLATFORM_CONFIG[selectedPlatform].name} posts added to your knowledge base.`
                   : `${PLATFORM_CONFIG[selectedPlatform].name} content has been added to your knowledge base.`}
@@ -525,7 +525,7 @@ export function SocialImportModal({
                       `}
                     >
                       <span className="text-2xl">{PLATFORM_CONFIG[platform].icon}</span>
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="text-xs text-gray-600 dark:text-gray-300">
                         {PLATFORM_CONFIG[platform].name}
                       </span>
                     </button>
@@ -548,7 +548,7 @@ export function SocialImportModal({
                              text-gray-900 dark:text-white
                              focus:ring-2 focus:ring-primary/40 focus:outline-none"
                   />
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
                     {PLATFORM_CONFIG[selectedPlatform].hint}
                   </p>
                 </div>
@@ -580,7 +580,7 @@ export function SocialImportModal({
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         This is my own content
                       </label>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">
                         {isOwnContent
                           ? 'Content will be used for voice matching when generating new content'
                           : 'Content will be stored as reference material only'}
