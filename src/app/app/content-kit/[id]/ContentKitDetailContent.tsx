@@ -605,82 +605,80 @@ export default function ContentKitDetailContent() {
                 </h2>
               </div>
 
-              {/* Clip Editor */}
-              <div className="bg-bg-secondary rounded-xl border border-border overflow-hidden mb-6">
+              {/* Clip Editor — Dark UI */}
+              <div className="bg-[#1C1C1E] rounded-2xl overflow-hidden mb-6 shadow-2xl">
                 {detail.clips[activeClipIndex] && (
                   <>
                     {/* Zone 1: Dual Preview */}
-                    <div className="flex flex-col lg:flex-row">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 lg:p-8 bg-black/20">
                       {/* Single view — always shown */}
-                      <div className={`flex-1 ${detail.clips[activeClipIndex].splitScreenUrl ? 'lg:border-r lg:border-border' : ''}`}>
-                        <VideoPlayer
-                          src={detail.clips[activeClipIndex].exports?.[0]?.url || ''}
-                          poster={detail.clips[activeClipIndex].thumbnailUrl}
-                          aspectRatio="9:16"
-                          viralityScore={detail.clips[activeClipIndex].viralityScore}
-                          duration={detail.clips[activeClipIndex].duration}
-                          title={detail.clips[activeClipIndex].title}
-                          className="max-h-[400px] lg:max-h-[560px] mx-auto"
-                          captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
-                          captionStyle={captionStyle}
-                          captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
-                          viewMode="single"
-                          captionPosition={captionPosition}
-                        />
-                        <p className="text-center text-[11px] text-text-secondary py-1.5 bg-bg-tertiary/50 border-t border-border/30">
-                          Single Speaker
-                        </p>
+                      <div className="flex flex-col items-center gap-3">
+                        <span className="text-[10px] uppercase tracking-widest text-[#9B8BAF] font-bold">Single Speaker</span>
+                        <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-[#3A3A3C] shadow-xl">
+                          <VideoPlayer
+                            src={detail.clips[activeClipIndex].exports?.[0]?.url || ''}
+                            poster={detail.clips[activeClipIndex].thumbnailUrl}
+                            aspectRatio="9:16"
+                            viralityScore={detail.clips[activeClipIndex].viralityScore}
+                            duration={detail.clips[activeClipIndex].duration}
+                            title={detail.clips[activeClipIndex].title}
+                            className="max-h-[500px]"
+                            captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
+                            captionStyle={captionStyle}
+                            captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
+                            viewMode="single"
+                            captionPosition={captionPosition}
+                          />
+                        </div>
                       </div>
 
                       {/* Split view — or clip info panel */}
                       {detail.clips[activeClipIndex].splitScreenUrl ? (
-                        <div className="flex-1">
-                          <VideoPlayer
-                            src={detail.clips[activeClipIndex].splitScreenUrl!}
-                            poster={detail.clips[activeClipIndex].thumbnailUrl}
-                            aspectRatio="9:16"
-                            duration={detail.clips[activeClipIndex].duration}
-                            className="max-h-[400px] lg:max-h-[560px] mx-auto"
-                            captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
-                            captionStyle={captionStyle}
-                            captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
-                            viewMode="split"
-                            captionPosition={captionPosition}
-                          />
-                          <p className="text-center text-[11px] text-text-secondary py-1.5 bg-bg-tertiary/50 border-t border-border/30">
-                            Split Screen
-                          </p>
+                        <div className="flex flex-col items-center gap-3">
+                          <span className="text-[10px] uppercase tracking-widest text-[#9B8BAF] font-bold">Split Screen</span>
+                          <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-[#3A3A3C] shadow-xl">
+                            <VideoPlayer
+                              src={detail.clips[activeClipIndex].splitScreenUrl!}
+                              poster={detail.clips[activeClipIndex].thumbnailUrl}
+                              aspectRatio="9:16"
+                              duration={detail.clips[activeClipIndex].duration}
+                              className="max-h-[500px]"
+                              captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
+                              captionStyle={captionStyle}
+                              captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
+                              viewMode="split"
+                              captionPosition={captionPosition}
+                            />
+                          </div>
                         </div>
                       ) : (
-                        <div className="flex-1 p-6 flex flex-col justify-center bg-bg-tertiary/20">
-                          <h3 className="font-semibold text-lg mb-2">
+                        <div className="flex flex-col justify-center p-6">
+                          <h3 className="font-semibold text-lg mb-2 text-[#F3F1EC]">
                             {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
                           </h3>
                           {detail.clips[activeClipIndex].selectionReason && (
-                            <p className="text-text-secondary text-sm mb-4">
+                            <p className="text-[#9B8BAF] text-sm mb-4">
                               {detail.clips[activeClipIndex].selectionReason}
                             </p>
                           )}
                           {detail.clips[activeClipIndex].suggestedCaption && (
-                            <div className="bg-bg-tertiary rounded-lg p-3 mt-2">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-xs font-medium text-text-secondary">Suggested Caption</span>
-                                <button
-                                  onClick={() => handleCopy(
-                                    detail.clips[activeClipIndex].suggestedCaption || '',
-                                    `clip-caption-${detail.clips[activeClipIndex].id}`
-                                  )}
-                                  className={`text-xs px-2 py-0.5 rounded transition-all ${
-                                    copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
-                                      ? 'text-success' : 'text-text-secondary hover:text-text-primary'
-                                  }`}
-                                >
-                                  {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓ Copied' : 'Copy'}
-                                </button>
-                              </div>
-                              <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">
+                            <div className="bg-black/40 rounded-2xl p-4 border border-[#3A3A3C] relative">
+                              <span className="text-[10px] text-[#9B8BAF] font-bold uppercase block mb-2">Suggested Caption</span>
+                              <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed italic">
                                 {detail.clips[activeClipIndex].suggestedCaption}
                               </p>
+                              <button
+                                onClick={() => handleCopy(
+                                  detail.clips[activeClipIndex].suggestedCaption || '',
+                                  `clip-caption-${detail.clips[activeClipIndex].id}`
+                                )}
+                                className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
+                                  copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
+                                    ? 'bg-[#00D4FF]/20 text-[#00D4FF]' : 'bg-[#3A3A3C] text-[#00D4FF] hover:bg-[#4A4A4C]'
+                                }`}
+                              >
+                                {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
+                              </button>
                             </div>
                           )}
                         </div>
@@ -688,24 +686,27 @@ export default function ContentKitDetailContent() {
                     </div>
 
                     {/* Zone 2: Editor Toolbar */}
-                    <div className="flex items-center gap-1.5 px-4 py-2.5 bg-bg-tertiary/80 border-y border-border flex-wrap">
-                      <span className="text-xs bg-bg-secondary text-text-secondary px-2.5 py-1.5 rounded-md font-medium border border-border/50">
-                        {detail.clips[activeClipIndex].format === 'portrait' ? '9:16' :
-                         detail.clips[activeClipIndex].format === 'landscape' ? '16:9' : '1:1'}
-                      </span>
+                    <div className="h-14 bg-[#2A2A2C] border-y border-[#3A3A3C] px-4 lg:px-8 flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#3A3A3C]">
+                        <span className="text-[10px] font-bold text-[#00D4FF]">
+                          {detail.clips[activeClipIndex].format === 'portrait' ? '9:16' :
+                           detail.clips[activeClipIndex].format === 'landscape' ? '16:9' : '1:1'}
+                        </span>
+                      </div>
 
-                      <div className="w-px h-6 bg-border mx-0.5" />
+                      <div className="h-4 w-px bg-[#3A3A3C]" />
 
                       {detail.clips[activeClipIndex].hasCaptions && (
                         <button
                           onClick={() => setCaptionsEnabled(!captionsEnabled)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                            captionsEnabled
-                              ? 'bg-accent/15 text-accent border border-accent/30'
-                              : 'bg-bg-secondary text-text-secondary border border-transparent hover:border-border'
+                          className={`flex items-center gap-2 text-xs font-semibold transition-colors ${
+                            captionsEnabled ? 'text-white/90' : 'text-white/40'
                           }`}
                         >
-                          CC {captionsEnabled ? 'On' : 'Off'}
+                          <span>CC</span>
+                          <div className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${captionsEnabled ? 'bg-[#00D4FF]' : 'bg-[#3A3A3C]'}`}>
+                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${captionsEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                          </div>
                         </button>
                       )}
 
@@ -722,7 +723,7 @@ export default function ContentKitDetailContent() {
                         </>
                       )}
 
-                      <div className="ml-auto flex items-center gap-2">
+                      <div className="ml-auto flex items-center gap-4">
                         {detail.clips[activeClipIndex].exports?.[0]?.url && (
                           detail.clips[activeClipIndex].splitScreenUrl ? (
                             <div className="flex">
@@ -731,44 +732,22 @@ export default function ContentKitDetailContent() {
                                 onClick={async () => {
                                   const clip = detail.clips[activeClipIndex];
                                   const uploadId = clip.videoUploadId || id;
-                                  if (clip.captionsBurnedIn !== false) {
-                                    window.open(clip.exports[0]?.url, '_blank');
-                                    return;
-                                  }
-                                  try {
-                                    setExportingClip(true);
-                                    const response = await api.clips.exportClip(uploadId, clip.id, {
-                                      captionStyle, viewMode: 'single', addCaptions: captionsEnabled,
-                                    });
-                                    if (response.data?.export?.url) window.open(response.data.export.url, '_blank');
-                                    else showErrorToast('Export failed — no URL returned.');
-                                  } catch { showErrorToast('Failed to export clip.'); }
-                                  finally { setExportingClip(false); }
+                                  if (clip.captionsBurnedIn !== false) { window.open(clip.exports[0]?.url, '_blank'); return; }
+                                  try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                                 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-l-md text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                                className="px-3 py-1.5 text-white/60 hover:text-white text-xs font-medium transition-colors disabled:opacity-50"
                               >
-                                {exportingClip ? 'Exporting...' : 'Single'}
+                                {exportingClip ? '...' : 'Single'}
                               </button>
                               <button
                                 disabled={exportingClip}
                                 onClick={async () => {
                                   const clip = detail.clips[activeClipIndex];
                                   const uploadId = clip.videoUploadId || id;
-                                  if (clip.captionsBurnedIn !== false) {
-                                    window.open(clip.splitScreenUrl, '_blank');
-                                    return;
-                                  }
-                                  try {
-                                    setExportingClip(true);
-                                    const response = await api.clips.exportClip(uploadId, clip.id, {
-                                      captionStyle, viewMode: 'split', addCaptions: captionsEnabled,
-                                    });
-                                    if (response.data?.export?.url) window.open(response.data.export.url, '_blank');
-                                    else showErrorToast('Export failed — no URL returned.');
-                                  } catch { showErrorToast('Failed to export clip.'); }
-                                  finally { setExportingClip(false); }
+                                  if (clip.captionsBurnedIn !== false) { window.open(clip.splitScreenUrl, '_blank'); return; }
+                                  try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'split', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                                 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/80 text-white rounded-r-md text-sm font-medium hover:bg-accent/70 transition-colors disabled:opacity-50 border-l border-white/20"
+                                className="px-3 py-1.5 text-white/60 hover:text-white text-xs font-medium transition-colors disabled:opacity-50"
                               >
                                 Split
                               </button>
@@ -779,31 +758,19 @@ export default function ContentKitDetailContent() {
                               onClick={async () => {
                                 const clip = detail.clips[activeClipIndex];
                                 const uploadId = clip.videoUploadId || id;
-                                if (clip.captionsBurnedIn !== false) {
-                                  window.open(clip.exports[0]?.url, '_blank');
-                                  return;
-                                }
-                                try {
-                                  setExportingClip(true);
-                                  const response = await api.clips.exportClip(uploadId, clip.id, {
-                                    captionStyle, viewMode: 'single', addCaptions: captionsEnabled,
-                                  });
-                                  if (response.data?.export?.url) window.open(response.data.export.url, '_blank');
-                                  else showErrorToast('Export failed — no URL returned.');
-                                } catch { showErrorToast('Failed to export clip.'); }
-                                finally { setExportingClip(false); }
+                                if (clip.captionsBurnedIn !== false) { window.open(clip.exports[0]?.url, '_blank'); return; }
+                                try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                               }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-md text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                              className="p-2 text-white/60 hover:text-white transition-colors disabled:opacity-50"
                             >
-                              {exportingClip ? 'Exporting...' : 'Download'}
+                              {exportingClip ? '...' : '⬇'}
                             </button>
                           )
                         )}
                         <button
                           onClick={() => setQuickScheduleConfig({ type: 'clips' })}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors"
+                          className="bg-[#00D4FF] text-black px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all"
                         >
-                          <CalendarPlus className="w-4 h-4" />
                           Schedule
                         </button>
                       </div>
@@ -811,30 +778,35 @@ export default function ContentKitDetailContent() {
 
                     {/* Zone 3: Clip Filmstrip */}
                     {detail.clips.length > 1 && (
-                      <div className="px-4 py-3 border-t border-border">
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                      <div className="px-6 py-4 bg-[#1C1C1E]">
+                        <div className="flex items-center gap-3 overflow-x-auto pb-2">
                           {detail.clips.map((clip, index) => (
                             <button
                               key={clip.id}
                               onClick={() => setActiveClipIndex(index)}
-                              className={`relative flex-shrink-0 w-[100px] rounded-lg overflow-hidden border-2 transition-all ${
+                              className={`relative flex-shrink-0 w-[140px] rounded-xl overflow-hidden transition-all ${
                                 index === activeClipIndex
-                                  ? 'border-accent ring-2 ring-accent/20'
-                                  : 'border-border hover:border-accent/50'
+                                  ? 'border-2 border-[#00D4FF] ring-4 ring-[#00D4FF]/10'
+                                  : 'border border-[#3A3A3C] hover:border-white/40 grayscale'
                               }`}
                             >
-                              <div className="aspect-video bg-bg-tertiary">
+                              <div className="aspect-video bg-[#2A2A2C]">
                                 {clip.thumbnailUrl ? (
                                   <img src={clip.thumbnailUrl} alt={clip.title || `Clip ${index + 1}`} className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-lg">🎬</div>
+                                  <div className="w-full h-full flex items-center justify-center text-lg text-white/30">🎬</div>
                                 )}
                               </div>
-                              <div className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[10px] px-1 py-0.5 rounded">
+                              {index !== activeClipIndex && <div className="absolute inset-0 bg-black/30" />}
+                              <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
                                 {formatDuration(clip.duration)}
                               </div>
                               {clip.viralityScore !== undefined && clip.viralityScore > 0 && (
-                                <div className="absolute top-0.5 left-0.5 bg-accent text-white text-[10px] px-1 py-0.5 rounded-full">
+                                <div className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                  index === activeClipIndex
+                                    ? 'bg-[#00D4FF]/90 text-black'
+                                    : 'bg-white/20 text-white'
+                                }`}>
                                   {clip.viralityScore}%
                                 </div>
                               )}
@@ -846,37 +818,41 @@ export default function ContentKitDetailContent() {
 
                     {/* Zone 4: Clip Meta */}
                     {detail.clips[activeClipIndex].splitScreenUrl && (
-                      <div className="p-4 border-t border-border">
-                        <h3 className="font-semibold text-lg">
-                          {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
-                        </h3>
-                        {detail.clips[activeClipIndex].selectionReason && (
-                          <p className="text-text-secondary text-sm mt-1">
-                            {detail.clips[activeClipIndex].selectionReason}
-                          </p>
-                        )}
-                        {detail.clips[activeClipIndex].suggestedCaption && (
-                          <div className="mt-3 pt-3 border-t border-border/50">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-sm font-medium text-text-secondary">Suggested Caption</span>
-                              <button
-                                onClick={() => handleCopy(
-                                  detail.clips[activeClipIndex].suggestedCaption || '',
-                                  `clip-caption-${detail.clips[activeClipIndex].id}`
-                                )}
-                                className={`text-xs px-2 py-0.5 rounded transition-all ${
-                                  copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
-                                    ? 'text-success' : 'text-text-secondary hover:text-text-primary'
-                                }`}
-                              >
-                                {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓ Copied' : 'Copy'}
-                              </button>
-                            </div>
-                            <p className="text-sm text-text-secondary whitespace-pre-wrap bg-bg-tertiary rounded-lg p-3 leading-relaxed">
-                              {detail.clips[activeClipIndex].suggestedCaption}
-                            </p>
+                      <div className="px-6 lg:px-8 py-6 bg-[#252528]">
+                        <div className="flex flex-col md:flex-row gap-6">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-[#F3F1EC]">
+                              {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
+                            </h3>
+                            {detail.clips[activeClipIndex].selectionReason && (
+                              <p className="text-[#9B8BAF] text-sm mt-1">
+                                {detail.clips[activeClipIndex].selectionReason}
+                              </p>
+                            )}
                           </div>
-                        )}
+                          {detail.clips[activeClipIndex].suggestedCaption && (
+                            <div className="flex-1">
+                              <div className="bg-black/40 rounded-2xl p-4 border border-[#3A3A3C] relative">
+                                <span className="text-[10px] text-[#9B8BAF] font-bold uppercase block mb-2">Suggested Caption</span>
+                                <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed italic">
+                                  {detail.clips[activeClipIndex].suggestedCaption}
+                                </p>
+                                <button
+                                  onClick={() => handleCopy(
+                                    detail.clips[activeClipIndex].suggestedCaption || '',
+                                    `clip-caption-${detail.clips[activeClipIndex].id}`
+                                  )}
+                                  className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
+                                    copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
+                                      ? 'bg-[#00D4FF]/20 text-[#00D4FF]' : 'bg-[#3A3A3C] text-[#00D4FF] hover:bg-[#4A4A4C]'
+                                  }`}
+                                >
+                                  {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </>
