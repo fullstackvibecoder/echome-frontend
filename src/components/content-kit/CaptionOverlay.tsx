@@ -184,8 +184,9 @@ export function CaptionOverlay({
 }
 
 /**
- * For line-level styles, show a rolling window of ~10-12 words from the segment
- * based on current playback time, instead of dumping the entire segment.
+ * For line-level styles, show words progressively in lines of ~6.
+ * Only shows words up to the estimated current word position,
+ * grouped into complete lines as the speaker progresses.
  */
 function getVisibleText(
   fullText: string,
@@ -193,20 +194,31 @@ function getVisibleText(
   segment: CaptionSegment
 ): string {
   const words = fullText.split(/\s+/);
-  if (words.length <= 12) return fullText;
+  if (words.length <= 6) return fullText;
 
-  // Estimate which word we're at based on time position within the segment
+  // Estimate which word we're at based on time position
   const progress = Math.max(0, Math.min(1,
     (currentTime - segment.start) / (segment.end - segment.start)
   ));
   const estimatedWordIdx = Math.floor(progress * words.length);
-  const start = Math.max(0, estimatedWordIdx - 3);
-  const end = Math.min(words.length, start + 10);
 
-  return words.slice(start, end).join(' ');
+  // Show the current line of ~6 words, reveal progressively within it
+  const lineSize = 6;
+  const lineIndex = Math.floor(estimatedWordIdx / lineSize);
+  const lineStart = lineIndex * lineSize;
+  const revealEnd = Math.min(words.length, estimatedWordIdx + 1);
+  const lineEnd = Math.min(words.length, lineStart + lineSize);
+
+  // Show revealed words in the current line
+  return words.slice(lineStart, Math.min(revealEnd, lineEnd)).join(' ');
 }
 
-/** Renders word-level animated captions — shows a window of ~8 words */
+/** Renders word-level animated captions with progressive reveal.
+ * Words appear in groups of ~5 (a "line"). Within each line, words
+ * are revealed progressively as the speaker says them. When a line
+ * is complete, the next line starts fresh. This prevents text blobs
+ * that get ahead of the speaker.
+ */
 function WordLevelCaption({
   segment,
   currentTime,
@@ -220,38 +232,47 @@ function WordLevelCaption({
 }) {
   const activeIdx = getActiveWordIndex(segment, currentTime);
 
-  // Show a window of words around the active word (not the full segment)
-  // Active word sits at ~1/3 from the left so upcoming words are visible
-  const windowSize = style === 'word_by_word' ? 4 : 8;
-  const idealStart = Math.max(0, activeIdx - Math.floor(windowSize / 3));
-  // Clamp end to segment length, then adjust start to keep window full
-  const end = Math.min(segment.words.length, idealStart + windowSize);
-  const start = Math.max(0, end - windowSize);
-  const visibleWords = segment.words.slice(start, end);
+  // Group words into "lines" of ~5 words. Show only the current line.
+  // Within the line, only reveal words up to the active word (progressive).
+  const lineSize = style === 'word_by_word' ? 3 : 5;
+  const lineIndex = activeIdx >= 0 ? Math.floor(activeIdx / lineSize) : 0;
+  const lineStart = lineIndex * lineSize;
+  const lineEnd = Math.min(segment.words.length, lineStart + lineSize);
+  // Show all words in the current line, but only reveal up to activeIdx
+  const visibleWords = segment.words.slice(lineStart, lineEnd);
 
   return (
     <span>
       {visibleWords.map((word, i) => {
-        const globalIdx = start + i;
+        const globalIdx = lineStart + i;
         const isActive = globalIdx === activeIdx;
         const isPast = globalIdx < activeIdx;
+        const isFuture = globalIdx > activeIdx;
+
+        // Progressive reveal: future words in the line are invisible
+        // This prevents the text blob from getting ahead of the speaker
+        if (isFuture && style !== 'highlight') {
+          return <span key={`${word.start}-${i}`} style={{ display: 'inline-block', marginRight: '0.25em', opacity: 0 }}>{word.word}</span>;
+        }
 
         let wordStyle: React.CSSProperties = {
           display: 'inline-block',
           marginRight: '0.25em',
-          transition: 'color 0.1s, transform 0.1s',
+          transition: 'color 0.15s, transform 0.15s, opacity 0.15s',
+          opacity: 1,
         };
 
-        if (style === 'word_by_word' || style === 'highlight') {
-          // Active word pops yellow with slight scale
-          wordStyle.color = isActive ? '#FFFF00' : config.color;
+        if (style === 'highlight') {
+          // Highlight: show all words in the line, pop the active one
+          wordStyle.color = isActive ? '#FFFF00' : isFuture ? 'rgba(255,255,255,0.4)' : config.color;
           wordStyle.transform = isActive ? 'scale(1.15)' : 'scale(1)';
           if (isActive) {
             wordStyle.textShadow = HEAVY_OUTLINE_SHADOW;
           }
+        } else if (style === 'word_by_word') {
+          wordStyle.color = isActive ? '#FFFF00' : config.color;
+          wordStyle.transform = isActive ? 'scale(1.15)' : 'scale(1)';
         } else if (style === 'karaoke') {
-          // Active word turns yellow, past words stay yellow, future white
-          // Using solid color swap instead of gradient-clip (which kills text-shadow)
           wordStyle.color = isPast || isActive ? '#FFFF00' : config.color;
           if (isActive) {
             wordStyle.transform = 'scale(1.1)';
