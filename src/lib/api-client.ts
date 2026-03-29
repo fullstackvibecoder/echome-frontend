@@ -2068,6 +2068,7 @@ export const api = {
       format?: 'portrait' | 'landscape' | 'square';
       quality?: '720p' | '1080p' | '4k';
       captionStyle?: string;
+      viewMode?: 'single' | 'split';
       addCaptions?: boolean;
     }) => {
       const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {});

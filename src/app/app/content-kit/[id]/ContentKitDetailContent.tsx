@@ -18,6 +18,7 @@ import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
 import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
+import { showErrorToast } from '@/lib/toast';
 import { ContentCategory } from '@/types';
 import { CalendarPlus } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -75,6 +76,7 @@ export default function ContentKitDetailContent() {
   const [captionsEnabled, setCaptionsEnabled] = useState(true);
   const [captionSegments, setCaptionSegments] = useState<import('@/lib/caption-parser').CaptionSegment[]>([]);
   const [captionStyle, setCaptionStyle] = useState<import('@/lib/caption-parser').CaptionStylePreset>('modern');
+  const [exportingClip, setExportingClip] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
   const [resizedCarousel, setResizedCarousel] = useState<{
@@ -168,6 +170,13 @@ export default function ContentKitDetailContent() {
       return () => clearTimeout(timer);
     }
   }, [progressComplete, progressError, refresh]);
+
+  // Auto-refresh when SSE signals an error so we get the updated item status
+  useEffect(() => {
+    if (progressError) {
+      refresh();
+    }
+  }, [progressError, refresh]);
 
   // Auto-refresh when SSE signals carousel is ready (no more polling needed!)
   useEffect(() => {
@@ -293,6 +302,7 @@ export default function ContentKitDetailContent() {
       }
     } catch (err) {
       console.error('Failed to resize carousel:', err);
+      showErrorToast(err, 'resizing carousel');
     } finally {
       setResizing(false);
     }
@@ -317,6 +327,7 @@ export default function ContentKitDetailContent() {
       setScheduleModalOpen(false);
     } catch (err) {
       console.error('Failed to schedule content:', err);
+      showErrorToast(err, 'scheduling content');
       throw err;
     } finally {
       setScheduling(false);
@@ -621,17 +632,46 @@ export default function ContentKitDetailContent() {
                           )}
                           <div className="ml-auto flex items-center gap-2">
                             {(detail.clips[activeClipIndex].exports?.[0]?.url || detail.clips[activeClipIndex].splitScreenUrl) && (
-                              <a
-                                href={
-                                  showSplitScreen && detail.clips[activeClipIndex].splitScreenUrl
-                                    ? detail.clips[activeClipIndex].splitScreenUrl!
-                                    : detail.clips[activeClipIndex].exports[0]?.url || ''
-                                }
-                                download
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors"
+                              <button
+                                disabled={exportingClip}
+                                onClick={async () => {
+                                  const clip = detail.clips[activeClipIndex];
+                                  const uploadId = clip.videoUploadId || id;
+
+                                  // Old clips with burned-in captions: direct download
+                                  if (clip.captionsBurnedIn !== false) {
+                                    const url = showSplitScreen && clip.splitScreenUrl
+                                      ? clip.splitScreenUrl
+                                      : clip.exports[0]?.url;
+                                    if (url) window.open(url, '_blank');
+                                    return;
+                                  }
+
+                                  // New overlay clips: export with captions burned on-demand
+                                  try {
+                                    setExportingClip(true);
+                                    const response = await api.clips.exportClip(uploadId, clip.id, {
+                                      captionStyle,
+                                      viewMode: showSplitScreen ? 'split' : 'single',
+                                      addCaptions: captionsEnabled,
+                                    });
+                                    const exportUrl = response.data?.export?.url;
+                                    if (exportUrl) {
+                                      window.open(exportUrl, '_blank');
+                                    } else {
+                                      showErrorToast('Export completed but no download URL was returned.');
+                                    }
+                                  } catch (err) {
+                                    console.error('Export failed:', err);
+                                    showErrorToast('Failed to export clip. Please try again.');
+                                  } finally {
+                                    setExportingClip(false);
+                                  }
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
                               >
-                                ⬇️ Download
-                              </a>
+                                {exportingClip ? '⏳ Exporting...' : '⬇️ Download'}
+                              </button>
                             )}
                             <button
                               onClick={() => setQuickScheduleConfig({ type: 'clips' })}
@@ -1056,8 +1096,24 @@ export default function ContentKitDetailContent() {
             />
           )}
 
+          {/* Failed Generation State */}
+          {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (item?.status === 'failed' || progressError) && (
+            <div className="text-center py-16 bg-error/5 rounded-xl border border-error/20">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-error/10 flex items-center justify-center">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Generation failed</h3>
+              <p className="text-text-secondary mb-6">
+                {item?.statusMessage || 'Something went wrong while generating your content. Please try again.'}
+              </p>
+              <Link href="/app" className="btn-primary">
+                Try Again
+              </Link>
+            </div>
+          )}
+
           {/* Empty State */}
-          {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (
+          {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && item?.status !== 'failed' && !progressError && (
             <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
               <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
                 <CalendarPlus className="w-7 h-7 text-accent" />
