@@ -28,7 +28,11 @@ interface CaptionOverlayProps {
   viewMode: 'single' | 'split';
 }
 
-// CSS styles for each preset — mirrors CAPTION_PRESETS from the backend
+// CSS styles for each preset — matches backend CAPTION_PRESETS from captioning.ts
+// Font sizes scaled from backend ASS values (designed for 1080p) to player container.
+// Backend: 52-96px at 1080w → Frontend: ~14-26px at ~300px container width.
+// Using cqi (container query inline) isn't widely supported, so we use a percentage
+// of the container via the parent's relative positioning.
 const STYLE_CONFIG: Record<
   CaptionStylePreset,
   {
@@ -44,62 +48,62 @@ const STYLE_CONFIG: Record<
 > = {
   modern: {
     fontFamily: "'Montserrat', sans-serif",
-    fontSize: 'clamp(14px, 4vw, 28px)',
+    fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.6)',
+    textShadow: '1px 1px 3px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.7)',
   },
   classic: {
     fontFamily: "'Inter', sans-serif",
-    fontSize: 'clamp(12px, 3.5vw, 24px)',
+    fontSize: '15px',
     fontWeight: '400',
     color: '#FFFFFF',
     textShadow: 'none',
     backgroundColor: 'rgba(0,0,0,0.7)',
-    padding: '4px 12px',
+    padding: '3px 10px',
     borderRadius: '4px',
   },
   bold: {
     fontFamily: "'Bebas Neue', sans-serif",
-    fontSize: 'clamp(18px, 5vw, 36px)',
+    fontSize: '22px',
     fontWeight: '400',
     color: '#FFFF00',
-    textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.9)',
   },
   minimal: {
     fontFamily: "'Inter', sans-serif",
-    fontSize: 'clamp(11px, 3vw, 20px)',
+    fontSize: '14px',
     fontWeight: '400',
     color: '#FFFFFF',
-    textShadow: '1px 1px 3px rgba(0,0,0,0.5)',
+    textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
   },
   highlight: {
     fontFamily: "'Montserrat', sans-serif",
-    fontSize: 'clamp(14px, 4vw, 28px)',
+    fontSize: '20px',
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
   },
   karaoke: {
     fontFamily: "'Montserrat', sans-serif",
-    fontSize: 'clamp(14px, 4vw, 28px)',
+    fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
   },
   underline: {
     fontFamily: "'Montserrat', sans-serif",
-    fontSize: 'clamp(14px, 4vw, 28px)',
+    fontSize: '18px',
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
   },
   word_by_word: {
     fontFamily: "'Montserrat', sans-serif",
-    fontSize: 'clamp(16px, 4.5vw, 32px)',
+    fontSize: '20px',
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+    textShadow: '1px 1px 3px rgba(0,0,0,0.9)',
   },
 };
 
