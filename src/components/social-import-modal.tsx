@@ -394,18 +394,18 @@ export function SocialImportModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C1C1E]/60 backdrop-blur-md"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-[0_40px_100px_rgba(0,0,0,0.12)] w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="font-headline font-bold text-2xl text-gray-900 dark:text-white">
             Import Social Content
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
           >
             <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -494,8 +494,8 @@ export function SocialImportModal({
 
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg
-                         transition-colors font-medium"
+                className="aurora-gradient text-white font-headline font-bold rounded-full px-8 py-3
+                         shadow-lg shadow-primary/20 transition-all"
               >
                 Done
               </button>
@@ -517,10 +517,10 @@ export function SocialImportModal({
                       onClick={() => setSelectedPlatform(platform)}
                       disabled={isAnySyncing}
                       className={`
-                        p-3 rounded-xl flex flex-col items-center gap-1 transition-all
+                        p-3 rounded-[1.5rem] border-2 flex flex-col items-center gap-1 transition-all
                         ${selectedPlatform === platform
-                          ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-gray-800'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-700'}
+                          ? 'border-primary shadow-[0_0_12px_rgba(0,212,255,0.15)]'
+                          : 'border-outline-variant/40 hover:border-primary/30'}
                         ${isAnySyncing ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
                     >
@@ -544,9 +544,9 @@ export function SocialImportModal({
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder={PLATFORM_CONFIG[selectedPlatform].placeholder}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
-                             bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                             focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-surface-container-high border-none rounded-2xl
+                             text-gray-900 dark:text-white
+                             focus:ring-2 focus:ring-primary/40 focus:outline-none"
                   />
                   <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     {PLATFORM_CONFIG[selectedPlatform].hint}
@@ -564,8 +564,8 @@ export function SocialImportModal({
                       className={`
                         relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full
                         border-2 border-transparent transition-colors duration-200 ease-in-out
-                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                        ${isOwnContent ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'}
+                        focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2
+                        ${isOwnContent ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-600'}
                       `}
                     >
                       <span
@@ -601,7 +601,7 @@ export function SocialImportModal({
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl
                            text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700
                            transition-colors"
                 >
@@ -610,8 +610,8 @@ export function SocialImportModal({
                 <button
                   onClick={handleUrlSubmit}
                   disabled={!selectedPlatform || !url.trim() || isAnySyncing}
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400
-                           disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 aurora-gradient text-white font-headline font-bold rounded-full px-8 py-3
+                           shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Start Import
                 </button>

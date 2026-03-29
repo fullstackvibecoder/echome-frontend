@@ -920,27 +920,27 @@ export function GenerationForm({
   return (
     <div className="relative group max-w-3xl mx-auto">
       {/* Ambient glow behind card */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-[#00D4FF]/20 to-[#B794F6]/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+      <div className="absolute -inset-2 bg-gradient-to-r from-[#00D4FF]/15 to-[#B794F6]/15 rounded-[2.5rem] blur-2xl opacity-40 group-hover:opacity-60 transition-opacity" />
 
-      <div ref={formCardRef} className="relative card backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-2 border-white/20 shadow-2xl">
+      <div ref={formCardRef} className="relative backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border border-outline-variant/40 dark:border-white/10 rounded-[2rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_90px_rgba(0,0,0,0.06)] transition-shadow">
         {/* Header — changes per input mode */}
-        <div className="text-center mb-6">
-          <h2 className="text-display text-2xl mb-1.5 text-foreground">
+        <div className="text-center mb-8">
+          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">
             {inputType === 'video' && 'Drop a video, get everything'}
             {inputType === 'text' && 'Describe your idea'}
             {inputType === 'audio' && 'Speak your idea'}
             {inputType === 'repurpose' && 'Repurpose existing content'}
           </h2>
-          <p className="text-body text-text-secondary">
+          <p className="text-base text-slate-lavender font-medium max-w-lg mx-auto">
             {inputType === 'video' && 'Clips, captions, carousels, and posts — all in your voice.'}
             {inputType === 'text' && 'We\u2019ll turn your prompt into carousels, posts, and emails — in your voice.'}
             {inputType === 'audio' && 'Record a quick voice note and we\u2019ll create carousels, posts, and emails from it.'}
             {inputType === 'repurpose' && 'Pick content to repurpose across every platform.'}
           </p>
           {activeVoice && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 mt-2 bg-primary/5 border border-primary/20 rounded-full text-sm">
-              <span className="text-primary font-medium">Voice:</span>
-              <span className="font-semibold">{activeVoice.name}</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 mt-3 bg-primary/5 border border-primary/15 rounded-full text-sm">
+              <span className="text-primary font-semibold">Voice:</span>
+              <span className="font-bold">{activeVoice.name}</span>
               {!activeVoice.knowledgeBaseId && (
                 <a href="/app/team-voices" className="text-xs text-amber-600 underline">No KB linked</a>
               )}
@@ -1039,7 +1039,7 @@ export function GenerationForm({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Describe your content idea, paste a script, or share a topic..."
-            className="w-full h-44 px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:border-[#00D4FF] transition-colors resize-none text-body"
+            className="w-full h-44 px-5 py-4 bg-surface-container-low border-none rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all resize-none text-body"
             disabled={generating}
           />
           <p className="text-xs text-text-secondary mt-1.5">Press ⌘+Enter to generate</p>
@@ -1055,12 +1055,12 @@ export function GenerationForm({
         />
       ) : (
         /* Video upload — the hero input, wrapped in a tinted container */
-        <div className="rounded-2xl bg-gradient-to-b from-gray-50 to-gray-100/50 dark:from-white/[0.03] dark:to-white/[0.01] border border-gray-200/60 dark:border-white/10 p-1">
+        <div className="rounded-[1.25rem] bg-surface-container-low dark:bg-white/[0.03] p-1">
           <div
-            className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
+            className={`relative border-2 border-dashed rounded-[1rem] p-8 text-center transition-all duration-300 ${
               videoDragActive
-                ? 'border-[#00D4FF] bg-gradient-to-br from-[#00D4FF]/10 to-[#B794F6]/10 scale-[1.01] shadow-lg shadow-[#00D4FF]/20'
-                : 'border-[#00D4FF]/40 dark:border-[#00D4FF]/30 hover:border-[#00D4FF]/70'
+                ? 'border-primary bg-primary/5 scale-[1.01] shadow-lg shadow-primary/10'
+                : 'border-primary/30 dark:border-primary/25 hover:border-primary/60'
             }`}
             onDragEnter={handleVideoDragEnter}
             onDragOver={handleDragOver}
@@ -1142,12 +1142,12 @@ export function GenerationForm({
 
                 {/* Progress Bar with shimmer */}
                 <div className="mt-5">
-                  <div className="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
+                  <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-accent rounded-full relative overflow-hidden transition-all duration-700 ease-out"
+                      className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full relative overflow-hidden transition-all duration-700 ease-out"
                       style={{ width: `${Math.max(videoProcessingProgress, 2)}%` }}
                     >
-                      <div className="absolute inset-0 animate-shimmer-sweep" />
+                      <div className="absolute inset-0 progress-shimmer" />
                     </div>
                   </div>
                 </div>
@@ -1183,28 +1183,26 @@ export function GenerationForm({
                   </>
                 ) : (
                   <>
-                    <div className="relative inline-block mb-4">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#B794F6] rounded-full blur-2xl opacity-30 animate-pulse" />
-                      <div className="relative w-20 h-20 bg-gradient-to-br from-[#00D4FF]/20 to-[#B794F6]/20 rounded-full flex items-center justify-center border-2 border-white/20">
-                        <svg className="w-10 h-10 text-[#00D4FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
+                    <div className="relative inline-block mb-5">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Upload className="w-8 h-8 text-primary" />
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 min-h-[20px] transition-opacity duration-500" key={hintIndex}>
+                    <h3 className="font-headline font-bold text-xl mb-1">Upload Source Video</h3>
+                    <p className="text-sm text-slate-lavender mb-4 min-h-[20px] transition-opacity duration-500" key={hintIndex}>
                       {UPLOAD_HINTS[hintIndex]}
                     </p>
 
                     <button
                       onClick={() => videoInputRef.current?.click()}
-                      className="px-8 py-3.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold text-base hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all shadow-lg mb-3"
+                      className="aurora-gradient px-8 py-3.5 text-white rounded-xl font-bold text-base hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 active:scale-95 transition-all shadow-lg mb-3"
                       disabled={generating || uploading || videoProcessing}
                     >
                       Select Video File
                     </button>
 
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                    <p className="text-xs text-slate-lavender/70">
                       MP4, MOV, AVI, WebM • Up to 50GB
                     </p>
                   </>
@@ -1230,30 +1228,30 @@ export function GenerationForm({
 
           {/* Secondary input modes — inside the tinted container */}
           {!videoProcessing && (
-            <div className="pt-3 pb-2">
-              <p className="text-sm text-center font-medium mb-2.5" style={{ color: '#1a1a2e' }}>No video? No problem.</p>
-              <div className="flex items-stretch justify-center gap-2">
+            <div className="pt-4 pb-2">
+              <p className="text-sm text-center font-medium text-on-surface-variant mb-3">No video? No problem.</p>
+              <div className="flex items-stretch justify-center gap-3">
                 <button
                   onClick={() => { setInputType('text'); clearFile(); }}
-                  className="flex-1 max-w-[200px] flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-lg border-2 border-[#00D4FF]/30 dark:border-[#00D4FF]/25 bg-white dark:bg-white/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-md transition-all group"
+                  className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <span className="text-sm font-semibold group-hover:text-[#00D4FF] transition-colors" style={{ color: '#1a1a2e' }}>✍️ Type or paste text</span>
-                  <span className="text-[11px] text-[#555] dark:text-[#aaa]">Describe an idea or topic</span>
+                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">✍️ Type or paste text</span>
+                  <span className="text-[11px] text-slate-lavender">Describe an idea or topic</span>
                 </button>
                 <button
                   onClick={() => { setInputType('audio'); clearFile(); }}
-                  className="flex-1 max-w-[200px] flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-lg border-2 border-[#00D4FF]/30 dark:border-[#00D4FF]/25 bg-white dark:bg-white/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-md transition-all group"
+                  className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <span className="text-sm font-semibold group-hover:text-[#00D4FF] transition-colors" style={{ color: '#1a1a2e' }}>🎤 Record voice</span>
-                  <span className="text-[11px] text-[#555] dark:text-[#aaa]">Speak your content idea</span>
+                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">🎤 Record voice</span>
+                  <span className="text-[11px] text-slate-lavender">Speak your content idea</span>
                 </button>
                 {!isFreeUser && (
                   <button
                     onClick={() => { setInputType('repurpose'); clearFile(); }}
-                    className="flex-1 max-w-[200px] flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-lg border-2 border-[#00D4FF]/30 dark:border-[#00D4FF]/25 bg-white dark:bg-white/5 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-md transition-all group"
+                    className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
                   >
-                    <span className="text-sm font-semibold group-hover:text-[#00D4FF] transition-colors" style={{ color: '#1a1a2e' }}>🔄 Repurpose</span>
-                    <span className="text-[11px] text-[#555] dark:text-[#aaa]">From followed creators</span>
+                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">🔄 Repurpose</span>
+                    <span className="text-[11px] text-slate-lavender">From followed creators</span>
                   </button>
                 )}
               </div>
@@ -1268,7 +1266,7 @@ export function GenerationForm({
           {!freeUserExhausted && (
             <button
               onClick={() => { setInputType('video'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/15 bg-white dark:bg-white/5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all shadow-sm hover:shadow"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
             >
               🎥 Upload a video instead
             </button>
@@ -1276,7 +1274,7 @@ export function GenerationForm({
           {inputType === 'text' && (
             <button
               onClick={() => { setInputType('audio'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/15 bg-white dark:bg-white/5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all shadow-sm hover:shadow"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
             >
               🎤 Record voice
             </button>
@@ -1284,7 +1282,7 @@ export function GenerationForm({
           {inputType === 'audio' && (
             <button
               onClick={() => { setInputType('text'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/15 bg-white dark:bg-white/5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#00D4FF] hover:text-[#00D4FF] transition-all shadow-sm hover:shadow"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
             >
               ✍️ Type text
             </button>
@@ -1561,7 +1559,7 @@ export function GenerationForm({
         <>
           {/* Free generation banner */}
           {isFreeUser && freeGenerationsRemaining > 0 && (
-            <div className="mb-4 p-3 bg-gradient-to-r from-[#00D4FF]/10 to-[#B794F6]/10 border border-[#00D4FF]/30 rounded-xl flex items-center justify-between">
+            <div className="mb-4 p-4 bg-gradient-to-r from-primary/5 to-accent-purple/5 border border-primary/15 rounded-2xl flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">
                 ✨ Free Plan - {freeGenerationsUsed} of {freeGenerationsLimit} generations used
               </span>
@@ -1579,7 +1577,7 @@ export function GenerationForm({
             <button
               onClick={handleGenerate}
               disabled={generating || uploading || videoProcessing || !isReady}
-              className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full aurora-gradient text-white font-headline text-lg font-extrabold py-5 rounded-[1.25rem] shadow-2xl shadow-primary/20 active:scale-[0.98] hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -1607,8 +1605,8 @@ export function GenerationForm({
       )}
 
       {/* Info */}
-      <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-        <p className="text-small text-accent text-center">
+      <div className="mt-6 p-4 bg-primary/5 rounded-2xl">
+        <p className="text-sm text-slate-lavender text-center font-medium">
           {(inputType === 'video' || inputType === 'url')
             ? '🎬 Video processing may take 2-5 minutes depending on length'
             : '✨ This usually takes 30-60 seconds'}

@@ -230,27 +230,27 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
   if (showCompletion) {
     return (
       <div
-        className={`fixed bottom-20 right-6 z-50 bg-bg-secondary rounded-xl shadow-lg
-          border border-green-500/30 overflow-hidden max-w-sm animate-in slide-in-from-bottom-2 ${className}`}
+        className={`fixed bottom-20 right-6 z-50 bg-surface-container-lowest dark:bg-card rounded-[1.5rem] shadow-2xl
+          border border-green-400/30 overflow-hidden max-w-sm animate-in slide-in-from-bottom-2 ${className}`}
       >
-        <div className="p-4">
+        <div className="p-5">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-              <Check className="w-5 h-5 text-green-400" />
+            <div className="w-10 h-10 rounded-full bg-green-500/15 flex items-center justify-center animate-bounce">
+              <Check className="w-5 h-5 text-green-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-green-400">Content kit ready!</p>
+              <p className="font-headline font-bold text-green-500">Content kit ready!</p>
             </div>
             <button
               onClick={handleDismiss}
-              className="p-1 text-text-tertiary hover:text-text-primary transition-colors"
+              className="p-1.5 rounded-full hover:bg-surface-container-high transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-slate-lavender" />
             </button>
           </div>
           <Link
             href={`/app/content-kit/${activeGeneration.requestId}`}
-            className="mt-2 flex items-center gap-1.5 text-sm text-accent hover:underline"
+            className="mt-3 flex items-center gap-1.5 text-sm font-bold text-primary hover:underline"
             onClick={handleDismiss}
           >
             View Your Content
@@ -283,26 +283,32 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className={`fixed bottom-20 right-6 z-50 bg-bg-secondary rounded-full shadow-lg
-          border border-border-primary overflow-hidden max-w-xs
-          hover:border-accent/50 transition-all cursor-pointer
+        className={`fixed bottom-20 right-6 z-50 glass-panel rounded-full shadow-2xl
+          border border-primary/20 overflow-hidden max-w-xs
+          hover:border-primary/40 transition-all cursor-pointer
           animate-in slide-in-from-bottom-2 ${className}`}
       >
-        <div className="flex items-center gap-2.5 px-4 py-2.5">
-          <Loader2 className="w-4 h-4 text-accent animate-spin flex-shrink-0" />
-          <span className="text-sm font-medium text-text-primary truncate">
-            {isVideo ? 'Processing...' : 'Generating...'}
-          </span>
-          <span className="text-xs text-text-secondary tabular-nums">{percent}%</span>
+        <div className="flex items-center gap-3 px-5 py-3">
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            </div>
+          </div>
+          <div className="pr-1">
+            <span className="text-xs font-headline font-bold text-foreground block">
+              {isVideo ? 'Processing...' : 'Generating...'}
+            </span>
+            <span className="text-[10px] text-slate-lavender">{percent}%</span>
+          </div>
           {!isConnected && (
             <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full flex-shrink-0" title="Reconnecting..." />
           )}
-          <ChevronUp className="w-3.5 h-3.5 text-text-tertiary flex-shrink-0" />
+          <ChevronUp className="w-3.5 h-3.5 text-slate-lavender flex-shrink-0" />
         </div>
         {/* Thin progress bar at bottom */}
-        <div className="h-0.5 bg-bg-tertiary">
+        <div className="h-1 bg-surface-container-high">
           <div
-            className="h-full bg-accent transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full transition-all duration-500 ease-out"
             style={{ width: `${percent}%` }}
           />
         </div>
@@ -313,13 +319,13 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
   // Expanded drawer
   return (
     <div
-      className={`fixed bottom-20 right-6 z-50 bg-bg-secondary rounded-xl shadow-xl
-        border border-border-primary overflow-hidden w-80
+      className={`fixed bottom-20 right-6 z-50 bg-surface-container-lowest dark:bg-card rounded-[1.5rem] shadow-2xl
+        border border-outline-variant/40 overflow-hidden w-80
         animate-in slide-in-from-bottom-2 ${className}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-primary">
-        <span className="font-medium text-sm text-text-primary">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant/30">
+        <span className="font-headline font-bold text-sm text-foreground">
           {isVideo ? 'Video Processing' : 'Content Processing'}
         </span>
         <div className="flex items-center gap-1">
@@ -343,18 +349,20 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
         </div>
       </div>
 
-      <div className="px-4 py-3 space-y-4">
+      <div className="px-5 py-4 space-y-4">
         {/* Progress bar */}
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-text-secondary">{statusText}</span>
-            <span className="text-xs text-text-secondary tabular-nums">{percent}%</span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-slate-lavender font-medium">{statusText}</span>
+            <span className="text-xs font-bold text-primary tabular-nums">{percent}%</span>
           </div>
-          <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
+          <div className="h-2.5 bg-surface-container-high rounded-full overflow-hidden">
             <div
-              className="h-full bg-accent rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full relative overflow-hidden transition-all duration-500 ease-out"
               style={{ width: `${percent}%` }}
-            />
+            >
+              <div className="absolute inset-0 progress-shimmer" />
+            </div>
           </div>
         </div>
 
@@ -401,17 +409,17 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
         </div>
 
         {/* Navigate away reassurance */}
-        <div className="bg-bg-tertiary/50 rounded-lg px-3 py-2.5 border border-border-primary/50">
-          <p className="text-xs text-text-secondary leading-relaxed">
+        <div className="bg-primary/5 rounded-xl px-4 py-3">
+          <p className="text-xs text-slate-lavender leading-relaxed">
             You can navigate away.{' '}
-            <span className="text-text-tertiary">We&apos;ll notify you when it&apos;s ready.</span>
+            <span className="text-on-surface-variant">We&apos;ll notify you when it&apos;s ready.</span>
           </p>
         </div>
 
         {/* View progress link */}
         <Link
           href="/app"
-          className="flex items-center gap-1.5 text-sm text-accent hover:underline"
+          className="flex items-center gap-1.5 text-sm font-bold text-primary hover:underline"
         >
           View Progress Page
           <ExternalLink className="w-3.5 h-3.5" />

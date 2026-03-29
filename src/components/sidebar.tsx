@@ -33,11 +33,16 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="h-screen w-64 bg-sidebar border-r border-border/50 flex flex-col shadow-sm">
-      {/* Logo */}
-      <div className="p-6 border-b border-border/50">
-        <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity" aria-label="Go to dashboard">
-          EchoMe
+    <aside className="h-screen w-64 bg-white dark:bg-[#1c1c1e] border-r border-outline-variant/40 flex flex-col">
+      {/* Brand */}
+      <div className="px-6 py-6">
+        <button onClick={() => navigate('/app')} className="flex items-center gap-2.5 group" aria-label="Go to dashboard">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-headline font-black text-sm">
+            E
+          </div>
+          <span className="text-xl font-black tracking-tight text-foreground font-headline group-hover:text-primary transition-colors">
+            EchoMe
+          </span>
         </button>
       </div>
 
@@ -45,15 +50,11 @@ export function Sidebar() {
       <VoiceSwitcher />
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label="Main navigation">
+      <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-4" aria-label="Main navigation">
         {visibleGroups.map((group, groupIndex) => (
           <div key={group.label}>
-            {/* Section divider (not before first group) */}
-            {groupIndex > 0 && (
-              <div className="mx-2 my-2 border-t border-border/40" />
-            )}
             {/* Section label */}
-            <p className="px-3 mb-1 text-[11px] uppercase tracking-wider font-medium text-muted-foreground/50">
+            <p className="px-3 mb-1.5 text-[10px] uppercase tracking-[0.15em] font-semibold text-slate-lavender">
               {group.label}
             </p>
             {/* Items */}
@@ -77,19 +78,19 @@ export function Sidebar() {
 
       {/* User Section */}
       {user && (
-        <div className="p-4 border-t border-border/50">
+        <div className="p-4 border-t border-outline-variant/30">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
+            <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm ring-2 ring-primary/10">
               {user.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">{user.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <p className="text-sm font-bold truncate text-foreground">{user.name}</p>
+              <p className="text-xs text-slate-lavender truncate font-medium">{user.email}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-slate-lavender hover:text-destructive hover:bg-destructive/5 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             Logout
@@ -131,15 +132,15 @@ function SidebarItem({
       disabled={disabled}
       aria-current={isActive ? 'page' : undefined}
       className={`
-        w-full flex items-center gap-3 px-3 py-2 rounded-lg
-        text-sm font-medium transition-all duration-200
+        w-full flex items-center gap-3 px-4 py-2.5 rounded-xl
+        text-sm font-semibold font-headline tracking-tight transition-all duration-200
         focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
         ${
           disabled
-            ? 'text-muted-foreground/40 cursor-not-allowed opacity-40'
+            ? 'text-slate-lavender/40 cursor-not-allowed opacity-40'
             : isActive
-              ? 'bg-gradient-to-r from-primary to-primary-dark text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground hover:translate-x-0.5'
+              ? 'bg-primary text-white shadow-md shadow-primary/20 active-glow'
+              : 'text-slate-lavender hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
         }
       `}
     >
@@ -149,7 +150,7 @@ function SidebarItem({
         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
       )}
       {item.comingSoon && !isAdmin && (
-        <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+        <span className="text-[9px] font-bold uppercase tracking-wider bg-surface-container-high text-slate-lavender px-2 py-0.5 rounded-full">
           Soon
         </span>
       )}

@@ -60,7 +60,7 @@ export function StylePicker({
   return (
     <div className="mt-6">
       {/* Section Header */}
-      <h3 className="text-sm font-medium text-text-primary mb-3">
+      <h3 className="font-headline font-bold text-base mb-3">
         {label} <span className="text-text-secondary font-normal">(optional)</span>
       </h3>
 
@@ -78,13 +78,13 @@ export function StylePicker({
               aria-label={`${option.label}${isSelected ? ' (selected)' : ''}`}
               aria-pressed={isSelected}
               className={`
-                relative flex flex-col rounded-xl overflow-hidden transition-all duration-200
+                relative flex flex-col rounded-2xl overflow-hidden transition-all duration-200
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4FF] focus-visible:ring-offset-2
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${
                   isSelected
-                    ? 'ring-2 ring-[#00D4FF] shadow-[0_0_12px_rgba(0,212,255,0.3)]'
-                    : 'ring-1 ring-white/10 hover:ring-white/25 hover:scale-[1.03]'
+                    ? 'ring-2 ring-[#00D4FF] shadow-[0_0_12px_rgba(0,212,255,0.2)] scale-[1.02]'
+                    : 'ring-1 ring-outline-variant/60 hover:scale-[1.01]'
                 }
               `}
               style={{
@@ -94,7 +94,7 @@ export function StylePicker({
             >
               {/* Thumbnail */}
               <div
-                className={`relative ${aspectClass} w-full bg-gray-800 overflow-hidden`}
+                className={`relative ${aspectClass} w-full bg-gray-800 rounded-2xl overflow-hidden`}
               >
                 <img
                   src={option.thumbnail}
@@ -106,7 +106,9 @@ export function StylePicker({
 
                 {/* Selected checkmark overlay */}
                 {isSelected && (
-                  <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-[#00D4FF] rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute top-1.5 right-1.5 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-lg animate-[scale-in_0.2s_ease-out] origin-center"
+                    style={{ animation: 'scale-in 0.2s ease-out' }}
+                  >
                     <svg
                       className="w-3 h-3 text-white"
                       fill="none"
@@ -125,7 +127,7 @@ export function StylePicker({
 
                 {/* Badge */}
                 {option.badge && (
-                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-[#00D4FF]/90 rounded text-[10px] font-semibold text-white leading-tight">
+                  <div className="absolute top-1.5 left-1.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                     {option.badge}
                   </div>
                 )}
@@ -133,7 +135,7 @@ export function StylePicker({
 
               {/* Label below thumbnail */}
               <div
-                className={`px-2 py-1.5 text-xs font-medium text-center leading-tight ${
+                className={`px-2 py-1.5 font-headline font-bold text-sm text-center leading-tight ${
                   isSelected ? 'text-[#00D4FF]' : 'text-gray-300'
                 }`}
               >

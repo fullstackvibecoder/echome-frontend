@@ -68,14 +68,14 @@ export function CarouselPreview({
     <div className={`space-y-4 ${className}`}>
       {/* Header with download options */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="font-headline font-bold text-xl text-white">
           Instagram Carousel ({slides.length} slides)
         </h3>
         <div className="flex gap-2">
           <button
             onClick={handleDownloadAll}
             disabled={downloading}
-            className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white text-sm rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 aurora-gradient text-white font-headline font-bold text-sm rounded-xl transition-colors disabled:opacity-60"
           >
             <FileArchive size={16} />
             {downloading ? 'Downloading...' : 'Download All'}
@@ -83,7 +83,7 @@ export function CarouselPreview({
           {onDelete && (
             <button
               onClick={onDelete}
-              className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-xl transition-colors"
             >
               <X size={16} />
               Delete
@@ -97,7 +97,7 @@ export function CarouselPreview({
         {slides.map((slide, index) => (
           <div
             key={slide.slideNumber}
-            className="relative group aspect-square rounded-lg overflow-hidden bg-zinc-800 cursor-pointer"
+            className="relative group aspect-square rounded-[1.5rem] overflow-hidden border border-outline-variant/40 bg-surface-container-low cursor-pointer transition-transform duration-300 hover:-translate-y-2 hover:shadow-lg"
             onClick={() => openLightbox(index)}
           >
             <img
@@ -108,7 +108,7 @@ export function CarouselPreview({
             />
 
             {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -133,7 +133,7 @@ export function CarouselPreview({
             </div>
 
             {/* Slide number badge */}
-            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
+            <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-xl px-2 py-0.5 text-xs font-bold text-slate-lavender">
               {slide.slideNumber}
             </div>
           </div>
@@ -256,7 +256,7 @@ export function CarouselLightbox({
         <img
           src={currentSlide.publicUrl}
           alt={`Slide ${currentSlide.slideNumber}`}
-          className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
+          className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl"
         />
       </div>
 

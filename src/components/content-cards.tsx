@@ -50,7 +50,7 @@ export function ContentCards({
         return (
           <div
             key={result.platform}
-            className="card animate-slide-in transition-all duration-200"
+            className="bg-white dark:bg-card rounded-[2rem] p-8 border border-outline-variant/40 hover:border-primary/20 hover:shadow-[0_40px_80px_rgba(0,0,0,0.04)] transition-all animate-slide-in"
             style={{
               animationDelay: `${index * 100}ms`,
             }}
@@ -59,8 +59,8 @@ export function ContentCards({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                  style={{ backgroundColor: `${config.color}15` }}
+                  className="w-16 h-16 rounded-[1.25rem] bg-surface-container-low flex items-center justify-center text-2xl"
+                  style={{ borderLeft: `3px solid ${config.color}` }}
                 >
                   {config.icon}
                 </div>
@@ -73,11 +73,11 @@ export function ContentCards({
               <button
                 onClick={() => handleCopy(result)}
                 className={`
-                  px-3 py-1.5 rounded-lg text-small font-medium transition-all
+                  px-3 py-1.5 rounded-xl text-small font-medium transition-all
                   ${
                     isCopied
                       ? 'bg-success text-white'
-                      : 'bg-bg-secondary text-text-primary hover:bg-accent hover:text-white'
+                      : 'bg-bg-secondary text-text-primary hover:bg-accent hover:text-white hover:shadow-md'
                   }
                 `}
               >
@@ -86,7 +86,7 @@ export function ContentCards({
             </div>
 
             {/* Content */}
-            <div className="bg-bg-secondary rounded-lg p-4 mb-4 max-h-[300px] overflow-y-auto">
+            <div className="bg-bg-secondary rounded-lg p-4 mb-4 max-h-[350px] overflow-y-auto scrollbar-thin">
               <p className="text-body text-text-primary whitespace-pre-wrap">
                 {result.content}
               </p>
@@ -96,13 +96,13 @@ export function ContentCards({
             {(result.voiceScore > 0 || result.qualityScore > 0) && (
               <div className="flex items-center gap-3 mb-3">
                 {result.voiceScore > 0 && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 text-accent text-small font-medium">
+                  <div className="flex items-center gap-1.5 bg-primary/5 text-primary rounded-full px-3 py-1 text-xs font-bold">
                     <span>🎤</span>
                     <span>Voice: {result.voiceScore}%</span>
                   </div>
                 )}
                 {result.qualityScore > 0 && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 text-success text-small font-medium">
+                  <div className="flex items-center gap-1.5 bg-success/10 text-success rounded-full px-3 py-1 text-xs font-bold">
                     <span>✓</span>
                     <span>Quality: {result.qualityScore}%</span>
                   </div>
@@ -124,13 +124,13 @@ export function ContentCards({
 
             {/* Feedback Buttons */}
             <div className="flex items-center gap-2">
-              <span className="text-small text-text-secondary mr-2">
+              <span className="text-small text-slate-lavender mr-2">
                 Rate this:
               </span>
               <button
                 onClick={() => handleFeedback(result, true)}
                 className={`
-                  px-3 py-1.5 rounded-lg text-small font-medium transition-all
+                  px-3 py-1.5 rounded-xl text-small font-medium transition-all
                   ${
                     userFeedback === 'like'
                       ? 'bg-success text-white'
@@ -143,7 +143,7 @@ export function ContentCards({
               <button
                 onClick={() => handleFeedback(result, false)}
                 className={`
-                  px-3 py-1.5 rounded-lg text-small font-medium transition-all
+                  px-3 py-1.5 rounded-xl text-small font-medium transition-all
                   ${
                     userFeedback === 'dislike'
                       ? 'bg-error text-white'

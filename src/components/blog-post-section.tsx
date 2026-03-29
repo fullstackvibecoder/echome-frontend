@@ -106,12 +106,12 @@ export function BlogPostSection({
 
   return (
     <section id="blog-post-section">
-      <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
+      <h2 className="font-headline font-bold text-2xl mb-6 flex items-center gap-3">
         <span>📝</span>
         <span>Blog Post</span>
       </h2>
 
-      <div className="bg-bg-secondary rounded-xl border border-border overflow-hidden">
+      <div className="bg-white dark:bg-card rounded-[2rem] border border-outline-variant/40 shadow-[0_30px_80px_rgba(0,0,0,0.03)] p-8 overflow-hidden">
         {/* Header Image Area */}
         <div className="relative">
           {blogImage ? (
@@ -149,7 +149,7 @@ export function BlogPostSection({
               </div>
             </div>
           ) : (
-            <div className="relative aspect-[21/9] bg-gradient-to-br from-emerald-500/10 via-bg-tertiary to-primary/10 flex items-center justify-center">
+            <div className="relative aspect-[21/9] bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-2xl flex items-center justify-center">
               {isGenerating ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -177,10 +177,10 @@ export function BlogPostSection({
                       <button
                         key={style.value}
                         onClick={() => setSelectedStyle(style.value)}
-                        className={`flex flex-col items-center gap-1 p-2 rounded-lg text-center transition-all ${
+                        className={`flex flex-col items-center gap-1 p-2 rounded-2xl border text-center transition-all ${
                           selectedStyle === style.value
-                            ? 'bg-accent/15 ring-1 ring-accent text-accent'
-                            : 'bg-bg-tertiary/50 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                            ? 'border-outline-variant/40 ring-2 ring-primary bg-accent/15 text-accent'
+                            : 'border-outline-variant/40 bg-bg-tertiary/50 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'
                         }`}
                       >
                         <span className="text-lg">{style.icon}</span>
@@ -202,7 +202,7 @@ export function BlogPostSection({
         </div>
 
         {/* Blog Title Bar */}
-        <div className="px-6 py-4 border-b border-border/50 bg-emerald-500/5">
+        <div className="px-6 py-4 rounded-2xl bg-surface-container-low">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📝</span>
@@ -212,7 +212,7 @@ export function BlogPostSection({
               <ShareDropdown content={content} platform="blog" />
               <button
                 onClick={handleCopy}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-headline font-semibold transition-all ${
                   copied
                     ? 'bg-success/10 text-success'
                     : 'bg-bg-tertiary text-text-secondary hover:text-text-primary'
@@ -225,7 +225,7 @@ export function BlogPostSection({
               {onSchedule && (
                 <button
                   onClick={onSchedule}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-600/10 text-purple-600 hover:bg-purple-600/20 transition-all"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-headline font-semibold bg-purple-600/10 text-purple-600 hover:bg-purple-600/20 transition-all"
                 >
                   <CalendarPlus className="w-4 h-4" />
                   Schedule
@@ -255,7 +255,7 @@ export function BlogPostSection({
               prose-ul:text-text-secondary prose-ul:my-2
               prose-ol:text-text-secondary prose-ol:my-2
               prose-li:text-text-secondary prose-li:mb-1
-              prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-blockquote:bg-bg-tertiary prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
+              prose-blockquote:border-l-4 prose-blockquote:border-l-primary prose-blockquote:text-text-secondary prose-blockquote:bg-primary/5 prose-blockquote:py-3 prose-blockquote:px-4 prose-blockquote:rounded-r-xl
               prose-a:text-accent prose-a:no-underline hover:prose-a:underline
               prose-code:text-accent prose-code:bg-bg-tertiary prose-code:px-1 prose-code:py-0.5 prose-code:rounded
             ">

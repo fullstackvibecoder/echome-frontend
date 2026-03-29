@@ -159,10 +159,10 @@ export function GroupedContentCard({
 
   return (
     <div
-      className={`card transition-all border ${
+      className={`p-6 transition-all rounded-[1.75rem] border bg-white dark:bg-card ${
         selected
-          ? 'border-accent ring-2 ring-accent/30 bg-accent/5'
-          : 'border-border'
+          ? 'border-primary/40 shadow-[0_0_20px_rgba(0,212,255,0.08)]'
+          : 'border-outline-variant/40'
       } ${selectionMode ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
@@ -175,11 +175,13 @@ export function GroupedContentCard({
                 type="checkbox"
                 checked={selected}
                 onChange={(e) => onSelect?.(e.target.checked)}
-                className="w-5 h-5 rounded border-2 border-border text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer"
+                className="w-5 h-5 rounded-lg border-2 border-outline-variant/40 text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer checked:bg-primary checked:border-primary"
               />
             </div>
           )}
-          <span className="text-3xl flex-shrink-0">{getSourceIcon(sourceType)}</span>
+          <div className="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center flex-shrink-0">
+            <span className="text-3xl">{getSourceIcon(sourceType)}</span>
+          </div>
           <div className="min-w-0 flex-1">
             <h4 className="text-body font-semibold truncate" title={getFriendlyTitle(sourceType, groupTitle)}>
               {getFriendlyTitle(sourceType, groupTitle)}
@@ -192,10 +194,10 @@ export function GroupedContentCard({
 
         {/* Status Badge */}
         <div
-          className={`px-2 py-1 rounded-lg border text-xs font-medium flex-shrink-0 ${
+          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 ${
             allCompleted
-              ? 'bg-success/10 border-success/20 text-success'
-              : 'bg-warning/10 border-warning/20 text-warning'
+              ? 'bg-green-50 text-green-600'
+              : 'bg-primary/10 text-primary'
           }`}
         >
           {allCompleted ? 'Trained' : 'Processing'}
@@ -203,21 +205,27 @@ export function GroupedContentCard({
       </div>
 
       {/* Stats row */}
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <span className={`px-2 py-0.5 rounded-md border text-xs font-medium ${sourceColor}`}>
-          {config.label}
-        </span>
-
-        {totalSize > 0 && (
-          <span className="text-xs text-text-secondary">{formatBytes(totalSize)}</span>
-        )}
-
-        {totalChunks > 0 && (
-          <span className="text-xs text-text-secondary flex items-center gap-1">
-            <span className="inline-block w-1.5 h-1.5 bg-success rounded-full"></span>
-            {totalChunks.toLocaleString()} chunks
+      <div className="rounded-2xl bg-surface-container-low grid grid-cols-3 gap-px mb-3">
+        <div className="flex items-center justify-center p-2">
+          <span className={`px-2 py-0.5 rounded-md border text-xs font-medium ${sourceColor}`}>
+            {config.label}
           </span>
-        )}
+        </div>
+
+        <div className="flex items-center justify-center p-2">
+          {totalSize > 0 && (
+            <span className="text-xs text-text-secondary">{formatBytes(totalSize)}</span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-center p-2">
+          {totalChunks > 0 && (
+            <span className="text-xs text-text-secondary flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 bg-success rounded-full"></span>
+              {totalChunks.toLocaleString()} chunks
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Expandable section */}
@@ -227,7 +235,7 @@ export function GroupedContentCard({
             e.stopPropagation();
             setExpanded(!expanded);
           }}
-          className="w-full text-xs text-text-secondary hover:text-text-primary py-2 border-t border-border flex items-center justify-center gap-1 transition-colors"
+          className="w-full text-xs rounded-xl text-slate-lavender hover:text-primary py-2 border-t border-outline-variant/40 flex items-center justify-center gap-1 transition-colors"
         >
           {expanded ? '▲ Hide' : '▼ Show'} {items.length} items
         </button>
@@ -238,7 +246,7 @@ export function GroupedContentCard({
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between p-2 bg-bg-secondary rounded-lg text-xs"
+              className="flex items-center justify-between p-2 bg-surface-container-low rounded-2xl text-xs"
             >
               <div className="flex-1 min-w-0">
                 <span className="text-text-primary truncate block">{item.title}</span>
@@ -254,7 +262,7 @@ export function GroupedContentCard({
                     onDelete(item.id);
                   }
                 }}
-                className="px-2 py-1 text-error hover:bg-error/10 rounded transition-colors ml-2"
+                className="px-2 py-1 text-destructive hover:bg-destructive/5 rounded-xl transition-colors ml-2"
               >
                 ✕
               </button>
@@ -264,14 +272,14 @@ export function GroupedContentCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-border mt-3">
+      <div className="flex items-center justify-between pt-2 border-t border-outline-variant/40 mt-3">
         <p className="text-xs text-text-secondary">{latestDate.toLocaleDateString()}</p>
         <button
           onClick={(e) => {
             e.stopPropagation();
             handleDeleteAll();
           }}
-          className="px-3 py-1 text-xs border border-error/30 text-error rounded hover:bg-error/10 transition-colors"
+          className="px-3 py-1 text-xs text-destructive hover:bg-destructive/5 rounded-xl transition-colors"
         >
           Delete All
         </button>

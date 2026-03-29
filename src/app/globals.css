@@ -44,10 +44,24 @@
   --sidebar-width: 16rem; /* expanded */
   --sidebar-width-icon: 4rem; /* icon mode */
 
+  /* Surface hierarchy (tonal layering) */
+  --surface: #FAFAFA;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f6f3f5;
+  --surface-container: #f0edef;
+  --surface-container-high: #eae7ea;
+  --surface-container-highest: #e4e2e4;
+  --on-surface: #1b1b1d;
+  --on-surface-variant: #3c494e;
+  --outline-variant: #bbc9cf;
+  --slate-lavender: #9B8BAF;
+
   /* Premium shadows */
   --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.04);
   --shadow-lift: 0 8px 30px -8px rgba(0, 0, 0, 0.12);
   --shadow-glow-cyan: 0 0 0 3px rgba(0, 212, 255, 0.35);
+  --shadow-ambient: 0 20px 40px rgba(0, 103, 126, 0.06);
+  --shadow-heavy: 0 30px 80px rgba(0, 0, 0, 0.06);
 
   /* Fluid typography */
   --font-heading-hero: clamp(3rem, 2rem + 4.5vw, 4.5rem);
@@ -94,10 +108,24 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 
+  /* Surface hierarchy (dark mode) */
+  --surface: #1c1c1e;
+  --surface-container-lowest: #111113;
+  --surface-container-low: #222224;
+  --surface-container: #2a2a2c;
+  --surface-container-high: #333335;
+  --surface-container-highest: #3a3a3c;
+  --on-surface: #e4e2e4;
+  --on-surface-variant: #bbc9cf;
+  --outline-variant: #3c494e;
+  --slate-lavender: #b8a8cc;
+
   /* Premium shadows (dark mode) */
   --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.2);
   --shadow-lift: 0 8px 30px -8px rgba(0, 0, 0, 0.4);
   --shadow-glow-cyan: 0 0 0 3px rgba(0, 212, 255, 0.4);
+  --shadow-ambient: 0 20px 40px rgba(0, 212, 255, 0.08);
+  --shadow-heavy: 0 30px 80px rgba(0, 0, 0, 0.3);
 }
 
 @theme inline {
@@ -140,7 +168,18 @@
   --color-accent-purple: var(--accent-purple);
   --color-accent-pink: var(--accent-pink);
   --color-accent-yellow: var(--accent-yellow);
+  --color-surface: var(--surface);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline-variant: var(--outline-variant);
+  --color-slate-lavender: var(--slate-lavender);
   --font-sans: var(--font-satoshi);
+  --font-headline: var(--font-manrope);
 }
 
 body {
@@ -317,6 +356,15 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
   }
 }
 
@@ -639,7 +687,8 @@ body {
   .animate-ken-burns,
   .animate-ken-burns-alt,
   .animate-rec-pulse,
-  .animate-scan-line {
+  .animate-scan-line,
+  .progress-shimmer {
     animation: none !important;
     opacity: 1 !important;
   }
@@ -674,13 +723,15 @@ body {
 
 /* Component styles */
 .card {
-  @apply bg-card rounded-xl p-8 border border-border;
+  @apply bg-card p-8 border border-border;
+  border-radius: 1.5rem;
   box-shadow: var(--shadow-soft);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lift);
+  border-color: rgba(0, 212, 255, 0.2);
 }
 
 /* Reusable lift effect */
@@ -700,6 +751,42 @@ body {
 }
 .dark .glass {
   background: rgba(28, 28, 30, 0.8);
+}
+
+/* Glass panel — heavier blur for floating elements */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.dark .glass-panel {
+  background: rgba(28, 28, 30, 0.85);
+}
+
+/* Aurora gradient — primary CTA signature */
+.aurora-gradient {
+  background: linear-gradient(135deg, #00677e 0%, #00D4FF 100%);
+}
+
+/* Active glow — for selected/active nav items */
+.active-glow {
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+}
+
+/* Subtle glow — for elevated cards */
+.subtle-glow {
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.08);
+}
+
+/* Progress bar shimmer sweep */
+@keyframes progress-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.progress-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background-size: 200% 100%;
+  animation: progress-shimmer 2s infinite linear;
 }
 
 /* Shimmer loading skeleton */

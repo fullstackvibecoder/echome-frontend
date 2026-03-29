@@ -37,10 +37,10 @@ export function IntegrationCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        bg-bg-primary border-2 border-border rounded-lg p-6
+        rounded-[1.75rem] border border-outline-variant/40 p-6
         transition-all duration-200
         ${isHovered ? 'shadow-lg -translate-y-1' : 'shadow-md'}
-        ${isConnected ? 'border-success/30 bg-success/5' : ''}
+        ${isConnected ? 'border-primary/20 bg-primary/[0.02]' : ''}
       `}
     >
       <div className="flex items-start justify-between">
@@ -49,7 +49,7 @@ export function IntegrationCard({
           <div className="flex items-center gap-3 mb-2">
             {/* Icon */}
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
               style={{ backgroundColor: `${platform.color}15` }}
             >
               {platform.icon}
@@ -60,10 +60,17 @@ export function IntegrationCard({
               <h3 className="text-subheading text-lg font-semibold">
                 {platform.displayName}
               </h3>
-              {isConnected && (
-                <div className="flex items-center gap-1 text-success text-small">
-                  <span>✓</span>
+              {isConnected ? (
+                <div className="flex items-center gap-1.5 text-sm font-bold text-primary">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  </span>
                   <span>Connected</span>
+                </div>
+              ) : (
+                <div className="text-sm text-slate-lavender">
+                  Not connected
                 </div>
               )}
             </div>
@@ -76,7 +83,7 @@ export function IntegrationCard({
 
           {/* Connected Account Info */}
           {isConnected && integration && (
-            <div className="mt-3 p-3 bg-bg-secondary rounded-lg">
+            <div className="mt-3 bg-surface-container-low rounded-2xl p-4">
               <p className="text-small text-text-secondary">
                 {integration.accountName && (
                   <span className="font-medium text-text-primary">
@@ -98,7 +105,7 @@ export function IntegrationCard({
           {isEmail ? (
             // Email file upload button
             <label
-              className="btn-primary cursor-pointer whitespace-nowrap"
+              className="aurora-gradient text-white font-headline font-bold rounded-xl px-4 py-2 cursor-pointer whitespace-nowrap inline-block"
             >
               Upload MBOX
               <input
@@ -112,7 +119,7 @@ export function IntegrationCard({
             // Disconnect button
             <button
               onClick={onDisconnect}
-              className="px-4 py-2 border-2 border-border rounded-lg text-body text-text-secondary hover:border-error hover:text-error transition-colors whitespace-nowrap"
+              className="px-4 py-2 rounded-xl border border-outline-variant/40 text-slate-lavender hover:border-destructive/40 hover:text-destructive transition-colors whitespace-nowrap"
             >
               Disconnect
             </button>
@@ -120,10 +127,8 @@ export function IntegrationCard({
             // Connect button
             <button
               onClick={onConnect}
-              className="btn-primary whitespace-nowrap"
-              style={{
-                backgroundColor: platform.color,
-              }}
+              className="text-white font-headline font-bold rounded-xl px-4 py-2 whitespace-nowrap hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: platform.color }}
             >
               Connect
             </button>
