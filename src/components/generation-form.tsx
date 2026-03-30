@@ -1248,10 +1248,12 @@ export function GenerationForm({
                         />
                         <button
                           onClick={() => {
-                            if (videoUrl.trim()) {
-                              setInputType('url' as any);
-                              handleGenerate();
-                            }
+                            const url = videoUrl.trim();
+                            if (!url) return;
+                            const isYouTube = /youtube\.com|youtu\.be/.test(url);
+                            const isInstagram = /instagram\.com/.test(url);
+                            const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : 'url';
+                            processVideoWithClipFinder(undefined, sourceType as any, url);
                           }}
                           disabled={!videoUrl.trim() || generating || videoProcessing}
                           className="px-4 py-2 bg-[#00D4FF] text-black rounded-lg text-sm font-bold disabled:opacity-40 hover:brightness-110 transition-all"
