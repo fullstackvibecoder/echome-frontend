@@ -2,6 +2,8 @@
 
 export const ACCEPTED_FILE_TYPES = {
   'application/pdf': ['.pdf'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/msword': ['.doc'],
   'text/plain': ['.txt'],
   'image/jpeg': ['.jpg', '.jpeg'],
   'image/png': ['.png'],
