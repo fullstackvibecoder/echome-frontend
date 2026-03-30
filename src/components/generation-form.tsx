@@ -683,10 +683,26 @@ export function GenerationForm({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    if (!file) return;
+
+    const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
+    const WARN_SIZE = 500 * 1024 * 1024; // 500MB
+
+    if (file.size > MAX_SIZE) {
+      const sizeMB = Math.round(file.size / (1024 * 1024));
+      setUploadError(`File is too large (${sizeMB}MB). Maximum is 2GB. Try compressing the video or pasting a YouTube/Vimeo URL instead.`);
+      return;
+    }
+
+    if (file.size > WARN_SIZE) {
+      const sizeMB = Math.round(file.size / (1024 * 1024));
+      const estMinutes = Math.round(file.size / (2 * 1024 * 1024) / 60); // ~2MB/s estimate
+      setUploadError(`Heads up: this is a ${sizeMB}MB file. Upload may take ${estMinutes}+ minutes on a typical connection. For faster results, paste a YouTube or Vimeo URL below instead.`);
+    } else {
       setUploadError(null);
     }
+
+    setSelectedFile(file);
   };
 
   const handleCarouselBgFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
