@@ -502,7 +502,7 @@ export function GenerationForm({
   // Process video through Clip Finder pipeline
   const processVideoWithClipFinder = async (
     file?: File,
-    sourceType?: 'upload' | 'youtube' | 'instagram',
+    sourceType?: 'upload' | 'youtube' | 'instagram' | 'url',
     sourceUrl?: string
   ) => {
     try {
@@ -860,7 +860,8 @@ export function GenerationForm({
 
       // Determine source type from URL
       const isYouTube = /youtube\.com|youtu\.be/.test(url);
-      const sourceType = isYouTube ? 'youtube' : 'instagram';
+      const isInstagram = /instagram\.com/.test(url);
+      const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : 'url';
 
       try {
         await processVideoWithClipFinder(undefined, sourceType, url);
@@ -917,11 +918,21 @@ export function GenerationForm({
   };
 
   const isValidUrl = (url: string) => {
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/|live\/)|youtu\.be\/)/;
-    const instagramRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//;
-    const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+/;
-    const loomRegex = /^(https?:\/\/)?(www\.)?loom\.com\/share\//;
-    return youtubeRegex.test(url) || instagramRegex.test(url) || vimeoRegex.test(url) || loomRegex.test(url);
+    // yt-dlp supports 1000+ sites — we validate the most common ones client-side
+    // and let the backend handle the rest via yt-dlp
+    const patterns = [
+      /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/|live\/)|youtu\.be\/)/, // YouTube
+      /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//, // Instagram
+      /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+/, // Vimeo
+      /^(https?:\/\/)?(www\.)?loom\.com\/share\//, // Loom
+      /^(https?:\/\/)?(www\.)?streamyard\.com\//, // StreamYard
+      /^(https?:\/\/)?(www\.)?riverside\.fm\//, // Riverside
+      /^(https?:\/\/)?(www\.)?(twitch\.tv|clips\.twitch\.tv)\//, // Twitch
+      /^(https?:\/\/)?(www\.)?tiktok\.com\/@[^/]+\/video\//, // TikTok
+      /^(https?:\/\/)?(www\.)?facebook\.com\/.+\/videos\//, // Facebook
+      /^https?:\/\/.+\.(mp4|mov|webm)(\?|$)/i, // Direct video URLs
+    ];
+    return patterns.some(p => p.test(url));
   };
 
   // Voice mode always shows ready since user can click to record
@@ -1226,13 +1237,13 @@ export function GenerationForm({
 
                     {/* URL paste — faster than file upload for large videos */}
                     <div className="w-full max-w-sm">
-                      <p className="text-xs text-gray-600 dark:text-gray-300 text-center mb-2 font-medium">Or paste a video URL (faster for large files)</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 text-center mb-2 font-medium">Or paste a video URL (no upload needed)</p>
                       <div className="flex gap-2">
                         <input
                           type="url"
                           value={videoUrl}
                           onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
-                          placeholder="YouTube, Vimeo, or Riverside URL"
+                          placeholder="YouTube, Vimeo, Loom, TikTok, Riverside..."
                           className="flex-1 px-3 py-2 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white text-sm placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none"
                         />
                         <button
