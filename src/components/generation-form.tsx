@@ -901,9 +901,11 @@ export function GenerationForm({
   };
 
   const isValidUrl = (url: string) => {
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)/;
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/|live\/)|youtu\.be\/)/;
     const instagramRegex = /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//;
-    return youtubeRegex.test(url) || instagramRegex.test(url);
+    const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+/;
+    const loomRegex = /^(https?:\/\/)?(www\.)?loom\.com\/share\//;
+    return youtubeRegex.test(url) || instagramRegex.test(url) || vimeoRegex.test(url) || loomRegex.test(url);
   };
 
   // Voice mode always shows ready since user can click to record
@@ -1202,9 +1204,36 @@ export function GenerationForm({
                       Select Video File
                     </button>
 
-                    <p className="text-xs text-gray-600 dark:text-gray-300/70">
+                    <p className="text-xs text-gray-600 dark:text-gray-300/70 mb-4">
                       MP4, MOV, AVI, WebM • Up to 2GB
                     </p>
+
+                    {/* URL paste — faster than file upload for large videos */}
+                    <div className="w-full max-w-sm">
+                      <p className="text-xs text-gray-600 dark:text-gray-300 text-center mb-2 font-medium">Or paste a video URL (faster for large files)</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={videoUrl}
+                          onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
+                          placeholder="YouTube, Vimeo, or Riverside URL"
+                          className="flex-1 px-3 py-2 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white text-sm placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none"
+                        />
+                        <button
+                          onClick={() => {
+                            if (videoUrl.trim()) {
+                              setInputType('url' as any);
+                              handleGenerate();
+                            }
+                          }}
+                          disabled={!videoUrl.trim() || generating || videoProcessing}
+                          className="px-4 py-2 bg-[#00D4FF] text-black rounded-lg text-sm font-bold disabled:opacity-40 hover:brightness-110 transition-all"
+                        >
+                          Go
+                        </button>
+                      </div>
+                      {urlError && <p className="text-xs text-red-400 mt-1">{urlError}</p>}
+                    </div>
                   </>
                 )}
               </div>
