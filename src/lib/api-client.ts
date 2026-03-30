@@ -1837,6 +1837,16 @@ export const api = {
       },
       onProgress?: (progress: number) => void
     ) => {
+      // Client-side file size check — reject before wasting bandwidth
+      const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
+      if (file.size > MAX_FILE_SIZE) {
+        const sizeMB = Math.round(file.size / (1024 * 1024));
+        throw new Error(
+          `File is too large (${sizeMB}MB). Maximum upload size is 2GB. ` +
+          `Try compressing the video or trimming it to a shorter length before uploading.`
+        );
+      }
+
       // Step 1: Get Mux upload URL from our backend
       console.log('[api-client] Initializing Mux upload:', {
         filename: file.name,
@@ -1879,7 +1889,7 @@ export const api = {
           endpoint: muxUploadUrl,
           file,
           chunkSize: 10 * 1024, // 10MB chunks (in KB for upchunk) — reliable on mobile
-          maxFileSize: 50 * 1024 * 1024 * 1024, // 50GB
+          maxFileSize: 2 * 1024 * 1024 * 1024, // 2GB
         });
 
         let lastReportedPct = 0;

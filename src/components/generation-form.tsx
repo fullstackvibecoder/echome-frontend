@@ -1203,7 +1203,7 @@ export function GenerationForm({
                     </button>
 
                     <p className="text-xs text-gray-600 dark:text-gray-300/70">
-                      MP4, MOV, AVI, WebM • Up to 50GB
+                      MP4, MOV, AVI, WebM • Up to 2GB
                     </p>
                   </>
                 )}
