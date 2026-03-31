@@ -42,6 +42,13 @@ function getStrengthTier(strength: number) {
   return TIERS[0];
 }
 
+function getStrengthMessage(score: number): string {
+  if (score <= 30) return 'Echo is just getting started. Add a few sources and watch the match improve fast.';
+  if (score <= 60) return 'Echo is picking up your patterns. Keep feeding it. The jump from here is where it gets real.';
+  if (score <= 80) return 'Strong foundation. Your content is already starting to sound like you wrote it.';
+  return 'Echo knows your voice. Every new source fine-tunes the match even further.';
+}
+
 function buildContentSummary(bySourceType: Record<string, number>): string {
   const labels: Record<string, string> = {
     voice_recording: 'voice', youtube_import: 'YouTube', instagram_import: 'Instagram',
@@ -255,7 +262,10 @@ export default function KnowledgeContent() {
         <div className="flex items-center gap-3 min-w-0">
           <div>
             <h1 className="text-lg font-bold text-text-primary leading-tight">Build Your Voice</h1>
-            <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-text-secondary mt-1 max-w-md leading-relaxed hidden sm:block">
+              Every piece of content you add teaches Echo how you think. The more it learns, the closer the match. Content you create next week will sound more like you than content you create today. This never stops improving.
+            </p>
+            <div className="flex items-center gap-2 mt-1">
               {tier && TierIcon && (
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${tier.badgeBg} ${tier.badgeText}`}>
                   <TierIcon className="w-3 h-3" />
@@ -273,6 +283,11 @@ export default function KnowledgeContent() {
                 </span>
               )}
             </div>
+            {voiceStrength && (
+              <p className="text-[11px] text-text-tertiary mt-0.5">
+                {getStrengthMessage(voiceStrength.overallStrength)}
+              </p>
+            )}
           </div>
           {voiceStrength && voiceStrength.waveformData.length > 0 && (
             <div className="hidden sm:block" style={{ width: 120, height: 28 }}>

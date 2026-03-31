@@ -276,7 +276,7 @@ export function AskYourVoice({
   const handleRecordVoice = () => {
     setMessages(prev => [...prev,
       { id: nextId(), role: 'user', content: 'Record a Voice Note' },
-      { id: nextId(), role: 'assistant', content: 'Opening the voice recorder — speak naturally and I\'ll transcribe it to learn your tone.' },
+      { id: nextId(), role: 'assistant', content: 'Opening the voice recorder. Speak naturally and I\'ll transcribe it to learn your tone.' },
     ]);
     onOpenModal('voice');
   };
@@ -289,10 +289,10 @@ export function AskYourVoice({
       setMessages(prev => [...prev, {
         id: nextId(), role: 'assistant',
         content: choice.id === 'email'
-          ? 'Opening email import — follow the instructions to upload your .mbox file.'
+          ? 'Opening email import. Follow the instructions to upload your .mbox file.'
           : choice.id === 'paste'
-          ? 'Opening the text editor — paste your writing sample, email, or social post.'
-          : 'Opening the file uploader — drag and drop your files.',
+          ? 'Opening the text editor. Paste your writing sample, email, or social post.'
+          : 'Opening the file uploader. Drag and drop your files.',
       }]);
       onOpenModal(choice.modal as 'paste' | 'upload' | 'voice' | 'email');
     } else {
@@ -359,7 +359,7 @@ export function AskYourVoice({
           if (pollCount > 60) {
             if (pollRef.current) clearInterval(pollRef.current);
             setActiveImport(null);
-            setMessages(prev => [...prev, { id: nextId(), role: 'system', content: 'Import is taking longer than expected. It\'s still processing in the background — check your Sources in a few minutes.', systemType: 'error' }]);
+            setMessages(prev => [...prev, { id: nextId(), role: 'system', content: 'Import is taking longer than expected. It\'s still processing in the background. Check your Sources in a few minutes.', systemType: 'error' }]);
           }
         } catch {
           consecutiveErrors++;
@@ -405,8 +405,8 @@ export function AskYourVoice({
   useEffect(() => {
     if (messages.length === 0) {
       const greeting = hasContent
-        ? 'Welcome back! I\'m ready to help strengthen your voice. You can add more content below, or ask me anything about your writing style.'
-        : 'Hey! I\'m Echo. I learn how you think and write so your content actually sounds like you. Let\'s get started — pick one of the options below.';
+        ? 'Welcome back. You can add more content below, or ask me anything about your writing style.'
+        : 'I\'m Echo. I learn how you write, speak, and think, then I use that to generate content in your actual voice. But here\'s the thing: I get better every time you feed me. The voice match on your first piece of content is good. Your tenth will be unrecognizable from something you wrote yourself. Start here:';
 
       setMessages([
         { id: nextId(), role: 'assistant', content: greeting },
@@ -456,7 +456,8 @@ export function AskYourVoice({
           <Share2 className="w-6 h-6 text-accent group-hover:text-white transition-colors" />
         </div>
         <h3 className="text-base font-bold text-text-primary mb-1">Connect my Socials</h3>
-        <p className="text-xs text-text-secondary leading-snug mb-4">Import from YouTube, Instagram, or LinkedIn.</p>
+        <p className="text-xs text-text-secondary leading-snug mb-1">Your social posts are your voice at its most unfiltered. This is how you naturally talk to your audience.</p>
+        <p className="text-[11px] text-text-tertiary mb-4">Import from YouTube or Instagram.</p>
         <div className="mt-auto flex items-center text-accent text-xs font-semibold gap-1">
           Get Started <ArrowRight className="w-3 h-3" />
         </div>
@@ -473,7 +474,8 @@ export function AskYourVoice({
           <FileText className="w-6 h-6 text-accent-purple group-hover:text-white transition-colors" />
         </div>
         <h3 className="text-base font-bold text-text-primary mb-1">Import my Writing</h3>
-        <p className="text-xs text-text-secondary leading-snug mb-4">PDFs, articles, blog posts, or emails.</p>
+        <p className="text-xs text-text-secondary leading-snug mb-1">Long-form content shows how you structure ideas, build arguments, and explain what you know. This is the depth behind your voice.</p>
+        <p className="text-[11px] text-text-tertiary mb-4">Upload PDFs, articles, blog posts, or emails.</p>
         <div className="mt-auto flex items-center text-accent-purple text-xs font-semibold gap-1">
           Upload Files <ArrowRight className="w-3 h-3" />
         </div>
@@ -490,7 +492,8 @@ export function AskYourVoice({
           <Mic className="w-6 h-6 text-accent group-hover:text-white transition-colors" />
         </div>
         <h3 className="text-base font-bold text-text-primary mb-1">Record a Voice Note</h3>
-        <p className="text-xs text-text-secondary leading-snug mb-4">Just talk — I'll pick up your tone and rhythm.</p>
+        <p className="text-xs text-text-secondary leading-snug mb-1">Nothing captures tone like your actual voice. Cadence, rhythm, word choice. Things that don't come through in text live here.</p>
+        <p className="text-[11px] text-text-tertiary mb-4">Just talk. I'll pick it up.</p>
         <div className="mt-auto flex items-center text-accent text-xs font-semibold gap-1">
           Start Talking <ArrowRight className="w-3 h-3" />
         </div>
