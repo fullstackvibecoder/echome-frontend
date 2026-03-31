@@ -76,18 +76,6 @@ export default function KnowledgeContent() {
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
   const { data: voiceStrength, refresh: refreshVoiceStrength } = useVoiceStrength();
 
-  // Ref to inject messages into chat after modal success
-  const chatResultRef = useRef<((type: string, message: string) => void) | null>(null);
-
-  // Keep ref synced with AskYourVoice's callback
-  useEffect(() => {
-    chatResultRef.current = (AskYourVoice as any)._addImportResult || null;
-  });
-
-  const notifyChat = useCallback((type: string, message: string) => {
-    if (chatResultRef.current) chatResultRef.current(type, message);
-  }, []);
-
   // KB switching for teams
   useEffect(() => {
     if (isTeamsUser && activeVoice?.knowledgeBaseId && activeVoice.knowledgeBaseId !== selectedKb) {
@@ -150,7 +138,7 @@ export default function KnowledgeContent() {
     if (otherFiles.length > 0) {
       await doUpload(selectedKb);
       setShowUploadModal(false);
-      notifyChat('upload', `${otherFiles.length} file${otherFiles.length !== 1 ? 's' : ''} uploaded and processing. What else would you like to add?`);
+
     } else if (mboxFiles.length === 0) {
       setShowUploadModal(false);
     }
@@ -202,7 +190,7 @@ export default function KnowledgeContent() {
 
       setMboxProgress(100);
       setMboxResult({ emailsIngested: result.emailsIngested, chunksCreated: result.chunksCreated });
-      notifyChat('email', `${result.emailsIngested} emails imported. What else would you like to add?`);
+
       await refresh();
       refreshVoiceStrength();
     } catch (err) {
@@ -235,14 +223,12 @@ export default function KnowledgeContent() {
   const handlePasteSuccess = () => {
     refresh();
     refreshVoiceStrength();
-    notifyChat('paste', 'Writing sample added to your voice profile. What else would you like to add?');
   };
 
   const handleVoiceSuccess = () => {
     setShowVoiceModal(false);
     refresh();
     refreshVoiceStrength();
-    notifyChat('voice', 'Voice recording transcribed and added. What else would you like to add?');
   };
 
   const handleSocialImportComplete = () => {
@@ -361,6 +347,7 @@ export default function KnowledgeContent() {
             kbId={selectedKb}
             contentSummary={hasContent ? buildContentSummary(bySourceType) : undefined}
             hasContent={hasContent}
+            contentItems={contentItems}
             onOpenModal={handleOpenModal}
             onImportComplete={handleImportComplete}
             knowledgeBaseId={selectedKb ?? undefined}
