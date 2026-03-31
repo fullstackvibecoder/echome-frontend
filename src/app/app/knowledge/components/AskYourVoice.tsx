@@ -115,43 +115,6 @@ function UrlImportForm({
   );
 }
 
-// ============================================
-// IMPORT PROGRESS CARD (Stitch design)
-// ============================================
-
-function ImportProgressCard({ status, progress, count }: { status: string; progress?: number; count?: number }) {
-  return (
-    <div className="w-full flex justify-center">
-      <div className="w-full max-w-xl bg-accent-purple/10 border border-accent-purple/20 p-6 rounded-[2rem] overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-accent-purple/20 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 text-accent-purple animate-spin" />
-            </div>
-            <div>
-              <p className="font-semibold text-text-primary">{status}</p>
-              {count !== undefined && <p className="text-sm text-text-secondary">{count} found</p>}
-            </div>
-          </div>
-          {progress !== undefined && (
-            <span className="text-xl font-bold text-accent tabular-nums">{progress}%</span>
-          )}
-        </div>
-        <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500 relative overflow-hidden"
-            style={{
-              width: `${Math.max(progress || 0, 5)}%`,
-              background: 'linear-gradient(90deg, #00677e 0%, #00d4ff 50%, #00677e 100%)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmer 2s infinite linear',
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ============================================
 // ECHO AVATAR
@@ -191,13 +154,20 @@ export function AskYourVoice({
   onImportComplete,
   knowledgeBaseId,
 }: AskYourVoiceProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Persist messages to sessionStorage so deploys/reloads don't wipe the chat
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = sessionStorage.getItem('echome_voice_chat');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeImport, setActiveImport] = useState<{
+  const [backgroundImport, setBackgroundImport] = useState<{
     platform: string;
+    jobId: string;
     status: string;
-    progress: number;
     count?: number;
   } | null>(null);
   const [showUrlForm, setShowUrlForm] = useState<string | null>(null);
@@ -205,13 +175,18 @@ export function AskYourVoice({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Save messages to sessionStorage on change
+  useEffect(() => {
+    try { sessionStorage.setItem('echome_voice_chat', JSON.stringify(messages)); } catch {}
+  }, [messages]);
+
   useEffect(() => {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages, loading, activeImport, showUrlForm]);
+  }, [messages, loading, backgroundImport, showUrlForm]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -309,13 +284,11 @@ export function AskYourVoice({
     }
   };
 
-  // ─── URL import ───
+  // ─── URL import (background) ───
   const handleUrlImport = async (platform: string, url: string, isOwnContent: boolean) => {
     setShowUrlForm(null);
     let normalizedUrl = url;
     if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = `https://${normalizedUrl}`;
-
-    setActiveImport({ platform, status: 'Starting import...', progress: 0 });
 
     try {
       const result = await api.kbContent.startSocialImport({
@@ -328,7 +301,16 @@ export function AskYourVoice({
       if (!result.success || !result.jobId) throw new Error('Failed to start import');
 
       const jobId = result.jobId;
-      setActiveImport({ platform, status: 'Importing content...', progress: 10 });
+      const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1);
+
+      // Immediately confirm + show next actions (don't block the conversation)
+      setMessages(prev => [...prev,
+        { id: nextId(), role: 'assistant', content: `Got it. I'm importing your ${platformLabel} content in the background. This usually takes a minute or two. You can keep going while I work on it.` },
+        { id: nextId(), role: 'system', content: '', systemType: 'action-cards' },
+      ]);
+
+      // Poll silently in the background via banner
+      setBackgroundImport({ platform, jobId, status: `Importing ${platformLabel}...` });
 
       let pollCount = 0;
       let consecutiveErrors = 0;
@@ -337,41 +319,39 @@ export function AskYourVoice({
           const status = await api.kbContent.getSocialImportStatus(jobId);
           consecutiveErrors = 0;
           if (status.job) {
-            const pct = Math.min(10 + pollCount * 3, 90);
-            setActiveImport(prev => prev ? { ...prev, progress: pct, status: 'Importing content...', count: status.job?.contentCount } : null);
+            setBackgroundImport(prev => prev ? { ...prev, status: `Importing ${platformLabel}...`, count: status.job?.contentCount } : null);
 
             if (status.job.status === 'completed') {
               if (pollRef.current) clearInterval(pollRef.current);
-              setActiveImport(null);
+              setBackgroundImport(null);
               setMessages(prev => [...prev, {
                 id: nextId(), role: 'system',
-                content: `Imported ${status.job!.contentCount || 0} items from ${platform}. I'm now extracting patterns from your content. What else would you like to add?`,
+                content: `${platformLabel} import complete. ${status.job!.contentCount || 0} items added to your voice profile.`,
                 systemType: 'success',
               }]);
               onImportComplete();
             } else if (status.job.status === 'failed') {
               if (pollRef.current) clearInterval(pollRef.current);
-              setActiveImport(null);
+              setBackgroundImport(null);
               setMessages(prev => [...prev, { id: nextId(), role: 'system', content: status.job!.message || 'Import failed. Please check the URL and try again.', systemType: 'error' }]);
             }
           }
           pollCount++;
           if (pollCount > 60) {
             if (pollRef.current) clearInterval(pollRef.current);
-            setActiveImport(null);
-            setMessages(prev => [...prev, { id: nextId(), role: 'system', content: 'Import is taking longer than expected. It\'s still processing in the background. Check your Sources in a few minutes.', systemType: 'error' }]);
+            setBackgroundImport(null);
+            // Don't show error, it's still running on backend
+            setMessages(prev => [...prev, { id: nextId(), role: 'system', content: `${platformLabel} import is still running. You'll see the results in your Sources when it's done.`, systemType: 'success' }]);
           }
         } catch {
           consecutiveErrors++;
           if (consecutiveErrors >= 5) {
             if (pollRef.current) clearInterval(pollRef.current);
-            setActiveImport(null);
-            setMessages(prev => [...prev, { id: nextId(), role: 'system', content: 'Lost connection while checking import status. The import may still be processing.', systemType: 'error' }]);
+            setBackgroundImport(null);
           }
         }
       }, 5000);
     } catch (err) {
-      setActiveImport(null);
       setMessages(prev => [...prev, { id: nextId(), role: 'system', content: extractErrorMessage(err, 'Failed to start import. Please check the URL and try again.'), systemType: 'error' }]);
     }
   };
@@ -448,7 +428,6 @@ export function AskYourVoice({
       {/* Connect Socials */}
       <button
         onClick={handleConnectSocials}
-        disabled={!!activeImport}
         className="group relative flex flex-col items-start p-6 rounded-[1.5rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent/40 transition-all duration-300 text-left hover:-translate-y-1 disabled:opacity-50"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.5rem]" />
@@ -466,7 +445,6 @@ export function AskYourVoice({
       {/* Import Writing */}
       <button
         onClick={handleImportWriting}
-        disabled={!!activeImport}
         className="group relative flex flex-col items-start p-6 rounded-[1.5rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent-purple/40 transition-all duration-300 text-left hover:-translate-y-1 disabled:opacity-50"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.5rem]" />
@@ -484,7 +462,6 @@ export function AskYourVoice({
       {/* Record Voice */}
       <button
         onClick={handleRecordVoice}
-        disabled={!!activeImport}
         className="group relative flex flex-col items-start p-6 rounded-[1.5rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent/40 transition-all duration-300 text-left hover:-translate-y-1 disabled:opacity-50"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.5rem]" />
@@ -508,6 +485,18 @@ export function AskYourVoice({
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 blur-[120px] -z-10 rounded-full pointer-events-none" />
 
       {/* Messages */}
+      {/* Background import banner */}
+      {backgroundImport && (
+        <div className="flex-shrink-0 px-4 sm:px-6 py-2">
+          <div className="max-w-3xl mx-auto flex items-center gap-3 px-4 py-2.5 bg-accent/10 border border-accent/20 rounded-xl">
+            <Loader2 className="w-4 h-4 text-accent animate-spin flex-shrink-0" />
+            <span className="text-xs text-text-secondary">
+              {backgroundImport.status}{backgroundImport.count ? ` (${backgroundImport.count} found)` : ''}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="max-w-3xl mx-auto space-y-6">
           {messages.map(m => (
@@ -542,8 +531,7 @@ export function AskYourVoice({
                           <button
                             key={choice.id}
                             onClick={() => handleSubChoice(choice)}
-                            disabled={!!activeImport}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:border-accent/40 hover:bg-accent/5 transition-all text-sm font-medium text-text-primary disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:border-accent/40 hover:bg-accent/5 transition-all text-sm font-medium text-text-primary"
                           >
                             <Icon className="w-4 h-4 text-accent" />
                             {choice.label}
@@ -597,15 +585,6 @@ export function AskYourVoice({
             />
           )}
 
-          {/* Progress */}
-          {activeImport && (
-            <ImportProgressCard
-              status={activeImport.status}
-              progress={activeImport.progress}
-              count={activeImport.count}
-            />
-          )}
-
           {/* Loading */}
           {loading && (
             <div className="flex gap-3 items-start">
@@ -621,7 +600,7 @@ export function AskYourVoice({
           )}
 
           {/* Clear */}
-          {hasConversation && !loading && !activeImport && (
+          {hasConversation && !loading && (
             <div className="flex justify-end">
               <button onClick={handleClear} className="flex items-center gap-1 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors">
                 <X className="w-3 h-3" /> Clear
