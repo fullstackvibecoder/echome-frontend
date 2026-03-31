@@ -83,7 +83,7 @@ function FAQAccordion({ items }: { items: FAQItem[] }) {
       {items.map((item, idx) => (
         <div
           key={idx}
-          className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
+          className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all"
         >
           <button
             onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
@@ -95,12 +95,12 @@ function FAQAccordion({ items }: { items: FAQItem[] }) {
             {openIndex === idx ? (
               <ChevronUp className="w-5 h-5 text-primary flex-shrink-0" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             )}
           </button>
           {openIndex === idx && (
             <div className="px-5 pb-5 -mt-1">
-              <p className="text-gray-600 leading-relaxed">{item.answer}</p>
+              <p className="text-muted-foreground leading-relaxed">{item.answer}</p>
             </div>
           )}
         </div>
@@ -132,7 +132,7 @@ export function CommunitySection() {
   const categories = Object.entries(FAQ_CATEGORY_LABELS) as [FAQCategory, string][];
 
   return (
-    <section id="community" className="py-20 px-6 bg-gradient-to-br from-background to-white relative overflow-hidden">
+    <section id="community" className="py-20 px-6 bg-gradient-to-br from-background to-background relative overflow-hidden">
       <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-tl from-accent-purple/5 to-transparent rounded-full blur-3xl -z-10" />
 
@@ -150,20 +150,20 @@ export function CommunitySection() {
               This Alone
             </span>
           </h2>
-          <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">
             Weekly office hours, expert guests, and real conversations about using EchoMe well.
           </p>
         </div>
 
         {/* Tab Switcher */}
         <div className="flex justify-center mb-10">
-          <div className="inline-flex items-center bg-white/60 backdrop-blur-xl border-2 border-gray-200 rounded-2xl p-1.5 shadow-lg">
+          <div className="inline-flex items-center bg-card/60 backdrop-blur-xl border-2 border-border rounded-2xl p-1.5 shadow-lg">
             <button
               onClick={() => setActiveTab('office-hours')}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === 'office-hours'
                   ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                  : 'text-gray-600 hover:text-primary'
+                  : 'text-muted-foreground hover:text-primary'
               }`}
             >
               <Video className="w-4 h-4" />
@@ -174,7 +174,7 @@ export function CommunitySection() {
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === 'faq'
                   ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                  : 'text-gray-600 hover:text-primary'
+                  : 'text-muted-foreground hover:text-primary'
               }`}
             >
               <MessageCircle className="w-4 h-4" />
@@ -187,7 +187,7 @@ export function CommunitySection() {
         {activeTab === 'office-hours' && (
           <div className="space-y-8">
             {/* Hero Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-foreground via-gray-900 to-foreground p-8 md:p-12 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl bg-gray-900 p-8 md:p-12 shadow-2xl">
               <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/15 to-transparent rounded-full blur-3xl pointer-events-none" />
 
@@ -298,13 +298,13 @@ export function CommunitySection() {
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="p-6 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                  className="p-6 bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
                 >
                   <div className="w-10 h-10 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl flex items-center justify-center mb-3">
                     {item.icon}
                   </div>
                   <h4 className="font-bold text-foreground mb-1">{item.title}</h4>
-                  <p className="text-sm text-gray-600 font-light">{item.description}</p>
+                  <p className="text-sm text-muted-foreground font-light">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -318,7 +318,7 @@ export function CommunitySection() {
                     <Sparkles className="w-5 h-5 text-primary" />
                     <h3 className="text-lg font-extrabold text-foreground">Try EchoMe Before the Call</h3>
                   </div>
-                  <p className="text-gray-600 text-sm max-w-lg">
+                  <p className="text-muted-foreground text-sm max-w-lg">
                     2 free generations, no credit card. Try it before the call so you show up with real questions.
                   </p>
                 </div>
@@ -344,7 +344,7 @@ export function CommunitySection() {
                     return (
                       <div
                         key={session.id}
-                        className="flex items-start gap-4 p-5 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                        className="flex items-start gap-4 p-5 bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
                       >
                         {/* Date Block */}
                         <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary/10 to-accent-purple/10 rounded-xl flex flex-col items-center justify-center border border-primary/10">
@@ -359,7 +359,7 @@ export function CommunitySection() {
                               with {session.guest.name} - {session.guest.title}
                             </p>
                           )}
-                          <p className="text-sm text-gray-500 line-clamp-2">{session.description}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{session.description}</p>
                           <div className="flex gap-2 mt-2">
                             {session.tags.slice(0, 3).map((tag) => (
                               <span
@@ -386,18 +386,18 @@ export function CommunitySection() {
                   {PAST_SESSIONS.map((session) => (
                     <div
                       key={session.id}
-                      className="p-5 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all"
+                      className="p-5 bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-sm hover:shadow-md transition-all"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-bold text-foreground">{session.title}</h4>
-                        <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                        <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
                           {new Date(session.date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{session.description}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{session.description}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex gap-2">
                           {session.tags.slice(0, 2).map((tag) => (
@@ -433,13 +433,13 @@ export function CommunitySection() {
           <div className="space-y-6">
             {/* Search */}
             <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search questions..."
                 value={faqSearch}
                 onChange={(e) => setFaqSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-white/80 backdrop-blur-xl border-2 border-gray-200 rounded-2xl text-foreground placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                className="w-full pl-12 pr-4 py-3.5 bg-card/80 backdrop-blur-xl border-2 border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
               />
             </div>
 
@@ -450,7 +450,7 @@ export function CommunitySection() {
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   faqCategory === 'all'
                     ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                    : 'bg-white/80 border border-gray-200 text-gray-600 hover:text-primary hover:border-primary/30'
+                    : 'bg-card/80 border border-border text-muted-foreground hover:text-primary hover:border-primary/30'
                 }`}
               >
                 All
@@ -462,7 +462,7 @@ export function CommunitySection() {
                   className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                     faqCategory === key
                       ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                      : 'bg-white/80 border border-gray-200 text-gray-600 hover:text-primary hover:border-primary/30'
+                      : 'bg-card/80 border border-border text-muted-foreground hover:text-primary hover:border-primary/30'
                   }`}
                 >
                   {label}
@@ -475,7 +475,7 @@ export function CommunitySection() {
               <FAQAccordion items={filteredFaqs} />
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-500 mb-2">No questions match your search.</p>
+                <p className="text-muted-foreground mb-2">No questions match your search.</p>
                 <button
                   onClick={() => {
                     setFaqSearch('');
@@ -491,7 +491,7 @@ export function CommunitySection() {
             {/* Still have questions CTA */}
             <div className="text-center mt-8 p-8 bg-gradient-to-r from-primary/5 to-accent-purple/5 rounded-2xl border border-primary/10">
               <h3 className="text-lg font-bold text-foreground mb-2">Still have questions?</h3>
-              <p className="text-gray-600 text-sm mb-4">
+              <p className="text-muted-foreground text-sm mb-4">
                 Join our weekly office hours for live help, or sign up and use the in-app chat.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
@@ -504,7 +504,7 @@ export function CommunitySection() {
                 </button>
                 <a
                   href="/auth/signup"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-foreground rounded-xl font-semibold hover:border-primary/30 hover:text-primary transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-card border-2 border-border text-foreground rounded-xl font-semibold hover:border-primary/30 hover:text-primary transition-all"
                 >
                   Sign Up Free
                   <ArrowRight className="w-4 h-4" />

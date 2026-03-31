@@ -7,7 +7,7 @@ import { SectionCTA } from './SectionCTA';
 export function NotChatGPTSection() {
   return (
     <AnimatedSection>
-      <section className="py-24 px-6 bg-gradient-to-br from-gray-900 via-foreground to-gray-900 relative overflow-hidden">
+      <section className="py-24 px-6 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 relative overflow-hidden">
         {/* Single subtle gradient */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
 

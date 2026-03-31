@@ -32,7 +32,7 @@ export default function HomeContent() {
         Skip to main content
       </a>
       {/* Navigation */}
-      <nav className={`fixed w-full z-[999] transition-all duration-300 pointer-events-auto ${scrolled ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-lg' : 'bg-gray-900/50 backdrop-blur-md border-b border-white/10'}`}>
+      <nav className={`fixed w-full z-[999] transition-all duration-300 pointer-events-auto ${scrolled ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-lg' : 'bg-gray-900/50 backdrop-blur-md border-b border-white/10'}`}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3 group">
@@ -66,7 +66,7 @@ export default function HomeContent() {
 
           {/* Mobile menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-xl">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
                 <a href="#how" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">How It Works</a>
                 <a href="#output-showcase" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Examples</a>
@@ -115,7 +115,7 @@ export default function HomeContent() {
       <NotChatGPTSection />
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-6 bg-gradient-to-br from-background to-white relative overflow-hidden">
+      <section id="pricing" className="py-20 px-6 bg-gradient-to-br from-background to-background relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-primary/5 to-transparent rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-accent-purple/5 to-transparent rounded-full blur-3xl -z-10" />
 
@@ -126,7 +126,7 @@ export default function HomeContent() {
               <br />
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Plan</span>
             </h2>
-            <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
               Start with 2 free generations - no credit card required.
               <br />
               <span className="text-base">Then choose a plan that works with your creative rhythm.</span>
@@ -134,13 +134,13 @@ export default function HomeContent() {
 
             {/* Billing Period Toggle */}
             <div className="flex justify-center mt-12 mb-4">
-              <div className="inline-flex items-center bg-white/60 backdrop-blur-xl border-2 border-gray-200 rounded-2xl p-2 shadow-lg">
+              <div className="inline-flex items-center bg-card/60 backdrop-blur-xl border-2 border-border rounded-2xl p-2 shadow-lg">
                 <button
                   onClick={() => setBillingPeriod('monthly')}
                   className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${
                     billingPeriod === 'monthly'
                       ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                      : 'text-gray-600 hover:text-primary'
+                      : 'text-muted-foreground hover:text-primary'
                   }`}
                 >
                   Monthly
@@ -150,7 +150,7 @@ export default function HomeContent() {
                   className={`relative px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${
                     billingPeriod === 'annual'
                       ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                      : 'text-gray-600 hover:text-primary'
+                      : 'text-muted-foreground hover:text-primary'
                   }`}
                 >
                   Annual
@@ -165,22 +165,22 @@ export default function HomeContent() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
             {/* Free Tier */}
             <div className="relative group">
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border-2 border-gray-200 p-6 flex flex-col shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
+              <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl border-2 border-border p-6 flex flex-col shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-foreground mb-2">Free</h3>
-                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">See if it gets your voice right</p>
+                  <p className="text-sm font-normal text-muted-foreground mb-4 leading-relaxed">See if it gets your voice right</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold text-foreground">$0</span>
-                      <span className="text-sm font-light text-gray-500">forever</span>
+                      <span className="text-sm font-light text-muted-foreground">forever</span>
                     </div>
                   </div>
-                  <a href="/auth/signup" className="relative w-full px-4 py-3 bg-gray-100 text-foreground rounded-xl font-bold hover:bg-gray-200 transition-all duration-300 block text-center text-sm border border-gray-200">
+                  <a href="/auth/signup" className="relative w-full px-4 py-3 bg-muted text-foreground rounded-xl font-bold hover:bg-muted/80 transition-all duration-300 block text-center text-sm border border-border">
                     Start Free
                   </a>
                 </div>
                 <div className="flex-1">
-                  <div className="space-y-3 pt-4 border-t-2 border-gray-200">
+                  <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
                       '2 free generations',
                       'Voice matching from your content',
@@ -188,10 +188,10 @@ export default function HomeContent() {
                       'Standard templates',
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-3 h-3 text-gray-600" />
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-muted-foreground" />
                         </div>
-                        <span className="text-sm font-medium text-gray-700">{feature}</span>
+                        <span className="text-sm font-medium text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -202,16 +202,16 @@ export default function HomeContent() {
             {/* Echo - $29 */}
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-accent-purple/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-gray-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+              <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-foreground mb-2">Echo</h3>
-                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">For creators with a body of work to draw from</p>
+                  <p className="text-sm font-normal text-muted-foreground mb-4 leading-relaxed">For creators with a body of work to draw from</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
                         ${billingPeriod === 'monthly' ? '29' : '290'}
                       </span>
-                      <span className="text-sm font-light text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                      <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
                       <div className="mt-2 inline-block bg-gradient-to-r from-primary/10 to-primary-dark/10 border border-primary/30 rounded-lg px-2 py-0.5">
@@ -224,7 +224,7 @@ export default function HomeContent() {
                   </a>
                 </div>
                 <div className="flex-1">
-                  <div className="space-y-3 pt-4 border-t-2 border-gray-200">
+                  <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
                       '2 hours of video processing',
                       '5 clips per video',
@@ -239,7 +239,7 @@ export default function HomeContent() {
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-sm font-medium text-gray-700">{feature}</span>
+                        <span className="text-sm font-medium text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -270,7 +270,7 @@ export default function HomeContent() {
                       </div>
                     )}
                   </div>
-                  <a href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gradient-to-r from-foreground to-foreground text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
+                  <a href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
                     Go Studio
                   </a>
                 </div>
@@ -303,16 +303,16 @@ export default function HomeContent() {
             {/* Echo Pro - $99 */}
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple/30 to-accent-purple/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-accent-purple/40 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+              <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-accent-purple/40 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold text-foreground mb-2">Echo Pro</h3>
-                  <p className="text-sm font-normal text-gray-600 mb-4 leading-relaxed">For agencies and teams managing multiple voices</p>
+                  <p className="text-sm font-normal text-muted-foreground mb-4 leading-relaxed">For agencies and teams managing multiple voices</p>
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
                         ${billingPeriod === 'monthly' ? '99' : '990'}
                       </span>
-                      <span className="text-sm font-light text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                      <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
                     {billingPeriod === 'annual' && (
                       <div className="mt-2 inline-block bg-accent-purple/10 border border-accent-purple/30 rounded-lg px-2 py-0.5">
@@ -325,7 +325,7 @@ export default function HomeContent() {
                   </a>
                 </div>
                 <div className="flex-1">
-                  <div className="space-y-3 pt-4 border-t-2 border-gray-200">
+                  <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
                       'Unlimited video processing',
                       'Up to 15 clips per video',
@@ -343,7 +343,7 @@ export default function HomeContent() {
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-sm font-medium text-gray-700">{feature}</span>
+                        <span className="text-sm font-medium text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -362,7 +362,7 @@ export default function HomeContent() {
               <h3 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
                 Multi-Voice Management
               </h3>
-              <p className="text-gray-600 font-light max-w-2xl mx-auto">
+              <p className="text-muted-foreground font-light max-w-2xl mx-auto">
                 Manage multiple voices from one account. Everything in Echo Pro, plus per-voice knowledge bases and profile context.
               </p>
             </div>
@@ -371,16 +371,16 @@ export default function HomeContent() {
               {/* EchoTeams Duo - $129 */}
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple/20 to-primary/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-gray-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                   <div className="mb-6">
                     <h3 className="text-2xl font-extrabold text-foreground mb-1">EchoTeams Duo</h3>
-                    <p className="text-sm font-normal text-gray-600 mb-4">2 voices</p>
+                    <p className="text-sm font-normal text-muted-foreground mb-4">2 voices</p>
                     <div className="mb-3">
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
                           ${billingPeriod === 'monthly' ? '129' : '1,075'}
                         </span>
-                        <span className="text-sm font-light text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                        <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                       </div>
                       {billingPeriod === 'annual' && (
                         <div className="mt-2 inline-block bg-accent-purple/10 border border-accent-purple/30 rounded-lg px-2 py-0.5">
@@ -393,7 +393,7 @@ export default function HomeContent() {
                     </a>
                   </div>
                   <div className="flex-1">
-                    <div className="space-y-3 pt-4 border-t-2 border-gray-200">
+                    <div className="space-y-3 pt-4 border-t-2 border-border">
                       {[
                         'Everything in Echo Pro',
                         '2 distinct voice profiles',
@@ -410,7 +410,7 @@ export default function HomeContent() {
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Check className="w-3 h-3 text-white" />
                           </div>
-                          <span className="text-sm font-medium text-gray-700">{feature}</span>
+                          <span className="text-sm font-medium text-foreground">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -441,7 +441,7 @@ export default function HomeContent() {
                         </div>
                       )}
                     </div>
-                    <a href="/auth/signup?plan=echo-teams-5" className="relative w-full px-4 py-3 bg-gradient-to-r from-foreground to-foreground text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
+                    <a href="/auth/signup?plan=echo-teams-5" className="relative w-full px-4 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
                       Get Started
                     </a>
                   </div>
@@ -474,16 +474,16 @@ export default function HomeContent() {
               {/* EchoTeams Agency - $249 */}
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple/20 to-primary/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-gray-200 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
+                <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                   <div className="mb-6">
                     <h3 className="text-2xl font-extrabold text-foreground mb-1">EchoTeams Agency</h3>
-                    <p className="text-sm font-normal text-gray-600 mb-4">10 voices</p>
+                    <p className="text-sm font-normal text-muted-foreground mb-4">10 voices</p>
                     <div className="mb-3">
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
                           ${billingPeriod === 'monthly' ? '249' : '2,075'}
                         </span>
-                        <span className="text-sm font-light text-gray-500">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                        <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                       </div>
                       {billingPeriod === 'annual' && (
                         <div className="mt-2 inline-block bg-accent-purple/10 border border-accent-purple/30 rounded-lg px-2 py-0.5">
@@ -496,7 +496,7 @@ export default function HomeContent() {
                     </a>
                   </div>
                   <div className="flex-1">
-                    <div className="space-y-3 pt-4 border-t-2 border-gray-200">
+                    <div className="space-y-3 pt-4 border-t-2 border-border">
                       {[
                         'Everything in Echo Pro',
                         '10 distinct voice profiles',
@@ -513,7 +513,7 @@ export default function HomeContent() {
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Check className="w-3 h-3 text-white" />
                           </div>
-                          <span className="text-sm font-medium text-gray-700">{feature}</span>
+                          <span className="text-sm font-medium text-foreground">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -524,10 +524,10 @@ export default function HomeContent() {
           </div>
 
           {/* Enterprise CTA */}
-          <div className="max-w-3xl mx-auto text-center mt-12 p-8 bg-gradient-to-r from-foreground to-foreground rounded-3xl">
+          <div className="max-w-3xl mx-auto text-center mt-12 p-8 bg-gray-900 rounded-3xl">
             <h3 className="text-2xl font-bold text-white mb-2">Need Enterprise Features?</h3>
             <p className="text-white/70 mb-4 text-sm">API access, 4K exports, team collaboration, white-label options, and custom integrations.</p>
-            <a href="mailto:enterprise@tryechome.com" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-foreground rounded-xl font-bold hover:bg-gray-100 transition-all">
+            <a href="mailto:enterprise@tryechome.com" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-all">
               <Mail className="w-4 h-4" />
               Contact Sales
             </a>
@@ -539,7 +539,7 @@ export default function HomeContent() {
       <CommunitySection />
 
       {/* Affiliate Program */}
-      <section className="py-20 px-6 bg-gradient-to-br from-foreground via-gray-900 to-foreground text-white relative overflow-hidden">
+      <section className="py-20 px-6 bg-gray-900 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/15 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 

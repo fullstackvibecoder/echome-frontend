@@ -34,7 +34,7 @@ const steps = [
 export function HowItWorks() {
   return (
     <AnimatedSection>
-      <section id="how" className="py-24 px-6 bg-white relative overflow-hidden">
+      <section id="how" className="py-24 px-6 bg-background relative overflow-hidden">
         {/* Single subtle gradient */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
 
@@ -44,7 +44,7 @@ export function HowItWorks() {
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground">
               How It Works
             </h2>
-            <p className="text-xl text-gray-600 font-light max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
               Four steps. Your history goes in, your content comes out.
             </p>
           </div>
@@ -56,13 +56,13 @@ export function HowItWorks() {
               return (
                 <div key={step.num} className="relative group">
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent-purple rounded-3xl blur-lg opacity-0 group-hover:opacity-15 transition-opacity" />
-                  <div className="relative bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all h-full">
+                  <div className="relative bg-card rounded-2xl p-6 border border-border shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all h-full">
                     <div className="w-12 h-12 mb-4 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="text-sm font-bold text-primary mb-2">Step {step.num}</div>
                     <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">{step.title}</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                   </div>
                 </div>
               );
@@ -80,7 +80,7 @@ export function HowItWorks() {
               Start Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
-            <p className="text-sm text-gray-500 font-light mt-3">
+            <p className="text-sm text-muted-foreground font-light mt-3">
               No credit card. 2 free generations.
             </p>
           </div>

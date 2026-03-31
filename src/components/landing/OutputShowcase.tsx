@@ -36,7 +36,7 @@ export function OutputShowcase() {
 
   return (
     <AnimatedSection>
-      <section id="output-showcase" className="pt-16 pb-32 px-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
+      <section id="output-showcase" className="pt-16 pb-32 px-6 bg-gradient-to-b from-secondary via-background to-secondary relative overflow-hidden">
         {/* Ambient gradients */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-accent-purple/5 rounded-full blur-3xl -z-10" />
@@ -54,7 +54,7 @@ export function OutputShowcase() {
               </span>
             </h2>
 
-            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-3xl mx-auto leading-relaxed">
               Real product output. No mockups. This is what comes out of every video you upload.
             </p>
           </div>
@@ -74,7 +74,7 @@ export function OutputShowcase() {
                   className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg'
-                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                      : 'bg-card text-muted-foreground hover:bg-secondary border border-border'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -85,12 +85,12 @@ export function OutputShowcase() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8 md:p-12" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+          <div className="bg-card rounded-2xl border border-border shadow-xl p-8 md:p-12" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
             {activeTab === 'reels' && (
               <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {viralReels.map((reel, i) => (
-                    <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
+                    <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-border hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
                       <Image
                         src={reel.image}
                         alt={reel.label}
@@ -103,7 +103,7 @@ export function OutputShowcase() {
                     </div>
                   ))}
                 </div>
-                <p className="text-center text-gray-600 mt-8 text-base leading-relaxed">
+                <p className="text-center text-muted-foreground mt-8 text-base leading-relaxed">
                   Vertical reels with auto-generated captions, optimized for Instagram, TikTok, and YouTube Shorts.
                 </p>
               </div>
@@ -113,10 +113,10 @@ export function OutputShowcase() {
               <div className="max-w-6xl mx-auto space-y-12">
                 {/* Tweet Style Carousels */}
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Tweet Style</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-4 text-center">Tweet Style</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {tweetCarousels.map((carousel, i) => (
-                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-accent-purple/30 transition-all hover:shadow-2xl hover:-translate-y-1">
+                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-border hover:border-accent-purple/30 transition-all hover:shadow-2xl hover:-translate-y-1">
                         <Image
                           src={carousel.image}
                           alt={carousel.label}
@@ -133,10 +133,10 @@ export function OutputShowcase() {
 
                 {/* Custom Background Carousels */}
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Custom Backgrounds</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-4 text-center">Custom Backgrounds</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {bgCarousels.map((carousel, i) => (
-                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
+                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-border hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
                         <Image
                           src={carousel.image}
                           alt={carousel.label}
@@ -151,7 +151,7 @@ export function OutputShowcase() {
                   </div>
                 </div>
 
-                <p className="text-center text-gray-600 text-base leading-relaxed">
+                <p className="text-center text-muted-foreground text-base leading-relaxed">
                   Multi-slide carousel posts ready for LinkedIn, Instagram, and Twitter. Choose tweet-style or custom backgrounds.
                 </p>
               </div>
@@ -160,7 +160,7 @@ export function OutputShowcase() {
             {activeTab === 'posts' && (
               <div className="max-w-6xl mx-auto">
                 {/* Real Product UI Screenshot */}
-                <div className="relative border-2 border-gray-200 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="relative border-2 border-border rounded-2xl overflow-hidden shadow-2xl">
                   <Image
                     src="/showcase/new/text-content-output.png"
                     alt="Text content for all platforms"
@@ -172,10 +172,10 @@ export function OutputShowcase() {
                   />
                 </div>
                 <div className="mt-8 text-center">
-                  <p className="text-lg text-gray-700 font-medium mb-3">
+                  <p className="text-lg text-foreground font-medium mb-3">
                     Six platforms. One video. Full text content ready to post.
                   </p>
-                  <p className="text-gray-600 text-base leading-relaxed max-w-3xl mx-auto">
+                  <p className="text-muted-foreground text-base leading-relaxed max-w-3xl mx-auto">
                     LinkedIn, Twitter/X, Instagram, TikTok, Blog Post, and Newsletter-all generated with your voice and tone. Each includes a Copy button and Add to Calendar integration.
                   </p>
                 </div>
@@ -194,7 +194,7 @@ export function OutputShowcase() {
               Get Your Content Kit
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
-            <p className="text-sm text-gray-500 font-light mt-3">
+            <p className="text-sm text-muted-foreground font-light mt-3">
               Upload a video and see the magic - no credit card required
             </p>
           </div>
