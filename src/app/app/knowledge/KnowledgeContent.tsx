@@ -74,7 +74,7 @@ export default function KnowledgeContent() {
     contentItems, contentStats, loading, selectedKb, selectKb, deleteContent, refresh,
   } = useKnowledgeBase(isTeamsUser ? activeVoice?.knowledgeBaseId : undefined);
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
-  const { data: voiceStrength } = useVoiceStrength();
+  const { data: voiceStrength, refresh: refreshVoiceStrength } = useVoiceStrength();
 
   // Ref to inject messages into chat after modal success
   const chatResultRef = useRef<((type: string, message: string) => void) | null>(null);
@@ -156,6 +156,7 @@ export default function KnowledgeContent() {
     }
 
     await refresh();
+    refreshVoiceStrength();
   };
 
   // MBOX pipeline (unchanged logic, adds chat notification)
@@ -203,6 +204,7 @@ export default function KnowledgeContent() {
       setMboxResult({ emailsIngested: result.emailsIngested, chunksCreated: result.chunksCreated });
       notifyChat('email', `${result.emailsIngested} emails imported. What else would you like to add?`);
       await refresh();
+      refreshVoiceStrength();
     } catch (err) {
       toast.error(`Failed to import emails: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
@@ -232,22 +234,27 @@ export default function KnowledgeContent() {
   // Paste success handler
   const handlePasteSuccess = () => {
     refresh();
+    refreshVoiceStrength();
     notifyChat('paste', 'Writing sample added to your voice profile. What else would you like to add?');
   };
 
-  // Voice success handler
   const handleVoiceSuccess = () => {
     setShowVoiceModal(false);
     refresh();
+    refreshVoiceStrength();
     notifyChat('voice', 'Voice recording transcribed and added. What else would you like to add?');
   };
 
-  // Social/blog import complete handler
   const handleSocialImportComplete = () => {
     refresh();
-    // Note: URL imports from chat have their own inline success handling
-    // This handler is for imports via the Sources drawer SocialImportModal
+    refreshVoiceStrength();
   };
+
+  // Refresh voice strength after inline URL imports complete (called from AskYourVoice)
+  const handleImportComplete = useCallback(() => {
+    refresh();
+    refreshVoiceStrength();
+  }, [refresh, refreshVoiceStrength]);
 
   // Voice strength
   const tier = voiceStrength ? getStrengthTier(voiceStrength.overallStrength) : null;
@@ -363,7 +370,7 @@ export default function KnowledgeContent() {
             contentSummary={hasContent ? buildContentSummary(bySourceType) : undefined}
             hasContent={hasContent}
             onOpenModal={handleOpenModal}
-            onImportComplete={refresh}
+            onImportComplete={handleImportComplete}
             knowledgeBaseId={selectedKb ?? undefined}
           />
         </div>
