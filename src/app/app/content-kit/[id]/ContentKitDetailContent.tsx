@@ -639,7 +639,6 @@ export default function ContentKitDetailContent() {
                           <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-[#3A3A3C] shadow-xl">
                             <VideoPlayer
                               src={detail.clips[activeClipIndex].splitScreenUrl!}
-                              poster={detail.clips[activeClipIndex].thumbnailUrl}
                               aspectRatio="9:16"
                               duration={detail.clips[activeClipIndex].duration}
                               className="max-h-[500px]"
