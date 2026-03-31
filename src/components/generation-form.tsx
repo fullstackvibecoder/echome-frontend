@@ -12,7 +12,7 @@ import { InfoTooltip } from './info-tooltip';
 import { StylePicker, StyleOption } from './style-picker';
 import { setActiveGeneration } from './generation-banner';
 import { showErrorToast } from '@/lib/toast';
-import { Upload, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, Film, PenLine, Mic, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react';
+import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, Film, PenLine, Mic, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -230,24 +230,37 @@ function VoiceInputPanel({
 // VIDEO PROCESSING TIPS - Engaging messages per stage
 // ============================================
 
-const VIDEO_PROCESSING_STAGES: Array<{
+type VideoSourceType = 'upload' | 'youtube' | 'instagram' | 'url';
+
+const FIRST_STEP_BY_SOURCE: Record<VideoSourceType, { title: string; description: string; icon: LucideIcon }> = {
+  upload:    { title: 'Uploading video',      description: 'Sending your video to our processing servers...', icon: Upload },
+  youtube:   { title: 'Downloading video',    description: 'Fetching video from YouTube...',                  icon: Download },
+  instagram: { title: 'Downloading video',    description: 'Fetching video from Instagram...',                icon: Download },
+  url:       { title: 'Downloading video',    description: 'Fetching video from URL...',                      icon: Download },
+};
+
+function getVideoProcessingStages(source: VideoSourceType): Array<{
   key: string;
   icon: LucideIcon;
   title: string;
   description: string;
-}> = [
-  { key: 'uploading',    icon: Upload,           title: 'Uploading video',        description: 'Sending your video to our processing servers...' },
-  { key: 'transcribing', icon: Headphones,       title: 'Transcribing audio',     description: 'Converting speech to text with speaker detection.' },
-  { key: 'analyzing',    icon: Brain,            title: 'Analyzing content',      description: 'Identifying the most engaging moments in your video.' },
-  { key: 'extracting',   icon: Scissors,         title: 'Extracting clips',       description: 'Cutting highlight clips optimized for social media.' },
-  { key: 'captioning',   icon: MessageSquareText, title: 'Adding captions',       description: 'Generating word-level captions for accessibility.' },
-  { key: 'generating',   icon: Sparkles,         title: 'Generating content kit', description: 'Writing platform-optimized posts from your transcript.' },
-];
+}> {
+  const first = FIRST_STEP_BY_SOURCE[source];
+  return [
+    { key: 'uploading',    icon: first.icon,       title: first.title,              description: first.description },
+    { key: 'transcribing', icon: Headphones,       title: 'Transcribing audio',     description: 'Converting speech to text with speaker detection.' },
+    { key: 'analyzing',    icon: Brain,            title: 'Analyzing content',      description: 'Identifying the most engaging moments in your video.' },
+    { key: 'extracting',   icon: Scissors,         title: 'Extracting clips',       description: 'Cutting highlight clips optimized for social media.' },
+    { key: 'captioning',   icon: MessageSquareText, title: 'Adding captions',       description: 'Generating word-level captions for accessibility.' },
+    { key: 'generating',   icon: Sparkles,         title: 'Generating content kit', description: 'Writing platform-optimized posts from your transcript.' },
+  ];
+}
 
-// Lookup map for poll function and button text
-const VIDEO_PROCESSING_STAGES_MAP = Object.fromEntries(
-  VIDEO_PROCESSING_STAGES.map(s => [s.key, s])
-) as Record<string, (typeof VIDEO_PROCESSING_STAGES)[number]>;
+// Lookup map — built from upload stages as default, overridden at render time
+function getStagesMap(source: VideoSourceType) {
+  const stages = getVideoProcessingStages(source);
+  return Object.fromEntries(stages.map(s => [s.key, s])) as Record<string, ReturnType<typeof getVideoProcessingStages>[number]>;
+}
 
 function formatElapsed(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -407,6 +420,7 @@ export function GenerationForm({
   const [videoProcessingStatus, setVideoProcessingStatus] = useState<string | null>(null);
   const [videoProcessingProgress, setVideoProcessingProgress] = useState(0);
   const [videoProcessingStage, setVideoProcessingStage] = useState<string>('uploading');
+  const [videoSourceType, setVideoSourceType] = useState<'upload' | 'youtube' | 'instagram' | 'url'>('upload');
   const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -507,9 +521,11 @@ export function GenerationForm({
     sourceUrl?: string
   ) => {
     try {
+      const effectiveSource = sourceType || 'upload';
+      setVideoSourceType(effectiveSource);
       setVideoProcessing(true);
       setVideoProcessingStage('uploading');
-      setVideoProcessingStatus('Uploading video...');
+      setVideoProcessingStatus(FIRST_STEP_BY_SOURCE[effectiveSource].title + '...');
       setVideoProcessingProgress(0);
       setUploadError(null);
 
@@ -623,7 +639,7 @@ export function GenerationForm({
 
             // Update stage and progress
             setVideoProcessingStage(status);
-            const stageInfo = VIDEO_PROCESSING_STAGES_MAP[status];
+            const stageInfo = getStagesMap(videoSourceType)[status];
             setVideoProcessingStatus(stageInfo?.title || `Processing: ${status}`);
             setVideoProcessingProgress(progressByStatus[status] || 50);
 
@@ -1189,12 +1205,12 @@ export function GenerationForm({
               <div className="py-6 px-2 text-left">
                 {/* Vertical Step Timeline */}
                 <div className="space-y-0">
-                  {VIDEO_PROCESSING_STAGES.map((stage, idx) => {
-                    const activeIdx = VIDEO_PROCESSING_STAGES.findIndex(s => s.key === videoProcessingStage);
+                  {getVideoProcessingStages(videoSourceType).map((stage, idx, stages) => {
+                    const activeIdx = stages.findIndex(s => s.key === videoProcessingStage);
                     const isCompleted = activeIdx >= 0 ? idx < activeIdx : videoProcessingStage === 'completed';
                     const isActive = idx === activeIdx;
                     const isFuture = !isCompleted && !isActive;
-                    const isLast = idx === VIDEO_PROCESSING_STAGES.length - 1;
+                    const isLast = idx === stages.length - 1;
                     const StageIcon = stage.icon;
 
                     return (
@@ -1653,7 +1669,7 @@ export function GenerationForm({
               ) : videoProcessing ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  {VIDEO_PROCESSING_STAGES_MAP[videoProcessingStage]?.title || 'Processing video...'}
+                  {getStagesMap(videoSourceType)[videoProcessingStage]?.title || 'Processing video...'}
                 </span>
               ) : generating ? (
                 <span className="flex items-center justify-center gap-2">
