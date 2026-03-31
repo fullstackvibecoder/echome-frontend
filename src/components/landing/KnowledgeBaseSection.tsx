@@ -1,75 +1,97 @@
 'use client';
 
-import { Youtube, Link2, Mail, Mic } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, ArrowDown } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
-
-const sources = [
-  {
-    icon: Youtube,
-    title: 'YouTube Channel',
-    desc: 'Paste a link. Your back catalog gets transcribed and indexed.',
-  },
-  {
-    icon: Link2,
-    title: 'Blog / Website',
-    desc: 'Paste a URL. Published writing gets pulled in automatically.',
-  },
-  {
-    icon: Mail,
-    title: 'Sent Emails',
-    desc: 'Export from Gmail. Your real writing patterns, word choices, tone.',
-  },
-  {
-    icon: Mic,
-    title: 'Voice Recording',
-    desc: 'Just talk. The system transcribes and stores it.',
-  },
-];
 
 export function KnowledgeBaseSection() {
   return (
     <AnimatedSection>
       <section className="py-24 px-6 bg-gradient-to-b from-background to-secondary relative overflow-hidden">
-        {/* Single subtle gradient */}
+        {/* Ambient gradient */}
         <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground">
-              The Context
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground leading-tight">
+              One Video In.{' '}
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                {' '}Behind Your Voice
+                Everything Out.
               </span>
             </h2>
-
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              You&apos;ve already created the content. Echo reads it, indexes your language and ideas, and uses that context every time it writes for you.
+              Drop a video, get a week of content. Every piece is grounded in your voice because the system already knows how you think.
             </p>
           </div>
 
-          {/* Sources Grid - 2x2 for visual differentiation */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
-            {sources.map((source) => (
-              <div key={source.title} className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent-purple/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative bg-card rounded-2xl p-6 border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all h-full">
-                  <div className="w-12 h-12 mb-4 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center">
-                    <source.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="font-bold text-foreground mb-2 text-lg">{source.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{source.desc}</p>
-                </div>
+          {/* Visual: Input → Output flow */}
+          <div className="grid lg:grid-cols-2 gap-8 items-start mb-12">
+            {/* Left: Input — what goes in */}
+            <div className="space-y-4">
+              <div className="text-sm font-bold text-primary uppercase tracking-widest mb-4">What goes in</div>
+              <div className="rounded-2xl overflow-hidden border border-border shadow-xl">
+                <Image
+                  src="/showcase/platform/upload-video.png"
+                  alt="Upload Video interface — drop a podcast, interview, or talking-head video"
+                  width={800}
+                  height={500}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="w-full h-auto"
+                />
               </div>
-            ))}
+              <p className="text-sm text-muted-foreground text-center">
+                Any video. YouTube link, file upload, or paste a URL.
+              </p>
+            </div>
+
+            {/* Right: Output — what comes out */}
+            <div className="space-y-4">
+              <div className="text-sm font-bold text-accent-purple uppercase tracking-widest mb-4">What comes out</div>
+              <div className="rounded-2xl overflow-hidden border border-border shadow-xl">
+                <Image
+                  src="/showcase/platform/written-content.png"
+                  alt="Written content generated for LinkedIn, Twitter, Instagram, TikTok, blog, and email"
+                  width={800}
+                  height={500}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Posts, carousels, clips, blog drafts, captions — all in your voice.
+              </p>
+            </div>
           </div>
 
-          {/* KB Explanation */}
-          <div className="bg-gray-900 rounded-2xl p-8 md:p-10 text-center">
-            <h3 className="text-2xl font-bold text-white mb-4">Why Does It Sound Like You?</h3>
-            <p className="text-white/70 max-w-3xl mx-auto leading-relaxed text-lg">
-              Every generation pulls from pieces of your actual writing. Your ideas, your phrasing, your perspective. That&apos;s the difference between content <span className="text-white font-semibold">from</span> you and content <span className="text-white font-semibold">about</span> you.
-            </p>
+          {/* The "why" — dark callout */}
+          <div className="bg-gray-900 rounded-2xl p-8 md:p-12 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative z-10 grid md:grid-cols-3 gap-8 text-center">
+              {[
+                {
+                  stat: '6',
+                  label: 'platforms',
+                  detail: 'LinkedIn, Twitter/X, Instagram, TikTok, Blog, Email',
+                },
+                {
+                  stat: '15+',
+                  label: 'content pieces',
+                  detail: 'Posts, carousels, clips, captions, blog drafts',
+                },
+                {
+                  stat: '1',
+                  label: 'video',
+                  detail: 'That\u2019s all it takes. Your voice does the rest.',
+                },
+              ].map((item) => (
+                <div key={item.label}>
+                  <div className="text-5xl md:text-6xl font-black text-primary mb-1">{item.stat}</div>
+                  <div className="text-lg font-bold text-white mb-2">{item.label}</div>
+                  <p className="text-sm text-white/60">{item.detail}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
