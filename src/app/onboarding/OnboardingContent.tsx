@@ -520,7 +520,7 @@ export default function OnboardingContent() {
                     type="text"
                     value={twitterHandle}
                     onChange={e => setTwitterHandle(e.target.value)}
-                    placeholder="twitter (optional)"
+                    placeholder="X handle (optional)"
                     className="w-full pl-7 pr-3 py-2.5 text-sm border border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30"
                   />
                 </div>
