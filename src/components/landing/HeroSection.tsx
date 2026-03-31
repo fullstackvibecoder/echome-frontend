@@ -1,99 +1,97 @@
 'use client';
 
-import { ArrowRight, Play, Upload } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { HeroDemoVideo } from './HeroDemoVideo';
 
 export function HeroSection() {
   return (
-    <section className="min-h-screen flex items-center px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 pointer-events-none" />
+    <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+      {/* Dark background */}
+      <div className="absolute inset-0 bg-gray-900 pointer-events-none" />
 
-      {/* Single ambient gradient for depth */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
+      {/* Ambient background blobs */}
+      <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/4 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -z-0 w-[400px] h-[400px] bg-accent-purple/10 blur-[100px] rounded-full -translate-x-1/4 translate-y-1/4 pointer-events-none" />
 
-      <div className="max-w-[1400px] mx-auto pt-24 pb-16 w-full relative z-10">
-        <div className="flex flex-col items-center text-center">
-          {/* Badge */}
-          <div
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur border border-white/20 rounded-full mb-6 opacity-0 animate-fade-in"
-            style={{ animationDelay: '0ms' }}
-          >
-            <Upload className="w-4 h-4 text-primary" />
-            <span className="text-white/90 font-medium text-sm">For creators who already have a body of work</span>
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Content Left */}
+          <div className="flex flex-col space-y-10">
+            <div className="space-y-6">
+              {/* Badge */}
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 opacity-0 animate-fade-in"
+                style={{ animationDelay: '0ms' }}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-primary font-bold text-xs tracking-widest uppercase">Content Transformation</span>
+              </div>
+
+              {/* Headline */}
+              <h1
+                className="font-headline text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight opacity-0 animate-fade-in"
+                style={{ animationDelay: '200ms' }}
+              >
+                It Already Knows How{' '}
+                <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
+                  You Think.
+                </span>
+              </h1>
+
+              {/* Value prop */}
+              <p
+                className="text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
+                style={{ animationDelay: '300ms' }}
+              >
+                Stop starting from zero. EchoMe transforms your raw videos into a full week of social media posts in your unique voice.
+              </p>
+            </div>
+
+            {/* CTAs */}
+            <div
+              className="flex flex-wrap items-center gap-6 opacity-0 animate-fade-in"
+              style={{ animationDelay: '400ms' }}
+            >
+              <a
+                href="/auth/signup"
+                className="px-10 py-4 bg-gradient-to-r from-primary to-primary-dark text-white
+                           rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all
+                           shadow-lg shadow-primary/30 flex items-center gap-3 group"
+              >
+                Start Free
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a
+                href="#output-showcase"
+                className="px-8 py-4 rounded-full font-bold text-lg text-white hover:bg-white/5 transition-all flex items-center gap-3"
+              >
+                See Examples
+              </a>
+            </div>
+
+            {/* Social Proof */}
+            <div
+              className="flex items-center gap-4 pt-2 opacity-0 animate-fade-in"
+              style={{ animationDelay: '500ms' }}
+            >
+              <div className="flex -space-x-3">
+                <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/60 to-accent-purple/60" />
+                <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-accent-purple/60 to-primary/60" />
+                <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/40 to-accent-purple/80" />
+              </div>
+              <div className="text-sm">
+                <p className="text-white font-bold">5,000+ Creators</p>
+                <p className="text-white/50">Scaling their voice effortlessly</p>
+              </div>
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1
-            className="text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-[1.1] opacity-0 animate-fade-in"
-            style={{ animationDelay: '200ms' }}
-          >
-            <span className="text-white">It Already Knows</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-              How You Think.
-            </span>
-          </h1>
-
-          {/* One-line value prop */}
-          <p
-            className="text-lg md:text-xl text-white/80 font-light mb-8 max-w-2xl opacity-0 animate-fade-in"
-            style={{ animationDelay: '300ms' }}
-          >
-            EchoMe reads your past content, learns your voice, and generates new work that sounds like it came from you.
-          </p>
-
-          {/* CTAs - ABOVE the demo */}
+          {/* Visual Right: Video with floating cards */}
           <div
-            className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-3 opacity-0 animate-fade-in"
-            style={{ animationDelay: '400ms' }}
-          >
-            <a
-              href="/auth/signup"
-              className="px-10 py-5 bg-gradient-to-r from-primary to-primary-dark text-white
-                         rounded-xl font-bold hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all
-                         shadow-lg text-xl flex items-center gap-2 group w-full sm:w-auto justify-center"
-            >
-              Start Free
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a
-              href="#demo"
-              className="text-white/80 hover:text-white font-medium text-lg flex items-center gap-2 transition-colors group"
-            >
-              <Play className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-              Watch Demo
-            </a>
-          </div>
-
-          {/* Trust signal - right under CTA */}
-          <p
-            className="text-sm text-white/70 font-normal mb-10 opacity-0 animate-fade-in"
+            id="demo"
+            className="relative opacity-0 animate-fade-in"
             style={{ animationDelay: '500ms' }}
           >
-            No credit card. 2 free generations.
-          </p>
-
-          {/* Social proof bar */}
-          <div
-            className="flex flex-wrap items-center justify-center gap-6 mb-10 opacity-0 animate-fade-in"
-            style={{ animationDelay: '550ms' }}
-          >
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-primary font-bold text-base">Context-aware</span>
-              <span className="text-white/80 text-base">not prompt-driven</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-accent-purple font-bold text-base">Your voice</span>
-              <span className="text-white/80 text-base">not generic AI</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur border border-white/15 rounded-full">
-              <span className="text-primary font-bold text-base">Learns</span>
-              <span className="text-white/80 text-base">from what you&apos;ve already made</span>
-            </div>
-          </div>
-
-          {/* Product Demo Video */}
-          <div id="demo" className="w-full opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
             <HeroDemoVideo />
           </div>
         </div>
