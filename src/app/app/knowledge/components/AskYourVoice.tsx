@@ -29,9 +29,9 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 const VOICE_PROMPTS = [
-  { label: 'How strong is my voice?', prompt: 'How well do you know my voice? What areas need more content?' },
-  { label: 'What do I sound like?', prompt: 'Summarize my writing voice in 3 sentences based on what you\'ve learned' },
-  { label: 'What should I add next?', prompt: 'What types of content should I add to strengthen my voice profile?' },
+  { label: 'How close is the match?', prompt: 'How well do you know my voice right now? What would make the match stronger?' },
+  { label: 'Describe my style', prompt: 'Summarize my writing voice in 3 sentences based on what you\'ve learned so far' },
+  { label: 'What am I missing?', prompt: 'What types of content am I missing that would help you sound more like me?' },
 ];
 
 // ============================================
@@ -439,7 +439,7 @@ export function AskYourVoice({
               <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="text-sm font-medium text-text-primary flex-1">Ask Echo about your voice</span>
+              <span className="text-sm font-medium text-text-primary flex-1">See what Echo learned about you</span>
               <ArrowRight className={`w-4 h-4 text-text-tertiary transition-transform ${echoOpen ? 'rotate-90' : ''}`} />
             </button>
 
@@ -497,7 +497,7 @@ export function AskYourVoice({
                     value={echoInput}
                     onChange={e => setEchoInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') sendEchoMessage(); }}
-                    placeholder="Ask about your voice..."
+                    placeholder="Ask Echo anything about your content style..."
                     disabled={echoLoading}
                     className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all disabled:opacity-50"
                   />
