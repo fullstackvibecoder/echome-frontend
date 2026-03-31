@@ -48,7 +48,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Your Voice',
     items: [
-      { id: 'knowledge', label: 'Build Your Voice', icon: Brain, path: '/app/knowledge' },
+      { id: 'knowledge', label: 'Knowledge Base', icon: Brain, path: '/app/knowledge' },
       { id: 'team-voices', label: 'Team Voices', icon: Mic, path: '/app/team-voices', teamsOnly: true },
       { id: 'library', label: 'Creator Library', icon: FolderOpen, path: '/app/library' },
     ],
