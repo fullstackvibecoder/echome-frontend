@@ -161,9 +161,24 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle network errors
+    // Handle network errors and server errors — report to Sentry
     if (!error.response) {
       console.error('Network error:', error.message);
+    }
+
+    // Report 5xx and network errors to Sentry (not 4xx which are expected)
+    const status = error.response?.status;
+    if (!status || status >= 500) {
+      import('@sentry/nextjs').then((Sentry) => {
+        Sentry.captureException(error, {
+          extra: {
+            url: error.config?.url,
+            method: error.config?.method,
+            status,
+            context: 'api_client',
+          },
+        });
+      }).catch(() => {}); // Sentry import failure should never break the app
     }
 
     return Promise.reject(error);
