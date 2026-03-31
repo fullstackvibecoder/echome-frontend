@@ -504,7 +504,8 @@ export const api = {
 
     getRequest: async (id: string) => {
       const response = await apiClient.get<ApiResponse<any>>(
-        `/generate/${id}`
+        `/generate/${id}`,
+        { timeout: GENERATION_TIMEOUT }
       );
 
       // Transform snake_case to camelCase
@@ -2039,7 +2040,9 @@ export const api = {
 
     /** Get upload with clips and content kit */
     get: async (uploadId: string) => {
-      const response = await apiClient.get(`/clips/${uploadId}`);
+      const response = await apiClient.get(`/clips/${uploadId}`, {
+        timeout: GENERATION_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2052,7 +2055,9 @@ export const api = {
 
     /** Get job status */
     getJob: async (uploadId: string, jobId: string) => {
-      const response = await apiClient.get(`/clips/${uploadId}/job/${jobId}`);
+      const response = await apiClient.get(`/clips/${uploadId}/job/${jobId}`, {
+        timeout: LIST_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {
