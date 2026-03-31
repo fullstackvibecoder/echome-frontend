@@ -498,17 +498,17 @@ export function AskYourVoice({
       )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto space-y-4">
           {messages.map(m => (
             <div key={m.id}>
               {m.role === 'system' ? (
                 <div className="space-y-3">
                   {m.systemType === 'action-cards' && (
-                    <div>
-                      {m.content && <p className="text-sm text-text-secondary mb-4">{m.content}</p>}
+                    <div className="pl-[52px] -mt-2">
+                      {m.content && <p className="text-sm text-text-secondary mb-3">{m.content}</p>}
                       {actionCards}
                       {hasContent && (
-                        <div className="flex flex-wrap gap-2 mt-4">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           {VOICE_PROMPTS.map(({ label, prompt }) => (
                             <button
                               key={label}
