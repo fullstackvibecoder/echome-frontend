@@ -172,6 +172,7 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const retryCountRef = useRef(0);
+  const timeoutRetryCountRef = useRef(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -220,6 +221,10 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
               carousel: data.carousel || null,
               content: data.content || [],
             });
+            
+            // Reset retry counts on successful load
+            retryCountRef.current = 0;
+            timeoutRetryCountRef.current = 0;
             return;
           }
         } catch {
@@ -246,13 +251,46 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
             carousel: null,
             content: [],
           });
+          
+          // Reset retry counts on successful load
+          retryCountRef.current = 0;
+          timeoutRetryCountRef.current = 0;
           return;
         }
       }
 
       throw new Error('Content not found');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load content');
+      const isTimeoutError = err instanceof Error && (
+        err.message.includes('timeout') || 
+        err.message.includes('ECONNABORTED') ||
+        (err as any).code === 'ECONNABORTED'
+      );
+
+      if (isTimeoutError && timeoutRetryCountRef.current < 2) {
+        // Retry timeout errors up to 2 times with exponential backoff
+        timeoutRetryCountRef.current += 1;
+        const retryDelay = Math.min(2000 * Math.pow(2, timeoutRetryCountRef.current - 1), 8000);
+        
+        console.log(`Request timed out, retrying in ${retryDelay}ms (attempt ${timeoutRetryCountRef.current}/2)...`);
+        setError(`Content is still processing, retrying... (${timeoutRetryCountRef.current}/2)`);
+        
+        setTimeout(() => {
+          fetchData();
+        }, retryDelay);
+        return;
+      }
+
+      // Reset timeout retry count on non-timeout errors
+      if (!isTimeoutError) {
+        timeoutRetryCountRef.current = 0;
+      }
+
+      if (isTimeoutError) {
+        setError('Content is taking longer than expected to load. This may indicate the content is still being processed. Please try refreshing the page in a few minutes.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to load content');
+      }
     } finally {
       setLoading(false);
     }

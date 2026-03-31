@@ -504,7 +504,8 @@ export const api = {
 
     getRequest: async (id: string) => {
       const response = await apiClient.get<ApiResponse<any>>(
-        `/generate/${id}`
+        `/generate/${id}`,
+        { timeout: GENERATION_TIMEOUT } // Allow up to 3 minutes for content that might still be processing
       );
 
       // Transform snake_case to camelCase
@@ -2039,7 +2040,9 @@ export const api = {
 
     /** Get upload with clips and content kit */
     get: async (uploadId: string) => {
-      const response = await apiClient.get(`/clips/${uploadId}`);
+      const response = await apiClient.get(`/clips/${uploadId}`, {
+        timeout: GENERATION_TIMEOUT // Allow up to 3 minutes for clips that might still be processing
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2140,7 +2143,9 @@ export const api = {
   contentKits: {
     /** Get content kit with full data */
     get: async (kitId: string) => {
-      const response = await apiClient.get(`/content-kits/${kitId}`);
+      const response = await apiClient.get(`/content-kits/${kitId}`, {
+        timeout: GENERATION_TIMEOUT // Allow up to 3 minutes for content kits that might still be processing
+      });
       return response.data as {
         success: boolean;
         data: {
