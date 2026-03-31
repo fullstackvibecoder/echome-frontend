@@ -401,6 +401,20 @@ export function AskYourVoice({
 
   const hasConversation = messages.length > 0;
 
+  // Seed initial messages on first render
+  useEffect(() => {
+    if (messages.length === 0) {
+      const greeting = hasContent
+        ? 'Welcome back! I\'m ready to help strengthen your voice. You can add more content below, or ask me anything about your writing style.'
+        : 'Hey! I\'m Echo. I learn how you think and write so your content actually sounds like you. Let\'s get started — pick one of the options below.';
+
+      setMessages([
+        { id: nextId(), role: 'assistant', content: greeting },
+        { id: nextId(), role: 'system', content: '', systemType: 'action-cards' },
+      ]);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─── Input bar (Stitch: gradient glow aura) ───
   const inputBar = (
     <div className="relative group">
@@ -484,77 +498,7 @@ export function AskYourVoice({
     </div>
   );
 
-  // ─── RENDER: Welcome (no messages) ───
-  if (!hasConversation) {
-    return (
-      <div className="flex flex-col h-full relative">
-        {/* Ambient bg accents */}
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 blur-[120px] -z-10 rounded-full pointer-events-none" />
-        <div className="absolute top-0 left-0 w-[250px] h-[250px] bg-accent-purple/5 blur-[100px] -z-10 rounded-full pointer-events-none" />
-
-        <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 overflow-y-auto">
-          {/* Echo greeting */}
-          <div className="w-full max-w-2xl space-y-6 mb-8">
-            <div className="flex gap-3 items-start">
-              <EchoAvatar />
-              <div className="bg-white/[0.03] backdrop-blur-xl p-5 rounded-2xl rounded-tl-none border border-white/[0.06]">
-                <p className="text-text-primary leading-relaxed text-sm">
-                  {hasContent
-                    ? 'Welcome back! Your voice profile is active. Want to add more content or explore your writing patterns?'
-                    : 'Welcome to your Voice Lab. I\'m Echo, and I\'m here to learn how you think and write so I can create content that actually sounds like you.'
-                  }
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 items-start">
-              <EchoAvatar />
-              <div className="bg-white/[0.03] backdrop-blur-xl p-5 rounded-2xl rounded-tl-none border border-white/[0.06]">
-                <p className="text-text-primary leading-relaxed text-sm">
-                  {hasContent
-                    ? 'Pick a source below to add more, or ask me anything about your voice.'
-                    : 'To get started, we just need to ingest some of your past work — think of it as giving me your creative DNA. What\'s the easiest place for me to start looking?'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Action cards */}
-          {actionCards}
-
-          {/* Voice analysis chips (returning users) */}
-          {hasContent && (
-            <div className="flex flex-wrap gap-2 max-w-2xl justify-center mt-6">
-              {VOICE_PROMPTS.map(({ label, prompt }) => (
-                <button
-                  key={label}
-                  onClick={() => sendMessage(prompt)}
-                  disabled={loading}
-                  className="px-3 py-1.5 text-xs font-medium border border-white/10 rounded-full text-text-secondary hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all disabled:opacity-50"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Footer */}
-          <p className="text-[10px] text-text-tertiary uppercase tracking-widest mt-6">
-            Select a path to begin building your voice
-          </p>
-        </div>
-
-        {/* Input bar */}
-        <div className="flex-shrink-0 px-4 sm:px-6 py-4">
-          <div className="max-w-3xl mx-auto">
-            {inputBar}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── RENDER: Active conversation ───
+  // ─── RENDER: Single conversation view (always) ───
   return (
     <div className="flex flex-col h-full relative">
       {/* Ambient bg */}
@@ -569,8 +513,22 @@ export function AskYourVoice({
                 <div className="space-y-3">
                   {m.systemType === 'action-cards' && (
                     <div>
-                      <p className="text-sm text-text-secondary mb-4">{m.content}</p>
+                      {m.content && <p className="text-sm text-text-secondary mb-4">{m.content}</p>}
                       {actionCards}
+                      {hasContent && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {VOICE_PROMPTS.map(({ label, prompt }) => (
+                            <button
+                              key={label}
+                              onClick={() => sendMessage(prompt)}
+                              disabled={loading}
+                              className="px-3 py-1.5 text-xs font-medium border border-white/10 rounded-full text-text-secondary hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all disabled:opacity-50"
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                   {m.systemType === 'sub-choices' && m.subChoices && (
