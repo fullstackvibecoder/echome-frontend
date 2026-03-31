@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Play } from 'lucide-react';
 
-const YOUTUBE_VIDEO_ID = 'rAyOxuoLzhE';
-const THUMBNAIL_URL = `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`;
+const LOOM_VIDEO_ID = '136ee8a0709e44eaa5a2ba128d3ab624';
+const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-with-play.gif`;
 
 export function HeroDemoVideo() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -19,12 +19,13 @@ export function HeroDemoVideo() {
           /* Custom thumbnail with play button overlay */
           <button
             onClick={() => setIsPlaying(true)}
-            className="relative w-full aspect-video group cursor-pointer"
+            className="relative w-full group cursor-pointer"
+            style={{ paddingBottom: '64.98%' }}
             aria-label="Play demo video"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={THUMBNAIL_URL}
+              src={LOOM_THUMBNAIL_URL}
               alt="EchoMe product demo"
               fetchPriority="high"
               className="absolute inset-0 w-full h-full object-cover"
@@ -39,19 +40,14 @@ export function HeroDemoVideo() {
                 <Play className="w-8 h-8 text-white ml-1" fill="white" />
               </div>
             </div>
-
-            {/* Duration badge */}
-            <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm border border-white/20">
-              <span className="text-white text-sm font-medium">2:30</span>
-            </div>
           </button>
         ) : (
-          /* YouTube iframe - loads only when user clicks play */
-          <div className="relative w-full aspect-video">
+          /* Loom iframe - loads only when user clicks play */
+          <div className="relative w-full" style={{ paddingBottom: '64.98%' }}>
             <iframe
-              src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0&modestbranding=1`}
+              src={`https://www.loom.com/embed/${LOOM_VIDEO_ID}?autoplay=1`}
               title="EchoMe product demo"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="autoplay; fullscreen"
               allowFullScreen
               className="absolute inset-0 w-full h-full"
             />
