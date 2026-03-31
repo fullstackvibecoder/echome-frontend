@@ -80,7 +80,7 @@ export function HeroSection() {
                 <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/40 to-accent-purple/80" />
               </div>
               <div className="text-sm">
-                <p className="text-white font-bold">5,000+ Creators</p>
+                <p className="text-white font-bold">250+ Creators</p>
                 <p className="text-white/50">Scaling their voice effortlessly</p>
               </div>
             </div>

@@ -76,7 +76,7 @@ export function HeroDemoVideo() {
           <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
             <div className="h-full w-[70%] bg-primary rounded-full transition-all duration-1000" />
           </div>
-          <span className="text-xs text-white/80 font-medium">LinkedIn Carousel Gen</span>
+          <span className="text-xs text-white/80 font-medium">Instagram Carousel Gen</span>
         </div>
       </div>
 
