@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Play } from 'lucide-react';
 
 const LOOM_VIDEO_ID = '136ee8a0709e44eaa5a2ba128d3ab624';
-const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-with-play.gif`;
+const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-3920a96cb0e456fa-full-play.gif#t=0.1`;
 
 export function HeroDemoVideo() {
   const [isPlaying, setIsPlaying] = useState(false);
