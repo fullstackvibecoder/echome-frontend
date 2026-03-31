@@ -2,37 +2,64 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowRight, Video, LayoutGrid, FileText } from 'lucide-react';
+import { ArrowRight, Film, LayoutGrid, FileText, Brain, Users, Mic } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const tabs = [
-  { id: 'reels', label: 'Viral Reels', icon: Video },
+  { id: 'reels', label: 'Reels & Clips', icon: Film },
   { id: 'carousels', label: 'Carousels', icon: LayoutGrid },
-  { id: 'posts', label: 'Social Posts', icon: FileText },
+  { id: 'content', label: 'Written Content', icon: FileText },
+  { id: 'voice', label: 'Your Voice', icon: Brain },
+  { id: 'tools', label: 'Creator Tools', icon: Users },
 ];
 
-const viralReels = [
-  { image: '/showcase/new/viral-reel-1.png', label: 'Reel 1' },
-  { image: '/showcase/new/viral-reel-2.png', label: 'Reel 2' },
-  { image: '/showcase/new/viral-reel-3.png', label: 'Reel 3' },
-  { image: '/showcase/new/viral-reel-4.png', label: 'Reel 4' },
-];
+interface ShowcaseItem {
+  image: string;
+  alt: string;
+  caption: string;
+}
 
-const tweetCarousels = [
-  { image: '/showcase/new/tweet-carousel-1.png', label: 'Tweet Style Slide 1' },
-  { image: '/showcase/new/tweet-carousel-2.png', label: 'Tweet Style Slide 2' },
-  { image: '/showcase/new/tweet-carousel-3.png', label: 'Tweet Style Slide 3' },
-];
-
-const bgCarousels = [
-  { image: '/showcase/new/bg-carousel-1.png', label: 'Custom Background Slide 1' },
-  { image: '/showcase/new/bg-carousel-2.png', label: 'Custom Background Slide 2' },
-  { image: '/showcase/new/bg-carousel-3.png', label: 'Custom Background Slide 3' },
-];
+const showcaseData: Record<string, { description: string; items: ShowcaseItem[] }> = {
+  reels: {
+    description: 'Auto-captioned vertical clips pulled from your video, optimized for Instagram Reels, TikTok, and YouTube Shorts.',
+    items: [
+      { image: '/showcase/platform/reel-maker.png', alt: 'Reel Maker with split-screen clips and face detection', caption: 'Split-screen clips with face tracking and auto-captions' },
+    ],
+  },
+  carousels: {
+    description: 'Square and portrait carousel slides with your face, your words, and your style. Ready to post on Instagram and LinkedIn.',
+    items: [
+      { image: '/showcase/platform/instagram-carousel.png', alt: 'Instagram carousel with tweet-style and photo-overlay slides', caption: 'Tweet-style and photo-overlay formats, auto-generated from your video' },
+    ],
+  },
+  content: {
+    description: 'Platform-specific posts for LinkedIn, Twitter/X, Instagram, TikTok, blog, and email. Each written in your voice.',
+    items: [
+      { image: '/showcase/platform/written-content.png', alt: 'Written content cards for multiple social platforms', caption: 'One video, six platforms. Every post sounds like you wrote it.' },
+      { image: '/showcase/platform/blog-post.png', alt: 'Blog post generator with header image selection', caption: 'Full blog posts with header images, ready to publish' },
+    ],
+  },
+  voice: {
+    description: 'Your voice profile is built from your existing content. Connect socials, import writing, or just talk.',
+    items: [
+      { image: '/showcase/platform/build-voice.png', alt: 'Knowledge base with Connect Socials, Import Writing, and Record Voice', caption: 'Three ways to teach Echo your voice' },
+      { image: '/showcase/platform/build-voice-expanded.png', alt: 'Expanded import options including paste, upload, blog, and email', caption: 'Import from YouTube, Instagram, blogs, PDFs, or email exports' },
+      { image: '/showcase/platform/record-voice.png', alt: 'Voice recording interface for content generation', caption: 'Speak your idea and Echo creates content from it' },
+    ],
+  },
+  tools: {
+    description: 'Follow creators, manage team voices, and access a monthly library of B-roll, templates, and scripts.',
+    items: [
+      { image: '/showcase/platform/creator-radar.png', alt: 'Following page with creator feeds and repurpose button', caption: 'Follow creators in your space. Repurpose their ideas in your voice.' },
+      { image: '/showcase/platform/team-voices.png', alt: 'Team Voices management with multiple voice profiles', caption: 'Manage multiple voice profiles from one account' },
+      { image: '/showcase/platform/creator-library.png', alt: 'Creator Library with monthly B-roll, templates, and scripts', caption: 'Monthly B-roll drops, caption templates, and reel scripts' },
+    ],
+  },
+};
 
 export function OutputShowcase() {
   const [activeTab, setActiveTab] = useState('reels');
+  const data = showcaseData[activeTab];
 
   return (
     <AnimatedSection>
@@ -45,7 +72,7 @@ export function OutputShowcase() {
           {/* Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
-              <span className="text-primary font-semibold text-sm">Real Examples</span>
+              <span className="text-primary font-semibold text-sm">Real Platform Screenshots</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
               What You
@@ -55,12 +82,12 @@ export function OutputShowcase() {
             </h2>
 
             <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-3xl mx-auto leading-relaxed">
-              Real product output. No mockups. This is what comes out of every video you upload.
+              No mockups. These are real screenshots from the EchoMe platform.
             </p>
           </div>
 
           {/* Tabs */}
-          <div className="flex justify-center gap-2 mb-8 flex-wrap" role="tablist" aria-label="Content output examples">
+          <div className="flex justify-center gap-2 mb-8 flex-wrap" role="tablist" aria-label="Platform feature examples">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -71,7 +98,7 @@ export function OutputShowcase() {
                   aria-controls={`tabpanel-${tab.id}`}
                   id={`tab-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+                  className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg'
                       : 'bg-card text-muted-foreground hover:bg-secondary border border-border'
@@ -85,102 +112,34 @@ export function OutputShowcase() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-card rounded-2xl border border-border shadow-xl p-8 md:p-12" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-            {activeTab === 'reels' && (
-              <div className="max-w-6xl mx-auto">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {viralReels.map((reel, i) => (
-                    <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-border hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
-                      <Image
-                        src={reel.image}
-                        alt={reel.label}
-                        width={300}
-                        height={533}
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                        loading="lazy"
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <p className="text-center text-muted-foreground mt-8 text-base leading-relaxed">
-                  Vertical reels with auto-generated captions, optimized for Instagram, TikTok, and YouTube Shorts.
-                </p>
-              </div>
-            )}
-
-            {activeTab === 'carousels' && (
-              <div className="max-w-6xl mx-auto space-y-12">
-                {/* Tweet Style Carousels */}
-                <div>
-                  <h3 className="text-xl font-bold text-foreground mb-4 text-center">Tweet Style</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {tweetCarousels.map((carousel, i) => (
-                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-border hover:border-accent-purple/30 transition-all hover:shadow-2xl hover:-translate-y-1">
-                        <Image
-                          src={carousel.image}
-                          alt={carousel.label}
-                          width={400}
-                          height={400}
-                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                          loading="lazy"
-                          className="w-full h-auto"
-                        />
-                      </div>
-                    ))}
+          <div
+            className="bg-card rounded-2xl border border-border shadow-xl p-6 md:p-10"
+            role="tabpanel"
+            id={`tabpanel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+          >
+            <div className="max-w-6xl mx-auto space-y-8">
+              {data.items.map((item, i) => (
+                <div key={item.image} className="space-y-3">
+                  <div className="relative rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all hover:shadow-2xl">
+                    <Image
+                      src={item.image}
+                      alt={item.alt}
+                      width={1200}
+                      height={700}
+                      sizes="(max-width: 768px) 100vw, 1100px"
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      className="w-full h-auto"
+                    />
                   </div>
+                  <p className="text-sm text-muted-foreground text-center font-medium">{item.caption}</p>
                 </div>
+              ))}
 
-                {/* Custom Background Carousels */}
-                <div>
-                  <h3 className="text-xl font-bold text-foreground mb-4 text-center">Custom Backgrounds</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {bgCarousels.map((carousel, i) => (
-                      <div key={i} className="group relative rounded-xl overflow-hidden border-2 border-border hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1">
-                        <Image
-                          src={carousel.image}
-                          alt={carousel.label}
-                          width={400}
-                          height={400}
-                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                          loading="lazy"
-                          className="w-full h-auto"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <p className="text-center text-muted-foreground text-base leading-relaxed">
-                  Multi-slide carousel posts ready for LinkedIn, Instagram, and Twitter. Choose tweet-style or custom backgrounds.
-                </p>
-              </div>
-            )}
-
-            {activeTab === 'posts' && (
-              <div className="max-w-6xl mx-auto">
-                {/* Real Product UI Screenshot */}
-                <div className="relative border-2 border-border rounded-2xl overflow-hidden shadow-2xl">
-                  <Image
-                    src="/showcase/new/text-content-output.png"
-                    alt="Text content for all platforms"
-                    width={1200}
-                    height={600}
-                    sizes="(max-width: 768px) 100vw, 1200px"
-                    loading="lazy"
-                    className="w-full h-auto"
-                  />
-                </div>
-                <div className="mt-8 text-center">
-                  <p className="text-lg text-foreground font-medium mb-3">
-                    Six platforms. One video. Full text content ready to post.
-                  </p>
-                  <p className="text-muted-foreground text-base leading-relaxed max-w-3xl mx-auto">
-                    LinkedIn, Twitter/X, Instagram, TikTok, Blog Post, and Newsletter-all generated with your voice and tone. Each includes a Copy button and Add to Calendar integration.
-                  </p>
-                </div>
-              </div>
-            )}
+              <p className="text-center text-muted-foreground text-base leading-relaxed pt-4">
+                {data.description}
+              </p>
+            </div>
           </div>
 
           {/* Mid-page CTA */}
