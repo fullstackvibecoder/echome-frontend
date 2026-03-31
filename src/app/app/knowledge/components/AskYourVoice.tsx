@@ -10,17 +10,17 @@ interface Message {
 }
 
 const SUGGESTED_PROMPTS = [
-  { label: 'Content ideas', prompt: 'Give me 5 content ideas based on what I write about' },
-  { label: 'My writing style', prompt: 'Summarize my writing voice in 3 sentences' },
-  { label: 'Draft a post', prompt: 'Draft a LinkedIn post about my area of expertise' },
-  { label: 'Find patterns', prompt: 'What recurring themes appear in my content?' },
+  { label: 'How strong is my voice?', prompt: 'How well do you know my voice? What areas need more content?' },
+  { label: 'What do I sound like?', prompt: 'Summarize my writing voice in 3 sentences based on what you\'ve learned' },
+  { label: 'What should I add next?', prompt: 'What types of content should I add to strengthen my voice profile?' },
+  { label: 'Find my patterns', prompt: 'What recurring themes, phrases, or patterns appear in my content?' },
 ];
 
 const FOLLOW_UP_PROMPTS = [
-  'Make it shorter and punchier',
-  'Now write a Twitter thread version',
-  'What else could I write about this topic?',
-  'Rewrite in a more casual tone',
+  'What topics am I strongest on?',
+  'How can I improve my voice score?',
+  'What makes my writing unique?',
+  'What content types am I missing?',
 ];
 
 interface AskYourVoiceProps {
@@ -125,7 +125,7 @@ export function AskYourVoice({ disabled, kbId, contentSummary, hasContent, onOpe
           rows={1}
           placeholder={disabled
             ? 'Add content to your voice profile first...'
-            : 'Draft a post, explore ideas, discover patterns...'
+            : 'Ask about your voice, get suggestions, explore your style...'
           }
           disabled={disabled || loading}
           className="w-full pl-4 pr-4 py-3.5 text-sm border-2 border-border rounded-2xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed resize-none"
@@ -182,7 +182,7 @@ export function AskYourVoice({ disabled, kbId, contentSummary, hasContent, onOpe
 
         {/* Heading */}
         <h2 className="text-2xl font-semibold text-text-primary mb-1">
-          What would you like to create?
+          How can I help build your voice?
         </h2>
         {contentSummary && (
           <p className="text-xs text-text-tertiary mb-6">{contentSummary}</p>
@@ -210,7 +210,7 @@ export function AskYourVoice({ disabled, kbId, contentSummary, hasContent, onOpe
 
         {/* Disclaimer */}
         <p className="text-xs text-text-tertiary mt-5">
-          Uses your uploaded content to match your unique voice.
+          The more content you add, the better Echo matches your voice.
         </p>
       </div>
     );
