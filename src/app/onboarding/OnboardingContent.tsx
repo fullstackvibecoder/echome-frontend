@@ -1,19 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Upload,
-  Youtube,
-  Check,
-  Loader2,
-  X,
-  Instagram,
-  Globe,
-  Mic,
-  Camera,
-  ArrowRight,
-  Sparkles,
+  Upload, Check, Loader2, X, Mic, Camera, ArrowRight, Sparkles,
+  Play, FileText, Mail, PenLine, Share2, Link, CheckCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
@@ -22,186 +13,115 @@ import { VoiceRecorder } from '@/components/voice-recorder';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
 import { isMboxFile } from '@/lib/file-utils';
 import { parseMboxFile } from '@/lib/mbox-parser';
+import { extractErrorMessage } from '@/lib/error-utils';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-type ContentStatus = 'processing' | 'completed' | 'error';
-type ImportPlatform = 'youtube' | 'instagram' | 'blog';
-type ImportStatus = 'idle' | 'importing' | 'done' | 'error';
-type Tab = 'import' | 'paste' | 'upload' | 'voice';
-
-interface ContentItem {
-  id: string;
-  title: string;
-  type: 'paste' | 'file' | 'youtube' | 'instagram' | 'blog' | 'voice';
-  status: ContentStatus;
-  wordCount?: number;
-  error?: string;
-}
-
-interface ImportState {
-  status: ImportStatus;
-  url: string;
-  message?: string;
-  jobId?: string;
-}
-
-interface ProfileState {
-  displayName: string;
-  twitterHandle: string;
-  instagramHandle: string;
-  profileImageUrl: string | null;
-}
-
-interface ProfileContextState {
-  role: string;
-  topics: string;
-  cta: string;
-  guardrails: string;
-}
+// ============================================
+// TYPES & CONSTANTS
+// ============================================
 
 const MIN_CONTENT_ITEMS = 3;
 
-// ---------------------------------------------------------------------------
-// Voice Strength Ring SVG (compact)
-// ---------------------------------------------------------------------------
+type Step =
+  | 'welcome'
+  | 'profile'
+  | 'youtube'
+  | 'instagram'
+  | 'blog'
+  | 'paste'
+  | 'voice'
+  | 'upload'
+  | 'email'
+  | 'check'
+  | 'done';
 
-function VoiceRing({
-  progress,
-  isReady,
-  size = 48,
-}: {
-  progress: number;
-  isReady: boolean;
-  size?: number;
-}) {
-  const strokeWidth = 4;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - progress * circumference;
+// The guided order Echo walks through
+const IMPORT_STEPS: Step[] = ['youtube', 'instagram', 'blog', 'paste', 'voice'];
 
+interface Message {
+  id: string;
+  role: 'echo' | 'user' | 'system';
+  content: string;
+}
+
+let msgId = 0;
+function nextId() { return `ob_${++msgId}_${Date.now()}`; }
+
+// ============================================
+// ECHO AVATAR
+// ============================================
+
+function EchoAvatar() {
   return (
-    <div className={`relative inline-flex ${isReady ? 'animate-voice-burst' : ''}`}>
-      <svg width={size} height={size} className="transform -rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-border"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="url(#ring-grad)"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
-        />
-        <defs>
-          <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--primary)" />
-            <stop offset="100%" stopColor="var(--accent-purple, #B794F6)" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        {isReady ? (
-          <Check className="w-4 h-4 text-primary" />
-        ) : (
-          <span className="text-[10px] font-bold text-foreground">
-            {Math.round(progress * 100)}%
-          </span>
-        )}
-      </div>
+    <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center flex-shrink-0"
+      style={{ boxShadow: '0 0 20px rgba(0, 212, 255, 0.15)' }}>
+      <Sparkles className="w-5 h-5 text-white" />
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Component
-// ---------------------------------------------------------------------------
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function OnboardingContent() {
   const router = useRouter();
-  const { kbs, loading: kbLoading, contentItems: existingContent } = useKnowledgeBase();
+  const { kbs, loading: kbLoading, contentItems: existingContent, refresh } = useKnowledgeBase();
+
+  const [step, setStep] = useState<Step>('welcome');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [completedItems, setCompletedItems] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Profile
-  const [profile, setProfile] = useState<ProfileState>({
-    displayName: '',
-    twitterHandle: '',
-    instagramHandle: '',
-    profileImageUrl: null,
-  });
-  const [profileDirty, setProfileDirty] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [twitterHandle, setTwitterHandle] = useState('');
+  const [instagramHandle, setInstagramHandle] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
-  const [profileSaved, setProfileSaved] = useState(false);
 
-  // Profile Context (custom instructions)
-  const [profileContext, setProfileContext] = useState<ProfileContextState>({
-    role: '',
-    topics: '',
-    cta: '',
-    guardrails: '',
-  });
-  const [profileContextDirty, setProfileContextDirty] = useState(false);
-  const [profileContextSaving, setProfileContextSaving] = useState(false);
-  const [profileContextSaved, setProfileContextSaved] = useState(false);
+  // Import state
+  const [importUrl, setImportUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [pasting, setPasting] = useState(false);
 
-  // Content
-  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>('paste');
+  // Modal state
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showMboxModal, setShowMboxModal] = useState(false);
 
-  // Mbox
+  // MBOX
   const [mboxUploading, setMboxUploading] = useState(false);
   const [mboxProgress, setMboxProgress] = useState(0);
-  const [mboxStatus, setMboxStatus] = useState<string>('');
+  const [mboxStatus, setMboxStatus] = useState('');
+  const mboxInputRef = useRef<HTMLInputElement>(null);
 
-  // Paste
-  const [pasteText, setPasteText] = useState('');
+  // Skipped steps tracking
+  const [skippedSteps, setSkippedSteps] = useState<Set<Step>>(new Set());
 
-  // Imports
-  const [imports, setImports] = useState<Record<ImportPlatform, ImportState>>({
-    youtube: { status: 'idle', url: '' },
-    instagram: { status: 'idle', url: '' },
-    blog: { status: 'idle', url: '' },
-  });
-
-  // KB
   const defaultKbId = kbs?.[0]?.id;
 
-  // Derived
-  const totalCompleted =
-    contentItems.filter((i) => i.status === 'completed').length +
-    (existingContent?.filter((i) => i.status === 'completed').length ?? 0);
-  const ringProgress = Math.min(totalCompleted / MIN_CONTENT_ITEMS, 1);
+  // Count completed items
+  const existingCompleted = existingContent?.filter(i => i.status === 'completed').length ?? 0;
+  const totalCompleted = completedItems + existingCompleted;
   const isReady = totalCompleted >= MIN_CONTENT_ITEMS;
+
+  // Auto-scroll
+  useEffect(() => {
+    if (scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+      }, 100);
+    }
+  }, [messages, step]);
 
   // Redirect if already onboarded
   useEffect(() => {
-    if (
-      !kbLoading &&
-      existingContent &&
-      existingContent.filter((i) => i.status === 'completed').length >= MIN_CONTENT_ITEMS
-    ) {
+    if (!kbLoading && existingCompleted >= MIN_CONTENT_ITEMS) {
       const redirect = localStorage.getItem('postOnboardingRedirect');
       localStorage.removeItem('postOnboardingRedirect');
-      if (redirect && redirect.startsWith('/app')) {
-        router.replace(redirect);
-      } else {
-        router.replace('/app');
-      }
+      router.replace(redirect && redirect.startsWith('/app') ? redirect : '/app');
     }
-  }, [kbLoading, existingContent, router]);
+  }, [kbLoading, existingCompleted, router]);
 
   // Load profile
   useEffect(() => {
@@ -209,203 +129,219 @@ export default function OnboardingContent() {
       try {
         const res = await api.auth.getProfile();
         if (res.success && res.data) {
-          setProfile({
-            displayName: res.data.display_name || res.data.full_name || '',
-            twitterHandle: res.data.twitter_handle || '',
-            instagramHandle: res.data.instagram_handle || '',
-            profileImageUrl: res.data.profile_image_url || null,
-          });
-          if (res.data.display_name || res.data.twitter_handle || res.data.instagram_handle) {
-            setProfileSaved(true);
-          }
-          // Load profile context
-          setProfileContext({
-            role: res.data.profile_role || '',
-            topics: res.data.profile_topics || '',
-            cta: res.data.profile_cta || '',
-            guardrails: res.data.profile_guardrails || '',
-          });
-          if (res.data.profile_role || res.data.profile_topics || res.data.profile_cta || res.data.profile_guardrails) {
-            setProfileContextSaved(true);
-          }
+          setDisplayName(res.data.display_name || res.data.full_name || '');
+          setTwitterHandle(res.data.twitter_handle || '');
+          setInstagramHandle(res.data.instagram_handle || '');
         }
-      } catch {
-        // fine
-      }
+      } catch {}
     })();
   }, []);
 
-  // --- Handlers ---
+  // Seed welcome message
+  useEffect(() => {
+    if (messages.length === 0) {
+      addEcho("I'm Echo. I learn how you write, speak, and think, then I use that to generate content in your actual voice. The more you feed me, the better the match gets. Let's set you up.");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateProfileField = (field: keyof ProfileState, value: string) => {
-    setProfile((p) => ({ ...p, [field]: value }));
-    setProfileDirty(true);
-    setProfileSaved(false);
+  // ─── Helpers ───
+  const addEcho = (content: string) => {
+    setMessages(prev => [...prev, { id: nextId(), role: 'echo', content }]);
+  };
+
+  const addUser = (content: string) => {
+    setMessages(prev => [...prev, { id: nextId(), role: 'user', content }]);
+  };
+
+  const addSystem = (content: string) => {
+    setMessages(prev => [...prev, { id: nextId(), role: 'system', content }]);
+  };
+
+  const getPostOnboardingPath = () => {
+    const redirect = localStorage.getItem('postOnboardingRedirect');
+    localStorage.removeItem('postOnboardingRedirect');
+    return redirect && redirect.startsWith('/app') ? redirect : '/app';
+  };
+
+  const getNextImportStep = (currentStep: Step): Step => {
+    const currentIdx = IMPORT_STEPS.indexOf(currentStep);
+    // Find the next step that hasn't been skipped or completed
+    for (let i = currentIdx + 1; i < IMPORT_STEPS.length; i++) {
+      if (!skippedSteps.has(IMPORT_STEPS[i])) return IMPORT_STEPS[i];
+    }
+    return 'check';
+  };
+
+  const advanceToStep = (nextStep: Step) => {
+    setImportUrl('');
+    setStep(nextStep);
+
+    switch (nextStep) {
+      case 'youtube':
+        addEcho("Do you have a YouTube channel or videos? Transcripts are great for capturing how you naturally speak.");
+        break;
+      case 'instagram':
+        addEcho("How about Instagram? Your captions and posts show how you talk to your audience.");
+        break;
+      case 'blog':
+        addEcho("Do you have a blog or Substack? Long-form writing is the best way for me to learn your depth.");
+        break;
+      case 'paste':
+        addEcho("Would you like to paste some writing? An email, a post, a draft. Anything works.");
+        break;
+      case 'voice':
+        addEcho("Want to record a quick voice note? Nothing captures tone like your actual voice.");
+        break;
+      case 'check':
+        if (isReady || totalCompleted >= MIN_CONTENT_ITEMS) {
+          addEcho(`Looking good. I have ${totalCompleted} sources to work with. Your voice profile is building. Ready to start creating?`);
+          setStep('done');
+        } else {
+          const remaining = MIN_CONTENT_ITEMS - totalCompleted;
+          addEcho(`I have ${totalCompleted} source${totalCompleted !== 1 ? 's' : ''} so far. I need ${remaining} more to get started. Want to add more?`);
+          break;
+        }
+        break;
+      case 'done':
+        addEcho("You're all set. Let's go create something that sounds like you.");
+        break;
+    }
+  };
+
+  // ─── Step handlers ───
+
+  const handleGetStarted = () => {
+    addUser("Let's go");
+    addEcho("First, what should I call you?");
+    setStep('profile');
   };
 
   const handleSaveProfile = async () => {
+    if (!displayName.trim()) return;
     setProfileSaving(true);
+    addUser(displayName.trim());
+
     try {
       await api.auth.updateProfile({
-        display_name: profile.displayName || undefined,
-        twitter_handle: profile.twitterHandle || null,
-        instagram_handle: profile.instagramHandle || null,
+        display_name: displayName.trim() || undefined,
+        twitter_handle: twitterHandle.trim() || null,
+        instagram_handle: instagramHandle.trim() || null,
       });
-      setProfileSaved(true);
-      setProfileDirty(false);
-    } catch {
-      // non-blocking
-    } finally {
-      setProfileSaving(false);
-    }
+    } catch {}
+
+    setProfileSaving(false);
+    addEcho(`Got it, ${displayName.trim().split(' ')[0]}. Now let's teach me your voice.`);
+
+    // Start the guided import flow
+    setTimeout(() => advanceToStep('youtube'), 500);
   };
 
-  const updateProfileContextField = (field: keyof ProfileContextState, value: string) => {
-    setProfileContext((p) => ({ ...p, [field]: value }));
-    setProfileContextDirty(true);
-    setProfileContextSaved(false);
-  };
+  const handleImportUrl = async (platform: Step) => {
+    if (!importUrl.trim() || importing) return;
 
-  const handleSaveProfileContext = async () => {
-    setProfileContextSaving(true);
+    let normalizedUrl = importUrl.trim();
+    if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = `https://${normalizedUrl}`;
+
+    addUser(normalizedUrl);
+    setImporting(true);
+
     try {
-      await api.auth.updateProfile({
-        profile_role: profileContext.role || null,
-        profile_topics: profileContext.topics || null,
-        profile_cta: profileContext.cta || null,
-        profile_guardrails: profileContext.guardrails || null,
+      const apiPlatform = platform === 'blog' ? 'blog' : platform as 'youtube' | 'instagram';
+      const result = await api.kbContent.startSocialImport({
+        platform: apiPlatform,
+        url: normalizedUrl,
+        knowledgeBaseId: defaultKbId,
+        useForVoiceMatching: true,
       });
-      setProfileContextSaved(true);
-      setProfileContextDirty(false);
-    } catch {
-      // non-blocking
-    } finally {
-      setProfileContextSaving(false);
+
+      if (!result.success) throw new Error('Import failed');
+
+      setCompletedItems(prev => prev + 1);
+      const label = platform.charAt(0).toUpperCase() + platform.slice(1);
+      addSystem(`${label} import started. Processing in background.`);
+      await refresh();
+    } catch (err) {
+      addSystem(extractErrorMessage(err, 'Import failed. Check the URL and try again.'));
     }
+
+    setImporting(false);
+    setImportUrl('');
+
+    // Move to next step
+    setTimeout(() => advanceToStep(getNextImportStep(platform)), 800);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const res = await api.auth.uploadProfileImage(file);
-      if (res.success && res.data) {
-        setProfile((p) => ({ ...p, profileImageUrl: res.data!.profile_image_url }));
-      }
-    } catch {
-      // silently fail
-    }
+  const handleSkipStep = (currentStep: Step) => {
+    addUser('Skip');
+    setSkippedSteps(prev => new Set([...prev, currentStep]));
+    advanceToStep(getNextImportStep(currentStep));
   };
 
   const handlePasteSubmit = async () => {
-    if (!pasteText.trim() || pasteText.length < 50) return;
-    setIsSubmitting(true);
-    const tempId = `paste-${Date.now()}`;
-    const wordCount = pasteText.split(/\s+/).length;
+    if (!pasteText.trim() || pasteText.length < 50 || pasting) return;
 
-    setContentItems((prev) => [
-      ...prev,
-      { id: tempId, title: 'Writing sample', type: 'paste', status: 'processing', wordCount },
-    ]);
+    addUser(`Pasted ${pasteText.split(/\s+/).length} words`);
+    setPasting(true);
 
     try {
-      const result = await api.kbContent.paste({
+      await api.kbContent.paste({
         text: pasteText,
         title: 'Writing sample',
         sourceType: 'writing_sample',
         knowledgeBaseId: defaultKbId,
       });
-      setContentItems((prev) =>
-        prev.map((item) =>
-          item.id === tempId
-            ? { ...item, id: result.contentId || tempId, status: 'completed' as ContentStatus }
-            : item
-        )
-      );
-      setPasteText('');
+      setCompletedItems(prev => prev + 1);
+      addSystem('Writing sample added.');
+      await refresh();
     } catch {
-      setContentItems((prev) =>
-        prev.map((item) =>
-          item.id === tempId
-            ? { ...item, status: 'error' as ContentStatus, error: 'Failed to save' }
-            : item
-        )
-      );
-    } finally {
-      setIsSubmitting(false);
+      addSystem('Failed to save. Try again.');
     }
+
+    setPasting(false);
+    setPasteText('');
+    setTimeout(() => advanceToStep(getNextImportStep('paste')), 800);
   };
 
-  const handleImport = async (platform: ImportPlatform) => {
-    const importState = imports[platform];
-    if (!importState.url.trim()) return;
+  const handleVoiceSaved = async () => {
+    setShowVoiceModal(false);
+    setCompletedItems(prev => prev + 1);
+    addUser('Voice recording');
+    addSystem('Voice recording transcribed and added.');
+    await refresh();
+    setTimeout(() => advanceToStep(getNextImportStep('voice')), 800);
+  };
 
-    setImports((prev) => ({
-      ...prev,
-      [platform]: { ...prev[platform], status: 'importing' as ImportStatus },
-    }));
+  const handleFilesAdded = async (files: File[]) => {
+    if (!defaultKbId) return;
+    setShowUploadModal(false);
 
-    const tempId = `${platform}-${Date.now()}`;
-    setContentItems((prev) => [
-      ...prev,
-      { id: tempId, title: `${platform} import`, type: platform, status: 'processing' },
-    ]);
+    const mboxFiles = files.filter(isMboxFile);
+    const otherFiles = files.filter(f => !isMboxFile(f));
 
-    try {
-      let url = importState.url.trim();
-      if (!/^https?:\/\//i.test(url)) {
-        url = `https://${url}`;
-      }
-
-      const result = await api.kbContent.startSocialImport({
-        platform,
-        url,
-        knowledgeBaseId: defaultKbId,
-        useForVoiceMatching: true,
-      });
-
-      setImports((prev) => ({
-        ...prev,
-        [platform]: {
-          ...prev[platform],
-          status: 'done' as ImportStatus,
-          jobId: result.jobId,
-          message: result.message || 'Import started',
-        },
-      }));
-
-      setContentItems((prev) =>
-        prev.map((item) =>
-          item.id === tempId
-            ? { ...item, id: result.jobId || tempId, status: 'completed' as ContentStatus }
-            : item
-        )
-      );
-    } catch {
-      setImports((prev) => ({
-        ...prev,
-        [platform]: { ...prev[platform], status: 'error' as ImportStatus, message: 'Import failed' },
-      }));
-      setContentItems((prev) =>
-        prev.map((item) =>
-          item.id === tempId
-            ? { ...item, status: 'error' as ContentStatus, error: 'Import failed' }
-            : item
-        )
-      );
+    for (const file of mboxFiles) {
+      await processMboxFile(file);
     }
+
+    for (const file of otherFiles) {
+      addUser(file.name);
+      try {
+        await api.files.upload(defaultKbId, file);
+        setCompletedItems(prev => prev + 1);
+        addSystem(`${file.name} uploaded.`);
+      } catch {
+        addSystem(`Failed to upload ${file.name}.`);
+      }
+    }
+
+    await refresh();
+    setTimeout(() => advanceToStep('check'), 800);
   };
 
   const processMboxFile = async (file: File) => {
     setMboxUploading(true);
     setMboxProgress(0);
     setMboxStatus('Reading file...');
-
-    const tempId = `mbox-${Date.now()}-${file.name}`;
-    setContentItems((prev) => [
-      ...prev,
-      { id: tempId, title: file.name, type: 'file', status: 'processing' },
-    ]);
+    addUser(file.name);
 
     try {
       const parseResult = await parseMboxFile(file, {
@@ -418,13 +354,7 @@ export default function OnboardingContent() {
       });
 
       if (parseResult.emails.length === 0) {
-        setContentItems((prev) =>
-          prev.map((item) =>
-            item.id === tempId
-              ? { ...item, status: 'error' as ContentStatus, error: 'No emails found - use your "Sent" folder' }
-              : item
-          )
-        );
+        addSystem('No emails found. Make sure you use your "Sent" folder.');
         return;
       }
 
@@ -447,88 +377,39 @@ export default function OnboardingContent() {
         },
       });
 
-      setMboxProgress(100);
-      setContentItems((prev) =>
-        prev.map((item) =>
-          item.id === tempId
-            ? { ...item, title: `${file.name} (${result.emailsIngested} emails)`, status: 'completed' as ContentStatus }
-            : item
-        )
-      );
+      setCompletedItems(prev => prev + 1);
+      addSystem(`${result.emailsIngested} emails imported.`);
     } catch (err) {
-      setContentItems((prev) =>
-        prev.map((item) =>
-          item.id === tempId
-            ? { ...item, status: 'error' as ContentStatus, error: err instanceof Error ? err.message : 'Import failed' }
-            : item
-        )
-      );
+      addSystem(`Email import failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setMboxUploading(false);
       setMboxStatus('');
     }
   };
 
-  const handleFilesAdded = async (files: File[]) => {
-    if (!defaultKbId) return;
-    const mboxFiles = files.filter(isMboxFile);
-    const otherFiles = files.filter((f) => !isMboxFile(f));
+  const handleMboxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setShowMboxModal(false);
+    await processMboxFile(file);
+    if (mboxInputRef.current) mboxInputRef.current.value = '';
+    await refresh();
+    setTimeout(() => advanceToStep('check'), 800);
+  };
 
-    for (const file of mboxFiles) {
-      await processMboxFile(file);
-    }
-
-    for (const file of otherFiles) {
-      const tempId = `file-${Date.now()}-${file.name}`;
-      setContentItems((prev) => [
-        ...prev,
-        { id: tempId, title: file.name, type: 'file', status: 'processing' },
-      ]);
-      try {
-        const result = await api.files.upload(defaultKbId, file);
-        setContentItems((prev) =>
-          prev.map((item) =>
-            item.id === tempId
-              ? { ...item, id: result.data?.file?.id || tempId, status: 'completed' as ContentStatus }
-              : item
-          )
-        );
-      } catch {
-        setContentItems((prev) =>
-          prev.map((item) =>
-            item.id === tempId
-              ? { ...item, status: 'error' as ContentStatus, error: 'Upload failed' }
-              : item
-          )
-        );
-      }
+  const handleAddMore = () => {
+    // Show remaining options user hasn't tried
+    const remaining = IMPORT_STEPS.filter(s => !skippedSteps.has(s));
+    if (remaining.length > 0) {
+      advanceToStep(remaining[0]);
+    } else {
+      // All steps tried, offer upload/email as extras
+      addEcho("You can also upload files or import an email archive.");
+      setStep('check');
     }
   };
 
-  const handleVoiceSaved = (result: {
-    contentId: string;
-    transcription: string;
-    chunksCreated: number;
-  }) => {
-    setContentItems((prev) => [
-      ...prev,
-      { id: result.contentId, title: 'Voice recording', type: 'voice', status: 'completed' },
-    ]);
-  };
-
-  const getPostOnboardingPath = () => {
-    const redirect = localStorage.getItem('postOnboardingRedirect');
-    localStorage.removeItem('postOnboardingRedirect');
-    // Only allow internal /app paths to prevent open redirect
-    if (redirect && redirect.startsWith('/app')) {
-      return redirect;
-    }
-    return '/app';
-  };
-  const handleSkip = () => router.push(getPostOnboardingPath());
-  const handleStartCreating = () => router.push(getPostOnboardingPath());
-
-  // --- Loading ---
+  // ─── Loading ───
   if (kbLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -537,530 +418,330 @@ export default function OnboardingContent() {
     );
   }
 
-  // --- Render ---
-  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'paste', label: 'Paste Text', icon: <Sparkles className="w-4 h-4" /> },
-    { key: 'import', label: 'Import', icon: <Globe className="w-4 h-4" /> },
-    { key: 'upload', label: 'Upload', icon: <Upload className="w-4 h-4" /> },
-    { key: 'voice', label: 'Record', icon: <Mic className="w-4 h-4" /> },
-  ];
-
+  // ─── RENDER ───
   return (
-    <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8 md:py-12">
-      {/* Backdrop gradient */}
-      <div className="fixed inset-0 bg-gradient-to-b from-background via-background to-muted/30 -z-10" />
-
-      {/* ========== DIALOG CONTAINER ========== */}
-      <div className="w-full max-w-2xl animate-fade-in">
-        {/* --- Header bar --- */}
-        <div className="flex items-center justify-between mb-6">
-          <span className="text-lg font-bold text-primary">EchoMe</span>
-          <button
-            onClick={handleSkip}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Skip for now
-          </button>
-        </div>
-
-        {/* --- Hero (compact) --- */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">
-            Show Us Your{' '}
-            <span className="bg-gradient-to-r from-primary via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent animate-gradient-x bg-[length:200%_200%]">
-              Voice
-            </span>
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Drop in {MIN_CONTENT_ITEMS} pieces of your existing work. That&apos;s all the system needs.
-          </p>
-        </div>
-
-        {/* --- Progress bar --- */}
-        <div className="flex items-center gap-3 mb-8 bg-card border border-border rounded-xl px-4 py-3">
-          <VoiceRing progress={ringProgress} isReady={isReady} size={40} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium">
-                {isReady
-                  ? 'Voice ready!'
-                  : `${totalCompleted} of ${MIN_CONTENT_ITEMS} samples`}
-              </span>
-              {isReady && (
-                <button
-                  onClick={handleStartCreating}
-                  className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1"
-                >
-                  Start Creating <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${
-                  isReady ? 'bg-green-500' : 'bg-primary'
-                }`}
-                style={{ width: `${Math.max(ringProgress * 100, 2)}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* --- Celebration banner --- */}
-        {isReady && (
-          <div className="mb-6 bg-primary/10 border border-primary/20 rounded-xl p-4 text-center animate-fade-in">
-            <p className="font-semibold text-primary mb-2">Good to go.</p>
-            <button
-              onClick={handleStartCreating}
-              className="relative overflow-hidden px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors animate-shimmer-sweep"
-            >
-              Start Creating <ArrowRight className="inline ml-1 w-4 h-4" />
-            </button>
-            <p className="text-xs text-muted-foreground mt-2">
-              More context means better output
-            </p>
-          </div>
-        )}
-
-        {/* ========== PROFILE CARD ========== */}
-        <div className="bg-card border border-border rounded-xl p-4 mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-semibold">Your Profile</h2>
-            <span className="text-xs text-muted-foreground">- used on carousels and content</span>
-          </div>
-          <div className="flex items-start gap-4">
-            {/* Avatar */}
-            <label className="shrink-0 cursor-pointer group">
-              <div className="w-14 h-14 rounded-full bg-muted border-2 border-border group-hover:border-primary transition-colors overflow-hidden flex items-center justify-center">
-                {profile.profileImageUrl ? (
-                  <img
-                    src={profile.profileImageUrl}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-lg font-bold text-muted-foreground">
-                    {profile.displayName?.[0]?.toUpperCase() || '?'}
-                  </span>
-                )}
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-              />
-              <span className="block text-[10px] text-center text-muted-foreground mt-0.5 group-hover:text-primary transition-colors">
-                <Camera className="inline w-2.5 h-2.5" /> Photo
-              </span>
-            </label>
-
-            {/* Fields */}
-            <div className="flex-1 space-y-2">
-              <input
-                type="text"
-                value={profile.displayName}
-                onChange={(e) => updateProfileField('displayName', e.target.value)}
-                placeholder="Display name"
-                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
-                    @
-                  </span>
-                  <input
-                    type="text"
-                    value={profile.twitterHandle}
-                    onChange={(e) => updateProfileField('twitterHandle', e.target.value)}
-                    placeholder="twitter"
-                    className="w-full pl-6 pr-2 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  />
-                </div>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
-                    @
-                  </span>
-                  <input
-                    type="text"
-                    value={profile.instagramHandle}
-                    onChange={(e) => updateProfileField('instagramHandle', e.target.value)}
-                    placeholder="instagram"
-                    className="w-full pl-6 pr-2 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  />
-                </div>
-              </div>
-              {profileDirty && (
-                <button
-                  onClick={handleSaveProfile}
-                  disabled={profileSaving}
-                  className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
-                >
-                  {profileSaving ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <Check className="w-3 h-3" />
-                  )}
-                  Save
-                </button>
-              )}
-              {!profileDirty && profileSaved && (
-                <span className="text-xs text-green-500 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Saved
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ========== TELL US ABOUT YOU CARD ========== */}
-        <div className="bg-card border border-border rounded-xl p-4 mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-semibold">Tell Us About You</h2>
-            <span className="text-xs text-muted-foreground">- gives the system more context</span>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">What do you do?</label>
-              <input
-                type="text"
-                value={profileContext.role}
-                onChange={(e) => updateProfileContextField('role', e.target.value)}
-                placeholder="e.g., Leadership coach for mid-career women"
-                maxLength={200}
-                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">What topics do you cover?</label>
-              <input
-                type="text"
-                value={profileContext.topics}
-                onChange={(e) => updateProfileContextField('topics', e.target.value)}
-                placeholder="e.g., Confidence, career transitions, executive presence"
-                maxLength={300}
-                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ========== YOUR CONTENT RULES CARD ========== */}
-        <div className="bg-card border border-border rounded-xl p-4 mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-semibold">Your Content Rules</h2>
-            <span className="text-xs text-muted-foreground">- optional brand guidelines</span>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Your offer or CTA</label>
-              <input
-                type="text"
-                value={profileContext.cta}
-                onChange={(e) => updateProfileContextField('cta', e.target.value)}
-                placeholder="e.g., Confident Leader OS - my signature course"
-                maxLength={200}
-                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Anything to avoid?</label>
-              <textarea
-                value={profileContext.guardrails}
-                onChange={(e) => updateProfileContextField('guardrails', e.target.value)}
-                placeholder="e.g., Never say hustle or grind. No aggressive sales language."
-                maxLength={500}
-                rows={2}
-                className="w-full px-3 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
-              />
-            </div>
-            {profileContextDirty && (
-              <button
-                onClick={handleSaveProfileContext}
-                disabled={profileContextSaving}
-                className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
-              >
-                {profileContextSaving ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Check className="w-3 h-3" />
-                )}
-                Save
-              </button>
-            )}
-            {!profileContextDirty && profileContextSaved && (
-              <span className="text-xs text-green-500 flex items-center gap-1">
-                <Check className="w-3 h-3" /> Saved
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* ========== ADD CONTENT CARD ========== */}
-        <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
-          <div className="px-4 pt-4 pb-0">
-            <h2 className="text-sm font-semibold mb-3">Add Your Work</h2>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex border-b border-border px-4">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                  activeTab === tab.key
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab content */}
-          <div className="p-4">
-            {/* Paste tab */}
-            {activeTab === 'paste' && (
-              <div>
-                <textarea
-                  value={pasteText}
-                  onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="Paste something you've written - blog post, email, social post, anything..."
-                  rows={4}
-                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <span
-                    className={`text-xs ${
-                      pasteText.length > 0 && pasteText.length < 50
-                        ? 'text-amber-500'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    {pasteText.length > 0 && pasteText.length < 50
-                      ? `${50 - pasteText.length} more characters needed`
-                      : pasteText.length > 0
-                      ? `${pasteText.length.toLocaleString()} chars`
-                      : 'Min 50 characters'}
-                  </span>
-                  <button
-                    onClick={handlePasteSubmit}
-                    disabled={pasteText.length < 50 || isSubmitting}
-                    className="px-3 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg disabled:opacity-40 hover:bg-primary/90 transition-colors flex items-center gap-1.5"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )}
-                    Add
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Import tab */}
-            {activeTab === 'import' && (
-              <div className="space-y-3">
-                <ImportRow
-                  platform="youtube"
-                  label="YouTube"
-                  icon={<Youtube className="w-4 h-4 text-red-500" />}
-                  placeholder="youtube.com/c/yourchannel"
-                  state={imports.youtube}
-                  onUrlChange={(url) =>
-                    setImports((p) => ({ ...p, youtube: { ...p.youtube, url } }))
-                  }
-                  onImport={() => handleImport('youtube')}
-                />
-                <ImportRow
-                  platform="instagram"
-                  label="Instagram"
-                  icon={<Instagram className="w-4 h-4 text-pink-500" />}
-                  placeholder="instagram.com/yourprofile"
-                  state={imports.instagram}
-                  onUrlChange={(url) =>
-                    setImports((p) => ({ ...p, instagram: { ...p.instagram, url } }))
-                  }
-                  onImport={() => handleImport('instagram')}
-                />
-                <ImportRow
-                  platform="blog"
-                  label="Blog"
-                  icon={<Globe className="w-4 h-4 text-primary" />}
-                  placeholder="yourblog.com"
-                  state={imports.blog}
-                  onUrlChange={(url) =>
-                    setImports((p) => ({ ...p, blog: { ...p.blog, url } }))
-                  }
-                  onImport={() => handleImport('blog')}
-                />
-                <p className="text-xs text-muted-foreground pt-1">
-                  Imports run in the background. You can continue while they process.
-                </p>
-              </div>
-            )}
-
-            {/* Upload tab */}
-            {activeTab === 'upload' && (
-              <>
-                {mboxUploading && <MboxProgressUI progress={mboxProgress} status={mboxStatus} />}
-                {!mboxUploading && (
-                  <UploadZone onFilesAdded={handleFilesAdded} disabled={isSubmitting} />
-                )}
-              </>
-            )}
-
-            {/* Voice tab */}
-            {activeTab === 'voice' && (
-              <VoiceRecorder onSaved={handleVoiceSaved} knowledgeBaseId={defaultKbId} />
-            )}
-          </div>
-        </div>
-
-        {/* ========== CONTENT LIST ========== */}
-        {contentItems.length > 0 && (
-          <div className="bg-card border border-border rounded-xl p-4 mb-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-              Added ({contentItems.length})
-            </h3>
-            <div className="space-y-1.5">
-              {contentItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-2.5 py-1.5 px-2.5 bg-muted/30 rounded-lg"
-                >
-                  {item.status === 'processing' ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
-                  ) : item.status === 'completed' ? (
-                    <div className="w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                      <Check className="w-2 h-2 text-white" />
-                    </div>
-                  ) : (
-                    <div className="w-3.5 h-3.5 rounded-full bg-destructive flex items-center justify-center shrink-0">
-                      <X className="w-2 h-2 text-white" />
-                    </div>
-                  )}
-                  <span className="text-sm truncate flex-1">{item.title}</span>
-                  {item.error && (
-                    <span className="text-xs text-destructive shrink-0">{item.error}</span>
-                  )}
-                  <span className="text-[10px] text-muted-foreground capitalize shrink-0">
-                    {item.type}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ========== BOTTOM CTA ========== */}
-        <div className="flex items-center justify-between py-4">
-          <button
-            onClick={handleSkip}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Skip to dashboard
-          </button>
-          {isReady && (
-            <button
-              onClick={handleStartCreating}
-              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center gap-1.5"
-            >
-              Start Creating <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
-          {!isReady && (
-            <span className="text-xs text-muted-foreground">
-              {MIN_CONTENT_ITEMS - totalCompleted} more sample
-              {MIN_CONTENT_ITEMS - totalCompleted !== 1 ? 's' : ''} needed
-            </span>
-          )}
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground pb-6">
-          Without your content, the system has nothing to work with
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Import Row Sub-component
-// ---------------------------------------------------------------------------
-
-function ImportRow({
-  platform,
-  label,
-  icon,
-  placeholder,
-  state,
-  onUrlChange,
-  onImport,
-}: {
-  platform: ImportPlatform;
-  label: string;
-  icon: React.ReactNode;
-  placeholder: string;
-  state: ImportState;
-  onUrlChange: (url: string) => void;
-  onImport: () => void;
-}) {
-  if (state.status === 'done') {
-    return (
-      <div className="flex items-center gap-2 py-2 px-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-        <Check className="w-4 h-4 text-green-500 shrink-0" />
-        <span className="text-sm font-medium">{label}</span>
-        <span className="text-xs text-muted-foreground ml-auto">
-          {state.message || 'Import started'}
-        </span>
-      </div>
-    );
-  }
-
-  if (state.status === 'importing') {
-    return (
-      <div className="flex items-center gap-2 py-2 px-3 bg-muted/30 rounded-lg">
-        <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
-        <span className="text-sm font-medium">{label}</span>
-        <span className="text-xs text-muted-foreground ml-auto">Importing...</span>
-      </div>
-    );
-  }
-
-  if (state.status === 'error') {
-    return (
-      <div className="flex items-center gap-2 py-2 px-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-        <X className="w-4 h-4 text-destructive shrink-0" />
-        <span className="text-sm font-medium">{label}</span>
-        <span className="text-xs text-destructive ml-auto">
-          {state.message || 'Import failed'}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="shrink-0">{icon}</div>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Hidden mbox input */}
       <input
-        type="text"
-        value={state.url}
-        onChange={(e) => onUrlChange(e.target.value)}
-        placeholder={placeholder}
-        className="flex-1 px-3 py-1.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        ref={mboxInputRef}
+        type="file"
+        accept=".mbox,application/mbox,application/octet-stream,text/plain"
+        onChange={handleMboxUpload}
+        className="hidden"
       />
-      <button
-        onClick={onImport}
-        disabled={!state.url.trim()}
-        className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium rounded-lg disabled:opacity-40 hover:bg-primary/90 transition-colors shrink-0"
-      >
-        Import
-      </button>
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 flex-shrink-0">
+        <span className="text-lg font-bold text-accent">EchoMe</span>
+        <div className="flex items-center gap-4">
+          {/* Progress indicator */}
+          <span className="text-xs text-text-secondary tabular-nums">
+            {totalCompleted}/{MIN_CONTENT_ITEMS} sources
+          </span>
+          <div className="w-20 h-1.5 bg-bg-secondary rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${isReady ? 'bg-emerald-500' : 'bg-accent'}`}
+              style={{ width: `${Math.min((totalCompleted / MIN_CONTENT_ITEMS) * 100, 100)}%` }}
+            />
+          </div>
+          <button
+            onClick={() => router.push(getPostOnboardingPath())}
+            className="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
+          >
+            Skip
+          </button>
+        </div>
+      </div>
+
+      {/* MBOX progress banner */}
+      {mboxUploading && (
+        <div className="px-6 pb-2">
+          <MboxProgressUI progress={mboxProgress} status={mboxStatus} />
+        </div>
+      )}
+
+      {/* Chat area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+        <div className="max-w-2xl mx-auto space-y-4">
+          {messages.map(m => (
+            <div key={m.id}>
+              {m.role === 'echo' ? (
+                <div className="flex gap-3 items-start">
+                  <EchoAvatar />
+                  <div className="max-w-[85%] bg-white/[0.03] backdrop-blur-xl text-text-primary px-5 py-3.5 rounded-2xl rounded-tl-none border border-white/[0.06] text-sm leading-relaxed">
+                    {m.content}
+                  </div>
+                </div>
+              ) : m.role === 'user' ? (
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] bg-accent text-white px-5 py-3.5 rounded-2xl rounded-tr-none text-sm font-medium">
+                    {m.content}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 pl-[52px]">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                  <span className="text-xs text-emerald-400">{m.content}</span>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* ─── Step-specific inline UI ─── */}
+
+          {/* Welcome: Get started button */}
+          {step === 'welcome' && (
+            <div className="pl-[52px]">
+              <button
+                onClick={handleGetStarted}
+                className="px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-all flex items-center gap-2"
+              >
+                Let's get started <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Profile: Name + optional handles */}
+          {step === 'profile' && (
+            <div className="pl-[52px] space-y-3">
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="Your name"
+                className="w-full max-w-sm px-4 py-3 text-sm border border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter' && displayName.trim()) handleSaveProfile(); }}
+              />
+              <div className="flex gap-2 max-w-sm">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary text-sm">@</span>
+                  <input
+                    type="text"
+                    value={twitterHandle}
+                    onChange={e => setTwitterHandle(e.target.value)}
+                    placeholder="twitter (optional)"
+                    className="w-full pl-7 pr-3 py-2.5 text-sm border border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30"
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary text-sm">@</span>
+                  <input
+                    type="text"
+                    value={instagramHandle}
+                    onChange={e => setInstagramHandle(e.target.value)}
+                    placeholder="instagram (optional)"
+                    className="w-full pl-7 pr-3 py-2.5 text-sm border border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleSaveProfile}
+                disabled={!displayName.trim() || profileSaving}
+                className="px-5 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 transition-all disabled:opacity-40 flex items-center gap-2"
+              >
+                {profileSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                Continue
+              </button>
+            </div>
+          )}
+
+          {/* YouTube / Instagram / Blog: URL input + skip */}
+          {(step === 'youtube' || step === 'instagram' || step === 'blog') && (
+            <div className="pl-[52px] space-y-3">
+              <div className="flex gap-2 max-w-lg">
+                <input
+                  type="text"
+                  value={importUrl}
+                  onChange={e => setImportUrl(e.target.value)}
+                  placeholder={
+                    step === 'youtube' ? 'https://youtube.com/@channel or video link'
+                    : step === 'instagram' ? 'https://instagram.com/username'
+                    : 'https://yourblog.com or RSS feed'
+                  }
+                  className="flex-1 px-4 py-3 text-sm border border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all"
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter' && importUrl.trim()) handleImportUrl(step); }}
+                  disabled={importing}
+                />
+                <button
+                  onClick={() => handleImportUrl(step)}
+                  disabled={!importUrl.trim() || importing}
+                  className="px-5 py-3 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 disabled:opacity-40 flex items-center gap-2"
+                >
+                  {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Import'}
+                </button>
+              </div>
+              <button
+                onClick={() => handleSkipStep(step)}
+                disabled={importing}
+                className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+              >
+                Skip this
+              </button>
+            </div>
+          )}
+
+          {/* Paste: textarea + skip */}
+          {step === 'paste' && (
+            <div className="pl-[52px] space-y-3">
+              <textarea
+                value={pasteText}
+                onChange={e => setPasteText(e.target.value)}
+                placeholder="Paste something you've written. An email, a post, a blog draft. Anything works."
+                rows={4}
+                className="w-full max-w-lg px-4 py-3 text-sm border border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all resize-none"
+                autoFocus
+                disabled={pasting}
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePasteSubmit}
+                  disabled={!pasteText.trim() || pasteText.length < 50 || pasting}
+                  className="px-5 py-2.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 disabled:opacity-40 flex items-center gap-2"
+                >
+                  {pasting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
+                </button>
+                <span className="text-xs text-text-tertiary">
+                  {pasteText.length < 50 ? `${50 - pasteText.length} more chars needed` : `${pasteText.split(/\s+/).length} words`}
+                </span>
+              </div>
+              <button
+                onClick={() => handleSkipStep('paste')}
+                disabled={pasting}
+                className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+              >
+                Skip this
+              </button>
+            </div>
+          )}
+
+          {/* Voice: open recorder + skip */}
+          {step === 'voice' && (
+            <div className="pl-[52px] space-y-3">
+              <button
+                onClick={() => setShowVoiceModal(true)}
+                className="px-5 py-3 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 flex items-center gap-2"
+              >
+                <Mic className="w-4 h-4" /> Start Recording
+              </button>
+              <button
+                onClick={() => handleSkipStep('voice')}
+                className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+              >
+                Skip this
+              </button>
+            </div>
+          )}
+
+          {/* Check: need more or ready */}
+          {step === 'check' && !isReady && (
+            <div className="pl-[52px] space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => advanceToStep('youtube')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <Play className="w-4 h-4 text-accent" /> YouTube
+                </button>
+                <button onClick={() => advanceToStep('instagram')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <Camera className="w-4 h-4 text-accent" /> Instagram
+                </button>
+                <button onClick={() => advanceToStep('blog')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <FileText className="w-4 h-4 text-accent" /> Blog
+                </button>
+                <button onClick={() => advanceToStep('paste')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <PenLine className="w-4 h-4 text-accent" /> Paste Text
+                </button>
+                <button onClick={() => setShowUploadModal(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <Upload className="w-4 h-4 text-accent" /> Upload Files
+                </button>
+                <button onClick={() => advanceToStep('voice')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <Mic className="w-4 h-4 text-accent" /> Voice Note
+                </button>
+                <button onClick={() => { setShowMboxModal(true); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
+                  <Mail className="w-4 h-4 text-accent" /> Import Emails
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Done: Start creating button */}
+          {step === 'done' && (
+            <div className="pl-[52px]">
+              <button
+                onClick={() => router.push(getPostOnboardingPath())}
+                className="px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-all flex items-center gap-2"
+              >
+                Start Creating <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ─── Modals ─── */}
+
+      {/* Voice recorder */}
+      {showVoiceModal && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowVoiceModal(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h2 className="font-semibold">Record Voice</h2>
+                <button onClick={() => setShowVoiceModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-4">
+                <VoiceRecorder onSaved={handleVoiceSaved} knowledgeBaseId={defaultKbId ?? undefined} />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* File upload */}
+      {showUploadModal && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowUploadModal(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-xl w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Upload Files</h2>
+                <button onClick={() => setShowUploadModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
+              </div>
+              <UploadZone onFilesAdded={handleFilesAdded} />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MBOX instructions */}
+      {showMboxModal && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowMboxModal(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Import Emails</h2>
+                <button onClick={() => setShowMboxModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
+              </div>
+              <p className="text-sm text-text-secondary mb-4">Import your sent emails to teach Echo your writing style.</p>
+              <div className="space-y-3 mb-4">
+                <div className="p-3 bg-bg-secondary rounded-lg text-xs">
+                  <p className="font-medium mb-1">Gmail</p>
+                  <p className="text-text-secondary">Go to takeout.google.com, export Mail, select Sent folder</p>
+                </div>
+                <div className="p-3 bg-bg-secondary rounded-lg text-xs">
+                  <p className="font-medium mb-1">Apple Mail</p>
+                  <p className="text-text-secondary">Mailbox, Export Mailbox, upload the .mbox file</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowMboxModal(false)} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm">Cancel</button>
+                <button onClick={() => { setShowMboxModal(false); mboxInputRef.current?.click(); }} className="flex-1 btn-primary py-2 text-sm">Select File</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
