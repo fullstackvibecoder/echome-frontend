@@ -155,11 +155,19 @@ export function AskYourVoice({
   knowledgeBaseId,
 }: AskYourVoiceProps) {
   // Persist messages to sessionStorage so deploys/reloads don't wipe the chat
+  // Note: system messages with subChoices contain React components (icons) that can't
+  // be serialized, so we filter those out on save and restore only text-based messages
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
       const saved = sessionStorage.getItem('echome_voice_chat');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved) as ChatMessage[];
+      // Filter out system messages with subChoices (they contain non-serializable icon refs)
+      // and action-cards (they'll be re-seeded)
+      return parsed.filter(m =>
+        m.role !== 'system' || (m.systemType !== 'sub-choices' && m.systemType !== 'action-cards')
+      );
     } catch { return []; }
   });
   const [input, setInput] = useState('');
@@ -175,9 +183,14 @@ export function AskYourVoice({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Save messages to sessionStorage on change
+  // Save messages to sessionStorage on change (strip non-serializable fields)
   useEffect(() => {
-    try { sessionStorage.setItem('echome_voice_chat', JSON.stringify(messages)); } catch {}
+    try {
+      const serializable = messages
+        .filter(m => m.role !== 'system' || (m.systemType !== 'sub-choices' && m.systemType !== 'action-cards'))
+        .map(({ subChoices, ...rest }) => rest);
+      sessionStorage.setItem('echome_voice_chat', JSON.stringify(serializable));
+    } catch {}
   }, [messages]);
 
   useEffect(() => {
