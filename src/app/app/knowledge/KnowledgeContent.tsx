@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { X, Mic, MessageSquare, FileText, Mail, PenLine, Upload, Search, Trash2, RefreshCw } from 'lucide-react';
+import { X, Mic, Settings, Plus } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useVoiceContext } from '@/contexts/voice-context';
+import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { UploadZone } from '@/components/upload-zone';
 import { FileList } from '@/components/file-list';
 import { PasteContentModal } from '@/components/paste-content-modal';
@@ -13,66 +14,33 @@ import { SocialImportModal } from '@/components/social-import-modal';
 import { BlogImportModal } from '@/components/blog-import-modal';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { UnifiedContentItem, ContentSourceType, CONTENT_SOURCE_CONFIG } from '@/types';
 import { parseMboxFile } from '@/lib/mbox-parser';
 import { isMboxFile } from '@/lib/file-utils';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
 import { UpgradeBanner } from '@/components/upgrade-banner';
-import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
-import { AppPageHeader } from '@/components/app-page-header';
-import { VoiceIntelligenceDashboard } from './components/VoiceIntelligenceDashboard';
+import { VoiceWaveform } from '@/components/voice-waveform';
 import { AskYourVoice } from './components/AskYourVoice';
-import { SourceCategoryCards } from './components/SourceCategoryCards';
-// VoiceGuidanceChip removed — guidance now integrated into VoiceIntelligenceDashboard
-import { KBSourceFilterChips } from './components/KBSourceFilterChips';
-import { KBContentCard } from './components/KBContentCard';
+import { SourcesDrawer } from './components/SourcesDrawer';
+
+// Lucide icons for tier badges
+import { Sprout, TrendingUp, Zap, Star, type LucideIcon } from 'lucide-react';
 
 // ============================================
 // HELPERS
 // ============================================
 
-import type { LucideIcon } from 'lucide-react';
-import { Play, Camera, Video, Sparkles } from 'lucide-react';
+const TIERS: Array<{ name: string; min: number; icon: LucideIcon; badgeBg: string; badgeText: string }> = [
+  { name: 'Seed', min: 0, icon: Sprout, badgeBg: 'bg-gray-100 dark:bg-gray-800', badgeText: 'text-gray-700 dark:text-gray-300' },
+  { name: 'Growing', min: 26, icon: TrendingUp, badgeBg: 'bg-amber-50 dark:bg-amber-900/30', badgeText: 'text-amber-700 dark:text-amber-400' },
+  { name: 'Strong', min: 51, icon: Zap, badgeBg: 'bg-emerald-50 dark:bg-emerald-900/30', badgeText: 'text-emerald-700 dark:text-emerald-400' },
+  { name: 'Signature', min: 76, icon: Star, badgeBg: 'bg-violet-50 dark:bg-violet-900/30', badgeText: 'text-violet-700 dark:text-violet-400' },
+];
 
-const SOURCE_ICON_MAP: Record<string, LucideIcon> = {
-  file_upload: Upload,
-  paste_text: PenLine,
-  paste_social: MessageSquare,
-  paste_email: Mail,
-  voice_recording: Mic,
-  mbox_import: Mail,
-  youtube_import: Play,
-  instagram_import: Camera,
-  blog_import: FileText,
-  generation: Sparkles,
-  'clip-finder': Video,
-};
-
-function SourceIcon({ type, className }: { type: string; className?: string }) {
-  const Icon = SOURCE_ICON_MAP[type] || FileText;
-  return <Icon className={className || 'w-4 h-4'} />;
-}
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function StatusDot({ status }: { status: string }) {
-  if (status === 'completed') return <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />;
-  if (status === 'processing' || status === 'uploading') {
-    return <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />;
+function getStrengthTier(strength: number) {
+  for (let i = TIERS.length - 1; i >= 0; i--) {
+    if (strength >= TIERS[i].min) return TIERS[i];
   }
-  if (status === 'failed') return <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />;
-  return <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />;
+  return TIERS[0];
 }
 
 function buildContentSummary(bySourceType: Record<string, number>): string {
@@ -90,130 +58,10 @@ function buildContentSummary(bySourceType: Record<string, number>): string {
   const activeTypes = Object.entries(bySourceType)
     .filter(([, count]) => count > 0)
     .map(([type]) => labels[type] || type)
-    .filter((v, i, a) => a.indexOf(v) === i); // dedupe
+    .filter((v, i, a) => a.indexOf(v) === i);
   const total = Object.values(bySourceType).reduce((a, b) => a + b, 0);
   if (total === 0) return '';
   return `Trained on ${total} source${total !== 1 ? 's' : ''} across ${activeTypes.join(', ')}`;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getStoredViewMode(): 'list' | 'grid' {
-  if (typeof window === 'undefined') return 'list';
-  return (localStorage.getItem('echome_kb_view_mode') as 'list' | 'grid') || 'list';
-}
-
-// ============================================
-// KB LIST ITEM COMPONENT (enhanced)
-// ============================================
-
-interface KBListItemProps {
-  item: UnifiedContentItem;
-  isExpanded: boolean;
-  selectionMode: boolean;
-  isSelected: boolean;
-  onSelect: () => void;
-  onToggleExpand: () => void;
-  onDelete: () => void;
-}
-
-function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onToggleExpand, onDelete }: KBListItemProps) {
-  const [hovered, setHovered] = useState(false);
-  const config = CONTENT_SOURCE_CONFIG[item.sourceType as ContentSourceType];
-
-  return (
-    <div>
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        className={`
-          flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer
-          ${isSelected ? 'bg-accent/10 border border-accent/30' : 'hover:bg-bg-secondary border border-transparent'}
-        `}
-        onClick={selectionMode ? onSelect : onToggleExpand}
-      >
-        {/* Checkbox */}
-        {(selectionMode || hovered) && (
-          <div
-            onClick={(e) => { e.stopPropagation(); onSelect(); }}
-            className={`
-              w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 cursor-pointer
-              ${isSelected ? 'bg-accent border-accent text-white' : 'border-border hover:border-accent'}
-            `}
-          >
-            {isSelected && <span className="text-xs">✓</span>}
-          </div>
-        )}
-
-        {/* Source icon */}
-        <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-bg-secondary flex items-center justify-center" title={config?.label || item.sourceType}>
-          <SourceIcon type={item.sourceType} className="w-3.5 h-3.5 text-text-secondary" />
-        </div>
-
-        {/* Title + description */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
-          {item.description && (
-            <p className="text-xs text-text-secondary truncate">{item.description}</p>
-          )}
-        </div>
-
-        {/* Status + patterns */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <StatusDot status={item.status} />
-          <span className="text-xs text-text-secondary whitespace-nowrap">
-            {item.chunkCount || 0} patterns
-          </span>
-        </div>
-
-        {/* Date */}
-        <div className="flex-shrink-0 text-xs text-text-tertiary w-16 text-right hidden sm:block">
-          {formatRelativeDate(item.createdAt)}
-        </div>
-
-        {/* Delete */}
-        {hovered && !selectionMode && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="flex-shrink-0 p-1 text-text-tertiary hover:text-error transition-colors"
-            title="Delete"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-
-      {/* Expanded detail */}
-      {isExpanded && (
-        <div className="ml-11 mr-3 mb-2 p-3 bg-bg-secondary rounded-lg border border-border space-y-2">
-          {item.description && (
-            <p className="text-xs text-text-secondary">{item.description}</p>
-          )}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary">
-            <span>Type: {config?.label || item.sourceType}</span>
-            {item.fileType && <span>File: {item.fileType}</span>}
-            {item.fileSize ? <span>Size: {(item.fileSize / 1024).toFixed(0)} KB</span> : null}
-            <span>Added: {new Date(item.createdAt).toLocaleDateString()}</span>
-          </div>
-          {item.status === 'failed' && item.errorMessage && (
-            <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-xs text-red-600 dark:text-red-400">{item.errorMessage}</p>
-            </div>
-          )}
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="text-xs text-error hover:text-error/80 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ============================================
@@ -232,6 +80,7 @@ export default function KnowledgeContent() {
     refresh,
   } = useKnowledgeBase(isTeamsUser ? activeVoice?.knowledgeBaseId : undefined);
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
+  const { data: voiceStrength } = useVoiceStrength();
 
   // When active voice changes, switch to that voice's KB
   useEffect(() => {
@@ -246,6 +95,9 @@ export default function KnowledgeContent() {
     return voices.filter(v => v.knowledgeBaseId === selectedKb);
   }, [voices, isTeamsUser, selectedKb]);
 
+  // Sources drawer state
+  const [showSources, setShowSources] = useState(false);
+
   // Modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
@@ -256,32 +108,8 @@ export default function KnowledgeContent() {
   const [mboxUploading, setMboxUploading] = useState(false);
   const [mboxProgress, setMboxProgress] = useState(0);
   const [mboxStatus, setMboxStatus] = useState<string>('');
-  const [mboxResult, setMboxResult] = useState<{
-    emailsIngested: number;
-    chunksCreated: number;
-  } | null>(null);
+  const [mboxResult, setMboxResult] = useState<{ emailsIngested: number; chunksCreated: number } | null>(null);
   const mboxInputRef = useRef<HTMLInputElement>(null);
-
-  // Library state
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
-  const [listExpanded, setListExpanded] = useState(false);
-
-  // Bulk selection state
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [bulkDeleting, setBulkDeleting] = useState(false);
-
-  // Delete confirmation state
-  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: string } | null>(null);
-
-  // Load persisted view mode
-  useEffect(() => {
-    setViewMode(getStoredViewMode());
-  }, []);
 
   // Derived state
   const hasContent = contentItems.length > 0;
@@ -289,102 +117,7 @@ export default function KnowledgeContent() {
   const totalItems = contentStats?.totalItems || 0;
   const bySourceType = contentStats?.bySourceType || {};
 
-  // Available filter types (only types with items)
-  const availableFilters = useMemo(() => {
-    const typeCounts: Record<string, number> = {};
-    contentItems.forEach(item => {
-      typeCounts[item.sourceType] = (typeCounts[item.sourceType] || 0) + 1;
-    });
-    return Object.entries(typeCounts)
-      .map(([type, count]) => ({ type: type as ContentSourceType, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [contentItems]);
-
-  // Display content: filtered + searched + sorted
-  const displayContent = useMemo(() => {
-    let items = [...contentItems];
-
-    // Source filter
-    if (sourceFilter !== 'all') {
-      items = items.filter(item => item.sourceType === sourceFilter);
-    }
-
-    // Search
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      items = items.filter(item =>
-        item.title.toLowerCase().includes(term) ||
-        item.description?.toLowerCase().includes(term)
-      );
-    }
-
-    // Sort
-    items.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return sortBy === 'recent' ? dateB - dateA : dateA - dateB;
-    });
-
-    return items;
-  }, [contentItems, sourceFilter, searchTerm, sortBy]);
-
-  // Selection helpers
-  const selectedCount = selectedIds.size;
-  const allSelected = displayContent.length > 0 && selectedIds.size === displayContent.length;
-
-  const handleSelectItem = (itemId: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
-      return next;
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (allSelected) setSelectedIds(new Set());
-    else setSelectedIds(new Set(displayContent.map(item => item.id)));
-  };
-
-  const handleBulkDelete = () => {
-    if (selectedIds.size === 0) return;
-    setDeleteConfirm({ type: 'bulk' });
-  };
-
-  const handleDelete = (contentId: string) => {
-    setDeleteConfirm({ type: 'single', id: contentId });
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteConfirm) return;
-    if (deleteConfirm.type === 'bulk') {
-      setBulkDeleting(true);
-      try {
-        const results = await Promise.allSettled(Array.from(selectedIds).map(id => deleteContent(id)));
-        const failures = results.filter(r => r.status === 'rejected');
-        if (failures.length > 0) {
-          toast.error(`Failed to delete ${failures.length} item${failures.length > 1 ? 's' : ''}. Please try again.`);
-        }
-        setSelectedIds(new Set());
-        setSelectionMode(false);
-      } finally {
-        setBulkDeleting(false);
-      }
-    } else if (deleteConfirm.id) {
-      await deleteContent(deleteConfirm.id);
-    }
-    setDeleteConfirm(null);
-  };
-
-  const toggleViewMode = useCallback(() => {
-    setViewMode(prev => {
-      const next = prev === 'list' ? 'grid' : 'list';
-      localStorage.setItem('echome_kb_view_mode', next);
-      return next;
-    });
-  }, []);
-
-  // Modal opener (used by child components)
+  // Modal opener
   const handleOpenModal = useCallback((modal: string) => {
     switch (modal) {
       case 'voice': setShowVoiceModal(true); break;
@@ -394,16 +127,6 @@ export default function KnowledgeContent() {
       case 'paste': setShowPasteModal(true); break;
       case 'upload': setShowUploadModal(true); break;
     }
-  }, []);
-
-  // Content library ref for scroll-to
-  const contentLibraryRef = useRef<HTMLDivElement>(null);
-
-  const handleFilterByCategory = useCallback((sourceType: string) => {
-    setSourceFilter(sourceType);
-    setTimeout(() => {
-      contentLibraryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
   }, []);
 
   // File upload handlers
@@ -499,64 +222,87 @@ export default function KnowledgeContent() {
     />
   );
 
+  // Voice strength tier for header
+  const tier = voiceStrength ? getStrengthTier(voiceStrength.overallStrength) : null;
+  const TierIcon = tier?.icon;
+
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 max-w-5xl">
+    <div className="flex flex-col h-[calc(100dvh-4rem)]">
       {mboxInput}
 
-      {/* Loading */}
-      {loading && (
-        <div className="py-8 space-y-6 animate-fade-in stagger-children">
-          <div className="skeleton h-8 w-48" />
-          <div className="skeleton h-4 w-72" />
-          <div className="flex flex-wrap gap-2">
-            <div className="skeleton h-10 w-24 rounded-xl" />
-            <div className="skeleton h-10 w-24 rounded-xl" />
-            <div className="skeleton h-10 w-24 rounded-xl" />
-            <div className="skeleton h-10 w-24 rounded-xl" />
+      {/* ─── Compact Header ─── */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 flex-shrink-0 border-b border-border">
+        <div className="flex items-center gap-3 min-w-0">
+          <div>
+            <h1 className="text-lg font-bold text-text-primary leading-tight">Build Your Voice</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              {tier && TierIcon && (
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${tier.badgeBg} ${tier.badgeText}`}>
+                  <TierIcon className="w-3 h-3" />
+                  {tier.name}
+                </span>
+              )}
+              {voiceStrength && (
+                <span className="text-xs text-text-secondary">
+                  {voiceStrength.overallStrength}<span className="text-text-tertiary">/100</span>
+                </span>
+              )}
+              {hasContent && (
+                <span className="text-xs text-text-tertiary">
+                  · {totalItems} source{totalItems !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="skeleton h-24 rounded-xl" />
-          <div className="space-y-2">
-            <div className="skeleton h-10 rounded-lg" />
-            <div className="skeleton h-10 rounded-lg" />
-            <div className="skeleton h-10 rounded-lg" />
-          </div>
+          {/* Mini waveform */}
+          {voiceStrength && voiceStrength.waveformData.length > 0 && (
+            <div className="hidden sm:block" style={{ width: 120, height: 28 }}>
+              <VoiceWaveform
+                waveformData={voiceStrength.waveformData}
+                overallStrength={voiceStrength.overallStrength}
+                className="h-7"
+              />
+            </div>
+          )}
         </div>
-      )}
 
-      {/* MBOX Progress */}
-      {mboxUploading && <MboxProgressUI progress={mboxProgress} status={mboxStatus} />}
-
-      {/* MBOX Success */}
-      {mboxResult && (
-        <div className="mb-6 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-emerald-600">✓</span>
-            <span className="text-sm text-emerald-700 dark:text-emerald-300">
-              {mboxResult.emailsIngested} emails imported
-            </span>
-          </div>
-          <button onClick={() => setMboxResult(null)} className="text-emerald-600 hover:text-emerald-800">✕</button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={() => setShowSources(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary border border-border rounded-lg hover:border-accent/40 transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sources</span>
+          </button>
+          <button
+            onClick={() => handleOpenModal('paste')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
         </div>
-      )}
+      </div>
 
+      {/* ─── Banners ─── */}
       {!loading && (
-        <>
+        <div className="flex-shrink-0 px-4 sm:px-6">
           <UpgradeBanner />
 
-          {/* Voice has no KB (EchoTeams) */}
+          {/* Teams: voice has no KB */}
           {isTeamsUser && activeVoice && !activeVoice.knowledgeBaseId && (
-            <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-sm">
+            <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-sm">
               <span>&#9888;&#65039;</span>
               <span className="text-text-secondary">
                 <strong>{activeVoice.name}</strong> has no Knowledge Base yet.
-                <a href="/app/team-voices" className="text-primary hover:underline ml-1">Assign or create one</a> in Team Voices, or add content here to use the shared KB below.
+                <a href="/app/team-voices" className="text-primary hover:underline ml-1">Assign or create one</a>.
               </span>
             </div>
           )}
 
-          {/* Voice Linking Info (EchoTeams) */}
+          {/* Teams: linked voices */}
           {isTeamsUser && linkedVoices.length > 0 && (
-            <div className="mb-6 p-3 bg-accent/5 border border-accent/20 rounded-lg flex items-center gap-2 text-sm">
+            <div className="mt-3 p-3 bg-accent/5 border border-accent/20 rounded-lg flex items-center gap-2 text-sm">
               <Mic className="w-4 h-4 text-accent flex-shrink-0" />
               <span className="text-text-secondary">
                 Used by: {linkedVoices.map(v => (
@@ -568,241 +314,60 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* ZONE 0 - Header */}
-          <AppPageHeader
-            title="Voice Profile"
-            description="Everything EchoMe uses to match your voice"
-            stats={
-              hasContent ? (
-                <span className="text-xs text-text-secondary ml-2">
-                  {totalItems} sources · {totalChunks.toLocaleString()} patterns{contentStats && contentStats.totalSize > 0 ? ` · ${formatSize(contentStats.totalSize)}` : ''}
-                </span>
-              ) : null
-            }
-            actions={
-              <button
-                onClick={refresh}
-                disabled={loading}
-                className="text-text-secondary hover:text-primary transition-colors p-2"
-                title="Refresh"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            }
-          />
+          {/* Mbox progress */}
+          {mboxUploading && <div className="mt-3"><MboxProgressUI progress={mboxProgress} status={mboxStatus} /></div>}
 
-          {/* ZONE 1 - Ask Your Voice (hero — most important feature) */}
+          {/* Mbox success */}
+          {mboxResult && (
+            <div className="mt-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-600">✓</span>
+                <span className="text-sm text-emerald-700 dark:text-emerald-300">
+                  {mboxResult.emailsIngested} emails imported
+                </span>
+              </div>
+              <button onClick={() => setMboxResult(null)} className="text-emerald-600 hover:text-emerald-800">✕</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Loading ─── */}
+      {loading && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* ─── Chat (fills remaining space) ─── */}
+      {!loading && (
+        <div className="flex-1 min-h-0">
           <AskYourVoice
             disabled={!hasContent}
             kbId={selectedKb}
             contentSummary={hasContent ? buildContentSummary(bySourceType) : undefined}
+            hasContent={hasContent}
+            onOpenSources={() => setShowSources(true)}
           />
-
-          {/* ZONE 2 - Voice Strength (tier badge) */}
-          <VoiceIntelligenceDashboard
-            contentStats={contentStats || { totalItems: 0, totalChunks: 0, totalSize: 0, bySourceType: {} }}
-            totalChunks={totalChunks}
-          />
-
-          {/* ZONE 3 - Source Category Cards (also serves as Add Content) */}
-          <SourceCategoryCards
-            bySourceType={bySourceType}
-            contentItems={contentItems}
-            mboxUploading={mboxUploading}
-            onOpenModal={handleOpenModal}
-            onFilterByCategory={handleFilterByCategory}
-          />
-
-          {/* Empty State */}
-          {!hasContent && (
-            <div className="text-center py-10 px-6 bg-bg-secondary rounded-xl border border-border">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Your Voice Profile is empty</h3>
-              <p className="text-text-secondary text-sm max-w-md mx-auto mb-4">
-                Start by adding something you&apos;ve written. Try pasting an email or importing your YouTube videos.
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={() => setShowPasteModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 text-sm font-medium"
-                >
-                  <PenLine className="w-4 h-4" /> Paste Text
-                </button>
-                <button
-                  onClick={() => setShowSocialModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 text-sm font-medium"
-                >
-                  <Play className="w-4 h-4" /> Import YouTube
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ZONE 4 - Content Library */}
-          {hasContent && (
-            <div ref={contentLibraryRef} className="space-y-4">
-              {/* Section label */}
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-text-primary">Content Library <span className="text-text-tertiary font-normal">({contentItems.length})</span></h2>
-              </div>
-
-              {/* Search bar (prominent) */}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search content..."
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-xl input-glow"
-                />
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
-              </div>
-
-              {/* Filter Chips */}
-              <KBSourceFilterChips
-                availableTypes={availableFilters}
-                activeFilter={sourceFilter}
-                onFilterChange={setSourceFilter}
-                totalCount={contentItems.length}
-              />
-
-              {/* Controls Row */}
-              <div className="flex items-center gap-3 flex-wrap">
-
-                {/* Sort */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'recent' | 'oldest')}
-                  className="px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary text-text-primary"
-                >
-                  <option value="recent">Recent</option>
-                  <option value="oldest">Oldest</option>
-                </select>
-
-                {/* View toggle */}
-                <button
-                  onClick={toggleViewMode}
-                  className="px-3 py-2 text-sm border border-border rounded-lg hover:border-accent transition-colors"
-                  title={viewMode === 'list' ? 'Switch to grid' : 'Switch to list'}
-                >
-                  {viewMode === 'list' ? '▦' : '☰'}
-                </button>
-
-                {/* Select mode */}
-                {!selectionMode ? (
-                  <button
-                    onClick={() => setSelectionMode(true)}
-                    className="px-3 py-2 text-sm border border-border rounded-lg hover:border-accent transition-colors"
-                  >
-                    Select
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={handleSelectAll}
-                        className="w-4 h-4 rounded border-accent text-accent focus:ring-accent"
-                      />
-                      All ({displayContent.length})
-                    </label>
-                    <button
-                      onClick={handleBulkDelete}
-                      disabled={selectedCount === 0 || bulkDeleting}
-                      className="px-3 py-1.5 text-sm bg-error/10 text-error rounded-lg hover:bg-error/20 disabled:opacity-50"
-                    >
-                      {bulkDeleting ? '...' : `Delete (${selectedCount})`}
-                    </button>
-                    <button
-                      onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}
-                      className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Content Items */}
-              {(() => {
-                const visibleItems = listExpanded || searchTerm || sourceFilter !== 'all'
-                  ? displayContent
-                  : displayContent.slice(0, 5);
-                const hiddenCount = displayContent.length - visibleItems.length;
-
-                return viewMode === 'list' ? (
-                  <>
-                    <div className="space-y-1">
-                      {visibleItems.map((item) => (
-                        <KBListItem
-                          key={item.id}
-                          item={item}
-                          isExpanded={expandedItemId === item.id}
-                          selectionMode={selectionMode}
-                          isSelected={selectedIds.has(item.id)}
-                          onSelect={() => handleSelectItem(item.id)}
-                          onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
-                          onDelete={() => handleDelete(item.id)}
-                        />
-                      ))}
-                    </div>
-                    {displayContent.length > 5 && !searchTerm && sourceFilter === 'all' && (
-                      <button
-                        onClick={() => setListExpanded(!listExpanded)}
-                        className="w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors"
-                      >
-                        {listExpanded ? 'Show less' : `Show all (${displayContent.length})`}
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {visibleItems.map((item) => (
-                        <KBContentCard
-                          key={item.id}
-                          item={item}
-                          isExpanded={expandedItemId === item.id}
-                          selectionMode={selectionMode}
-                          isSelected={selectedIds.has(item.id)}
-                          onSelect={() => handleSelectItem(item.id)}
-                          onToggleExpand={() => setExpandedItemId(prev => prev === item.id ? null : item.id)}
-                          onDelete={() => handleDelete(item.id)}
-                        />
-                      ))}
-                    </div>
-                    {displayContent.length > 5 && !searchTerm && sourceFilter === 'all' && (
-                      <button
-                        onClick={() => setListExpanded(!listExpanded)}
-                        className="w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors"
-                      >
-                        {listExpanded ? 'Show less' : `Show all (${displayContent.length})`}
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
-
-              {/* No Results */}
-              {displayContent.length === 0 && (searchTerm || sourceFilter !== 'all') && (
-                <div className="text-center py-8 text-text-secondary">
-                  {searchTerm
-                    ? <>No results for &ldquo;{searchTerm}&rdquo;</>
-                    : 'No items for this filter'
-                  }
-                </div>
-              )}
-            </div>
-          )}
-        </>
+        </div>
       )}
 
-      {/* ============================================ */}
-      {/* MODALS (all unchanged) */}
-      {/* ============================================ */}
+      {/* ─── Sources Drawer ─── */}
+      <SourcesDrawer
+        isOpen={showSources}
+        onClose={() => setShowSources(false)}
+        contentStats={contentStats}
+        totalChunks={totalChunks}
+        contentItems={contentItems}
+        bySourceType={bySourceType}
+        mboxUploading={mboxUploading}
+        onOpenModal={handleOpenModal}
+        onDeleteContent={deleteContent}
+        onRefresh={refresh}
+        loading={loading}
+      />
+
+      {/* ─── Modals (unchanged) ─── */}
 
       {/* Upload Modal */}
       {showUploadModal && (
@@ -842,11 +407,11 @@ export default function KnowledgeContent() {
               </p>
               <div className="space-y-3 mb-4">
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
-                  <p className="font-medium mb-1">📧 Gmail</p>
+                  <p className="font-medium mb-1">Gmail</p>
                   <p className="text-text-secondary">Go to takeout.google.com → Export Mail → Sent folder</p>
                 </div>
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
-                  <p className="font-medium mb-1">🍎 Apple Mail</p>
+                  <p className="font-medium mb-1">Apple Mail</p>
                   <p className="text-text-secondary">Mailbox → Export Mailbox → Upload .mbox file</p>
                 </div>
               </div>
@@ -899,21 +464,6 @@ export default function KnowledgeContent() {
         onClose={() => setShowBlogModal(false)}
         onImportComplete={refresh}
         knowledgeBaseId={selectedKb ?? undefined}
-      />
-
-      {/* Delete Confirmation */}
-      <ConfirmDialog
-        isOpen={deleteConfirm !== null}
-        title={deleteConfirm?.type === 'bulk' ? 'Delete Items' : 'Delete Content'}
-        message={
-          deleteConfirm?.type === 'bulk'
-            ? `Delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}? This cannot be undone.`
-            : 'Delete this content? This cannot be undone.'
-        }
-        confirmLabel="Delete"
-        variant="danger"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteConfirm(null)}
       />
     </div>
   );

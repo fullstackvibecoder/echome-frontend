@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Sparkles, Send, ArrowDown, X } from 'lucide-react';
+import { Sparkles, Send, X, PenLine, Play } from 'lucide-react';
 import { api } from '@/lib/api-client';
 
 interface Message {
@@ -26,42 +26,39 @@ const FOLLOW_UP_PROMPTS = [
 interface AskYourVoiceProps {
   disabled?: boolean;
   kbId?: string | null;
-  /** Summary line like "10 sources across voice, social, blog, email" */
   contentSummary?: string;
+  hasContent: boolean;
+  onOpenSources: () => void;
 }
 
-export function AskYourVoice({ disabled, kbId, contentSummary }: AskYourVoiceProps) {
+export function AskYourVoice({ disabled, kbId, contentSummary, hasContent, onOpenSources }: AskYourVoiceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showFloatingButton, setShowFloatingButton] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const conversationRef = useRef<HTMLDivElement>(null);
-
-  // Show floating button when hero input scrolls out of view
-  useEffect(() => {
-    if (!heroRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowFloatingButton(!entry.isIntersecting),
-      { threshold: 0 }
-    );
-    observer.observe(heroRef.current);
-    return () => observer.disconnect();
-  }, []);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll conversation to bottom
   useEffect(() => {
-    if (conversationRef.current) {
-      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  // Auto-resize textarea
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  };
 
   const sendMessage = useCallback(async (query?: string) => {
     const text = (query || input).trim();
     if (!text || loading) return;
 
     setInput('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
     const userMsg: Message = { role: 'user', content: text };
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
@@ -103,141 +100,190 @@ export function AskYourVoice({ disabled, kbId, contentSummary }: AskYourVoicePro
   const handleClear = () => {
     setMessages([]);
     setInput('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
   };
 
-  const scrollToHero = () => {
-    heroRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => inputRef.current?.focus(), 400);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   const hasConversation = messages.length > 0;
   const lastMessageIsAssistant = messages.length > 0 && messages[messages.length - 1].role === 'assistant';
 
+  // Input bar (reused in both states)
+  const inputBar = (
+    <div className="flex items-end gap-3">
+      <div className="flex-1 relative">
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          rows={1}
+          placeholder={disabled
+            ? 'Add content to your voice profile first...'
+            : 'Draft a post, explore ideas, discover patterns...'
+          }
+          disabled={disabled || loading}
+          className="w-full pl-4 pr-4 py-3.5 text-sm border-2 border-border rounded-2xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+          style={{ maxHeight: '160px' }}
+        />
+      </div>
+      <button
+        onClick={() => sendMessage()}
+        disabled={disabled || loading || !input.trim()}
+        className="w-11 h-11 rounded-xl bg-accent hover:bg-accent/90 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-accent flex-shrink-0"
+      >
+        <Send className="w-4 h-4" />
+      </button>
+    </div>
+  );
+
+  // ─── STATE: No content yet ───
+  if (!hasContent) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-4">
+        <div className="w-14 h-14 rounded-full bg-accent/15 flex items-center justify-center mb-5">
+          <Sparkles className="w-7 h-7 text-accent" />
+        </div>
+        <h2 className="text-xl font-semibold text-text-primary mb-2">Build your voice</h2>
+        <p className="text-sm text-text-secondary text-center max-w-md mb-6">
+          Add some content so EchoMe can learn your voice. Try pasting an email or importing your YouTube videos.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onOpenSources}
+            className="flex items-center gap-2 px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 text-sm font-medium"
+          >
+            <PenLine className="w-4 h-4" /> Paste Text
+          </button>
+          <button
+            onClick={onOpenSources}
+            className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 text-sm font-medium"
+          >
+            <Play className="w-4 h-4" /> Import YouTube
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STATE A: Welcome (no messages yet) ───
+  if (!hasConversation) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full px-4 sm:px-6">
+        {/* Icon */}
+        <div className="w-14 h-14 rounded-full bg-accent/15 flex items-center justify-center mb-5">
+          <Sparkles className="w-7 h-7 text-accent" />
+        </div>
+
+        {/* Heading */}
+        <h2 className="text-2xl font-semibold text-text-primary mb-1">
+          What would you like to create?
+        </h2>
+        {contentSummary && (
+          <p className="text-xs text-text-tertiary mb-6">{contentSummary}</p>
+        )}
+
+        {/* Input */}
+        <div className="w-full max-w-2xl mb-5">
+          {inputBar}
+        </div>
+
+        {/* Suggestion chips */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-2xl w-full">
+          {SUGGESTED_PROMPTS.map(({ label, prompt }) => (
+            <button
+              key={label}
+              onClick={() => sendMessage(prompt)}
+              disabled={loading}
+              className="flex items-start gap-2.5 px-5 py-3 rounded-xl text-sm font-medium border border-border bg-bg-secondary hover:border-accent/40 hover:bg-accent/5 transition-all text-left disabled:opacity-50"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-accent flex-shrink-0 mt-0.5" />
+              <span className="text-text-secondary">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Disclaimer */}
+        <p className="text-xs text-text-tertiary mt-5">
+          Uses your uploaded content to match your unique voice.
+        </p>
+      </div>
+    );
+  }
+
+  // ─── STATE B: Active conversation ───
   return (
-    <>
-      {/* ─── Hero Input Section ─── */}
-      <div ref={heroRef} className="mb-8">
-        <div className="relative rounded-2xl border border-accent/20 bg-gradient-to-b from-accent/[0.04] to-transparent p-6 pb-5">
-          {/* Header */}
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-accent" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-text-primary">Ask Your Voice</h2>
-              {contentSummary && !disabled && (
-                <p className="text-xs text-text-tertiary">{contentSummary}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Input */}
-          <div className="relative">
-            <form onSubmit={e => { e.preventDefault(); sendMessage(); }}>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder={disabled
-                  ? 'Add content to your voice profile first...'
-                  : 'Draft a post, explore ideas, discover patterns in your writing...'
-                }
-                disabled={disabled || loading}
-                className="w-full pl-4 pr-14 py-4 text-sm border-2 border-border rounded-xl bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <button
-                type="submit"
-                disabled={disabled || loading || !input.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-accent hover:bg-accent/90 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-accent"
+    <div className="flex flex-col h-full">
+      {/* Messages area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {messages.map((m, i) => (
+            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[85%] px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed ${
+                  m.role === 'user'
+                    ? 'bg-accent text-white rounded-2xl rounded-br-md'
+                    : 'bg-bg-secondary text-text-primary rounded-2xl rounded-bl-md'
+                }`}
               >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
+                {m.content}
+              </div>
+            </div>
+          ))}
 
-          {/* Suggested Prompts (only when no conversation and not disabled) */}
-          {!hasConversation && !disabled && (
-            <div className="flex flex-wrap gap-2 mt-3">
-              {SUGGESTED_PROMPTS.map(({ label, prompt }) => (
+          {/* Loading dots */}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-bg-secondary text-text-secondary px-4 py-3 rounded-2xl rounded-bl-md text-sm">
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Follow-up suggestions */}
+          {lastMessageIsAssistant && !loading && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {FOLLOW_UP_PROMPTS.map(prompt => (
                 <button
-                  key={label}
+                  key={prompt}
                   onClick={() => sendMessage(prompt)}
-                  disabled={loading}
-                  className="px-3 py-1.5 text-xs font-medium border border-accent/20 rounded-full bg-accent/5 text-accent hover:bg-accent/10 hover:border-accent/40 transition-all disabled:opacity-50"
+                  className="px-2.5 py-1 text-[11px] font-medium border border-border rounded-full text-text-secondary hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all"
                 >
-                  {label}
+                  {prompt}
                 </button>
               ))}
             </div>
           )}
 
-          {/* Conversation Thread */}
+          {/* Clear */}
           {hasConversation && (
-            <div ref={conversationRef} className="mt-4 space-y-3 max-h-[400px] overflow-y-auto scroll-smooth">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div
-                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed ${
-                      m.role === 'user'
-                        ? 'bg-accent text-white rounded-br-md'
-                        : 'bg-bg-secondary text-text-primary rounded-bl-md'
-                    }`}
-                  >
-                    {m.content}
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="bg-bg-secondary text-text-secondary px-4 py-2.5 rounded-2xl rounded-bl-md text-sm">
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Follow-up suggestions (after assistant response) */}
-              {lastMessageIsAssistant && !loading && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {FOLLOW_UP_PROMPTS.map(prompt => (
-                    <button
-                      key={prompt}
-                      onClick={() => sendMessage(prompt)}
-                      className="px-2.5 py-1 text-[11px] font-medium border border-border rounded-full text-text-secondary hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Clear */}
-              <div className="flex justify-end pt-1">
-                <button
-                  onClick={handleClear}
-                  className="flex items-center gap-1 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors"
-                >
-                  <X className="w-3 h-3" /> Clear
-                </button>
-              </div>
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={handleClear}
+                className="flex items-center gap-1 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors"
+              >
+                <X className="w-3 h-3" /> Clear
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* ─── Floating Access Button (appears when hero scrolls out of view) ─── */}
-      {showFloatingButton && !disabled && (
-        <button
-          onClick={scrollToHero}
-          className="fixed bottom-20 right-6 z-40 w-12 h-12 rounded-full bg-accent text-white shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:scale-105 transition-all flex items-center justify-center"
-          title="Ask Your Voice"
-        >
-          <Sparkles className="w-5 h-5" />
-        </button>
-      )}
-    </>
+      {/* Sticky input bar */}
+      <div className="flex-shrink-0 px-4 sm:px-6 py-3 border-t border-border">
+        <div className="max-w-3xl mx-auto">
+          {inputBar}
+        </div>
+      </div>
+    </div>
   );
 }
