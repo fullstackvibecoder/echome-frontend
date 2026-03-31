@@ -12,7 +12,7 @@ import { InfoTooltip } from './info-tooltip';
 import { StylePicker, StyleOption } from './style-picker';
 import { setActiveGeneration } from './generation-banner';
 import { showErrorToast } from '@/lib/toast';
-import { Upload, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, type LucideIcon } from 'lucide-react';
+import { Upload, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, Film, PenLine, Mic, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -326,6 +326,7 @@ export function GenerationForm({
   activeVoice,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
+  const [showModeSelector, setShowModeSelector] = useState(true);
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -946,6 +947,87 @@ export function GenerationForm({
     ? selectedContent !== null
     : selectedFile !== null;
 
+  const selectMode = (mode: ExtendedInputType) => {
+    setInputType(mode);
+    setShowModeSelector(false);
+    clearFile();
+  };
+
+  // ─── MODE SELECTOR (3 equal cards) ───
+  if (showModeSelector && !videoProcessing && !generating && !uploading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        {/* Ambient background */}
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-accent/5 blur-[120px] -z-10 rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent-purple/5 blur-[100px] -z-10 rounded-full pointer-events-none" />
+
+        {/* Heading */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-text-primary mb-3">
+            What are we working with?
+          </h2>
+          <p className="text-base text-text-secondary max-w-lg mx-auto">
+            Pick your source material. Echo handles the rest.
+          </p>
+          {activeVoice && (
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 mt-3 bg-primary/5 border border-primary/15 rounded-full text-sm">
+              <span className="text-primary font-semibold">Voice:</span>
+              <span className="font-bold">{activeVoice.name}</span>
+            </div>
+          )}
+        </div>
+
+        {/* 3 Equal Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Upload Video */}
+          <button
+            onClick={() => selectMode('video')}
+            className="group relative flex flex-col items-center text-center p-8 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent/40 transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.05]"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-accent/15 flex items-center justify-center mb-6 group-hover:bg-accent group-hover:scale-110 transition-all duration-300">
+              <Film className="w-8 h-8 text-accent group-hover:text-white transition-colors" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary mb-2">Upload Video</h3>
+            <p className="text-sm text-text-secondary leading-relaxed">Drop a video or paste a YouTube, Vimeo, or TikTok link.</p>
+            <div className="mt-6 flex items-center gap-2 text-accent text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+              Get Started <ArrowRight className="w-3 h-3" />
+            </div>
+          </button>
+
+          {/* Type or Paste */}
+          <button
+            onClick={() => selectMode('text')}
+            className="group relative flex flex-col items-center text-center p-8 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent-purple/40 transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.05]"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-accent-purple/15 flex items-center justify-center mb-6 group-hover:bg-accent-purple group-hover:scale-110 transition-all duration-300">
+              <PenLine className="w-8 h-8 text-accent-purple group-hover:text-white transition-colors" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary mb-2">Type or Paste</h3>
+            <p className="text-sm text-text-secondary leading-relaxed">Describe an idea, paste an article, or write a prompt.</p>
+            <div className="mt-6 flex items-center gap-2 text-accent-purple text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+              Open Editor <ArrowRight className="w-3 h-3" />
+            </div>
+          </button>
+
+          {/* Record Voice */}
+          <button
+            onClick={() => selectMode('audio')}
+            className="group relative flex flex-col items-center text-center p-8 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent-yellow/40 transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.05]"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-accent-yellow/15 flex items-center justify-center mb-6 group-hover:bg-accent-yellow group-hover:scale-110 transition-all duration-300">
+              <Mic className="w-8 h-8 text-accent-yellow group-hover:text-white transition-colors" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary mb-2">Record Voice</h3>
+            <p className="text-sm text-text-secondary leading-relaxed">Speak your idea. Echo transcribes and creates from your words.</p>
+            <div className="mt-6 flex items-center gap-2 text-accent-yellow text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+              Start Recording <ArrowRight className="w-3 h-3" />
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative group max-w-3xl mx-auto">
       {/* Ambient glow behind card */}
@@ -953,26 +1035,26 @@ export function GenerationForm({
 
       <div ref={formCardRef} className="relative backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border border-outline-variant/40 dark:border-white/10 rounded-[2rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_90px_rgba(0,0,0,0.06)] transition-shadow">
         {/* Header — changes per input mode */}
-        <div className="text-center mb-8">
-          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
-            {inputType === 'video' && 'Drop a video, get everything'}
-            {inputType === 'text' && 'Describe your idea'}
-            {inputType === 'audio' && 'Speak your idea'}
-            {inputType === 'repurpose' && 'Repurpose existing content'}
-          </h2>
-          <p className="text-base text-gray-600 dark:text-gray-300 font-medium max-w-lg mx-auto">
-            {inputType === 'video' && 'Clips, captions, carousels, and posts — all in your voice.'}
-            {inputType === 'text' && 'We\u2019ll turn your prompt into carousels, posts, and emails — in your voice.'}
-            {inputType === 'audio' && 'Record a quick voice note and we\u2019ll create carousels, posts, and emails from it.'}
-            {inputType === 'repurpose' && 'Pick content to repurpose across every platform.'}
-          </p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <button
+              onClick={() => { setShowModeSelector(true); clearFile(); }}
+              className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors mb-2"
+            >
+              <ArrowLeft className="w-3 h-3" /> Change input type
+            </button>
+            <h2 className="font-headline text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              {inputType === 'video' && 'Upload Video'}
+              {inputType === 'text' && 'Type or Paste'}
+              {inputType === 'audio' && 'Record Voice'}
+              {inputType === 'repurpose' && 'Repurpose Content'}
+              {inputType === 'url' && 'Import from URL'}
+            </h2>
+          </div>
           {activeVoice && (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 mt-3 bg-primary/5 border border-primary/15 rounded-full text-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/15 rounded-full text-xs">
               <span className="text-primary font-semibold">Voice:</span>
               <span className="font-bold">{activeVoice.name}</span>
-              {!activeVoice.knowledgeBaseId && (
-                <a href="/app/team-voices" className="text-xs text-amber-600 underline">No KB linked</a>
-              )}
             </div>
           )}
         </div>
@@ -1284,69 +1366,9 @@ export function GenerationForm({
             )}
           </div>
 
-          {/* Secondary input modes — inside the tinted container */}
-          {!videoProcessing && (
-            <div className="pt-4 pb-2">
-              <p className="text-sm text-center font-medium text-gray-500 dark:text-gray-200 mb-3">No video? No problem.</p>
-              <div className="flex items-stretch justify-center gap-3">
-                <button
-                  onClick={() => { setInputType('text'); clearFile(); }}
-                  className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
-                >
-                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">✍️ Type or paste text</span>
-                  <span className="text-[11px] text-gray-600 dark:text-gray-300">Describe an idea or topic</span>
-                </button>
-                <button
-                  onClick={() => { setInputType('audio'); clearFile(); }}
-                  className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
-                >
-                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">🎤 Record voice</span>
-                  <span className="text-[11px] text-gray-600 dark:text-gray-300">Speak your content idea</span>
-                </button>
-                {!isFreeUser && (
-                  <button
-                    onClick={() => { setInputType('repurpose'); clearFile(); }}
-                    className="flex-1 max-w-[200px] flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all group"
-                  >
-                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">🔄 Repurpose</span>
-                    <span className="text-[11px] text-gray-600 dark:text-gray-300">From followed creators</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Back to video buttons (shown when in text/voice mode) */}
-      {(inputType === 'text' || inputType === 'audio') && (
-        <div className="flex items-center justify-center gap-2 mt-3">
-          {!freeUserExhausted && (
-            <button
-              onClick={() => { setInputType('video'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-gray-500 dark:text-gray-200 hover:border-primary/40 hover:text-primary transition-all"
-            >
-              🎥 Upload a video instead
-            </button>
-          )}
-          {inputType === 'text' && (
-            <button
-              onClick={() => { setInputType('audio'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-gray-500 dark:text-gray-200 hover:border-primary/40 hover:text-primary transition-all"
-            >
-              🎤 Record voice
-            </button>
-          )}
-          {inputType === 'audio' && (
-            <button
-              onClick={() => { setInputType('text'); clearFile(); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-outline-variant/50 bg-surface-container-lowest text-sm font-semibold text-gray-500 dark:text-gray-200 hover:border-primary/40 hover:text-primary transition-all"
-            >
-              ✍️ Type text
-            </button>
-          )}
-        </div>
-      )}
 
       {/* ─── How it works + You'll get ─── */}
       {inputType !== 'repurpose' && (

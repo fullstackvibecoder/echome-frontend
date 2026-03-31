@@ -387,67 +387,13 @@ export default function AppContent() {
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {!hasResults && !generating && (
         <div className="animate-fade-in">
-          {/* Welcome Header */}
-          {isFirstTime ? (
+          {/* First-time Welcome Banner */}
+          {isFirstTime && (
             <WelcomeBanner
               userName={user?.name}
               onDismiss={dismissWelcome}
               onScrollToForm={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
             />
-          ) : (
-            (() => {
-              const { headline, subheadline } = getWelcomeMessage(user?.name, usageStats?.generationsUsed);
-              const generationsUsed = usageStats?.generationsUsed || 0;
-
-              return (
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">{headline}</h1>
-                    <p className="text-sm text-muted-foreground">{subheadline}</p>
-                  </div>
-                  {generationsUsed > 0 && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-sm">
-                      <span className="font-bold text-primary">{generationsUsed}</span>
-                      <span className="text-muted-foreground">created this month</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })()
-          )}
-
-          {/* Usage Dashboard Widget */}
-          {usageStats && !isFreeUser && (usageStats.generationsUsed ?? 0) > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
-              <div className="p-4 bg-card border border-border rounded-xl card-lift">
-                <p className="text-xs text-muted-foreground mb-1">Generations</p>
-                <p className="text-xl font-bold text-foreground">
-                  {usageStats.generationsUsed}
-                  {!usageStats.isUnlimited && usageStats.generationsLimit ? (
-                    <span className="text-sm font-normal text-muted-foreground"> / {usageStats.generationsLimit}</span>
-                  ) : null}
-                </p>
-              </div>
-              <div className="p-4 bg-card border border-border rounded-xl card-lift">
-                <p className="text-xs text-muted-foreground mb-1">Video Minutes</p>
-                <p className="text-xl font-bold text-foreground">
-                  {usageStats.videoMinutesUsed ?? 0}
-                  {usageStats.videoMinutesLimit && usageStats.videoMinutesLimit > 0 ? (
-                    <span className="text-sm font-normal text-muted-foreground"> / {usageStats.videoMinutesLimit}</span>
-                  ) : null}
-                </p>
-              </div>
-              <div className="p-4 bg-card border border-border rounded-xl card-lift">
-                <p className="text-xs text-muted-foreground mb-1">Content Kits</p>
-                <p className="text-xl font-bold text-foreground">{usageStats.contentKitsCreated ?? 0}</p>
-              </div>
-              <div className="p-4 bg-card border border-border rounded-xl card-lift">
-                <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-                <p className="text-xl font-bold text-foreground">
-                  {usageStats.isUnlimited ? '∞' : usageStats.generationsRemaining ?? 0}
-                </p>
-              </div>
-            </div>
           )}
 
           {/* Teams Onboarding Banner (zero-voice state) */}
