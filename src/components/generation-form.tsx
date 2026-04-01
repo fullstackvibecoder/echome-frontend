@@ -707,14 +707,14 @@ export function GenerationForm({
 
     if (file.size > MAX_SIZE) {
       const sizeMB = Math.round(file.size / (1024 * 1024));
-      setUploadError(`File is too large (${sizeMB}MB). Maximum is 2GB. Try compressing the video or pasting a YouTube/Vimeo URL instead.`);
+      setUploadError(`File is too large (${sizeMB}MB). Maximum is 2GB. Compress it with a free tool like HandBrake (see guide: /guides/compress-video) or paste a YouTube/Vimeo URL instead.`);
       return;
     }
 
     if (file.size > WARN_SIZE) {
       const sizeMB = Math.round(file.size / (1024 * 1024));
       const estMinutes = Math.round(file.size / (2 * 1024 * 1024) / 60); // ~2MB/s estimate
-      setUploadError(`Heads up: this is a ${sizeMB}MB file. Upload may take ${estMinutes}+ minutes on a typical connection. For faster results, paste a YouTube or Vimeo URL below instead.`);
+      setUploadError(`This is a ${sizeMB}MB file — upload may take ${estMinutes}+ min. For faster, more reliable uploads, compress it first (see guide: /guides/compress-video) or paste a YouTube/Vimeo URL instead.`);
     } else {
       setUploadError(null);
     }
@@ -1563,7 +1563,16 @@ export function GenerationForm({
           ) : (
             // Regular error with retry
             <div className="text-center">
-              <p className="text-error text-small mb-3">{uploadError}</p>
+              <p className="text-error text-small mb-3">
+                {uploadError.includes('/guides/compress-video')
+                  ? <>
+                      {uploadError.split('(see guide: /guides/compress-video)')[0]}
+                      (<a href="/guides/compress-video" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-error/80">see compression guide</a>)
+                      {uploadError.split('(see guide: /guides/compress-video)')[1]}
+                    </>
+                  : uploadError
+                }
+              </p>
               {selectedFile && (
                 <button
                   onClick={() => {

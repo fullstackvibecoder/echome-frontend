@@ -397,23 +397,51 @@ export default function KnowledgeContent() {
       {showMboxInstructions && (
         <>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowMboxInstructions(false)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-lg w-full p-6 my-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Import Emails</h2>
                 <button onClick={() => setShowMboxInstructions(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
               </div>
+
+              {/* Warning banner */}
+              <div className="p-3 mb-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-1">Before you upload, read this</p>
+                <p className="text-xs text-amber-700 dark:text-amber-300">Only export your <strong>Sent</strong> folder from the last <strong>6 months</strong>. Uploading your entire inbox will include other people&apos;s writing &mdash; that&apos;s their voice, not yours.</p>
+              </div>
+
+              {/* Video walkthrough */}
+              <div className="mb-4 rounded-lg overflow-hidden border border-border">
+                <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
+                  <iframe
+                    src="https://www.loom.com/embed/78b0e064185a440d9edc3fb2015debff"
+                    frameBorder="0"
+                    allowFullScreen
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                    title="How to Upload Emails to EchoMe"
+                  />
+                </div>
+              </div>
+
               <p className="text-sm text-text-secondary mb-4">Import your sent emails to train Echo on your writing style.</p>
               <div className="space-y-3 mb-4">
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
-                  <p className="font-medium mb-1">Gmail</p>
-                  <p className="text-text-secondary">Go to takeout.google.com → Export Mail → Sent folder</p>
+                  <p className="font-medium mb-1">Gmail (recommended)</p>
+                  <p className="text-text-secondary">Filter Sent folder &rarr; Label them &rarr; Google Takeout &rarr; Export only that label &rarr; Upload .zip here</p>
                 </div>
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
                   <p className="font-medium mb-1">Apple Mail</p>
-                  <p className="text-text-secondary">Mailbox → Export Mailbox → Upload .mbox file</p>
+                  <p className="text-text-secondary">Mailbox &rarr; Export Mailbox &rarr; Upload .mbox file</p>
                 </div>
               </div>
+              <a
+                href="/guides/email-upload"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center text-xs text-accent hover:underline mb-4"
+              >
+                Read the full step-by-step guide &rarr;
+              </a>
               <div className="flex gap-3">
                 <button onClick={() => setShowMboxInstructions(false)} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm">Cancel</button>
                 <button onClick={() => mboxInputRef.current?.click()} className="flex-1 btn-primary py-2 text-sm">Select File</button>
