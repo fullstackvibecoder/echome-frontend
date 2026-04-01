@@ -71,18 +71,24 @@ export function HeroSection() {
 
             {/* Social Proof */}
             <div
-              className="flex items-center gap-4 pt-2 opacity-0 animate-fade-in"
+              className="flex flex-wrap items-center gap-4 pt-2 opacity-0 animate-fade-in"
               style={{ animationDelay: '500ms' }}
             >
-              <div className="flex -space-x-3">
-                <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/60 to-accent-purple/60" />
-                <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-accent-purple/60 to-primary/60" />
-                <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/40 to-accent-purple/80" />
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-3">
+                  <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/60 to-accent-purple/60" />
+                  <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-accent-purple/60 to-primary/60" />
+                  <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gradient-to-br from-primary/40 to-accent-purple/80" />
+                </div>
+                <div className="text-sm">
+                  <p className="text-white font-bold">250+ Creators</p>
+                  <p className="text-white/50">Scaling their voice effortlessly</p>
+                </div>
               </div>
-              <div className="text-sm">
-                <p className="text-white font-bold">250+ Creators</p>
-                <p className="text-white/50">Scaling their voice effortlessly</p>
-              </div>
+              <a href="https://www.bestin2026.com/articles/echome-review-2026" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://www.bestin2026.com/api/badge?title=EchoMe&theme=dark" alt="EchoMe - Best in 2026" width={160} height={40} className="opacity-70 hover:opacity-100 transition-opacity" />
+              </a>
             </div>
           </div>
 

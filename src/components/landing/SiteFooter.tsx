@@ -25,12 +25,18 @@ export function SiteFooter() {
             <p className="text-white/80 font-light text-lg leading-relaxed mb-6">
               Context-aware content generation. Your history, your voice, your output.
             </p>
-            <div className="flex gap-3">
-              <a href="https://x.com/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">
-                <Twitter className="w-4 h-4 text-white/70 group-hover:text-white" />
-              </a>
-              <a href="https://linkedin.com/company/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">
-                <Linkedin className="w-4 h-4 text-white/70 group-hover:text-white" />
+            <div className="flex items-center gap-4">
+              <div className="flex gap-3">
+                <a href="https://x.com/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">
+                  <Twitter className="w-4 h-4 text-white/70 group-hover:text-white" />
+                </a>
+                <a href="https://linkedin.com/company/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">
+                  <Linkedin className="w-4 h-4 text-white/70 group-hover:text-white" />
+                </a>
+              </div>
+              <a href="https://www.bestin2026.com/articles/echome-review-2026" target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://www.bestin2026.com/api/badge?title=EchoMe&theme=dark" alt="EchoMe - Best in 2026" width={200} height={50} className="opacity-80 hover:opacity-100 transition-opacity" />
               </a>
             </div>
           </div>
