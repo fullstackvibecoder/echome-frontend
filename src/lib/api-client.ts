@@ -56,6 +56,19 @@ const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 
+// Network retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE = 1000; // 1 second base delay
+const RETRYABLE_NETWORK_ERRORS = [
+  'Network Error',
+  'ECONNABORTED',
+  'ECONNREFUSED', 
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'ERR_NETWORK',
+  'ERR_INTERNET_DISCONNECTED'
+];
+
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
   try {
@@ -63,6 +76,56 @@ function isTokenExpiringSoon(token: string): boolean {
     return payload.exp * 1000 < Date.now() + 60_000;
   } catch {
     return true; // If we can't decode it, treat as expired
+  }
+}
+
+// Check if error is a retryable network error
+function isRetryableNetworkError(error: any): boolean {
+  // Check if it's a network error (no response)
+  if (!error.response) {
+    const errorMessage = error.message || '';
+    return RETRYABLE_NETWORK_ERRORS.some(keyword => 
+      errorMessage.includes(keyword)
+    );
+  }
+  
+  // Check for server errors that might be temporary
+  const status = error.response.status;
+  return status >= 500 || status === 408; // 5xx or timeout
+}
+
+// Create delay for exponential backoff
+function getRetryDelay(attemptNumber: number): number {
+  return Math.min(
+    RETRY_DELAY_BASE * Math.pow(2, attemptNumber - 1), 
+    10000 // Max 10 seconds
+  );
+}
+
+// Sleep utility
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Network error toast utility (lazy loaded to avoid circular deps)
+async function showNetworkErrorToast(error: any, isRetrying = false) {
+  try {
+    const { toast } = await import('sonner');
+    
+    if (isRetrying) {
+      toast.warning('Connection issues', {
+        description: 'Retrying request...',
+        duration: 2000,
+      });
+    } else {
+      toast.error('Network error', {
+        description: 'Please check your internet connection and try again.',
+        duration: 5000,
+      });
+    }
+  } catch {
+    // Fallback if toast import fails
+    console.warn('Network error:', error.message);
   }
 }
 
@@ -100,10 +163,52 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors
+// Response interceptor - handle errors with retry logic
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // Handle retryable network errors with exponential backoff
+    if (isRetryableNetworkError(error) && error.config) {
+      const config = error.config;
+      const retryCount = config.__retryCount || 0;
+      
+      if (retryCount < MAX_RETRIES) {
+        config.__retryCount = retryCount + 1;
+        const delay = getRetryDelay(config.__retryCount);
+        
+        console.warn(`Network error on attempt ${retryCount + 1}/${MAX_RETRIES + 1}: ${error.message}. Retrying in ${delay}ms...`);
+        
+        // Show retry toast for user awareness (but not too frequently)
+        if (retryCount === 0 && typeof window !== 'undefined') {
+          showNetworkErrorToast(error, true);
+        }
+        
+        await sleep(delay);
+        
+        try {
+          // Remove the Authorization header temporarily to avoid token refresh conflicts during retry
+          const originalAuth = config.headers?.Authorization;
+          
+          // Re-add fresh auth token for retry
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+          
+          return apiClient(config);
+        } catch (retryError) {
+          // If retry fails, continue with normal error handling
+          error = retryError;
+        }
+      } else {
+        // Max retries exceeded - show final error toast
+        if (typeof window !== 'undefined') {
+          showNetworkErrorToast(error, false);
+        }
+      }
+    }
+
     // Handle 401 Unauthorized - show toast then redirect to login
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
@@ -163,12 +268,29 @@ apiClient.interceptors.response.use(
 
     // Handle network errors and server errors — report to Sentry
     if (!error.response) {
-      console.error('Network error:', error.message);
+      const retryCount = error.config?.__retryCount || 0;
+      console.error(`Network error (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error.message);
+      
+      // Only report to Sentry after all retries are exhausted
+      if (retryCount >= MAX_RETRIES) {
+        import('@sentry/nextjs').then((Sentry) => {
+          Sentry.captureException(error, {
+            extra: {
+              url: error.config?.url,
+              method: error.config?.method,
+              retryCount,
+              maxRetries: MAX_RETRIES,
+              errorType: 'network_error_max_retries_exceeded',
+              context: 'api_client',
+            },
+          });
+        }).catch(() => {}); // Sentry import failure should never break the app
+      }
     }
 
     // Report 5xx and network errors to Sentry (not 4xx which are expected)
     const status = error.response?.status;
-    if (!status || status >= 500) {
+    if (status && status >= 500) {
       import('@sentry/nextjs').then((Sentry) => {
         Sentry.captureException(error, {
           extra: {
