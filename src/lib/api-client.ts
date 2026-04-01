@@ -2086,7 +2086,9 @@ export const api = {
       startTime?: number;
       endTime?: number;
     }) => {
-      const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data);
+      const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data, {
+        timeout: LIST_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2103,7 +2105,9 @@ export const api = {
       viewMode?: 'single' | 'split';
       addCaptions?: boolean;
     }) => {
-      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {});
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {}, {
+        timeout: GENERATION_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2505,7 +2509,10 @@ export const api = {
       status?: 'scheduled' | 'posted' | 'skipped';
       contentCategory?: string;
     }) => {
-      const response = await apiClient.get('/scheduling', { params: filters });
+      const response = await apiClient.get('/scheduling', { 
+        params: filters,
+        timeout: LIST_TIMEOUT
+      });
       // Transform snake_case to camelCase
       const posts = (response.data.data?.posts || []).map((post: any) => ({
         id: post.id,
@@ -2540,13 +2547,16 @@ export const api = {
     getSuggestions: async (weekStart?: string) => {
       const response = await apiClient.get('/scheduling/suggestions', {
         params: { weekStart },
+        timeout: LIST_TIMEOUT,
       });
       return response.data;
     },
 
     /** Get content kits that haven't been scheduled */
     getUnscheduled: async () => {
-      const response = await apiClient.get('/scheduling/unscheduled');
+      const response = await apiClient.get('/scheduling/unscheduled', {
+        timeout: LIST_TIMEOUT
+      });
       // Transform snake_case to camelCase
       const content = (response.data.data?.content || []).map((item: any) => ({
         id: item.id,
@@ -2564,7 +2574,9 @@ export const api = {
 
     /** Get available content categories */
     getCategories: async () => {
-      const response = await apiClient.get('/scheduling/categories');
+      const response = await apiClient.get('/scheduling/categories', {
+        timeout: LIST_TIMEOUT
+      });
       return response.data;
     },
 
@@ -2591,7 +2603,9 @@ export const api = {
       };
       notes?: string;
     }) => {
-      const response = await apiClient.post('/scheduling', data);
+      const response = await apiClient.post('/scheduling', data, {
+        timeout: LIST_TIMEOUT
+      });
       const post = response.data.data?.post;
       return {
         success: response.data.success,
@@ -2628,7 +2642,9 @@ export const api = {
         notes?: string;
       }
     ) => {
-      const response = await apiClient.patch(`/scheduling/${id}`, data);
+      const response = await apiClient.patch(`/scheduling/${id}`, data, {
+        timeout: LIST_TIMEOUT
+      });
       const post = response.data.data?.post;
       return {
         success: response.data.success,
@@ -2654,19 +2670,25 @@ export const api = {
 
     /** Delete a scheduled post */
     delete: async (id: string) => {
-      const response = await apiClient.delete(`/scheduling/${id}`);
+      const response = await apiClient.delete(`/scheduling/${id}`, {
+        timeout: LIST_TIMEOUT
+      });
       return response.data;
     },
 
     /** Mark a scheduled post as posted */
     markPosted: async (id: string) => {
-      const response = await apiClient.post(`/scheduling/${id}/mark-posted`);
+      const response = await apiClient.post(`/scheduling/${id}/mark-posted`, {}, {
+        timeout: LIST_TIMEOUT
+      });
       return response.data;
     },
 
     /** Mark a scheduled post as skipped */
     skip: async (id: string) => {
-      const response = await apiClient.post(`/scheduling/${id}/skip`);
+      const response = await apiClient.post(`/scheduling/${id}/skip`, {}, {
+        timeout: LIST_TIMEOUT
+      });
       return response.data;
     },
   },
