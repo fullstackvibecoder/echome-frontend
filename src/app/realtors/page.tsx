@@ -1,38 +1,16 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Check, ArrowRight, Video, MessageSquare, Mic, FileText, Mail, Brain } from 'lucide-react';
+import { Check, ArrowRight, Video, MessageSquare, Mic, FileText, Mail, Brain, Play } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'EchoMe for Real Estate Agents | Social Media Content That Sounds Like You',
-  description:
-    'Stop sounding like every other agent. EchoMe learns your voice from your listing videos, emails, and content — then creates social media posts that sound like you wrote them. Not templates. You.',
-  keywords: [
-    'real estate social media',
-    'AI content for realtors',
-    'real estate agent content creation',
-    'real estate marketing AI',
-    'realtor social media posts',
-    'real estate content that sounds like me',
-    'AI voice matching real estate',
-    'real estate video to social media',
-    'listing video content repurposing',
-    'real estate Instagram posts',
-    'real estate LinkedIn content',
-  ],
-  openGraph: {
-    title: 'EchoMe for Real Estate | Content That Sounds Like You',
-    description:
-      'Stop sounding like every other agent. EchoMe learns your voice and creates social media posts that are unmistakably you.',
-    url: 'https://tryechome.com/realtors',
-    images: [{ url: '/media/echome-og.png', width: 1200, height: 630 }],
-  },
-  alternates: {
-    canonical: 'https://tryechome.com/realtors',
-  },
-};
+const LOOM_VIDEO_ID = '136ee8a0709e44eaa5a2ba128d3ab624';
+const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-3920a96cb0e456fa-full-play.gif#t=0.1`;
 
 export default function RealtorsPage() {
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -112,6 +90,47 @@ export default function RealtorsPage() {
             </a>
           </div>
           <p className="text-xs text-white/40 mt-4">No credit card required. See if it gets your voice right.</p>
+
+          {/* Demo video */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <div className="p-3 sm:p-4 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/5 shadow-[0_20px_40px_rgba(0,103,126,0.15)]">
+              <div className="rounded-xl overflow-hidden bg-gray-950 relative">
+                {!isPlaying ? (
+                  <button
+                    onClick={() => setIsPlaying(true)}
+                    className="relative w-full group/video cursor-pointer"
+                    style={{ paddingBottom: '64.98%' }}
+                    aria-label="Play demo video"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={LOOM_THUMBNAIL_URL}
+                      alt="EchoMe product demo"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/video:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/40 group-hover/video:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white shadow-lg shadow-primary/30 scale-100 group-hover/video:scale-110 transition-transform duration-300">
+                        <Play className="w-7 h-7 ml-1" fill="white" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                      <p className="text-white font-bold text-sm">See EchoMe in Action</p>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="relative w-full" style={{ paddingBottom: '64.98%' }}>
+                    <iframe
+                      src={`https://www.loom.com/embed/${LOOM_VIDEO_ID}?autoplay=1`}
+                      title="EchoMe product demo"
+                      allow="autoplay; fullscreen"
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
