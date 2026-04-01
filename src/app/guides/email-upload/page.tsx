@@ -3,15 +3,45 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'How to Upload Emails to EchoMe | Guide',
   description: 'Step-by-step guide to exporting your sent emails from Gmail and importing them into EchoMe to train your voice profile.',
+  alternates: { canonical: 'https://tryechome.com/guides/email-upload' },
 };
 
 export default function EmailUploadGuidePage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'How to Upload Emails to EchoMe',
+    description: 'Step-by-step guide to exporting your sent emails from Gmail and importing them into EchoMe to train your voice profile.',
+    url: 'https://tryechome.com/guides/email-upload',
+    datePublished: '2026-04-01',
+    dateModified: '2026-04-01',
+    author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
+    publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
+    video: {
+      '@type': 'VideoObject',
+      name: 'How to Upload Emails to EchoMe - Video Walkthrough',
+      description: 'Step-by-step video walkthrough showing how to export sent emails from Gmail via Google Takeout and upload them to EchoMe.',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/78b0e064185a440d9edc3fb2015debff-with-play.gif',
+      embedUrl: 'https://www.loom.com/embed/78b0e064185a440d9edc3fb2015debff',
+      uploadDate: '2026-04-01',
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tryechome.com' },
+        { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://tryechome.com/guides' },
+        { '@type': 'ListItem', position: 3, name: 'Upload Emails', item: 'https://tryechome.com/guides/email-upload' },
+      ],
+    },
+  };
+
   return (
     <div className="min-h-screen bg-bg-primary">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16">
         {/* Header */}
         <div className="mb-8">
-          <a href="/" className="text-sm text-accent hover:underline">&larr; Back to EchoMe</a>
+          <a href="/guides" className="text-sm text-accent hover:underline">&larr; All Guides</a>
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">

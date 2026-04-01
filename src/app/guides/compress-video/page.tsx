@@ -3,15 +3,45 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'How to Reduce Video File Sizes for EchoMe | Guide',
   description: 'Free tools and step-by-step instructions to compress your video files before uploading to EchoMe. Keep quality, shrink the file.',
+  alternates: { canonical: 'https://tryechome.com/guides/compress-video' },
 };
 
 export default function CompressVideoGuidePage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'How to Reduce Video File Sizes for Uploading to EchoMe',
+    description: 'Free tools and step-by-step instructions to compress your video files before uploading to EchoMe.',
+    url: 'https://tryechome.com/guides/compress-video',
+    datePublished: '2026-04-01',
+    dateModified: '2026-04-01',
+    author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
+    publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
+    video: {
+      '@type': 'VideoObject',
+      name: 'How to Reduce Video File Sizes for EchoMe - Video Walkthrough',
+      description: 'Video walkthrough of free tools to compress video files before uploading to EchoMe.',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/0268f787bbfe47a683712c79a1b1cb13-with-play.gif',
+      embedUrl: 'https://www.loom.com/embed/0268f787bbfe47a683712c79a1b1cb13',
+      uploadDate: '2026-04-01',
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tryechome.com' },
+        { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://tryechome.com/guides' },
+        { '@type': 'ListItem', position: 3, name: 'Compress Video', item: 'https://tryechome.com/guides/compress-video' },
+      ],
+    },
+  };
+
   return (
     <div className="min-h-screen bg-bg-primary">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16">
         {/* Header */}
         <div className="mb-8">
-          <a href="/" className="text-sm text-accent hover:underline">&larr; Back to EchoMe</a>
+          <a href="/guides" className="text-sm text-accent hover:underline">&larr; All Guides</a>
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
