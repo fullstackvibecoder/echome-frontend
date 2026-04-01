@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Video, Mail, ArrowRight } from 'lucide-react';
+import { Video, Mail, Monitor, Film, Youtube, Mic, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Guides | EchoMe',
   description:
-    'Step-by-step guides and video walkthroughs to help you get the most out of EchoMe. Learn how to upload emails, compress videos, and build your voice profile.',
+    'Step-by-step guides and video walkthroughs to help you get the most out of EchoMe. Platform overview, video content, YouTube repurposing, voice profile building, email uploads, and file compression.',
   openGraph: {
     title: 'EchoMe Guides',
     description: 'Video walkthroughs and step-by-step guides for EchoMe.',
@@ -17,6 +17,46 @@ export const metadata: Metadata = {
 };
 
 const guides = [
+  {
+    slug: 'platform-overview',
+    icon: <Monitor className="w-6 h-6" />,
+    title: 'EchoMe Platform Overview',
+    description:
+      'A complete walkthrough of the platform. Three input methods, video processing, clip editing, captions, content generation, and building your voice.',
+    category: 'Getting Started',
+    readTime: '8 min',
+    hasVideo: true,
+  },
+  {
+    slug: 'build-your-voice',
+    icon: <Mic className="w-6 h-6" />,
+    title: 'How to Build Your Voice Profile',
+    description:
+      'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base.',
+    category: 'Getting Started',
+    readTime: '5 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'video-content',
+    icon: <Film className="w-6 h-6" />,
+    title: 'Creating and Managing Video Content',
+    description:
+      'Upload videos, use external links, edit clips with captions, and generate a full content kit from a single video.',
+    category: 'Features',
+    readTime: '5 min',
+    hasVideo: true,
+  },
+  {
+    slug: 'youtube-to-content',
+    icon: <Youtube className="w-6 h-6" />,
+    title: 'Turn YouTube Videos into Content',
+    description:
+      'Paste any YouTube link and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
+    category: 'Features',
+    readTime: '4 min',
+    hasVideo: false,
+  },
   {
     slug: 'email-upload',
     icon: <Mail className="w-6 h-6" />,
