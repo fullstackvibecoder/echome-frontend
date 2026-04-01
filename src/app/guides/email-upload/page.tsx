@@ -113,12 +113,13 @@ export default function EmailUploadGuidePage() {
             <p>Click <strong>&quot;Next step&quot;</strong>, choose <strong>&quot;Send download link via email&quot;</strong>, select <strong>.zip</strong> format, and hit <strong>&quot;Create export&quot;</strong>. Google will email you when it&apos;s ready (usually within a few minutes).</p>
           </Step>
 
-          <Step number={7} title="Download the zip file">
-            <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer. No need to unzip it &mdash; EchoMe handles that.</p>
+          <Step number={7} title="Download and unzip">
+            <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong> &mdash; that&apos;s what you&apos;ll upload to EchoMe.</p>
+            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;).</Tip>
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
-            <p>Go to <strong>Build Your Voice</strong> in EchoMe, click <strong>Email</strong>, and select your downloaded zip file. EchoMe will extract the .mbox file inside and start processing your emails.</p>
+            <p>Go to <strong>Build Your Voice</strong> in EchoMe, click <strong>Email</strong>, and select the <strong>.mbox file</strong> you extracted. EchoMe will parse your emails and start processing them.</p>
           </Step>
 
           <Step number={9} title="Wait for processing">

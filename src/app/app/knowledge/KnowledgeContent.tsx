@@ -427,7 +427,7 @@ export default function KnowledgeContent() {
               <div className="space-y-3 mb-4">
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
                   <p className="font-medium mb-1">Gmail (recommended)</p>
-                  <p className="text-text-secondary">Filter Sent folder &rarr; Label them &rarr; Google Takeout &rarr; Export only that label &rarr; Upload .zip here</p>
+                  <p className="text-text-secondary">Filter Sent folder &rarr; Label them &rarr; Google Takeout &rarr; Export only that label &rarr; Unzip &rarr; Upload the .mbox file</p>
                 </div>
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
                   <p className="font-medium mb-1">Apple Mail</p>
