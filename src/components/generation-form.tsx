@@ -1341,12 +1341,19 @@ export function GenerationForm({
                   <span>Usually 5-15 min</span>
                 </div>
 
-                {/* Navigate-away banner — after upload completes */}
-                {videoProcessingStage !== 'uploading' && (
+                {/* Navigate-away banner — contextual based on stage */}
+                {videoProcessingStage === 'uploading' ? (
+                  <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                    <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin" />
+                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+                      <span className="text-amber-500 font-medium">Please stay on this page</span> while your video uploads. You can navigate away once processing begins.
+                    </p>
+                  </div>
+                ) : (
                   <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-accent/10 border border-accent/20 rounded-xl">
                     <ShieldCheck className="w-4 h-4 text-accent flex-shrink-0" />
                     <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
-                      Upload complete — you can leave this page. We&apos;ll notify you when your content kit is ready.
+                      <span className="text-accent font-medium">Safe to navigate away.</span> We&apos;ll notify you when your content kit is ready.
                     </p>
                   </div>
                 )}

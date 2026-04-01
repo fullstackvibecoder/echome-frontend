@@ -111,8 +111,8 @@ interface GenerationBannerProps {
   className?: string;
 }
 
-// Max age for a generation before we consider it stale (3 minutes)
-const MAX_GENERATION_AGE_MS = 3 * 60 * 1000;
+// Max age for a generation before we consider it stale (20 minutes)
+const MAX_GENERATION_AGE_MS = 20 * 60 * 1000;
 // Time to wait for SSE connection before clearing (10 seconds)
 const SSE_CONNECTION_TIMEOUT_MS = 10 * 1000;
 // Auto-dismiss completion state after 8 seconds
@@ -189,13 +189,24 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     }
   }, [isComplete, clearActive]);
 
-  // Show notification on error
+  // Show notification on error — but don't immediately clear.
+  // The backend may retry/fallback, so keep the widget alive for a bit.
+  const errorCountRef = useRef(0);
   useEffect(() => {
-    if (hasError && isDocumentHidden()) {
-      showErrorNotification();
-      clearActive();
-    } else if (hasError) {
-      clearActive();
+    if (hasError) {
+      errorCountRef.current++;
+      // Only clear after sustained errors (give backend time to retry)
+      const timer = setTimeout(() => {
+        if (hasError) {
+          if (isDocumentHidden()) {
+            showErrorNotification();
+          }
+          clearActive();
+        }
+      }, 15000); // Wait 15s before giving up
+      return () => clearTimeout(timer);
+    } else {
+      errorCountRef.current = 0;
     }
   }, [hasError, clearActive]);
 
@@ -221,8 +232,9 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     setIsExpanded(false);
   }, [clearActive]);
 
-  // Don't render if no active generation, error, or manually hidden
-  if (!activeGeneration || hasError || (shouldHide && !showCompletion)) {
+  // Don't render if no active generation or manually hidden
+  // Note: don't hide on hasError — the backend may retry/fallback
+  if (!activeGeneration || (shouldHide && !showCompletion)) {
     return null;
   }
 
@@ -408,12 +420,18 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
           })}
         </div>
 
-        {/* Navigate away reassurance */}
+        {/* Navigate away reassurance — only after upload/download phase */}
         <div className="bg-primary/5 rounded-xl px-4 py-3">
-          <p className="text-xs text-slate-lavender leading-relaxed">
-            You can navigate away.{' '}
-            <span className="text-on-surface-variant">We&apos;ll notify you when it&apos;s ready.</span>
-          </p>
+          {currentStepIndex <= 1 && progress?.step !== 'transcribing' ? (
+            <p className="text-xs text-slate-lavender leading-relaxed">
+              <span className="text-amber-500 font-medium">Please stay on this page</span> while your video uploads. You can navigate away once processing begins.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-lavender leading-relaxed">
+              <span className="text-green-400 font-medium">Safe to navigate away.</span>{' '}
+              <span className="text-on-surface-variant">We&apos;ll notify you when it&apos;s ready.</span>
+            </p>
+          )}
         </div>
 
         {/* View progress link */}
