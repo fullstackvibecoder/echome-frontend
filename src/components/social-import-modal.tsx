@@ -511,25 +511,35 @@ export function SocialImportModal({
                   Select Platform
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {(Object.keys(PLATFORM_CONFIG) as Platform[]).map((platform) => (
-                    <button
-                      key={platform}
-                      onClick={() => setSelectedPlatform(platform)}
-                      disabled={isAnySyncing}
-                      className={`
-                        p-3 rounded-[1.5rem] border-2 flex flex-col items-center gap-1 transition-all
-                        ${selectedPlatform === platform
-                          ? 'border-primary shadow-[0_0_12px_rgba(0,212,255,0.15)]'
-                          : 'border-outline-variant/40 hover:border-primary/30'}
-                        ${isAnySyncing ? 'opacity-50 cursor-not-allowed' : ''}
-                      `}
-                    >
-                      <span className="text-2xl">{PLATFORM_CONFIG[platform].icon}</span>
-                      <span className="text-xs text-gray-600 dark:text-gray-300">
-                        {PLATFORM_CONFIG[platform].name}
-                      </span>
-                    </button>
-                  ))}
+                  {(Object.keys(PLATFORM_CONFIG) as Platform[]).map((platform) => {
+                    const isTemporarilyUnavailable = platform === 'instagram' || platform === 'blog';
+                    return (
+                      <button
+                        key={platform}
+                        onClick={() => !isTemporarilyUnavailable && setSelectedPlatform(platform)}
+                        disabled={isAnySyncing || isTemporarilyUnavailable}
+                        className={`
+                          relative p-3 rounded-[1.5rem] border-2 flex flex-col items-center gap-1 transition-all
+                          ${isTemporarilyUnavailable
+                            ? 'opacity-50 cursor-not-allowed border-outline-variant/20'
+                            : selectedPlatform === platform
+                              ? 'border-primary shadow-[0_0_12px_rgba(0,212,255,0.15)]'
+                              : 'border-outline-variant/40 hover:border-primary/30'}
+                          ${isAnySyncing ? 'opacity-50 cursor-not-allowed' : ''}
+                        `}
+                      >
+                        <span className="text-2xl">{PLATFORM_CONFIG[platform].icon}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-300">
+                          {PLATFORM_CONFIG[platform].name}
+                        </span>
+                        {isTemporarilyUnavailable && (
+                          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                            Coming soon
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
