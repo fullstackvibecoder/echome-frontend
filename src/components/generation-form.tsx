@@ -10,7 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { SnapshotPicker } from './SnapshotPicker';
 import { InfoTooltip } from './info-tooltip';
 import { StylePicker, StyleOption } from './style-picker';
-import { setActiveGeneration } from './generation-banner';
+import { setActiveGeneration, useActiveGeneration } from './generation-banner';
+import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, Film, PenLine, Mic, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react';
 
@@ -426,6 +427,52 @@ export function GenerationForm({
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // SSE progress sync — keeps inline UI in sync with the floating widget's SSE stream.
+  // This ensures the inline progress recovers from transient failures (e.g. download
+  // fallback/retry) instead of dying on first error.
+  const { activeGeneration } = useActiveGeneration();
+  const { progress: sseProgress, isComplete: sseComplete, hasError: sseError } = useGenerationProgress(
+    activeGeneration?.requestId ?? null
+  );
+
+  // Map SSE step names to inline UI stage keys
+  const SSE_TO_INLINE_STAGE: Record<string, string> = {
+    init: 'uploading',
+    downloading: 'uploading',
+    transcribing: 'transcribing',
+    finding_clips: 'analyzing',
+    extracting_clips: 'extracting',
+    processing_clip: 'extracting',
+    generate: 'generating',
+    carousel: 'generating',
+    carousel_complete: 'completed',
+    complete: 'completed',
+  };
+
+  useEffect(() => {
+    if (!sseProgress || !videoProcessing) return;
+    if (sseProgress.step === 'error') return; // Don't kill inline UI on transient errors
+
+    const inlineStage = SSE_TO_INLINE_STAGE[sseProgress.step];
+    if (inlineStage) {
+      setVideoProcessingStage(inlineStage);
+      setVideoProcessingProgress(sseProgress.percent);
+      const stageInfo = getStagesMap(videoSourceType)[inlineStage];
+      if (stageInfo) {
+        setVideoProcessingStatus(stageInfo.title);
+      }
+    }
+  }, [sseProgress, videoProcessing, videoSourceType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle SSE completion/error
+  useEffect(() => {
+    if (!videoProcessing) return;
+    if (sseComplete) {
+      setVideoProcessingStage('completed');
+      setVideoProcessingProgress(100);
+    }
+  }, [sseComplete, videoProcessing]);
+
   // Load pending content when repurpose mode is selected
   useEffect(() => {
     if (inputType === 'repurpose') {
@@ -660,11 +707,17 @@ export function GenerationForm({
               }
               resolve();
             } else if (status === 'failed') {
-              if (processingIntervalRef.current) {
-                clearInterval(processingIntervalRef.current);
+              // Don't immediately kill the UI — the backend may retry/fallback.
+              // The SSE stream will pick up any recovery. Only give up after
+              // multiple consecutive failures with no recovery.
+              consecutiveErrors++;
+              if (consecutiveErrors >= 5) {
+                if (processingIntervalRef.current) {
+                  clearInterval(processingIntervalRef.current);
+                }
+                setVideoProcessing(false);
+                reject(new Error(upload.statusMessage || 'Processing failed'));
               }
-              setVideoProcessing(false);
-              reject(new Error(upload.statusMessage || 'Processing failed'));
             }
           } else {
             // Response indicates failure (e.g. 404 not found)
