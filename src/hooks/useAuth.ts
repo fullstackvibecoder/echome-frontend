@@ -16,7 +16,7 @@ interface UseAuthReturn {
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, turnstileToken?: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -79,9 +79,9 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = async (email: string, password: string, name: string, turnstileToken?: string) => {
     try {
-      const response = await api.auth.signup(email, password, name);
+      const response = await api.auth.signup(email, password, name, turnstileToken);
       if (response.success && response.data) {
         localStorage.setItem('authToken', response.data.token);
         setUser(response.data.user);

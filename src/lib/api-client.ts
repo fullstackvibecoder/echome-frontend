@@ -279,11 +279,12 @@ function transformTeamVoice(raw: Record<string, unknown>): TeamVoice {
 export const api = {
   // -------- AUTH --------
   auth: {
-    signup: async (email: string, password: string, name: string) => {
+    signup: async (email: string, password: string, name: string, turnstileToken?: string) => {
       const response = await apiClient.post('/auth/signup', {
         email,
         password,
         name,
+        turnstileToken,
       });
       return response.data;
     },

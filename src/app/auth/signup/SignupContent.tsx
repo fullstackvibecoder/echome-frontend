@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, signupSchema } from '@/hooks/useAuthForm';
 import { OAuthButtons } from '@/components/oauth-buttons';
@@ -13,6 +14,7 @@ function SignupForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
   // Store plan selection in sessionStorage for checkout after signup
@@ -27,7 +29,7 @@ function SignupForm() {
     useAuthForm({
       schema: signupSchema,
       onSubmit: async (data) => {
-        await signup(data.email, data.password, data.name);
+        await signup(data.email, data.password, data.name, turnstileToken || undefined);
       },
     });
 
@@ -227,6 +229,15 @@ function SignupForm() {
             <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>
           )}
         </div>
+
+        {/* Turnstile CAPTCHA */}
+        <Turnstile
+          siteKey="0x4AAAAACzjjwyy1v0QtjDW"
+          onSuccess={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+          options={{ theme: 'auto', size: 'flexible' }}
+        />
 
         {/* Submit Button */}
         <button
