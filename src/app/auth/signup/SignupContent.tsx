@@ -15,6 +15,7 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const searchParams = useSearchParams();
 
   // Store plan selection in sessionStorage for checkout after signup
@@ -230,6 +231,28 @@ function SignupForm() {
           )}
         </div>
 
+        {/* Terms of Service */}
+        <div>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+            />
+            <span className="text-sm text-muted-foreground">
+              I agree to the{' '}
+              <Link href="/terms" target="_blank" className="text-primary hover:underline">
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link href="/privacy" target="_blank" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+            </span>
+          </label>
+        </div>
+
         {/* Turnstile CAPTCHA */}
         <Turnstile
           siteKey="0x4AAAAACzjjwyy1v0QtjDW"
@@ -242,7 +265,7 @@ function SignupForm() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !agreedToTerms}
           className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Creating account...' : 'Create Account'}
