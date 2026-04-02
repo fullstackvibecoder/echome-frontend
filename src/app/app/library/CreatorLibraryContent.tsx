@@ -34,12 +34,13 @@ export default function CreatorLibraryContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
-  const { isFreeUser } = useSubscription();
+  const { isFreeUser, freeGenerationsRemaining } = useSubscription();
+  const freeUserExhausted = isFreeUser && freeGenerationsRemaining <= 0;
 
   // Fetch assets when filters change
   useEffect(() => {
     if (authLoading) return; // Wait for auth to resolve
-    if (isFreeUser) return; // Skip fetch for free users
+    if (freeUserExhausted) return; // Skip fetch for exhausted free users
     async function fetchAssets() {
       setIsLoading(true);
       setError(null);
@@ -66,7 +67,7 @@ export default function CreatorLibraryContent() {
       }
     }
     fetchAssets();
-  }, [authLoading, isFreeUser, activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
+  }, [authLoading, freeUserExhausted, activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
 
   if (authLoading) {
     return (
@@ -113,7 +114,7 @@ export default function CreatorLibraryContent() {
       </div>
 
       {/* Tier gate for free users */}
-      {isFreeUser && (
+      {freeUserExhausted && (
         <div className="relative mb-8">
           <div className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm z-10 rounded-xl flex items-center justify-center">
             <div className="text-center p-8">
@@ -143,7 +144,7 @@ export default function CreatorLibraryContent() {
         </div>
       )}
 
-      {!isFreeUser && (
+      {!freeUserExhausted && (
         <>
           {/* Type Tabs */}
           <div className="flex gap-4 mb-6 border-b border-border">

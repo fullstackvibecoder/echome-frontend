@@ -150,23 +150,27 @@ export function useSubscription(): UseSubscriptionReturn {
   const isFreeUser = !isSubscribed && !isTrial;
   const canGenerate = isSubscribed || isTrial || freeGenerationsRemaining > 0;
 
-  // Check tier access
+  // Check tier access — free users with remaining generations get pro-level access
   const hasTierAccess = useCallback((requiredTier: SubscriptionTier): boolean => {
-    if (!isSubscribed && !isTrial) return false;
-    const userLevel = TIER_LEVELS[tier] || 0;
-    const requiredLevel = TIER_LEVELS[requiredTier] || 0;
-    return userLevel >= requiredLevel;
-  }, [tier, isSubscribed, isTrial]);
+    if (isSubscribed || isTrial) {
+      const userLevel = TIER_LEVELS[tier] || 0;
+      const requiredLevel = TIER_LEVELS[requiredTier] || 0;
+      return userLevel >= requiredLevel;
+    }
+    // Free users with remaining generations get pro-level access
+    if (freeGenerationsRemaining > 0 && TIER_LEVELS[requiredTier] <= TIER_LEVELS['pro']) {
+      return true;
+    }
+    return false;
+  }, [tier, isSubscribed, isTrial, freeGenerationsRemaining]);
 
-  // Require subscription - redirects to billing if not subscribed
+  // Require subscription - allows free users with remaining generations
   const requireSubscription = useCallback((): boolean => {
     if (loading) return false;
-    if (!isSubscribed && !isTrial) {
-      router.push('/app/billing?upgrade=true');
-      return false;
-    }
-    return true;
-  }, [loading, isSubscribed, isTrial, router]);
+    if (isSubscribed || isTrial || freeGenerationsRemaining > 0) return true;
+    router.push('/app/billing?upgrade=true');
+    return false;
+  }, [loading, isSubscribed, isTrial, freeGenerationsRemaining, router]);
 
   // Wrap refresh to optionally force sync from Stripe
   const refresh = useCallback(async (forceSync?: boolean) => {

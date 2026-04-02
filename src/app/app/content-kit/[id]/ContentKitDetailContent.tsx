@@ -723,48 +723,46 @@ export default function ContentKitDetailContent() {
                       )}
 
                       <div className="ml-auto flex items-center gap-3">
-                        {detail.clips[activeClipIndex].exports?.[0]?.url && (
-                          detail.clips[activeClipIndex].splitScreenUrl ? (
-                            <>
-                              <button
-                                disabled={exportingClip}
-                                onClick={async () => {
-                                  const clip = detail.clips[activeClipIndex];
-                                  const uploadId = clip.videoUploadId || id;
-                                  if (clip.captionsBurnedIn !== false) { window.open(clip.exports[0]?.url, '_blank'); return; }
-                                  try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
-                                }}
-                                className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
-                              >
-                                {exportingClip ? 'Exporting...' : 'Download Single'}
-                              </button>
-                              <button
-                                disabled={exportingClip}
-                                onClick={async () => {
-                                  const clip = detail.clips[activeClipIndex];
-                                  const uploadId = clip.videoUploadId || id;
-                                  if (clip.captionsBurnedIn !== false) { window.open(clip.splitScreenUrl, '_blank'); return; }
-                                  try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'split', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
-                                }}
-                                className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
-                              >
-                                Download Split
-                              </button>
-                            </>
-                          ) : (
+                        {detail.clips[activeClipIndex].splitScreenUrl ? (
+                          <>
                             <button
                               disabled={exportingClip}
                               onClick={async () => {
                                 const clip = detail.clips[activeClipIndex];
                                 const uploadId = clip.videoUploadId || id;
-                                if (clip.captionsBurnedIn !== false) { window.open(clip.exports[0]?.url, '_blank'); return; }
+                                if (clip.captionsBurnedIn !== false && clip.exports?.[0]?.url) { window.open(clip.exports[0].url, '_blank'); return; }
                                 try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
                               }}
                               className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                             >
-                              {exportingClip ? 'Exporting...' : 'Download'}
+                              {exportingClip ? 'Exporting...' : 'Download Single'}
                             </button>
-                          )
+                            <button
+                              disabled={exportingClip}
+                              onClick={async () => {
+                                const clip = detail.clips[activeClipIndex];
+                                const uploadId = clip.videoUploadId || id;
+                                if (clip.captionsBurnedIn !== false && clip.splitScreenUrl) { window.open(clip.splitScreenUrl, '_blank'); return; }
+                                try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'split', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
+                              }}
+                              className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
+                            >
+                              Download Split
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            disabled={exportingClip}
+                            onClick={async () => {
+                              const clip = detail.clips[activeClipIndex];
+                              const uploadId = clip.videoUploadId || id;
+                              if (clip.captionsBurnedIn !== false && clip.exports?.[0]?.url) { window.open(clip.exports[0].url, '_blank'); return; }
+                              try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
+                            }}
+                            className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
+                          >
+                            {exportingClip ? 'Exporting...' : 'Download'}
+                          </button>
                         )}
                         <button
                           onClick={() => setQuickScheduleConfig({ type: 'clips' })}
@@ -1039,14 +1037,20 @@ export default function ContentKitDetailContent() {
                             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
                               {slide.slideNumber}/{resizedCarousel.slides.length}
                             </div>
-                            {/* Download hover button */}
+                            {/* Download button - visible on hover (desktop) and always via icon (mobile) */}
                             <button
                               onClick={() => downloadImage(slide.publicUrl, `square-slide-${slide.slideNumber}.png`)}
-                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity max-sm:opacity-0 max-sm:pointer-events-none"
                             >
                               <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
                                 ⬇️ Download
                               </span>
+                            </button>
+                            <button
+                              onClick={() => downloadImage(slide.publicUrl, `square-slide-${slide.slideNumber}.png`)}
+                              className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full sm:hidden"
+                            >
+                              ⬇️
                             </button>
                           </div>
                           {/* Slide text preview */}
@@ -1127,14 +1131,20 @@ export default function ContentKitDetailContent() {
                         <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
                           {slide.slideNumber}/{detail.carousel.slides.length}
                         </div>
-                        {/* Download hover button */}
+                        {/* Download button - visible on hover (desktop) and always via icon (mobile) */}
                         <button
                           onClick={() => downloadImage(slide.publicUrl, `portrait-slide-${slide.slideNumber}.png`)}
-                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity max-sm:opacity-0 max-sm:pointer-events-none"
                         >
                           <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
                             ⬇️ Download
                           </span>
+                        </button>
+                        <button
+                          onClick={() => downloadImage(slide.publicUrl, `portrait-slide-${slide.slideNumber}.png`)}
+                          className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full sm:hidden"
+                        >
+                          ⬇️
                         </button>
                       </div>
                       {/* Slide text preview */}

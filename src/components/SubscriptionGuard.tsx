@@ -44,15 +44,15 @@ export function SubscriptionGuard({
   redirectTo = '/app/billing?upgrade=true',
 }: SubscriptionGuardProps) {
   const router = useRouter();
-  const { loading, fetchError, isSubscribed, isTrial, hasTierAccess, refresh } = useSubscription();
+  const { loading, fetchError, isSubscribed, isTrial, freeGenerationsRemaining, hasTierAccess, refresh } = useSubscription();
 
   useEffect(() => {
     if (loading) return;
     // Don't redirect if there was an API error - show error UI instead
     if (fetchError) return;
 
-    // Check basic subscription requirement
-    if (requireSub && !isSubscribed && !isTrial) {
+    // Check basic subscription requirement — allow free users with remaining generations
+    if (requireSub && !isSubscribed && !isTrial && freeGenerationsRemaining <= 0) {
       router.push(redirectTo);
       return;
     }
@@ -70,7 +70,7 @@ export function SubscriptionGuard({
       };
       router.push(`${redirectTo}&tier=${requiredTier}&tierName=${encodeURIComponent(tierNames[requiredTier])}`);
     }
-  }, [loading, fetchError, isSubscribed, isTrial, hasTierAccess, requiredTier, requireSub, redirectTo, router]);
+  }, [loading, fetchError, isSubscribed, isTrial, freeGenerationsRemaining, hasTierAccess, requiredTier, requireSub, redirectTo, router]);
 
   // Show loading state
   if (loading) {
