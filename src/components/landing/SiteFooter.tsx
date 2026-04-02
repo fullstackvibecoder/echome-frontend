@@ -56,6 +56,7 @@ export function SiteFooter() {
               <li><a href="/auth/login" className="hover:text-accent-purple transition-colors duration-200">Sign In</a></li>
               <li><a href="/auth/signup" className="hover:text-accent-purple transition-colors duration-200">Sign Up</a></li>
               <li><Link href="/affiliates" className="hover:text-accent-purple transition-colors duration-200">Affiliates</Link></li>
+              <li><Link href="/support" className="hover:text-accent-purple transition-colors duration-200">Support</Link></li>
               <li><Link href="/privacy" className="hover:text-accent-purple transition-colors duration-200">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-accent-purple transition-colors duration-200">Terms of Service</Link></li>
             </ul>
