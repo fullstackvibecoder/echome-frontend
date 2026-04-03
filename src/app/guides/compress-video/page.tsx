@@ -147,6 +147,15 @@ export default function CompressVideoGuidePage() {
           </Step>
         </section>
 
+        {/* Online compressor CTA */}
+        <section className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl text-center">
+          <p className="text-sm text-text-secondary mb-2">Don&apos;t want to install anything?</p>
+          <a href="/tools/compress-video" className="text-accent font-semibold hover:underline">
+            Use our free online video compressor &rarr;
+          </a>
+          <p className="text-xs text-text-secondary/60 mt-1">No signup, no watermark, no email required.</p>
+        </section>
+
         {/* Common mistakes */}
         <section className="mb-10 p-5 bg-bg-secondary rounded-xl border border-border">
           <h2 className="text-lg font-semibold text-text-primary mb-3">Common mistakes to avoid</h2>
