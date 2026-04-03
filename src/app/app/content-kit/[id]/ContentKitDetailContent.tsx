@@ -1009,12 +1009,13 @@ export default function ContentKitDetailContent() {
                 kitId={detail.contentKit?.id || id}
                 currentDesignPreset={detail.carousel?.designPreset}
                 uploadId={detail.clips?.[0]?.videoUploadId || (detail as any)?.uploadId}
-                onRestyleComplete={(carousel) => {
-                  // Refresh the content kit to show new carousel
-                  refresh();
-                  // Also clear any resized carousel so it re-fetches
+                onRestyleComplete={async () => {
+                  // Clear resized carousel so it re-fetches the square version
                   setResizedCarousel(null);
                   squareFetchedRef.current = false;
+                  // Small delay to ensure DB write completes before re-fetch
+                  await new Promise(r => setTimeout(r, 500));
+                  refresh();
                 }}
               />
 
