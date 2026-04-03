@@ -479,7 +479,7 @@ export default function OnboardingContent() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 pl-[52px]">
+                <div className="flex items-center gap-2 pl-2 sm:pl-[52px]">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                   <span className="text-xs text-emerald-400">{m.content}</span>
                 </div>
@@ -491,7 +491,7 @@ export default function OnboardingContent() {
 
           {/* Welcome: Get started button */}
           {step === 'welcome' && (
-            <div className="pl-[52px]">
+            <div className="pl-2 sm:pl-[52px]">
               <button
                 onClick={handleGetStarted}
                 className="px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-all flex items-center gap-2"
@@ -503,7 +503,7 @@ export default function OnboardingContent() {
 
           {/* Profile: Name + optional handles */}
           {step === 'profile' && (
-            <div className="pl-[52px] space-y-3">
+            <div className="pl-2 sm:pl-[52px] space-y-3">
               <input
                 type="text"
                 value={displayName}
@@ -548,7 +548,7 @@ export default function OnboardingContent() {
 
           {/* YouTube / Instagram / Blog: URL input + skip */}
           {(step === 'youtube' || step === 'instagram' || step === 'blog') && (
-            <div className="pl-[52px] space-y-3">
+            <div className="pl-2 sm:pl-[52px] space-y-3">
               <div className="flex gap-2 max-w-lg">
                 <input
                   type="text"
@@ -584,7 +584,7 @@ export default function OnboardingContent() {
 
           {/* Paste: textarea + skip */}
           {step === 'paste' && (
-            <div className="pl-[52px] space-y-3">
+            <div className="pl-2 sm:pl-[52px] space-y-3">
               <textarea
                 value={pasteText}
                 onChange={e => setPasteText(e.target.value)}
@@ -618,7 +618,7 @@ export default function OnboardingContent() {
 
           {/* Voice: open recorder + skip */}
           {step === 'voice' && (
-            <div className="pl-[52px] space-y-3">
+            <div className="pl-2 sm:pl-[52px] space-y-3">
               <button
                 onClick={() => setShowVoiceModal(true)}
                 className="px-5 py-3 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 flex items-center gap-2"
@@ -636,7 +636,7 @@ export default function OnboardingContent() {
 
           {/* Check: need more or ready */}
           {step === 'check' && !isReady && (
-            <div className="pl-[52px] space-y-3">
+            <div className="pl-2 sm:pl-[52px] space-y-3">
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => advanceToStep('youtube')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-bg-secondary hover:border-accent/40 text-sm font-medium">
                   <Play className="w-4 h-4 text-accent" /> YouTube
@@ -665,7 +665,7 @@ export default function OnboardingContent() {
 
           {/* Done: Start creating button */}
           {step === 'done' && (
-            <div className="pl-[52px]">
+            <div className="pl-2 sm:pl-[52px]">
               <button
                 onClick={() => router.push(getPostOnboardingPath())}
                 className="px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-all flex items-center gap-2"

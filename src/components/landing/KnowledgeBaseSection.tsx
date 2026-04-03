@@ -98,14 +98,14 @@ export function KnowledgeBaseSection() {
                 {/* Arrows */}
                 <button
                   onClick={prev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/80 backdrop-blur border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-card transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/80 backdrop-blur border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-card transition-all md:opacity-0 md:group-hover:opacity-100"
                   aria-label="Previous output"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={next}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/80 backdrop-blur border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-card transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/80 backdrop-blur border border-border shadow-lg flex items-center justify-center text-foreground hover:bg-card transition-all md:opacity-0 md:group-hover:opacity-100"
                   aria-label="Next output"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -120,8 +120,8 @@ export function KnowledgeBaseSection() {
                     onClick={() => setCurrent(i)}
                     className={`rounded-full transition-all ${
                       i === current
-                        ? 'w-6 h-2 bg-accent-purple'
-                        : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                        ? 'w-6 h-3 bg-accent-purple'
+                        : 'w-3 h-3 bg-muted-foreground/30 hover:bg-muted-foreground/50'
                     }`}
                     aria-label={`Show output ${i + 1}`}
                   />

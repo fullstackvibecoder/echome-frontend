@@ -4,12 +4,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
-import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, VideoSnapshot, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
+import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
-import { SnapshotPicker } from './SnapshotPicker';
 import { InfoTooltip } from './info-tooltip';
-import { StylePicker, StyleOption } from './style-picker';
+import type { StyleOption } from './style-picker';
 import { setActiveGeneration, useActiveGeneration } from './generation-banner';
 import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
@@ -270,15 +269,7 @@ function formatElapsed(seconds: number): string {
 }
 
 // Carousel design preset options — visual thumbnail grid
-type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
-
-const CAROUSEL_STYLE_OPTIONS: StyleOption[] = [
-  { value: 'auto', label: 'Pick for me', thumbnail: '/style-previews/slides/pick-for-me.svg' },
-  { value: 'tweet-style', label: 'Quote Card', thumbnail: '/style-previews/slides/quote-card.svg' },
-  { value: 'text-box', label: 'Text on Color', thumbnail: '/style-previews/slides/text-on-color.svg' },
-  { value: 'upload', label: 'My Own Image', thumbnail: '/style-previews/slides/my-own-image.svg' },
-  { value: 'video-snapshot', label: 'Video Frame', thumbnail: '/style-previews/slides/video-frame.svg' },
-];
+// Carousel style is now selected post-generation in the content kit editor
 
 // Caption style options — visual thumbnail grid (video input only)
 type CaptionStyleOption = 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
@@ -350,14 +341,7 @@ export function GenerationForm({
   const [videoDragActive, setVideoDragActive] = useState(false);
   const formCardRef = useRef<HTMLDivElement>(null);
 
-  // Carousel design preset state
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
-  const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
-  const carouselBgInputRef = useRef<HTMLInputElement>(null);
-  const [carouselBgDragActive, setCarouselBgDragActive] = useState(false);
-
-  // Video snapshot state
-  const [selectedSnapshot, setSelectedSnapshot] = useState<VideoSnapshot | null>(null);
+  // Video snapshot state (used for clip finder)
   const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
 
   // Caption style state
@@ -603,31 +587,13 @@ export function GenerationForm({
       setVideoProcessingStatus('Starting clip extraction...');
       setVideoProcessingProgress(35);
 
-      // Build carousel design config
-      const designPreset: DesignPreset = getDesignPreset();
-      let carouselBackground: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string } | undefined;
-
-      if (carouselDesignOption === 'upload' && carouselBgFile) {
-        // Upload the background image first
-        try {
-          const bgUploadResponse = await api.images.uploadBackground(carouselBgFile);
-          if (bgUploadResponse.success && bgUploadResponse.data?.background?.publicUrl) {
-            carouselBackground = { type: 'image', imageUrl: bgUploadResponse.data.background.publicUrl };
-          }
-        } catch (bgErr) {
-          console.warn('Failed to upload carousel background, using default:', bgErr);
-          showErrorToast(bgErr, 'uploading background image');
-        }
-      } else if (carouselDesignOption === 'video-snapshot' && selectedSnapshot) {
-        // Use the selected video snapshot
-        carouselBackground = { type: 'image', imageUrl: selectedSnapshot.thumbnailUrl };
-      }
+      // Carousel style is selected post-generation; use tweet-style default
+      const designPreset: DesignPreset = 'tweet-style';
 
       // Step 2: Start processing
       const processResponse = await api.clips.process(upload.id, {
         generateContent: true, // Generate content kit as part of processing
         designPreset, // New design preset system
-        carouselBackground, // Legacy/custom image support
         captionStyle, // Pass selected caption style
         // Reel configuration
         reelTemplate: reelTemplate === 'auto' ? undefined : reelTemplate,
@@ -775,13 +741,6 @@ export function GenerationForm({
     setSelectedFile(file);
   };
 
-  const handleCarouselBgFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setCarouselBgFile(file);
-    }
-  };
-
   // Shared drag-and-drop helpers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -815,108 +774,11 @@ export function GenerationForm({
     }
   };
 
-  const handleCarouselBgDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCarouselBgDragActive(true);
-  };
-
-  const handleCarouselBgDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-    setCarouselBgDragActive(false);
-  };
-
-  const handleCarouselBgDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCarouselBgDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setCarouselBgFile(file);
-    }
-  };
-
-  const handleDesignOptionChange = (value: CarouselDesignOption) => {
-    setCarouselDesignOption(value);
-    // Clear file if not upload option
-    if (value !== 'upload') {
-      setCarouselBgFile(null);
-      if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-    }
-    // Clear snapshot if not video-snapshot option
-    if (value !== 'video-snapshot') {
-      setSelectedSnapshot(null);
-    }
-  };
-
-  // Build the BackgroundConfig based on selection (legacy support)
-  const buildBackgroundConfig = (): BackgroundConfig => {
-    if (carouselDesignOption === 'upload') {
-      return { type: 'image' };
-    }
-    if (carouselDesignOption === 'video-snapshot' && selectedSnapshot) {
-      return { type: 'image', imageUrl: selectedSnapshot.thumbnailUrl };
-    }
-    return { type: 'preset', presetId: 'tweet-style' };
-  };
-
-  // Get current design preset for new API
-  // When using custom images (upload/video-snapshot), the backend will
-  // automatically use photo-overlay template based on carouselBackground.imageUrl
-  const getDesignPreset = (): DesignPreset => {
-    if (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot') {
-      return 'auto'; // Backend decides based on image
-    }
-    return carouselDesignOption;
-  };
-
   const handleGenerate = async () => {
-    const bgConfig = buildBackgroundConfig();
-    const bgFile = carouselDesignOption === 'upload' ? carouselBgFile : undefined;
-
-    // Validate upload option has a file
-    if (carouselDesignOption === 'upload' && !carouselBgFile) {
-      setUploadError('Please select a background image');
-      return;
-    }
-
     // For repurpose mode
     if (inputType === 'repurpose') {
       if (!selectedContent || !onRepurpose) return;
-
-      // Build options with designPreset and carouselBackground
-      const repurposeOptions: { designPreset?: DesignPreset; carouselBackground?: BackgroundConfig } = {
-        designPreset: getDesignPreset(),
-      };
-
-      // If upload option selected, upload the file first
-      if (carouselDesignOption === 'upload' && carouselBgFile) {
-        try {
-          setUploading(true);
-          const uploadResponse = await api.images.uploadBackground(carouselBgFile);
-          if (uploadResponse.success && uploadResponse.data?.background?.publicUrl) {
-            repurposeOptions.carouselBackground = {
-              type: 'image',
-              imageUrl: uploadResponse.data.background.publicUrl
-            };
-          } else {
-            setUploadError('Failed to upload background image');
-            setUploading(false);
-            return;
-          }
-        } catch (uploadErr) {
-          console.error('Failed to upload carousel background:', uploadErr);
-          setUploadError('Failed to upload background image');
-          setUploading(false);
-          return;
-        } finally {
-          setUploading(false);
-        }
-      }
-
-      onRepurpose(selectedContent.id, ALL_PLATFORMS, repurposeOptions);
+      onRepurpose(selectedContent.id, ALL_PLATFORMS, { designPreset: 'tweet-style' });
       return;
     }
 
@@ -946,7 +808,7 @@ export function GenerationForm({
     // For text input
     if (inputType === 'text') {
       if (!input.trim()) return;
-      onGenerate(input, inputType as InputType, ALL_PLATFORMS, bgConfig, bgFile || undefined, getDesignPreset());
+      onGenerate(input, inputType as InputType, ALL_PLATFORMS, undefined, undefined, 'tweet-style');
       return;
     }
 
@@ -982,7 +844,6 @@ export function GenerationForm({
     setSelectedFile(null);
     setUploadError(null);
     setSelectedContent(null);
-    setSelectedSnapshot(null);
     setCurrentUploadId(null);
     if (videoInputRef.current) videoInputRef.current.value = '';
   };
@@ -1394,7 +1255,7 @@ export function GenerationForm({
                     </p>
 
                     {/* URL paste — faster than file upload for large videos */}
-                    <div className="w-full max-w-sm">
+                    <div className="w-full max-w-full sm:max-w-sm">
                       <p className="text-xs text-gray-600 dark:text-gray-300 text-center mb-2 font-medium">Or paste a video URL (no upload needed)</p>
                       <p className="text-[10px] text-amber-500 dark:text-amber-400 text-center mb-2">YouTube links may fail due to platform restrictions. For reliable results, <a href="/guides/compress-video" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">compress and upload the file directly</a>.</p>
                       <div className="flex gap-2">
@@ -1489,96 +1350,7 @@ export function GenerationForm({
         </div>
       )}
 
-      {/* Caption style is now selected post-generation in the clip editor */}
-
-      {/* ─── Carousel Look (always visible) ─── */}
-      <StylePicker
-        label="Carousel Look"
-        options={CAROUSEL_STYLE_OPTIONS}
-        value={carouselDesignOption}
-        onChange={(v) => handleDesignOptionChange(v as CarouselDesignOption)}
-        columns={5}
-        aspect="square"
-        disabled={generating || uploading}
-      />
-
-      {/* Conditional: "My Own Image" upload zone */}
-      {carouselDesignOption === 'upload' && (
-        <div className="mt-3 p-4 bg-bg-secondary rounded-lg border border-border">
-          <input
-            type="file"
-            ref={carouselBgInputRef}
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleCarouselBgFileSelect}
-            className="hidden"
-          />
-          {!carouselBgFile ? (
-            <button
-              onClick={() => carouselBgInputRef.current?.click()}
-              className={`w-full py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
-                carouselBgDragActive
-                  ? 'border-accent bg-accent/5 text-accent scale-[1.01]'
-                  : 'border-border text-gray-600 dark:text-gray-300 hover:border-accent hover:text-accent'
-              }`}
-              disabled={generating || uploading}
-              onDragEnter={handleCarouselBgDragEnter}
-              onDragOver={handleDragOver}
-              onDragLeave={handleCarouselBgDragLeave}
-              onDrop={handleCarouselBgDrop}
-            >
-              {carouselBgDragActive
-                ? 'Drop image here'
-                : 'Drag & drop or click to upload background image (JPEG, PNG, WebP)'}
-            </button>
-          ) : (
-            <div className="flex items-center justify-between p-3 bg-bg-primary rounded-lg">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🖼️</span>
-                <div>
-                  <p className="text-body font-medium">{carouselBgFile.name}</p>
-                  <p className="text-small text-gray-600 dark:text-gray-300">
-                    {(carouselBgFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setCarouselBgFile(null);
-                  if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-                }}
-                className="text-small text-error hover:underline"
-                disabled={generating || uploading}
-              >
-                Remove
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Conditional: "Video Frame" snapshot picker */}
-      {carouselDesignOption === 'video-snapshot' && (
-        <div className="mt-3 p-4 bg-bg-secondary rounded-lg border border-border">
-          {currentUploadId ? (
-            <SnapshotPicker
-              uploadId={currentUploadId}
-              selectedUrl={selectedSnapshot?.thumbnailUrl}
-              onSelect={(snapshot) => setSelectedSnapshot(snapshot)}
-              disabled={generating || uploading || videoProcessing}
-            />
-          ) : (
-            <div className="p-4 text-center bg-bg-primary rounded-lg">
-              <div className="text-3xl mb-2">🎥</div>
-              <p className="text-body text-gray-600 dark:text-gray-300">
-                Upload a video first to see available snapshots
-              </p>
-              <p className="text-small text-gray-600 dark:text-gray-300 mt-1">
-                Frames will be automatically extracted during processing
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Caption style and carousel look are now selected post-generation */}
 
       {/* Reel Configuration - Coming Soon (live for admins) */}
       {(inputType === 'video' || inputType === 'url') && (

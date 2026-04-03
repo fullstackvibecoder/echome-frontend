@@ -242,7 +242,7 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
   if (showCompletion) {
     return (
       <div
-        className={`fixed bottom-20 right-6 z-50 bg-surface-container-lowest dark:bg-card rounded-[1.5rem] shadow-2xl
+        className={`fixed bottom-20 right-3 sm:right-6 z-50 bg-surface-container-lowest dark:bg-card rounded-[1.5rem] shadow-2xl
           border border-green-400/30 overflow-hidden max-w-sm animate-in slide-in-from-bottom-2 ${className}`}
       >
         <div className="p-5">
@@ -295,7 +295,7 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className={`fixed bottom-20 right-6 z-50 glass-panel rounded-full shadow-2xl
+        className={`fixed bottom-20 right-3 sm:right-6 z-50 glass-panel rounded-full shadow-2xl
           border border-primary/20 overflow-hidden max-w-xs
           hover:border-primary/40 transition-all cursor-pointer
           animate-in slide-in-from-bottom-2 ${className}`}
@@ -331,8 +331,8 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
   // Expanded drawer
   return (
     <div
-      className={`fixed bottom-20 right-6 z-50 bg-surface-container-lowest dark:bg-card rounded-[1.5rem] shadow-2xl
-        border border-outline-variant/40 overflow-hidden w-80
+      className={`fixed bottom-20 right-3 sm:right-6 z-50 bg-surface-container-lowest dark:bg-card rounded-[1.5rem] shadow-2xl
+        border border-outline-variant/40 overflow-hidden w-[calc(100vw-1.5rem)] max-w-80
         animate-in slide-in-from-bottom-2 ${className}`}
     >
       {/* Header */}

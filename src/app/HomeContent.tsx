@@ -121,9 +121,8 @@ export default function HomeContent() {
 
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight text-foreground leading-tight">
-              Choose Your
-              <br />
+            <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 tracking-tight text-foreground leading-tight">
+              Choose Your{' '}
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">

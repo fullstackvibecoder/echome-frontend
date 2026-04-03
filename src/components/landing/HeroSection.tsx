@@ -5,7 +5,7 @@ import { HeroDemoVideo } from './HeroDemoVideo';
 
 export function HeroSection() {
   return (
-    <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+    <section className="relative pt-24 pb-16 sm:pt-32 sm:pb-24 px-4 sm:px-6 overflow-hidden">
       {/* Dark background */}
       <div className="absolute inset-0 bg-gray-900 pointer-events-none" />
 
@@ -29,7 +29,7 @@ export function HeroSection() {
 
               {/* Headline */}
               <h1
-                className="font-headline text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight opacity-0 animate-fade-in"
+                className="font-headline text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight opacity-0 animate-fade-in"
                 style={{ animationDelay: '200ms' }}
               >
                 It Already Knows How{' '}
@@ -40,7 +40,7 @@ export function HeroSection() {
 
               {/* Value prop */}
               <p
-                className="text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
+                className="text-base sm:text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
                 style={{ animationDelay: '300ms' }}
               >
                 Stop starting from zero. EchoMe transforms your raw videos into a full week of social media posts in your unique voice.

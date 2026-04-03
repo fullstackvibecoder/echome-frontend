@@ -161,8 +161,8 @@ export default function CompressVideoGuidePage() {
         {/* Size reference */}
         <section className="mb-10">
           <h2 className="text-lg font-semibold text-text-primary mb-3">File size reference</h2>
-          <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm min-w-[400px]">
               <thead>
                 <tr className="bg-bg-secondary">
                   <th className="text-left px-4 py-2 font-medium text-text-primary">Video length</th>

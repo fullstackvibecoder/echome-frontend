@@ -253,7 +253,7 @@ export default function SettingsContent() {
       <div className="flex gap-2 mb-8 border-b border-border overflow-x-auto">
         <button
           onClick={() => handleTabChange('profile')}
-          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'profile'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -263,7 +263,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('account')}
-          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'account'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -273,7 +273,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('preferences')}
-          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'preferences'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -283,7 +283,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('billing')}
-          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'billing'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -293,7 +293,7 @@ export default function SettingsContent() {
         </button>
         <button
           onClick={() => handleTabChange('referral')}
-          className={`px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
             activeTab === 'referral'
               ? 'border-accent text-accent'
               : 'border-transparent text-text-secondary hover:text-text-primary'
