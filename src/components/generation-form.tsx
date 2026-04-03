@@ -230,12 +230,14 @@ function VoiceInputPanel({
 // VIDEO PROCESSING TIPS - Engaging messages per stage
 // ============================================
 
-type VideoSourceType = 'upload' | 'youtube' | 'instagram' | 'url';
+type VideoSourceType = 'upload' | 'youtube' | 'instagram' | 'url' | 'loom' | 'zoom';
 
 const FIRST_STEP_BY_SOURCE: Record<VideoSourceType, { title: string; description: string; icon: LucideIcon }> = {
   upload:    { title: 'Uploading video',      description: 'Sending your video to our processing servers...', icon: Upload },
   youtube:   { title: 'Downloading video',    description: 'Fetching video from YouTube...',                  icon: Download },
   instagram: { title: 'Downloading video',    description: 'Fetching video from Instagram...',                icon: Download },
+  loom:      { title: 'Downloading video',    description: 'Fetching video from Loom...',                     icon: Download },
+  zoom:      { title: 'Downloading video',    description: 'Fetching video from Zoom...',                     icon: Download },
   url:       { title: 'Downloading video',    description: 'Fetching video from URL...',                      icon: Download },
 };
 
@@ -405,7 +407,7 @@ export function GenerationForm({
   const [videoProcessingStatus, setVideoProcessingStatus] = useState<string | null>(null);
   const [videoProcessingProgress, setVideoProcessingProgress] = useState(0);
   const [videoProcessingStage, setVideoProcessingStage] = useState<string>('uploading');
-  const [videoSourceType, setVideoSourceType] = useState<'upload' | 'youtube' | 'instagram' | 'url'>('upload');
+  const [videoSourceType, setVideoSourceType] = useState<VideoSourceType>('upload');
   const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -548,7 +550,7 @@ export function GenerationForm({
   // Process video through Clip Finder pipeline
   const processVideoWithClipFinder = async (
     file?: File,
-    sourceType?: 'upload' | 'youtube' | 'instagram' | 'url',
+    sourceType?: VideoSourceType,
     sourceUrl?: string
   ) => {
     try {
@@ -786,14 +788,16 @@ export function GenerationForm({
     if (inputType === 'url') {
       const url = videoUrl.trim();
       if (!url || !isValidUrl(url)) {
-        setUrlError('Please enter a valid YouTube or Instagram URL');
+        setUrlError('Please enter a valid video URL (YouTube, Loom, Zoom, Vimeo, or Instagram)');
         return;
       }
 
       // Determine source type from URL
       const isYouTube = /youtube\.com|youtu\.be/.test(url);
       const isInstagram = /instagram\.com/.test(url);
-      const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : 'url';
+      const isLoom = /loom\.com/.test(url);
+      const isZoom = /zoom\.us/.test(url);
+      const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
 
       try {
         await processVideoWithClipFinder(undefined, sourceType, url);
@@ -856,6 +860,7 @@ export function GenerationForm({
       /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//, // Instagram
       /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+/, // Vimeo
       /^(https?:\/\/)?(www\.)?loom\.com\/share\//, // Loom
+      /^(https?:\/\/)?(www\.)?zoom\.us\/rec\//, // Zoom cloud recordings
       /^(https?:\/\/)?(www\.)?streamyard\.com\//, // StreamYard
       /^(https?:\/\/)?(www\.)?riverside\.fm\//, // Riverside
       /^(https?:\/\/)?(www\.)?(twitch\.tv|clips\.twitch\.tv)\//, // Twitch
@@ -918,7 +923,7 @@ export function GenerationForm({
               <Film className="w-8 h-8 text-accent group-hover:text-white transition-colors" />
             </div>
             <h3 className="text-xl font-bold text-text-primary mb-2">Upload Video</h3>
-            <p className="text-sm text-text-secondary leading-relaxed">Drop a video or paste a YouTube, Vimeo, or TikTok link.</p>
+            <p className="text-sm text-text-secondary leading-relaxed">Drop a video or paste a YouTube, Loom, Zoom, or Vimeo link.</p>
             <div className="mt-6 flex items-center gap-2 text-accent text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
               Get Started <ArrowRight className="w-3 h-3" />
             </div>
@@ -1263,7 +1268,7 @@ export function GenerationForm({
                           type="url"
                           value={videoUrl}
                           onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
-                          placeholder="YouTube, Vimeo, Loom, TikTok, Riverside..."
+                          placeholder="YouTube, Loom, Zoom, Vimeo, TikTok, Riverside..."
                           className="flex-1 px-3 py-2 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white text-sm placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none"
                         />
                         <button
@@ -1272,8 +1277,10 @@ export function GenerationForm({
                             if (!url) return;
                             const isYouTube = /youtube\.com|youtu\.be/.test(url);
                             const isInstagram = /instagram\.com/.test(url);
-                            const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : 'url';
-                            processVideoWithClipFinder(undefined, sourceType as any, url);
+                            const isLoom = /loom\.com/.test(url);
+                            const isZoom = /zoom\.us/.test(url);
+                            const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
+                            processVideoWithClipFinder(undefined, sourceType, url);
                           }}
                           disabled={!videoUrl.trim() || generating || videoProcessing}
                           className="px-4 py-2 bg-[#00D4FF] text-black rounded-lg text-sm font-bold disabled:opacity-40 hover:brightness-110 transition-all"

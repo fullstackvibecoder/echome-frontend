@@ -1637,7 +1637,7 @@ export const api = {
     upload: async (
       data: {
         file?: File;
-        sourceType?: 'upload' | 'youtube' | 'instagram' | 'url';
+        sourceType?: 'upload' | 'youtube' | 'instagram' | 'url' | 'loom' | 'zoom';
         sourceUrl?: string;
         knowledgeBaseId?: string;
         title?: string;
@@ -4005,7 +4005,7 @@ export interface VideoUpload {
   id: string;
   userId: string;
   knowledgeBaseId?: string;
-  sourceType: 'upload' | 'youtube' | 'instagram' | 'url';
+  sourceType: 'upload' | 'youtube' | 'instagram' | 'url' | 'loom' | 'zoom';
   sourceUrl?: string;
   originalFilename?: string;
   storagePath?: string;
