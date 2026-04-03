@@ -28,6 +28,7 @@ import { CaptionPositionControl } from '@/components/content-kit/CaptionPosition
 import type { CaptionPosition } from '@/components/content-kit/CaptionOverlay';
 import { BlogPostSection } from '@/components/blog-post-section';
 import { VideoReelSection } from '@/components/content-kit/VideoReelSection';
+import { CarouselStyleEditor } from '@/components/content-kit/CarouselStyleEditor';
 
 // Progress step component
 function ProgressStep({
@@ -1002,6 +1003,20 @@ export default function ContentKitDetailContent() {
                   ({detail.carousel.slides.length} slides)
                 </span>
               </h2>
+
+              {/* Carousel Style Editor */}
+              <CarouselStyleEditor
+                kitId={detail.contentKit?.id || id}
+                currentDesignPreset={detail.carousel?.designPreset}
+                uploadId={detail.clips?.[0]?.videoUploadId || (detail as any)?.uploadId}
+                onRestyleComplete={(carousel) => {
+                  // Refresh the content kit to show new carousel
+                  refresh();
+                  // Also clear any resized carousel so it re-fetches
+                  setResizedCarousel(null);
+                  squareFetchedRef.current = false;
+                }}
+              />
 
               {/* Square (1:1) Carousel - Primary display */}
               <div className="bg-bg-secondary rounded-xl border border-border p-6 mb-4">

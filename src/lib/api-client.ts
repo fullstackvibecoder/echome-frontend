@@ -2246,6 +2246,35 @@ export const api = {
       };
     },
 
+    /** Regenerate carousel with a different design preset or background */
+    regenerateCarousel: async (kitId: string, options: {
+      designPreset?: 'tweet-style' | 'text-box' | 'auto';
+      background?: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string };
+    }) => {
+      const response = await apiClient.post(
+        `/content-kits/${kitId}/regenerate-carousel`,
+        options,
+        { timeout: GENERATION_TIMEOUT }
+      );
+      return response.data as {
+        success: boolean;
+        data: {
+          carousel: {
+            id: string;
+            slideCount: number;
+            designPreset: string;
+            slides: Array<{
+              slideNumber: number;
+              text: string;
+              publicUrl: string;
+              slideType?: string;
+              template?: string;
+            }>;
+          };
+        };
+      };
+    },
+
     /** Resize carousel to different aspect ratio */
     resizeCarousel: async (kitId: string, aspectRatio: '1:1' | '9:16') => {
       const response = await apiClient.post(
