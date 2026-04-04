@@ -868,6 +868,36 @@ export const api = {
       };
     },
 
+    /** Start an Instagram sync job (imports latest posts) */
+    syncInstagram: async (options?: { max_posts?: number; knowledgeBaseId?: string }) => {
+      const response = await apiClient.post('/social/instagram/sync', options || { max_posts: 50 });
+      return response.data as {
+        success: boolean;
+        data: {
+          jobId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          platform: 'instagram';
+          message?: string;
+        };
+      };
+    },
+
+    /** Check Instagram sync job status */
+    getInstagramSyncStatus: async (jobId: string) => {
+      const response = await apiClient.get(`/social/instagram/sync/${jobId}`);
+      return response.data as {
+        success: boolean;
+        data: {
+          jobId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          platform: 'instagram';
+          postsImported?: number;
+          totalPosts?: number;
+          message?: string;
+        };
+      };
+    },
+
     /** Get voice integration assignments */
     getVoiceAssignments: async () => {
       const response = await apiClient.get('/social/voice-assignments');
