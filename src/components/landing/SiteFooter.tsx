@@ -62,6 +62,7 @@ export function SiteFooter() {
               <li><Link href="/support" className="hover:text-accent-purple transition-colors duration-200">Support</Link></li>
               <li><Link href="/privacy" className="hover:text-accent-purple transition-colors duration-200">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-accent-purple transition-colors duration-200">Terms of Service</Link></li>
+              <li><Link href="/data-deletion" className="hover:text-accent-purple transition-colors duration-200">Data Deletion</Link></li>
             </ul>
           </div>
         </div>

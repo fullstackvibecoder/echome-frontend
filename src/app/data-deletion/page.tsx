@@ -2,9 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Data Deletion Instructions | EchoMe',
-  description:
-    'How to delete your EchoMe account data, including Instagram, YouTube, and other imported social media content.',
+  title: 'Data Deletion | EchoMe',
+  description: 'How to request deletion of your EchoMe account and associated data.',
   alternates: { canonical: 'https://tryechome.com/data-deletion' },
 };
 
@@ -16,98 +15,79 @@ export default function DataDeletionPage() {
           <Link href="/" className="text-sm text-accent hover:underline">&larr; Back to EchoMe</Link>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Data Deletion Instructions
+        <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-8">
+          Data Deletion Request
         </h1>
-        <p className="text-lg text-text-secondary mb-10">
-          You can delete your EchoMe data at any time. This page explains how.
-        </p>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold text-text-primary mb-3">Disconnect social media accounts</h2>
+          <h2 className="text-xl font-semibold text-text-primary mb-3">How to delete your EchoMe account</h2>
           <p className="text-text-secondary mb-4">
-            To remove imported Instagram, YouTube, or other social media content from your EchoMe knowledge base:
+            You can delete your account and all associated data at any time:
           </p>
-          <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-2">
-            <li>Sign in to EchoMe at <Link href="/app" className="text-accent hover:underline">tryechome.com/app</Link></li>
-            <li>Go to <strong className="text-text-primary">Build Your Voice</strong> in the sidebar</li>
-            <li>Click <strong className="text-text-primary">Connect my Socials</strong></li>
-            <li>Select the connected account (Instagram, YouTube, etc.)</li>
-            <li>Click <strong className="text-text-primary">Disconnect</strong></li>
-          </ol>
-          <p className="text-text-secondary mt-4">
-            Disconnecting removes the access token and stops further syncing. Previously imported content remains in your knowledge base until you delete it individually or delete your account.
-          </p>
-        </section>
-
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-text-primary mb-3">Delete individual content items</h2>
-          <p className="text-text-secondary mb-4">
-            To remove specific imported posts, videos, or other content from your knowledge base:
-          </p>
-          <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-2">
-            <li>Go to <strong className="text-text-primary">Build Your Voice</strong></li>
-            <li>Click <strong className="text-text-primary">Sources</strong> to see all imported content</li>
-            <li>Find the item you want to remove</li>
-            <li>Click the delete icon next to that item</li>
-          </ol>
-        </section>
-
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-text-primary mb-3">Delete your entire EchoMe account</h2>
-          <p className="text-text-secondary mb-4">
-            To permanently delete your account and all associated data (including every imported social media post, video transcript, email, and generated content):
-          </p>
-          <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-2">
-            <li>Sign in to EchoMe</li>
-            <li>Go to <strong className="text-text-primary">Settings</strong></li>
-            <li>Click <strong className="text-text-primary">Account</strong> tab</li>
-            <li>Click <strong className="text-text-primary">Delete Account</strong></li>
+          <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-2 mb-4">
+            <li>Log in to EchoMe</li>
+            <li>Go to <strong className="text-text-primary">Settings &rarr; Account</strong></li>
+            <li>Click <strong className="text-text-primary">&quot;Delete Account&quot;</strong></li>
             <li>Confirm deletion</li>
           </ol>
-          <p className="text-text-secondary mt-4">
-            Account deletion is permanent and irreversible. All your data — including every integration, imported post, transcript, and generated content — is permanently removed within 30 days.
+          <p className="text-text-secondary">
+            This removes your account, knowledge base, generated content, voice profile, and all uploaded files.
           </p>
         </section>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold text-text-primary mb-3">Revoke access from Instagram / Facebook directly</h2>
+          <h2 className="text-xl font-semibold text-text-primary mb-3">How to disconnect Instagram/Meta</h2>
           <p className="text-text-secondary mb-4">
-            You can also revoke EchoMe&apos;s access to your Instagram account directly through Meta:
+            If you connected your Instagram account and want to remove it:
           </p>
           <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-2">
-            <li>Go to your Facebook settings at <a href="https://www.facebook.com/settings?tab=business_tools" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">facebook.com/settings/business_tools</a></li>
-            <li>Find EchoMe in the list of connected apps</li>
-            <li>Click <strong className="text-text-primary">Remove</strong> to revoke access</li>
+            <li>Go to <strong className="text-text-primary">Instagram Settings &rarr; Apps and Websites &rarr; Active</strong></li>
+            <li>Find EchoMe and click <strong className="text-text-primary">Remove</strong></li>
+            <li>Your Instagram access tokens are deleted immediately</li>
+            <li>Any Instagram posts imported to your knowledge base are removed</li>
           </ol>
-          <p className="text-text-secondary mt-4">
-            This stops EchoMe from accessing your Instagram data but does not delete content already imported to your EchoMe knowledge base. Use the steps above to remove that content.
-          </p>
         </section>
 
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-text-primary mb-3">Request data deletion via email</h2>
-          <p className="text-text-secondary mb-2">
-            If you cannot access your account or need assistance, email us to request data deletion:
+          <p className="text-text-secondary mb-4">
+            If you can&apos;t log in or need to request deletion another way:
           </p>
+          <ul className="space-y-2 text-text-secondary ml-2 mb-4">
+            <li>
+              <strong className="text-text-primary">Email:</strong>{' '}
+              <a href="mailto:support@tryechome.com?subject=Data%20Deletion%20Request" className="text-accent hover:underline">
+                support@tryechome.com
+              </a>
+            </li>
+            <li><strong className="text-text-primary">Subject:</strong> &quot;Data Deletion Request&quot;</li>
+            <li><strong className="text-text-primary">Include:</strong> the email address of your EchoMe account</li>
+          </ul>
           <p className="text-text-secondary">
-            <a href="mailto:support@tryechome.com?subject=Data%20Deletion%20Request" className="text-accent hover:underline font-medium">
-              support@tryechome.com
-            </a>
-          </p>
-          <p className="text-text-secondary mt-2">
-            Include your account email address. We will process your deletion request within 30 days as required by GDPR and comply with applicable data protection laws.
+            We will confirm deletion within 30 days.
           </p>
         </section>
 
-        <section className="p-5 bg-bg-secondary border border-border rounded-xl mb-10">
-          <h2 className="text-base font-semibold text-text-primary mb-2">Data we retain after deletion</h2>
-          <p className="text-sm text-text-secondary">
-            After account deletion, we may retain limited information required by law (e.g., billing records for tax purposes, fraud prevention logs) for the legally required period. This information is not used for any other purpose.
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-text-primary mb-3">What data we delete</h2>
+          <ul className="space-y-2 text-text-secondary ml-2">
+            <li>&bull; Your account (email, name, profile info)</li>
+            <li>&bull; Knowledge base content (uploaded files, imported content, voice training data)</li>
+            <li>&bull; Generated content (posts, clips, carousels)</li>
+            <li>&bull; Voice profile and embeddings</li>
+            <li>&bull; Connected integrations (Instagram, YouTube tokens)</li>
+            <li>&bull; Subscription and payment history (kept 7 years for legal compliance, then deleted)</li>
+          </ul>
+        </section>
+
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-text-primary mb-3">Third-party data</h2>
+          <p className="text-text-secondary">
+            Data we&apos;ve sent to third parties (OpenAI, Anthropic, Pinecone, etc.) is handled per each service&apos;s privacy policy. We do not retain copies of your data after sending it for processing.
           </p>
         </section>
 
-        <footer className="border-t border-border pt-6 text-center text-xs text-text-secondary">
+        <footer className="border-t border-border pt-6 mt-12 text-center text-xs text-text-secondary">
           <p>
             See our full <Link href="/privacy" className="text-accent hover:underline">Privacy Policy</Link> for details on data handling and retention.
           </p>
