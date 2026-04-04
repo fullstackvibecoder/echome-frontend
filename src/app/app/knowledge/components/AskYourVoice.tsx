@@ -227,9 +227,21 @@ function UrlImportForm({
             </button>
           )}
           {platform === 'instagram' && !oauthConnected.connected && (
-            <p className="text-[11px] text-text-tertiary mt-1.5 text-center">
-              Requires a Business or Creator Instagram account
-            </p>
+            <div className="mt-1.5 text-center">
+              <p className="text-[11px] text-text-tertiary">
+                Requires a Business or Creator Instagram account
+              </p>
+              <p className="text-[11px] text-text-tertiary mt-1">
+                We access your public posts, captions, and profile metadata.{' '}
+                <a href="/privacy#cookies" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                  Privacy Policy
+                </a>
+                {' '}·{' '}
+                <a href="/data-deletion" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                  Data Deletion
+                </a>
+              </p>
+            </div>
           )}
         </div>
       )}
