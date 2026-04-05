@@ -123,17 +123,38 @@ export default function OnboardingContent() {
     }
   }, [kbLoading, existingCompleted, router]);
 
-  // Load profile
+  // Load profile with enhanced error handling
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.auth.getProfile();
+        const res = await api.auth.getProfile().catch(error => {
+          // Handle 404 errors for profile not found
+          if (error.response?.status === 404) {
+            console.warn('[Onboarding] User profile not found, will create during save');
+            return { success: false, error: { code: 'PROFILE_NOT_FOUND' } };
+          }
+          if (error.response?.status === 401) {
+            console.error('[Onboarding] Authentication error loading profile');
+            return { success: false, error: { code: 'UNAUTHORIZED' } };
+          }
+          throw error;
+        });
+
         if (res.success && res.data) {
           setDisplayName(res.data.display_name || res.data.full_name || '');
           setTwitterHandle(res.data.twitter_handle || '');
           setInstagramHandle(res.data.instagram_handle || '');
+        } else if (res.error?.code === 'PROFILE_NOT_FOUND') {
+          // Profile doesn't exist yet, that's okay for new users
+          console.info('[Onboarding] New user, profile will be created');
+        } else if (res.error?.code === 'UNAUTHORIZED') {
+          // Authentication issue, but don't break onboarding
+          console.warn('[Onboarding] Authentication error, user may need to log in again');
         }
-      } catch {}
+      } catch (error: any) {
+        console.error('[Onboarding] Profile loading error:', error);
+        // Don't block onboarding for profile loading issues
+      }
     })();
   }, []);
 
@@ -222,12 +243,35 @@ export default function OnboardingContent() {
     addUser(displayName.trim());
 
     try {
-      await api.auth.updateProfile({
+      const result = await api.auth.updateProfile({
         display_name: displayName.trim() || undefined,
         twitter_handle: twitterHandle.trim() || null,
         instagram_handle: instagramHandle.trim() || null,
+      }).catch(error => {
+        // Handle profile update errors gracefully
+        if (error.response?.status === 404) {
+          console.warn('[Onboarding] Profile update endpoint not found');
+          return { success: false, error: { code: 'ENDPOINT_NOT_FOUND' } };
+        }
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.warn('[Onboarding] Authentication error during profile update');
+          return { success: false, error: { code: 'UNAUTHORIZED' } };
+        }
+        throw error;
       });
-    } catch {}
+
+      if (!result.success && result.error?.code === 'ENDPOINT_NOT_FOUND') {
+        console.warn('[Onboarding] Profile update not available, continuing without saving');
+        addSystem('Profile could not be saved, but you can continue onboarding.');
+      } else if (!result.success && result.error?.code === 'UNAUTHORIZED') {
+        console.warn('[Onboarding] Authentication issue, but continuing onboarding');
+        addSystem('Authentication issue detected. Please log in again after onboarding.');
+      }
+    } catch (error: any) {
+      console.error('[Onboarding] Profile save error:', error);
+      // Don't block the onboarding flow for profile save failures
+      addSystem('Profile could not be saved, but you can continue setting up your voice.');
+    }
 
     setProfileSaving(false);
     addEcho(`Got it, ${displayName.trim().split(' ')[0]}. Now let's teach me your voice.`);
@@ -252,16 +296,51 @@ export default function OnboardingContent() {
         url: normalizedUrl,
         knowledgeBaseId: defaultKbId,
         useForVoiceMatching: true,
+      }).catch(error => {
+        // Enhanced error handling for import operations
+        if (error.response?.status === 404) {
+          const errorMsg = error.response?.data?.message || 'Import service not available';
+          return { success: false, error: { code: 'IMPORT_NOT_FOUND', message: errorMsg } };
+        }
+        if (error.response?.status === 400) {
+          const errorMsg = error.response?.data?.message || 'Invalid URL or unsupported content';
+          return { success: false, error: { code: 'INVALID_URL', message: errorMsg } };
+        }
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          return { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } };
+        }
+        throw error;
       });
 
-      if (!result.success) throw new Error('Import failed');
-
-      setCompletedItems(prev => prev + 1);
-      const label = platform.charAt(0).toUpperCase() + platform.slice(1);
-      addSystem(`${label} import started. Processing in background.`);
-      await refresh();
-    } catch (err) {
-      addSystem(extractErrorMessage(err, 'Import failed. Check the URL and try again.'));
+      if (result.success) {
+        setCompletedItems(prev => prev + 1);
+        const label = platform.charAt(0).toUpperCase() + platform.slice(1);
+        addSystem(`${label} import started. Processing in background.`);
+        await refresh();
+      } else if (result.error?.code === 'IMPORT_NOT_FOUND') {
+        addSystem('Import service is temporarily unavailable. You can try again later or skip this step.');
+      } else if (result.error?.code === 'INVALID_URL') {
+        addSystem(result.error.message || 'Invalid URL. Please check the URL format and try again.');
+      } else if (result.error?.code === 'UNAUTHORIZED') {
+        addSystem('Authentication required. Please make sure you are logged in.');
+      } else {
+        throw new Error(result.error?.message || 'Import failed');
+      }
+    } catch (err: any) {
+      console.error(`[Onboarding] ${platform} import error:`, err);
+      
+      let errorMessage = extractErrorMessage(err, 'Import failed. Check the URL and try again.');
+      
+      // Provide more helpful error messages
+      if (err.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error during import. Please check your connection and try again.';
+      } else if (err.response?.status === 429) {
+        errorMessage = 'Too many import requests. Please wait a moment and try again.';
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Server error during import. Please try again in a few minutes.';
+      }
+      
+      addSystem(errorMessage);
     }
 
     setImporting(false);
@@ -284,17 +363,49 @@ export default function OnboardingContent() {
     setPasting(true);
 
     try {
-      await api.kbContent.paste({
+      const result = await api.kbContent.paste({
         text: pasteText,
         title: 'Writing sample',
         sourceType: 'writing_sample',
         knowledgeBaseId: defaultKbId,
+      }).catch(error => {
+        // Handle paste API errors
+        if (error.response?.status === 404) {
+          return { success: false, error: { code: 'PASTE_NOT_FOUND', message: 'Paste service not available' } };
+        }
+        if (error.response?.status === 413) {
+          return { success: false, error: { code: 'TEXT_TOO_LARGE', message: 'Text is too large' } };
+        }
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          return { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } };
+        }
+        throw error;
       });
-      setCompletedItems(prev => prev + 1);
-      addSystem('Writing sample added.');
-      await refresh();
-    } catch {
-      addSystem('Failed to save. Try again.');
+
+      if (result.success) {
+        setCompletedItems(prev => prev + 1);
+        addSystem('Writing sample added.');
+        await refresh();
+      } else if (result.error?.code === 'PASTE_NOT_FOUND') {
+        addSystem('Paste service is temporarily unavailable. You can try again later.');
+      } else if (result.error?.code === 'TEXT_TOO_LARGE') {
+        addSystem('The text is too large. Please try with a shorter sample.');
+      } else if (result.error?.code === 'UNAUTHORIZED') {
+        addSystem('Authentication required. Please make sure you are logged in.');
+      } else {
+        throw new Error(result.error?.message || 'Failed to save text');
+      }
+    } catch (error: any) {
+      console.error('[Onboarding] Paste submit error:', error);
+      
+      let errorMessage = 'Failed to save. Try again.';
+      if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again in a moment.';
+      }
+      
+      addSystem(errorMessage);
     }
 
     setPasting(false);
@@ -409,11 +520,45 @@ export default function OnboardingContent() {
     }
   };
 
+  // ─── Error State ───
+  if (error && error.includes('service is not available')) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-md mx-auto text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-error/10 flex items-center justify-center">
+            <X className="w-8 h-8 text-error" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Service Temporarily Unavailable</h2>
+          <p className="text-text-secondary mb-6">
+            The onboarding service is temporarily unavailable. Please try again in a few minutes.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => router.push('/app')}
+              className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-bg-secondary transition-colors"
+            >
+              Skip to App
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── Loading ───
   if (kbLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-text-secondary">Loading your workspace...</p>
+        </div>
       </div>
     );
   }

@@ -62,7 +62,21 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
     try {
       setLoading(true);
       setError(null);
-      const response = await api.kb.list();
+      
+      // Enhanced error handling for API calls
+      const response = await api.kb.list().catch(error => {
+        // Handle specific error cases
+        if (error.response?.status === 404) {
+          console.warn('[useKnowledgeBase] Knowledge base endpoint not found, will try to create default');
+          return { success: false, error: { code: 'ENDPOINT_NOT_FOUND', status: 404 } };
+        }
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.error('[useKnowledgeBase] Authentication error:', error);
+          return { success: false, error: { code: 'UNAUTHORIZED', status: error.response.status } };
+        }
+        throw error; // Re-throw for other errors
+      });
+
       if (response.success && response.data) {
         let kbList = response.data;
 
@@ -70,13 +84,29 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
         if (kbList.length === 0) {
           console.log('[useKnowledgeBase] No KBs found, creating default');
           try {
-            const createResponse = await api.kb.create('My Knowledge Base', true);
+            const createResponse = await api.kb.create('My Knowledge Base', true).catch(createError => {
+              console.error('[useKnowledgeBase] Create KB API error:', createError);
+              // Handle 404 on create endpoint
+              if (createError.response?.status === 404) {
+                throw new Error('Knowledge base service is not available. Please contact support.');
+              }
+              throw createError;
+            });
+            
             if (createResponse.success && createResponse.data) {
               kbList = [createResponse.data];
               console.log('[useKnowledgeBase] Created default KB:', createResponse.data.id);
+            } else {
+              console.warn('[useKnowledgeBase] Create KB failed:', createResponse.error);
+              // Fallback: continue with empty KB list but don't error out
             }
-          } catch (createErr) {
+          } catch (createErr: any) {
             console.error('[useKnowledgeBase] Failed to create default KB:', createErr);
+            // Don't fail the entire onboarding if KB creation fails
+            if (createErr.message?.includes('not available')) {
+              setError(createErr.message);
+              return;
+            }
           }
         }
 
@@ -86,13 +116,33 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
           const preferredKb = initialKbId && kbList.find(kb => kb.id === initialKbId);
           setSelectedKb(preferredKb ? preferredKb.id : kbList[0].id);
         }
+      } else if (response.error?.code === 'ENDPOINT_NOT_FOUND') {
+        // Handle case where KB endpoints are not available
+        console.warn('[useKnowledgeBase] KB endpoints not available, continuing with limited functionality');
+        setKbs([]);
+        setError('Knowledge base is temporarily unavailable. You can still complete onboarding.');
+      } else if (response.error?.code === 'UNAUTHORIZED') {
+        setError('Please log in again to continue.');
+        // Could redirect to login here if needed
+      } else {
+        throw new Error(response.error?.message || 'Failed to load knowledge bases');
       }
-    } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to load knowledge bases'));
+    } catch (err: any) {
+      console.error('[useKnowledgeBase] fetchKBs error:', err);
+      const errorMessage = extractErrorMessage(err, 'Failed to load knowledge bases');
+      
+      // Provide more specific error messages for 404s
+      if (err.response?.status === 404) {
+        setError('Knowledge base service is temporarily unavailable. Please try refreshing the page.');
+      } else if (err.code === 'ERR_NETWORK' || err.message?.includes('network')) {
+        setError('Network connection error. Please check your connection and try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
-  }, [selectedKb]);
+  }, [selectedKb, initialKbId]);
 
   /**
    * Fetch unified content for selected KB
@@ -103,15 +153,26 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
       setLoading(true);
       setError(null);
 
-      const response = await api.kb.getContent(kbId);
+      const response = await api.kb.getContent(kbId).catch(error => {
+        // Enhanced error handling for content fetching
+        if (error.response?.status === 404) {
+          console.warn(`[useKnowledgeBase] Knowledge base ${kbId} not found, it may have been deleted`);
+          return { success: false, error: { code: 'KB_NOT_FOUND', status: 404, kbId } };
+        }
+        if (error.response?.status === 403) {
+          console.warn(`[useKnowledgeBase] Access denied to knowledge base ${kbId}`);
+          return { success: false, error: { code: 'KB_ACCESS_DENIED', status: 403 } };
+        }
+        throw error;
+      });
 
       if (response.success && response.data) {
-        setContentItems(response.data.items);
-        setContentStats(response.data.stats);
+        setContentItems(response.data.items || []);
+        setContentStats(response.data.stats || DEFAULT_STATS);
 
         // Also populate legacy files array for backwards compatibility
         // Transform unified items back to KBFile format where applicable
-        const legacyFiles: KBFile[] = response.data.items
+        const legacyFiles: KBFile[] = (response.data.items || [])
           .filter(item => item.fileSize !== undefined)
           .map(item => ({
             id: item.id,
@@ -126,9 +187,34 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
             processedAt: item.status === 'completed' ? new Date(item.updatedAt) : undefined,
           }));
         setFiles(legacyFiles);
+      } else if (response.error?.code === 'KB_NOT_FOUND') {
+        console.warn('[useKnowledgeBase] Knowledge base not found, clearing selection');
+        setSelectedKb(null);
+        setError('The selected knowledge base was not found. Please refresh the page.');
+        setContentItems([]);
+        setContentStats(DEFAULT_STATS);
+        setFiles([]);
+      } else if (response.error?.code === 'KB_ACCESS_DENIED') {
+        setError('You do not have permission to access this knowledge base.');
+        setContentItems([]);
+        setContentStats(DEFAULT_STATS);
+        setFiles([]);
+      } else {
+        throw new Error(response.error?.message || 'Failed to load content');
       }
-    } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to load content'));
+    } catch (err: any) {
+      console.error('[useKnowledgeBase] fetchContent error:', err);
+      
+      let errorMessage = extractErrorMessage(err, 'Failed to load content');
+      
+      // Enhanced error categorization
+      if (err.response?.status === 404) {
+        errorMessage = 'Content not found. The knowledge base may have been deleted.';
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error while loading content. Please check your connection.';
+      }
+      
+      setError(errorMessage);
       // Reset to empty state on error
       setContentItems([]);
       setContentStats(DEFAULT_STATS);
