@@ -45,6 +45,7 @@ export default function HomeContent() {
               <a href="#output-showcase" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Examples</a>
               <a href="#pricing" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Pricing</a>
               <a href="#community" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Community</a>
+              <Link href="/privacy" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Privacy</Link>
               <a
                 href="/auth/login"
                 className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}
@@ -72,6 +73,7 @@ export default function HomeContent() {
                 <a href="#output-showcase" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Examples</a>
                 <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Pricing</a>
                 <a href="#community" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Community</a>
+                <Link href="/privacy" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Privacy</Link>
                 <a
                   href="/auth/login"
                   onClick={() => setIsMenuOpen(false)}
