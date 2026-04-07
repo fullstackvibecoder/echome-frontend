@@ -19,7 +19,7 @@ export function AnimatedSection({
   return (
     <div
       ref={ref}
-      className={`${className} ${isVisible ? 'animate-on-scroll' : 'opacity-0'}`}
+      className={`${className} ${isVisible ? 'animate-on-scroll' : 'opacity-0 pointer-events-none'}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       {children}
