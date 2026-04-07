@@ -559,13 +559,13 @@ export default function HomeContent() {
               <p className="text-white/70 font-light text-lg mb-6 leading-relaxed">
                 Love what EchoMe does for your content? Share it with your audience and earn 25% of every subscription - not just the first month, every month they stay.
               </p>
-              <Link
+              <a
                 href="/affiliates"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 Learn More
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </a>
             </div>
 
             <div className="grid grid-cols-1 gap-4">

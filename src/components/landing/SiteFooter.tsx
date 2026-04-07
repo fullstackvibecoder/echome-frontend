@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { Twitter, Linkedin } from 'lucide-react';
 
 export function SiteFooter() {
@@ -52,10 +51,10 @@ export function SiteFooter() {
             <ul className="space-y-3 text-white/70 font-light">
               <li><a href="#how" className="hover:text-primary transition-colors duration-200">How It Works</a></li>
               <li><a href="#pricing" className="hover:text-primary transition-colors duration-200">Pricing</a></li>
-              <li><Link href="/developers" className="hover:text-primary transition-colors duration-200">API</Link></li>
-              <li><Link href="/community" className="hover:text-primary transition-colors duration-200">Community</Link></li>
-              <li><Link href="/guides" className="hover:text-primary transition-colors duration-200">Guides</Link></li>
-              <li><Link href="/tools/compress-video" className="hover:text-primary transition-colors duration-200">Free Video Compressor</Link></li>
+              <li><a href="/developers" className="hover:text-primary transition-colors duration-200">API</a></li>
+              <li><a href="/community" className="hover:text-primary transition-colors duration-200">Community</a></li>
+              <li><a href="/guides" className="hover:text-primary transition-colors duration-200">Guides</a></li>
+              <li><a href="/tools/compress-video" className="hover:text-primary transition-colors duration-200">Free Video Compressor</a></li>
             </ul>
           </div>
 
@@ -64,11 +63,11 @@ export function SiteFooter() {
             <ul className="space-y-3 text-white/70 font-light">
               <li><a href="/auth/login" className="hover:text-accent-purple transition-colors duration-200">Sign In</a></li>
               <li><a href="/auth/signup" className="hover:text-accent-purple transition-colors duration-200">Sign Up</a></li>
-              <li><Link href="/affiliates" className="hover:text-accent-purple transition-colors duration-200">Affiliates</Link></li>
-              <li><Link href="/support" className="hover:text-accent-purple transition-colors duration-200">Support</Link></li>
-              <li><Link href="/privacy" className="hover:text-accent-purple transition-colors duration-200">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-accent-purple transition-colors duration-200">Terms of Service</Link></li>
-              <li><Link href="/data-deletion" className="hover:text-accent-purple transition-colors duration-200">Data Deletion</Link></li>
+              <li><a href="/affiliates" className="hover:text-accent-purple transition-colors duration-200">Affiliates</a></li>
+              <li><a href="/support" className="hover:text-accent-purple transition-colors duration-200">Support</a></li>
+              <li><a href="/privacy" className="hover:text-accent-purple transition-colors duration-200">Privacy Policy</a></li>
+              <li><a href="/terms" className="hover:text-accent-purple transition-colors duration-200">Terms of Service</a></li>
+              <li><a href="/data-deletion" className="hover:text-accent-purple transition-colors duration-200">Data Deletion</a></li>
             </ul>
           </div>
         </div>
