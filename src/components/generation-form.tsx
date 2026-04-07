@@ -1262,7 +1262,6 @@ export function GenerationForm({
                     {/* URL paste — faster than file upload for large videos */}
                     <div className="w-full max-w-full sm:max-w-sm">
                       <p className="text-xs text-gray-600 dark:text-gray-300 text-center mb-2 font-medium">Or paste a video URL (no upload needed)</p>
-                      <p className="text-[10px] text-amber-500 dark:text-amber-400 text-center mb-2">YouTube links may fail due to platform restrictions. For reliable results, <a href="/guides/compress-video" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">compress and upload the file directly</a>.</p>
                       <div className="flex gap-2">
                         <input
                           type="url"
