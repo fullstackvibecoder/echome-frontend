@@ -253,16 +253,7 @@ function SignupForm() {
           </label>
         </div>
 
-        {/* Turnstile CAPTCHA */}
-        <div className="flex justify-center">
-          <Turnstile
-            siteKey="0x4AAAAACzjjwyy1v0QtjDW"
-            onSuccess={(token) => setTurnstileToken(token)}
-            onExpire={() => setTurnstileToken(null)}
-            onError={() => setTurnstileToken(null)}
-            options={{ theme: 'dark', size: 'normal' }}
-          />
-        </div>
+        {/* Turnstile CAPTCHA — disabled until Cloudflare domain config is fixed */}
 
         {/* Submit Button */}
         <button
