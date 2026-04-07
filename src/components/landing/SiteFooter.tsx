@@ -6,7 +6,7 @@ import { Twitter, Linkedin } from 'lucide-react';
 
 export function SiteFooter() {
   return (
-    <footer className="relative py-20 px-6 bg-gray-900 text-white overflow-hidden">
+    <footer className="relative z-20 py-20 px-6 bg-gray-900 text-white overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent-purple" />
       <div className="absolute top-10 right-20 w-64 h-64 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
 
