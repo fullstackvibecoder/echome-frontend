@@ -254,13 +254,15 @@ function SignupForm() {
         </div>
 
         {/* Turnstile CAPTCHA */}
-        <Turnstile
-          siteKey="0x4AAAAACzjjwyy1v0QtjDW"
-          onSuccess={(token) => setTurnstileToken(token)}
-          onExpire={() => setTurnstileToken(null)}
-          onError={() => setTurnstileToken(null)}
-          options={{ theme: 'auto', size: 'flexible' }}
-        />
+        <div className="flex justify-center">
+          <Turnstile
+            siteKey="0x4AAAAACzjjwyy1v0QtjDW"
+            onSuccess={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken(null)}
+            onError={() => setTurnstileToken(null)}
+            options={{ theme: 'dark', size: 'normal' }}
+          />
+        </div>
 
         {/* Submit Button */}
         <button
