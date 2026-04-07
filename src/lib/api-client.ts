@@ -55,6 +55,7 @@ const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (do
 const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
+const EXPORT_TIMEOUT = 120000; // 2 minutes for clip export (FFmpeg burns captions on-demand)
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -2129,7 +2130,7 @@ export const api = {
       viewMode?: 'single' | 'split';
       addCaptions?: boolean;
     }) => {
-      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {});
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {}, { timeout: EXPORT_TIMEOUT });
       return response.data as {
         success: boolean;
         data: {
