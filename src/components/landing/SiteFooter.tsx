@@ -39,6 +39,12 @@ export function SiteFooter() {
                 <img src="https://www.bestin2026.com/api/badge?title=EchoMe&theme=dark" alt="EchoMe - Best in 2026" width={200} height={50} className="opacity-80 hover:opacity-100 transition-opacity" />
               </a>
             </div>
+            <div className="mt-4">
+              <a href="https://apps.apple.com/app/id6761504034" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-80 transition-opacity">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download EchoMe on the App Store" width={150} height={50} className="rounded-lg" />
+              </a>
+            </div>
           </div>
 
           <div>

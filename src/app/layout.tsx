@@ -88,6 +88,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* iOS Smart App Banner — shows "Open in App" in Safari */}
+        <meta name="apple-itunes-app" content="app-id=6761504034" />
         {/* Affonso Affiliate Tracking */}
         <Script
           src="https://cdn.affonso.io/js/pixel.min.js"

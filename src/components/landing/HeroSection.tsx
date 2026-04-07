@@ -89,6 +89,10 @@ export function HeroSection() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="https://www.bestin2026.com/api/badge?title=EchoMe&theme=dark" alt="EchoMe - Best in 2026" width={160} height={40} className="opacity-70 hover:opacity-100 transition-opacity" />
               </a>
+              <a href="https://apps.apple.com/app/id6761504034" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download on the App Store" width={130} height={43} className="rounded-md" />
+              </a>
             </div>
           </div>
 
