@@ -137,7 +137,7 @@ export function KnowledgeBaseSection() {
           {/* Stats callout */}
           <div className="bg-gray-900 rounded-2xl p-8 md:p-12 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="relative z-10 grid md:grid-cols-3 gap-8 text-center">
+            <div className="relative grid md:grid-cols-3 gap-8 text-center">
               {[
                 { stat: '6', label: 'platforms', detail: 'LinkedIn, Twitter/X, Instagram, TikTok, Blog, Email' },
                 { stat: '15+', label: 'content pieces', detail: 'Posts, carousels, clips, captions, blog drafts' },

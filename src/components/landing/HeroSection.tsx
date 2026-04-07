@@ -13,7 +13,7 @@ export function HeroSection() {
       <div className="absolute top-0 right-0 -z-0 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/4 pointer-events-none" />
       <div className="absolute bottom-0 left-0 -z-0 w-[400px] h-[400px] bg-accent-purple/10 blur-[100px] rounded-full -translate-x-1/4 translate-y-1/4 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Content Left */}
           <div className="flex flex-col space-y-10">

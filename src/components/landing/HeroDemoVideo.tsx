@@ -60,7 +60,7 @@ export function HeroDemoVideo() {
         </div>
 
         {/* Floating card: Voice Matched — top right, bouncing */}
-        <div className="absolute -top-5 -right-5 sm:-top-6 sm:-right-6 z-20 bg-white/[0.03] backdrop-blur-xl p-3 sm:p-4 rounded-xl border border-white/10 shadow-[0_20px_40px_rgba(0,103,126,0.15)] flex items-center gap-3 animate-bounce">
+        <div className="absolute -top-5 -right-5 sm:-top-6 sm:-right-6 z-20 bg-white/[0.03] backdrop-blur-xl p-3 sm:p-4 rounded-xl border border-white/10 shadow-[0_20px_40px_rgba(0,103,126,0.15)] flex items-center gap-3 animate-bounce pointer-events-none">
           <div className="w-8 h-8 rounded-full bg-accent-purple/20 flex items-center justify-center">
             <Zap className="w-4 h-4 text-accent-purple" />
           </div>
@@ -68,7 +68,7 @@ export function HeroDemoVideo() {
         </div>
 
         {/* Floating card: LinkedIn Carousel Gen — bottom left */}
-        <div className="absolute -bottom-6 -left-4 sm:-bottom-8 sm:-left-12 z-20 bg-white/[0.03] backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 shadow-[0_20px_40px_rgba(0,103,126,0.15)] flex flex-col gap-2 max-w-[180px]">
+        <div className="absolute -bottom-6 -left-4 sm:-bottom-8 sm:-left-12 z-20 bg-white/[0.03] backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 shadow-[0_20px_40px_rgba(0,103,126,0.15)] flex flex-col gap-2 max-w-[180px] pointer-events-none">
           <div className="flex justify-between items-center">
             <span className="text-[10px] text-white/40 uppercase tracking-tight">Drafting...</span>
             <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)] animate-pulse" />

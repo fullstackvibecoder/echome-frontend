@@ -11,7 +11,7 @@ export function NotChatGPTSection() {
         {/* Single subtle gradient */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-7xl mx-auto relative">
           {/* Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-white">

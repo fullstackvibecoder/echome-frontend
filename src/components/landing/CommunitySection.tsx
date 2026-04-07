@@ -191,7 +191,7 @@ export function CommunitySection() {
               <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/15 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-              <div className="relative z-10">
+              <div className="relative">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
                   <div className="flex-1">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-full mb-4">
