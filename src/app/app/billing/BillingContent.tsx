@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Check, CreditCard, Loader2, ExternalLink, Sparkles, AlertCircle } from 'lucide-react';
 import api, { StripePlan, StripeSubscriptionStatus } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { trackSubscribe } from '@/lib/meta-pixel';
 import { InfoTooltip } from '@/components/info-tooltip';
 
 type BillingInterval = 'month' | 'year';
@@ -218,6 +219,9 @@ function BillingContentInner() {
                             syncResult.data.tier === 'teams_5' ? 'EchoTeams Pro' :
                             syncResult.data.tier === 'teams_10' ? 'EchoTeams Agency' : 'your plan';
             setSuccessMessage(`Your ${tierName} subscription is now active! Welcome aboard.`);
+            // Track subscription for Meta Pixel (ad conversion optimization)
+            const priceMap: Record<string, number> = { pro: 29, studio: 49, enterprise: 99, teams_2: 129, teams_5: 179, teams_10: 249 };
+            trackSubscribe(tierName, priceMap[syncResult.data.tier || ''] || 0);
             // Reload subscription status
             const subResult = await api.stripe.getSubscription();
             if (subResult.success) {

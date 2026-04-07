@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { trackSignup } from '@/lib/meta-pixel';
 import type { User } from '@/types';
 
 interface UseAuthReturn {
@@ -90,6 +91,9 @@ export function useAuth(): UseAuthReturn {
         if (typeof window !== 'undefined' && (window as any).Affonso) {
           (window as any).Affonso.signup(email);
         }
+
+        // Track signup for Meta Pixel (ad conversion optimization)
+        trackSignup(email);
 
         // New users go straight to onboarding (2 free generations, no billing required)
         router.push('/onboarding');
