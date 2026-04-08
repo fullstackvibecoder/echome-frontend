@@ -10,6 +10,7 @@ import {
   Mic,
   Film,
   FolderOpen,
+  BookOpen,
   TrendingUp,
   CalendarDays,
   MessageCircle,
@@ -56,6 +57,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Discover',
     items: [
+      { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides' },
       { id: 'following', label: 'Following', icon: Users, path: '/app/following' },
       { id: 'trends', label: 'Trends', icon: TrendingUp, path: '/app/trends', adminOnly: true },
       { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
