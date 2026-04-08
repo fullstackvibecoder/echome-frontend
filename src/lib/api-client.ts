@@ -731,7 +731,10 @@ export const api = {
      */
     getContent: async (kbId: string) => {
       const response = await apiClient.get<ApiResponse<UnifiedContentResponse>>(
-        `/kb/${kbId}/content`
+        `/kb/${kbId}/content`,
+        {
+          timeout: 45000, // 45 seconds timeout for large knowledge bases
+        }
       );
       return response.data;
     },
@@ -1434,7 +1437,9 @@ export const api = {
 
     /** Get all followed creators */
     list: async () => {
-      const response = await apiClient.get('/creators');
+      const response = await apiClient.get('/creators', {
+        timeout: 20000, // 20 seconds timeout for creator list
+      });
       return response.data as {
         success: boolean;
         creators: MonitoredCreator[];
@@ -1467,6 +1472,7 @@ export const api = {
     getContent: async (creatorId: string, limit?: number) => {
       const response = await apiClient.get(`/creators/${creatorId}/content`, {
         params: { limit },
+        timeout: 30000, // 30 seconds timeout for content loading
       });
       return response.data as {
         success: boolean;

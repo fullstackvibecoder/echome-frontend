@@ -71,7 +71,7 @@ function buildContentSummary(bySourceType: Record<string, number>): string {
 export default function KnowledgeContent() {
   const { voices, isTeamsUser, activeVoice } = useVoiceContext();
   const {
-    contentItems, contentStats, loading, selectedKb, selectKb, deleteContent, refresh,
+    contentItems, contentStats, loading, error, selectedKb, selectKb, deleteContent, refresh,
   } = useKnowledgeBase(isTeamsUser ? activeVoice?.knowledgeBaseId : undefined);
   const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
   const { data: voiceStrength, refresh: refreshVoiceStrength } = useVoiceStrength();
@@ -340,8 +340,54 @@ export default function KnowledgeContent() {
         </div>
       )}
 
+      {/* ─── Error State ─── */}
+      {error && !loading && (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="max-w-md text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-error/10 flex items-center justify-center">
+              <X className="w-8 h-8 text-error" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-text-primary">
+                {error.includes('timeout') || error.includes('taking longer') ? 'Loading Timeout' :
+                 error.includes('Network') || error.includes('connection') ? 'Connection Issue' :
+                 error.includes('Server error') || error.includes('server') ? 'Server Error' :
+                 error.includes('not found') ? 'Knowledge Base Not Found' :
+                 error.includes('Access denied') || error.includes('permission') ? 'Access Denied' :
+                 'Loading Error'}
+              </h3>
+              <p className="text-text-secondary leading-relaxed">{error}</p>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={refresh}
+                className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin opacity-0 group-hover:opacity-100" />
+                Try Again
+              </button>
+              {error.includes('timeout') || error.includes('taking longer') ? (
+                <button
+                  onClick={() => setShowSources(true)}
+                  className="text-accent hover:text-accent/80 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  View Sources
+                </button>
+              ) : null}
+            </div>
+            {error.includes('timeout') && (
+              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  💡 Large knowledge bases may take longer to load. Consider removing unnecessary files or content to improve performance.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ─── Chat (fills remaining space) ─── */}
-      {!loading && (
+      {!loading && !error && (
         <div className="flex-1 min-h-0">
           <AskYourVoice
             kbId={selectedKb}
