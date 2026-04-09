@@ -8,9 +8,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { api, ContentKit } from '@/lib/api-client';
+import { api, ContentKitListItem } from '@/lib/api-client';
 import type { NormalizedContent } from '@/lib/content-normalizer';
-import { normalizeKit } from '@/lib/content-normalizer';
 import type {
   ContentLibraryState,
   PaginationState,
@@ -62,25 +61,25 @@ function savePreferences(prefs: StoredPreferences) {
 }
 
 /**
- * Get platforms that have content in a kit
+ * Get platforms that have content in a kit (uses boolean has_* flags from slim list response)
  */
-function getKitPlatforms(kit: ContentKit): Platform[] {
+function getKitPlatforms(kit: ContentKitListItem): Platform[] {
   const platforms: Platform[] = [];
-  if (kit.contentLinkedin) platforms.push('linkedin');
-  if (kit.contentTwitter) platforms.push('twitter');
-  if (kit.contentInstagram) platforms.push('instagram');
-  if (kit.contentTiktok) platforms.push('tiktok');
-  if (kit.contentYoutube) platforms.push('youtube');
-  if (kit.contentBlog) platforms.push('blog');
-  if (kit.contentEmail) platforms.push('email');
-  if (kit.contentVideoScript) platforms.push('video-script');
+  if (kit.hasLinkedin) platforms.push('linkedin');
+  if (kit.hasTwitter) platforms.push('twitter');
+  if (kit.hasInstagram) platforms.push('instagram');
+  if (kit.hasTiktok) platforms.push('tiktok');
+  if (kit.hasYoutube) platforms.push('youtube');
+  if (kit.hasBlog) platforms.push('blog');
+  if (kit.hasEmail) platforms.push('email');
+  if (kit.hasVideoScript) platforms.push('video-script');
   return platforms;
 }
 
 /**
- * Transform ContentKit to NormalizedContent
+ * Transform ContentKitListItem to NormalizedContent
  */
-function transformKit(kit: ContentKit & { video_uploads?: any }): NormalizedContent {
+function transformKit(kit: ContentKitListItem): NormalizedContent {
   const platforms = getKitPlatforms(kit);
   const upload = kit.video_uploads;
 
@@ -96,6 +95,7 @@ function transformKit(kit: ContentKit & { video_uploads?: any }): NormalizedCont
     sourceId: kit.id,
     videoUploadId: kit.videoUploadId,
     generationRequestId: kit.generationRequestId,
+    voiceId: kit.voiceId,
     clipCount: kit.clipsGenerated || 0,
     platformCount: platforms.length,
     raw: kit,
@@ -299,70 +299,14 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
       const currentOffset = reset ? 0 : pagination.offset;
 
-      // Fetch from both endpoints in parallel (proven working approach)
-      const [generationResult, clipsResult] = await Promise.all([
-        api.generation.listRequests({ limit: PAGE_SIZE, offset: currentOffset })
-          .catch(() => ({ success: false, data: null })),
-        api.clips.list(PAGE_SIZE, currentOffset)
-          .catch(() => ({ success: false, data: null })),
-      ]);
+      // Fetch content kits directly (backend now returns slim response with boolean platform flags)
+      const result = await api.contentKits.list(PAGE_SIZE, currentOffset);
 
-      const newItems: NormalizedContent[] = [];
-
-      // Transform generation requests into kit-like items
-      if (generationResult.success && generationResult.data) {
-        for (const req of generationResult.data) {
-          // Use generated_title if available, otherwise fall back to truncated input_text
-          const title = req.generatedTitle || req.inputText?.slice(0, 60) || 'Generated Content';
-          newItems.push({
-            id: req.id,
-            type: 'kit',
-            title,
-            description: req.inputText?.slice(0, 200),
-            status: req.status === 'completed' ? 'completed' : req.status === 'failed' ? 'failed' : 'processing',
-            platforms: (req.platforms || []) as Platform[],
-            createdAt: new Date(req.createdAt),
-            sourceId: req.id,
-            generationRequestId: req.id,
-            voiceId: req.voiceId,
-            clipCount: 0,
-            platformCount: req.platforms?.length || 0,
-            raw: req,
-          });
-        }
+      if (!result.success) {
+        throw new Error('Failed to fetch content kits');
       }
 
-      // Transform clip finder uploads
-      // Only show video uploads that DON'T have an associated content kit
-      // (Content kits are the primary view - raw videos would be duplicates)
-      if (clipsResult.success && clipsResult.data?.uploads) {
-        for (const upload of clipsResult.data.uploads) {
-          // Skip if this upload has a content kit - it will be shown via the kit instead
-          // contentKitTitle is set when there's an associated content kit
-          if (upload.contentKitTitle) continue;
-
-          // Skip if already added via generation request
-          const alreadyAdded = newItems.some(i => i.videoUploadId === upload.id);
-          if (alreadyAdded) continue;
-
-          // Get platforms from content kit if available
-          const platforms = (upload.platforms || []) as Platform[];
-          newItems.push({
-            id: upload.id,
-            type: 'kit',
-            title: upload.originalFilename || 'Video Upload',
-            status: upload.status === 'completed' ? 'completed' : upload.status === 'failed' ? 'failed' : 'processing',
-            platforms,
-            thumbnailUrl: upload.thumbnailUrl,
-            createdAt: new Date(upload.createdAt),
-            sourceId: upload.id,
-            videoUploadId: upload.id,
-            clipCount: 0,
-            platformCount: platforms.length,
-            raw: upload,
-          });
-        }
-      }
+      const newItems = (result.data.kits || []).map(transformKit);
 
       // Merge with existing items if not resetting
       if (reset) {

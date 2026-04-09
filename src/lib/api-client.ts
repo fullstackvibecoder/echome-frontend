@@ -2183,31 +2183,31 @@ export const api = {
       };
     },
 
-    /** List user's content kits */
+    /** List user's content kits (slim response — boolean platform flags, no content text) */
     list: async (limit?: number, offset?: number) => {
       const response = await apiClient.get('/content-kits', {
         params: { limit, offset },
         timeout: LIST_TIMEOUT,
       });
 
-      // Transform snake_case to camelCase for frontend consumption
+      // Transform snake_case to camelCase for frontend consumption.
+      // The list endpoint returns has_* boolean flags instead of full content text.
       const transformedKits = (response.data.data?.kits || []).map((kit: any) => ({
         id: kit.id,
         userId: kit.user_id,
         videoUploadId: kit.video_upload_id,
-        knowledgeBaseId: kit.knowledge_base_id,
         title: kit.title,
         description: kit.description,
-        contentLinkedin: kit.content_linkedin,
-        contentTwitter: kit.content_twitter,
-        contentInstagram: kit.content_instagram,
-        contentBlog: kit.content_blog,
-        contentEmail: kit.content_email,
-        contentTiktok: kit.content_tiktok,
-        contentYoutube: kit.content_youtube,
-        contentVideoScript: kit.content_video_script,
+        hasLinkedin: kit.has_linkedin || false,
+        hasTwitter: kit.has_twitter || false,
+        hasInstagram: kit.has_instagram || false,
+        hasBlog: kit.has_blog || false,
+        hasEmail: kit.has_email || false,
+        hasTiktok: kit.has_tiktok || false,
+        hasYoutube: kit.has_youtube || false,
+        hasVideoScript: kit.has_video_script || false,
         generationRequestId: kit.generation_request_id,
-        voiceSamplesUsed: kit.voice_samples_used,
+        voiceId: kit.voice_id,
         clipsGenerated: kit.clips_generated || 0,
         contentGenerated: kit.content_generated || false,
         createdAt: kit.created_at,
@@ -2219,7 +2219,7 @@ export const api = {
       return {
         success: response.data.success,
         data: {
-          kits: transformedKits as ContentKit[],
+          kits: transformedKits as ContentKitListItem[],
         },
       };
     },
@@ -4134,6 +4134,36 @@ export interface ContentKit {
   contentGenerated: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Slim content kit for list views — boolean platform flags instead of full content text */
+export interface ContentKitListItem {
+  id: string;
+  userId: string;
+  videoUploadId: string;
+  title: string;
+  description?: string;
+  hasLinkedin: boolean;
+  hasTwitter: boolean;
+  hasInstagram: boolean;
+  hasBlog: boolean;
+  hasEmail: boolean;
+  hasTiktok: boolean;
+  hasYoutube: boolean;
+  hasVideoScript: boolean;
+  generationRequestId?: string;
+  voiceId?: string;
+  clipsGenerated: number;
+  contentGenerated: boolean;
+  createdAt: string;
+  updatedAt: string;
+  video_uploads?: {
+    id: string;
+    original_filename: string;
+    duration_seconds: number;
+    status: string;
+    thumbnail_url: string;
+  };
 }
 
 export interface ClipJob {
