@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { DataDeletionStatus } from './DataDeletionStatus';
 
 export const metadata: Metadata = {
-  title: 'Data Deletion Status | EchoMe',
+  title: 'Data Deletion Status',
   description: 'Confirmation of your EchoMe data deletion request.',
   robots: { index: false, follow: false },
   alternates: { canonical: 'https://tryechome.com/data-deletion-status' },

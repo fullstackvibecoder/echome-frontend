@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Video Compressor — Reduce File Size Online | EchoMe',
+  title: 'Free Video Compressor — Reduce File Size Online',
   description:
     'Compress video files for free. Reduce MP4, MOV, WebM file sizes without losing quality. No signup, no watermark, no email, no account. Upload, compress, download.',
   keywords: [

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Video, Mail, Monitor, Film, Youtube, Mic, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Guides | EchoMe',
+  title: 'Guides',
   description:
     'Step-by-step guides and video walkthroughs to help you get the most out of EchoMe. Platform overview, video content, YouTube repurposing, voice profile building, email uploads, and file compression.',
   openGraph: {

@@ -30,6 +30,7 @@ export interface NavItem {
   comingSoon?: boolean;
   teamsOnly?: boolean;
   adminOnly?: boolean;
+  external?: boolean;
 }
 
 export interface NavGroup {
@@ -57,11 +58,11 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Discover',
     items: [
-      { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides' },
+      { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides', external: true },
       { id: 'following', label: 'Following', icon: Users, path: '/app/following' },
       { id: 'trends', label: 'Trends', icon: TrendingUp, path: '/app/trends', adminOnly: true },
       { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
-      { id: 'community', label: 'Community', icon: MessageCircle, path: '/community' },
+      { id: 'community', label: 'Community', icon: MessageCircle, path: '/community', external: true },
     ],
   },
   {
@@ -90,7 +91,7 @@ export function getAllNavItems(): NavItem[] {
 
 interface UseAppNavigationReturn {
   activeItem: string;
-  navigate: (path: string) => void;
+  navigate: (path: string, external?: boolean) => void;
   isMobileMenuOpen: boolean;
   toggleMobileMenu: () => void;
   closeMobileMenu: () => void;
@@ -110,8 +111,12 @@ export function useAppNavigation(): UseAppNavigationReturn {
     return pathname.startsWith(item.path);
   })?.id || 'create';
 
-  const navigate = (path: string) => {
-    router.push(path);
+  const navigate = (path: string, external?: boolean) => {
+    if (external) {
+      window.open(path, '_blank', 'noopener');
+    } else {
+      router.push(path);
+    }
     closeMobileMenu();
   };
 

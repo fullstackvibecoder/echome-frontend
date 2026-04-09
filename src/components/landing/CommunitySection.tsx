@@ -116,9 +116,21 @@ export function CommunitySection() {
 
   const nextSession = UPCOMING_SESSIONS[0];
   const sessionDate = nextSession ? new Date(nextSession.date) : getNextWednesday();
+  const sessionDurationMs = (nextSession?.durationMinutes ?? 45) * 60 * 1000;
   const countdown = useCountdown(sessionDate);
-  const isLive =
-    countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 && countdown.seconds === 0;
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    const checkLive = () => {
+      const now = Date.now();
+      const start = sessionDate.getTime();
+      const end = start + sessionDurationMs;
+      setIsLive(now >= start && now <= end);
+    };
+    checkLive();
+    const interval = setInterval(checkLive, 10_000);
+    return () => clearInterval(interval);
+  }, [sessionDate, sessionDurationMs]);
 
   const filteredFaqs = FAQS.filter((faq) => {
     const matchesCategory = faqCategory === 'all' || faq.category === faqCategory;

@@ -48,7 +48,7 @@ export default function SupportContent() {
                   1. Create your account
                 </h3>
                 <p className="text-stone-700 text-sm">
-                  Sign up with your email or Google account. Your first 3 generations are free, no credit card required.
+                  Sign up with your email or Google account. Your first 2 generations are free, no credit card required.
                 </p>
               </div>
               <div className="pl-4 border-l-2 border-[#00D4FF]">
@@ -305,7 +305,7 @@ export default function SupportContent() {
               <div>
                 <h3 className="text-base font-medium text-stone-800 mb-2">Free plan</h3>
                 <p className="text-stone-700 text-sm">
-                  Includes 3 free generations with voice matching, 1 platform per generation, and standard templates. No credit card required.
+                  Includes 2 free generations with voice matching, 1 platform per generation, and standard templates. No credit card required.
                 </p>
               </div>
               <div>

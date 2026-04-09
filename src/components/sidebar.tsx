@@ -116,7 +116,7 @@ function SidebarItem({
   isFirstTime: boolean;
   hintSeen: boolean;
   onHintSeen: () => void;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, external?: boolean) => void;
 }) {
   const Icon = item.icon;
   const disabled = item.comingSoon && !isAdmin;
@@ -127,7 +127,7 @@ function SidebarItem({
       onClick={() => {
         if (disabled) return;
         if (showHint) onHintSeen();
-        onNavigate(item.path);
+        onNavigate(item.path, item.external);
       }}
       disabled={disabled}
       aria-current={isActive ? 'page' : undefined}

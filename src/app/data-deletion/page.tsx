@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Data Deletion | EchoMe',
+  title: 'Data Deletion',
   description: 'How to request deletion of your EchoMe account and associated data.',
   alternates: { canonical: 'https://tryechome.com/data-deletion' },
 };

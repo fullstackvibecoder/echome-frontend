@@ -108,7 +108,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       onClick={() => {
                         if (disabled) return;
                         if (showHint) markSidebarHintSeen(item.id);
-                        navigate(item.path);
+                        navigate(item.path, item.external);
                       }}
                       disabled={disabled}
                       aria-current={activeItem === item.id ? 'page' : undefined}
