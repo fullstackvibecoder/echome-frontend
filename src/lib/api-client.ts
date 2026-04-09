@@ -4162,7 +4162,6 @@ export interface ContentKitListItem {
     original_filename: string;
     duration_seconds: number;
     status: string;
-    thumbnail_url: string;
   };
 }
 

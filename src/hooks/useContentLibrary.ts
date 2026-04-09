@@ -90,7 +90,7 @@ function transformKit(kit: ContentKitListItem): NormalizedContent {
     description: kit.description,
     status: kit.contentGenerated ? 'completed' : 'processing',
     platforms,
-    thumbnailUrl: upload?.thumbnail_url,
+    thumbnailUrl: undefined,
     createdAt: new Date(kit.createdAt),
     sourceId: kit.id,
     videoUploadId: kit.videoUploadId,
