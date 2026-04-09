@@ -79,7 +79,7 @@ export default function CommunityPageContent() {
           </div>
 
           {isMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-xl">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
                 <Link href="/#how" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">
                   How It Works

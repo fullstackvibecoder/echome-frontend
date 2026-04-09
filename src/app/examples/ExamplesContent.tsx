@@ -408,7 +408,7 @@ export default function ExamplesContent() {
 
           {/* Mobile menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-xl">
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
                 <Link href="/#features" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">
                   Features
