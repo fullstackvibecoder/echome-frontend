@@ -183,13 +183,18 @@ export default function ContentKitDetailContent() {
   // 2. Awaiting carousel (content done but carousel still generating)
   const shouldConnectSSE = isProcessing || (awaitingCarousel && item?.status === 'completed');
 
+  // The URL `id` is a content_kit_id, but useGenerationProgress needs a
+  // generation_request_id to poll /api/generate/:id. Pull the real request ID
+  // from the loaded content kit.
+  const generationRequestId = detail?.contentKit?.generationRequestId || null;
+
   const {
     progress,
     isComplete: progressComplete,
     hasError: progressError,
     carouselReady,
     carouselFailed,
-  } = useGenerationProgress(shouldConnectSSE ? id : null);
+  } = useGenerationProgress(shouldConnectSSE && generationRequestId ? generationRequestId : null);
 
   // Detect if this is a video generation flow based on progress step
   const isVideoFlow = progress ? isVideoStep(progress.step) : false;
