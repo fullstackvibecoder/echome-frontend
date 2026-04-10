@@ -688,9 +688,14 @@ export function GenerationForm({
           const response = await api.clips.get(uploadId);
 
           if (response.success && response.data) {
-            consecutiveErrors = 0;
             const { upload, clips, contentKit } = response.data;
             const status = upload.status;
+
+            // Only reset consecutiveErrors on non-failed statuses.
+            // Otherwise a 'failed' status would indefinitely reset its own counter.
+            if (status !== 'failed') {
+              consecutiveErrors = 0;
+            }
 
             // Map backend upload.status → inline stage key.
             // Backend statuses that don't have a matching stage (e.g. 'pending',
@@ -723,16 +728,18 @@ export function GenerationForm({
               }
               resolve();
             } else if (status === 'failed') {
-              // Don't immediately kill the UI — the backend may retry/fallback.
-              // The SSE stream will pick up any recovery. Only give up after
-              // multiple consecutive failures with no recovery.
+              // Backend has set status to failed. Surface the error quickly —
+              // the clip-finder pipeline already exhausted its internal retry/fallback
+              // chain (Apify → yt-dlp → etc.) before setting this status.
+              // Wait for 2 consecutive failed polls to avoid a transient stale read.
               consecutiveErrors++;
-              if (consecutiveErrors >= 5) {
+              if (consecutiveErrors >= 2) {
                 if (processingIntervalRef.current) {
                   clearInterval(processingIntervalRef.current);
                 }
                 setVideoProcessing(false);
-                reject(new Error(upload.statusMessage || 'Processing failed'));
+                setVideoProcessingStatus(null);
+                reject(new Error(upload.statusMessage || 'Video processing failed'));
               }
             }
           } else {
