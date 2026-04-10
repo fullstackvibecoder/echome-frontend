@@ -413,42 +413,31 @@ export function GenerationForm({
   const processingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // SSE progress sync — keeps inline UI in sync with the floating widget's SSE stream.
-  // This ensures the inline progress recovers from transient failures (e.g. download
-  // fallback/retry) instead of dying on first error.
+  // SSE progress (from the generation progress stream).
+  // NOTE: We deliberately do NOT use this to drive the inline stage anymore —
+  // the poller (pollProcessingStatus) is the single source of truth for the
+  // stage key. Mixing SSE-driven and poll-driven stage updates caused flicker
+  // (SSE would set 'downloading' → poll would set 'uploading' → SSE back to
+  // 'downloading'…). The poller reads upload.status which progresses cleanly:
+  // uploading → transcribing → analyzing → extracting → generating → completed.
+  //
+  // SSE is still useful for:
+  //  - Status MESSAGE text ("Downloading video...", "Transcribing audio...")
+  //  - Completion/error detection
+  //  - Fine-grained % inside a stage
   const { activeGeneration } = useActiveGeneration();
   const { progress: sseProgress, isComplete: sseComplete, hasError: sseError } = useGenerationProgress(
     activeGeneration?.requestId ?? null
   );
 
-  // Map SSE step names to inline UI stage keys
-  const SSE_TO_INLINE_STAGE: Record<string, string> = {
-    init: 'uploading',
-    downloading: 'uploading',
-    transcribing: 'transcribing',
-    finding_clips: 'analyzing',
-    extracting_clips: 'extracting',
-    processing_clip: 'extracting',
-    generate: 'generating',
-    carousel: 'generating',
-    carousel_complete: 'completed',
-    complete: 'completed',
-  };
-
+  // SSE message sync — only updates the human-readable status text, not the stage key.
   useEffect(() => {
     if (!sseProgress || !videoProcessing) return;
-    if (sseProgress.step === 'error') return; // Don't kill inline UI on transient errors
-
-    const inlineStage = SSE_TO_INLINE_STAGE[sseProgress.step];
-    if (inlineStage) {
-      setVideoProcessingStage(inlineStage);
-      setVideoProcessingProgress(sseProgress.percent);
-      const stageInfo = getStagesMap(videoSourceType)[inlineStage];
-      if (stageInfo) {
-        setVideoProcessingStatus(stageInfo.title);
-      }
+    if (sseProgress.step === 'error') return;
+    if (sseProgress.message) {
+      setVideoProcessingStatus(sseProgress.message);
     }
-  }, [sseProgress, videoProcessing, videoSourceType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sseProgress, videoProcessing]);
 
   // Handle SSE completion/error
   useEffect(() => {
@@ -652,11 +641,19 @@ export function GenerationForm({
             const { upload, clips, contentKit } = response.data;
             const status = upload.status;
 
-            // Update stage and progress
-            setVideoProcessingStage(status);
+            // Map backend upload.status → inline stage key.
+            // Backend statuses that don't have a matching stage (e.g. 'pending',
+            // 'processing', unknown) should NOT reset the stage — we keep whatever
+            // the previous stage was. This prevents flicker when the backend
+            // reports a transitional status the UI doesn't know about.
             const stageInfo = getStagesMap(videoSourceType)[status];
-            setVideoProcessingStatus(stageInfo?.title || `Processing: ${status}`);
-            setVideoProcessingProgress(progressByStatus[status] || 50);
+            if (stageInfo) {
+              setVideoProcessingStage(status);
+              setVideoProcessingStatus(stageInfo.title);
+            }
+            if (progressByStatus[status] !== undefined) {
+              setVideoProcessingProgress(progressByStatus[status]);
+            }
 
             if (status === 'completed') {
               if (processingIntervalRef.current) {
