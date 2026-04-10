@@ -3003,6 +3003,56 @@ export const api = {
     },
   },
 
+  // -------- ADMIN VOICE LAB --------
+  adminVoiceLab: {
+    /** Get aggregated voice similarity report (distribution + correlation) */
+    getReport: async (days: number = 7) => {
+      const res = await apiClient.get('/admin/voice-similarity-report', { params: { days } });
+      return res.data as {
+        success: boolean;
+        data: {
+          period: string;
+          totalGenerations: number;
+          generationsWithCentroid: number;
+          similarityDistribution: {
+            min: number;
+            max: number;
+            avg: number;
+            median: number;
+            p25: number;
+            p75: number;
+          } | null;
+          byPlatform: Record<string, { avg: number; count: number }>;
+          correlationWithVoiceScore: number | null;
+          recommendation: string;
+        };
+      };
+    },
+    /** Get raw per-generation data points for scatter visualization */
+    getRaw: async (days: number = 7, limit: number = 2000) => {
+      const res = await apiClient.get('/admin/voice-similarity-report/raw', { params: { days, limit } });
+      return res.data as {
+        success: boolean;
+        data: {
+          period: string;
+          count: number;
+          points: Array<{
+            id: string;
+            platform: string;
+            similarity: number;
+            voiceScore: number;
+            signaturePresence?: number;
+            avoidAbsence?: number;
+            styleAlignment?: number;
+            aiBlacklistAbsence?: number;
+            qualityScore?: number;
+            createdAt: string;
+          }>;
+        };
+      };
+    },
+  },
+
   // -------- ADMIN BROADCAST --------
   adminBroadcast: {
     preview: async (segmentName: string, subject: string, body: string): Promise<BroadcastPreviewResponse> => {

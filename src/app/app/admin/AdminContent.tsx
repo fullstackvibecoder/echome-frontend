@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import {
@@ -19,7 +19,7 @@ import {
 
 // ==================== Types ====================
 
-type Tab = 'overview' | 'services' | 'users' | 'trends' | 'providers' | 'curated';
+type Tab = 'overview' | 'services' | 'users' | 'trends' | 'providers' | 'curated' | 'voice-lab';
 
 interface ProviderDataEntry {
   provider: string;
@@ -1200,6 +1200,7 @@ export default function AdminContent() {
     { id: 'trends', label: 'Trends' },
     { id: 'providers', label: 'Providers' },
     { id: 'curated', label: 'Curated Assets' },
+    { id: 'voice-lab', label: 'Voice Lab' },
   ];
 
   // Generate month options (last 6 months)
@@ -1262,6 +1263,7 @@ export default function AdminContent() {
       {tab === 'trends' && <TrendsTab month={month} />}
       {tab === 'providers' && <ProvidersTab />}
       {tab === 'curated' && <CuratedAssetsTab />}
+      {tab === 'voice-lab' && <VoiceLabTab />}
     </div>
   );
 }
@@ -1502,4 +1504,430 @@ function CuratedAssetsTab() {
       )}
     </div>
   );
+}
+
+// ==================== Tab: Voice Lab ====================
+
+type VoicePoint = {
+  id: string;
+  platform: string;
+  similarity: number;
+  voiceScore: number;
+  signaturePresence?: number;
+  avoidAbsence?: number;
+  styleAlignment?: number;
+  aiBlacklistAbsence?: number;
+  qualityScore?: number;
+  createdAt: string;
+};
+
+const PLATFORM_COLORS: Record<string, string> = {
+  linkedin: '#0A66C2',
+  twitter: '#1DA1F2',
+  instagram: '#E1306C',
+  tiktok: '#EE1D52',
+  youtube: '#FF0000',
+  blog: '#10B981',
+  email: '#F59E0B',
+  'video-script': '#8B5CF6',
+};
+
+function VoiceLabTab() {
+  const [days, setDays] = useState<7 | 14 | 30>(7);
+  const [points, setPoints] = useState<VoicePoint[]>([]);
+  const [report, setReport] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<VoicePoint | null>(null);
+  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    Promise.all([
+      api.adminVoiceLab.getReport(days),
+      api.adminVoiceLab.getRaw(days, 2000),
+    ])
+      .then(([reportRes, rawRes]) => {
+        if (cancelled) return;
+        if (reportRes.success) setReport(reportRes.data);
+        if (rawRes.success) {
+          setPoints(rawRes.data.points);
+          const allPlatforms = new Set(rawRes.data.points.map(p => p.platform));
+          setEnabledPlatforms(allPlatforms);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        if (cancelled) return;
+        setError(err?.message || 'Failed to load voice lab data');
+        setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [days]);
+
+  const visiblePoints = useMemo(
+    () => points.filter(p => enabledPlatforms.has(p.platform)),
+    [points, enabledPlatforms]
+  );
+
+  const liveCorrelation = useMemo(() => {
+    if (visiblePoints.length < 10) return null;
+    const n = visiblePoints.length;
+    const sumX = visiblePoints.reduce((s, p) => s + p.similarity, 0);
+    const sumY = visiblePoints.reduce((s, p) => s + p.voiceScore, 0);
+    const sumXY = visiblePoints.reduce((s, p) => s + p.similarity * p.voiceScore, 0);
+    const sumX2 = visiblePoints.reduce((s, p) => s + p.similarity * p.similarity, 0);
+    const sumY2 = visiblePoints.reduce((s, p) => s + p.voiceScore * p.voiceScore, 0);
+    const denom = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+    if (denom === 0) return null;
+    return Math.round(((n * sumXY - sumX * sumY) / denom) * 1000) / 1000;
+  }, [visiblePoints]);
+
+  const platformCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of points) {
+      counts[p.platform] = (counts[p.platform] || 0) + 1;
+    }
+    return counts;
+  }, [points]);
+
+  const width = 800;
+  const height = 500;
+  const padding = { top: 20, right: 20, bottom: 50, left: 60 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+
+  const xScale = (v: number) => padding.left + (v / 100) * chartW;
+  const yScale = (v: number) => padding.top + chartH - (v / 100) * chartH;
+
+  const togglePlatform = (platform: string) => {
+    setEnabledPlatforms(prev => {
+      const next = new Set(prev);
+      if (next.has(platform)) next.delete(platform);
+      else next.add(platform);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-card border border-border rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Voice Similarity Lab</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Live scatter plot of embedding cosine similarity vs. local voice score.
+              Points cluster tight around a diagonal when the scorers agree.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {([7, 14, 30] as const).map(d => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                  days === d
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading && <div className="text-sm text-muted-foreground mt-4">Loading voice lab data…</div>}
+        {error && <div className="text-sm text-destructive mt-4">Error: {error}</div>}
+
+        {!loading && !error && report && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <VoiceMetricCard label="Data Points" value={visiblePoints.length.toString()} sub={`${report.totalGenerations} total`} />
+            <VoiceMetricCard
+              label="Avg Similarity"
+              value={report.similarityDistribution?.avg?.toString() || '—'}
+              sub="0-100 scale"
+            />
+            <VoiceMetricCard
+              label="Live Correlation"
+              value={liveCorrelation !== null ? liveCorrelation.toFixed(3) : '—'}
+              sub={liveCorrelation !== null ? getCorrelationLabel(liveCorrelation) : 'need 10+ points'}
+              highlight={liveCorrelation !== null && liveCorrelation > 0.3 ? 'good' : liveCorrelation !== null && liveCorrelation < 0 ? 'bad' : undefined}
+            />
+            <VoiceMetricCard
+              label="Recommendation"
+              value={getRecommendationShort(report.recommendation)}
+              sub="auto"
+              highlight={report.recommendation?.includes('Safe to move') ? 'good' : undefined}
+            />
+          </div>
+        )}
+      </div>
+
+      {!loading && !error && points.length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Similarity vs. Voice Score</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Each dot is one generated piece. Tight diagonal cluster = scorers agree.
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground">Hover for details</div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {Object.entries(platformCounts).map(([platform, count]) => {
+              const color = PLATFORM_COLORS[platform] || '#888';
+              const enabled = enabledPlatforms.has(platform);
+              return (
+                <button
+                  key={platform}
+                  onClick={() => togglePlatform(platform)}
+                  className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
+                    enabled
+                      ? 'border-transparent text-white'
+                      : 'border-border bg-transparent text-muted-foreground'
+                  }`}
+                  style={enabled ? { backgroundColor: color } : {}}
+                >
+                  <span
+                    className="inline-block w-2 h-2 rounded-full mr-1.5"
+                    style={{ backgroundColor: enabled ? 'white' : color }}
+                  />
+                  {platform} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative overflow-x-auto">
+            <svg
+              viewBox={`0 0 ${width} ${height}`}
+              className="w-full h-auto max-w-4xl mx-auto"
+              style={{ background: 'hsl(var(--muted) / 0.3)' }}
+            >
+              {[0, 25, 50, 75, 100].map(v => (
+                <g key={`grid-${v}`}>
+                  <line
+                    x1={xScale(v)} y1={padding.top}
+                    x2={xScale(v)} y2={padding.top + chartH}
+                    stroke="currentColor" strokeOpacity={0.1} strokeDasharray="2 4"
+                  />
+                  <line
+                    x1={padding.left} y1={yScale(v)}
+                    x2={padding.left + chartW} y2={yScale(v)}
+                    stroke="currentColor" strokeOpacity={0.1} strokeDasharray="2 4"
+                  />
+                </g>
+              ))}
+
+              <line
+                x1={padding.left} y1={padding.top}
+                x2={padding.left} y2={padding.top + chartH}
+                stroke="currentColor" strokeOpacity={0.3}
+              />
+              <line
+                x1={padding.left} y1={padding.top + chartH}
+                x2={padding.left + chartW} y2={padding.top + chartH}
+                stroke="currentColor" strokeOpacity={0.3}
+              />
+
+              <line
+                x1={xScale(0)} y1={yScale(0)}
+                x2={xScale(100)} y2={yScale(100)}
+                stroke="#10B981" strokeOpacity={0.3} strokeWidth={2} strokeDasharray="6 4"
+              />
+
+              {visiblePoints.map((p, i) => {
+                const color = PLATFORM_COLORS[p.platform] || '#888';
+                const age = (Date.now() - new Date(p.createdAt).getTime()) / (days * 24 * 60 * 60 * 1000);
+                const opacity = Math.max(0.25, 1 - age * 0.6);
+                return (
+                  <circle
+                    key={p.id}
+                    cx={xScale(p.similarity)}
+                    cy={yScale(p.voiceScore)}
+                    r={hoveredPoint?.id === p.id ? 8 : 5}
+                    fill={color}
+                    fillOpacity={opacity}
+                    stroke={hoveredPoint?.id === p.id ? 'white' : color}
+                    strokeWidth={hoveredPoint?.id === p.id ? 2 : 0.5}
+                    className="cursor-pointer transition-all duration-200"
+                    style={{ animation: `voicePointFadeIn 0.5s ease-out ${i * 0.003}s backwards` }}
+                    onMouseEnter={() => setHoveredPoint(p)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  />
+                );
+              })}
+
+              {[0, 25, 50, 75, 100].map(v => (
+                <text
+                  key={`xlabel-${v}`}
+                  x={xScale(v)}
+                  y={padding.top + chartH + 20}
+                  textAnchor="middle"
+                  className="fill-muted-foreground"
+                  fontSize="11"
+                >
+                  {v}
+                </text>
+              ))}
+              <text
+                x={padding.left + chartW / 2}
+                y={padding.top + chartH + 42}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                fontSize="11"
+              >
+                Embedding Similarity Score (0-100)
+              </text>
+
+              {[0, 25, 50, 75, 100].map(v => (
+                <text
+                  key={`ylabel-${v}`}
+                  x={padding.left - 8}
+                  y={yScale(v) + 4}
+                  textAnchor="end"
+                  className="fill-muted-foreground"
+                  fontSize="11"
+                >
+                  {v}
+                </text>
+              ))}
+              <text
+                x={-padding.top - chartH / 2}
+                y={18}
+                textAnchor="middle"
+                transform="rotate(-90)"
+                className="fill-muted-foreground"
+                fontSize="11"
+              >
+                Local Voice Score (0-100)
+              </text>
+            </svg>
+
+            {hoveredPoint && (
+              <div className="absolute top-4 right-4 bg-card border border-border rounded-lg p-3 shadow-lg text-xs max-w-xs">
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: PLATFORM_COLORS[hoveredPoint.platform] || '#888' }}
+                  />
+                  <span className="font-semibold text-foreground">{hoveredPoint.platform}</span>
+                </div>
+                <div className="space-y-1 text-muted-foreground">
+                  <div>Embedding: <span className="text-foreground font-medium">{hoveredPoint.similarity}</span></div>
+                  <div>Local Voice: <span className="text-foreground font-medium">{hoveredPoint.voiceScore}</span></div>
+                  {hoveredPoint.signaturePresence !== undefined && <div>Signature: {hoveredPoint.signaturePresence}</div>}
+                  {hoveredPoint.avoidAbsence !== undefined && <div>Avoid: {hoveredPoint.avoidAbsence}</div>}
+                  {hoveredPoint.styleAlignment !== undefined && <div>Style: {hoveredPoint.styleAlignment}</div>}
+                  {hoveredPoint.aiBlacklistAbsence !== undefined && <div>AI-free: {hoveredPoint.aiBlacklistAbsence}</div>}
+                  <div className="pt-1 border-t border-border mt-1 text-[10px]">
+                    {new Date(hoveredPoint.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {report?.recommendation && (
+            <div className="mt-4 p-3 bg-muted rounded-md text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">Recommendation:</span> {report.recommendation}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!loading && !error && report?.byPlatform && Object.keys(report.byPlatform).length > 0 && (
+        <div className="bg-card border border-border rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Per-Platform Breakdown</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Object.entries(report.byPlatform as Record<string, { avg: number; count: number }>)
+              .sort(([, a], [, b]) => b.avg - a.avg)
+              .map(([platform, stats]) => {
+                const color = PLATFORM_COLORS[platform] || '#888';
+                return (
+                  <div key={platform} className="p-3 bg-muted rounded-md">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                      <span className="text-xs font-medium text-foreground">{platform}</span>
+                    </div>
+                    <div className="text-2xl font-bold text-foreground">{stats.avg}</div>
+                    <div className="text-xs text-muted-foreground">{stats.count} samples</div>
+                    <div className="mt-2 h-1 bg-background rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${stats.avg}%`, backgroundColor: color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      <style jsx global>{`
+        @keyframes voicePointFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.5);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function VoiceMetricCard({
+  label,
+  value,
+  sub,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  highlight?: 'good' | 'bad';
+}) {
+  const colorClass =
+    highlight === 'good'
+      ? 'text-emerald-500'
+      : highlight === 'bad'
+      ? 'text-destructive'
+      : 'text-foreground';
+  return (
+    <div className="p-3 bg-muted rounded-md">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className={`text-xl font-bold mt-1 ${colorClass}`}>{value}</div>
+      {sub && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
+    </div>
+  );
+}
+
+function getCorrelationLabel(r: number): string {
+  if (r > 0.5) return 'strong positive';
+  if (r > 0.3) return 'positive — ready';
+  if (r > 0.1) return 'weak positive';
+  if (r > -0.1) return 'no correlation';
+  return 'negative — broken';
+}
+
+function getRecommendationShort(rec: string): string {
+  if (!rec) return '—';
+  if (rec.includes('Safe to move to Phase 2')) return 'Activate 0.10';
+  if (rec.includes('Need 50+')) return 'Need more data';
+  if (rec.includes('Continue observing')) return 'Observe';
+  if (rec.includes('inversely')) return 'Recalibrate';
+  if (rec.includes('too high')) return 'Lower anchors';
+  return 'Observe';
 }
