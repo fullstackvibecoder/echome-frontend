@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { api, ContentKit } from '@/lib/api-client';
+import { api, apiClient, ContentKit } from '@/lib/api-client';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 import { normalizeKit } from '@/lib/content-normalizer';
 import type {
@@ -277,15 +277,29 @@ export function useContentLibrary(): UseContentLibraryReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Refs for avoiding stale closures
+  // Refs for avoiding stale closures and request management
   const fetchingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
 
   // ============================================
   // DATA FETCHING
   // ============================================
 
   const fetchData = useCallback(async (reset = false) => {
+    // Prevent concurrent requests unless it's a reset
     if (fetchingRef.current && !reset) return;
+    
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Create new abort controller for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    const { signal } = abortController;
+    
     fetchingRef.current = true;
 
     try {
@@ -299,13 +313,63 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
       const currentOffset = reset ? 0 : pagination.offset;
 
-      // Fetch from both endpoints in parallel (proven working approach)
+      // Fetch from both endpoints in parallel with abort signal
+      // Note: API methods don't directly support signal param, so we'll wrap with our own axios calls
       const [generationResult, clipsResult] = await Promise.all([
-        api.generation.listRequests({ limit: PAGE_SIZE, offset: currentOffset })
-          .catch(() => ({ success: false, data: null })),
-        api.clips.list(PAGE_SIZE, currentOffset)
-          .catch(() => ({ success: false, data: null })),
+        apiClient.get('/generate', {
+          params: { limit: PAGE_SIZE, offset: currentOffset },
+          signal,
+          timeout: 10000, // 10 second timeout for list operations
+        }).then(response => ({
+          success: true,
+          data: response.data.data?.map((item: any) => ({
+            id: item.id,
+            userId: item.user_id,
+            inputType: item.input_type || 'text',
+            inputText: item.input_text,
+            inputVideoPath: item.input_video_path,
+            inputAudioPath: item.input_audio_path,
+            platforms: item.platforms || [],
+            videoUploadId: item.video_upload_id,
+            status: item.status,
+            generatedTitle: item.generated_title,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+            voiceScore: item.voice_score,
+            qualityScore: item.quality_score,
+          })) || []
+        })).catch((err) => {
+            // Don't treat aborted requests as errors
+            if (err.name === 'AbortError' || err.code === 'ERR_CANCELED' || signal.aborted) {
+              return { success: false, data: null, aborted: true };
+            }
+            console.error('Generation API error:', err);
+            return { success: false, data: null };
+          }),
+        
+        apiClient.get('/clips', {
+          params: { limit: PAGE_SIZE, offset: currentOffset },
+          signal,
+          timeout: 10000, // 10 second timeout for list operations
+        }).then(response => ({
+          success: true,
+          data: {
+            uploads: response.data.data?.uploads || []
+          }
+        })).catch((err) => {
+            // Don't treat aborted requests as errors
+            if (err.name === 'AbortError' || err.code === 'ERR_CANCELED' || signal.aborted) {
+              return { success: false, data: null, aborted: true };
+            }
+            console.error('Clips API error:', err);
+            return { success: false, data: null };
+          }),
       ]);
+
+      // Check if request was aborted
+      if (signal.aborted || !mountedRef.current) {
+        return; // Exit early, don't update state
+      }
 
       const newItems: NormalizedContent[] = [];
 
@@ -388,26 +452,61 @@ export function useContentLibrary(): UseContentLibraryReturn {
       }));
 
     } catch (err: any) {
+      // Don't show errors for aborted requests (user navigation)
+      if (err.name === 'AbortError' || err.code === 'ERR_CANCELED' || signal.aborted || !mountedRef.current) {
+        return; // Exit silently for user-initiated cancellations
+      }
+      
       console.error('Content Library fetch error:', err);
-      // Better error messages
+      
+      // Enhanced error handling for different failure types
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        setError('Request timed out. Please try again.');
+        setError('Request timed out. Please check your connection and try again.');
+      } else if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+        setError('Network connection error. Please check your internet connection.');
       } else if (err.response?.status === 401) {
-        setError('Please log in to view your content.');
+        setError('Authentication required. Please log in to view your content.');
+      } else if (err.response?.status === 403) {
+        setError('Access denied. You may not have permission to view this content.');
+      } else if (err.response?.status === 429) {
+        setError('Too many requests. Please wait a moment and try again.');
       } else if (err.response?.status >= 500) {
-        setError('Server error. Please try again later.');
+        setError('Server error. Our team has been notified. Please try again later.');
+      } else if (err.response?.status === 404) {
+        setError('Content not found. The content may have been moved or deleted.');
       } else {
-        setError(err.message || 'Failed to load content');
+        setError(err.message || 'Failed to load content. Please try again.');
       }
     } finally {
-      setIsLoading(false);
+      // Only update state if component is still mounted
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
       fetchingRef.current = false;
+      
+      // Clear the abort controller reference if it matches current one
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
     }
   }, [pagination.offset]);
 
   // Initial fetch
   useEffect(() => {
     fetchData(true);
+  }, []);
+
+  // Cleanup effect - cancel requests and mark as unmounted
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      // Cancel any active requests when component unmounts
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
   }, []);
 
   // ============================================
