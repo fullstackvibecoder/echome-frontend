@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Sidebar } from './sidebar';
 import { MobileSidebar } from './mobile-sidebar';
 import { AppHeader } from './app-header';
-import { GenerationBanner } from './generation-banner';
+// import { GenerationBanner } from './generation-banner'; // Temporarily disabled — see JSX below
 import { HelpWidget } from './help-widget';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -64,8 +64,10 @@ export function AppShell({ children }: AppShellProps) {
         </main>
       </div>
 
-      {/* Floating Generation Progress Banner */}
-      <GenerationBanner />
+      {/* Floating Generation Progress Banner — temporarily hidden.
+          The inline progress on the Create page is the primary UX.
+          Re-enable this when we want the navigate-away follow-along feature. */}
+      {/* <GenerationBanner /> */}
 
       {/* Floating Help Chat Widget */}
       <HelpWidget />
