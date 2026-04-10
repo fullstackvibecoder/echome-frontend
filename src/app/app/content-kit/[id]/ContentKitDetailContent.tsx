@@ -29,6 +29,7 @@ import type { CaptionPosition } from '@/components/content-kit/CaptionOverlay';
 import { BlogPostSection } from '@/components/blog-post-section';
 import { VideoReelSection } from '@/components/content-kit/VideoReelSection';
 import { CarouselStyleEditor } from '@/components/content-kit/CarouselStyleEditor';
+import { ExportProgressModal } from '@/components/ExportProgressModal';
 
 // Progress step component
 function ProgressStep({
@@ -82,6 +83,8 @@ export default function ContentKitDetailContent() {
   const [captionStyle, setCaptionStyle] = useState<import('@/lib/caption-parser').CaptionStylePreset>('highlight');
   const [captionPosition, setCaptionPosition] = useState<CaptionPosition>('bottom');
   const [exportingClip, setExportingClip] = useState(false);
+  // ID of the clip currently being exported — opens the progress modal when set
+  const [exportingClipId, setExportingClipId] = useState<string | null>(null);
   const persistTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
@@ -346,6 +349,49 @@ export default function ContentKitDetailContent() {
       showErrorToast(err, 'resizing carousel');
     } finally {
       setResizing(false);
+    }
+  };
+
+  /**
+   * Download a clip as a 1080p MP4 with captions burned in at export quality.
+   * Opens the ExportProgressModal to show live SSE progress while FFmpeg runs,
+   * then opens the resulting file in a new tab when complete.
+   */
+  const handleDownloadClip = async (
+    clip: { id: string; videoUploadId?: string; captionsBurnedIn?: boolean; splitScreenUrl?: string; exports?: Array<{ url?: string }> },
+    viewMode: 'single' | 'split'
+  ) => {
+    const uploadId = clip.videoUploadId || id;
+
+    // Legacy clips have captions already burned in — serve the existing URL directly
+    if (clip.captionsBurnedIn !== false) {
+      const legacyUrl = viewMode === 'split' ? clip.splitScreenUrl : clip.exports?.[0]?.url;
+      if (legacyUrl) {
+        window.open(legacyUrl, '_blank');
+        return;
+      }
+    }
+
+    setExportingClip(true);
+    setExportingClipId(clip.id); // Opens the modal + SSE subscription
+    try {
+      const r = await api.clips.exportClip(uploadId, clip.id, {
+        captionStyle,
+        viewMode,
+        addCaptions: captionsEnabled,
+      });
+      if (r.data?.export?.url) {
+        window.open(r.data.export.url, '_blank');
+      } else {
+        showErrorToast('Export failed.');
+      }
+    } catch (err) {
+      showErrorToast(err, 'exporting clip');
+    } finally {
+      setExportingClip(false);
+      // Modal auto-closes 1.2s after export_complete SSE event,
+      // but clear the ID here as a safety net in case SSE dropped
+      setTimeout(() => setExportingClipId(null), 1500);
     }
   };
 
@@ -733,24 +779,14 @@ export default function ContentKitDetailContent() {
                           <>
                             <button
                               disabled={exportingClip}
-                              onClick={async () => {
-                                const clip = detail.clips[activeClipIndex];
-                                const uploadId = clip.videoUploadId || id;
-                                if (clip.captionsBurnedIn !== false && clip.exports?.[0]?.url) { window.open(clip.exports[0].url, '_blank'); return; }
-                                try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
-                              }}
+                              onClick={() => handleDownloadClip(detail.clips[activeClipIndex], 'single')}
                               className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                             >
                               {exportingClip ? 'Exporting...' : 'Download Single'}
                             </button>
                             <button
                               disabled={exportingClip}
-                              onClick={async () => {
-                                const clip = detail.clips[activeClipIndex];
-                                const uploadId = clip.videoUploadId || id;
-                                if (clip.captionsBurnedIn !== false && clip.splitScreenUrl) { window.open(clip.splitScreenUrl, '_blank'); return; }
-                                try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'split', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
-                              }}
+                              onClick={() => handleDownloadClip(detail.clips[activeClipIndex], 'split')}
                               className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                             >
                               Download Split
@@ -759,12 +795,7 @@ export default function ContentKitDetailContent() {
                         ) : (
                           <button
                             disabled={exportingClip}
-                            onClick={async () => {
-                              const clip = detail.clips[activeClipIndex];
-                              const uploadId = clip.videoUploadId || id;
-                              if (clip.captionsBurnedIn !== false && clip.exports?.[0]?.url) { window.open(clip.exports[0].url, '_blank'); return; }
-                              try { setExportingClip(true); const r = await api.clips.exportClip(uploadId, clip.id, { captionStyle, viewMode: 'single', addCaptions: captionsEnabled }); if (r.data?.export?.url) window.open(r.data.export.url, '_blank'); else showErrorToast('Export failed.'); } catch { showErrorToast('Failed to export clip.'); } finally { setExportingClip(false); }
-                            }}
+                            onClick={() => handleDownloadClip(detail.clips[activeClipIndex], 'single')}
                             className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
                           >
                             {exportingClip ? 'Exporting...' : 'Download'}
@@ -1317,6 +1348,12 @@ export default function ContentKitDetailContent() {
           </div>
         </div>
       )}
+
+      {/* Export Progress Modal — shown while a 1080p clip download is being rendered */}
+      <ExportProgressModal
+        clipId={exportingClipId}
+        onClose={() => setExportingClipId(null)}
+      />
     </div>
   );
 }
