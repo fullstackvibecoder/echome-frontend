@@ -270,6 +270,57 @@ function formatElapsed(seconds: number): string {
   return `${mins} min`;
 }
 
+// Rotating messages shown during YouTube downloads to keep users engaged.
+// YouTube throttles external servers, so downloads can take up to 30 minutes
+// depending on video length. These messages explain what's happening.
+const YOUTUBE_DOWNLOAD_MESSAGES = [
+  'YouTube throttles external servers, so downloads can take up to 30 minutes for longer videos.',
+  'Still pulling your video — YouTube intentionally slows down non-browser downloads.',
+  'Longer videos take longer to fetch. A 1-hour video can take 15-25 minutes to download.',
+  'You can safely leave this tab open — we\'ll keep working in the background.',
+  'The download speed depends on YouTube\'s current throttling. Hang tight.',
+  'Once the download finishes, transcription and content generation are much faster.',
+  'Some days YouTube is faster than others. Today might be one of the slower days.',
+  'We\'re fetching the highest quality version available so your clips look great.',
+];
+
+/**
+ * Rotates through an array of messages every N seconds.
+ */
+function useRotatingMessage(messages: string[], intervalMs: number = 6000): string {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (messages.length <= 1) return;
+    const timer = setInterval(() => {
+      setIndex(i => (i + 1) % messages.length);
+    }, intervalMs);
+    return () => clearInterval(timer);
+  }, [messages.length, intervalMs]);
+  return messages[index];
+}
+
+/**
+ * YouTube download banner with rotating engagement messages.
+ * Shown during the 'uploading' stage when the source is YouTube, because
+ * YouTube throttles external downloads and this can take up to 30 minutes.
+ */
+function YouTubeDownloadBanner() {
+  const message = useRotatingMessage(YOUTUBE_DOWNLOAD_MESSAGES, 6000);
+  return (
+    <div className="mt-4 flex items-start gap-2.5 px-4 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+      <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin mt-0.5" />
+      <div className="text-xs text-gray-600 dark:text-gray-300 leading-snug">
+        <p className="mb-1">
+          <span className="text-amber-500 font-medium">Downloading from YouTube — this can take up to 30 minutes</span> depending on video length.
+        </p>
+        <p className="transition-opacity duration-500" key={message}>
+          {message}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // Carousel design preset options — visual thumbnail grid
 // Carousel style is now selected post-generation in the content kit editor
 
@@ -1201,11 +1252,17 @@ export function GenerationForm({
                     <span className="w-1 h-1 rounded-full bg-accent" />
                     {formatElapsed(elapsedSeconds)} elapsed
                   </span>
-                  <span>Usually 5-15 min</span>
+                  <span>
+                    {videoSourceType === 'youtube' && videoProcessingStage === 'uploading'
+                      ? 'Up to 30 min'
+                      : 'Usually 5-15 min'}
+                  </span>
                 </div>
 
                 {/* Navigate-away banner — contextual based on stage */}
-                {videoProcessingStage === 'uploading' ? (
+                {videoProcessingStage === 'uploading' && videoSourceType === 'youtube' ? (
+                  <YouTubeDownloadBanner />
+                ) : videoProcessingStage === 'uploading' ? (
                   <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                     <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin" />
                     <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
