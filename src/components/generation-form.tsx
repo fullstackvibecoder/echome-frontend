@@ -270,18 +270,17 @@ function formatElapsed(seconds: number): string {
   return `${mins} min`;
 }
 
-// Rotating messages shown during YouTube downloads to keep users engaged.
-// YouTube throttles external servers, so downloads can take up to 30 minutes
-// depending on video length. These messages explain what's happening.
+// Rotating messages shown during YouTube downloads.
+// Most videos now download in under 2 minutes via our primary route. When
+// that's blocked for a specific video, the fallback services take longer —
+// the messaging reflects both possibilities.
 const YOUTUBE_DOWNLOAD_MESSAGES = [
-  'YouTube throttles external servers, so downloads can take up to 30 minutes for longer videos.',
-  'Still pulling your video — YouTube intentionally slows down non-browser downloads.',
-  'Longer videos take longer to fetch. A 1-hour video can take 15-25 minutes to download.',
+  'Pulling your video directly from YouTube\'s CDN.',
+  'Most videos finish in under 2 minutes.',
+  'If this takes longer, we\'re routing through a backup service.',
   'You can safely leave this tab open — we\'ll keep working in the background.',
-  'The download speed depends on YouTube\'s current throttling. Hang tight.',
-  'Once the download finishes, transcription and content generation are much faster.',
-  'Some days YouTube is faster than others. Today might be one of the slower days.',
   'We\'re fetching the highest quality version available so your clips look great.',
+  'Once the download finishes, transcription and content generation are much faster.',
 ];
 
 /**
@@ -301,8 +300,7 @@ function useRotatingMessage(messages: string[], intervalMs: number = 6000): stri
 
 /**
  * YouTube download banner with rotating engagement messages.
- * Shown during the 'uploading' stage when the source is YouTube, because
- * YouTube throttles external downloads and this can take up to 30 minutes.
+ * Shown during the 'uploading' stage when the source is YouTube.
  */
 function YouTubeDownloadBanner() {
   const message = useRotatingMessage(YOUTUBE_DOWNLOAD_MESSAGES, 6000);
@@ -311,7 +309,7 @@ function YouTubeDownloadBanner() {
       <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin mt-0.5" />
       <div className="text-xs text-gray-600 dark:text-gray-300 leading-snug">
         <p className="mb-1">
-          <span className="text-amber-500 font-medium">Downloading from YouTube — this can take up to 30 minutes</span> depending on video length.
+          <span className="text-amber-500 font-medium">Downloading from YouTube</span> — usually under 2 minutes.
         </p>
         <p className="transition-opacity duration-500" key={message}>
           {message}
@@ -1261,7 +1259,7 @@ export function GenerationForm({
                   </span>
                   <span>
                     {videoSourceType === 'youtube' && videoProcessingStage === 'uploading'
-                      ? 'Up to 30 min'
+                      ? 'Usually < 2 min'
                       : 'Usually 5-15 min'}
                   </span>
                 </div>
@@ -1459,6 +1457,43 @@ export function GenerationForm({
                 </svg>
                 Upgrade for More Minutes
               </a>
+            </div>
+          ) : uploadError.toLowerCase().includes('youtube') && (uploadError.toLowerCase().includes("couldn't download") || uploadError.toLowerCase().includes('blocking') || uploadError.toLowerCase().includes('youtube_download_blocked')) ? (
+            // YouTube-specific failure — explain and offer alternatives
+            <div>
+              <div className="text-error font-medium mb-2 text-center">YouTube blocked this download</div>
+              <p className="text-gray-600 dark:text-gray-300 text-small mb-3 text-center">
+                This is a YouTube-side issue affecting many tools right now — not a problem with your account. Here&apos;s what you can do:
+              </p>
+              <div className="space-y-2 mb-4 text-small text-gray-700 dark:text-gray-300">
+                <div className="flex items-start gap-2 p-2 bg-background/50 rounded">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/20 text-accent text-xs font-bold flex items-center justify-center">1</span>
+                  <div>
+                    <span className="font-medium">Download the video file from YouTube yourself</span>
+                    <span className="text-gray-500 dark:text-gray-400"> and upload it here directly using the Upload Video option.</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 p-2 bg-background/50 rounded">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/20 text-accent text-xs font-bold flex items-center justify-center">2</span>
+                  <div>
+                    <span className="font-medium">Try a link from another platform</span>
+                    <span className="text-gray-500 dark:text-gray-400"> — if this video also exists on Loom, Zoom, Vimeo, or as a direct file URL, paste that link instead.</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    setUploadError(null);
+                    setInput('');
+                    setInputType('video');
+                    setShowModeSelector(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-small font-medium"
+                >
+                  Try a different source
+                </button>
+              </div>
             </div>
           ) : (
             // Regular error with retry
