@@ -21,6 +21,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { showErrorToast } from '@/lib/toast';
 import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
+import { TimeoutProgress } from '@/components/timeout-progress';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
 // Dynamic welcome message generator
@@ -81,7 +82,7 @@ function formatRelativeTime(date: Date | string): string {
 
 export default function AppContent() {
   const router = useRouter();
-  const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
+  const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, progress, timeElapsed, canCancel, generate, repurpose, reset, cancel } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
   const { user } = useAuth();
@@ -385,6 +386,16 @@ export default function AppContent() {
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
+      {/* Timeout Progress Indicator */}
+      <TimeoutProgress
+        isVisible={generating && !!progress}
+        operation="Content Generation"
+        progress={progress}
+        timeElapsed={timeElapsed}
+        canCancel={canCancel}
+        onCancel={cancel}
+      />
+
       {!hasResults && !generating && (
         <div className="animate-fade-in">
           {/* First-time Welcome Banner */}

@@ -4,6 +4,8 @@ import { useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
 import { extractError } from '@/lib/error-utils';
 import { GeneratedContent, Platform, InputType, BackgroundConfig, DesignPreset } from '@/types';
+import { ApiTimeoutWrapper } from '@/lib/api-timeout-wrapper';
+import { TimeoutConfigs } from '@/lib/timeout-manager';
 
 interface GenerationOptions {
   designPreset?: DesignPreset;
@@ -19,6 +21,9 @@ interface UseGenerationReturn {
   isQuotaError: boolean;
   voiceScore?: number;
   qualityScore?: number;
+  progress: string | null;
+  timeElapsed: number;
+  canCancel: boolean;
   generate: (
     input: string,
     inputType: InputType,
@@ -31,6 +36,7 @@ interface UseGenerationReturn {
     options?: GenerationOptions
   ) => Promise<string | null>;
   reset: () => void;
+  cancel: () => boolean;
 }
 
 export function useGeneration(): UseGenerationReturn {
@@ -41,6 +47,10 @@ export function useGeneration(): UseGenerationReturn {
   const [isQuotaError, setIsQuotaError] = useState(false);
   const [voiceScore, setVoiceScore] = useState<number>();
   const [qualityScore, setQualityScore] = useState<number>();
+  const [progress, setProgress] = useState<string | null>(null);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [canCancel, setCanCancel] = useState(false);
+  const [currentOperationId, setCurrentOperationId] = useState<string | null>(null);
 
   const generate = useCallback(
     async (
@@ -49,27 +59,62 @@ export function useGeneration(): UseGenerationReturn {
       platforms: Platform[],
       options?: GenerationOptions
     ): Promise<string | null> => {
+      const operationId = `generation-${Date.now()}`;
+      setCurrentOperationId(operationId);
+      
       try {
         setGenerating(true);
         setError(null);
         setIsQuotaError(false);
         setResults(null);
         setRequestId(null);
+        setProgress('Preparing generation...');
+        setTimeElapsed(0);
+        setCanCancel(true);
 
-        const response = await api.generation.generate({
+        const generateInput = {
           inputType,
           inputText: inputType === 'text' ? input : undefined,
           inputAudioPath: inputType === 'audio' ? input : undefined,
           inputVideoPath: inputType === 'video' ? input : undefined,
           platforms,
           voiceId: options?.voiceId,
-          // Pass carousel design options
           designPreset: options?.designPreset,
           carouselBackground: options?.carouselBackground,
-        });
+        };
+
+        const response = await ApiTimeoutWrapper.generateContent(
+          generateInput,
+          {
+            operationId,
+            onProgress: (message, elapsed) => {
+              setProgress(message);
+              setTimeElapsed(elapsed);
+            },
+            onTimeout: (attempt, elapsed) => {
+              const minutes = Math.floor(elapsed / 60000);
+              
+              if (attempt === 1) {
+                setProgress(`Taking longer than expected (${minutes}m). Retrying with extended timeout...`);
+                return true; // Auto-retry first timeout
+              }
+              
+              // Ask user for subsequent retries
+              const shouldContinue = confirm(
+                `Content generation has been running for ${minutes} minutes. This might be due to high server load.\n\n` +
+                `Would you like to continue waiting? (Attempt ${attempt} of 3)`
+              );
+              
+              if (shouldContinue) {
+                setProgress(`Continuing generation (attempt ${attempt} of 3)...`);
+              }
+              
+              return shouldContinue;
+            },
+          }
+        );
 
         if (response.success && response.data) {
-          // Response data contains requestId at top level (from backend API)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const data = response.data as any;
           const newRequestId = (data.requestId as string) || null;
@@ -77,13 +122,29 @@ export function useGeneration(): UseGenerationReturn {
           setResults(data.results || []);
           setVoiceScore(data.voiceScore);
           setQualityScore(data.qualityScore);
+          setProgress('Generation completed!');
           return newRequestId;
         } else {
           throw new Error(response.error || 'Generation failed');
         }
-      } catch (err) {
+      } catch (err: any) {
+        // Handle timeout-specific errors with better messaging
+        if (err.message?.includes('timed out') || err.message?.includes('180000ms exceeded')) {
+          setError(
+            'Content generation is taking longer than expected due to high server load. ' +
+            'Please try again in a few minutes. If this continues, please contact support.'
+          );
+          return null;
+        }
+        
+        if (err.message?.includes('cancelled by user')) {
+          setError('Generation cancelled');
+          return null;
+        }
+
         const extracted = extractError(err, 'Generation failed');
         setError(extracted.message);
+        
         // Detect quota/subscription errors from backend
         const isQuota = extracted.status === 403 &&
           /free generation|generation limit|subscribe|upgrade|quota/i.test(extracted.message);
@@ -91,6 +152,13 @@ export function useGeneration(): UseGenerationReturn {
         return null;
       } finally {
         setGenerating(false);
+        setCanCancel(false);
+        setCurrentOperationId(null);
+        
+        // Clear progress after a delay
+        setTimeout(() => {
+          setProgress(null);
+        }, 3000);
       }
     },
     []
@@ -164,14 +232,43 @@ export function useGeneration(): UseGenerationReturn {
     []
   );
 
+  const cancel = useCallback(() => {
+    if (currentOperationId) {
+      const cancelled = ApiTimeoutWrapper.cancel(currentOperationId);
+      if (cancelled) {
+        setGenerating(false);
+        setCanCancel(false);
+        setProgress('Cancelled');
+        setCurrentOperationId(null);
+        
+        // Clear cancelled state after a delay
+        setTimeout(() => {
+          setProgress(null);
+        }, 2000);
+      }
+      return cancelled;
+    }
+    return false;
+  }, [currentOperationId]);
+
   const reset = useCallback(() => {
+    // Cancel any running operation
+    if (currentOperationId) {
+      ApiTimeoutWrapper.cancel(currentOperationId);
+    }
+    
     setRequestId(null);
     setResults(null);
     setError(null);
     setIsQuotaError(false);
     setVoiceScore(undefined);
     setQualityScore(undefined);
-  }, []);
+    setProgress(null);
+    setTimeElapsed(0);
+    setCanCancel(false);
+    setGenerating(false);
+    setCurrentOperationId(null);
+  }, [currentOperationId]);
 
   return {
     generating,
@@ -181,8 +278,8 @@ export function useGeneration(): UseGenerationReturn {
     isQuotaError,
     voiceScore,
     qualityScore,
-    generate,
-    repurpose,
-    reset,
-  };
+    progress,
+    timeElapsed,
+    canCancel,
+      };
 }
