@@ -1,17 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyAuthError } from '@/lib/auth-error-messages';
 
 export default function ForgotPasswordContent() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  // When the error is a rate limit with a known cooldown, count it down
+  // so the button re-enables automatically instead of making the user guess.
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setTimeout(() => setCooldownSeconds(s => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldownSeconds]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldownSeconds > 0) return;
     setIsLoading(true);
     setError('');
 
@@ -22,7 +33,11 @@ export default function ForgotPasswordContent() {
       if (resetError) throw resetError;
       setIsSubmitted(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email. Please try again.');
+      const friendly = friendlyAuthError(err);
+      setError(friendly.message);
+      if (friendly.waitSeconds) {
+        setCooldownSeconds(friendly.waitSeconds);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -84,10 +99,14 @@ export default function ForgotPasswordContent() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || cooldownSeconds > 0}
           className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Sending...' : 'Send Reset Link'}
+          {isLoading
+            ? 'Sending...'
+            : cooldownSeconds > 0
+            ? `Wait ${cooldownSeconds}s…`
+            : 'Send Reset Link'}
         </button>
       </form>
 
