@@ -71,6 +71,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/a
 // Polling configuration
 const POLLING_INTERVAL = 3000; // Poll every 3 seconds
 const SSE_FALLBACK_DELAY = 5000; // Start polling if no SSE event within 5 seconds
+const MAX_CONSECUTIVE_404S = 3; // Stop polling after this many consecutive 404s
 
 // Map request status to synthetic progress event
 function statusToProgress(requestId: string, status: string, hasCarousel: boolean): ProgressEvent {
@@ -167,6 +168,7 @@ export function useGenerationProgress(
   const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const receivedSSEEvent = useRef(false);
   const isPollingRef = useRef(false);
+  const consecutive404s = useRef(0);
 
   // Keep refs in sync with state/props
   useEffect(() => {
@@ -217,6 +219,9 @@ export function useGenerationProgress(
         return;
       }
 
+      // Reset 404 counter on successful response
+      consecutive404s.current = 0;
+
       const request = response.data.request;
       const carousel = response.data.carousel;
 
@@ -265,7 +270,28 @@ export function useGenerationProgress(
         optionsRef.current?.onError?.(syntheticProgress);
         stopPolling();
       }
-    } catch (err) {
+    } catch (err: any) {
+      // Track consecutive 404s — the generation request was likely deleted
+      // or never existed. Stop hammering the backend.
+      if (err?.response?.status === 404) {
+        consecutive404s.current++;
+        if (consecutive404s.current >= MAX_CONSECUTIVE_404S) {
+          console.warn(`Generation request ${requestId} not found after ${MAX_CONSECUTIVE_404S} attempts, giving up`);
+          setHasError(true);
+          hasErrorRef.current = true;
+          setProgress({
+            requestId: requestId!,
+            step: 'error',
+            stepNumber: -1,
+            totalSteps: 6,
+            percent: 0,
+            message: 'Generation request not found',
+            timestamp: Date.now(),
+          });
+          stopPolling();
+          return;
+        }
+      }
       console.warn('Polling error:', err);
     }
   }, [requestId, stopPolling]);
@@ -420,6 +446,7 @@ export function useGenerationProgress(
       carouselFailedRef.current = false;
       reconnectAttempts.current = 0;
       receivedSSEEvent.current = false;
+      consecutive404s.current = 0;
       connect();
     }
 
