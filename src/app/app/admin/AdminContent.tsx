@@ -1171,10 +1171,10 @@ function UserSegmentation() {
 
 // ==================== Main ====================
 
-export default function AdminContent() {
+export default function AdminContent({ initialTab }: { initialTab?: Tab }) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [tab, setTab] = useState<Tab>(initialTab || 'overview');
   const [month, setMonth] = useState(getCurrentMonth());
 
   // Redirect non-admins
@@ -1240,21 +1240,23 @@ export default function AdminContent() {
       <ErrorHealthMonitor />
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted rounded-lg p-1">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              tab === t.id
-                ? 'bg-card text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {!initialTab && (
+        <div className="flex gap-1 bg-muted rounded-lg p-1">
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                tab === t.id
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Tab Content */}
       {tab === 'overview' && <OverviewTab month={month} />}
