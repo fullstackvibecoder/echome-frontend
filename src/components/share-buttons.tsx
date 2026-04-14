@@ -17,6 +17,8 @@ interface PlatformConfig {
   color: string;
   hoverColor: string;
   canShare: boolean;
+  /** Copy content to clipboard before opening share URL (fallback for unreliable pre-fill) */
+  copyBeforeShare?: boolean;
   shareUrl?: (content: string, url?: string) => string;
   maxLength?: number;
 }
@@ -41,8 +43,11 @@ const PLATFORMS: Record<string, PlatformConfig> = {
     color: 'bg-[#0A66C2]',
     hoverColor: 'hover:bg-[#004182]',
     canShare: true,
+    // Opens LinkedIn compose with text pre-filled. Also copies to clipboard
+    // as a fallback — LinkedIn has historically been unreliable about honoring
+    // the text param, so the user can paste if it doesn't pre-fill.
+    copyBeforeShare: true,
     shareUrl: (content) => {
-      // LinkedIn's share dialog - content goes in clipboard, opens compose
       const text = encodeURIComponent(content.slice(0, 3000));
       return `https://www.linkedin.com/feed/?shareActive=true&text=${text}`;
     },
@@ -53,13 +58,10 @@ const PLATFORMS: Record<string, PlatformConfig> = {
     icon: '📘',
     color: 'bg-[#1877F2]',
     hoverColor: 'hover:bg-[#0d65d9]',
-    canShare: true,
-    shareUrl: (content, url) => {
-      const quote = encodeURIComponent(content.slice(0, 500));
-      const urlParam = url ? `u=${encodeURIComponent(url)}&` : '';
-      return `https://www.facebook.com/sharer/sharer.php?${urlParam}quote=${quote}`;
-    },
-    maxLength: 500,
+    // Facebook deprecated the `quote` param in sharer.php — it no longer
+    // pre-fills post text from external links. Copy-to-clipboard is the
+    // only reliable way to get content into a Facebook post.
+    canShare: false,
   },
   instagram: {
     name: 'Instagram',
@@ -133,12 +135,16 @@ export function ShareButtons({
     onShare?.('copy');
   };
 
-  const handleShare = (platformKey: string) => {
+  const handleShare = async (platformKey: string) => {
     const config = PLATFORMS[platformKey];
     if (!config) return;
 
     if (config.canShare && config.shareUrl) {
-      // Open share URL in new window
+      // Some platforms (LinkedIn) are unreliable about pre-filling text,
+      // so we copy to clipboard first as a fallback the user can paste.
+      if (config.copyBeforeShare) {
+        await navigator.clipboard.writeText(content);
+      }
       const shareUrl = config.shareUrl(content, url);
       window.open(shareUrl, '_blank', 'width=600,height=400');
       onShare?.(platformKey);
@@ -252,11 +258,14 @@ export function ShareDropdown({
     setIsOpen(false);
   };
 
-  const handleShare = (platformKey: string) => {
+  const handleShare = async (platformKey: string) => {
     const config = PLATFORMS[platformKey];
     if (!config) return;
 
     if (config.canShare && config.shareUrl) {
+      if (config.copyBeforeShare) {
+        await navigator.clipboard.writeText(content);
+      }
       const shareUrl = config.shareUrl(content, url);
       window.open(shareUrl, '_blank', 'width=600,height=400');
     } else {
@@ -358,6 +367,9 @@ export function QuickShareButton({
 
   const handleClick = async () => {
     if (config.canShare && config.shareUrl) {
+      if (config.copyBeforeShare) {
+        await navigator.clipboard.writeText(content);
+      }
       const shareUrl = config.shareUrl(content, url);
       window.open(shareUrl, '_blank', 'width=600,height=400');
     } else {
