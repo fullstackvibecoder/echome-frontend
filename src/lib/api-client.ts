@@ -3063,6 +3063,10 @@ export const api = {
       const response = await apiClient.get(`/admin/campaigns/${id}`);
       return response.data;
     },
+    previewStep: async (id: string, stepNumber: number) => {
+      const response = await apiClient.get(`/admin/campaigns/${id}/preview/${stepNumber}`);
+      return response.data;
+    },
     enroll: async (id: string, segmentName: string, dryRun = true) => {
       const response = await apiClient.post(`/admin/campaigns/${id}/enroll`, { segmentName, dryRun });
       return response.data;
