@@ -3053,6 +3053,46 @@ export const api = {
     },
   },
 
+  // -------- ADMIN CAMPAIGNS --------
+  adminCampaigns: {
+    list: async () => {
+      const response = await apiClient.get('/admin/campaigns');
+      return response.data;
+    },
+    get: async (id: string) => {
+      const response = await apiClient.get(`/admin/campaigns/${id}`);
+      return response.data;
+    },
+    enroll: async (id: string, segmentName: string, dryRun = true) => {
+      const response = await apiClient.post(`/admin/campaigns/${id}/enroll`, { segmentName, dryRun });
+      return response.data;
+    },
+    pause: async (id: string) => {
+      const response = await apiClient.post(`/admin/campaigns/${id}/pause`);
+      return response.data;
+    },
+    resume: async (id: string) => {
+      const response = await apiClient.post(`/admin/campaigns/${id}/resume`);
+      return response.data;
+    },
+    enrollments: async (id: string, page = 1) => {
+      const response = await apiClient.get(`/admin/campaigns/${id}/enrollments`, { params: { page } });
+      return response.data;
+    },
+    enrollmentDetail: async (campaignId: string, enrollmentId: string) => {
+      const response = await apiClient.get(`/admin/campaigns/${campaignId}/enrollments/${enrollmentId}`);
+      return response.data;
+    },
+    pauseEnrollment: async (campaignId: string, enrollmentId: string) => {
+      const response = await apiClient.post(`/admin/campaigns/${campaignId}/enrollments/${enrollmentId}/pause`);
+      return response.data;
+    },
+    resumeEnrollment: async (campaignId: string, enrollmentId: string) => {
+      const response = await apiClient.post(`/admin/campaigns/${campaignId}/enrollments/${enrollmentId}/resume`);
+      return response.data;
+    },
+  },
+
   // -------- ADMIN BROADCAST --------
   adminBroadcast: {
     preview: async (segmentName: string, subject: string, body: string): Promise<BroadcastPreviewResponse> => {
