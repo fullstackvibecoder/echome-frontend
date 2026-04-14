@@ -19,6 +19,7 @@ import {
   BarChart3,
   Clapperboard,
   Code,
+  Mail,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -79,7 +80,8 @@ export const NAV_GROUPS: NavGroup[] = [
 export const ADMIN_NAV_GROUP: NavGroup = {
   label: 'Admin',
   items: [
-    { id: 'admin', label: 'Admin', icon: BarChart3, path: '/app/admin' },
+    { id: 'admin', label: 'Dashboard', icon: BarChart3, path: '/app/admin/dashboard' },
+    { id: 'admin-campaigns', label: 'Campaigns', icon: Mail, path: '/app/admin/campaigns', adminOnly: true },
     { id: 'descript', label: 'Descript Studio', icon: Clapperboard, path: '/app/descript', adminOnly: true },
   ],
 };
