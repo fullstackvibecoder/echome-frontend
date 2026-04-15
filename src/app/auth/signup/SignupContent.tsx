@@ -253,12 +253,27 @@ function SignupForm() {
           </label>
         </div>
 
-        {/* Turnstile CAPTCHA — disabled until Cloudflare domain config is fixed */}
+        {/* Turnstile CAPTCHA */}
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <div className="flex justify-center">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={setTurnstileToken}
+              onError={() => setTurnstileToken(null)}
+              onExpire={() => setTurnstileToken(null)}
+              options={{ size: 'normal', theme: 'dark' }}
+            />
+          </div>
+        )}
 
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading || !agreedToTerms}
+          disabled={
+            isLoading ||
+            !agreedToTerms ||
+            (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !turnstileToken)
+          }
           className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Creating account...' : 'Create Account'}
