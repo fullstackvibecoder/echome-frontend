@@ -1,8 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+
+type LinkState = 'verifying' | 'ready' | 'invalid';
+
+const VERIFY_TIMEOUT_MS = 6000;
 
 export default function ResetPasswordContent() {
   const [password, setPassword] = useState('');
@@ -10,18 +14,86 @@ export default function ResetPasswordContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [sessionReady, setSessionReady] = useState(false);
+  const [linkState, setLinkState] = useState<LinkState>('verifying');
+  const [linkErrorMessage, setLinkErrorMessage] = useState('');
+  const readyRef = useRef(false);
 
   useEffect(() => {
-    // Supabase automatically picks up the recovery token from the URL hash
-    // when detectSessionInUrl is true (configured in our supabase client)
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const markReady = () => {
+      if (cancelled || readyRef.current) return;
+      readyRef.current = true;
+      setLinkState('ready');
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+
+    const markInvalid = (message: string) => {
+      if (cancelled || readyRef.current) return;
+      setLinkErrorMessage(message);
+      setLinkState('invalid');
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setSessionReady(true);
-      }
+      if (event === 'PASSWORD_RECOVERY') markReady();
     });
 
-    return () => subscription.unsubscribe();
+    (async () => {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const queryParams = new URLSearchParams(window.location.search);
+
+      const urlErrorDesc = hashParams.get('error_description') || queryParams.get('error_description');
+      const urlErrorCode = hashParams.get('error_code') || queryParams.get('error') || hashParams.get('error');
+      if (urlErrorDesc || urlErrorCode) {
+        const combined = (urlErrorDesc || urlErrorCode || '').toLowerCase();
+        if (combined.includes('expired')) {
+          markInvalid('This reset link has expired. Request a new one below.');
+        } else if (combined.includes('access_denied') || combined.includes('invalid') || combined.includes('otp')) {
+          markInvalid('This reset link is no longer valid. It may have already been used.');
+        } else {
+          markInvalid(urlErrorDesc || 'This reset link could not be verified.');
+        }
+        return;
+      }
+
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        markReady();
+        return;
+      }
+
+      const code = queryParams.get('code');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          const msg = exchangeError.message.toLowerCase();
+          if (msg.includes('verifier') || msg.includes('pkce')) {
+            markInvalid(
+              'This link was opened on a different device than where you requested it. Request a new link and open it on the same device and browser.'
+            );
+          } else if (msg.includes('expired')) {
+            markInvalid('This reset link has expired. Request a new one below.');
+          } else {
+            markInvalid(exchangeError.message || 'This reset link could not be verified.');
+          }
+          return;
+        }
+        markReady();
+        return;
+      }
+
+      timeoutId = setTimeout(() => {
+        markInvalid('We could not verify your reset link. It may have expired or already been used.');
+      }, VERIFY_TIMEOUT_MS);
+    })();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +126,6 @@ export default function ResetPasswordContent() {
   if (isSuccess) {
     return (
       <div className="card animate-fade-in text-center">
-        <div className="text-5xl mb-4">✅</div>
         <h1 className="text-2xl font-bold mb-4 text-foreground">Password Updated</h1>
         <p className="text-muted-foreground mb-6">
           Your password has been successfully reset.
@@ -66,10 +137,28 @@ export default function ResetPasswordContent() {
     );
   }
 
-  if (!sessionReady) {
+  if (linkState === 'invalid') {
     return (
       <div className="card animate-fade-in text-center">
-        <div className="text-5xl mb-4">🔑</div>
+        <h1 className="text-2xl font-bold mb-4 text-foreground">Reset Link Invalid</h1>
+        <p className="text-muted-foreground mb-6">
+          {linkErrorMessage}
+        </p>
+        <Link href="/auth/forgot-password" className="btn-primary inline-block">
+          Request a New Link
+        </Link>
+        <p className="mt-6 text-sm text-muted-foreground">
+          <Link href="/auth/login" className="text-primary hover:underline font-medium">
+            Back to sign in
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  if (linkState === 'verifying') {
+    return (
+      <div className="card animate-fade-in text-center">
         <h1 className="text-2xl font-bold mb-4 text-foreground">Reset Your Password</h1>
         <p className="text-muted-foreground mb-6">
           Verifying your reset link...
@@ -77,12 +166,6 @@ export default function ResetPasswordContent() {
         <div className="flex justify-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
-        <p className="text-muted-foreground text-sm mt-6">
-          If this takes too long, your link may have expired.{' '}
-          <Link href="/auth/forgot-password" className="text-primary hover:underline font-medium">
-            Request a new one
-          </Link>
-        </p>
       </div>
     );
   }

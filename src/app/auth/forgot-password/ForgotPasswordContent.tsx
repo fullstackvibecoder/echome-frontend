@@ -46,12 +46,25 @@ export default function ForgotPasswordContent() {
   if (isSubmitted) {
     return (
       <div className="card animate-fade-in text-center">
-        <div className="text-5xl mb-4">📧</div>
         <h1 className="text-2xl font-bold mb-4 text-foreground">Check your email</h1>
-        <p className="text-muted-foreground mb-6">
-          We have sent password reset instructions to{' '}
-          <span className="font-semibold text-foreground">{email}</span>
+        <p className="text-muted-foreground mb-4">
+          If an account exists for{' '}
+          <span className="font-semibold text-foreground">{email}</span>, a password reset link is on its way.
         </p>
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900 mb-6 text-left">
+          <p className="font-semibold mb-2">Not seeing an email?</p>
+          <ul className="list-disc list-inside space-y-1 text-amber-800">
+            <li>Check your spam or promotions folder.</li>
+            <li>
+              If you originally signed up with Google, password reset won&apos;t work — use{' '}
+              <Link href="/auth/login" className="underline font-medium">
+                Continue with Google
+              </Link>{' '}
+              on the sign-in page instead.
+            </li>
+            <li>Make sure you entered the email you used to sign up.</li>
+          </ul>
+        </div>
         <Link href="/auth/login" className="btn-primary inline-block">
           Back to Sign In
         </Link>
