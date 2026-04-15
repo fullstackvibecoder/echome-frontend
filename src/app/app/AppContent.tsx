@@ -22,6 +22,8 @@ import { showErrorToast } from '@/lib/toast';
 import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 import { TimeoutProgress } from '@/components/timeout-progress';
+import { NetworkStatusBanner, NetworkErrorDisplay, useNetworkAwareOperation } from '@/components/network-status';
+import { resilientRequest } from '@/lib/network-resilience';
 
 // Text generation stages with icons, titles, and rotating tips (matching video processing style)
 // Dynamic welcome message generator
@@ -88,6 +90,7 @@ export default function AppContent() {
   const { user } = useAuth();
   const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
   const { isFreeUser, freeGenerationsRemaining } = useSubscription();
+  const { isOnline, executeOperation } = useNetworkAwareOperation();
   const formRef = useRef<HTMLDivElement>(null);
 
   // Teams onboarding banner (dismissible via localStorage)
@@ -121,7 +124,15 @@ export default function AppContent() {
   useEffect(() => {
     const loadUsageStats = async () => {
       try {
-        const response = await api.stripe.getUsageLimits();
+        const response = await resilientRequest(
+          () => api.stripe.getUsageLimits(),
+          {
+            showUserFeedback: false, // Don't show errors for non-critical stats
+            operation: 'Load Usage Stats',
+            fallback: () => ({ success: false, data: null }), // Graceful degradation
+          }
+        );
+        
         if (response.success && response.data) {
           setUsageStats({
             generationsUsed: response.data.generationsUsed || 0,
@@ -143,9 +154,26 @@ export default function AppContent() {
 
   // Load recent content kits for returning users
   useEffect(() => {
-    api.generation.listRequests({ limit: 3, offset: 0 }).then(res => {
-      if (res.success && res.data) setRecentKits(res.data.filter((r: GenerationRequest) => r.status === 'completed'));
-    }).catch(() => {});
+    const loadRecentKits = async () => {
+      try {
+        const response = await resilientRequest(
+          () => api.generation.listRequests({ limit: 3, offset: 0 }),
+          {
+            showUserFeedback: false, // Don't show errors for recent kits
+            operation: 'Load Recent Content',
+            fallback: () => ({ success: false, data: [] }), // Graceful degradation
+          }
+        );
+        
+        if (response.success && response.data) {
+          setRecentKits(response.data.filter((r: GenerationRequest) => r.status === 'completed'));
+        }
+      } catch (err) {
+        console.log('Failed to load recent kits:', err);
+      }
+    };
+
+    loadRecentKits();
   }, []);
 
   // Real-time progress from SSE (including carousel status)
@@ -206,7 +234,13 @@ export default function AppContent() {
       if (!carouselReady || !requestId) return;
 
       try {
-        const response = await api.generation.getRequest(requestId);
+        const response = await resilientRequest(
+          () => api.generation.getRequest(requestId),
+          {
+            operation: 'Fetch Carousel Data',
+            showUserFeedback: true, // Show errors for carousel since user is expecting it
+          }
+        );
         if (response.success && response.data?.carousel?.slides) {
           // Map GeneratedCarouselSlide to CarouselSlide
           const slides: CarouselSlide[] = response.data.carousel.slides.map((s) => ({
@@ -386,6 +420,9 @@ export default function AppContent() {
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
+      {/* Network Status Banner */}
+      <NetworkStatusBanner className="mb-4" />
+
       {/* Timeout Progress Indicator */}
       <TimeoutProgress
         isVisible={generating && !!progress}
@@ -395,6 +432,33 @@ export default function AppContent() {
         canCancel={canCancel}
         onCancel={cancel}
       />
+
+      {/* Network Error Display */}
+      {error && (error.includes('Network') || error.includes('connection') || error.includes('timeout')) && (
+        <div className="mb-6">
+          <NetworkErrorDisplay
+            error={{ 
+              message: error, 
+              networkError: { 
+                type: error.includes('timeout') ? 'timeout' : 'network',
+                userMessage: error,
+                retryable: true,
+                suggestions: [
+                  'Check your internet connection',
+                  'Try refreshing the page',
+                  'Wait a moment and try again'
+                ]
+              }
+            }}
+            onRetry={() => {
+              reset();
+              // Trigger a retry by attempting to reload recent content
+              window.location.reload();
+            }}
+            onDismiss={() => reset()}
+          />
+        </div>
+      )}
 
       {!hasResults && !generating && (
         <div className="animate-fade-in">

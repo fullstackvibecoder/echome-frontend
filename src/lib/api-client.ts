@@ -5,6 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { supabase } from './supabase';
+import { classifyNetworkError, isRetryableNetworkError } from './network-resilience';
 import type {
   ApiResponse,
   GenerationRequest,
@@ -100,10 +101,17 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors
+// Response interceptor - handle errors with network resilience
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Classify network errors for better handling
+    const networkError = classifyNetworkError(error);
+    
+    // Add network error classification to the error object
+    (error as any).networkError = networkError;
+    (error as any).retryable = networkError.retryable;
+
     // Handle 401 Unauthorized - show toast then redirect to login
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
@@ -161,9 +169,35 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle network errors and server errors — report to Sentry
+    // Enhanced network error handling
     if (!error.response) {
-      console.error('Network error:', error.message);
+      console.error('Network error:', {
+        type: networkError.type,
+        message: networkError.message,
+        code: error.code,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          timeout: error.config?.timeout,
+        }
+      });
+
+      // Show user-friendly network error messages
+      if (typeof window !== 'undefined') {
+        import('sonner').then(({ toast }) => {
+          // Don't spam with network error toasts - only show if not already shown recently
+          const lastNetworkToast = localStorage.getItem('lastNetworkToast');
+          const now = Date.now();
+          
+          if (!lastNetworkToast || now - parseInt(lastNetworkToast) > 10000) {
+            toast.error(networkError.type === 'network' ? 'Connection Problem' : 'Network Error', {
+              description: networkError.userMessage,
+              duration: 5000,
+            });
+            localStorage.setItem('lastNetworkToast', now.toString());
+          }
+        }).catch(() => {});
+      }
     }
 
     // Report 5xx and network errors to Sentry (not 4xx which are expected)
@@ -176,6 +210,9 @@ apiClient.interceptors.response.use(
             method: error.config?.method,
             status,
             context: 'api_client',
+            networkErrorType: networkError.type,
+            networkErrorMessage: networkError.message,
+            retryable: networkError.retryable,
           },
         });
       }).catch(() => {}); // Sentry import failure should never break the app
