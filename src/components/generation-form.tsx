@@ -13,6 +13,7 @@ import { setActiveGeneration, useActiveGeneration } from './generation-banner';
 import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, Film, PenLine, Mic, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react';
+import { ZoomPasswordModal } from './ZoomPasswordModal';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -395,6 +396,18 @@ export function GenerationForm({
   // Video snapshot state (used for clip finder)
   const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
 
+  // Zoom passcode prompt state. Opens reactively when the backend reports
+  // errorCode='zoom_password_required' or 'zoom_password_incorrect' so the
+  // user can supply the meeting passcode and retry the same upload row.
+  // The resolve/reject refs hold the active poll promise so the modal can
+  // settle it after the user submits or cancels.
+  const [zoomPasswordModalOpen, setZoomPasswordModalOpen] = useState(false);
+  const [zoomPasswordIsRetry, setZoomPasswordIsRetry] = useState(false);
+  const zoomRetryUploadIdRef = useRef<string | null>(null);
+  const zoomRetryJobIdRef = useRef<string | null>(null);
+  const zoomPasswordResolveRef = useRef<(() => void) | null>(null);
+  const zoomPasswordRejectRef = useRef<((err: Error) => void) | null>(null);
+
   // Caption style state
   const [captionStyle, setCaptionStyle] = useState<CaptionStyleOption>('modern');
 
@@ -726,6 +739,28 @@ export function GenerationForm({
               }
               resolve();
             } else if (status === 'failed') {
+              // Recoverable Zoom passcode failure: pause polling and prompt
+              // the user. The upload row stays around so retryWithPassword can
+              // re-run processing on the same id.
+              const isZoomPwError =
+                upload.errorCode === 'zoom_password_required' ||
+                upload.errorCode === 'zoom_password_incorrect';
+
+              if (isZoomPwError) {
+                if (processingIntervalRef.current) {
+                  clearInterval(processingIntervalRef.current);
+                  processingIntervalRef.current = null;
+                }
+                zoomRetryUploadIdRef.current = uploadId;
+                zoomRetryJobIdRef.current = jobId;
+                zoomPasswordResolveRef.current = resolve;
+                zoomPasswordRejectRef.current = reject;
+                setZoomPasswordIsRetry(upload.errorCode === 'zoom_password_incorrect');
+                setVideoProcessingStatus('Waiting for Zoom passcode...');
+                setZoomPasswordModalOpen(true);
+                return;
+              }
+
               // Backend has set status to failed. Surface the error quickly —
               // the clip-finder pipeline already exhausted its internal retry/fallback
               // chain (Apify → yt-dlp → etc.) before setting this status.
@@ -770,6 +805,74 @@ export function GenerationForm({
       // Initial check
       checkStatus();
     });
+  };
+
+  // Resume the paused video-processing flow with a Zoom passcode. Calls the
+  // backend retry endpoint, then re-attaches the polling promise so the user
+  // sees the same progress bar continue. Throws on submit failure so the modal
+  // can show an inline error and stay open.
+  const handleZoomPasswordSubmit = async (password: string) => {
+    const uploadId = zoomRetryUploadIdRef.current;
+    const resolve = zoomPasswordResolveRef.current;
+    const reject = zoomPasswordRejectRef.current;
+    if (!uploadId || !resolve || !reject) {
+      throw new Error('No active Zoom retry. Please start over.');
+    }
+
+    let retryResponse;
+    try {
+      retryResponse = await api.clips.retryWithPassword(uploadId, password);
+    } catch (err) {
+      // Surface the backend message inline so the user can correct the passcode
+      // without losing the modal.
+      throw new Error(getErrorMessage(err));
+    }
+
+    if (!retryResponse?.success || !retryResponse.data?.jobId) {
+      throw new Error('Could not start retry. Please try again.');
+    }
+
+    setZoomPasswordModalOpen(false);
+    setZoomPasswordIsRetry(false);
+    setVideoProcessingStatus('Retrying with passcode...');
+    setVideoProcessingProgress(35);
+
+    // Re-enter polling on the same upload id with the new job id. The next
+    // failure (incorrect passcode) will re-open this modal via the same path.
+    pollProcessingStatus(uploadId, retryResponse.data.jobId)
+      .then(() => {
+        zoomRetryUploadIdRef.current = null;
+        zoomRetryJobIdRef.current = null;
+        zoomPasswordResolveRef.current = null;
+        zoomPasswordRejectRef.current = null;
+        resolve();
+      })
+      .catch((err) => {
+        // If the retry fails for a non-passcode reason, surface to the original
+        // promise so the parent error UI takes over.
+        if (!zoomPasswordModalOpen) {
+          zoomRetryUploadIdRef.current = null;
+          zoomRetryJobIdRef.current = null;
+          zoomPasswordResolveRef.current = null;
+          zoomPasswordRejectRef.current = null;
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
+      });
+  };
+
+  const handleZoomPasswordCancel = () => {
+    const reject = zoomPasswordRejectRef.current;
+    setZoomPasswordModalOpen(false);
+    setZoomPasswordIsRetry(false);
+    setVideoProcessing(false);
+    setVideoProcessingStatus(null);
+    zoomRetryUploadIdRef.current = null;
+    zoomRetryJobIdRef.current = null;
+    zoomPasswordResolveRef.current = null;
+    zoomPasswordRejectRef.current = null;
+    if (reject) {
+      reject(new Error('Zoom passcode required to download this recording.'));
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1639,6 +1742,13 @@ export function GenerationForm({
         </p>
       </div>
       </div>
+
+      <ZoomPasswordModal
+        open={zoomPasswordModalOpen}
+        isRetryAfterIncorrect={zoomPasswordIsRetry}
+        onSubmit={handleZoomPasswordSubmit}
+        onCancel={handleZoomPasswordCancel}
+      />
     </div>
   );
 }

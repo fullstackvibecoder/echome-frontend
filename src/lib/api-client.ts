@@ -2082,6 +2082,27 @@ export const api = {
       };
     },
 
+    /**
+     * Recover a Zoom upload that failed with errorCode 'zoom_password_required'
+     * or 'zoom_password_incorrect' by supplying the meeting passcode. Re-runs
+     * the processing pipeline; poll GET /clips/:id for status updates as usual.
+     */
+    retryWithPassword: async (uploadId: string, password: string) => {
+      const response = await apiClient.post(
+        `/clips/${uploadId}/retry-with-password`,
+        { password },
+        { timeout: 300000 },
+      );
+      return response.data as {
+        success: boolean;
+        data: {
+          jobId: string;
+          status: string;
+          message: string;
+        };
+      };
+    },
+
     /** Get job status */
     getJob: async (uploadId: string, jobId: string) => {
       const response = await apiClient.get(`/clips/${uploadId}/job/${jobId}`);
@@ -4143,6 +4164,7 @@ export interface VideoUpload {
   fps?: number;
   status: 'pending' | 'uploading' | 'transcribing' | 'analyzing' | 'extracting' | 'captioning' | 'generating' | 'completed' | 'failed';
   statusMessage?: string;
+  errorCode?: string;
   progressPercent: number;
   transcriptText?: string;
   transcriptSegments?: TranscriptSegment[];
