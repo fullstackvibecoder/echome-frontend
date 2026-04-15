@@ -1670,6 +1670,7 @@ export const api = {
         file?: File;
         sourceType?: 'upload' | 'youtube' | 'instagram' | 'url' | 'loom' | 'zoom';
         sourceUrl?: string;
+        zoomPassword?: string;
         knowledgeBaseId?: string;
         title?: string;
       },
@@ -1683,6 +1684,7 @@ export const api = {
         }
         if (data.sourceType) formData.append('sourceType', data.sourceType);
         if (data.sourceUrl) formData.append('sourceUrl', data.sourceUrl);
+        if (data.zoomPassword) formData.append('zoomPassword', data.zoomPassword);
         if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
         if (data.title) formData.append('title', data.title);
 

@@ -396,17 +396,24 @@ export function GenerationForm({
   // Video snapshot state (used for clip finder)
   const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
 
-  // Zoom passcode prompt state. Opens reactively when the backend reports
-  // errorCode='zoom_password_required' or 'zoom_password_incorrect' so the
-  // user can supply the meeting passcode and retry the same upload row.
-  // The resolve/reject refs hold the active poll promise so the modal can
-  // settle it after the user submits or cancels.
+  // Zoom passcode prompt state. The reactive modal opens when the backend
+  // reports errorCode='zoom_password_required' or 'zoom_password_incorrect'
+  // so the user can supply the meeting passcode and retry the same upload
+  // row. The resolve/reject refs hold the active poll promise so the modal
+  // can settle it after the user submits or cancels.
   const [zoomPasswordModalOpen, setZoomPasswordModalOpen] = useState(false);
   const [zoomPasswordIsRetry, setZoomPasswordIsRetry] = useState(false);
   const zoomRetryUploadIdRef = useRef<string | null>(null);
   const zoomRetryJobIdRef = useRef<string | null>(null);
   const zoomPasswordResolveRef = useRef<(() => void) | null>(null);
   const zoomPasswordRejectRef = useRef<((err: Error) => void) | null>(null);
+
+  // Optional Zoom passcode supplied UPFRONT alongside the URL — for users
+  // who already know their recording is password-protected and want to skip
+  // the failed-first-attempt → modal → retry roundtrip. The field is only
+  // visible when the URL contains zoom.us. If supplied, the backend uses it
+  // immediately on the first download attempt instead of waiting for failure.
+  const [zoomPasswordUpfront, setZoomPasswordUpfront] = useState('');
 
   // Caption style state
   const [captionStyle, setCaptionStyle] = useState<CaptionStyleOption>('modern');
@@ -602,7 +609,8 @@ export function GenerationForm({
   const processVideoWithClipFinder = async (
     file?: File,
     sourceType?: VideoSourceType,
-    sourceUrl?: string
+    sourceUrl?: string,
+    zoomPassword?: string
   ) => {
     try {
       const effectiveSource = sourceType || 'upload';
@@ -624,6 +632,7 @@ export function GenerationForm({
           file,
           sourceType: sourceType || 'upload',
           sourceUrl,
+          zoomPassword,
         },
         (progress) => {
           setUploadProgress(progress);
@@ -956,8 +965,10 @@ export function GenerationForm({
       const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
 
       try {
-        await processVideoWithClipFinder(undefined, sourceType, url);
+        const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
+        await processVideoWithClipFinder(undefined, sourceType, url, passcode);
         setVideoUrl('');
+        setZoomPasswordUpfront('');
         clearFile();
       } catch (err) {
         setUrlError(err instanceof Error ? err.message : 'Failed to process video URL');
@@ -1441,7 +1452,8 @@ export function GenerationForm({
                             const isLoom = /loom\.com/.test(url);
                             const isZoom = /zoom\.us/.test(url);
                             const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
-                            processVideoWithClipFinder(undefined, sourceType, url);
+                            const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
+                            processVideoWithClipFinder(undefined, sourceType, url, passcode);
                           }}
                           disabled={!videoUrl.trim() || generating || videoProcessing}
                           className="px-4 py-2 bg-[#00D4FF] text-black rounded-lg text-sm font-bold disabled:opacity-40 hover:brightness-110 transition-all"
@@ -1449,6 +1461,20 @@ export function GenerationForm({
                           Go
                         </button>
                       </div>
+                      {/* Conditional Zoom passcode field — only shown when the URL looks like a Zoom recording */}
+                      {/zoom\.us/i.test(videoUrl) && (
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            value={zoomPasswordUpfront}
+                            onChange={(e) => setZoomPasswordUpfront(e.target.value)}
+                            placeholder="Zoom passcode (only if your recording requires one)"
+                            autoComplete="off"
+                            spellCheck={false}
+                            className="w-full px-3 py-2 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white text-sm placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none"
+                          />
+                        </div>
+                      )}
                       {urlError && <p className="text-xs text-red-400 mt-1">{urlError}</p>}
                     </div>
                   </>
