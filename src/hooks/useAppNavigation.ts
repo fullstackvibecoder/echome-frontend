@@ -20,6 +20,7 @@ import {
   Clapperboard,
   Code,
   Mail,
+  FileDown,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export interface NavItem {
   teamsOnly?: boolean;
   adminOnly?: boolean;
   external?: boolean;
+  badge?: string;
 }
 
 export interface NavGroup {
@@ -64,6 +66,12 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'trends', label: 'Trends', icon: TrendingUp, path: '/app/trends', adminOnly: true },
       { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
       { id: 'community', label: 'Community', icon: MessageCircle, path: '/community', external: true },
+    ],
+  },
+  {
+    label: 'Tools',
+    items: [
+      { id: 'compress', label: 'Video Compressor', icon: FileDown, path: '/tools/compress-video', external: true, badge: 'FREE' },
     ],
   },
   {

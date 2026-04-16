@@ -149,6 +149,11 @@ function SidebarItem({
       {showHint && (
         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
       )}
+      {item.badge && (
+        <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+          {item.badge}
+        </span>
+      )}
       {item.comingSoon && !isAdmin && (
         <span className="text-[9px] font-bold uppercase tracking-wider bg-surface-container-high text-slate-lavender px-2 py-0.5 rounded-full">
           Soon

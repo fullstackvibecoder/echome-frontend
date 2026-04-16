@@ -129,6 +129,11 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       {showHint && (
                         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                       )}
+                      {item.badge && (
+                        <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
                       {item.comingSoon && !isAdmin && (
                         <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
                           Soon
