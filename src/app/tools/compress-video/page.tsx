@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Upload, Download, Zap, Shield, Clock, FileVideo, Check, ArrowRight, ChevronDown, Loader2 } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.tryechome.com/api';
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
 type Quality = 'low' | 'medium' | 'high';
 type CompressState = 'idle' | 'uploading' | 'compressing' | 'done' | 'error';
@@ -47,7 +47,7 @@ export default function CompressVideoToolPage() {
       return;
     }
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError(`File is too large (${formatSize(selectedFile.size)}). Maximum is 500MB.`);
+      setError(`File is too large (${formatSize(selectedFile.size)}). Maximum is 5GB.`);
       return;
     }
     setFile(selectedFile);
@@ -262,7 +262,7 @@ export default function CompressVideoToolPage() {
                 <p className="text-white/70 font-medium mb-1">
                   {dragActive ? 'Drop your video here' : 'Drag and drop your video file'}
                 </p>
-                <p className="text-white/40 text-sm">or click to browse. MP4, MOV, WebM, AVI, MKV up to 500MB</p>
+                <p className="text-white/40 text-sm">or click to browse. MP4, MOV, WebM, AVI, MKV up to 5GB</p>
               </div>
             )}
 
@@ -404,7 +404,7 @@ export default function CompressVideoToolPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
             {[
-              { icon: <Upload className="w-6 h-6" />, title: 'Upload your video', desc: 'Drag and drop or select a file. Supports MP4, MOV, WebM, AVI, MKV up to 500MB.' },
+              { icon: <Upload className="w-6 h-6" />, title: 'Upload your video', desc: 'Drag and drop or select a file. Supports MP4, MOV, WebM, AVI, MKV up to 5GB.' },
               { icon: <Zap className="w-6 h-6" />, title: 'Choose quality level', desc: 'Pick maximum compression, balanced (recommended), or high quality based on your needs.' },
               { icon: <Download className="w-6 h-6" />, title: 'Download compressed file', desc: 'Get your smaller video file instantly. No signup or email required.' },
             ].map((step, i) => (
@@ -435,7 +435,7 @@ export default function CompressVideoToolPage() {
               { icon: <Check className="w-5 h-5" />, title: 'No watermark', desc: 'Your compressed video is clean. No branding, no watermarks, no strings attached.' },
               { icon: <Clock className="w-5 h-5" />, title: 'Files deleted after download', desc: 'Your privacy matters. Videos are processed in memory and deleted immediately.' },
               { icon: <Zap className="w-5 h-5" />, title: 'H.264 optimized encoding', desc: 'Modern codec optimized for web playback. Works on every device and platform.' },
-              { icon: <FileVideo className="w-5 h-5" />, title: 'Multiple formats supported', desc: 'Works with MP4, MOV, WebM, AVI, and MKV files up to 500MB.' },
+              { icon: <FileVideo className="w-5 h-5" />, title: 'Multiple formats supported', desc: 'Works with MP4, MOV, WebM, AVI, and MKV files up to 5GB.' },
               { icon: <Download className="w-5 h-5" />, title: 'Instant download', desc: 'No waiting for email links. Download your compressed video immediately.' },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
@@ -546,7 +546,7 @@ export default function CompressVideoToolPage() {
 const FAQ_DATA = [
   { q: 'How much can I compress my video?', a: 'Typically 40-70% reduction depending on source quality and chosen compression level. Raw recordings from phones and screen recorders see the biggest reductions.' },
   { q: 'Will compression reduce video quality?', a: 'Balanced mode preserves near-original quality. Maximum compression may show slight quality reduction on close inspection, but is ideal for social media and web uploads.' },
-  { q: 'What formats are supported?', a: 'MP4, MOV, WebM, AVI, and MKV files up to 500MB.' },
+  { q: 'What formats are supported?', a: 'MP4, MOV, WebM, AVI, and MKV files up to 5GB.' },
   { q: 'Is it really free?', a: 'Yes. No signup, no watermark, no hidden fees. Compress as many videos as you need.' },
   { q: 'Is my video stored?', a: 'No. Files are processed and deleted immediately after download. We never store your videos on our servers.' },
   { q: 'What codec does it use?', a: 'H.264 video with AAC audio, optimized for web playback. This is the most universally compatible format.' },
