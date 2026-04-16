@@ -133,9 +133,23 @@ export default function AppContent() {
             isUnlimited: response.data.isUnlimited,
           });
         }
-      } catch (err) {
-        // Silently fail - not critical for UX
-        console.error('Failed to load usage stats:', err);
+      } catch (err: any) {
+        // Enhanced error handling for timeout scenarios
+        if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+          console.warn('Usage stats loading timed out - this is usually due to high server load and will resolve automatically');
+        } else {
+          console.error('Failed to load usage stats:', err);
+        }
+        // Silently fail - not critical for UX, but provide fallback data
+        setUsageStats({
+          generationsUsed: 0,
+          generationsLimit: null,
+          generationsRemaining: null,
+          videoMinutesUsed: 0,
+          videoMinutesLimit: null,
+          contentKitsCreated: 0,
+          isUnlimited: false,
+        });
       }
     };
     loadUsageStats();
@@ -143,9 +157,25 @@ export default function AppContent() {
 
   // Load recent content kits for returning users
   useEffect(() => {
-    api.generation.listRequests({ limit: 3, offset: 0 }).then(res => {
-      if (res.success && res.data) setRecentKits(res.data.filter((r: GenerationRequest) => r.status === 'completed'));
-    }).catch(() => {});
+    const loadRecentKits = async () => {
+      try {
+        const response = await api.generation.listRequests({ limit: 3, offset: 0 });
+        if (response.success && response.data) {
+          setRecentKits(response.data.filter((r: GenerationRequest) => r.status === 'completed'));
+        }
+      } catch (err: any) {
+        // Enhanced timeout handling for recent content loading
+        if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+          console.warn('Recent content loading timed out - dashboard will still function normally');
+        } else {
+          console.error('Failed to load recent content:', err);
+        }
+        // Set empty array on failure - non-critical feature
+        setRecentKits([]);
+      }
+    };
+
+    loadRecentKits();
   }, []);
 
   // Real-time progress from SSE (including carousel status)

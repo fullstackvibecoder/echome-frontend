@@ -52,9 +52,11 @@ export const apiClient: AxiosInstance = axios.create({
 // Extended timeouts for long-running operations
 const GENERATION_TIMEOUT = 180000; // 3 minutes for AI generation (includes potential transcript extraction)
 const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (download + Whisper)
-const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
+const LIST_TIMEOUT = 30000; // 30 seconds for list/query operations (increased from 10s)
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
+const STRIPE_TIMEOUT = 45000; // 45 seconds for Stripe API operations (billing, usage limits)
+const DASHBOARD_TIMEOUT = 25000; // 25 seconds for dashboard data loading operations
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -627,7 +629,10 @@ export const api = {
     },
 
     listRequests: async (params?: { limit?: number; offset?: number; voice_id?: string }) => {
-      const response = await apiClient.get<ApiResponse<any[]>>('/generate', { params });
+      const response = await apiClient.get<ApiResponse<any[]>>('/generate', { 
+        params,
+        timeout: DASHBOARD_TIMEOUT // Use extended timeout for dashboard operations
+      });
 
       // Transform snake_case to camelCase for frontend consumption
       const transformedData = response.data.data?.map((item: any) => ({
@@ -2377,7 +2382,9 @@ export const api = {
   stripe: {
     /** Get available pricing plans */
     getPlans: async (): Promise<StripePlansResponse> => {
-      const response = await apiClient.get('/stripe/plans');
+      const response = await apiClient.get('/stripe/plans', {
+        timeout: STRIPE_TIMEOUT
+      });
       return response.data;
     },
 
@@ -2404,6 +2411,8 @@ export const api = {
         successUrl: `${window.location.origin}/app/billing?success=true${localStorage.getItem('needsOnboarding') ? '&onboarding=true' : ''}`,
         cancelUrl: `${window.location.origin}/app/billing?canceled=true`,
         ...(referralId && { clientReferenceId: referralId }),
+      }, {
+        timeout: STRIPE_TIMEOUT
       });
       return response.data;
     },
@@ -2412,13 +2421,17 @@ export const api = {
     getPortalUrl: async (): Promise<StripePortalResponse> => {
       const response = await apiClient.post('/stripe/portal', {
         returnUrl: `${window.location.origin}/app/billing`,
+      }, {
+        timeout: STRIPE_TIMEOUT
       });
       return response.data;
     },
 
     /** Get usage limits for current tier */
     getUsageLimits: async (): Promise<StripeUsageLimitsResponse> => {
-      const response = await apiClient.get('/stripe/usage');
+      const response = await apiClient.get('/stripe/usage', {
+        timeout: STRIPE_TIMEOUT // Use extended timeout for Stripe operations
+      });
       return response.data;
     },
 
@@ -2434,7 +2447,9 @@ export const api = {
         currentPeriodEnd?: string;
       };
     }> => {
-      const response = await apiClient.post('/stripe/sync');
+      const response = await apiClient.post('/stripe/sync', {}, {
+        timeout: STRIPE_TIMEOUT
+      });
       return response.data;
     },
 
@@ -2453,6 +2468,8 @@ export const api = {
       const response = await apiClient.post('/stripe/subscription/switch', {
         planId,
         billingInterval,
+      }, {
+        timeout: STRIPE_TIMEOUT
       });
       return response.data;
     },

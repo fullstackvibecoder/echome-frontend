@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { RefreshCw } from 'lucide-react';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { showErrorToast } from '@/lib/toast';
@@ -44,6 +45,8 @@ export default function FollowingContent() {
   const [loading, setLoading] = useState(true);
   const [loadingContent, setLoadingContent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [contentLoadingErrors, setContentLoadingErrors] = useState<Record<string, string>>({});
 
   // Filter state
   const [filterCreatorId, setFilterCreatorId] = useState<string | null>(null);
@@ -77,22 +80,73 @@ export default function FollowingContent() {
     loadData();
   }, []);
 
+  // Retry utility for handling timeout and network errors
+  const retryOperation = async <T,>(
+    operation: () => Promise<T>,
+    maxRetries: number = 2,
+    delay: number = 1000
+  ): Promise<T | null> => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        const isRetryable = 
+          error?.code === 'ECONNABORTED' || // Timeout
+          error?.code === 'ERR_NETWORK' || // Network error
+          error?.message?.includes('timeout') ||
+          error?.message?.includes('network') ||
+          (error?.response?.status >= 500 && error?.response?.status < 600); // Server errors
+
+        if (attempt === maxRetries || !isRetryable) {
+          throw error;
+        }
+
+        // Wait before retrying with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
+        console.warn(`Retrying operation (attempt ${attempt + 1}/${maxRetries + 1})...`);
+      }
+    }
+    return null;
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
+      setContentLoadingErrors({});
 
-      // Load creators
-      const creatorsResponse = await api.creators.list();
-      if (creatorsResponse.success) {
+      // Load creators with retry logic
+      const creatorsResponse = await retryOperation(
+        async () => api.creators.list(),
+        2, // 2 retries
+        1000 // 1 second delay
+      );
+
+      if (creatorsResponse?.success) {
         setCreators(creatorsResponse.creators);
 
-        // Load all content from all creators
+        // Load all content from all creators with enhanced error handling
         await loadAllContent(creatorsResponse.creators);
+      } else {
+        throw new Error('Failed to load creators list');
       }
-    } catch (err) {
-      setError('Failed to load data');
-      console.error(err);
+    } catch (err: any) {
+      console.error('Failed to load data:', err);
+      
+      // Enhanced error messaging
+      let errorMessage = 'Failed to load data';
+      if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again or check your connection.';
+      } else if (err?.code === 'ERR_NETWORK' || err?.message?.includes('network')) {
+        errorMessage = 'Network connection failed. Please check your internet connection.';
+      } else if (err?.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again in a few moments.';
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -101,21 +155,90 @@ export default function FollowingContent() {
   const loadAllContent = async (creatorsList: MonitoredCreator[]) => {
     try {
       setLoadingContent(true);
+      setContentLoadingErrors({});
+
+      // Use Promise.allSettled instead of Promise.all to handle individual failures
       const contentPromises = creatorsList.map(async (creator) => {
-        const response = await api.creators.getContent(creator.id, 10);
-        if (response.success) {
-          return response.content.map((c: ContentHistoryEntry) => ({ ...c, creator }));
+        try {
+          const response = await retryOperation(
+            async () => api.creators.getContent(creator.id, 10),
+            1, // 1 retry for content loading
+            1000
+          );
+
+          if (response?.success) {
+            return {
+              creatorId: creator.id,
+              success: true,
+              content: response.content.map((c: ContentHistoryEntry) => ({ ...c, creator })),
+            };
+          } else {
+            return {
+              creatorId: creator.id,
+              success: false,
+              error: 'Failed to load content',
+              content: [],
+            };
+          }
+        } catch (error: any) {
+          console.error(`Failed to load content for ${creator.creator_name || creator.id}:`, error);
+          
+          let errorMessage = 'Loading failed';
+          if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+            errorMessage = 'Timed out';
+          } else if (error?.code === 'ERR_NETWORK') {
+            errorMessage = 'Network error';
+          } else if (error?.response?.status >= 500) {
+            errorMessage = 'Server error';
+          }
+
+          return {
+            creatorId: creator.id,
+            success: false,
+            error: errorMessage,
+            content: [],
+          };
         }
-        return [];
       });
 
-      const results = await Promise.all(contentPromises);
-      const flatContent = results.flat();
+      const results = await Promise.allSettled(contentPromises);
+      const flatContent: ContentWithCreator[] = [];
+      const errors: Record<string, string> = {};
+
+      results.forEach((result, index) => {
+        const creator = creatorsList[index];
+        
+        if (result.status === 'fulfilled') {
+          const data = result.value;
+          if (data.success) {
+            flatContent.push(...data.content);
+          } else {
+            errors[creator.id] = data.error;
+          }
+        } else {
+          console.error(`Promise rejected for creator ${creator.creator_name || creator.id}:`, result.reason);
+          errors[creator.id] = 'Request failed';
+        }
+      });
+
+      // Update errors state
+      setContentLoadingErrors(errors);
 
       // Sort by created_at descending (newest first)
       flatContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setAllContent(flatContent);
+
+      // Show toast if some content failed to load but not all
+      const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+      const failureCount = Object.keys(errors).length;
+      
+      if (failureCount > 0 && successCount > 0) {
+        showErrorToast(
+          new Error(`Failed to load content from ${failureCount} creator${failureCount > 1 ? 's' : ''}`),
+          'loading some creator content'
+        );
+      }
     } catch (err) {
       console.error('Failed to load content:', err);
       showErrorToast(err, 'loading creator content');
@@ -183,19 +306,43 @@ export default function FollowingContent() {
   const handlePoll = async (creatorId: string) => {
     try {
       setPolling(creatorId);
-      const response = await api.creators.poll(creatorId);
-      if (response.success && response.newContentCount > 0) {
+      
+      // Use retry logic for individual creator polling
+      const response = await retryOperation(
+        async () => api.creators.poll(creatorId),
+        1, // 1 retry for individual poll
+        1500 // 1.5 second delay
+      );
+      
+      if (response?.success && response.newContentCount > 0) {
         // Reload all content
         await loadAllContent(creators);
       }
+      
       // Update creator in list
-      const updatedCreators = await api.creators.list();
-      if (updatedCreators.success) {
-        setCreators(updatedCreators.creators);
+      try {
+        const updatedCreators = await retryOperation(
+          async () => api.creators.list(),
+          1
+        );
+        if (updatedCreators?.success) {
+          setCreators(updatedCreators.creators);
+        }
+      } catch (updateErr) {
+        console.warn('Failed to update creators list after poll:', updateErr);
+        // Non-critical error, don't show toast
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to poll:', err);
-      showErrorToast(err, 'syncing creator content');
+      
+      let errorMessage = 'Failed to sync creator';
+      if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        errorMessage = 'Sync timed out. This creator may take longer to sync.';
+      } else if (err?.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error during sync.';
+      }
+      
+      showErrorToast(new Error(errorMessage), 'syncing creator content');
     } finally {
       setPolling(null);
     }
@@ -204,12 +351,27 @@ export default function FollowingContent() {
   const handlePollAll = async () => {
     try {
       setPollingAll(true);
-      await api.creators.pollAll();
-      // Reload all data
+      
+      // Use retry logic for poll all operation
+      await retryOperation(
+        async () => api.creators.pollAll(),
+        1, // 1 retry for poll all
+        2000 // 2 second delay
+      );
+      
+      // Reload all data after polling
       await loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to poll all:', err);
-      showErrorToast(err, 'syncing all creators');
+      
+      let errorMessage = 'Failed to sync creators';
+      if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        errorMessage = 'Sync timed out. Some creators may take longer to sync.';
+      } else if (err?.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error during sync. Please check your connection.';
+      }
+      
+      showErrorToast(new Error(errorMessage), 'syncing all creators');
     } finally {
       setPollingAll(false);
     }
@@ -413,8 +575,75 @@ export default function FollowingContent() {
       <UpgradeBanner />
 
       {error && (
-        <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg text-error">
-          {error}
+        <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-error/20 flex items-center justify-center mt-0.5">
+              <svg className="w-3 h-3 text-error" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-error font-medium mb-1">
+                {error.includes('timeout') || error.includes('timed out') ? 'Request Timed Out' : 'Loading Error'}
+              </p>
+              <p className="text-error/80 text-sm mb-3">{error}</p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setError(null);
+                    setRetryCount(0);
+                    loadData();
+                  }}
+                  disabled={loading}
+                  className="bg-error/20 hover:bg-error/30 text-error px-3 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Retrying...' : 'Try Again'}
+                </button>
+                {retryCount > 0 && (
+                  <span className="text-error/60 text-xs">
+                    Retry attempt: {retryCount}
+                  </span>
+                )}
+                {error.includes('timeout') && (
+                  <span className="text-error/60 text-xs">
+                    This operation is taking longer than expected
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content Loading Errors */}
+      {Object.keys(contentLoadingErrors).length > 0 && !loading && (
+        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center mt-0.5">
+              <svg className="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-amber-700 dark:text-amber-400 font-medium mb-1">
+                Some creators couldn't load
+              </p>
+              <p className="text-amber-600 dark:text-amber-300 text-sm mb-2">
+                Failed to load content from {Object.keys(contentLoadingErrors).length} creator{Object.keys(contentLoadingErrors).length > 1 ? 's' : ''}
+              </p>
+              <button
+                onClick={() => {
+                  setContentLoadingErrors({});
+                  loadAllContent(creators);
+                }}
+                disabled={loadingContent}
+                className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                Retry Failed Creators
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -104,6 +104,8 @@ export default function DevelopersContent() {
   const [savingAutoReload, setSavingAutoReload] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Handle success redirect from Stripe
   useEffect(() => {
@@ -117,10 +119,20 @@ export default function DevelopersContent() {
   const loadKeys = useCallback(async () => {
     try {
       setKeysLoading(true);
+      setError(null); // Clear previous errors
       const res = await api.apiKeys.list();
-      if (res.success) setKeys(res.data || []);
-    } catch (err) {
-      setError(extractErrorMessage(err));
+      if (res.success) {
+        setKeys(res.data || []);
+      } else {
+        throw new Error(res.error?.message || 'Failed to load API keys');
+      }
+    } catch (err: any) {
+      const errorMessage = extractErrorMessage(err);
+      setError(`Failed to load API keys: ${errorMessage}`);
+      console.error('API Keys load error:', err);
+      
+      // Set empty array as fallback to prevent UI crashes
+      setKeys([]);
     } finally {
       setKeysLoading(false);
     }
@@ -129,22 +141,78 @@ export default function DevelopersContent() {
   const loadCredits = useCallback(async () => {
     try {
       setCreditsLoading(true);
-      const [balanceRes, packsRes, txRes] = await Promise.all([
-        api.apiCredits.getBalance(),
-        api.apiCredits.getPacks(),
-        api.apiCredits.getTransactions({ limit: 20 }),
-      ]);
+      setError(null); // Clear previous errors
+      
+      // Load each endpoint separately to identify specific failures
+      const promises = [
+        api.apiCredits.getBalance().catch(err => ({ success: false, error: err, endpoint: 'balance' })),
+        api.apiCredits.getPacks().catch(err => ({ success: false, error: err, endpoint: 'packs' })),
+        api.apiCredits.getTransactions({ limit: 20 }).catch(err => ({ success: false, error: err, endpoint: 'transactions' })),
+      ];
 
-      if (balanceRes.success && balanceRes.data) {
-        setBalance(balanceRes.data);
-        setAutoReloadEnabled(balanceRes.data.auto_reload.enabled);
-        setAutoReloadThreshold(balanceRes.data.auto_reload.threshold || 10);
-        setAutoReloadPackId(balanceRes.data.auto_reload.pack_id || 'starter');
+      const [balanceRes, packsRes, txRes] = await Promise.allSettled(promises);
+
+      // Handle balance response
+      if (balanceRes.status === 'fulfilled' && balanceRes.value.success && balanceRes.value.data) {
+        setBalance(balanceRes.value.data);
+        setAutoReloadEnabled(balanceRes.value.data.auto_reload.enabled);
+        setAutoReloadThreshold(balanceRes.value.data.auto_reload.threshold || 10);
+        setAutoReloadPackId(balanceRes.value.data.auto_reload.pack_id || 'starter');
+      } else if (balanceRes.status === 'fulfilled' && !balanceRes.value.success) {
+        console.error('Balance API error:', balanceRes.value.error);
+        setError(`Failed to load credit balance: ${extractErrorMessage(balanceRes.value.error)}`);
+        // Set default balance as fallback
+        setBalance({
+          balance: 0,
+          lifetime_purchased: 0,
+          lifetime_used: 0,
+          auto_reload: { enabled: false, threshold: null, pack_id: null, has_payment_method: false },
+        });
+      } else if (balanceRes.status === 'rejected') {
+        console.error('Balance request failed:', balanceRes.reason);
+        setError(`Failed to load credit balance: ${extractErrorMessage(balanceRes.reason)}`);
       }
-      if (packsRes.success) setPacks(packsRes.data || []);
-      if (txRes.success) setTransactions(txRes.data || []);
-    } catch (err) {
-      setError(extractErrorMessage(err));
+
+      // Handle packs response
+      if (packsRes.status === 'fulfilled' && packsRes.value.success) {
+        setPacks(packsRes.value.data || []);
+      } else if (packsRes.status === 'fulfilled' && !packsRes.value.success) {
+        console.error('Packs API error:', packsRes.value.error);
+        if (!error) setError(`Failed to load credit packs: ${extractErrorMessage(packsRes.value.error)}`);
+        setPacks([]); // Set empty array as fallback
+      } else if (packsRes.status === 'rejected') {
+        console.error('Packs request failed:', packsRes.reason);
+        if (!error) setError(`Failed to load credit packs: ${extractErrorMessage(packsRes.reason)}`);
+        setPacks([]);
+      }
+
+      // Handle transactions response
+      if (txRes.status === 'fulfilled' && txRes.value.success) {
+        setTransactions(txRes.value.data || []);
+      } else if (txRes.status === 'fulfilled' && !txRes.value.success) {
+        console.error('Transactions API error:', txRes.value.error);
+        if (!error) setError(`Failed to load transactions: ${extractErrorMessage(txRes.value.error)}`);
+        setTransactions([]); // Set empty array as fallback
+      } else if (txRes.status === 'rejected') {
+        console.error('Transactions request failed:', txRes.reason);
+        if (!error) setError(`Failed to load transactions: ${extractErrorMessage(txRes.reason)}`);
+        setTransactions([]);
+      }
+      
+    } catch (err: any) {
+      const errorMessage = extractErrorMessage(err);
+      setError(`Failed to load credit information: ${errorMessage}`);
+      console.error('Credits load error:', err);
+      
+      // Set fallback data to prevent UI crashes
+      setBalance({
+        balance: 0,
+        lifetime_purchased: 0,
+        lifetime_used: 0,
+        auto_reload: { enabled: false, threshold: null, pack_id: null, has_payment_method: false },
+      });
+      setPacks([]);
+      setTransactions([]);
     } finally {
       setCreditsLoading(false);
     }
@@ -159,11 +227,41 @@ export default function DevelopersContent() {
         if (methods.length > 0 && !autoReloadPaymentMethodId) {
           setAutoReloadPaymentMethodId(methods[0].id);
         }
+      } else {
+        console.error('Payment methods API error:', res.error);
+        setPaymentMethods([]); // Set empty array as fallback
       }
-    } catch {
-      // Non-critical
+    } catch (err: any) {
+      console.error('Payment methods load error:', err);
+      setPaymentMethods([]); // Set empty array as fallback
+      // Only show error if it's not a 401/403 (which is expected for users without payment methods)
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        console.warn('Failed to load payment methods:', extractErrorMessage(err));
+      }
     }
   }, [autoReloadPaymentMethodId]);
+
+  // Retry function for handling 500 errors
+  const retryLoadData = useCallback(async () => {
+    if (isRetrying) return;
+    
+    setIsRetrying(true);
+    setError(null);
+    
+    try {
+      await Promise.all([
+        loadKeys(),
+        loadCredits(), 
+        loadPaymentMethods(),
+      ]);
+      setRetryCount(0); // Reset retry count on success
+    } catch (err) {
+      console.error('Retry failed:', err);
+      setRetryCount(prev => prev + 1);
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [loadKeys, loadCredits, loadPaymentMethods, isRetrying]);
 
   useEffect(() => {
     loadKeys();
@@ -308,12 +406,33 @@ export default function DevelopersContent() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3 text-red-400">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <p className="text-sm">{error}</p>
-          <button onClick={() => setError(null)} className="ml-auto text-red-400/60 hover:text-red-400">
-            &times;
-          </button>
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <div className="flex items-center gap-3 text-red-400 mb-3">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <p className="text-sm flex-1">{error}</p>
+            <button onClick={() => setError(null)} className="text-red-400/60 hover:text-red-400">
+              &times;
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={retryLoadData}
+              disabled={isRetrying}
+              className="text-xs px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded text-red-300 transition-colors disabled:opacity-50 flex items-center gap-1"
+            >
+              {isRetrying ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3 h-3" />
+              )}
+              {isRetrying ? 'Retrying...' : 'Retry'}
+            </button>
+            {retryCount > 0 && (
+              <span className="text-xs text-red-400/60">
+                Retry attempt: {retryCount}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -339,10 +458,11 @@ export default function DevelopersContent() {
           </div>
 
           {keysLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-accent" />
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-accent mb-2" />
+              <p className="text-sm text-text-secondary">Loading API keys...</p>
             </div>
-          ) : keys.length === 0 ? (
+          ) : keys.length === 0 && !error ? (
             <div className="text-center py-12 bg-card rounded-xl border border-border">
               <Key className="w-12 h-12 text-text-secondary mx-auto mb-4" />
               <p className="text-text-secondary mb-4">No API keys yet</p>
@@ -486,27 +606,43 @@ export default function DevelopersContent() {
       {activeTab === 'credits' && (
         <div>
           {creditsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-accent" />
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-accent mb-2" />
+              <p className="text-sm text-text-secondary">Loading credit information...</p>
             </div>
           ) : (
             <>
               {/* Balance Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="p-6 bg-card rounded-xl border border-border">
-                  <p className="text-sm text-text-secondary mb-1">Current Balance</p>
-                  <p className="text-3xl font-bold text-accent">{balance?.balance.toLocaleString() || 0}</p>
-                  <p className="text-xs text-text-secondary mt-1">credits</p>
+              {balance ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div className="p-6 bg-card rounded-xl border border-border">
+                    <p className="text-sm text-text-secondary mb-1">Current Balance</p>
+                    <p className="text-3xl font-bold text-accent">{balance.balance?.toLocaleString() || 0}</p>
+                    <p className="text-xs text-text-secondary mt-1">credits</p>
+                  </div>
+                  <div className="p-6 bg-card rounded-xl border border-border">
+                    <p className="text-sm text-text-secondary mb-1">Lifetime Purchased</p>
+                    <p className="text-2xl font-semibold text-text-primary">{balance.lifetime_purchased?.toLocaleString() || 0}</p>
+                  </div>
+                  <div className="p-6 bg-card rounded-xl border border-border">
+                    <p className="text-sm text-text-secondary mb-1">Lifetime Used</p>
+                    <p className="text-2xl font-semibold text-text-primary">{balance.lifetime_used?.toLocaleString() || 0}</p>
+                  </div>
                 </div>
-                <div className="p-6 bg-card rounded-xl border border-border">
-                  <p className="text-sm text-text-secondary mb-1">Lifetime Purchased</p>
-                  <p className="text-2xl font-semibold text-text-primary">{balance?.lifetime_purchased.toLocaleString() || 0}</p>
+              ) : (
+                <div className="bg-card rounded-xl border border-border p-6 mb-8">
+                  <div className="flex items-center gap-3 text-text-secondary">
+                    <AlertCircle className="w-5 h-5" />
+                    <p>Unable to load credit balance. Please try refreshing the page.</p>
+                    <button
+                      onClick={retryLoadData}
+                      className="ml-auto px-3 py-1 text-xs bg-accent/10 hover:bg-accent/20 text-accent rounded transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
                 </div>
-                <div className="p-6 bg-card rounded-xl border border-border">
-                  <p className="text-sm text-text-secondary mb-1">Lifetime Used</p>
-                  <p className="text-2xl font-semibold text-text-primary">{balance?.lifetime_used.toLocaleString() || 0}</p>
-                </div>
-              </div>
+              )}
 
               {/* Credit Packs */}
               <h3 className="text-lg font-semibold text-text-primary mb-4">Buy Credits</h3>
