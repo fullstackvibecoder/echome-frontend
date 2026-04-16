@@ -732,6 +732,31 @@ export default function ContentKitDetailContent() {
                               </button>
                             </div>
                           )}
+                          {detail.clips[activeClipIndex].transcriptText && (
+                            <details className="bg-black/40 rounded-2xl border border-[#3A3A3C] mt-3 group">
+                              <summary className="flex items-center justify-between p-4 cursor-pointer select-none">
+                                <span className="text-[10px] text-[#9B8BAF] font-bold uppercase">Transcript</span>
+                                <span className="text-[#9B8BAF] text-xs group-open:rotate-180 transition-transform">▼</span>
+                              </summary>
+                              <div className="px-4 pb-4 relative">
+                                <p className="text-xs text-white/70 whitespace-pre-wrap leading-relaxed">
+                                  {detail.clips[activeClipIndex].transcriptText}
+                                </p>
+                                <button
+                                  onClick={() => handleCopy(
+                                    detail.clips[activeClipIndex].transcriptText || '',
+                                    `clip-transcript-${detail.clips[activeClipIndex].id}`
+                                  )}
+                                  className={`absolute top-0 right-4 p-1.5 rounded-lg transition-colors ${
+                                    copiedId === `clip-transcript-${detail.clips[activeClipIndex].id}`
+                                      ? 'bg-[#00D4FF]/20 text-[#00D4FF]' : 'bg-[#3A3A3C] text-[#00D4FF] hover:bg-[#4A4A4C]'
+                                  }`}
+                                >
+                                  {copiedId === `clip-transcript-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
+                                </button>
+                              </div>
+                            </details>
+                          )}
                         </div>
                       )}
                     </div>
