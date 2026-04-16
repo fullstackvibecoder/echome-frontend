@@ -762,7 +762,7 @@ export default function ContentKitDetailContent() {
                     </div>
 
                     {/* Zone 2: Editor Toolbar */}
-                    <div className="h-14 bg-[#2A2A2C] border-y border-[#3A3A3C] px-4 lg:px-8 flex items-center gap-4 flex-wrap">
+                    <div className="min-h-14 py-2 bg-[#2A2A2C] border-y border-[#3A3A3C] px-4 lg:px-8 flex items-center gap-4 flex-wrap">
                       <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#3A3A3C]">
                         <span className="text-[10px] font-bold text-[#00D4FF]">
                           {detail.clips[activeClipIndex].format === 'portrait' ? '9:16' :
