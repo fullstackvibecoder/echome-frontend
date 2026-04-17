@@ -13,9 +13,8 @@ import {
   AdminErrorHealth,
   AdminSegmentationData,
   AdminUserSegment,
-  BroadcastPreviewResponse,
-  BroadcastSendResponse,
 } from '@/lib/api-client';
+import EmailComposeModal from '@/components/email-editor/EmailComposeModal';
 
 // ==================== Types ====================
 
@@ -814,217 +813,6 @@ function BusinessMetrics() {
   );
 }
 
-// ==================== Email Compose Modal ====================
-
-const ADMIN_SIGNATURES: Record<string, { name: string; title: string }> = {
-  'ara@tryechome.com': { name: 'Ara', title: 'Co-founder, EchoMe' },
-  'jess@jesslenouvel.com': { name: 'Jess', title: 'Co-founder, EchoMe' },
-};
-
-function getAdminSignature(email: string): { name: string; title: string } {
-  return ADMIN_SIGNATURES[email.toLowerCase()] || { name: 'The EchoMe Team', title: 'EchoMe' };
-}
-
-type ComposePhase = 'compose' | 'preview' | 'sending' | 'sent' | 'error';
-
-function EmailComposeModal({ segment, adminEmail, onClose }: {
-  segment: string;
-  adminEmail: string;
-  onClose: () => void;
-}) {
-  const [phase, setPhase] = useState<ComposePhase>('compose');
-  const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
-  const [previewData, setPreviewData] = useState<BroadcastPreviewResponse | null>(null);
-  const [sendResult, setSendResult] = useState<{ sent: number; failed: number } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const signature = getAdminSignature(adminEmail);
-
-  const handlePreview = async () => {
-    try {
-      setError(null);
-      setPhase('preview');
-      const data = await api.adminBroadcast.preview(segment, subject, body);
-      setPreviewData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Preview failed');
-      setPhase('error');
-    }
-  };
-
-  const handleSend = async () => {
-    try {
-      setPhase('sending');
-      const result = await api.adminBroadcast.send(segment, subject, body);
-      setSendResult({ sent: result.sent, failed: result.failed });
-      setPhase('sent');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Send failed');
-      setPhase('error');
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="bg-card rounded-xl border border-border max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">
-            Email: {segment}
-          </h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Compose Phase */}
-        {phase === 'compose' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Subject</label>
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Email subject..."
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                maxLength={200}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Body</label>
-              <textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Write your message..."
-                rows={8}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-y"
-                maxLength={5000}
-              />
-              <p className="text-xs text-muted-foreground mt-1">{body.length}/5000 characters. Separate paragraphs with blank lines.</p>
-            </div>
-            <div className="bg-muted/30 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Signature</p>
-              <p className="text-sm font-medium text-foreground">{signature.name}</p>
-              <p className="text-sm text-muted-foreground">{signature.title}</p>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors">
-                Cancel
-              </button>
-              <button
-                onClick={handlePreview}
-                disabled={!subject.trim() || !body.trim()}
-                className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Preview
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Preview Phase */}
-        {phase === 'preview' && previewData && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium text-foreground">Recipients:</span>
-              <span className="text-muted-foreground">{previewData.recipientCount} users</span>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1">Sample recipients:</p>
-              <div className="flex flex-wrap gap-1">
-                {previewData.sampleRecipients.map((r, i) => (
-                  <span key={i} className="text-xs bg-muted px-2 py-0.5 rounded font-mono">{r.email}</span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1">Email preview:</p>
-              <div
-                className="border border-border rounded-lg p-4 bg-white text-black max-h-80 overflow-y-auto"
-                dangerouslySetInnerHTML={{ __html: previewData.htmlPreview }}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => { setPhase('compose'); setPreviewData(null); }}
-                className="px-4 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors"
-              >
-                Back to Edit
-              </button>
-              <button
-                onClick={handleSend}
-                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-              >
-                Send to {previewData.recipientCount} recipients
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Preview loading */}
-        {phase === 'preview' && !previewData && (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-
-        {/* Sending Phase */}
-        {phase === 'sending' && (
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground">Sending emails...</p>
-          </div>
-        )}
-
-        {/* Sent Phase */}
-        {phase === 'sent' && sendResult && (
-          <div className="text-center py-8 space-y-3">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-lg font-semibold text-foreground">Emails Sent</p>
-            <p className="text-sm text-muted-foreground">
-              {sendResult.sent} sent{sendResult.failed > 0 ? `, ${sendResult.failed} failed` : ''}
-            </p>
-            <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors mt-2">
-              Close
-            </button>
-          </div>
-        )}
-
-        {/* Error Phase */}
-        {phase === 'error' && (
-          <div className="text-center py-8 space-y-3">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <p className="text-lg font-semibold text-foreground">Error</p>
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <div className="flex justify-center gap-2 mt-2">
-              <button onClick={() => setPhase('compose')} className="px-4 py-2 text-sm rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors">
-                Try Again
-              </button>
-              <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ==================== User Segmentation ====================
 
 const SEGMENT_COLORS: Record<string, { border: string; bg: string; text: string; dot: string }> = {
@@ -1161,7 +949,7 @@ function UserSegmentation() {
       {composeSegment && (
         <EmailComposeModal
           segment={composeSegment}
-          adminEmail={user?.email || ''}
+          adminId={user?.id || ''}
           onClose={() => setComposeSegment(null)}
         />
       )}
