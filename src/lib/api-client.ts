@@ -3107,28 +3107,6 @@ export const api = {
     },
   },
 
-  // -------- ADMIN BROADCAST --------
-  adminBroadcast: {
-    preview: async (segmentName: string, subject: string, body: string): Promise<BroadcastPreviewResponse> => {
-      const res = await apiClient.post('/admin/broadcast/segment', {
-        segmentName,
-        subject,
-        body,
-        dryRun: true,
-      });
-      return res.data;
-    },
-    send: async (segmentName: string, subject: string, body: string): Promise<BroadcastSendResponse> => {
-      const res = await apiClient.post('/admin/broadcast/segment', {
-        segmentName,
-        subject,
-        body,
-        dryRun: false,
-      }, { timeout: 120000 });
-      return res.data;
-    },
-  },
-
   // -------- ADMIN EMAILS (editor v2) --------
   adminEmails: {
     listPresets: async (): Promise<Array<{ key: string; label: string; recommendedSegment: string }>> => {
@@ -4045,24 +4023,6 @@ export interface AdminSegmentationData {
   segments: AdminUserSegment[];
   totalUsers: number;
   lastUpdated: string;
-}
-
-export interface BroadcastPreviewResponse {
-  success: boolean;
-  dryRun: true;
-  recipientCount: number;
-  sampleRecipients: Array<{ email: string; fullName: string | null }>;
-  subject: string;
-  htmlPreview: string;
-  senderSignature: { name: string; title: string };
-}
-
-export interface BroadcastSendResponse {
-  success: boolean;
-  dryRun: false;
-  sent: number;
-  failed: number;
-  errors: string[];
 }
 
 export interface AdminErrorHealth {
