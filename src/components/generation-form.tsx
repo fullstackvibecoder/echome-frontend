@@ -885,10 +885,9 @@ export function GenerationForm({
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Shared by file-input and drag-drop paths. Returns false if the file is
+  // rejected (2GB+ hard cap). Sets uploadWarning for 500MB–2GB advisory.
+  const validateVideoFile = (file: File): boolean => {
     const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
     const WARN_SIZE = 500 * 1024 * 1024; // 500MB
 
@@ -896,7 +895,7 @@ export function GenerationForm({
       const sizeMB = Math.round(file.size / (1024 * 1024));
       setUploadError(`File is too large (${sizeMB}MB). Maximum is 2GB. Compress it with a free tool like HandBrake (see guide: /guides/compress-video) or paste a YouTube/Vimeo URL instead.`);
       setUploadWarning(null);
-      return;
+      return false;
     }
 
     setUploadError(null);
@@ -907,7 +906,13 @@ export function GenerationForm({
     } else {
       setUploadWarning(null);
     }
+    return true;
+  };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!validateVideoFile(file)) return;
     setSelectedFile(file);
   };
 
@@ -936,12 +941,14 @@ export function GenerationForm({
     e.stopPropagation();
     setVideoDragActive(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('video/')) {
-      setSelectedFile(file);
-      setUploadError(null);
-    } else if (file) {
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
       setUploadError('Please drop a video file (MP4, MOV, AVI, or WebM)');
+      setUploadWarning(null);
+      return;
     }
+    if (!validateVideoFile(file)) return;
+    setSelectedFile(file);
   };
 
   const handleGenerate = async () => {
