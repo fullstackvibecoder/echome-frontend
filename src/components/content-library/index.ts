@@ -11,5 +11,7 @@ export { ContentGridView } from './ContentGridView';
 export { ContentCard } from './ContentCard';
 export { GroupHeader } from './GroupHeader';
 export { BulkActionsBar } from './BulkActionsBar';
+export { ContentKitCard } from './ContentKitCard';
+export { StatusSection } from './StatusSection';
 
 export * from './types';
