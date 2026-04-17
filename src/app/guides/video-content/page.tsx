@@ -71,7 +71,7 @@ export default function VideoContentGuidePage() {
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign in and navigate to Create">
             <p>
-              New users will follow the onboarding flow after signing up. Returning users go straight to the Create page. You&apos;ll see three input cards: <strong className="text-text-primary">Upload Video</strong>, <strong className="text-text-primary">Type or Paste</strong>, and <strong className="text-text-primary">Record Voice</strong>.
+              New users will follow the onboarding flow after signing up. Returning users go straight to the Create page. You&apos;ll see a single input where you can paste a link (YouTube, Zoom, Loom, Vimeo), type a topic, drop a video file, or record a voice note using the mic button in the toolbar.
             </p>
           </Step>
 

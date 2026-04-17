@@ -55,7 +55,7 @@ export default function YouTubeToContentGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Paste any YouTube link">
-            <p>Go to the Create page, select Upload Video. Below the file upload button, paste your YouTube URL into the link field and click Go. Works with any public YouTube video &mdash; watch pages, share links, and shorts.</p>
+            <p>Go to the Create page and paste your YouTube URL directly into the input. EchoMe auto-detects YouTube links &mdash; just hit submit. Works with any public YouTube video: watch pages, share links, and shorts.</p>
           </Step>
 
           <Step number={2} title="EchoMe downloads and transcribes">

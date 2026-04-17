@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'EchoMe Platform Overview | Guide',
-  description: 'A complete walkthrough of the EchoMe platform. Learn about the three input methods, video processing, clip editing, caption customization, content generation, and building your voice profile.',
+  description: 'A complete walkthrough of the EchoMe platform. Learn about the unified Create input, video processing, clip editing, caption customization, content generation, and building your voice profile.',
   alternates: { canonical: 'https://tryechome.com/guides/platform-overview' },
 };
 
@@ -11,7 +11,7 @@ export default function PlatformOverviewGuidePage() {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: 'EchoMe Platform Overview',
-    description: 'A complete walkthrough of the EchoMe platform. Learn about the three input methods, video processing, clip editing, caption customization, content generation, and building your voice profile.',
+    description: 'A complete walkthrough of the EchoMe platform. Learn about the unified Create input, video processing, clip editing, caption customization, content generation, and building your voice profile.',
     url: 'https://tryechome.com/guides/platform-overview',
     datePublished: '2026-04-01',
     dateModified: '2026-04-01',
@@ -69,14 +69,15 @@ export default function PlatformOverviewGuidePage() {
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Three ways to create content">
-            <p className="mb-2">EchoMe gives you three input methods to start generating content:</p>
+          <Step number={1} title="One input, every format">
+            <p className="mb-2">The Create page has a single unified input. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Upload Video</strong> &mdash; Drop a file or paste a YouTube, Vimeo, or Loom link.</li>
-              <li><strong className="text-text-primary">Type or Paste</strong> &mdash; Describe an idea, paste an article, or write a prompt.</li>
-              <li><strong className="text-text-primary">Record Voice</strong> &mdash; Speak your idea and Echo transcribes it, then creates content from your words.</li>
+              <li><strong className="text-text-primary">Paste a link</strong> &mdash; YouTube, Zoom, Loom, Vimeo, TikTok, or Riverside. EchoMe auto-detects the platform.</li>
+              <li><strong className="text-text-primary">Type a topic</strong> &mdash; Describe an idea, paste an article, or write a prompt.</li>
+              <li><strong className="text-text-primary">Drop a video file</strong> &mdash; Drag and drop directly onto the input.</li>
+              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button in the toolbar to speak your idea.</li>
             </ul>
-            <Tip>All three methods produce the same quality output. Pick whichever fits your workflow.</Tip>
+            <Tip>All input methods produce the same quality output. Pick whichever fits your workflow.</Tip>
           </Step>
 
           <Step number={2} title="Video upload guidelines">
@@ -95,7 +96,7 @@ export default function PlatformOverviewGuidePage() {
               <li>TikTok</li>
               <li>Riverside</li>
             </ul>
-            <p className="mt-2">Just paste the URL and click Go. No upload needed.</p>
+            <p className="mt-2">Just paste the URL into the Create input and hit submit. No separate upload step needed. If your Zoom recording requires a passcode, a field will appear below the input when you paste a Zoom link.</p>
             <Tip>YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video and uploading the file directly.</Tip>
           </Step>
 
@@ -153,7 +154,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={9} title="Follow other creators">
-            <p className="mb-2">The Discover section lets you follow other creators on EchoMe. When they post new videos, you can repurpose their content through your voice and context.</p>
+            <p className="mb-2">The <strong className="text-text-primary">Creator Radar</strong> feature in the sidebar lets you follow other creators on EchoMe. When they post new videos, you can repurpose their content through your voice and context.</p>
             <p>The output sounds like you, not them. EchoMe applies your voice profile to transform their ideas into your style and perspective.</p>
           </Step>
 
