@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { useGenerationProgress } from '@/hooks/useGenerationProgress';
@@ -12,7 +11,7 @@ import { ContentCards } from '@/components/content-cards';
 import { CarouselPreview } from '@/components/carousel-preview';
 import { setActiveGeneration, clearActiveGeneration } from '@/components/generation-banner';
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
-import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset, GenerationRequest } from '@/types';
+import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,17 +67,6 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
   };
 }
 
-function formatRelativeTime(date: Date | string): string {
-  const diffMs = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(date).toLocaleDateString();
-}
-
 export default function AppContent() {
   const router = useRouter();
   const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
@@ -110,9 +98,6 @@ export default function AppContent() {
     isUnlimited?: boolean;
   } | null>(null);
 
-  // Recent content kits for returning users
-  const [recentKits, setRecentKits] = useState<GenerationRequest[]>([]);
-
   // Check for pending checkout from signup flow
   const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
 
@@ -138,13 +123,6 @@ export default function AppContent() {
       }
     };
     loadUsageStats();
-  }, []);
-
-  // Load recent content kits for returning users
-  useEffect(() => {
-    api.generation.listRequests({ limit: 3, offset: 0 }).then(res => {
-      if (res.success && res.data) setRecentKits(res.data.filter((r: GenerationRequest) => r.status === 'completed'));
-    }).catch(() => {});
   }, []);
 
   // Real-time progress from SSE (including carousel status)
@@ -449,29 +427,6 @@ export default function AppContent() {
               activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
             />
           </div>
-
-          {/* Recent Content Kits */}
-          {recentKits.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Recent</h2>
-                <Link href="/app/content-kit" className="text-sm text-primary hover:underline">View all</Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 stagger-children">
-                {recentKits.map(kit => (
-                  <Link key={kit.id} href={`/app/content-kit/${kit.id}`}
-                    className="p-4 bg-card border border-border rounded-xl card-lift transition-all">
-                    <p className="font-medium text-sm truncate mb-1">{kit.generatedTitle || kit.inputText?.slice(0, 50) || 'Untitled'}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{kit.platforms?.length || 0} platforms</span>
-                      <span>&middot;</span>
-                      <span>{formatRelativeTime(kit.createdAt)}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Error */}
           {error && (
