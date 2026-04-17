@@ -12,8 +12,9 @@ import type { StyleOption } from './style-picker';
 import { setActiveGeneration, useActiveGeneration } from './generation-banner';
 import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
-import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, Film, PenLine, Mic, ArrowRight, ArrowLeft, type LucideIcon } from 'lucide-react';
+import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
+import UnifiedCreateInput from './UnifiedCreateInput';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -383,7 +384,6 @@ export function GenerationForm({
   activeVoice,
 }: FirstGenerationProps) {
   const [input, setInput] = useState('');
-  const [showModeSelector, setShowModeSelector] = useState(true);
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -1015,6 +1015,45 @@ export function GenerationForm({
     // and switches to text mode, so audio case never reaches here
   };
 
+  const handleUnifiedSubmit = (text: string, file?: File) => {
+    if (file) {
+      const MAX_SIZE = 2 * 1024 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        setUploadError(`File is too large (${Math.round(file.size / (1024 * 1024))}MB). Maximum is 2GB.`);
+        return;
+      }
+      setSelectedFile(file);
+      processVideoWithClipFinder(file, 'upload');
+      return;
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    // Check if it's a URL
+    const isYouTube = /youtube\.com|youtu\.be/.test(trimmed);
+    const isInstagram = /instagram\.com/.test(trimmed);
+    const isLoom = /loom\.com/.test(trimmed);
+    const isZoom = /zoom\.us/.test(trimmed);
+    const looksLikeUrl = /^https?:\/\//i.test(trimmed) || isYouTube || isInstagram || isLoom || isZoom;
+
+    if (looksLikeUrl) {
+      if (!isValidUrl(trimmed)) {
+        setUrlError('Please enter a valid video URL');
+        return;
+      }
+      const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
+      const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
+      setVideoUrl(trimmed);
+      processVideoWithClipFinder(undefined, sourceType as VideoSourceType, trimmed, passcode);
+      return;
+    }
+
+    // Plain text — generate content
+    setInput(trimmed);
+    onGenerate(trimmed, 'text' as InputType, ALL_PLATFORMS, undefined, undefined, 'tweet-style');
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       handleGenerate();
@@ -1060,83 +1099,58 @@ export function GenerationForm({
     ? selectedContent !== null
     : selectedFile !== null;
 
-  const selectMode = (mode: ExtendedInputType) => {
-    setInputType(mode);
-    setShowModeSelector(false);
-    clearFile();
-  };
-
-  // ─── MODE SELECTOR (3 equal cards) ───
-  if (showModeSelector && !videoProcessing && !generating && !uploading) {
+  // ─── RESTING STATE — Unified conversational input ───
+  if (!videoProcessing && !generating && !uploading && !selectedFile && inputType !== 'audio') {
     return (
-      <div className="max-w-4xl mx-auto">
-        {/* Ambient background */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-accent/5 blur-[120px] -z-10 rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent-purple/5 blur-[100px] -z-10 rounded-full pointer-events-none" />
+      <div ref={formCardRef} className="flex flex-col items-center justify-center min-h-[60vh]">
+        <UnifiedCreateInput
+          onSubmit={handleUnifiedSubmit}
+          onMicClick={() => {
+            setInputType('audio' as ExtendedInputType);
+          }}
+          onFileSelect={(file) => {
+            const MAX_SIZE = 2 * 1024 * 1024 * 1024;
+            if (file.size > MAX_SIZE) {
+              setUploadError(`File is too large (${Math.round(file.size / (1024 * 1024))}MB). Maximum is 2GB.`);
+              return;
+            }
+            setSelectedFile(file);
+            processVideoWithClipFinder(file, 'upload');
+          }}
+          disabled={generating || videoProcessing}
+          zoomPasswordValue={zoomPasswordUpfront}
+          onZoomPasswordChange={setZoomPasswordUpfront}
+        />
+        {uploadError && (
+          <p className="text-destructive text-sm mt-4 text-center max-w-md">{uploadError}</p>
+        )}
+        <ZoomPasswordModal
+          open={zoomPasswordModalOpen}
+          isRetryAfterIncorrect={zoomPasswordIsRetry}
+          onSubmit={handleZoomPasswordSubmit}
+          onCancel={handleZoomPasswordCancel}
+        />
+      </div>
+    );
+  }
 
-        {/* Heading */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-text-primary mb-3">
-            What are we working with?
-          </h2>
-          <p className="text-base text-text-secondary max-w-lg mx-auto">
-            Pick your source material. Echo handles the rest.
-          </p>
-          {activeVoice && (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 mt-3 bg-primary/5 border border-primary/15 rounded-full text-sm">
-              <span className="text-primary font-semibold">Voice:</span>
-              <span className="font-bold">{activeVoice.name}</span>
-            </div>
-          )}
+  // Audio recording mode — show VoiceInputPanel
+  if (inputType === 'audio' && !videoProcessing && !generating && !uploading && !selectedFile) {
+    return (
+      <div ref={formCardRef} className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors mb-4 cursor-pointer"
+          onClick={() => setInputType('video')}
+        >
+          <ArrowLeft className="w-3 h-3" /> Back
         </div>
-
-        {/* 3 Equal Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Upload Video */}
-          <button
-            onClick={() => selectMode('video')}
-            className="group relative flex flex-col items-center text-center p-8 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent/40 transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.05]"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-accent/15 flex items-center justify-center mb-6 group-hover:bg-accent group-hover:scale-110 transition-all duration-300">
-              <Film className="w-8 h-8 text-accent group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xl font-bold text-text-primary mb-2">Upload Video</h3>
-            <p className="text-sm text-text-secondary leading-relaxed">Drop a video or paste a YouTube, Loom, Zoom, or Vimeo link.</p>
-            <div className="mt-6 flex items-center gap-2 text-accent text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-              Get Started <ArrowRight className="w-3 h-3" />
-            </div>
-          </button>
-
-          {/* Type or Paste */}
-          <button
-            onClick={() => selectMode('text')}
-            className="group relative flex flex-col items-center text-center p-8 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent-purple/40 transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.05]"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-accent-purple/15 flex items-center justify-center mb-6 group-hover:bg-accent-purple group-hover:scale-110 transition-all duration-300">
-              <PenLine className="w-8 h-8 text-accent-purple group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xl font-bold text-text-primary mb-2">Type or Paste</h3>
-            <p className="text-sm text-text-secondary leading-relaxed">Describe an idea, paste an article, or write a prompt.</p>
-            <div className="mt-6 flex items-center gap-2 text-accent-purple text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-              Open Editor <ArrowRight className="w-3 h-3" />
-            </div>
-          </button>
-
-          {/* Record Voice */}
-          <button
-            onClick={() => selectMode('audio')}
-            className="group relative flex flex-col items-center text-center p-8 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] hover:border-accent-yellow/40 transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.05]"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-accent-yellow/15 flex items-center justify-center mb-6 group-hover:bg-accent-yellow group-hover:scale-110 transition-all duration-300">
-              <Mic className="w-8 h-8 text-accent-yellow group-hover:text-white transition-colors" />
-            </div>
-            <h3 className="text-xl font-bold text-text-primary mb-2">Record Voice</h3>
-            <p className="text-sm text-text-secondary leading-relaxed">Speak your idea. Echo transcribes and creates from your words.</p>
-            <div className="mt-6 flex items-center gap-2 text-accent-yellow text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-              Start Recording <ArrowRight className="w-3 h-3" />
-            </div>
-          </button>
-        </div>
+        <VoiceInputPanel
+          onTranscribed={(text) => {
+            setInput(text);
+            setInputType('text');
+            onGenerate(text, 'text' as InputType, ALL_PLATFORMS, undefined, undefined, 'tweet-style');
+          }}
+          disabled={generating || uploading}
+        />
       </div>
     );
   }
@@ -1151,7 +1165,7 @@ export function GenerationForm({
         <div className="flex items-center justify-between mb-6">
           <div>
             <button
-              onClick={() => { setShowModeSelector(true); clearFile(); }}
+              onClick={() => { clearFile(); setSelectedFile(null); }}
               className="flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-secondary transition-colors mb-2"
             >
               <ArrowLeft className="w-3 h-3" /> Change input type
@@ -1627,7 +1641,7 @@ export function GenerationForm({
                     setUploadError(null);
                     setInput('');
                     setInputType('video');
-                    setShowModeSelector(true);
+                    clearFile();
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-small font-medium"
                 >
@@ -1695,7 +1709,7 @@ export function GenerationForm({
                   Shrink it first (free)
                 </a>
                 <button
-                  onClick={() => { setUploadWarning(null); setInputType('video'); setShowModeSelector(true); }}
+                  onClick={() => { setUploadWarning(null); clearFile(); }}
                   className="inline-flex items-center px-3 py-1.5 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-md text-small font-medium transition-colors"
                 >
                   Paste a URL instead
