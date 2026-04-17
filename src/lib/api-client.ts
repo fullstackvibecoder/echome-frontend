@@ -2221,6 +2221,7 @@ export const api = {
         contentGenerated: kit.content_generated || false,
         createdAt: kit.created_at,
         updatedAt: kit.updated_at,
+        thumbnailUrl: kit.thumbnail_url || undefined,
         // Include joined video_uploads data if present
         video_uploads: kit.video_uploads,
       }));
@@ -4261,6 +4262,7 @@ export interface ContentKitListItem {
   contentGenerated: boolean;
   createdAt: string;
   updatedAt: string;
+  thumbnailUrl?: string;
   video_uploads?: {
     id: string;
     original_filename: string;
