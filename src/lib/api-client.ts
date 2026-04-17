@@ -1707,19 +1707,19 @@ export const api = {
         };
       }
 
-      // Try Mux direct upload first (faster, resumable, handles any size)
-      // Falls back to Supabase if Mux is not configured on the backend
+      // Try R2 direct upload (fast, no encoding wait, resumable multipart)
+      // Falls back to legacy Supabase upload if R2 is not configured
       try {
-        return await api.clips.uploadViaMux(data.file, {
+        return await api.clips.uploadViaR2(data.file, {
           knowledgeBaseId: data.knowledgeBaseId,
           title: data.title,
         }, onProgress);
-      } catch (muxErr: any) {
-        // 503 = Mux not configured, fall through to legacy upload
-        if (muxErr?.response?.status !== 503) {
-          throw muxErr; // Real error, don't swallow
+      } catch (r2Err: any) {
+        // 503 = R2 not configured, fall through to legacy upload
+        if (r2Err?.response?.status !== 503) {
+          throw r2Err; // Real error, don't swallow
         }
-        console.log('[api-client] Mux not configured, falling back to direct upload');
+        console.log('[api-client] R2 not configured, falling back to direct upload');
       }
 
       // Fallback: for large files (>50MB), use direct upload to Supabase storage
@@ -1874,11 +1874,11 @@ export const api = {
     },
 
     /**
-     * Upload via Mux direct upload (resumable, any size, CDN-backed).
-     * Mux transcodes the video and fires a webhook when ready.
-     * We poll the upload status until the webhook has set mux_mp4_url.
+     * Upload via R2 direct upload (presigned URL, no encoding wait).
+     * Files >100MB use multipart upload with parallel chunks.
+     * Processing starts immediately on completion — no transcoding wait.
      */
-    uploadViaMux: async (
+    uploadViaR2: async (
       file: File,
       options?: {
         knowledgeBaseId?: string;
@@ -1886,46 +1886,33 @@ export const api = {
       },
       onProgress?: (progress: number) => void
     ) => {
-      // Client-side file size check — reject before wasting bandwidth
-      const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
+      const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
       if (file.size > MAX_FILE_SIZE) {
         const sizeMB = Math.round(file.size / (1024 * 1024));
         throw new Error(
-          `File is too large (${sizeMB}MB). Maximum upload size is 2GB. ` +
+          `File is too large (${sizeMB}MB). Maximum upload size is 5GB. ` +
           `Try compressing the video or trimming it to a shorter length before uploading.`
         );
       }
 
-      // Step 1: Get Mux upload URL from our backend
-      console.log('[api-client] Initializing Mux upload:', {
-        filename: file.name,
-        size: file.size,
-        type: file.type,
-      });
+      console.log('[api-client] Initializing R2 upload:', { filename: file.name, size: file.size });
 
-      const initResponse = await apiClient.post('/clips/upload/mux-init', {
+      const initResponse = await apiClient.post('/clips/upload/r2-init', {
         filename: file.name,
-        mimeType: file.type || 'video/mp4',
-        fileSizeBytes: file.size,
+        contentType: file.type || 'video/mp4',
+        fileSize: file.size,
         knowledgeBaseId: options?.knowledgeBaseId,
         title: options?.title,
       });
 
       if (!initResponse.data.success || !initResponse.data.data) {
-        throw new Error('Failed to initialize Mux upload');
+        throw new Error('Failed to initialize upload');
       }
 
-      const { uploadId, muxUploadUrl } = initResponse.data.data;
-      console.log('[api-client] Got Mux upload URL:', uploadId);
+      const { uploadId, multipart, presignedUrl, parts, partSize } = initResponse.data.data;
+      console.log('[api-client] R2 upload initialized:', { uploadId, multipart });
       if (onProgress) onProgress(5);
 
-      // Step 2: Upload file to Mux via UpChunk (chunked, resumable, parallel)
-      // Splits large files into chunks for faster upload with automatic retry
-      console.log('[api-client] Uploading to Mux CDN via UpChunk...');
-
-      const { createUpload } = await import('@mux/upchunk');
-
-      // Prevent navigation/close during upload
       const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue = 'Video upload in progress. Are you sure you want to leave?';
@@ -1933,94 +1920,115 @@ export const api = {
       };
       window.addEventListener('beforeunload', beforeUnloadHandler);
 
-      await new Promise<void>((resolve, reject) => {
-        const upload = createUpload({
-          endpoint: muxUploadUrl,
-          file,
-          chunkSize: 10 * 1024, // 10MB chunks (in KB for upchunk) — reliable on mobile
-          maxFileSize: 2 * 1024 * 1024 * 1024, // 2GB
-        });
+      try {
+        if (multipart && parts) {
+          const CONCURRENCY = 3;
+          const completedParts: Array<{ partNumber: number; etag: string }> = [];
+          let completedBytes = 0;
 
-        let lastReportedPct = 0;
+          const uploadPart = async (part: { partNumber: number; url: string }) => {
+            const start = (part.partNumber - 1) * partSize;
+            const end = Math.min(start + partSize, file.size);
+            const chunk = file.slice(start, end);
 
-        upload.on('progress', (progress: { detail: number }) => {
-          const pct = Math.round(progress.detail);
-          console.log('[api-client] Upload progress:', pct + '%');
-          if (onProgress) onProgress(Math.max(5, Math.min(pct, 85)));
+            const response = await fetch(part.url, {
+              method: 'PUT',
+              body: chunk,
+              headers: { 'Content-Type': 'application/octet-stream' },
+            });
 
-          // Report progress to backend every 10% for UI tracking
-          if (pct - lastReportedPct >= 10) {
-            lastReportedPct = pct;
+            if (!response.ok) {
+              throw new Error(`Part ${part.partNumber} upload failed: ${response.status}`);
+            }
+
+            const etag = response.headers.get('ETag') || '';
+            completedParts.push({ partNumber: part.partNumber, etag });
+            completedBytes += (end - start);
+
+            if (onProgress) {
+              const pct = Math.round((completedBytes / file.size) * 80) + 5;
+              onProgress(Math.min(pct, 85));
+            }
+
             apiClient.post(`/clips/upload/${uploadId}/upload-progress`, {
-              bytesUploaded: Math.round((pct / 100) * file.size),
+              bytesUploaded: completedBytes,
               totalBytes: file.size,
-            }).catch(() => {}); // Non-critical
-          }
-        });
+            }).catch(() => {});
+          };
 
-        upload.on('success', () => {
-          console.log('[api-client] UpChunk upload complete');
-          window.removeEventListener('beforeunload', beforeUnloadHandler);
-          resolve();
-        });
-
-        upload.on('error', (err: { detail: { message: string } }) => {
-          console.error('[api-client] UpChunk upload error:', err.detail);
-          window.removeEventListener('beforeunload', beforeUnloadHandler);
-          reject(new Error(`Mux upload failed: ${err.detail.message}`));
-        });
-      });
-
-      if (onProgress) onProgress(85);
-
-      // Step 3: Wait for Mux to transcode and webhook to fire
-      // Re-add navigation guard for the transcoding wait phase
-      window.addEventListener('beforeunload', beforeUnloadHandler);
-      console.log('[api-client] Waiting for Mux transcoding...');
-
-      const maxWaitMs = 20 * 60 * 1000; // 20 minutes max (large HEVC files can take 15+ min to transcode)
-      const pollIntervalMs = 3000;
-      const startTime = Date.now();
-
-      while (Date.now() - startTime < maxWaitMs) {
-        await new Promise(r => setTimeout(r, pollIntervalMs));
-
-        const elapsed = Date.now() - startTime;
-        // Progress 85-95% during transcoding wait
-        if (onProgress) onProgress(85 + Math.min(10, Math.round((elapsed / maxWaitMs) * 10)));
-
-        try {
-          const statusResponse = await apiClient.get(`/clips/${uploadId}`);
-          const upload = statusResponse.data?.data?.upload;
-
-          if (upload?.status === 'failed') {
-            throw new Error(upload.statusMessage || 'Mux transcoding failed');
+          for (let i = 0; i < parts.length; i += CONCURRENCY) {
+            const batch = parts.slice(i, i + CONCURRENCY);
+            await Promise.all(batch.map(uploadPart));
           }
 
-          // Upload is ready when webhook has set the asset ID and MP4 URL
-          // (static rendition can take extra time after asset is ready for large files)
-          if (upload?.status === 'pending' && upload?.muxAssetId && upload?.muxMp4Url) {
-            console.log('[api-client] Mux transcoding complete, ready for processing');
-            window.removeEventListener('beforeunload', beforeUnloadHandler);
-            if (onProgress) onProgress(100);
+          const completeResponse = await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {
+            parts: completedParts.sort((a, b) => a.partNumber - b.partNumber),
+          });
 
-            return {
-              success: true,
-              data: {
-                upload,
-                message: 'Video uploaded and transcoded via Mux',
-              },
+          if (!completeResponse.data.success) {
+            throw new Error('Failed to complete multipart upload');
+          }
+        } else if (presignedUrl) {
+          await new Promise<void>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', presignedUrl);
+            xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable && onProgress) {
+                const pct = Math.round((e.loaded / e.total) * 80) + 5;
+                onProgress(Math.min(pct, 85));
+              }
             };
-          }
-        } catch (pollErr: any) {
-          // Don't throw on poll errors, just keep trying
-          if (pollErr?.message?.includes('failed')) throw pollErr;
-          console.warn('[api-client] Poll error, retrying:', pollErr?.message);
-        }
-      }
 
-      window.removeEventListener('beforeunload', beforeUnloadHandler);
-      throw new Error('Mux transcoding timed out. Your video may still be processing — try clicking Process in a few minutes.');
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) resolve();
+              else reject(new Error(`Upload failed: ${xhr.status}`));
+            };
+            xhr.onerror = () => reject(new Error('Upload failed: network error'));
+            xhr.send(file);
+          });
+
+          await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {});
+        }
+
+        if (onProgress) onProgress(90);
+
+        // No encoding wait — processing starts immediately on r2-complete.
+        // Poll for processing completion.
+        const maxWaitMs = 15 * 60 * 1000;
+        const pollIntervalMs = 3000;
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < maxWaitMs) {
+          await new Promise(r => setTimeout(r, pollIntervalMs));
+
+          const elapsed = Date.now() - startTime;
+          if (onProgress) onProgress(90 + Math.min(9, Math.round((elapsed / maxWaitMs) * 9)));
+
+          try {
+            const statusResponse = await apiClient.get(`/clips/${uploadId}`);
+            const upload = statusResponse.data?.data?.upload;
+
+            if (upload?.status === 'failed') {
+              throw new Error(upload.statusMessage || 'Processing failed');
+            }
+
+            if (upload?.status === 'completed') {
+              console.log('[api-client] Processing complete');
+              if (onProgress) onProgress(100);
+              return { success: true, data: { upload, message: 'Video uploaded and processed' } };
+            }
+          } catch (pollErr: any) {
+            if (pollErr?.message?.includes('failed')) throw pollErr;
+            console.warn('[api-client] Poll error, retrying:', pollErr?.message);
+          }
+        }
+
+        throw new Error('Processing timed out. Your video may still be processing.');
+      } finally {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+      }
     },
 
     /** Start processing pipeline for a video */
