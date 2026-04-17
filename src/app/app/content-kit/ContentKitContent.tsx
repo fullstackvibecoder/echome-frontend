@@ -1,69 +1,42 @@
 'use client';
 
-/**
- * Content Library Page
- *
- * Redesigned unified view for all content with:
- * - Dual-view system (list/grid toggle)
- * - Smart grouping (date, platform, status, type)
- * - Search + quick filters
- * - Bulk actions
- */
-
-import { Suspense, useCallback, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
 import { useVoiceContext } from '@/contexts/voice-context';
-import {
-  ContentFiltersBar,
-  ContentListView,
-  ContentGridView,
-  BulkActionsBar,
-} from '@/components/content-library';
+import { StatusSection } from '@/components/content-library/StatusSection';
+import { Search, RefreshCw } from 'lucide-react';
 import type { NormalizedContent } from '@/lib/content-normalizer';
-import { Video, PenLine, Image, Plus, RefreshCw, Package } from 'lucide-react';
-import { InfoTooltip } from '@/components/info-tooltip';
-import { UpgradeBanner } from '@/components/upgrade-banner';
-import { AppPageHeader } from '@/components/app-page-header';
 
-function ContentLibraryInner() {
-  const router = useRouter();
+const EARLIER_THRESHOLD_DAYS = 7;
+
+const PROCESSING_STATUSES = new Set([
+  'pending',
+  'processing',
+  'uploading',
+  'transcribing',
+  'analyzing',
+  'extracting',
+  'captioning',
+  'generating',
+]);
+
+function sortByCreatedAtDesc(a: NormalizedContent, b: NormalizedContent) {
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
+function ContentKitListInner() {
   const { voices, isTeamsUser } = useVoiceContext();
   const [voiceFilter, setVoiceFilter] = useState<string>('all');
 
   const {
     items: rawItems,
-    groups: rawGroups,
     stats,
-    state,
-    pagination,
     isLoading,
     error,
-    setViewMode,
-    setGroupBy,
-    setSortBy,
     setSearchQuery,
-    setContentTypeFilter,
-    togglePlatformFilter,
-    toggleSelection,
-    selectAll,
-    clearSelection,
-    loadMore,
     refresh,
-    deleteSelected,
-    downloadSelected,
   } = useContentLibrary();
-
-  const handleItemClick = useCallback((item: NormalizedContent) => {
-    // Route to detail page using the source ID
-    const id = item.generationRequestId || item.videoUploadId || item.sourceId;
-    router.push(`/app/content-kit/${id}`);
-  }, [router]);
-
-  const handleSelect = useCallback((id: string, selected: boolean) => {
-    toggleSelection(id);
-  }, [toggleSelection]);
 
   // Apply voice filter for teams users
   const items = useMemo(() => {
@@ -72,209 +45,175 @@ function ContentLibraryInner() {
     return rawItems.filter(i => i.voiceId === voiceFilter);
   }, [rawItems, voiceFilter, isTeamsUser]);
 
-  const groups = useMemo(() => {
-    if (!isTeamsUser || voiceFilter === 'all') return rawGroups;
-    return rawGroups.map(g => ({
-      ...g,
-      items: g.items.filter(i =>
-        voiceFilter === 'none' ? !i.voiceId : i.voiceId === voiceFilter
-      ),
-    })).filter(g => g.items.length > 0);
-  }, [rawGroups, voiceFilter, isTeamsUser]);
+  // Group items by status
+  const { readyToPublish, processing, failed, earlier } = useMemo(() => {
+    const now = Date.now();
+    const threshold = EARLIER_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
 
-  // Recalculate stats based on voice-filtered items (not raw unfiltered)
-  const filteredStats = useMemo(() => {
+    const ready: NormalizedContent[] = [];
+    const proc: NormalizedContent[] = [];
+    const fail: NormalizedContent[] = [];
+    const old: NormalizedContent[] = [];
+
+    for (const item of items) {
+      if (item.status === 'failed') {
+        fail.push(item);
+      } else if (PROCESSING_STATUSES.has(item.status)) {
+        proc.push(item);
+      } else if (item.status === 'completed') {
+        const age = now - new Date(item.createdAt).getTime();
+        if (age < threshold) {
+          ready.push(item);
+        } else {
+          old.push(item);
+        }
+      }
+    }
+
     return {
-      total: items.length,
-      videos: items.filter(i => (i.clipCount || 0) > 0).length,
-      written: items.filter(i => (i.platformCount || 0) > 0).length,
-      carousels: 0,
-      processing: items.filter(i => i.status === 'processing' || i.status === 'pending').length,
+      readyToPublish: ready.sort(sortByCreatedAtDesc),
+      processing: proc.sort(sortByCreatedAtDesc),
+      failed: fail.sort(sortByCreatedAtDesc),
+      earlier: old.sort(sortByCreatedAtDesc),
     };
   }, [items]);
 
-  const selectedCount = state.selectedIds.size;
-  const showBulkActions = selectedCount > 0;
+  // Summary line
+  const summaryLine = useMemo(() => {
+    const parts: string[] = [];
+    parts.push(`${stats.total} kit${stats.total !== 1 ? 's' : ''}`);
+    const postCount = stats.written;
+    parts.push(`${postCount} post${postCount !== 1 ? 's' : ''}`);
+    const clipCount = stats.videos;
+    parts.push(`${clipCount} clip${clipCount !== 1 ? 's' : ''}`);
+    return parts.join(' \u00b7 ');
+  }, [stats]);
+
+  // Error state
+  if (error && items.length === 0) {
+    return (
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <p className="text-text-secondary mb-4">{error}</p>
+          <button
+            onClick={refresh}
+            className="text-accent hover:underline font-medium"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading && items.length === 0) {
+    return (
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="flex items-center justify-center py-24">
+          <RefreshCw className="w-5 h-5 animate-spin text-text-secondary" />
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!isLoading && items.length === 0 && !error) {
+    return (
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <h3 className="text-lg font-semibold mb-1">No content kits yet</h3>
+          <p className="text-text-secondary mb-6 text-sm">
+            Create your first content kit to get started
+          </p>
+          <Link href="/app" className="btn-primary">
+            Create Content
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
-      <AppPageHeader
-        title="Content Library"
-        description="Your generated content, clips, and carousels"
-        actions={
-          <Link
-            href="/app"
-            className="btn-primary flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create New</span>
-          </Link>
-        }
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div>
+          <h1 className="text-xl font-semibold">Content Kits</h1>
+          <p className="text-sm text-text-secondary mt-0.5">{summaryLine}</p>
+        </div>
 
-      <UpgradeBanner />
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search kits..."
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-bg-secondary border border-border rounded-lg pl-9 pr-3 py-2 text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/50 w-48 sm:w-56"
+            />
+          </div>
 
-      {/* Stats Card */}
-      <div className="mb-6 bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center gap-6 text-sm flex-wrap">
-          <div>
-            <span className="text-3xl font-bold text-foreground">{filteredStats.total}</span>
-            <span className="text-text-secondary ml-2">Total pieces</span>
-          </div>
-          <div className="h-8 w-px bg-border" />
-          <div className="flex items-center gap-5 text-text-secondary">
-            <div className="flex items-center gap-1.5">
-              <Video className="w-4 h-4" />
-              <span>{filteredStats.videos} videos</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <PenLine className="w-4 h-4" />
-              <span>{filteredStats.written} written</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Image className="w-4 h-4" />
-              <span>{filteredStats.carousels} carousels</span>
-            </div>
-          </div>
-          {filteredStats.processing > 0 && (
-            <>
-              <div className="h-8 w-px bg-border" />
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                <span className="text-accent font-medium">{filteredStats.processing} processing</span>
-              </div>
-            </>
-          )}
-          <div className="flex-1" />
+          {/* Refresh */}
           <button
             onClick={refresh}
             disabled={isLoading}
-            className="flex items-center gap-1.5 text-text-secondary hover:text-accent transition-colors"
+            className="flex items-center justify-center w-9 h-9 rounded-lg border border-border text-text-secondary hover:text-accent hover:border-accent/50 transition-colors"
+            title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
           </button>
+
+          {/* Voice filter for teams */}
+          {isTeamsUser && voices.length > 0 && (
+            <select
+              value={voiceFilter}
+              onChange={(e) => setVoiceFilter(e.target.value)}
+              className="bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50"
+            >
+              <option value="all">All Voices</option>
+              {voices.map((v) => (
+                <option key={v.id} value={v.id}>{v.name}</option>
+              ))}
+              <option value="none">No Voice</option>
+            </select>
+          )}
         </div>
       </div>
 
-      {/* Filters Bar */}
-      <div className="mb-6 flex items-center gap-4">
-        <div className="flex-1">
-          <ContentFiltersBar
-            viewMode={state.viewMode}
-            groupBy={state.groupBy}
-            sortBy={state.sortBy}
-            searchQuery={state.searchQuery}
-            contentTypeFilter={state.contentTypeFilter}
-            platformFilters={state.platformFilters}
-            onViewModeChange={setViewMode}
-            onGroupByChange={setGroupBy}
-            onSortByChange={setSortBy}
-            onSearchChange={setSearchQuery}
-            onContentTypeFilterChange={setContentTypeFilter}
-            onPlatformFilterToggle={togglePlatformFilter}
-          />
-        </div>
-        {isTeamsUser && voices.length > 0 && (
-          <select
-            value={voiceFilter}
-            onChange={(e) => setVoiceFilter(e.target.value)}
-            className="bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50"
-          >
-            <option value="all">All Voices</option>
-            {voices.map((v) => (
-              <option key={v.id} value={v.id}>{v.name}</option>
-            ))}
-            <option value="none">No Voice</option>
-          </select>
-        )}
-      </div>
-
-      {/* Bulk Actions Bar */}
-      {showBulkActions && (
-        <div className="mb-6">
-          <BulkActionsBar
-            selectedCount={selectedCount}
-            totalCount={items.length}
-            onSelectAll={selectAll}
-            onClearSelection={clearSelection}
-            onDelete={deleteSelected}
-            onDownload={downloadSelected}
-          />
-        </div>
-      )}
-
-      {/* Error State */}
+      {/* Inline error banner (when items exist but refresh fails) */}
       {error && (
-        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center mb-6">
+        <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-sm text-center mb-6">
           {error}
-          <button onClick={refresh} className="ml-4 underline hover:no-underline">
+          <button onClick={refresh} className="ml-3 underline hover:no-underline">
             Try again
           </button>
         </div>
       )}
 
-      {/* Loading State */}
-      {isLoading && items.length === 0 && (
-        <div className="py-8 space-y-6 animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-            <div className="skeleton h-64 rounded-xl" />
-            <div className="skeleton h-64 rounded-xl" />
-            <div className="skeleton h-64 rounded-xl" />
-            <div className="skeleton h-64 rounded-xl" />
-            <div className="skeleton h-64 rounded-xl" />
-            <div className="skeleton h-64 rounded-xl" />
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && items.length === 0 && !error && (
-        <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
-          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
-            <Package className="w-7 h-7 text-accent" />
-          </div>
-          <h3 className="text-xl font-semibold mb-2">No content yet</h3>
-          <p className="text-text-secondary mb-6">
-            {state.searchQuery || state.contentTypeFilter !== 'all' || state.platformFilters.length > 0
-              ? 'No content matches your filters. Try adjusting your search.'
-              : 'Start creating content from your knowledge base or upload a video'}
-          </p>
-          <Link href="/app" className="btn-primary">
-            Create Your First Content
-          </Link>
-        </div>
-      )}
-
-      {/* Content View */}
-      {items.length > 0 && (
-        state.viewMode === 'list' ? (
-          <ContentListView
-            items={items}
-            groups={groups}
-            selectedIds={state.selectedIds}
-            onSelect={handleSelect}
-            onSelectAll={selectAll}
-            onItemClick={handleItemClick}
-            isSelectionMode={state.isSelectionMode}
-            isLoading={pagination.isLoadingMore}
-            hasMore={pagination.hasMore}
-            onLoadMore={loadMore}
-          />
-        ) : (
-          <ContentGridView
-            items={items}
-            selectedIds={state.selectedIds}
-            onSelect={handleSelect}
-            onItemClick={handleItemClick}
-            isSelectionMode={state.isSelectionMode}
-            isLoading={pagination.isLoadingMore}
-            hasMore={pagination.hasMore}
-            onLoadMore={loadMore}
-          />
-        )
-      )}
+      {/* Status sections */}
+      <StatusSection
+        label="Ready to Publish"
+        dotColor="#22c55e"
+        items={readyToPublish}
+      />
+      <StatusSection
+        label="Processing"
+        dotColor="#f59e0b"
+        items={processing}
+      />
+      <StatusSection
+        label="Failed"
+        dotColor="#ef4444"
+        items={failed}
+      />
+      <StatusSection
+        label="Earlier"
+        dotColor="#555"
+        items={earlier}
+        defaultCollapsed
+      />
     </div>
   );
 }
@@ -283,18 +222,13 @@ function ContentLibraryInner() {
 export default function ContentKitContent() {
   return (
     <Suspense fallback={
-      <div className="container mx-auto px-6 py-8 max-w-7xl space-y-6">
-        <div className="skeleton h-8 w-48" />
-        <div className="skeleton h-4 w-64" />
-        <div className="skeleton h-20 rounded-xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="skeleton h-64 rounded-xl" />
-          <div className="skeleton h-64 rounded-xl" />
-          <div className="skeleton h-64 rounded-xl" />
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="flex items-center justify-center py-24">
+          <RefreshCw className="w-5 h-5 animate-spin text-text-secondary" />
         </div>
       </div>
     }>
-      <ContentLibraryInner />
+      <ContentKitListInner />
     </Suspense>
   );
 }
