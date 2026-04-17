@@ -1144,7 +1144,7 @@ export function GenerationForm({
   return (
     <div className="relative group max-w-3xl mx-auto">
       {/* Ambient glow behind card */}
-      <div className="absolute -inset-2 bg-gradient-to-r from-[#00D4FF]/15 to-[#B794F6]/15 rounded-[2.5rem] blur-2xl opacity-40 group-hover:opacity-60 transition-opacity" />
+      <div className="absolute -inset-2 bg-gradient-to-r from-accent/15 to-accent-purple/15 rounded-[2.5rem] blur-2xl opacity-40 group-hover:opacity-60 transition-opacity" />
 
       <div ref={formCardRef} className="relative backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border border-outline-variant/40 dark:border-white/10 rounded-[2rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_90px_rgba(0,0,0,0.06)] transition-shadow">
         {/* Header — changes per input mode */}
@@ -1413,7 +1413,7 @@ export function GenerationForm({
                 {videoDragActive ? (
                   <>
                     <div className="text-6xl mb-3 animate-bounce">📥</div>
-                    <p className="text-xl font-bold bg-gradient-to-r from-[#00D4FF] to-[#B794F6] bg-clip-text text-transparent mb-1">
+                    <p className="text-xl font-bold bg-gradient-to-r from-accent to-accent-purple bg-clip-text text-transparent mb-1">
                       Drop your video here
                     </p>
                     <p className="text-sm text-gray-500">Release to upload</p>
@@ -1452,7 +1452,7 @@ export function GenerationForm({
                           value={videoUrl}
                           onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
                           placeholder="YouTube, Loom, Zoom, Vimeo, TikTok, Riverside..."
-                          className="flex-1 px-3 py-2 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white text-sm placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none"
+                          className="flex-1 px-3 py-2 rounded-lg bg-card border border-border text-white text-sm placeholder:text-gray-500 focus:border-accent focus:outline-none"
                         />
                         <button
                           onClick={() => {
@@ -1467,7 +1467,7 @@ export function GenerationForm({
                             processVideoWithClipFinder(undefined, sourceType, url, passcode);
                           }}
                           disabled={!videoUrl.trim() || generating || videoProcessing}
-                          className="px-4 py-2 bg-[#00D4FF] text-black rounded-lg text-sm font-bold disabled:opacity-40 hover:brightness-110 transition-all"
+                          className="px-4 py-2 bg-accent text-black rounded-lg text-sm font-bold disabled:opacity-40 hover:brightness-110 transition-all"
                         >
                           Go
                         </button>
@@ -1482,7 +1482,7 @@ export function GenerationForm({
                             placeholder="Zoom passcode (only if your recording requires one)"
                             autoComplete="off"
                             spellCheck={false}
-                            className="w-full px-3 py-2 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white text-sm placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none"
+                            className="w-full px-3 py-2 rounded-lg bg-card border border-border text-white text-sm placeholder:text-gray-500 focus:border-accent focus:outline-none"
                           />
                         </div>
                       )}
@@ -1753,8 +1753,8 @@ export function GenerationForm({
                 onClick={() => router.push(`/app/billing?plan=${plan.id}`)}
                 className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between ${
                   plan.popular
-                    ? 'bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                    : 'bg-gray-800 border-2 border-gray-600 text-gray-200 hover:border-[#00D4FF] hover:scale-[1.02]'
+                    ? 'bg-gradient-to-r from-accent to-primary-dark text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
+                    : 'bg-gray-800 border-2 border-gray-600 text-gray-200 hover:border-accent hover:scale-[1.02]'
                 }`}
               >
                 <span>{plan.name} - {plan.price}</span>
@@ -1776,7 +1776,7 @@ export function GenerationForm({
               </span>
               <button
                 onClick={() => router.push('/app/billing')}
-                className="text-xs font-semibold text-[#00D4FF] hover:text-[#0099CC] transition-colors"
+                className="text-xs font-semibold text-accent hover:text-primary-dark transition-colors"
               >
                 Subscribe for unlimited →
               </button>

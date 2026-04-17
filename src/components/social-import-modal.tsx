@@ -394,7 +394,7 @@ export function SocialImportModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1C1C1E]/60 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-md"
       onClick={handleBackdropClick}
     >
       <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-[0_40px_100px_rgba(0,0,0,0.12)] w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">

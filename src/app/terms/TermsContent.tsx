@@ -14,19 +14,19 @@ import {
 
 export default function TermsContent() {
   return (
-    <div className="min-h-screen bg-[#F6F6F6]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-stone-600 hover:text-[#00D4FF] transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-stone-600 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="text-sm font-medium">Back to Home</span>
         </Link>
 
         <div className="mb-12">
-          <h1 className="bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparentxl md:text-5xl font-medium text-[#1C1C1E] mb-4">
+          <h1 className="bg-gradient-to-r from-accent to-primary-dark bg-clip-text text-transparentxl md:text-5xl font-medium text-foreground mb-4">
             Terms of Service
           </h1>
           <p className="text-lg text-stone-600">
@@ -39,11 +39,11 @@ export default function TermsContent() {
           {/* Effective Date */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <FileText className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-medium text-[#1C1C1E]">
+                <h2 className="text-xl font-medium text-foreground">
                   Effective Date
                 </h2>
                 <p className="text-sm text-stone-600">March 12, 2026</p>
@@ -65,10 +65,10 @@ export default function TermsContent() {
           {/* Eligibility */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 1. Eligibility
               </h2>
             </div>
@@ -83,10 +83,10 @@ export default function TermsContent() {
           {/* Description of Service */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Settings className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 2. Description of Service
               </h2>
             </div>
@@ -115,10 +115,10 @@ export default function TermsContent() {
           {/* User Accounts */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Eye className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 3. User Accounts
               </h2>
             </div>
@@ -139,10 +139,10 @@ export default function TermsContent() {
           {/* Use of Imported Content */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Lock className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 4. Use of Imported Content
               </h2>
             </div>
@@ -164,7 +164,7 @@ export default function TermsContent() {
 
           {/* Generated Content */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               5. Generated Content
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -180,7 +180,7 @@ export default function TermsContent() {
 
           {/* User Responsibilities */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               6. User Responsibilities
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -202,7 +202,7 @@ export default function TermsContent() {
 
           {/* Subscription & Billing */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               7. Subscription & Billing
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -219,7 +219,7 @@ export default function TermsContent() {
 
           {/* Data Storage & Transfer */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               8. Data Storage & Transfer
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -233,7 +233,7 @@ export default function TermsContent() {
               We implement industry-standard security but cannot guarantee
               absolute protection.
             </p>
-            <div className="pl-4 border-l-2 border-[#00D4FF] mt-4">
+            <div className="pl-4 border-l-2 border-accent mt-4">
               <h3 className="text-base font-medium text-stone-800 mb-2">
                 8.A) Extended Use of Anonymized Data
               </h3>
@@ -264,7 +264,7 @@ export default function TermsContent() {
                 by contacting{' '}
                 <a
                   href="mailto:privacy@tryechome.com"
-                  className="text-[#00D4FF] hover:underline font-medium"
+                  className="text-accent hover:underline font-medium"
                 >
                   privacy@tryechome.com
                 </a>
@@ -275,7 +275,7 @@ export default function TermsContent() {
 
           {/* Termination */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               9. Termination
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -291,7 +291,7 @@ export default function TermsContent() {
 
           {/* Disclaimer of Warranties */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               10. Disclaimer of Warranties
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -303,7 +303,7 @@ export default function TermsContent() {
 
           {/* Limitation of Liability */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               11. Limitation of Liability
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -316,7 +316,7 @@ export default function TermsContent() {
 
           {/* Modifications */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               12. Modifications
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -328,7 +328,7 @@ export default function TermsContent() {
 
           {/* Governing Law */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               13. Governing Law
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -341,10 +341,10 @@ export default function TermsContent() {
           {/* Contact */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Mail className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 14. Contact
               </h2>
             </div>
@@ -353,7 +353,7 @@ export default function TermsContent() {
             </p>
             <a
               href="mailto:legal@tryechome.com"
-              className="text-lg font-medium text-[#00D4FF] hover:underline"
+              className="text-lg font-medium text-accent hover:underline"
             >
               legal@tryechome.com
             </a>

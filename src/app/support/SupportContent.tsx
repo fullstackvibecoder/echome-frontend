@@ -6,19 +6,19 @@ import { ArrowLeft, HelpCircle, Upload, Mic, Video, Scissors, FileText, BookOpen
 
 export default function SupportContent() {
   return (
-    <div className="min-h-screen bg-[#F6F6F6]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-stone-600 hover:text-[#00D4FF] transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-stone-600 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="text-sm font-medium">Back to Home</span>
         </Link>
 
         <div className="mb-12">
-          <h1 className="bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparent text-4xl md:text-5xl font-medium mb-4">
+          <h1 className="bg-gradient-to-r from-accent to-primary-dark bg-clip-text text-transparent text-4xl md:text-5xl font-medium mb-4">
             Support
           </h1>
           <p className="text-lg text-stone-600">
@@ -32,10 +32,10 @@ export default function SupportContent() {
           {/* Getting Started */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <HelpCircle className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Getting Started
               </h2>
             </div>
@@ -43,7 +43,7 @@ export default function SupportContent() {
               EchoMe turns your videos into ready-to-post content that sounds like you wrote it. Here is how to get up and running:
             </p>
             <div className="space-y-4">
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">
                   1. Create your account
                 </h3>
@@ -51,7 +51,7 @@ export default function SupportContent() {
                   Sign up with your email or Google account. Your first 2 generations are free, no credit card required.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">
                   2. Build your voice profile
                 </h3>
@@ -59,7 +59,7 @@ export default function SupportContent() {
                   Add content to your Knowledge Base. Paste text, import URLs, upload documents, or record a voice sample. The more context EchoMe has, the better it matches your voice.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">
                   3. Upload your first video
                 </h3>
@@ -67,7 +67,7 @@ export default function SupportContent() {
                   Drop a video file, paste a YouTube link, or record directly. EchoMe will extract clips, add captions, and write social posts for LinkedIn, Twitter, and Instagram.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">
                   4. Review and share
                 </h3>
@@ -81,10 +81,10 @@ export default function SupportContent() {
           {/* Uploading Videos */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Upload className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Uploading Videos
               </h2>
             </div>
@@ -113,10 +113,10 @@ export default function SupportContent() {
           {/* Content Kit */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Scissors className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Your Content Kit
               </h2>
             </div>
@@ -142,10 +142,10 @@ export default function SupportContent() {
           {/* Voice Profile and Knowledge Base */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Mic className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Voice Profile and Knowledge Base
               </h2>
             </div>
@@ -177,10 +177,10 @@ export default function SupportContent() {
           {/* Clips and Exports */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Video className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Clips and Exports
               </h2>
             </div>
@@ -215,10 +215,10 @@ export default function SupportContent() {
           {/* Quick Create */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <FileText className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Quick Create
               </h2>
             </div>
@@ -226,19 +226,19 @@ export default function SupportContent() {
               Generate content without uploading a video. There are three ways to use Quick Create:
             </p>
             <div className="space-y-3">
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">Type or paste text</h3>
                 <p className="text-stone-700 text-sm">
                   Describe a topic, paste an article, or write a prompt. EchoMe generates platform-specific posts in your voice.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">Record voice</h3>
                 <p className="text-stone-700 text-sm">
                   Speak your idea. EchoMe transcribes it and turns it into polished content for each platform.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-1">Repurpose</h3>
                 <p className="text-stone-700 text-sm">
                   Paste an existing post from one platform and EchoMe rewrites it for others, maintaining your voice across channels.
@@ -250,10 +250,10 @@ export default function SupportContent() {
           {/* Troubleshooting */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <AlertTriangle className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Troubleshooting
               </h2>
             </div>
@@ -294,10 +294,10 @@ export default function SupportContent() {
           {/* Plans and Billing */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <BookOpen className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Plans and Billing
               </h2>
             </div>
@@ -326,10 +326,10 @@ export default function SupportContent() {
           {/* Contact Support */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Mail className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 Contact Support
               </h2>
             </div>
@@ -338,21 +338,21 @@ export default function SupportContent() {
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[#00D4FF]" />
+                <Mail className="w-4 h-4 text-accent" />
                 <a
                   href="mailto:support@tryechome.com"
-                  className="text-[#00D4FF] hover:underline font-medium"
+                  className="text-accent hover:underline font-medium"
                 >
                   support@tryechome.com
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <MessageSquare className="w-4 h-4 text-[#00D4FF]" />
+                <MessageSquare className="w-4 h-4 text-accent" />
                 <span className="text-stone-700 text-sm">
                   Use the chat widget on{' '}
                   <a
                     href="https://tryechome.com"
-                    className="text-[#00D4FF] hover:underline font-medium"
+                    className="text-accent hover:underline font-medium"
                   >
                     tryechome.com
                   </a>
@@ -364,19 +364,19 @@ export default function SupportContent() {
 
           {/* Legal Links */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               Legal
             </h2>
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/privacy"
-                className="text-[#00D4FF] hover:underline font-medium text-sm"
+                className="text-accent hover:underline font-medium text-sm"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-[#00D4FF] hover:underline font-medium text-sm"
+                className="text-accent hover:underline font-medium text-sm"
               >
                 Terms of Service
               </Link>

@@ -40,8 +40,8 @@ export default function EchoMeCarouselShowcase(){
         <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${AC}15`,border:`1px solid ${AC}30`,borderRadius:"20px",padding:"6px 16px",fontSize:"12px",color:AC,letterSpacing:"0.5px"}}>✦ One video becomes a week of content</div>
       </div>
       <div style={{position:"absolute",top:"90px",textAlign:"center",opacity:showT?1:0,transform:showT?"translateY(0)":"translateY(-20px)",transition:"all 0.6s ease 0.1s",zIndex:100}}>
-        <h1 style={{fontSize:"28px",fontWeight:300,color:"#e2e8f0",margin:0,letterSpacing:"-0.5px"}}>Tweet-Style{" "}<span style={{background:`linear-gradient(135deg,${AC},${AP})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Carousels</span></h1>
-        <p style={{fontSize:"14px",color:"#64748b",margin:"6px 0 0"}}>Voice-matched. Ready to post. Generated in minutes.</p>
+        <h1 style={{fontSize:"28px",fontWeight:300,color:"var(--border)",margin:0,letterSpacing:"-0.5px"}}>Tweet-Style{" "}<span style={{background:`linear-gradient(135deg,${AC},${AP})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Carousels</span></h1>
+        <p style={{fontSize:"14px",color:"var(--muted-foreground)",margin:"6px 0 0"}}>Voice-matched. Ready to post. Generated in minutes.</p>
       </div>
       <div style={{position:"relative",width:"600px",height:"340px",marginTop:"50px"}}>
         {SLIDES.map((s,i)=><SlideCard key={s.id} slide={s} index={i} phase={phase} total={SLIDES.length}/>)}
@@ -53,7 +53,7 @@ export default function EchoMeCarouselShowcase(){
       </div>
       <div style={{position:"absolute",bottom:"16px",display:"flex",alignItems:"center",gap:"6px",opacity:0.5}}>
         <span style={{fontSize:"14px"}}>🔊</span>
-        <span style={{fontSize:"13px",fontWeight:600,color:"#64748b",letterSpacing:"0.5px"}}>EchoMe</span>
+        <span style={{fontSize:"13px",fontWeight:600,color:"var(--muted-foreground)",letterSpacing:"0.5px"}}>EchoMe</span>
       </div>
     </div>
   );

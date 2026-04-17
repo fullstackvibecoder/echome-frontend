@@ -11,14 +11,14 @@ const IMG_S3="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAAAAAAD/4gHYSUNDX1BST0Z
 const SLIDES_IMG=[IMG_S1, IMG_S2, IMG_S3];
 
 const OUTPUTS=[
-  {icon:"🎬",label:"5 Clips",color:"#ef4444"},
+  {icon:"🎬",label:"5 Clips",color:"var(--destructive)"},
   {icon:"🧵",label:"3 Carousels",color:AC},
   {icon:"📝",label:"7 Posts",color:AP},
   {icon:"📅",label:"Calendar",color:AE},
 ];
 
 const KB_SOURCES=[
-  {icon:"▶️",label:"YouTube",color:"#ef4444"},
+  {icon:"▶️",label:"YouTube",color:"var(--social-youtube)"},
   {icon:"📝",label:"Blogs",color:"#f59e0b"},
   {icon:"✉️",label:"Emails",color:"#8b5cf6"},
   {icon:"🎙️",label:"Voice",color:AC},
@@ -33,7 +33,7 @@ const CAL_DATA=[
   [0,1,3,0,2,1,0],
 ];
 const CAL_ICONS=["","🎬","🧵","📝","🎙️"];
-const CAL_COLORS=["","#ef4444",AC,AP,AE];
+const CAL_COLORS=["","var(--destructive)",AC,AP,AE];
 
 /* ============ SUB-COMPONENTS ============ */
 
@@ -41,7 +41,7 @@ function PhaseLabel({text,sub,visible,color=AC}){
   return(
     <div style={{position:"absolute",top:"30px",left:"50%",transform:"translateX(-50%)",textAlign:"center",opacity:visible?1:0,transition:"all 0.5s ease",zIndex:200,pointerEvents:"none"}}>
       <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${color}15`,border:`1px solid ${color}30`,borderRadius:"20px",padding:"5px 14px",fontSize:"18px",color,letterSpacing:"0.5px",marginBottom:"8px"}}>{sub}</div>
-      <h2 style={{fontSize:"34px",fontWeight:300,color:"#e2e8f0",margin:"6px 0 0",letterSpacing:"-0.5px"}}>{text}</h2>
+      <h2 style={{fontSize:"34px",fontWeight:300,color:"var(--foreground)",margin:"6px 0 0",letterSpacing:"-0.5px"}}>{text}</h2>
     </div>
   );
 }
@@ -96,7 +96,7 @@ function MiniCal({visible,revealCount}){
   return(
     <div style={{opacity:visible?1:0,transform:visible?"scale(1)":"scale(0.8)",transition:"all 0.5s ease"}}>
       <div style={{display:"flex",gap:"4px",marginBottom:"3px"}}>
-        {CAL_DAYS.map((d,i)=><div key={i} style={{width:"50px",textAlign:"center",fontSize:"17px",fontWeight:600,color:"#475569",textTransform:"uppercase"}}>{d}</div>)}
+        {CAL_DAYS.map((d,i)=><div key={i} style={{width:"50px",textAlign:"center",fontSize:"17px",fontWeight:600,color:"var(--muted-foreground)",textTransform:"uppercase"}}>{d}</div>)}
       </div>
       {CAL_DATA.map((week,wi)=>(
         <div key={wi} style={{display:"flex",gap:"4px",marginBottom:"4px"}}>
@@ -249,7 +249,7 @@ export default function EchoMeMasterDemo(){
             </div>
             <ProgressBar progress={progress} visible={isProc}/>
             <div style={{fontSize:"18px",color:AO,fontWeight:500,opacity:isProc?1:0,transition:"opacity 0.3s ease",height:"14px"}}>{STEPS[stepIdx]}</div>
-            {phase==="upload"&&<div style={{fontSize:"16px",color:"#64748b"}}>Drop any video to start</div>}
+            {phase==="upload"&&<div style={{fontSize:"16px",color:"var(--muted-foreground)"}}>Drop any video to start</div>}
           </div>
         )}
 
@@ -306,10 +306,10 @@ export default function EchoMeMasterDemo(){
         {phase==="cta"&&(
           <div style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",textAlign:"center",animation:"fadeInUp 0.6s ease"}}>
             <div style={{fontSize:"40px",marginBottom:"12px"}}>🔊</div>
-            <h1 style={{fontSize:"44px",fontWeight:300,color:"#e2e8f0",margin:"0 0 8px",letterSpacing:"-0.5px"}}>
+            <h1 style={{fontSize:"44px",fontWeight:300,color:"var(--foreground)",margin:"0 0 8px",letterSpacing:"-0.5px"}}>
               <span style={{background:`linear-gradient(135deg,${AC},${AP})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>EchoMe</span>
             </h1>
-            <p style={{fontSize:"15px",color:"#94a3b8",margin:"0 0 20px"}}>Your voice. Your content. Done.</p>
+            <p style={{fontSize:"15px",color:"var(--muted-foreground)",margin:"0 0 20px"}}>Your voice. Your content. Done.</p>
             <div style={{display:"inline-flex",alignItems:"center",gap:"8px",background:`${AC}15`,border:`1px solid ${AC}40`,borderRadius:"24px",padding:"10px 24px",fontSize:"18px",color:AC,fontWeight:600,letterSpacing:"0.3px"}}>tryechome.com</div>
           </div>
         )}

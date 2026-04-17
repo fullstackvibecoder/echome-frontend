@@ -74,7 +74,7 @@ export function ZoomPasswordModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-2xl bg-[#1C1C1E] border border-white/10 p-6 shadow-2xl relative">
+      <div className="w-full max-w-md rounded-2xl bg-background border border-white/10 p-6 shadow-2xl relative">
         <button
           type="button"
           onClick={onCancel}
@@ -114,7 +114,7 @@ export function ZoomPasswordModal({
               value={password}
               onChange={(e) => { setPassword(e.target.value); setLocalError(null); }}
               disabled={submitting}
-              className="w-full px-4 py-3 rounded-lg bg-[#2A2A2C] border border-[#3A3A3C] text-white placeholder:text-gray-500 focus:border-[#00D4FF] focus:outline-none disabled:opacity-50"
+              className="w-full px-4 py-3 rounded-lg bg-card border border-border text-white placeholder:text-gray-500 focus:border-accent focus:outline-none disabled:opacity-50"
               placeholder="e.g. 8a3K9!"
             />
             {localError && (
@@ -134,7 +134,7 @@ export function ZoomPasswordModal({
             <button
               type="submit"
               disabled={submitting || !password.trim()}
-              className="flex-1 px-4 py-3 rounded-lg bg-[#00D4FF] text-black font-semibold hover:bg-[#00B8E0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 rounded-lg bg-accent text-black font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

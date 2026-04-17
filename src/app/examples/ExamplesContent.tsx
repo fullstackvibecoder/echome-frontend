@@ -337,7 +337,7 @@ export default function ExamplesContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-[#1C1C1E]">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Navigation */}
       <nav
         className={`fixed w-full z-50 transition-all duration-300 ${
@@ -358,7 +358,7 @@ export default function ExamplesContent() {
               />
               <span
                 className={`text-xl font-bold tracking-tight transition-colors ${
-                  scrolled ? 'text-[#1C1C1E]' : 'text-white'
+                  scrolled ? 'text-foreground' : 'text-white'
                 }`}
               >
                 EchoMe
@@ -369,7 +369,7 @@ export default function ExamplesContent() {
               <Link
                 href="/#features"
                 className={`transition font-medium ${
-                  scrolled ? 'text-[#1C1C1E] hover:text-[#00D4FF]' : 'text-white hover:text-[#00D4FF]'
+                  scrolled ? 'text-foreground hover:text-accent' : 'text-white hover:text-accent'
                 }`}
               >
                 Features
@@ -377,7 +377,7 @@ export default function ExamplesContent() {
               <Link
                 href="/#pricing"
                 className={`transition font-medium ${
-                  scrolled ? 'text-[#1C1C1E] hover:text-[#00D4FF]' : 'text-white hover:text-[#00D4FF]'
+                  scrolled ? 'text-foreground hover:text-accent' : 'text-white hover:text-accent'
                 }`}
               >
                 Pricing
@@ -385,21 +385,21 @@ export default function ExamplesContent() {
               <Link
                 href="/auth/login"
                 className={`transition font-medium ${
-                  scrolled ? 'text-[#1C1C1E] hover:text-[#00D4FF]' : 'text-white hover:text-[#00D4FF]'
+                  scrolled ? 'text-foreground hover:text-accent' : 'text-white hover:text-accent'
                 }`}
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/signup"
-                className="px-6 py-2.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
+                className="px-6 py-2.5 bg-gradient-to-r from-accent to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
               >
                 Get Started
               </Link>
             </div>
 
             <button
-              className={`md:hidden ${scrolled ? 'text-[#1C1C1E]' : 'text-white'}`}
+              className={`md:hidden ${scrolled ? 'text-foreground' : 'text-white'}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -410,18 +410,18 @@ export default function ExamplesContent() {
           {isMenuOpen && (
             <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
-                <Link href="/#features" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">
+                <Link href="/#features" className="text-foreground hover:text-accent transition font-medium">
                   Features
                 </Link>
-                <Link href="/#pricing" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">
+                <Link href="/#pricing" className="text-foreground hover:text-accent transition font-medium">
                   Pricing
                 </Link>
-                <Link href="/auth/login" className="text-[#1C1C1E] hover:text-[#00D4FF] transition font-medium">
+                <Link href="/auth/login" className="text-foreground hover:text-accent transition font-medium">
                   Sign In
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="px-6 py-2.5 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-semibold text-center"
+                  className="px-6 py-2.5 bg-gradient-to-r from-accent to-primary-dark text-white rounded-xl font-semibold text-center"
                 >
                   Get Started
                 </Link>
@@ -433,18 +433,18 @@ export default function ExamplesContent() {
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#FAFAFA]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-background to-gray-900" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur border border-white/20 rounded-full mb-6">
-            <Sparkles className="w-4 h-4 text-[#00D4FF]" />
+            <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-white/90 font-medium text-sm">See What&apos;s Possible</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">
             <span className="text-white">See What You Can </span>
-            <span className="bg-gradient-to-r from-[#00D4FF] via-[#B794F6] to-[#FF6B9D] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-accent via-accent-purple to-accent-pink bg-clip-text text-transparent">
               Create
             </span>
           </h1>
@@ -471,7 +471,7 @@ export default function ExamplesContent() {
             {CAROUSEL_TEMPLATES.map((template) => (
               <div
                 key={template.id}
-                className="group bg-gray-50 rounded-2xl overflow-hidden border border-gray-200 hover:border-[#00D4FF] hover:shadow-xl transition-all cursor-pointer"
+                className="group bg-gray-50 rounded-2xl overflow-hidden border border-gray-200 hover:border-accent hover:shadow-xl transition-all cursor-pointer"
                 onClick={() => setSelectedTemplate(selectedTemplate === template.id ? null : template.id)}
               >
                 {/* Image Preview */}
@@ -490,7 +490,7 @@ export default function ExamplesContent() {
                 <div className="p-4">
                   <h3 className="font-bold text-lg mb-1">{template.name}</h3>
                   <p className="text-gray-600 text-sm mb-2">{template.description}</p>
-                  <div className="flex items-center gap-2 text-xs text-[#00D4FF] font-medium">
+                  <div className="flex items-center gap-2 text-xs text-accent font-medium">
                     <Zap className="w-3 h-3" />
                     <span>Best for: {template.bestFor}</span>
                   </div>
@@ -652,7 +652,7 @@ export default function ExamplesContent() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-br from-gray-900 via-[#1C1C1E] to-gray-900">
+      <section className="py-20 px-6 bg-gradient-to-br from-gray-900 via-background to-gray-900">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Create Content That Sounds Like You?</h2>
           <p className="text-gray-300 text-lg mb-8">
@@ -662,7 +662,7 @@ export default function ExamplesContent() {
           <div className="flex flex-wrap gap-4 justify-center">
             <Link
               href="/auth/signup"
-              className="px-8 py-4 bg-gradient-to-r from-[#00D4FF] to-[#0099CC] text-white rounded-xl font-bold hover:shadow-2xl hover:shadow-[#00D4FF]/25 hover:scale-105 transition-all shadow-lg text-lg flex items-center gap-2 group"
+              className="px-8 py-4 bg-gradient-to-r from-accent to-primary-dark text-white rounded-xl font-bold hover:shadow-2xl hover:shadow-accent/25 hover:scale-105 transition-all shadow-lg text-lg flex items-center gap-2 group"
             >
               Start Creating
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

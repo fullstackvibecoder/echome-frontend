@@ -10,12 +10,12 @@ interface ContentCardsProps {
 }
 
 const PLATFORM_CONFIG = {
-  instagram: { icon: '📷', color: '#E4405F', name: 'Instagram' },
-  linkedin: { icon: '💼', color: '#0A66C2', name: 'LinkedIn' },
+  instagram: { icon: '📷', color: 'var(--social-instagram)', name: 'Instagram' },
+  linkedin: { icon: '💼', color: 'var(--social-linkedin)', name: 'LinkedIn' },
   blog: { icon: '📝', color: '#6366F1', name: 'Blog' },
   email: { icon: '📧', color: '#EA4335', name: 'Email' },
-  tiktok: { icon: '🎵', color: '#000000', name: 'TikTok' },
-  'video-script': { icon: '🎬', color: '#FF0000', name: 'Video Script' },
+  tiktok: { icon: '🎵', color: 'var(--social-tiktok)', name: 'TikTok' },
+  'video-script': { icon: '🎬', color: 'var(--social-youtube)', name: 'Video Script' },
 } as const;
 
 export function ContentCards({

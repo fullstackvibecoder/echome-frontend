@@ -40,8 +40,8 @@ const PLATFORMS: Record<string, PlatformConfig> = {
   linkedin: {
     name: 'LinkedIn',
     icon: '💼',
-    color: 'bg-[#0A66C2]',
-    hoverColor: 'hover:bg-[#004182]',
+    color: 'bg-social-linkedin',
+    hoverColor: 'hover:bg-social-linkedin/80',
     canShare: true,
     // Opens LinkedIn compose with text pre-filled. Also copies to clipboard
     // as a fallback — LinkedIn has historically been unreliable about honoring
@@ -56,8 +56,8 @@ const PLATFORMS: Record<string, PlatformConfig> = {
   facebook: {
     name: 'Facebook',
     icon: '📘',
-    color: 'bg-[#1877F2]',
-    hoverColor: 'hover:bg-[#0d65d9]',
+    color: 'bg-social-facebook',
+    hoverColor: 'hover:bg-social-facebook/80',
     // Facebook deprecated the `quote` param in sharer.php — it no longer
     // pre-fills post text from external links. Copy-to-clipboard is the
     // only reliable way to get content into a Facebook post.
@@ -66,7 +66,7 @@ const PLATFORMS: Record<string, PlatformConfig> = {
   instagram: {
     name: 'Instagram',
     icon: '📸',
-    color: 'bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737]',
+    color: 'bg-gradient-to-r from-purple-600 via-red-500 to-orange-400',
     hoverColor: 'hover:opacity-90',
     canShare: false, // Copy only - no direct web share
   },
@@ -92,8 +92,8 @@ const PLATFORMS: Record<string, PlatformConfig> = {
   bluesky: {
     name: 'Bluesky',
     icon: '🦋',
-    color: 'bg-[#0085FF]',
-    hoverColor: 'hover:bg-[#0066cc]',
+    color: 'bg-blue-500',
+    hoverColor: 'hover:bg-blue-600',
     canShare: true,
     shareUrl: (content) => {
       const text = encodeURIComponent(content.slice(0, 300));

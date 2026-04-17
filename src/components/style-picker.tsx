@@ -79,11 +79,11 @@ export function StylePicker({
               aria-pressed={isSelected}
               className={`
                 relative flex flex-col rounded-2xl overflow-hidden transition-all duration-200
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4FF] focus-visible:ring-offset-2
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 ${
                   isSelected
-                    ? 'ring-2 ring-[#00D4FF] shadow-[0_0_12px_rgba(0,212,255,0.2)] scale-[1.02]'
+                    ? 'ring-2 ring-accent shadow-[0_0_12px_rgba(0,212,255,0.2)] scale-[1.02]'
                     : 'ring-1 ring-outline-variant/60 hover:scale-[1.01]'
                 }
               `}
@@ -136,7 +136,7 @@ export function StylePicker({
               {/* Label below thumbnail */}
               <div
                 className={`px-2 py-1.5 font-headline font-bold text-sm text-center leading-tight ${
-                  isSelected ? 'text-[#00D4FF]' : 'text-gray-300'
+                  isSelected ? 'text-accent' : 'text-gray-300'
                 }`}
               >
                 {option.label}

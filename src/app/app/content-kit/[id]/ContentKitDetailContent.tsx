@@ -658,15 +658,15 @@ export default function ContentKitDetailContent() {
               </div>
 
               {/* Clip Editor — Dark UI */}
-              <div className="bg-[#1C1C1E] rounded-2xl overflow-hidden mb-6 shadow-2xl">
+              <div className="bg-background rounded-2xl overflow-hidden mb-6 shadow-2xl">
                 {detail.clips[activeClipIndex] && (
                   <>
                     {/* Zone 1: Dual Preview */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 lg:p-8 bg-black/20">
                       {/* Single view — always shown */}
                       <div className="flex flex-col items-center gap-3">
-                        <span className="text-[10px] uppercase tracking-widest text-[#9B8BAF] font-bold">Single Speaker</span>
-                        <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-[#3A3A3C] shadow-xl">
+                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Single Speaker</span>
+                        <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-border shadow-xl">
                           <VideoPlayer
                             src={detail.clips[activeClipIndex].exports?.[0]?.url || ''}
                             poster={detail.clips[activeClipIndex].thumbnailUrl}
@@ -687,8 +687,8 @@ export default function ContentKitDetailContent() {
                       {/* Split view — or clip info panel */}
                       {detail.clips[activeClipIndex].splitScreenUrl ? (
                         <div className="flex flex-col items-center gap-3">
-                          <span className="text-[10px] uppercase tracking-widest text-[#9B8BAF] font-bold">Split Screen</span>
-                          <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-[#3A3A3C] shadow-xl">
+                          <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Split Screen</span>
+                          <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-border shadow-xl">
                             <VideoPlayer
                               src={detail.clips[activeClipIndex].splitScreenUrl!}
                               aspectRatio="9:16"
@@ -704,17 +704,17 @@ export default function ContentKitDetailContent() {
                         </div>
                       ) : (
                         <div className="flex flex-col justify-center p-6">
-                          <h3 className="font-semibold text-lg mb-2 text-[#F3F1EC]">
+                          <h3 className="font-semibold text-lg mb-2 text-foreground">
                             {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
                           </h3>
                           {detail.clips[activeClipIndex].selectionReason && (
-                            <p className="text-[#9B8BAF] text-sm mb-4">
+                            <p className="text-muted-foreground text-sm mb-4">
                               {detail.clips[activeClipIndex].selectionReason}
                             </p>
                           )}
                           {detail.clips[activeClipIndex].suggestedCaption && (
-                            <div className="bg-black/40 rounded-2xl p-4 border border-[#3A3A3C] relative">
-                              <span className="text-[10px] text-[#9B8BAF] font-bold uppercase block mb-2">Suggested Caption</span>
+                            <div className="bg-black/40 rounded-2xl p-4 border border-border relative">
+                              <span className="text-[10px] text-muted-foreground font-bold uppercase block mb-2">Suggested Caption</span>
                               <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed italic">
                                 {detail.clips[activeClipIndex].suggestedCaption}
                               </p>
@@ -725,7 +725,7 @@ export default function ContentKitDetailContent() {
                                 )}
                                 className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
                                   copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
-                                    ? 'bg-[#00D4FF]/20 text-[#00D4FF]' : 'bg-[#3A3A3C] text-[#00D4FF] hover:bg-[#4A4A4C]'
+                                    ? 'bg-accent/20 text-accent' : 'bg-muted text-accent hover:bg-muted/80'
                                 }`}
                               >
                                 {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
@@ -733,10 +733,10 @@ export default function ContentKitDetailContent() {
                             </div>
                           )}
                           {detail.clips[activeClipIndex].transcriptText && (
-                            <details className="bg-black/40 rounded-2xl border border-[#3A3A3C] mt-3 group">
+                            <details className="bg-black/40 rounded-2xl border border-border mt-3 group">
                               <summary className="flex items-center justify-between p-4 cursor-pointer select-none">
-                                <span className="text-[10px] text-[#9B8BAF] font-bold uppercase">Transcript</span>
-                                <span className="text-[#9B8BAF] text-xs group-open:rotate-180 transition-transform">▼</span>
+                                <span className="text-[10px] text-muted-foreground font-bold uppercase">Transcript</span>
+                                <span className="text-muted-foreground text-xs group-open:rotate-180 transition-transform">▼</span>
                               </summary>
                               <div className="px-4 pb-4 relative">
                                 <p className="text-xs text-white/70 whitespace-pre-wrap leading-relaxed">
@@ -749,7 +749,7 @@ export default function ContentKitDetailContent() {
                                   )}
                                   className={`absolute top-0 right-4 p-1.5 rounded-lg transition-colors ${
                                     copiedId === `clip-transcript-${detail.clips[activeClipIndex].id}`
-                                      ? 'bg-[#00D4FF]/20 text-[#00D4FF]' : 'bg-[#3A3A3C] text-[#00D4FF] hover:bg-[#4A4A4C]'
+                                      ? 'bg-accent/20 text-accent' : 'bg-muted text-accent hover:bg-muted/80'
                                   }`}
                                 >
                                   {copiedId === `clip-transcript-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
@@ -762,15 +762,15 @@ export default function ContentKitDetailContent() {
                     </div>
 
                     {/* Zone 2: Editor Toolbar */}
-                    <div className="min-h-14 py-2 bg-[#2A2A2C] border-y border-[#3A3A3C] px-4 lg:px-8 flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#3A3A3C]">
-                        <span className="text-[10px] font-bold text-[#00D4FF]">
+                    <div className="min-h-14 py-2 bg-card border-y border-border px-4 lg:px-8 flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-border">
+                        <span className="text-[10px] font-bold text-accent">
                           {detail.clips[activeClipIndex].format === 'portrait' ? '9:16' :
                            detail.clips[activeClipIndex].format === 'landscape' ? '16:9' : '1:1'}
                         </span>
                       </div>
 
-                      <div className="h-4 w-px bg-[#3A3A3C]" />
+                      <div className="h-4 w-px bg-muted" />
 
                       {detail.clips[activeClipIndex].hasCaptions && (
                         <button
@@ -780,7 +780,7 @@ export default function ContentKitDetailContent() {
                           }`}
                         >
                           <span>CC</span>
-                          <div className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${captionsEnabled ? 'bg-[#00D4FF]' : 'bg-[#3A3A3C]'}`}>
+                          <div className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${captionsEnabled ? 'bg-accent' : 'bg-muted'}`}>
                             <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${captionsEnabled ? 'right-0.5' : 'left-0.5'}`} />
                           </div>
                         </button>
@@ -828,7 +828,7 @@ export default function ContentKitDetailContent() {
                         )}
                         <button
                           onClick={() => setQuickScheduleConfig({ type: 'clips' })}
-                          className="bg-[#00D4FF] text-black px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                          className="bg-accent text-black px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all"
                         >
                           Schedule
                         </button>
@@ -837,7 +837,7 @@ export default function ContentKitDetailContent() {
 
                     {/* Zone 3: Clip Filmstrip */}
                     {detail.clips.length > 1 && (
-                      <div className="px-6 py-4 bg-[#1C1C1E]">
+                      <div className="px-6 py-4 bg-background">
                         <div className="flex items-center gap-3 overflow-x-auto pb-2">
                           {detail.clips.map((clip, index) => (
                             <button
@@ -845,11 +845,11 @@ export default function ContentKitDetailContent() {
                               onClick={() => setActiveClipIndex(index)}
                               className={`relative flex-shrink-0 w-[140px] rounded-xl overflow-hidden transition-all ${
                                 index === activeClipIndex
-                                  ? 'border-2 border-[#00D4FF] ring-4 ring-[#00D4FF]/10'
-                                  : 'border border-[#3A3A3C] hover:border-white/40 grayscale'
+                                  ? 'border-2 border-accent ring-4 ring-accent/10'
+                                  : 'border border-border hover:border-white/40 grayscale'
                               }`}
                             >
-                              <div className="aspect-video bg-[#2A2A2C]">
+                              <div className="aspect-video bg-card">
                                 {clip.thumbnailUrl ? (
                                   <img src={clip.thumbnailUrl} alt={clip.title || `Clip ${index + 1}`} className="w-full h-full object-cover" />
                                 ) : (
@@ -863,7 +863,7 @@ export default function ContentKitDetailContent() {
                               {clip.viralityScore !== undefined && clip.viralityScore > 0 && (
                                 <div className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
                                   index === activeClipIndex
-                                    ? 'bg-[#00D4FF]/90 text-black'
+                                    ? 'bg-accent/90 text-black'
                                     : 'bg-white/20 text-white'
                                 }`}>
                                   {clip.viralityScore}%
@@ -877,22 +877,22 @@ export default function ContentKitDetailContent() {
 
                     {/* Zone 4: Clip Meta */}
                     {detail.clips[activeClipIndex].splitScreenUrl && (
-                      <div className="px-6 lg:px-8 py-6 bg-[#252528]">
+                      <div className="px-6 lg:px-8 py-6 bg-secondary">
                         <div className="flex flex-col md:flex-row gap-6">
                           <div className="flex-1">
-                            <h3 className="text-lg font-bold text-[#F3F1EC]">
+                            <h3 className="text-lg font-bold text-foreground">
                               {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
                             </h3>
                             {detail.clips[activeClipIndex].selectionReason && (
-                              <p className="text-[#9B8BAF] text-sm mt-1">
+                              <p className="text-muted-foreground text-sm mt-1">
                                 {detail.clips[activeClipIndex].selectionReason}
                               </p>
                             )}
                           </div>
                           {detail.clips[activeClipIndex].suggestedCaption && (
                             <div className="flex-1">
-                              <div className="bg-black/40 rounded-2xl p-4 border border-[#3A3A3C] relative">
-                                <span className="text-[10px] text-[#9B8BAF] font-bold uppercase block mb-2">Suggested Caption</span>
+                              <div className="bg-black/40 rounded-2xl p-4 border border-border relative">
+                                <span className="text-[10px] text-muted-foreground font-bold uppercase block mb-2">Suggested Caption</span>
                                 <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed italic">
                                   {detail.clips[activeClipIndex].suggestedCaption}
                                 </p>
@@ -903,7 +903,7 @@ export default function ContentKitDetailContent() {
                                   )}
                                   className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
                                     copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
-                                      ? 'bg-[#00D4FF]/20 text-[#00D4FF]' : 'bg-[#3A3A3C] text-[#00D4FF] hover:bg-[#4A4A4C]'
+                                      ? 'bg-accent/20 text-accent' : 'bg-muted text-accent hover:bg-muted/80'
                                   }`}
                                 >
                                   {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}

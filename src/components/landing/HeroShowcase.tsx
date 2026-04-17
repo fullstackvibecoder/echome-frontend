@@ -67,7 +67,7 @@ export function HeroShowcase() {
         <div
           className="w-[2px] h-16 origin-top opacity-0 animate-transform-draw-vertical"
           style={{
-            background: 'linear-gradient(to bottom, #00D4FF, #B794F6, #FF6B9D)',
+            background: 'linear-gradient(to bottom, var(--accent), var(--accent-purple), var(--accent-pink))',
             animationDelay: '700ms',
           }}
         />

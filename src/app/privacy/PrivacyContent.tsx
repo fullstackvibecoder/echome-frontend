@@ -6,19 +6,19 @@ import { ArrowLeft, Shield, Lock, Eye, Settings, Mail } from 'lucide-react';
 
 export default function PrivacyContent() {
   return (
-    <div className="min-h-screen bg-[#F6F6F6]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-stone-600 hover:text-[#00D4FF] transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-stone-600 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="text-sm font-medium">Back to Home</span>
         </Link>
 
         <div className="mb-12">
-          <h1 className="bg-gradient-to-r from-[#00D4FF] to-[#0099CC] bg-clip-text text-transparentxl md:text-5xl font-medium text-[#1C1C1E] mb-4">
+          <h1 className="bg-gradient-to-r from-accent to-primary-dark bg-clip-text text-transparentxl md:text-5xl font-medium text-foreground mb-4">
             Privacy Policy
           </h1>
           <p className="text-lg text-stone-600">
@@ -31,11 +31,11 @@ export default function PrivacyContent() {
           {/* Effective Date */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-medium text-[#1C1C1E]">
+                <h2 className="text-xl font-medium text-foreground">
                   Effective Date
                 </h2>
                 <p className="text-sm text-stone-600">March 12, 2026</p>
@@ -56,10 +56,10 @@ export default function PrivacyContent() {
           {/* What We Collect */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Eye className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 1. What We Collect
               </h2>
             </div>
@@ -68,7 +68,7 @@ export default function PrivacyContent() {
             </p>
 
             <div className="space-y-4">
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-2">
                   A. Account Data
                 </h3>
@@ -78,7 +78,7 @@ export default function PrivacyContent() {
                 </ul>
               </div>
 
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-2">
                   B. Imported & Uploaded Content
                 </h3>
@@ -97,7 +97,7 @@ export default function PrivacyContent() {
                 </ul>
               </div>
 
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-2">
                   C. Usage Data
                 </h3>
@@ -107,7 +107,7 @@ export default function PrivacyContent() {
                 </ul>
               </div>
 
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-2">
                   D. Payment Data
                 </h3>
@@ -119,7 +119,7 @@ export default function PrivacyContent() {
                 </ul>
               </div>
 
-              <div className="pl-4 border-l-2 border-[#00D4FF]">
+              <div className="pl-4 border-l-2 border-accent">
                 <h3 className="text-base font-medium text-stone-800 mb-2">
                   E. Third-Party Account Data
                 </h3>
@@ -145,10 +145,10 @@ export default function PrivacyContent() {
           {/* How We Use Your Data */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Settings className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 2. How We Use Your Data
               </h2>
             </div>
@@ -172,10 +172,10 @@ export default function PrivacyContent() {
           {/* How We Store Your Data */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Lock className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 3. How We Store Your Data
               </h2>
             </div>
@@ -193,7 +193,7 @@ export default function PrivacyContent() {
 
           {/* How Long We Keep Your Data */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               4. How Long We Keep Your Data
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -207,10 +207,10 @@ export default function PrivacyContent() {
           {/* Your Rights */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 5. Your Rights
               </h2>
             </div>
@@ -227,7 +227,7 @@ export default function PrivacyContent() {
               To make any such request, email us at{' '}
               <a
                 href="mailto:privacy@tryechome.com"
-                className="text-[#00D4FF] hover:underline font-medium"
+                className="text-accent hover:underline font-medium"
               >
                 privacy@tryechome.com
               </a>
@@ -236,7 +236,7 @@ export default function PrivacyContent() {
 
           {/* Third-Party Access */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               6. Third-Party Access
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -263,7 +263,7 @@ export default function PrivacyContent() {
 
           {/* Use of Data for Model Training */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               7. Use of Data for Model Training & Product Development
             </h2>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -282,7 +282,7 @@ export default function PrivacyContent() {
               You can opt out of anonymized data use by contacting{' '}
               <a
                 href="mailto:privacy@tryechome.com"
-                className="text-[#00D4FF] hover:underline font-medium"
+                className="text-accent hover:underline font-medium"
               >
                 privacy@tryechome.com
               </a>
@@ -291,7 +291,7 @@ export default function PrivacyContent() {
 
           {/* Cookies & Tracking */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               8. Cookies & Tracking
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -302,7 +302,7 @@ export default function PrivacyContent() {
 
           {/* Children's Privacy */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               9. Children&apos;s Privacy
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -314,7 +314,7 @@ export default function PrivacyContent() {
 
           {/* Changes to This Policy */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               10. Changes to This Policy
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -325,7 +325,7 @@ export default function PrivacyContent() {
 
           {/* Governing Law */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-medium text-[#1C1C1E] mb-4">
+            <h2 className="text-xl font-medium text-foreground mb-4">
               11. Governing Law
             </h2>
             <p className="text-stone-700 leading-relaxed">
@@ -338,10 +338,10 @@ export default function PrivacyContent() {
           {/* Contact */}
           <div className="bg-white rounded-2xl border border-stone-200 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#00D4FF] rounded-lg">
+              <div className="p-2 bg-accent rounded-lg">
                 <Mail className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-medium text-[#1C1C1E]">
+              <h2 className="text-xl font-medium text-foreground">
                 12. Contact
               </h2>
             </div>
@@ -350,7 +350,7 @@ export default function PrivacyContent() {
             </p>
             <a
               href="mailto:privacy@tryechome.com"
-              className="text-lg font-medium text-[#00D4FF] hover:underline"
+              className="text-lg font-medium text-accent hover:underline"
             >
               privacy@tryechome.com
             </a>

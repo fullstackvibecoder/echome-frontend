@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 const AC="#38bdf8",AP="#a78bfa",AR="#fb7185",BD="#0f172a",BC="#1e293b";
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const CT=[
-  {icon:"🎬",type:"clip",color:"#ef4444",label:"Video Clip"},
+  {icon:"🎬",type:"clip",color:"var(--destructive)",label:"Video Clip"},
   {icon:"🧵",type:"carousel",color:AC,label:"Carousel"},
   {icon:"📝",type:"post",color:AP,label:"Social Post"},
   {icon:"🎙️",type:"reel",color:"#34d399",label:"Reel"},
@@ -19,7 +19,7 @@ function Cell({data,revealIdx,curReveal}){
   const c=has?CT[data.type]:null;
   return(
     <div style={{width:"68px",height:"68px",borderRadius:"11px",background:has&&shown?`${c.color}10`:`${BD}80`,border:`1.5px solid ${has&&shown?c.color+"40":"#1e293b40"}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"2px",transition:"all 0.5s cubic-bezier(0.34,1.56,0.64,1)",transform:has&&shown?"scale(1)":"scale(0.9)",opacity:has&&shown?1:has?0.2:0.4}}>
-      {has?<><span style={{fontSize:shown?"20px":"12px",transition:"all 0.5s ease",filter:shown?"none":"grayscale(1)"}}>{c.icon}</span><span style={{fontSize:"8px",color:shown?c.color:"#475569",fontWeight:600,transition:"all 0.5s ease"}}>{data.time}</span></>:<div style={{width:"18px",height:"2px",background:"#334155",borderRadius:"1px"}}/>}
+      {has?<><span style={{fontSize:shown?"20px":"12px",transition:"all 0.5s ease",filter:shown?"none":"grayscale(1)"}}>{c.icon}</span><span style={{fontSize:"8px",color:shown?c.color:"var(--muted-foreground)",fontWeight:600,transition:"all 0.5s ease"}}>{data.time}</span></>:<div style={{width:"18px",height:"2px",background:"#334155",borderRadius:"1px"}}/>}
     </div>
   );
 }
@@ -49,8 +49,8 @@ export default function ContentCalendarAnimation(){
       <div style={{position:"absolute",inset:0,backgroundImage:`linear-gradient(${AR}06 1px,transparent 1px),linear-gradient(90deg,${AR}06 1px,transparent 1px)`,backgroundSize:"60px 60px"}}/>
       <div style={{position:"absolute",top:"40px",textAlign:"center",zIndex:100}}>
         <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${AR}15`,border:`1px solid ${AR}30`,borderRadius:"20px",padding:"6px 16px",fontSize:"12px",color:AR,letterSpacing:"0.5px",marginBottom:"12px"}}>📅 Distribution Layer</div>
-        <h1 style={{fontSize:"28px",fontWeight:300,color:"#e2e8f0",margin:"8px 0 0",letterSpacing:"-0.5px"}}>Content{" "}<span style={{background:`linear-gradient(135deg,${AR},${AP})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Calendar</span></h1>
-        <p style={{fontSize:"14px",color:"#64748b",margin:"6px 0 0"}}>Every piece lands on the right day. One click to post.</p>
+        <h1 style={{fontSize:"28px",fontWeight:300,color:"var(--border)",margin:"8px 0 0",letterSpacing:"-0.5px"}}>Content{" "}<span style={{background:`linear-gradient(135deg,${AR},${AP})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Calendar</span></h1>
+        <p style={{fontSize:"14px",color:"var(--muted-foreground)",margin:"6px 0 0"}}>Every piece lands on the right day. One click to post.</p>
       </div>
       <div style={{marginTop:"40px",position:"relative"}}>
         {/* Real screenshot overlay */}
@@ -60,7 +60,7 @@ export default function ContentCalendarAnimation(){
           </div>
         </div>
         <div style={{display:"flex",gap:"7px",marginBottom:"7px",paddingLeft:"4px"}}>
-          {DAYS.map(d=><div key={d} style={{width:"68px",textAlign:"center",fontSize:"9px",fontWeight:600,color:"#475569",textTransform:"uppercase",letterSpacing:"1px"}}>{d}</div>)}
+          {DAYS.map(d=><div key={d} style={{width:"68px",textAlign:"center",fontSize:"9px",fontWeight:600,color:"var(--muted-foreground)",textTransform:"uppercase",letterSpacing:"1px"}}>{d}</div>)}
         </div>
         {CAL.map((w,wi)=><div key={wi} style={{display:"flex",gap:"7px",marginBottom:"7px"}}>{w.map((d,di)=><Cell key={`${wi}-${di}`} data={d} revealIdx={rMap[wi][di]} curReveal={curReveal}/>)}</div>)}
       </div>
@@ -76,7 +76,7 @@ export default function ContentCalendarAnimation(){
       </div>
       <div style={{position:"absolute",bottom:"12px",display:"flex",alignItems:"center",gap:"6px",opacity:0.4}}>
         <span style={{fontSize:"14px"}}>🔊</span>
-        <span style={{fontSize:"13px",fontWeight:600,color:"#64748b",letterSpacing:"0.5px"}}>EchoMe</span>
+        <span style={{fontSize:"13px",fontWeight:600,color:"var(--muted-foreground)",letterSpacing:"0.5px"}}>EchoMe</span>
       </div>
     </div>
   );

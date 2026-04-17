@@ -62,8 +62,8 @@ export function FeaturesSection() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#0f172a] border border-[#1e293b] rounded-full mb-6">
-            <span className="text-[#38bdf8] font-semibold text-sm">Interactive Demo</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-foreground border border-foreground rounded-full mb-6">
+            <span className="text-accent font-semibold text-sm">Interactive Demo</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
             See It
@@ -86,7 +86,7 @@ export function FeaturesSection() {
                 onClick={() => setActiveTab(feature.id)}
                 className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
                   activeTab === feature.id
-                    ? 'bg-[#0f172a] text-white shadow-lg border border-[#38bdf8]/30'
+                    ? 'bg-foreground text-white shadow-lg border border-accent/30'
                     : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
@@ -98,14 +98,14 @@ export function FeaturesSection() {
         </div>
 
         {/* Animation Container */}
-        <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-200 bg-[#0f172a]">
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-200 bg-foreground">
           <div className="relative w-full" style={{ height: '80vh', minHeight: '600px' }}>
             <Suspense
               fallback={
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0f172a]">
+                <div className="absolute inset-0 flex items-center justify-center bg-foreground">
                   <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-[#38bdf8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-[#64748b] text-sm">Loading animation...</p>
+                    <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground text-sm">Loading animation...</p>
                   </div>
                 </div>
               }

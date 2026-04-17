@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 const AC="#38bdf8",AP="#a78bfa",AE="#34d399",BD="#0f172a",BC="#1e293b";
 const SOURCES=[
-  {id:"youtube",icon:"▶️",label:"YouTube",color:"#ef4444",desc:"Channel transcripts"},
+  {id:"youtube",icon:"▶️",label:"YouTube",color:"var(--destructive)",desc:"Channel transcripts"},
   {id:"blog",icon:"📝",label:"Blog",color:"#f59e0b",desc:"Written content"},
   {id:"email",icon:"✉️",label:"Sent Emails",color:"#8b5cf6",desc:"MBOX import"},
   {id:"voice",icon:"🎙️",label:"Voice",color:AC,desc:"Live recording"},
@@ -49,8 +49,8 @@ export default function KnowledgeBaseAnimation(){
       <div style={{position:"absolute",inset:0,backgroundImage:`linear-gradient(${AE}06 1px,transparent 1px),linear-gradient(90deg,${AE}06 1px,transparent 1px)`,backgroundSize:"60px 60px"}}/>
       <div style={{position:"absolute",top:"40px",textAlign:"center",zIndex:100}}>
         <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${AE}15`,border:`1px solid ${AE}30`,borderRadius:"20px",padding:"6px 16px",fontSize:"12px",color:AE,letterSpacing:"0.5px",marginBottom:"12px"}}>🧠 The Foundation</div>
-        <h1 style={{fontSize:"28px",fontWeight:300,color:"#e2e8f0",margin:"8px 0 0",letterSpacing:"-0.5px"}}>Knowledge{" "}<span style={{background:`linear-gradient(135deg,${AE},${AC})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Base</span></h1>
-        <p style={{fontSize:"14px",color:"#64748b",margin:"6px 0 0"}}>Every source that sounds like you. Stored. Recalled. Matched.</p>
+        <h1 style={{fontSize:"28px",fontWeight:300,color:"var(--border)",margin:"8px 0 0",letterSpacing:"-0.5px"}}>Knowledge{" "}<span style={{background:`linear-gradient(135deg,${AE},${AC})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Base</span></h1>
+        <p style={{fontSize:"14px",color:"var(--muted-foreground)",margin:"6px 0 0"}}>Every source that sounds like you. Stored. Recalled. Matched.</p>
       </div>
       <div style={{position:"relative",width:"500px",height:"380px",marginTop:"20px"}}>
         {SOURCES.map((s,i)=><SourceNode key={s.id} source={s} index={i} phase={phase==="converge"||phase==="chunks"||phase==="screenshots"?"converge":phase==="idle"?"idle":"spread"} total={SOURCES.length}/>)}
@@ -74,11 +74,11 @@ export default function KnowledgeBaseAnimation(){
         {CHUNKS.map((c,i)=><ChunkTag key={c} chunk={c} index={i} phase={phase}/>)}
       </div>
       <div style={{position:"absolute",bottom:"35px",textAlign:"center",opacity:phase==="chunks"?1:0.4,transition:"opacity 0.5s ease"}}>
-        <p style={{fontSize:"12px",color:"#475569",margin:0}}>YouTube • Blogs • Sent Emails • Voice Recordings → Stored as chunks → Used to match your voice</p>
+        <p style={{fontSize:"12px",color:"var(--muted-foreground)",margin:0}}>YouTube • Blogs • Sent Emails • Voice Recordings → Stored as chunks → Used to match your voice</p>
       </div>
       <div style={{position:"absolute",bottom:"12px",display:"flex",alignItems:"center",gap:"6px",opacity:0.4}}>
         <span style={{fontSize:"14px"}}>🔊</span>
-        <span style={{fontSize:"13px",fontWeight:600,color:"#64748b",letterSpacing:"0.5px"}}>EchoMe</span>
+        <span style={{fontSize:"13px",fontWeight:600,color:"var(--muted-foreground)",letterSpacing:"0.5px"}}>EchoMe</span>
       </div>
     </div>
   );

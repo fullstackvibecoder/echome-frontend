@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 const AC="#38bdf8",AP="#a78bfa",AO="#fb923c",BD="#0f172a",BC="#1e293b";
 const OUTPUTS=[
-  {icon:"🎬",label:"5 Clips",desc:"With captions",color:"#ef4444"},
+  {icon:"🎬",label:"5 Clips",desc:"With captions",color:"var(--destructive)"},
   {icon:"🧵",label:"3 Carousels",desc:"Tweet-style",color:AC},
   {icon:"📝",label:"7 Posts",desc:"Multi-platform",color:AP},
   {icon:"📅",label:"Calendar",desc:"Pre-scheduled",color:"#34d399"},
@@ -17,7 +17,7 @@ function OutputCard({item,index,visible,total}){
       <div style={{width:"110px",padding:"14px 10px",background:`${item.color}10`,border:`1.5px solid ${item.color}40`,borderRadius:"14px",textAlign:"center"}}>
         <div style={{fontSize:"26px",marginBottom:"4px"}}>{item.icon}</div>
         <div style={{fontSize:"13px",fontWeight:700,color:item.color}}>{item.label}</div>
-        <div style={{fontSize:"9px",color:"#64748b",marginTop:"2px"}}>{item.desc}</div>
+        <div style={{fontSize:"9px",color:"var(--muted-foreground)",marginTop:"2px"}}>{item.desc}</div>
       </div>
     </div>
   );
@@ -47,8 +47,8 @@ export default function VideoProcessingAnimation(){
       <div style={{position:"absolute",inset:0,backgroundImage:`linear-gradient(${AO}06 1px,transparent 1px),linear-gradient(90deg,${AO}06 1px,transparent 1px)`,backgroundSize:"60px 60px"}}/>
       <div style={{position:"absolute",top:"40px",textAlign:"center",zIndex:100}}>
         <div style={{display:"inline-flex",alignItems:"center",gap:"6px",background:`${AO}15`,border:`1px solid ${AO}30`,borderRadius:"20px",padding:"6px 16px",fontSize:"12px",color:AO,letterSpacing:"0.5px",marginBottom:"12px"}}>⚡ The Engine</div>
-        <h1 style={{fontSize:"28px",fontWeight:300,color:"#e2e8f0",margin:"8px 0 0",letterSpacing:"-0.5px"}}>Upload a Video.{" "}<span style={{background:`linear-gradient(135deg,${AO},${AC})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Get a Content Kit.</span></h1>
-        <p style={{fontSize:"14px",color:"#64748b",margin:"6px 0 0"}}>Zoom calls. Podcasts. Phone clips. 2–5 minutes.</p>
+        <h1 style={{fontSize:"28px",fontWeight:300,color:"var(--border)",margin:"8px 0 0",letterSpacing:"-0.5px"}}>Upload a Video.{" "}<span style={{background:`linear-gradient(135deg,${AO},${AC})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontWeight:700}}>Get a Content Kit.</span></h1>
+        <p style={{fontSize:"14px",color:"var(--muted-foreground)",margin:"6px 0 0"}}>Zoom calls. Podcasts. Phone clips. 2–5 minutes.</p>
       </div>
       <div style={{position:"relative",width:"600px",height:"340px",marginTop:"30px"}}>
         {/* Upload / Processing center */}
@@ -75,12 +75,12 @@ export default function VideoProcessingAnimation(){
       </div>
       <div style={{position:"absolute",bottom:"60px",display:"flex",gap:"24px",opacity:showOut?1:0.3,transition:"opacity 0.5s ease"}}>
         {[{val:"2–5",unit:"min",label:"Processing"},{val:"5GB",unit:"max",label:"File size"},{val:"1",unit:"video",label:"= 1 week of content"}].map(s=>(
-          <div key={s.label} style={{textAlign:"center"}}><div style={{fontSize:"18px",fontWeight:700,color:AC}}>{s.val} <span style={{fontSize:"11px",fontWeight:400,color:"#64748b"}}>{s.unit}</span></div><div style={{fontSize:"10px",color:"#475569"}}>{s.label}</div></div>
+          <div key={s.label} style={{textAlign:"center"}}><div style={{fontSize:"18px",fontWeight:700,color:AC}}>{s.val} <span style={{fontSize:"11px",fontWeight:400,color:"var(--muted-foreground)"}}>{s.unit}</span></div><div style={{fontSize:"10px",color:"var(--muted-foreground)"}}>{s.label}</div></div>
         ))}
       </div>
       <div style={{position:"absolute",bottom:"16px",display:"flex",alignItems:"center",gap:"6px",opacity:0.4}}>
         <span style={{fontSize:"14px"}}>🔊</span>
-        <span style={{fontSize:"13px",fontWeight:600,color:"#64748b",letterSpacing:"0.5px"}}>EchoMe</span>
+        <span style={{fontSize:"13px",fontWeight:600,color:"var(--muted-foreground)",letterSpacing:"0.5px"}}>EchoMe</span>
       </div>
     </div>
   );
