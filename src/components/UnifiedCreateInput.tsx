@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import {
   Paperclip,
   Mic,
@@ -10,6 +11,10 @@ import {
   Mail,
   LayoutGrid,
   Video,
+  BookOpen,
+  Youtube,
+  Mic2,
+  MonitorPlay,
 } from 'lucide-react';
 
 interface UnifiedCreateInputProps {
@@ -29,6 +34,33 @@ const OUTPUT_ITEMS = [
 ];
 
 const PLATFORM_NAMES = ['LinkedIn', 'Instagram', 'Twitter/X', 'TikTok', 'YouTube'];
+
+const GUIDES = [
+  {
+    href: '/guides/youtube-to-content',
+    icon: Youtube,
+    title: 'YouTube to Content',
+    description: 'Turn any YouTube video into a full content suite',
+  },
+  {
+    href: '/guides/video-content',
+    icon: MonitorPlay,
+    title: 'Video Content Guide',
+    description: 'How to create and manage video content',
+  },
+  {
+    href: '/guides/build-your-voice',
+    icon: Mic2,
+    title: 'Build Your Voice',
+    description: 'Train EchoMe to sound like you',
+  },
+  {
+    href: '/guides/compress-video',
+    icon: FileText,
+    title: 'Compress Video',
+    description: 'Reduce file size before uploading',
+  },
+];
 
 export default function UnifiedCreateInput({
   onSubmit,
@@ -242,6 +274,39 @@ export default function UnifiedCreateInput({
         <p className="text-[12px] text-muted-foreground/40 text-center mt-2">
           All in your voice. All from one input.
         </p>
+      </div>
+
+      {/* Guides */}
+      <div className="max-w-[560px] w-full mx-auto mt-10">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[11px] text-muted-foreground/50 uppercase tracking-widest">
+            Get more from EchoMe
+          </p>
+          <Link
+            href="/guides"
+            className="text-[11px] text-muted-foreground/40 hover:text-primary-interactive transition-colors"
+          >
+            All guides
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {GUIDES.map(({ href, icon: Icon, title, description }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group flex items-start gap-3 bg-card border border-border rounded-[10px] p-3 hover:border-primary-interactive transition-colors"
+            >
+              <div className="w-8 h-8 flex-shrink-0 bg-surface-container-low rounded-lg flex items-center justify-center">
+                <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary-interactive transition-colors" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-foreground text-[12px] font-medium leading-tight">{title}</div>
+                <div className="text-[11px] text-muted-foreground/50 leading-tight mt-0.5">{description}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
