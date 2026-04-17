@@ -3129,6 +3129,45 @@ export const api = {
     },
   },
 
+  // -------- ADMIN EMAILS (editor v2) --------
+  adminEmails: {
+    listPresets: async (): Promise<Array<{ key: string; label: string; recommendedSegment: string }>> => {
+      const res = await apiClient.get('/admin/emails/presets');
+      return res.data;
+    },
+    getPreset: async (key: string): Promise<{ label: string; subject: string; bodyHtml: string; recommendedSegment: string }> => {
+      const res = await apiClient.get(`/admin/emails/presets/${key}`);
+      return res.data;
+    },
+    preview: async (segmentName: string, subject: string, bodyHtml: string) => {
+      const res = await apiClient.post('/admin/emails/preview', { segmentName, subject, bodyHtml });
+      return res.data as {
+        subject: string;
+        html: string;
+        text: string;
+        recipientCount: number;
+        sample: { email: string; firstName: string; fullName: string | null };
+        tokenWarnings: string[];
+      };
+    },
+    send: async (segmentName: string, subject: string, bodyHtml: string, confirmCount: number) => {
+      const res = await apiClient.post('/admin/emails/send', { segmentName, subject, bodyHtml, confirmCount }, { timeout: 120000 });
+      return res.data as { sent: number; failed: number; failures: Array<{ email: string; reason: string }> };
+    },
+    sendTest: async (subject: string, bodyHtml: string) => {
+      const res = await apiClient.post('/admin/emails/test', { subject, bodyHtml });
+      return res.data as { sent: number; failed: number };
+    },
+    uploadImage: async (file: File): Promise<{ url: string; key: string }> => {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await apiClient.post('/admin/emails/upload-image', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return res.data;
+    },
+  },
+
   // -------- ADMIN ERROR HEALTH --------
   adminErrors: {
     /** Get error health status (green/yellow/red) with counts and recent errors */
