@@ -1,6 +1,24 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Video, Mail, Monitor, Film, Youtube, Mic, ArrowRight } from 'lucide-react';
+import {
+  Video,
+  Mail,
+  Monitor,
+  Film,
+  Youtube,
+  Mic,
+  ArrowRight,
+  Rocket,
+  Package,
+  Radar,
+  Captions,
+  CalendarDays,
+  Users,
+  BookOpen,
+  Lock,
+  CreditCard,
+  TrendingUp,
+} from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Guides',
@@ -17,6 +35,17 @@ export const metadata: Metadata = {
 };
 
 const guides = [
+  // Getting Started
+  {
+    slug: 'getting-started',
+    icon: <Rocket className="w-6 h-6" />,
+    title: 'Getting Started: Your First Content Kit',
+    description:
+      'Go from sign-up to your first Content Kit in minutes. Upload a video, paste a link, or type a prompt to generate posts, clips, and carousels.',
+    category: 'Getting Started',
+    readTime: '3 min',
+    hasVideo: false,
+  },
   {
     slug: 'platform-overview',
     icon: <Monitor className="w-6 h-6" />,
@@ -38,23 +67,13 @@ const guides = [
     hasVideo: false,
   },
   {
-    slug: 'video-content',
-    icon: <Film className="w-6 h-6" />,
-    title: 'Creating and Managing Video Content',
+    slug: 'knowledge-base',
+    icon: <BookOpen className="w-6 h-6" />,
+    title: 'Building Your Knowledge Base',
     description:
-      'Upload videos, use external links, edit clips with captions, and generate a full content kit from a single video.',
-    category: 'Features',
-    readTime: '5 min',
-    hasVideo: true,
-  },
-  {
-    slug: 'youtube-to-content',
-    icon: <Youtube className="w-6 h-6" />,
-    title: 'Turn YouTube Videos into Content',
-    description:
-      'Paste any YouTube link and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
-    category: 'Features',
-    readTime: '4 min',
+      'Add text, URLs, documents, emails, and voice samples to your Knowledge Base. The more context EchoMe has, the better your voice match.',
+    category: 'Getting Started',
+    readTime: '3 min',
     hasVideo: false,
   },
   {
@@ -76,6 +95,108 @@ const guides = [
     category: 'Getting Started',
     readTime: '3 min',
     hasVideo: true,
+  },
+  // Features
+  {
+    slug: 'content-kits',
+    icon: <Package className="w-6 h-6" />,
+    title: 'Working with Content Kits',
+    description:
+      'Explore everything inside a Content Kit — clips, social posts, carousels, and transcripts. Learn how to download, copy, and share your content.',
+    category: 'Content',
+    readTime: '4 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'video-content',
+    icon: <Film className="w-6 h-6" />,
+    title: 'Creating and Managing Video Content',
+    description:
+      'Upload videos, use external links, edit clips with captions, and generate a full content kit from a single video.',
+    category: 'Features',
+    readTime: '5 min',
+    hasVideo: true,
+  },
+  {
+    slug: 'reels-and-captions',
+    icon: <Captions className="w-6 h-6" />,
+    title: 'Reels & Caption Styles',
+    description:
+      'Choose from 8 caption styles, adjust position and timing, and export clips optimized for Instagram Reels, TikTok, and YouTube Shorts.',
+    category: 'Content',
+    readTime: '3 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'youtube-to-content',
+    icon: <Youtube className="w-6 h-6" />,
+    title: 'Turn YouTube Videos into Content',
+    description:
+      'Paste any YouTube link and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
+    category: 'Features',
+    readTime: '4 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'zoom-recordings',
+    icon: <Lock className="w-6 h-6" />,
+    title: 'Zoom Recordings: Password-Protected Downloads',
+    description:
+      'Import password-protected Zoom cloud recordings directly into EchoMe. Paste the link, enter the password, and process like any other video.',
+    category: 'Video',
+    readTime: '2 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'creator-radar',
+    icon: <Radar className="w-6 h-6" />,
+    title: "Creator Radar: Repurpose Creators' Videos",
+    description:
+      'Discover trending content in your niche and repurpose it into original posts written in your voice. Stay active without filming new videos.',
+    category: 'Features',
+    readTime: '3 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'content-calendar',
+    icon: <CalendarDays className="w-6 h-6" />,
+    title: 'Content Calendar: Schedule Your Posts',
+    description:
+      'Plan and schedule your generated content across platforms. Drag and drop posts onto your calendar for consistent publishing.',
+    category: 'Features',
+    readTime: '2 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'trends',
+    icon: <TrendingUp className="w-6 h-6" />,
+    title: "Trends: What's Working in Your Niche",
+    description:
+      'See which topics and formats are performing best in your niche. Use trend data to guide your content strategy.',
+    category: 'Features',
+    readTime: '2 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'team-voices',
+    icon: <Users className="w-6 h-6" />,
+    title: 'Team Voices: Multiple Voice Profiles',
+    description:
+      'Manage multiple voice profiles for your team or clients. Each profile has its own Knowledge Base and generates content in its own voice.',
+    category: 'Teams',
+    readTime: '3 min',
+    hasVideo: false,
+  },
+  // Account
+  {
+    slug: 'plans',
+    icon: <CreditCard className="w-6 h-6" />,
+    title: 'Understanding EchoMe Plans',
+    description:
+      'Compare Free, Echo, Echo Studio, and Echo Pro plans. See what is included in each tier and how to upgrade or downgrade.',
+    category: 'Account',
+    readTime: '3 min',
+    hasVideo: false,
   },
 ];
 
