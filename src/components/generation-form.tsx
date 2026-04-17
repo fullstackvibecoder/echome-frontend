@@ -388,6 +388,7 @@ export function GenerationForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadWarning, setUploadWarning] = useState<{ sizeMB: number; estMinutes: number } | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [videoDragActive, setVideoDragActive] = useState(false);
@@ -894,15 +895,17 @@ export function GenerationForm({
     if (file.size > MAX_SIZE) {
       const sizeMB = Math.round(file.size / (1024 * 1024));
       setUploadError(`File is too large (${sizeMB}MB). Maximum is 2GB. Compress it with a free tool like HandBrake (see guide: /guides/compress-video) or paste a YouTube/Vimeo URL instead.`);
+      setUploadWarning(null);
       return;
     }
 
+    setUploadError(null);
     if (file.size > WARN_SIZE) {
       const sizeMB = Math.round(file.size / (1024 * 1024));
       const estMinutes = Math.round(file.size / (2 * 1024 * 1024) / 60); // ~2MB/s estimate
-      setUploadError(`This is a ${sizeMB}MB file — upload may take ${estMinutes}+ min. For faster, more reliable uploads, compress it first (see guide: /guides/compress-video) or paste a YouTube/Vimeo URL instead.`);
+      setUploadWarning({ sizeMB, estMinutes });
     } else {
-      setUploadError(null);
+      setUploadWarning(null);
     }
 
     setSelectedFile(file);
@@ -1014,6 +1017,7 @@ export function GenerationForm({
   const clearFile = () => {
     setSelectedFile(null);
     setUploadError(null);
+    setUploadWarning(null);
     setSelectedContent(null);
     setCurrentUploadId(null);
     if (videoInputRef.current) videoInputRef.current.value = '';
@@ -1653,6 +1657,51 @@ export function GenerationForm({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Upload Size Advisory — not a blocker, just a heads-up with a shortcut */}
+      {uploadWarning && !uploadError && (
+        <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <div className="flex-1 min-w-0">
+              <p className="text-small text-amber-900 dark:text-amber-100 font-medium">
+                Heads up — {uploadWarning.sizeMB}MB file
+              </p>
+              <p className="text-small text-amber-800/90 dark:text-amber-200/90 mt-0.5">
+                It&apos;ll work, but the upload may take {uploadWarning.estMinutes}+ minutes and be less reliable on slow connections.
+                Shrinking it first is usually faster end-to-end.
+              </p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <a
+                  href="/tools/compress-video"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-small font-medium transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                  Shrink it first (free)
+                </a>
+                <button
+                  onClick={() => { setUploadWarning(null); setInputType('video'); setShowModeSelector(true); }}
+                  className="inline-flex items-center px-3 py-1.5 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-md text-small font-medium transition-colors"
+                >
+                  Paste a URL instead
+                </button>
+                <button
+                  onClick={() => setUploadWarning(null)}
+                  className="inline-flex items-center px-3 py-1.5 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-md text-small font-medium transition-colors"
+                >
+                  Continue anyway
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
