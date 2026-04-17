@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { SiteNav } from '@/components/landing/SiteNav';
+import { SiteFooter } from '@/components/landing/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'EchoMe FAQ — Frequently Asked Questions',
@@ -16,5 +18,11 @@ export const metadata: Metadata = {
 };
 
 export default function FAQLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <SiteNav />
+      <main className="flex-1">{children}</main>
+      <SiteFooter />
+    </div>
+  );
 }
