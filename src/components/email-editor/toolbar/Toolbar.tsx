@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Editor } from "@tiptap/react";
 import { Clapperboard } from "lucide-react";
 import FormatButtons from "./FormatButtons";
-import TenorGifPicker from "../pickers/TenorGifPicker";
+import GiphyGifPicker from "../pickers/GiphyGifPicker";
 import ImageUploader from "../pickers/ImageUploader";
 import VariablePicker from "../pickers/VariablePicker";
 
@@ -28,7 +28,7 @@ export default function Toolbar({ editor }: Props) {
           attrs: { token: t.key, label: t.label },
         }).run();
       }} />
-      <TenorGifPicker
+      <GiphyGifPicker
         isOpen={gifOpen}
         onClose={() => setGifOpen(false)}
         onSelect={(url) => editor.chain().focus().insertContent({ type: 'gif', attrs: { src: url, alt: 'GIF' } }).run()}

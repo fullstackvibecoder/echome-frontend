@@ -2,13 +2,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { X, Search, Loader2 } from "lucide-react";
 
-interface TenorGif {
+interface GiphyGif {
   id: string;
-  media_formats: {
-    gif: { url: string };
-    tinygif: { url: string };
+  images: {
+    original: { url: string };
+    fixed_width_small: { url: string };
   };
-  content_description: string;
+  alt_text?: string;
+  title?: string;
 }
 
 interface Props {
@@ -17,24 +18,24 @@ interface Props {
   onSelect: (gifUrl: string) => void;
 }
 
-const TENOR_API_KEY = process.env.NEXT_PUBLIC_TENOR_API_KEY;
+const GIPHY_API_KEY = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
 
-export default function TenorGifPicker({ isOpen, onClose, onSelect }: Props) {
+export default function GiphyGifPicker({ isOpen, onClose, onSelect }: Props) {
   const [query, setQuery] = useState("");
-  const [gifs, setGifs] = useState<TenorGif[]>([]);
+  const [gifs, setGifs] = useState<GiphyGif[]>([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchGifs = useCallback(async (q: string) => {
-    if (!TENOR_API_KEY) return;
+    if (!GIPHY_API_KEY) return;
     setLoading(true);
     try {
       const endpoint = q.trim()
-        ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=${TENOR_API_KEY}&limit=20&media_filter=gif`
-        : `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=gif`;
+        ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(q)}&limit=20&rating=pg-13`
+        : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=pg-13`;
       const res = await fetch(endpoint);
       const data = await res.json();
-      setGifs(data.results || []);
+      setGifs(data.data || []);
     } catch {
       setGifs([]);
     } finally {
@@ -43,12 +44,12 @@ export default function TenorGifPicker({ isOpen, onClose, onSelect }: Props) {
   }, []);
 
   useEffect(() => {
-    if (isOpen && TENOR_API_KEY) fetchGifs("");
+    if (isOpen && GIPHY_API_KEY) fetchGifs("");
     if (!isOpen) { setQuery(""); setGifs([]); }
   }, [isOpen, fetchGifs]);
 
   useEffect(() => {
-    if (!isOpen || !TENOR_API_KEY) return;
+    if (!isOpen || !GIPHY_API_KEY) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchGifs(query), 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
@@ -68,10 +69,10 @@ export default function TenorGifPicker({ isOpen, onClose, onSelect }: Props) {
             <X size={16} />
           </button>
         </div>
-        {!TENOR_API_KEY ? (
+        {!GIPHY_API_KEY ? (
           <div className="p-8 text-center">
             <p className="text-sm text-muted-foreground">GIF search unavailable.</p>
-            <p className="text-xs text-muted-foreground mt-1">NEXT_PUBLIC_TENOR_API_KEY is not configured.</p>
+            <p className="text-xs text-muted-foreground mt-1">NEXT_PUBLIC_GIPHY_API_KEY is not configured.</p>
           </div>
         ) : (
           <>
@@ -102,18 +103,18 @@ export default function TenorGifPicker({ isOpen, onClose, onSelect }: Props) {
                   {gifs.map((gif) => (
                     <button
                       key={gif.id}
-                      onClick={() => { onSelect(gif.media_formats.gif.url); onClose(); }}
+                      onClick={() => { onSelect(gif.images.original.url); onClose(); }}
                       className="relative aspect-square rounded-lg overflow-hidden border border-border bg-muted hover:scale-[1.03] transition-transform"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={gif.media_formats.tinygif.url} alt={gif.content_description} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={gif.images.fixed_width_small.url} alt={gif.alt_text || gif.title || "GIF"} className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>
               )}
             </div>
             <div className="px-3 py-2 text-center border-t border-border">
-              <span className="text-[11px] text-muted-foreground">Powered by Tenor</span>
+              <span className="text-[11px] text-muted-foreground">Powered by GIPHY</span>
             </div>
           </>
         )}
