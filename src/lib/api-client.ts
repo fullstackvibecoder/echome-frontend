@@ -1992,40 +1992,18 @@ export const api = {
           await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {});
         }
 
-        if (onProgress) onProgress(90);
+        if (onProgress) onProgress(100);
 
-        // No encoding wait — processing starts immediately on r2-complete.
-        // Poll for processing completion.
-        const maxWaitMs = 15 * 60 * 1000;
-        const pollIntervalMs = 3000;
-        const startTime = Date.now();
+        // Return immediately — r2-complete triggers processing server-side.
+        // The generation form's Step 2 (api.clips.process) handles the
+        // processing progress via SSE. No need to poll here.
+        console.log('[api-client] R2 upload complete, processing triggered server-side');
 
-        while (Date.now() - startTime < maxWaitMs) {
-          await new Promise(r => setTimeout(r, pollIntervalMs));
+        // Fetch the upload record so the form has the upload ID for Step 2
+        const statusResponse = await apiClient.get(`/clips/${uploadId}`);
+        const upload = statusResponse.data?.data?.upload;
 
-          const elapsed = Date.now() - startTime;
-          if (onProgress) onProgress(90 + Math.min(9, Math.round((elapsed / maxWaitMs) * 9)));
-
-          try {
-            const statusResponse = await apiClient.get(`/clips/${uploadId}`);
-            const upload = statusResponse.data?.data?.upload;
-
-            if (upload?.status === 'failed') {
-              throw new Error(upload.statusMessage || 'Processing failed');
-            }
-
-            if (upload?.status === 'completed') {
-              console.log('[api-client] Processing complete');
-              if (onProgress) onProgress(100);
-              return { success: true, data: { upload, message: 'Video uploaded and processed' } };
-            }
-          } catch (pollErr: any) {
-            if (pollErr?.message?.includes('failed')) throw pollErr;
-            console.warn('[api-client] Poll error, retrying:', pollErr?.message);
-          }
-        }
-
-        throw new Error('Processing timed out. Your video may still be processing.');
+        return { success: true, data: { upload, message: 'Video uploaded via R2' } };
       } finally {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
       }
