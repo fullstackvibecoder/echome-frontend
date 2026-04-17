@@ -1,0 +1,27 @@
+{
+  "baseUrl": "https://www.tryechome.com",
+  "loginUrl": "https://www.tryechome.com/auth/login",
+  "routes": [
+    { "path": "/", "authenticated": false },
+    { "path": "/auth/login", "authenticated": false },
+    { "path": "/auth/signup", "authenticated": false },
+    { "path": "/auth/forgot-password", "authenticated": false },
+    { "path": "/app", "authenticated": true },
+    { "path": "/app/library", "authenticated": true },
+    { "path": "/app/calendar", "authenticated": true },
+    { "path": "/app/following", "authenticated": true },
+    { "path": "/app/knowledge", "authenticated": true },
+    { "path": "/app/clips", "authenticated": true },
+    { "path": "/app/reels", "authenticated": true },
+    { "path": "/app/trends", "authenticated": true },
+    { "path": "/app/integrations", "authenticated": true },
+    { "path": "/app/profile", "authenticated": true },
+    { "path": "/app/settings", "authenticated": true },
+    { "path": "/app/billing", "authenticated": true },
+    { "path": "/app/team-voices", "authenticated": true },
+    { "path": "/app/developers", "authenticated": true },
+    { "path": "/app/admin", "authenticated": true },
+    { "path": "/app/admin/dashboard", "authenticated": true },
+    { "path": "/app/admin/campaigns", "authenticated": true }
+  ]
+}

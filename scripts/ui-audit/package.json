@@ -1,0 +1,18 @@
+{
+  "name": "echome-ui-audit",
+  "version": "1.0.0",
+  "description": "Site-wide UI and accessibility audit for EchoMe. Runs axe-core on every route, scans source for component drift and rogue color values, and emits a single audit-report.json that Claude Code can consume.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "auth": "node auth.setup.mjs",
+    "crawl": "node crawl.mjs",
+    "inventory": "node inventory.mjs",
+    "merge": "node merge.mjs",
+    "audit": "npm run crawl && npm run inventory && npm run merge"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "playwright": "^1.48.0"
+  }
+}

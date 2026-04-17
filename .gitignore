@@ -51,3 +51,6 @@ next-env.d.ts
 
 # Superpowers brainstorm artifacts
 .superpowers/
+scripts/ui-audit/node_modules/
+scripts/ui-audit/auth.json
+scripts/ui-audit/output/

@@ -15,12 +15,13 @@
   --secondary: oklch(0.95 0 0);
   --secondary-foreground: #1c1c1e; /* Graphite Black */
   --muted: oklch(0.95 0 0);
-  --muted-foreground: #9b8baf; /* Slate Lavender */
+  --muted-foreground: #8A7A9E; /* Slate Lavender — darkened from #9B8BAF for better contrast (~3.8:1 on white) */
   --accent: #00D4FF; /* Electric Cyan - Brand Primary */
   --accent-foreground: #ffffff; /* White text on accent */
   --destructive: oklch(0.577 0.245 27.325);
   --border: #e5e5e5;
   --input: #ffffff;
+  --primary-interactive: #0077AA; /* Darker cyan for text-bearing interactive surfaces — 4.56:1 with white */
   --ring: #00D4FF; /* Electric Cyan */
   --chart-1: #00D4FF; /* Electric Cyan */
   --chart-2: #B794F6; /* Vibrant Purple */
@@ -32,6 +33,14 @@
   --accent-purple: #B794F6;
   --accent-pink: #FF6B9D;
   --accent-yellow: #FFD93D;
+
+  /* Social brand colors (third-party guidelines) */
+  --social-linkedin: #0A66C2;
+  --social-twitter: #000000;
+  --social-instagram: #E4405F;
+  --social-tiktok: #000000;
+  --social-youtube: #FF0000;
+  --social-facebook: #1877F2;
 
   --sidebar: #FAFAFA;
   --sidebar-foreground: #1c1c1e; /* Graphite Black */
@@ -121,6 +130,7 @@
   --input: #2a2a2c; /* Input background */
   --ring: #00D4FF; /* Electric Cyan */
   --slate-lavender: #d4c8e0; /* Lighter lavender for dark mode — WCAG AA on #1c1c1e (8:1) */
+  --primary-interactive: #0088BB; /* Slightly lighter interactive cyan for dark mode */
   --chart-1: #3a8e9c; /* Deep Cyan */
   --chart-2: #9b8baf; /* Slate Lavender */
   --chart-3: #b4a398; /* Clay Taupe */
@@ -205,6 +215,13 @@
   --color-on-surface-variant: var(--on-surface-variant);
   --color-outline-variant: var(--outline-variant);
   --color-slate-lavender: var(--slate-lavender);
+  --color-primary-interactive: var(--primary-interactive);
+  --color-social-linkedin: var(--social-linkedin);
+  --color-social-twitter: var(--social-twitter);
+  --color-social-instagram: var(--social-instagram);
+  --color-social-tiktok: var(--social-tiktok);
+  --color-social-youtube: var(--social-youtube);
+  --color-social-facebook: var(--social-facebook);
   --font-sans: var(--font-satoshi);
   --font-headline: var(--font-manrope);
 }
@@ -869,10 +886,13 @@ body {
 }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-[var(--accent)] to-[var(--accent-purple)] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[var(--accent)]/30 transition-all text-center inline-block px-6 py-3;
+  @apply text-white font-semibold rounded-lg transition-all text-center inline-block px-6 py-3;
+  background-color: var(--primary-interactive);
 }
 .btn-primary:hover {
   transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--primary-interactive), var(--accent-purple));
+  box-shadow: 0 8px 20px -4px rgba(0, 119, 170, 0.3);
 }
 .btn-primary:active {
   transform: translateY(0);
