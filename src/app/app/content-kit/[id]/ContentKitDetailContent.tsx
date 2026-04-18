@@ -7,29 +7,25 @@
  * written content, carousels, and share options.
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
 import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS, VIDEO_GENERATION_STEPS, isVideoStep } from '@/hooks/useGenerationProgress';
-import { VideoPlayer } from '@/components/content-kit';
-import { ShareDropdown, QuickShareButton } from '@/components/share-buttons';
 import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
-import { PLATFORM_CONFIG, CONTENT_TYPE_CONFIG, formatDuration } from '@/lib/content-kit-utils';
+import { CONTENT_TYPE_CONFIG } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { showErrorToast } from '@/lib/toast';
 import { ContentCategory } from '@/types';
-import { CalendarPlus, Play } from 'lucide-react';
+import { CalendarPlus } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
-import { downloadImage, downloadCarouselImages } from '@/lib/download';
-import { CaptionStylePopover } from '@/components/content-kit/CaptionStylePopover';
-import { CaptionPositionControl } from '@/components/content-kit/CaptionPositionControl';
-import type { CaptionPosition } from '@/components/content-kit/CaptionOverlay';
-import { BlogPostSection } from '@/components/blog-post-section';
 import ReelEditorModal from '@/components/reels/ReelEditorModal';
-import { CarouselStyleEditor } from '@/components/content-kit/CarouselStyleEditor';
 import { ExportProgressModal } from '@/components/ExportProgressModal';
+import { OutputCard } from '@/components/content-kit/OutputCard';
+import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
+import WrittenContentModal from '@/components/content-kit/WrittenContentModal';
+import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
 
 // Progress step component
 function ProgressStep({
@@ -75,18 +71,12 @@ export default function ContentKitDetailContent() {
   const { user } = useAuth();
   const isAdmin = !!user?.isAdmin;
   const { activeVoice, isTeamsUser } = useVoiceContext();
-  const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [activeClipIndex, setActiveClipIndex] = useState(0);
-  const [showSplitScreen, setShowSplitScreen] = useState(false);
   const [captionsEnabled, setCaptionsEnabled] = useState(true);
-  const [captionSegments, setCaptionSegments] = useState<import('@/lib/caption-parser').CaptionSegment[]>([]);
   const [captionStyle, setCaptionStyle] = useState<import('@/lib/caption-parser').CaptionStylePreset>('highlight');
-  const [captionPosition, setCaptionPosition] = useState<CaptionPosition>('bottom');
   const [exportingClip, setExportingClip] = useState(false);
   // ID of the clip currently being exported — opens the progress modal when set
   const [exportingClipId, setExportingClipId] = useState<string | null>(null);
-  const persistTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
   const [resizedCarousel, setResizedCarousel] = useState<{
     aspectRatio: '1:1' | '9:16';
@@ -101,78 +91,10 @@ export default function ContentKitDetailContent() {
   } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
   const [reelEditorOpen, setReelEditorOpen] = useState(false);
-
-  // Fetch caption data when active clip changes (for overlay mode)
-  useEffect(() => {
-    const clip = detail?.clips?.[activeClipIndex];
-    if (!clip || clip.captionsBurnedIn !== false) {
-      setCaptionSegments([]);
-      return;
-    }
-
-    // Fetch caption segments from API
-    const fetchCaptions = async () => {
-      try {
-        const { api } = await import('@/lib/api-client');
-        const uploadId = clip.videoUploadId || (detail as any)?.uploadId || id;
-        const response = await api.clips.get(uploadId);
-        // Use transcript segments from the upload if available
-        const upload = response?.data?.upload;
-        if (upload?.transcriptSegments?.length) {
-          const filtered = upload.transcriptSegments
-            .filter((seg: any) => seg.start < clip.endTime && seg.end > clip.startTime)
-            .map((seg: any) => ({
-              text: seg.text,
-              start: Math.max(0, seg.start - clip.startTime),
-              end: Math.min(clip.duration, seg.end - clip.startTime),
-              words: seg.words?.map((w: any) => ({
-                word: w.word,
-                start: Math.max(0, w.start - clip.startTime),
-                end: Math.min(clip.duration, w.end - clip.startTime),
-              })).filter((w: any) => w.start < clip.duration && w.end > 0) || [],
-            }))
-            .filter((seg: any) => seg.end > seg.start);
-          setCaptionSegments(filtered);
-        }
-        if (clip.captionStyle) setCaptionStyle(clip.captionStyle as any);
-        if (clip.captionPosition) setCaptionPosition(clip.captionPosition as CaptionPosition);
-      } catch (err) {
-        console.warn('Failed to fetch caption data:', err);
-        setCaptionSegments([]);
-      }
-    };
-
-    fetchCaptions();
-  }, [activeClipIndex, detail, id]);
-
-  // Debounced persist for caption style/position changes
-  const persistCaptionSetting = useCallback((field: string, value: string) => {
-    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
-    persistTimerRef.current = setTimeout(async () => {
-      const clip = detail?.clips?.[activeClipIndex];
-      if (!clip) return;
-      const uploadId = clip.videoUploadId || id;
-      try {
-        await api.clips.updateClip(uploadId, clip.id, { [field]: value });
-      } catch (err) {
-        console.warn('Failed to persist caption setting:', err);
-      }
-    }, 500);
-  }, [detail, activeClipIndex, id]);
-
-  const handleStyleChange = useCallback((style: import('@/lib/caption-parser').CaptionStylePreset) => {
-    setCaptionStyle(style);
-    persistCaptionSetting('captionStyle', style);
-  }, [persistCaptionSetting]);
-
-  const handlePositionChange = useCallback((position: CaptionPosition) => {
-    setCaptionPosition(position);
-    persistCaptionSetting('captionPosition', position);
-  }, [persistCaptionSetting]);
-
-  // Is the current clip an overlay clip (not burned-in)?
-  const activeClip = detail?.clips?.[activeClipIndex];
-  const isOverlayClip = activeClip?.captionsBurnedIn === false && activeClip?.hasCaptions;
+  const [substackModalOpen, setSubstackModalOpen] = useState(false);
+  const [writtenContentModalOpen, setWrittenContentModalOpen] = useState(false);
+  const [clipEditorOpen, setClipEditorOpen] = useState(false);
+  const [activeClipForEditor, setActiveClipForEditor] = useState<any>(null);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -243,24 +165,6 @@ export default function ContentKitDetailContent() {
   }, [hasCarouselCheck, contentKitId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reel/B-Roll handlers moved to useVideoReel hook
-
-  const handleCopy = async (content: string, contentId: string) => {
-    try {
-      await navigator.clipboard.writeText(content);
-    } catch {
-      // Fallback for older browsers or restricted contexts
-      const textarea = document.createElement('textarea');
-      textarea.value = content;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-    }
-    setCopiedId(contentId);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   const handleQuickSchedule = async (data: {
     scheduledFor: string;
@@ -469,8 +373,6 @@ export default function ContentKitDetailContent() {
   };
 
   const platformContent = getPlatformContent();
-  const blogContent = platformContent.find(p => p.platform === 'blog');
-  const nonBlogContent = platformContent.filter(p => p.platform !== 'blog');
   const hasClips = detail?.clips && detail.clips.length > 0;
   const hasWrittenContent = platformContent.length > 0;
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
@@ -645,649 +547,96 @@ export default function ContentKitDetailContent() {
             )}
           </div>
 
-          {/* Video Clips Section */}
-          {hasClips && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-display text-2xl flex items-center gap-3">
-                  <span>🎬</span>
-                  <span>Video Clips</span>
-                  <span className="text-text-secondary text-lg font-normal">
-                    ({detail.clips.length} ready to share)
-                  </span>
-                </h2>
-              </div>
-
-              {/* Clip Editor — Dark UI */}
-              <div className="bg-background rounded-2xl overflow-hidden mb-6 shadow-2xl">
-                {detail.clips[activeClipIndex] && (
-                  <>
-                    {/* Zone 1: Dual Preview */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 lg:p-8 bg-black/20">
-                      {/* Single view — always shown */}
-                      <div className="flex flex-col items-center gap-3">
-                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Single Speaker</span>
-                        <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-border shadow-xl">
-                          <VideoPlayer
-                            src={detail.clips[activeClipIndex].exports?.[0]?.url || ''}
-                            poster={detail.clips[activeClipIndex].thumbnailUrl}
-                            aspectRatio="9:16"
-                            viralityScore={detail.clips[activeClipIndex].viralityScore}
-                            duration={detail.clips[activeClipIndex].duration}
-                            title={detail.clips[activeClipIndex].title}
-                            className="max-h-[500px]"
-                            captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
-                            captionStyle={captionStyle}
-                            captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
-                            viewMode="single"
-                            captionPosition={captionPosition}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Split view — or clip info panel */}
-                      {detail.clips[activeClipIndex].splitScreenUrl ? (
-                        <div className="flex flex-col items-center gap-3">
-                          <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Split Screen</span>
-                          <div className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-border shadow-xl">
-                            <VideoPlayer
-                              src={detail.clips[activeClipIndex].splitScreenUrl!}
-                              aspectRatio="9:16"
-                              duration={detail.clips[activeClipIndex].duration}
-                              className="max-h-[500px]"
-                              captionSegments={!detail.clips[activeClipIndex].captionsBurnedIn ? captionSegments : undefined}
-                              captionStyle={captionStyle}
-                              captionsEnabled={captionsEnabled && !detail.clips[activeClipIndex].captionsBurnedIn}
-                              viewMode="split"
-                              captionPosition={captionPosition}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col justify-center p-6">
-                          <h3 className="font-semibold text-lg mb-2 text-foreground">
-                            {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
-                          </h3>
-                          {detail.clips[activeClipIndex].selectionReason && (
-                            <p className="text-muted-foreground text-sm mb-4">
-                              {detail.clips[activeClipIndex].selectionReason}
-                            </p>
-                          )}
-                          {detail.clips[activeClipIndex].suggestedCaption && (
-                            <div className="bg-black/40 rounded-2xl p-4 border border-border relative">
-                              <span className="text-[10px] text-muted-foreground font-bold uppercase block mb-2">Suggested Caption</span>
-                              <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed italic">
-                                {detail.clips[activeClipIndex].suggestedCaption}
-                              </p>
-                              <button
-                                onClick={() => handleCopy(
-                                  detail.clips[activeClipIndex].suggestedCaption || '',
-                                  `clip-caption-${detail.clips[activeClipIndex].id}`
-                                )}
-                                className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
-                                  copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
-                                    ? 'bg-accent/20 text-accent' : 'bg-muted text-accent hover:bg-muted/80'
-                                }`}
-                              >
-                                {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
-                              </button>
-                            </div>
-                          )}
-                          {detail.clips[activeClipIndex].transcriptText && (
-                            <details className="bg-black/40 rounded-2xl border border-border mt-3 group">
-                              <summary className="flex items-center justify-between p-4 cursor-pointer select-none">
-                                <span className="text-[10px] text-muted-foreground font-bold uppercase">Transcript</span>
-                                <span className="text-muted-foreground text-xs group-open:rotate-180 transition-transform">▼</span>
-                              </summary>
-                              <div className="px-4 pb-4 relative">
-                                <p className="text-xs text-white/70 whitespace-pre-wrap leading-relaxed">
-                                  {detail.clips[activeClipIndex].transcriptText}
-                                </p>
-                                <button
-                                  onClick={() => handleCopy(
-                                    detail.clips[activeClipIndex].transcriptText || '',
-                                    `clip-transcript-${detail.clips[activeClipIndex].id}`
-                                  )}
-                                  className={`absolute top-0 right-4 p-1.5 rounded-lg transition-colors ${
-                                    copiedId === `clip-transcript-${detail.clips[activeClipIndex].id}`
-                                      ? 'bg-accent/20 text-accent' : 'bg-muted text-accent hover:bg-muted/80'
-                                  }`}
-                                >
-                                  {copiedId === `clip-transcript-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
-                                </button>
-                              </div>
-                            </details>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Zone 2: Editor Toolbar */}
-                    <div className="min-h-14 py-2 bg-card border-y border-border px-4 lg:px-8 flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-border">
-                        <span className="text-[10px] font-bold text-accent">
-                          {detail.clips[activeClipIndex].format === 'portrait' ? '9:16' :
-                           detail.clips[activeClipIndex].format === 'landscape' ? '16:9' : '1:1'}
-                        </span>
-                      </div>
-
-                      <div className="h-4 w-px bg-muted" />
-
-                      {detail.clips[activeClipIndex].hasCaptions && (
-                        <button
-                          onClick={() => setCaptionsEnabled(!captionsEnabled)}
-                          className={`flex items-center gap-2 text-xs font-semibold transition-colors ${
-                            captionsEnabled ? 'text-white/90' : 'text-white/40'
-                          }`}
-                        >
-                          <span>CC</span>
-                          <div className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${captionsEnabled ? 'bg-accent' : 'bg-muted'}`}>
-                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${captionsEnabled ? 'right-0.5' : 'left-0.5'}`} />
-                          </div>
-                        </button>
-                      )}
-
-                      {isOverlayClip && captionsEnabled && (
-                        <>
-                          <CaptionStylePopover
-                            value={captionStyle}
-                            onChange={handleStyleChange}
-                          />
-                          <CaptionPositionControl
-                            value={captionPosition}
-                            onChange={handlePositionChange}
-                          />
-                        </>
-                      )}
-
-                      <div className="ml-auto flex items-center gap-3">
-                        {detail.clips[activeClipIndex].splitScreenUrl ? (
-                          <>
-                            <button
-                              disabled={exportingClip}
-                              onClick={() => handleDownloadClip(detail.clips[activeClipIndex], 'single')}
-                              className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
-                            >
-                              {exportingClip ? 'Exporting...' : 'Download Single'}
-                            </button>
-                            <button
-                              disabled={exportingClip}
-                              onClick={() => handleDownloadClip(detail.clips[activeClipIndex], 'split')}
-                              className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
-                            >
-                              Download Split
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            disabled={exportingClip}
-                            onClick={() => handleDownloadClip(detail.clips[activeClipIndex], 'single')}
-                            className="px-4 py-1.5 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 hover:bg-white/25 transition-colors disabled:opacity-50"
-                          >
-                            {exportingClip ? 'Exporting...' : 'Download'}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setQuickScheduleConfig({ type: 'clips' })}
-                          className="bg-accent text-black px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all"
-                        >
-                          Schedule
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Zone 3: Clip Filmstrip */}
-                    {detail.clips.length > 1 && (
-                      <div className="px-6 py-4 bg-background">
-                        <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                          {detail.clips.map((clip, index) => (
-                            <button
-                              key={clip.id}
-                              onClick={() => setActiveClipIndex(index)}
-                              className={`relative flex-shrink-0 w-[140px] rounded-xl overflow-hidden transition-all ${
-                                index === activeClipIndex
-                                  ? 'border-2 border-accent ring-4 ring-accent/10'
-                                  : 'border border-border hover:border-white/40 grayscale'
-                              }`}
-                            >
-                              <div className="aspect-video bg-card">
-                                {clip.thumbnailUrl ? (
-                                  <img src={clip.thumbnailUrl} alt={clip.title || `Clip ${index + 1}`} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-lg text-white/30">🎬</div>
-                                )}
-                              </div>
-                              {index !== activeClipIndex && <div className="absolute inset-0 bg-black/30" />}
-                              <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                                {formatDuration(clip.duration)}
-                              </div>
-                              {clip.viralityScore !== undefined && clip.viralityScore > 0 && (
-                                <div className={`absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                                  index === activeClipIndex
-                                    ? 'bg-accent/90 text-black'
-                                    : 'bg-white/20 text-white'
-                                }`}>
-                                  {clip.viralityScore}%
-                                </div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Zone 4: Clip Meta */}
-                    {detail.clips[activeClipIndex].splitScreenUrl && (
-                      <div className="px-6 lg:px-8 py-6 bg-secondary">
-                        <div className="flex flex-col md:flex-row gap-6">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-bold text-foreground">
-                              {detail.clips[activeClipIndex].title || `Clip ${activeClipIndex + 1}`}
-                            </h3>
-                            {detail.clips[activeClipIndex].selectionReason && (
-                              <p className="text-muted-foreground text-sm mt-1">
-                                {detail.clips[activeClipIndex].selectionReason}
-                              </p>
-                            )}
-                          </div>
-                          {detail.clips[activeClipIndex].suggestedCaption && (
-                            <div className="flex-1">
-                              <div className="bg-black/40 rounded-2xl p-4 border border-border relative">
-                                <span className="text-[10px] text-muted-foreground font-bold uppercase block mb-2">Suggested Caption</span>
-                                <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed italic">
-                                  {detail.clips[activeClipIndex].suggestedCaption}
-                                </p>
-                                <button
-                                  onClick={() => handleCopy(
-                                    detail.clips[activeClipIndex].suggestedCaption || '',
-                                    `clip-caption-${detail.clips[activeClipIndex].id}`
-                                  )}
-                                  className={`absolute top-3 right-3 p-1.5 rounded-lg transition-colors ${
-                                    copiedId === `clip-caption-${detail.clips[activeClipIndex].id}`
-                                      ? 'bg-accent/20 text-accent' : 'bg-muted text-accent hover:bg-muted/80'
-                                  }`}
-                                >
-                                  {copiedId === `clip-caption-${detail.clips[activeClipIndex].id}` ? '✓' : '📋'}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </section>
-          )}
-
-          {/* Written Content Section (excludes blog — blog gets its own section below) */}
-          {nonBlogContent.length > 0 && (
-            <section id="written-content-section">
-              <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
-                <span>✍️</span>
-                <span>Written Content</span>
-                <span className="text-text-secondary text-lg font-normal">
-                  (ready to post)
-                </span>
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {nonBlogContent.map(({ platform, content }) => {
-                  const config = PLATFORM_CONFIG[platform];
-                  if (!config || !content) return null;
-                  const isExpanded = expandedPlatform === platform;
-                  const contentId = `${platform}-${item.id}`;
-
-                  return (
-                    <div
-                      key={platform}
-                      className="bg-bg-secondary rounded-xl border border-border overflow-hidden hover:border-accent/50 transition-colors group"
-                    >
-                      {/* Platform Header */}
-                      <div className={`px-4 py-3 ${config.color} border-b border-border/50`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">{config.icon}</span>
-                            <h4 className="font-semibold">{config.label}</h4>
-                          </div>
-                          <ShareDropdown content={content} platform={platform} />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-4">
-                        <p className={`text-small text-text-secondary whitespace-pre-wrap leading-relaxed ${isExpanded ? '' : 'line-clamp-6'}`}>
-                          {content}
-                        </p>
-                        {content.length > 250 && (
-                          <button
-                            onClick={() => setExpandedPlatform(isExpanded ? null : platform)}
-                            className="text-xs text-accent mt-2 hover:underline"
-                          >
-                            {isExpanded ? 'Show less' : 'Show more...'}
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="px-4 pb-4 pt-2 border-t border-border/50 flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleCopy(content, contentId)}
-                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                              copiedId === contentId
-                                ? 'bg-success/10 text-success'
-                                : 'bg-bg-tertiary text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/80'
-                            }`}
-                          >
-                            {copiedId === contentId ? '✓ Copied!' : '📋 Copy'}
-                          </button>
-                          <QuickShareButton
-                            content={content}
-                            platformKey={platform}
-                            className="flex-1 justify-center"
-                          />
-                        </div>
-                        <button
-                          onClick={() => setQuickScheduleConfig({ type: 'platform', platform })}
-                          className="w-full py-2 px-3 rounded-lg text-sm font-medium bg-purple-600/10 text-purple-600 hover:bg-purple-600/20 transition-all flex items-center justify-center gap-2"
-                        >
-                          <CalendarPlus className="w-4 h-4" />
-                          Add to Calendar
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {/* Blog Post Section — full-width with header image and formatted markdown */}
-          {blogContent && (
-            <BlogPostSection
-              content={blogContent.content}
-              contentKitId={item.id}
-              sourceContent={item.title}
-              onSchedule={() => setQuickScheduleConfig({ type: 'platform', platform: 'blog' })}
-            />
-          )}
-
-          {/* Instagram Carousel Loading State - show when carousel is expected but not ready */}
-          {carouselExpected && (
-            <section id="carousel-section">
-              <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
-                <span>📸</span>
-                <span>Instagram Carousel</span>
-                <span className="text-text-secondary text-lg font-normal">
-                  (generating in background...)
-                </span>
-              </h2>
-              <div className="bg-gradient-to-br from-accent/5 to-purple-500/5 rounded-xl border border-accent/20 p-8">
-                <div className="flex flex-col items-center justify-center py-6">
-                  <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mb-5" />
-                  <p className="text-text-primary font-semibold text-lg mb-2">Creating your carousel slides...</p>
-                  <p className="text-text-secondary text-sm text-center max-w-lg mb-6">
-                    Carousel images take a bit longer to render. Your written content is ready to use now!
-                  </p>
-                  {hasWrittenContent && (
-                    <button
-                      onClick={() => {
-                        const section = document.getElementById('written-content-section');
-                        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-medium hover:bg-accent/90 transition-colors"
-                    >
-                      <span>↑</span>
-                      <span>View Written Content</span>
-                      <span>✍️</span>
-                    </button>
-                  )}
-                </div>
-                <div className="mt-4 pt-4 border-t border-border/30">
-                  <div className="flex items-center justify-center gap-2 text-xs text-text-secondary">
-                    <span className="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
-                    <span>This page will update automatically when carousel is ready</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Instagram Carousel Section */}
-          {hasCarousel && (
-            <section>
-              <h2 className="text-display text-2xl mb-6 flex items-center gap-3">
-                <span>📸</span>
-                <span>Instagram Carousel</span>
-                <span className="text-text-secondary text-lg font-normal">
-                  ({detail.carousel.slides.length} slides)
-                </span>
-              </h2>
-
-              {/* Carousel Style Editor */}
-              <CarouselStyleEditor
-                kitId={detail.contentKit?.id || id}
-                currentDesignPreset={detail.carousel?.designPreset}
-                uploadId={detail.clips?.[0]?.videoUploadId || (detail as any)?.uploadId}
-                onRestyleComplete={async () => {
-                  // Clear resized carousel so it re-fetches the square version
-                  setResizedCarousel(null);
-                  squareFetchedRef.current = false;
-                  // Small delay to ensure DB write completes before re-fetch
-                  await new Promise(r => setTimeout(r, 500));
-                  refresh();
+          {/* Output Grid */}
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 mt-6">
+            {/* Clip cards */}
+            {detail?.clips?.map((clip: any, index: number) => (
+              <OutputCard
+                key={clip.id}
+                title={clip.title || `Clip ${index + 1}`}
+                subtitle={`${Math.floor(clip.duration / 60)}:${String(Math.floor(clip.duration % 60)).padStart(2, '0')}`}
+                thumbnailUrl={clip.thumbnailUrl}
+                aspectRatio="9/16"
+                onClick={() => {
+                  setActiveClipForEditor(clip);
+                  setClipEditorOpen(true);
                 }}
               />
+            ))}
 
-              {/* Square (1:1) Carousel - Primary display */}
-              <div className="bg-bg-secondary rounded-xl border border-border p-6 mb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium bg-accent/10 text-accent px-3 py-1 rounded-full">
-                      ⬜ Square (1:1)
-                    </span>
-                    <span className="text-xs text-text-secondary">Feed post format</span>
-                  </div>
-                </div>
+            {/* Carousel card */}
+            {hasCarousel && (
+              <OutputCard
+                title="Carousel"
+                subtitle={`${detail.carousel.slides.length} slides`}
+                thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
+                onClick={() => {/* carousel editor - Phase 2 */}}
+                badge={`${detail.carousel.slides.length} slides`}
+              />
+            )}
 
-                {resizedCarousel ? (
-                  <>
-                    {/* Carousel Preview - Square */}
-                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-                      {resizedCarousel.slides.map((slide, index) => (
-                        <div
-                          key={index}
-                          className="flex-shrink-0 w-72 snap-center"
-                        >
-                          <div className="aspect-square rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
-                            <img
-                              src={slide.publicUrl}
-                              alt={`Square Slide ${slide.slideNumber}`}
-                              className="w-full h-full object-cover"
-                            />
-                            {/* Slide template badge */}
-                            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
-                              {slide.template}
-                            </div>
-                            {/* Slide number */}
-                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                              {slide.slideNumber}/{resizedCarousel.slides.length}
-                            </div>
-                            {/* Download button - visible on hover (desktop) and always via icon (mobile) */}
-                            <button
-                              onClick={() => downloadImage(slide.publicUrl, `square-slide-${slide.slideNumber}.png`)}
-                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity max-sm:opacity-0 max-sm:pointer-events-none"
-                            >
-                              <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
-                                ⬇️ Download
-                              </span>
-                            </button>
-                            <button
-                              onClick={() => downloadImage(slide.publicUrl, `square-slide-${slide.slideNumber}.png`)}
-                              className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full sm:hidden"
-                            >
-                              ⬇️
-                            </button>
-                          </div>
-                          {/* Slide text preview */}
-                          <p className="mt-2 text-xs text-text-secondary line-clamp-2">
-                            {slide.text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+            {/* Carousel loading card */}
+            {carouselExpected && (
+              <OutputCard
+                title="Carousel"
+                subtitle="Generating..."
+                thumbnailFallback={
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                    <span className="text-[10px] text-muted-foreground">Rendering slides...</span>
+                  </div>
+                }
+                onClick={() => {}}
+              />
+            )}
 
-                    {/* Carousel Footer - Square */}
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-                      <div className="text-sm text-text-secondary">
-                        <span className="font-medium text-text-primary">
-                          {resizedCarousel.slides.length} slides
-                        </span>
-                        <span> • Square format</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setQuickScheduleConfig({ type: 'carousel' })}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
-                        >
-                          <CalendarPlus className="w-4 h-4" />
-                          Add to Calendar
-                        </button>
-                        <button
-                          onClick={async () => {
-                            await downloadCarouselImages(
-                              resizedCarousel.slides.map(s => ({ publicUrl: s.publicUrl, slideNumber: s.slideNumber })),
-                              `${id}-square`
-                            );
-                          }}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
-                        >
-                          ⬇️ Download All
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center py-12 text-text-secondary">
-                    <span className="animate-spin mr-2">⏳</span>
-                    <span className="text-sm">Loading square slides...</span>
-                  </div>
-                )}
-              </div>
+            {/* B-Roll Reel card */}
+            {(hasCarousel || detail?.contentKit?.videoUploadId) && (
+              <OutputCard
+                title="B-Roll Reel"
+                subtitle="Authority hook overlay"
+                thumbnailUrl={(detail as any)?.reel?.thumbnailUrl}
+                aspectRatio="9/16"
+                onClick={() => setReelEditorOpen(true)}
+              />
+            )}
 
-              {/* Portrait (9:16) Carousel */}
-              <div className="bg-bg-secondary rounded-xl border border-border p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full">
-                      📱 Portrait (9:16)
-                    </span>
-                    <span className="text-xs text-text-secondary">Stories/Reels format</span>
+            {/* Substack card (formerly Blog) */}
+            {detail?.contentKit?.contentBlog && (
+              <OutputCard
+                title="Substack Article"
+                subtitle={detail.contentKit.title || 'Article'}
+                thumbnailFallback={
+                  <div className="p-3 text-[11px] text-muted-foreground/60 leading-relaxed line-clamp-5">
+                    {detail.contentKit.contentBlog.slice(0, 200)}...
                   </div>
-                </div>
+                }
+                onClick={() => setSubstackModalOpen(true)}
+              />
+            )}
 
-                {/* Carousel Preview - Portrait */}
-                <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-                  {detail.carousel.slides.map((slide: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex-shrink-0 w-48 snap-center"
-                    >
-                      <div className="aspect-[9/16] rounded-lg overflow-hidden bg-bg-tertiary border border-border/50 relative group">
-                        <img
-                          src={slide.publicUrl}
-                          alt={`Slide ${slide.slideNumber}: ${slide.text?.slice(0, 30)}...`}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Slide template badge */}
-                        <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full capitalize">
-                          {slide.template || slide.slideType}
-                        </div>
-                        {/* Slide number */}
-                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                          {slide.slideNumber}/{detail.carousel.slides.length}
-                        </div>
-                        {/* Download button - visible on hover (desktop) and always via icon (mobile) */}
-                        <button
-                          onClick={() => downloadImage(slide.publicUrl, `portrait-slide-${slide.slideNumber}.png`)}
-                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity max-sm:opacity-0 max-sm:pointer-events-none"
-                        >
-                          <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">
-                            ⬇️ Download
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => downloadImage(slide.publicUrl, `portrait-slide-${slide.slideNumber}.png`)}
-                          className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full sm:hidden"
-                        >
-                          ⬇️
-                        </button>
-                      </div>
-                      {/* Slide text preview */}
-                      <p className="mt-2 text-xs text-text-secondary line-clamp-2">
-                        {slide.text}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Carousel Footer - Portrait */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-                  <div className="text-sm text-text-secondary">
-                    <span className="font-medium text-text-primary">
-                      {detail.carousel.slides.length} slides
-                    </span>
-                    {(detail.carousel.designPreset || detail.carousel.backgroundType) && (
-                      <span> • {detail.carousel.designPreset || detail.carousel.backgroundType} style</span>
-                    )}
+            {/* Platform post cards */}
+            {[
+              { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin' },
+              { key: 'instagram', label: 'Instagram', field: 'contentInstagram' },
+              { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter' },
+              { key: 'email', label: 'Email', field: 'contentEmail' },
+              { key: 'tiktok', label: 'TikTok', field: 'contentTiktok' },
+              { key: 'youtube', label: 'YouTube', field: 'contentYoutube' },
+            ].filter(p => (detail?.contentKit as any)?.[p.field]).map(({ key, label, field }) => (
+              <OutputCard
+                key={key}
+                title={label}
+                subtitle="Post"
+                thumbnailFallback={
+                  <div className="p-3 text-[11px] text-muted-foreground/60 leading-relaxed line-clamp-4">
+                    {((detail?.contentKit as any)?.[field] || '').slice(0, 120)}...
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setQuickScheduleConfig({ type: 'carousel' })}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
-                    >
-                      <CalendarPlus className="w-4 h-4" />
-                      Add to Calendar
-                    </button>
-                    <button
-                      onClick={async () => {
-                        await downloadCarouselImages(
-                          detail.carousel.slides.map((s: any) => ({ publicUrl: s.publicUrl, slideNumber: s.slideNumber })),
-                          `${id}-portrait`
-                        );
-                      }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors"
-                    >
-                      ⬇️ Download All
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* B-Roll Reel Card */}
-          {(hasCarousel || detail?.contentKit?.videoUploadId) && (
-            <section>
-              <h2 className="text-lg font-semibold mb-3">Reel</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                <div
-                  onClick={() => setReelEditorOpen(true)}
-                  className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-primary-interactive transition-colors"
-                >
-                  <div className="aspect-[9/16] max-h-[160px] bg-surface-container-low flex items-center justify-center">
-                    <Play className="w-8 h-8 text-muted-foreground/30" />
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-foreground text-sm font-medium">B-Roll Reel</h3>
-                    <p className="text-muted-foreground text-xs mt-0.5">Authority hook overlay</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
+                }
+                onClick={() => setWrittenContentModalOpen(true)}
+              />
+            ))}
+          </div>
 
           {/* Failed Generation State */}
           {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (item?.status === 'failed' || progressError) && (
@@ -1381,6 +730,48 @@ export default function ContentKitDetailContent() {
             <span className="font-medium">{scheduleSuccess}</span>
           </div>
         </div>
+      )}
+
+      {/* Substack Editor Modal */}
+      <SubstackEditorModal
+        open={substackModalOpen}
+        onClose={() => setSubstackModalOpen(false)}
+        content={detail?.contentKit?.contentBlog || ''}
+        title={detail?.contentKit?.title || 'Untitled'}
+        contentKitId={detail?.contentKit?.id || id}
+        onContentUpdate={() => refresh()}
+      />
+
+      {/* Written Content Modal */}
+      <WrittenContentModal
+        open={writtenContentModalOpen}
+        onClose={() => setWrittenContentModalOpen(false)}
+        contentKitId={detail?.contentKit?.id || id}
+        content={{
+          linkedin: detail?.contentKit?.contentLinkedin,
+          twitter: detail?.contentKit?.contentTwitter,
+          instagram: detail?.contentKit?.contentInstagram,
+          email: detail?.contentKit?.contentEmail,
+          tiktok: detail?.contentKit?.contentTiktok,
+          youtube: detail?.contentKit?.contentYoutube,
+          videoScript: detail?.contentKit?.contentVideoScript,
+        }}
+        onContentUpdate={() => refresh()}
+      />
+
+      {/* Clip Editor Modal */}
+      {activeClipForEditor && (
+        <ClipEditorModal
+          open={clipEditorOpen}
+          onClose={() => { setClipEditorOpen(false); setActiveClipForEditor(null); }}
+          clip={activeClipForEditor}
+          uploadId={detail?.clips?.[0]?.videoUploadId || (detail as any)?.uploadId || id}
+          onExport={(clipId) => {
+            setClipEditorOpen(false);
+            setActiveClipForEditor(null);
+            setExportingClipId(clipId);
+          }}
+        />
       )}
 
       {/* Export Progress Modal — shown while a 1080p clip download is being rendered */}
