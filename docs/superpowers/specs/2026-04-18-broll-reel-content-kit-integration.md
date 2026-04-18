@@ -25,7 +25,7 @@ When a content kit is generated, the pipeline adds one more step:
 
 1. **Select B-roll clip** — match the content kit's topic/category to a curated B-roll clip. Use keyword matching against the clip tags (abstract, realistic, lifestyle, etc.). Default to the most versatile category if no strong match. The user can swap this later.
 
-2. **Generate text overlay** — use the already-generated Instagram caption. Truncate to fit reel format if needed (max ~15 words per segment for readability). Split into segments if the caption is long (1-3 segments, 3-5 seconds each).
+2. **Generate Level 3 authority hook text** — this is NOT a reformatted Instagram caption. The text overlay is purpose-built for scroll-stopping using the Authority Content Framework (see below). The IG caption is a reference input, not the source.
 
 3. **Select text style** — default to "Bold Impact" (the most popular style based on current usage). User can change in the editor.
 
@@ -36,6 +36,89 @@ When a content kit is generated, the pipeline adds one more step:
    - `status` — 'draft' (auto-generated, not yet rendered into video)
 
 The reel is NOT rendered into a video file at generation time — it's stored as a config. Rendering happens when the user clicks "Download" or "Generate" in the editor. This keeps the pipeline fast.
+
+### Authority Content Framework — Text Overlay Prompting
+
+The co-founder's content strategy defines three levels of content:
+
+- **Level 1 (Entertainment):** Funny, trendy, POV. Good for reach, NOT for authority.
+- **Level 2 (Education — common):** "3 tips for X." Helpful but overdone. 90% of creators post this.
+- **Level 3 (Authority — transformational):** Perspective-shifting, data-backed, challenges assumptions. THIS is what converts and what EchoMe should generate.
+
+The reel text overlay LLM prompt must enforce Level 3 content. System prompt:
+
+```
+You are generating a scroll-stopping text overlay for a short-form
+B-roll reel. The user runs a content creation platform that emphasizes
+authority content — content that builds trust through unique perspective,
+not generic tips.
+
+RULES:
+
+1. PERSPECTIVE-SHIFTING, not educational.
+   BAD:  "3 tips for first-time home buyers"
+   GOOD: "The media says the market is crashing. Here's what the data
+          actually shows in [location] right now."
+
+2. Start with the INSIGHT. No fluffy intros. The first segment must
+   stop the scroll in under 3 seconds.
+   BAD:  "Buying your dream home is exciting"
+   GOOD: "Homes priced at $999K get 42% more traffic. Here's why I
+          still list at $1M."
+
+3. Include WHO and WHERE when possible. Pull from the user's profile
+   and knowledge base to make hooks hyper-specific.
+   BAD:  "Staging helps homes sell faster"
+   GOOD: "If you're selling a condo in [user's market], staging
+          removes the visual negotiation."
+
+4. SHIFT from brag to breakdown. Explain thinking, not just results.
+   BAD:  "Just sold in 3 days! So happy for my client!"
+   GOOD: "We listed 3% under comp average to spark bidding urgency.
+          9 offers. 48 hours. Sold 47K above asking."
+
+5. Challenge assumptions. Authority comes from taking a stand.
+   BAD:  "The market is always changing."
+   GOOD: "Everyone prices to comps. I price to psychology. Here's why."
+
+6. FORMAT for visual impact:
+   - 2-4 text segments, 3-5 seconds each
+   - Short punchy phrases (5-12 words per segment)
+   - Segment 1 = the scroll-stopping hook
+   - Segment 2-3 = the insight/data/reframe
+   - Final segment = the takeaway or CTA
+   - Use line breaks for readability on a phone screen
+
+7. Use the USER'S VOICE — match their tone, vocabulary, and style
+   from their voice profile and knowledge base. If they use contractions,
+   use contractions. If they're direct, be direct.
+
+8. Pull from the user's knowledge base for:
+   - Actual data and numbers they've shared
+   - Their unique frameworks or methods
+   - Their market/niche specifics (location, audience type)
+   - Real stories and results (anonymized if needed)
+
+OUTPUT: Return 2-4 text segments as a JSON array:
+[
+  { "text": "Toronto condos dropped 15%", "duration": 3 },
+  { "text": "but nobody's talking about this", "duration": 3 },
+  { "text": "Here's what the data actually shows", "duration": 4 }
+]
+```
+
+**Prompt inputs** (provided as context to the LLM):
+- Content kit topic (from the generation request)
+- Instagram caption (already generated — used as reference for topic/angle, NOT copied directly)
+- User's voice profile (tone, style, vocabulary patterns)
+- User's knowledge base context (data, frameworks, market specifics)
+- User's profile fields: `profile_role`, `profile_topics`, `profile_cta`
+
+**Why NOT just use the IG caption:** The IG caption is optimized for reading in a feed. A reel text overlay is optimized for stopping a scroll in 3 seconds with bold, short text on a visual background. Different format, different intent, different writing. The IG caption provides the ANGLE; the overlay prompt generates the HOOK.
+
+### "Use IG Caption" Fallback
+
+The modal editor includes a "Use IG Caption" button that replaces the generated Level 3 hook with the raw Instagram caption, split into segments. This is the escape hatch for users who prefer their own caption. But the DEFAULT is always the authority-framework-generated hook.
 
 ### Content Kit Detail Page — Reel Card
 
