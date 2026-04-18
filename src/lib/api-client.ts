@@ -2291,6 +2291,7 @@ export const api = {
     regenerateCarousel: async (kitId: string, options: {
       designPreset?: 'tweet-style' | 'text-box' | 'auto';
       background?: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string };
+      slideOverrides?: Array<{ text?: string; textPosition?: 'top' | 'center' | 'bottom' }>;
     }) => {
       const response = await apiClient.post(
         `/content-kits/${kitId}/regenerate-carousel`,
