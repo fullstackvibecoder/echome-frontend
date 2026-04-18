@@ -53,6 +53,7 @@ export default function ReelEditorModal({
   const [hookText, setHookText] = useState(instagramCaption ?? '');
   const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
   const [textScale, setTextScale] = useState(1.2); // default for bold_impact
+  const [regeneratingText, setRegeneratingText] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
@@ -80,16 +81,25 @@ export default function ReelEditorModal({
       // Project defaults
       if (reelProject) {
         setProjectId(reelProject.id);
-        // Prefer the first segment overlay text (short, formatted for overlay)
-        // over the full hookText (which can be paragraph-length)
+        // Get the full text from the project
         const firstSegment = reelProject.generatedContent?.segmentOverlays?.[0]?.text;
-        if (firstSegment) {
-          setHookText(firstSegment);
-        } else if (reelProject.generatedContent?.hookText) {
-          // Truncate hookText to ~12 words max for overlay display
-          const words = reelProject.generatedContent.hookText.split(/\s+/);
-          setHookText(words.slice(0, 12).join(' '));
+        const fullText = firstSegment || reelProject.generatedContent?.hookText || '';
+        setHookText(fullText);
+
+        // Auto-select the best style for the text length
+        const wordCount = fullText.split(/\s+/).length;
+        if (wordCount > 15) {
+          setSelectedStyle('story_cards');
+          setTextScale(0.9);
+        } else if (wordCount > 8) {
+          setSelectedStyle('minimal_clean');
+          setTextScale(0.8);
+        } else if (wordCount > 6) {
+          setSelectedStyle('brand_gradient');
+          setTextScale(1.0);
         }
+        // Otherwise keep default bold_impact (≤6 words)
+
         if (reelProject.outputUrl) {
           setOutputUrl(reelProject.outputUrl);
         }

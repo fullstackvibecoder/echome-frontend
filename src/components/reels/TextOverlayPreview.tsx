@@ -11,6 +11,8 @@ interface TextOverlayPreviewProps {
   position?: 'top' | 'center' | 'bottom';
   /** Scale multiplier for text size. 1.0 = default, 0.5 = half, 1.5 = 150%. */
   textScale?: number;
+  /** Max words to display in preview. Truncates with "..." if exceeded. */
+  maxWords?: number;
 }
 
 const positionClasses: Record<string, string> = {
@@ -19,17 +21,30 @@ const positionClasses: Record<string, string> = {
   bottom: 'justify-end pb-8',
 };
 
+// Style-specific word limits — the preview shows exactly what the reel will render
+const STYLE_MAX_WORDS: Record<string, number> = {
+  bold_impact: 6,
+  minimal_clean: 15,
+  brand_gradient: 8,
+  story_cards: 20,
+  outlined_stroke: 5,
+  subtitle_bar: 15,
+  neon_glow: 6,
+};
+
 export default function TextOverlayPreview({
   thumbnailUrl,
   text,
   style,
   position = 'center',
   textScale = 1.0,
+  maxWords,
 }: TextOverlayPreviewProps) {
   const renderText = () => {
-    // Truncate to ~12 words max for preview — overlay text should be short
+    // Truncate to the style's word limit — preview shows exactly what the reel renders
+    const limit = maxWords || STYLE_MAX_WORDS[style] || 12;
     const words = text.split(/\s+/);
-    const displayText = words.length > 12 ? words.slice(0, 12).join(' ') + '...' : text;
+    const displayText = words.length > limit ? words.slice(0, limit).join(' ') : text;
     const scale = textScale;
 
     switch (style) {
