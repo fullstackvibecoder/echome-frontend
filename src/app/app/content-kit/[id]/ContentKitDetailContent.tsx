@@ -547,96 +547,111 @@ export default function ContentKitDetailContent() {
             )}
           </div>
 
-          {/* Output Grid */}
-          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 mt-6">
-            {/* Clip cards */}
-            {detail?.clips?.map((clip: any, index: number) => (
-              <OutputCard
-                key={clip.id}
-                title={clip.title || `Clip ${index + 1}`}
-                subtitle={`${Math.floor(clip.duration / 60)}:${String(Math.floor(clip.duration % 60)).padStart(2, '0')}`}
-                thumbnailUrl={clip.thumbnailUrl}
-                aspectRatio="9/16"
-                onClick={() => {
-                  setActiveClipForEditor(clip);
-                  setClipEditorOpen(true);
-                }}
-              />
-            ))}
+          {/* Visual Content */}
+          {((detail?.clips?.length ?? 0) > 0 || hasCarousel || carouselExpected) && (
+            <div className="mt-6">
+              <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Visual Content</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                {/* Clip cards */}
+                {detail?.clips?.map((clip: any, index: number) => (
+                  <OutputCard
+                    key={clip.id}
+                    title={clip.title || `Clip ${index + 1}`}
+                    subtitle={`${Math.floor(clip.duration / 60)}:${String(Math.floor(clip.duration % 60)).padStart(2, '0')}`}
+                    thumbnailUrl={clip.thumbnailUrl}
+                    aspectRatio="9/16"
+                    platform="clip"
+                    variant="visual"
+                    onClick={() => {
+                      setActiveClipForEditor(clip);
+                      setClipEditorOpen(true);
+                    }}
+                  />
+                ))}
 
-            {/* Carousel card */}
-            {hasCarousel && (
-              <OutputCard
-                title="Carousel"
-                subtitle={`${detail.carousel.slides.length} slides`}
-                thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
-                onClick={() => {/* carousel editor - Phase 2 */}}
-                badge={`${detail.carousel.slides.length} slides`}
-              />
-            )}
+                {/* Carousel card */}
+                {hasCarousel && (
+                  <OutputCard
+                    title="Carousel"
+                    subtitle={`${detail.carousel.slides.length} slides`}
+                    thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
+                    platform="carousel"
+                    variant="visual"
+                    onClick={() => {/* carousel editor - Phase 2 */}}
+                    badge={`${detail.carousel.slides.length} slides`}
+                  />
+                )}
 
-            {/* Carousel loading card */}
-            {carouselExpected && (
-              <OutputCard
-                title="Carousel"
-                subtitle="Generating..."
-                thumbnailFallback={
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[10px] text-muted-foreground">Rendering slides...</span>
-                  </div>
-                }
-                onClick={() => {}}
-              />
-            )}
+                {/* Carousel loading */}
+                {carouselExpected && (
+                  <OutputCard
+                    title="Carousel"
+                    subtitle="Generating..."
+                    platform="carousel"
+                    variant="visual"
+                    thumbnailFallback={
+                      <div className="flex flex-col items-center justify-center gap-2 py-6">
+                        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        <span className="text-[10px] text-muted-foreground">Rendering slides...</span>
+                      </div>
+                    }
+                    onClick={() => {}}
+                  />
+                )}
 
-            {/* B-Roll Reel card */}
-            {(hasCarousel || detail?.contentKit?.videoUploadId) && (
-              <OutputCard
-                title="B-Roll Reel"
-                subtitle="Authority hook overlay"
-                thumbnailUrl={(detail as any)?.reel?.thumbnailUrl}
-                aspectRatio="9/16"
-                onClick={() => setReelEditorOpen(true)}
-              />
-            )}
+                {/* B-Roll Reel */}
+                {(hasCarousel || detail?.contentKit?.videoUploadId) && (
+                  <OutputCard
+                    title="B-Roll Reel"
+                    subtitle="Authority hook overlay"
+                    thumbnailUrl={(detail as any)?.reel?.thumbnailUrl}
+                    aspectRatio="9/16"
+                    platform="reel"
+                    variant="visual"
+                    onClick={() => setReelEditorOpen(true)}
+                  />
+                )}
+              </div>
+            </div>
+          )}
 
-            {/* Substack card (formerly Blog) */}
-            {detail?.contentKit?.contentBlog && (
-              <OutputCard
-                title="Substack Article"
-                subtitle={detail.contentKit.title || 'Article'}
-                thumbnailFallback={
-                  <div className="p-3 text-[11px] text-muted-foreground/60 leading-relaxed line-clamp-5">
-                    {detail.contentKit.contentBlog.slice(0, 200)}...
-                  </div>
-                }
-                onClick={() => setSubstackModalOpen(true)}
-              />
-            )}
+          {/* Written Content */}
+          {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin) && (
+            <div className="mt-6">
+              <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Written Content</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                {/* Substack Article */}
+                {detail?.contentKit?.contentBlog && (
+                  <OutputCard
+                    title="Substack"
+                    platform="substack"
+                    variant="text"
+                    thumbnailFallback={detail.contentKit.contentBlog.slice(0, 150)}
+                    onClick={() => setSubstackModalOpen(true)}
+                  />
+                )}
 
-            {/* Platform post cards */}
-            {[
-              { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin' },
-              { key: 'instagram', label: 'Instagram', field: 'contentInstagram' },
-              { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter' },
-              { key: 'email', label: 'Email', field: 'contentEmail' },
-              { key: 'tiktok', label: 'TikTok', field: 'contentTiktok' },
-              { key: 'youtube', label: 'YouTube', field: 'contentYoutube' },
-            ].filter(p => (detail?.contentKit as any)?.[p.field]).map(({ key, label, field }) => (
-              <OutputCard
-                key={key}
-                title={label}
-                subtitle="Post"
-                thumbnailFallback={
-                  <div className="p-3 text-[11px] text-muted-foreground/60 leading-relaxed line-clamp-4">
-                    {((detail?.contentKit as any)?.[field] || '').slice(0, 120)}...
-                  </div>
-                }
-                onClick={() => setWrittenContentModalOpen(true)}
-              />
-            ))}
-          </div>
+                {/* Platform posts */}
+                {[
+                  { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin' },
+                  { key: 'instagram', label: 'Instagram', field: 'contentInstagram' },
+                  { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter' },
+                  { key: 'email', label: 'Email', field: 'contentEmail' },
+                  { key: 'tiktok', label: 'TikTok', field: 'contentTiktok' },
+                  { key: 'youtube', label: 'YouTube', field: 'contentYoutube' },
+                ].filter(p => (detail?.contentKit as any)?.[p.field]).map(({ key, label, field }) => (
+                  <OutputCard
+                    key={key}
+                    title={label}
+                    platform={key}
+                    variant="text"
+                    thumbnailFallback={((detail?.contentKit as any)?.[field] || '').slice(0, 120)}
+                    onClick={() => setWrittenContentModalOpen(true)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Failed Generation State */}
           {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (item?.status === 'failed' || progressError) && (
