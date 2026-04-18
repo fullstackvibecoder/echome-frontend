@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Loader2, Download, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { BRollStrip } from './BRollStrip';
-import TextOverlayPreview from './TextOverlayPreview';
-import type { TextOverlayStyleId, ReelProject } from '@/types';
+import SegmentPreview from './SegmentPreview';
+import SegmentEditor from './SegmentEditor';
+import type { TextOverlayStyleId } from '@/types';
 
 interface BRollClip {
   id: string;
@@ -26,17 +27,13 @@ interface ReelEditorModalProps {
 const STYLE_OPTIONS: Array<{
   id: TextOverlayStyleId;
   label: string;
-  maxWords: number;
-  placeholder: string;
-  hint: string;
-  defaultScale: number; // 0.5 - 1.5, where 1.0 is the base clamp() size
 }> = [
-  { id: 'bold_impact', label: 'Bold Impact', maxWords: 6, placeholder: 'STOP SCROLLING', hint: '3-6 words, punchy and bold', defaultScale: 1.2 },
-  { id: 'minimal_clean', label: 'Minimal Clean', maxWords: 15, placeholder: 'Here\'s what the data actually shows...', hint: 'Short sentence, lower-third style', defaultScale: 0.8 },
-  { id: 'brand_gradient', label: 'Brand Gradient', maxWords: 8, placeholder: 'This changes everything', hint: '4-8 words, fits in a pill', defaultScale: 1.0 },
-  { id: 'story_cards', label: 'Story Cards', maxWords: 20, placeholder: 'Here\'s what nobody tells you about pricing your home', hint: '1-2 sentences in a card', defaultScale: 0.9 },
-  { id: 'outlined_stroke', label: 'Outlined', maxWords: 5, placeholder: 'GAME CHANGER', hint: '2-5 words, one big statement', defaultScale: 1.3 },
-  { id: 'neon_glow', label: 'Neon', maxWords: 6, placeholder: 'THINK DIFFERENT', hint: '3-6 words, short and glowing', defaultScale: 1.1 },
+  { id: 'bold_impact', label: 'Bold Impact' },
+  { id: 'minimal_clean', label: 'Minimal Clean' },
+  { id: 'brand_gradient', label: 'Brand Gradient' },
+  { id: 'story_cards', label: 'Story Cards' },
+  { id: 'outlined_stroke', label: 'Outlined' },
+  { id: 'neon_glow', label: 'Neon' },
 ];
 
 export default function ReelEditorModal({
@@ -50,10 +47,15 @@ export default function ReelEditorModal({
   const [clips, setClips] = useState<BRollClip[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
-  const [hookText, setHookText] = useState(instagramCaption ?? '');
+  const [segments, setSegments] = useState<Array<{ text: string; duration: number }>>([
+    { text: '', duration: 3 },
+    { text: '', duration: 3 },
+    { text: '', duration: 3 },
+  ]);
+  const [singleBlockText, setSingleBlockText] = useState(instagramCaption ?? '');
+  const [mode, setMode] = useState<'segments' | 'single'>('segments');
   const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
-  const [textScale, setTextScale] = useState(1.2); // default for bold_impact
-  const [regeneratingText, setRegeneratingText] = useState(false);
+  const [textScale, setTextScale] = useState(1.2);
   const [loading, setLoading] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
@@ -81,28 +83,21 @@ export default function ReelEditorModal({
       // Project defaults
       if (reelProject) {
         setProjectId(reelProject.id);
-        // Get the full text from the project
-        const firstSegment = reelProject.generatedContent?.segmentOverlays?.[0]?.text;
-        const fullText = firstSegment || reelProject.generatedContent?.hookText || '';
-        setHookText(fullText);
-
-        // Auto-select the best style for the text length
-        const wordCount = fullText.split(/\s+/).length;
-        if (wordCount > 15) {
-          setSelectedStyle('story_cards');
-          setTextScale(0.9);
-        } else if (wordCount > 8) {
-          setSelectedStyle('minimal_clean');
-          setTextScale(0.8);
-        } else if (wordCount > 6) {
-          setSelectedStyle('brand_gradient');
-          setTextScale(1.0);
+        const overlays = reelProject.generatedContent?.segmentOverlays;
+        if (overlays && overlays.length >= 2) {
+          const allShort = overlays.every((o: any) => (o.text || '').split(/\s+/).length <= 5);
+          if (allShort) {
+            setMode('segments');
+            setSegments(overlays.map((o: any) => ({ text: o.text || '', duration: 3 })));
+          } else {
+            setMode('single');
+            setSingleBlockText(overlays.map((o: any) => o.text || '').join(' '));
+          }
+        } else if (reelProject.generatedContent?.hookText) {
+          setMode('single');
+          setSingleBlockText(reelProject.generatedContent.hookText);
         }
-        // Otherwise keep default bold_impact (≤6 words)
-
-        if (reelProject.outputUrl) {
-          setOutputUrl(reelProject.outputUrl);
-        }
+        if (reelProject.outputUrl) setOutputUrl(reelProject.outputUrl);
       }
 
       // Select first clip if nothing selected yet
@@ -146,13 +141,21 @@ export default function ReelEditorModal({
     setOutputUrl(null);
 
     try {
+      // Build text overlays from current mode
+      const textOverlays = mode === 'segments'
+        ? segments.filter(s => s.text.trim()).map((s) => ({
+            text: s.text,
+            position: 'center' as const,
+          }))
+        : [{ text: singleBlockText, position: 'center' as const }];
+
       // Compose a B-roll reel
       const composeRes = await api.brollReels.compose({
         brollClipIds: [selectedClipId],
         templateStyle: selectedStyle,
         contentKitId,
         generateText: false,
-        textOverlays: [{ text: hookText, position: 'center' }],
+        textOverlays,
       });
 
       const newProjectId = composeRes.data?.projectId;
@@ -211,12 +214,12 @@ export default function ReelEditorModal({
           {/* Left: Phone Preview */}
           <div className="flex items-center justify-center p-6 lg:w-[40%] shrink-0 bg-background/50">
             <div className="w-full max-w-[200px]">
-              <TextOverlayPreview
+              <SegmentPreview
                 thumbnailUrl={selectedClip?.thumbnailUrl}
-                text={hookText || 'Your hook text here...'}
+                segments={mode === 'segments' ? segments.filter(s => s.text.trim()) : []}
                 style={selectedStyle}
-                position="center"
                 textScale={textScale}
+                singleBlockText={mode === 'single' ? singleBlockText : undefined}
               />
             </div>
           </div>
@@ -254,57 +257,15 @@ export default function ReelEditorModal({
                   />
                 </div>
 
-                {/* Hook Text — style-aware */}
-                {(() => {
-                  const activeStyle = STYLE_OPTIONS.find(s => s.id === selectedStyle) || STYLE_OPTIONS[0];
-                  const wordCount = hookText.trim() ? hookText.trim().split(/\s+/).length : 0;
-                  const isOverLimit = wordCount > activeStyle.maxWords;
-                  const isNearLimit = wordCount > activeStyle.maxWords * 0.8;
-
-                  return (
-                    <div className="space-y-2">
-                      <div className="flex items-baseline justify-between">
-                        <label htmlFor="hook-text" className="text-sm font-medium text-foreground">
-                          Hook Text
-                        </label>
-                        <span className={`text-[11px] transition-colors ${
-                          isOverLimit ? 'text-red-400 font-medium' : isNearLimit ? 'text-amber-400' : 'text-muted-foreground/50'
-                        }`}>
-                          {wordCount} / {activeStyle.maxWords} words
-                        </span>
-                      </div>
-                      <textarea
-                        id="hook-text"
-                        value={hookText}
-                        onChange={(e) => setHookText(e.target.value)}
-                        rows={2}
-                        className={`w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-interactive/50 resize-none transition-colors ${
-                          isOverLimit ? 'border-red-400/50' : 'border-border'
-                        }`}
-                        placeholder={activeStyle.placeholder}
-                      />
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-muted-foreground/50">
-                          {activeStyle.hint}
-                        </span>
-                        {instagramCaption && (
-                          <button
-                            type="button"
-                            onClick={() => setHookText(instagramCaption)}
-                            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                          >
-                            Use IG Caption
-                          </button>
-                        )}
-                      </div>
-                      {isOverLimit && (
-                        <p className="text-[11px] text-red-400">
-                          {activeStyle.label} works best with {activeStyle.maxWords} words or fewer. Text may overflow the frame.
-                        </p>
-                      )}
-                    </div>
-                  );
-                })()}
+                {/* Segment / Single-block text editor */}
+                <SegmentEditor
+                  segments={segments}
+                  onSegmentsChange={setSegments}
+                  singleBlockText={singleBlockText}
+                  onSingleBlockTextChange={setSingleBlockText}
+                  mode={mode}
+                  onModeChange={setMode}
+                />
 
                 {/* Style selector */}
                 <div className="space-y-2">
@@ -316,7 +277,6 @@ export default function ReelEditorModal({
                         type="button"
                         onClick={() => {
                           setSelectedStyle(style.id);
-                          setTextScale(style.defaultScale);
                         }}
                         className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                           selectedStyle === style.id
