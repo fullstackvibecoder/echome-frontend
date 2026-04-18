@@ -127,9 +127,9 @@ export function InlineWrittenContent({
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: 'var(--shadow-soft)' }}>
       {/* Platform tabs */}
-      <div className="flex items-center gap-1.5 px-3 py-2.5 border-b border-border overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-1.5 px-3 py-2.5 border-b border-border bg-surface-container-lowest overflow-x-auto scrollbar-hide">
         {availablePlatforms.map((p) => {
           const Icon = p.icon;
           const isActive = activePlatform === p.key;

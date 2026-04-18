@@ -89,15 +89,15 @@ export default function SegmentEditor({
                       type="text"
                       value={seg.text}
                       onChange={(e) => updateSegmentText(i, e.target.value)}
-                      placeholder="2-5 punchy words..."
+                      placeholder="A punchy phrase or sentence..."
                       className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground w-full pr-14"
                     />
                     <span
                       className={`absolute right-3 top-1/2 -translate-y-1/2 text-[11px] ${
-                        wc > 5 ? 'text-red-400' : 'text-emerald-500'
+                        wc > 15 ? 'text-red-400' : 'text-muted-foreground/50'
                       }`}
                     >
-                      {wc} / 5
+                      {wc} / 15
                     </span>
                   </div>
                   {segments.length > 2 && (

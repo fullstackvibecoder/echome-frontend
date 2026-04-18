@@ -64,7 +64,8 @@ export function OutputCard({
       <button
         type="button"
         onClick={onClick}
-        className="group bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-primary-interactive transition-all hover:shadow-lg hover:shadow-primary-interactive/5 text-left w-full"
+        className="group bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-primary-interactive/40 transition-all duration-200 text-left w-full"
+        style={{ boxShadow: 'var(--shadow-soft)' }}
       >
         <div
           className="relative overflow-hidden bg-surface-container-low"
@@ -74,15 +75,30 @@ export function OutputCard({
             <img
               src={thumbnailUrl}
               alt={title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             />
           ) : thumbnailFallback ? (
             <div className="w-full h-full flex items-center justify-center">
               {thumbnailFallback}
             </div>
           ) : (
-            <div className="w-full h-full bg-surface-container-low flex items-center justify-center">
-              {Icon && <Icon className="w-8 h-8 text-muted-foreground/20" />}
+            <div
+              className="w-full h-full flex flex-col items-center justify-center gap-2"
+              style={{
+                background: accentColor
+                  ? `linear-gradient(135deg, ${accentColor}18 0%, ${accentColor}08 50%, ${accentColor}15 100%)`
+                  : 'linear-gradient(135deg, var(--surface-container-low) 0%, var(--surface-container) 100%)',
+              }}
+            >
+              {Icon && (
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${accentColor || '#666'}20` }}
+                >
+                  <Icon className="w-6 h-6" style={{ color: accentColor || undefined, opacity: 0.6 }} />
+                </div>
+              )}
+              <span className="text-[10px] font-medium text-muted-foreground/50">Click to create</span>
             </div>
           )}
 
@@ -94,18 +110,26 @@ export function OutputCard({
 
           {/* Play button overlay for clips */}
           {platform === 'clip' && (
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                 <Play className="w-5 h-5 text-white ml-0.5" />
               </div>
             </div>
           )}
+
+          {/* Gradient scrim at bottom for readability */}
+          <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         </div>
 
-        <div className="p-2.5">
-          <p className="text-sm font-medium text-foreground truncate">{title}</p>
+        <div className="px-2.5 py-2">
+          <div className="flex items-center gap-1.5">
+            {Icon && (
+              <Icon className="w-3 h-3 flex-shrink-0" style={{ color: accentColor || undefined }} />
+            )}
+            <p className="text-[13px] font-medium text-foreground truncate">{title}</p>
+          </div>
           {subtitle && (
-            <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
           )}
         </div>
       </button>
@@ -117,47 +141,54 @@ export function OutputCard({
     <button
       type="button"
       onClick={onClick}
-      className="group bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-primary-interactive transition-all text-left w-full"
+      className="group bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-primary-interactive/40 transition-all duration-200 text-left w-full"
+      style={{ boxShadow: 'var(--shadow-soft)' }}
     >
-      {/* Platform header bar */}
-      <div
-        className="flex items-center gap-2 px-3 py-2 border-b border-border"
-        style={accentColor ? { borderBottomColor: `${accentColor}30` } : undefined}
-      >
-        {Icon && (
-          <div
-            className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${accentColor}15` }}
-          >
-            <Icon className="w-3.5 h-3.5" style={{ color: accentColor }} />
-          </div>
+      <div className="flex items-stretch">
+        {/* Accent side stripe */}
+        {accentColor && (
+          <div className="w-1 flex-shrink-0" style={{ backgroundColor: accentColor }} />
         )}
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground truncate">{title}</p>
-        </div>
-        {badge && (
-          <span className="text-[10px] text-muted-foreground/60 flex-shrink-0">{badge}</span>
-        )}
-      </div>
 
-      {/* Content preview */}
-      <div className="p-3">
-        {thumbnailUrl ? (
-          <img
-            src={thumbnailUrl}
-            alt={title}
-            className="w-full rounded-lg object-cover max-h-[80px]"
-          />
-        ) : thumbnailFallback ? (
-          <div className="text-[12px] text-muted-foreground/70 leading-relaxed line-clamp-4">
-            {thumbnailFallback}
+        <div className="flex-1 min-w-0">
+          {/* Platform header bar */}
+          <div className="flex items-center gap-2.5 px-4 py-2.5">
+            {Icon && (
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${accentColor}12` }}
+              >
+                <Icon className="w-4 h-4" style={{ color: accentColor }} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground truncate">{title}</p>
+              {subtitle && (
+                <p className="text-[11px] text-muted-foreground truncate">{subtitle}</p>
+              )}
+            </div>
+            <span className="text-[11px] text-muted-foreground/50 flex-shrink-0 group-hover:text-primary-interactive transition-colors">
+              Edit →
+            </span>
           </div>
-        ) : (
-          <p className="text-xs text-muted-foreground/40 italic">No content yet</p>
-        )}
-        {subtitle && !Icon && (
-          <p className="text-xs text-muted-foreground truncate mt-1.5">{subtitle}</p>
-        )}
+
+          {/* Content preview */}
+          <div className="px-4 pb-3">
+            {thumbnailUrl ? (
+              <img
+                src={thumbnailUrl}
+                alt={title}
+                className="w-full rounded-lg object-cover max-h-[80px]"
+              />
+            ) : thumbnailFallback ? (
+              <div className="text-[12px] text-muted-foreground/60 leading-relaxed line-clamp-3">
+                {thumbnailFallback}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground/40 italic">No content yet</p>
+            )}
+          </div>
+        </div>
       </div>
     </button>
   );

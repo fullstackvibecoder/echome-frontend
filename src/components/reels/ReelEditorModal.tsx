@@ -55,7 +55,7 @@ export default function ReelEditorModal({
   const [singleBlockText, setSingleBlockText] = useState(instagramCaption ?? '');
   const [mode, setMode] = useState<'segments' | 'single'>('segments');
   const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
-  const [textScale, setTextScale] = useState(1.2);
+  const [textScale, setTextScale] = useState(0.5);
   const [loading, setLoading] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
@@ -302,9 +302,9 @@ export default function ReelEditorModal({
                     <span className="text-[10px] text-muted-foreground">A</span>
                     <input
                       type="range"
-                      min="0.5"
-                      max="1.5"
-                      step="0.05"
+                      min="0.25"
+                      max="0.75"
+                      step="0.025"
                       value={textScale}
                       onChange={(e) => setTextScale(parseFloat(e.target.value))}
                       className="flex-1 h-1.5 accent-primary-interactive cursor-pointer"

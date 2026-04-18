@@ -187,7 +187,7 @@ export default function SegmentPreview({
         <div className="absolute inset-0 flex items-center justify-center">
           {singleBlockText ? (
             <div className="bg-black/40 backdrop-blur-[2px] rounded-xl px-4 py-3 mx-3 max-w-[90%]">
-              {renderStyledText(singleBlockText, style, textScale * 0.6)}
+              {renderStyledText(singleBlockText, style, textScale)}
             </div>
           ) : segments.length > 0 ? (
             <div

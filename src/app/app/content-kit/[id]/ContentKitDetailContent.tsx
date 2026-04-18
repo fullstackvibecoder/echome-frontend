@@ -18,7 +18,7 @@ import api from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { showErrorToast } from '@/lib/toast';
 import { ContentCategory } from '@/types';
-import { CalendarPlus } from 'lucide-react';
+import { CalendarPlus, Film, Pen } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
 import ReelEditorModal from '@/components/reels/ReelEditorModal';
 import { ExportProgressModal } from '@/components/ExportProgressModal';
@@ -550,9 +550,17 @@ export default function ContentKitDetailContent() {
 
           {/* Visual Content */}
           {((detail?.clips?.length ?? 0) > 0 || hasCarousel || carouselExpected) && (
-            <div className="mt-6">
-              <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Visual Content</h3>
-              <div className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+            <section className="mt-8">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Film className="w-4 h-4 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground leading-tight">Visual Content</h3>
+                  <p className="text-[11px] text-muted-foreground">Clips, carousels, and reels ready to publish</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
                 {/* Clip cards */}
                 {detail?.clips?.map((clip: any, index: number) => (
                   <OutputCard
@@ -614,16 +622,25 @@ export default function ContentKitDetailContent() {
                   />
                 )}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Written Content — inline tabbed editor */}
+          {/* Written Content */}
           {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin) && (
-            <div className="mt-6">
-              {/* Substack card — opens modal */}
-              {detail?.contentKit?.contentBlog && (
-                <div className="mb-4">
-                  <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Substack Article</h3>
+            <section className="mt-8">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-accent-purple/10 flex items-center justify-center">
+                  <Pen className="w-4 h-4 text-accent-purple" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground leading-tight">Written Content</h3>
+                  <p className="text-[11px] text-muted-foreground">Long-form articles and platform posts</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Substack card — opens modal */}
+                {detail?.contentKit?.contentBlog && (
                   <OutputCard
                     title="Substack"
                     platform="substack"
@@ -631,13 +648,10 @@ export default function ContentKitDetailContent() {
                     thumbnailFallback={detail.contentKit.contentBlog.slice(0, 150)}
                     onClick={() => setSubstackModalOpen(true)}
                   />
-                </div>
-              )}
+                )}
 
-              {/* Platform posts — inline tabbed editor */}
-              {detail?.contentKit?.contentLinkedin && (
-                <div>
-                  <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Platform Posts</h3>
+                {/* Platform posts — inline tabbed editor */}
+                {detail?.contentKit?.contentLinkedin && (
                   <InlineWrittenContent
                     contentKitId={detail.contentKit.id}
                     content={{
@@ -650,9 +664,9 @@ export default function ContentKitDetailContent() {
                     }}
                     onContentUpdate={() => refresh()}
                   />
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </section>
           )}
 
           {/* Failed Generation State */}
