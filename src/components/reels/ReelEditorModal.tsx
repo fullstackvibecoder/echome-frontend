@@ -65,9 +65,9 @@ export default function ReelEditorModal({
           : api.brollReels.getByKitId(contentKitId),
       ]);
 
-      // Library
-      setClips(libraryRes.clips);
-      setCategories(libraryRes.categories);
+      // Library — defensive: API might return unexpected shape
+      setClips(libraryRes?.clips || []);
+      setCategories(libraryRes?.categories || []);
 
       // Project defaults
       if (reelProject) {

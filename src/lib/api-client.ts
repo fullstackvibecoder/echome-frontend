@@ -3745,10 +3745,9 @@ export const api = {
         params: category ? { category } : undefined,
         timeout: LIST_TIMEOUT,
       });
-      return response.data as {
-        categories: string[];
-        clips: Array<{ id: string; url: string; thumbnailUrl: string; category: string; label?: string }>;
-      };
+      // Backend returns { success, data: { categories, clips } } — unwrap the envelope
+      const envelope = response.data as { success: boolean; data: { categories: string[]; clips: Array<{ id: string; url: string; thumbnailUrl: string; category: string; label?: string }> } };
+      return envelope.data;
     },
 
     /** Get the first reel project for a given content kit */
