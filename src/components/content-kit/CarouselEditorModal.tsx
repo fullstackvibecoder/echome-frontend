@@ -110,7 +110,11 @@ export default function CarouselEditorModal({
         designPreset: (designPreset as any) || 'auto',
         slideOverrides: edits.map((e) => ({
           text: e.text,
-          textPosition: e.textPosition,
+          textPosition: e.textPosition === 'top'
+            ? { x: 50, y: 15 }
+            : e.textPosition === 'bottom'
+              ? { x: 50, y: 85 }
+              : { x: 50, y: 50 },
         })),
       });
       if (response.success && response.data?.carousel) {
