@@ -72,8 +72,15 @@ export default function ReelEditorModal({
       // Project defaults
       if (reelProject) {
         setProjectId(reelProject.id);
-        if (reelProject.generatedContent?.hookText) {
-          setHookText(reelProject.generatedContent.hookText);
+        // Prefer the first segment overlay text (short, formatted for overlay)
+        // over the full hookText (which can be paragraph-length)
+        const firstSegment = reelProject.generatedContent?.segmentOverlays?.[0]?.text;
+        if (firstSegment) {
+          setHookText(firstSegment);
+        } else if (reelProject.generatedContent?.hookText) {
+          // Truncate hookText to ~12 words max for overlay display
+          const words = reelProject.generatedContent.hookText.split(/\s+/);
+          setHookText(words.slice(0, 12).join(' '));
         }
         if (reelProject.outputUrl) {
           setOutputUrl(reelProject.outputUrl);
