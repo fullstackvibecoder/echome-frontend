@@ -1571,23 +1571,16 @@ export function GenerationForm({
 
       {/* Caption style and carousel look are now selected post-generation */}
 
-      {/* Reel Configuration - Coming Soon (live for admins) */}
+      {/* Reel info */}
       {(inputType === 'video' || inputType === 'url') && (
-        <div className={`mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20 ${!user?.isAdmin ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="mt-4 p-4 bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 rounded-lg border border-violet-500/20">
           <div className="flex items-center gap-2">
             <span className="text-xl">🎬</span>
             <h3 className="text-body font-semibold text-foreground">Video Reel</h3>
-            {!user?.isAdmin && (
-              <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
-            )}
           </div>
           <p className="text-small text-gray-600 dark:text-gray-300 mt-2">
-            {user?.isAdmin ? (
-              <>After generation, create animated reels from your carousel slides or compose B-roll reels with text overlays in the{' '}
-              <a href="/app/reels" className="text-accent hover:underline">Reel Maker</a>.</>
-            ) : (
-              <>Animated carousel reels with text overlays - coming soon.</>
-            )}
+            After generation, create animated reels from your carousel slides or compose B-roll reels with text overlays in the{' '}
+            <a href="/app/reels" className="text-accent hover:underline">Reel Maker</a>.
           </p>
         </div>
       )}

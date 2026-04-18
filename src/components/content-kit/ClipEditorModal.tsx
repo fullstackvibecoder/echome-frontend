@@ -257,9 +257,6 @@ export default function ClipEditorModal({
                     <p className="text-xs text-foreground/70">{clip.transcriptText}</p>
                   )}
                 </div>
-                <p className="text-[11px] text-muted-foreground/60 italic">
-                  Caption text editing coming soon
-                </p>
               </div>
             )}
 
