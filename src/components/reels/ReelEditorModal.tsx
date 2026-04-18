@@ -1,0 +1,333 @@
+'use client';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { X, Loader2, Download, RefreshCw } from 'lucide-react';
+import { api } from '@/lib/api-client';
+import { BRollStrip } from './BRollStrip';
+import TextOverlayPreview from './TextOverlayPreview';
+import type { TextOverlayStyleId, ReelProject } from '@/types';
+
+interface BRollClip {
+  id: string;
+  url: string;
+  thumbnailUrl: string;
+  category: string;
+  label?: string;
+}
+
+interface ReelEditorModalProps {
+  open: boolean;
+  onClose: () => void;
+  contentKitId: string;
+  reelProjectId?: string;
+  instagramCaption?: string;
+}
+
+const STYLE_OPTIONS: Array<{ id: TextOverlayStyleId; label: string }> = [
+  { id: 'bold_impact', label: 'Bold Impact' },
+  { id: 'minimal_clean', label: 'Minimal Clean' },
+  { id: 'brand_gradient', label: 'Brand Gradient' },
+  { id: 'story_cards', label: 'Story Cards' },
+  { id: 'outlined_stroke', label: 'Outlined' },
+  { id: 'neon_glow', label: 'Neon' },
+];
+
+export default function ReelEditorModal({
+  open,
+  onClose,
+  contentKitId,
+  reelProjectId,
+  instagramCaption,
+}: ReelEditorModalProps) {
+  // ---- State ----
+  const [clips, setClips] = useState<BRollClip[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
+  const [hookText, setHookText] = useState(instagramCaption ?? '');
+  const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
+  const [loading, setLoading] = useState(true);
+  const [rendering, setRendering] = useState(false);
+  const [outputUrl, setOutputUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | undefined>(reelProjectId);
+
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  // ---- Data fetching ----
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [libraryRes, reelProject] = await Promise.all([
+        api.brollReels.getBRollLibrary(),
+        projectId
+          ? api.reels.getProject(projectId).then((r) => r.data?.project ?? null)
+          : api.brollReels.getByKitId(contentKitId),
+      ]);
+
+      // Library
+      setClips(libraryRes.clips);
+      setCategories(libraryRes.categories);
+
+      // Project defaults
+      if (reelProject) {
+        setProjectId(reelProject.id);
+        if (reelProject.generatedContent?.hookText) {
+          setHookText(reelProject.generatedContent.hookText);
+        }
+        if (reelProject.outputUrl) {
+          setOutputUrl(reelProject.outputUrl);
+        }
+      }
+
+      // Select first clip if nothing selected yet
+      if (!selectedClipId && libraryRes.clips.length > 0) {
+        setSelectedClipId(libraryRes.clips[0].id);
+      }
+    } catch (err) {
+      console.error('Failed to load reel editor data', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, contentKitId, selectedClipId]);
+
+  useEffect(() => {
+    if (open) {
+      fetchData();
+    }
+  }, [open, fetchData]);
+
+  // ---- Escape key ----
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
+  // ---- Backdrop click ----
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === backdropRef.current) onClose();
+  };
+
+  // ---- Generate / render ----
+  const handleGenerate = async () => {
+    if (!selectedClipId) return;
+    setRendering(true);
+    setError(null);
+    setOutputUrl(null);
+
+    try {
+      // Compose a B-roll reel
+      const composeRes = await api.brollReels.compose({
+        brollClipIds: [selectedClipId],
+        templateStyle: selectedStyle,
+        contentKitId,
+        generateText: false,
+        textOverlays: [{ text: hookText, position: 'center' }],
+      });
+
+      const newProjectId = composeRes.data?.projectId;
+      if (!newProjectId) throw new Error('No project ID returned');
+
+      setProjectId(newProjectId);
+
+      // Poll for render status
+      const maxPolls = 60;
+      let polls = 0;
+      const pollInterval = 3000;
+
+      const poll = async (): Promise<string> => {
+        const statusRes = await api.reels.getRenderStatus(newProjectId);
+        const status = statusRes.data;
+
+        if (status?.status === 'completed' && status?.outputUrl) {
+          return status.outputUrl;
+        }
+        if (status?.status === 'failed') {
+          throw new Error(status?.errorMessage ?? 'Rendering failed');
+        }
+
+        polls++;
+        if (polls >= maxPolls) throw new Error('Rendering timed out');
+
+        return new Promise((resolve, reject) => {
+          setTimeout(() => poll().then(resolve).catch(reject), pollInterval);
+        });
+      };
+
+      const url = await poll();
+      setOutputUrl(url);
+    } catch (err: any) {
+      console.error('Render failed', err);
+      setError(err?.message ?? 'Render failed. Please try again.');
+    } finally {
+      setRendering(false);
+    }
+  };
+
+  // ---- Derived ----
+  const selectedClip = clips.find((c) => c.id === selectedClipId);
+
+  if (!open) return null;
+
+  return (
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onClick={handleBackdropClick}
+    >
+      <div className="relative flex w-full max-w-[800px] max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        {/* Mobile: vertical, Desktop: side-by-side */}
+        <div className="flex flex-col lg:flex-row w-full overflow-y-auto">
+          {/* Left: Phone Preview */}
+          <div className="flex items-center justify-center p-6 lg:w-[40%] shrink-0 bg-background/50">
+            <div className="w-full max-w-[200px]">
+              <TextOverlayPreview
+                thumbnailUrl={selectedClip?.thumbnailUrl}
+                text={hookText || 'Your hook text here...'}
+                style={selectedStyle as 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards'}
+                position="center"
+              />
+            </div>
+          </div>
+
+          {/* Right: Controls */}
+          <div className="flex flex-col gap-5 p-6 lg:w-[60%] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Edit B-Roll Reel</h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <p className="text-sm">Loading editor...</p>
+              </div>
+            ) : (
+              <>
+                {/* B-Roll picker */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">B-Roll Clip</label>
+                  <BRollStrip
+                    clips={clips}
+                    categories={categories}
+                    selectedClipId={selectedClipId}
+                    onSelect={setSelectedClipId}
+                  />
+                </div>
+
+                {/* Hook Text */}
+                <div className="space-y-2">
+                  <label htmlFor="hook-text" className="text-sm font-medium text-foreground">
+                    Hook Text
+                  </label>
+                  <textarea
+                    id="hook-text"
+                    value={hookText}
+                    onChange={(e) => setHookText(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-interactive/50 resize-none"
+                    placeholder="Enter attention-grabbing hook text..."
+                  />
+                  {instagramCaption && (
+                    <button
+                      type="button"
+                      onClick={() => setHookText(instagramCaption)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                    >
+                      Use IG Caption
+                    </button>
+                  )}
+                </div>
+
+                {/* Style selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Text Style</label>
+                  <div className="flex flex-wrap gap-2">
+                    {STYLE_OPTIONS.map((style) => (
+                      <button
+                        key={style.id}
+                        type="button"
+                        onClick={() => setSelectedStyle(style.id)}
+                        className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                          selectedStyle === style.id
+                            ? 'bg-primary-interactive text-white'
+                            : 'border border-border bg-background text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <p className="text-sm text-red-400 bg-red-400/10 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
+
+                {/* Action button */}
+                <div className="pt-2">
+                  {outputUrl ? (
+                    <div className="flex gap-3">
+                      <a
+                        href={outputUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Reel
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOutputUrl(null);
+                          handleGenerate();
+                        }}
+                        className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Re-generate
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleGenerate}
+                      disabled={rendering || !selectedClipId}
+                      className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {rendering ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Rendering...
+                        </>
+                      ) : (
+                        'Generate Reel'
+                      )}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -3739,6 +3739,29 @@ export const api = {
 
   // -------- B-ROLL REEL COMPOSITION --------
   brollReels: {
+    /** Fetch B-roll clip library, optionally filtered by category */
+    getBRollLibrary: async (category?: string) => {
+      const response = await apiClient.get('/reels/broll-library', {
+        params: category ? { category } : undefined,
+        timeout: LIST_TIMEOUT,
+      });
+      return response.data as {
+        categories: string[];
+        clips: Array<{ id: string; url: string; thumbnailUrl: string; category: string; label?: string }>;
+      };
+    },
+
+    /** Get the first reel project for a given content kit */
+    getByKitId: async (kitId: string) => {
+      const response = await apiClient.get('/reels/projects', {
+        params: { content_kit_id: kitId, limit: 1 },
+        timeout: LIST_TIMEOUT,
+      });
+      const rawData = response.data as ApiResponse<any[]>;
+      const projects = rawData.data?.map(api.reels._transformProject) || [];
+      return projects[0] || null;
+    },
+
     /** Compose a B-roll reel with text overlays — returns project ID for polling */
     compose: async (data: import('../types').ComposeBRollReelInput) => {
       const response = await apiClient.post('/reels/compose-broll', {
