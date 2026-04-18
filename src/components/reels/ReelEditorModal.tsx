@@ -100,9 +100,10 @@ export default function ReelEditorModal({
         if (reelProject.outputUrl) setOutputUrl(reelProject.outputUrl);
       }
 
-      // Select first clip if nothing selected yet
+      // Select first realestate clip if nothing selected, else first clip
       if (!selectedClipId && libraryRes.clips.length > 0) {
-        setSelectedClipId(libraryRes.clips[0].id);
+        const realEstateClip = libraryRes.clips.find((c: BRollClip) => c.category === 'realestate');
+        setSelectedClipId(realEstateClip?.id || libraryRes.clips[0].id);
       }
     } catch (err) {
       console.error('Failed to load reel editor data', err);
@@ -216,6 +217,7 @@ export default function ReelEditorModal({
             <div className="w-full max-w-[200px]">
               <SegmentPreview
                 thumbnailUrl={selectedClip?.thumbnailUrl}
+                videoUrl={selectedClip?.url}
                 segments={mode === 'segments' ? segments.filter(s => s.text.trim()) : []}
                 style={selectedStyle}
                 textScale={textScale}

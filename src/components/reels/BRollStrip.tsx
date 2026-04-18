@@ -15,6 +15,8 @@ interface BRollStripProps {
   categories: string[];
   selectedClipId: string | null;
   onSelect: (clipId: string) => void;
+  /** Default category tab. Defaults to 'realestate' if available, else 'All'. */
+  defaultCategory?: string;
 }
 
 export function BRollStrip({
@@ -22,8 +24,11 @@ export function BRollStrip({
   categories,
   selectedClipId,
   onSelect,
+  defaultCategory,
 }: BRollStripProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<string>(
+    defaultCategory || (categories.includes('realestate') ? 'realestate' : 'All')
+  );
 
   const filteredClips =
     activeCategory === 'All'

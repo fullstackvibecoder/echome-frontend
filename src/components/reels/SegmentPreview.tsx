@@ -9,6 +9,8 @@ interface ReelSegment {
 
 interface SegmentPreviewProps {
   thumbnailUrl?: string;
+  /** MP4 URL for live video preview — plays looped and muted */
+  videoUrl?: string;
   segments: ReelSegment[];
   style: string;
   textScale?: number;
@@ -131,6 +133,7 @@ function renderStyledText(text: string, style: string, scale: number) {
 
 export default function SegmentPreview({
   thumbnailUrl,
+  videoUrl,
   segments,
   style,
   textScale = 1.0,
@@ -161,8 +164,17 @@ export default function SegmentPreview({
   return (
     <div>
       <div className="aspect-[9/16] bg-black rounded-2xl overflow-hidden relative border-2 border-border">
-        {/* Background */}
-        {thumbnailUrl ? (
+        {/* Background — video if available, otherwise thumbnail, otherwise gradient */}
+        {videoUrl ? (
+          <video
+            src={videoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : thumbnailUrl ? (
           <img src={thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-b from-gray-800 to-gray-950" />
