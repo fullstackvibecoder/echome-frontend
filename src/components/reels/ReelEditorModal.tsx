@@ -23,13 +23,19 @@ interface ReelEditorModalProps {
   instagramCaption?: string;
 }
 
-const STYLE_OPTIONS: Array<{ id: TextOverlayStyleId; label: string }> = [
-  { id: 'bold_impact', label: 'Bold Impact' },
-  { id: 'minimal_clean', label: 'Minimal Clean' },
-  { id: 'brand_gradient', label: 'Brand Gradient' },
-  { id: 'story_cards', label: 'Story Cards' },
-  { id: 'outlined_stroke', label: 'Outlined' },
-  { id: 'neon_glow', label: 'Neon' },
+const STYLE_OPTIONS: Array<{
+  id: TextOverlayStyleId;
+  label: string;
+  maxWords: number;
+  placeholder: string;
+  hint: string;
+}> = [
+  { id: 'bold_impact', label: 'Bold Impact', maxWords: 6, placeholder: 'STOP SCROLLING', hint: '3-6 words, punchy and bold' },
+  { id: 'minimal_clean', label: 'Minimal Clean', maxWords: 15, placeholder: 'Here\'s what the data actually shows...', hint: 'Short sentence, lower-third style' },
+  { id: 'brand_gradient', label: 'Brand Gradient', maxWords: 8, placeholder: 'This changes everything', hint: '4-8 words, fits in a pill' },
+  { id: 'story_cards', label: 'Story Cards', maxWords: 20, placeholder: 'Here\'s what nobody tells you about pricing your home', hint: '1-2 sentences in a card' },
+  { id: 'outlined_stroke', label: 'Outlined', maxWords: 5, placeholder: 'GAME CHANGER', hint: '2-5 words, one big statement' },
+  { id: 'neon_glow', label: 'Neon', maxWords: 6, placeholder: 'THINK DIFFERENT', hint: '3-6 words, short and glowing' },
 ];
 
 export default function ReelEditorModal({
@@ -235,29 +241,57 @@ export default function ReelEditorModal({
                   />
                 </div>
 
-                {/* Hook Text */}
-                <div className="space-y-2">
-                  <label htmlFor="hook-text" className="text-sm font-medium text-foreground">
-                    Hook Text
-                  </label>
-                  <textarea
-                    id="hook-text"
-                    value={hookText}
-                    onChange={(e) => setHookText(e.target.value)}
-                    rows={3}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-interactive/50 resize-none"
-                    placeholder="Enter attention-grabbing hook text..."
-                  />
-                  {instagramCaption && (
-                    <button
-                      type="button"
-                      onClick={() => setHookText(instagramCaption)}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                    >
-                      Use IG Caption
-                    </button>
-                  )}
-                </div>
+                {/* Hook Text — style-aware */}
+                {(() => {
+                  const activeStyle = STYLE_OPTIONS.find(s => s.id === selectedStyle) || STYLE_OPTIONS[0];
+                  const wordCount = hookText.trim() ? hookText.trim().split(/\s+/).length : 0;
+                  const isOverLimit = wordCount > activeStyle.maxWords;
+                  const isNearLimit = wordCount > activeStyle.maxWords * 0.8;
+
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-baseline justify-between">
+                        <label htmlFor="hook-text" className="text-sm font-medium text-foreground">
+                          Hook Text
+                        </label>
+                        <span className={`text-[11px] transition-colors ${
+                          isOverLimit ? 'text-red-400 font-medium' : isNearLimit ? 'text-amber-400' : 'text-muted-foreground/50'
+                        }`}>
+                          {wordCount} / {activeStyle.maxWords} words
+                        </span>
+                      </div>
+                      <textarea
+                        id="hook-text"
+                        value={hookText}
+                        onChange={(e) => setHookText(e.target.value)}
+                        rows={2}
+                        className={`w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-interactive/50 resize-none transition-colors ${
+                          isOverLimit ? 'border-red-400/50' : 'border-border'
+                        }`}
+                        placeholder={activeStyle.placeholder}
+                      />
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-muted-foreground/50">
+                          {activeStyle.hint}
+                        </span>
+                        {instagramCaption && (
+                          <button
+                            type="button"
+                            onClick={() => setHookText(instagramCaption)}
+                            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                          >
+                            Use IG Caption
+                          </button>
+                        )}
+                      </div>
+                      {isOverLimit && (
+                        <p className="text-[11px] text-red-400">
+                          {activeStyle.label} works best with {activeStyle.maxWords} words or fewer. Text may overflow the frame.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Style selector */}
                 <div className="space-y-2">
