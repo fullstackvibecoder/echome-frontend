@@ -240,10 +240,24 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
 
           const unifiedItem = transformVideoUpload(upload, contentKit, clips?.length || 0);
           setItem(unifiedItem);
+
+          // Fetch carousel data separately — clips endpoint doesn't return it
+          let carousel = null;
+          if (contentKit?.id) {
+            try {
+              const kitResponse = await api.contentKits.get(contentKit.id);
+              if (kitResponse.success && kitResponse.data) {
+                carousel = (kitResponse.data as any).carousel || null;
+              }
+            } catch {
+              // Carousel fetch failed — not critical, continue without it
+            }
+          }
+
           setDetail({
             clips: clips || [],
             contentKit: contentKit || null,
-            carousel: null,
+            carousel,
             content: [],
           });
           return;

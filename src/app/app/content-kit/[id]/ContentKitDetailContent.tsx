@@ -23,6 +23,7 @@ import { useVoiceContext } from '@/contexts/voice-context';
 import ReelEditorModal from '@/components/reels/ReelEditorModal';
 import { ExportProgressModal } from '@/components/ExportProgressModal';
 import { OutputCard } from '@/components/content-kit/OutputCard';
+import { InlineWrittenContent } from '@/components/content-kit/InlineWrittenContent';
 import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
 import WrittenContentModal from '@/components/content-kit/WrittenContentModal';
 import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
@@ -615,13 +616,13 @@ export default function ContentKitDetailContent() {
             </div>
           )}
 
-          {/* Written Content */}
+          {/* Written Content — inline tabbed editor */}
           {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin) && (
             <div className="mt-6">
-              <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Written Content</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                {/* Substack Article */}
-                {detail?.contentKit?.contentBlog && (
+              {/* Substack card — opens modal */}
+              {detail?.contentKit?.contentBlog && (
+                <div className="mb-4">
+                  <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Substack Article</h3>
                   <OutputCard
                     title="Substack"
                     platform="substack"
@@ -629,27 +630,27 @@ export default function ContentKitDetailContent() {
                     thumbnailFallback={detail.contentKit.contentBlog.slice(0, 150)}
                     onClick={() => setSubstackModalOpen(true)}
                   />
-                )}
+                </div>
+              )}
 
-                {/* Platform posts */}
-                {[
-                  { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin' },
-                  { key: 'instagram', label: 'Instagram', field: 'contentInstagram' },
-                  { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter' },
-                  { key: 'email', label: 'Email', field: 'contentEmail' },
-                  { key: 'tiktok', label: 'TikTok', field: 'contentTiktok' },
-                  { key: 'youtube', label: 'YouTube', field: 'contentYoutube' },
-                ].filter(p => (detail?.contentKit as any)?.[p.field]).map(({ key, label, field }) => (
-                  <OutputCard
-                    key={key}
-                    title={label}
-                    platform={key}
-                    variant="text"
-                    thumbnailFallback={((detail?.contentKit as any)?.[field] || '').slice(0, 120)}
-                    onClick={() => setWrittenContentModalOpen(true)}
+              {/* Platform posts — inline tabbed editor */}
+              {detail?.contentKit?.contentLinkedin && (
+                <div>
+                  <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Platform Posts</h3>
+                  <InlineWrittenContent
+                    contentKitId={detail.contentKit.id}
+                    content={{
+                      linkedin: detail.contentKit.contentLinkedin,
+                      instagram: detail.contentKit.contentInstagram,
+                      twitter: detail.contentKit.contentTwitter,
+                      email: detail.contentKit.contentEmail,
+                      tiktok: detail.contentKit.contentTiktok,
+                      youtube: detail.contentKit.contentYoutube,
+                    }}
+                    onContentUpdate={() => refresh()}
                   />
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
