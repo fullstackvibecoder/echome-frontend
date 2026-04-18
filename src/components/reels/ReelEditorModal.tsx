@@ -85,14 +85,8 @@ export default function ReelEditorModal({
         setProjectId(reelProject.id);
         const overlays = reelProject.generatedContent?.segmentOverlays;
         if (overlays && overlays.length >= 2) {
-          const allShort = overlays.every((o: any) => (o.text || '').split(/\s+/).length <= 5);
-          if (allShort) {
-            setMode('segments');
-            setSegments(overlays.map((o: any) => ({ text: o.text || '', duration: 3 })));
-          } else {
-            setMode('single');
-            setSingleBlockText(overlays.map((o: any) => o.text || '').join(' '));
-          }
+          setMode('segments');
+          setSegments(overlays.map((o: any) => ({ text: o.text || '', duration: o.duration || 3 })));
         } else if (reelProject.generatedContent?.hookText) {
           setMode('single');
           setSingleBlockText(reelProject.generatedContent.hookText);
