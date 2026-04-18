@@ -29,13 +29,14 @@ const STYLE_OPTIONS: Array<{
   maxWords: number;
   placeholder: string;
   hint: string;
+  defaultScale: number; // 0.5 - 1.5, where 1.0 is the base clamp() size
 }> = [
-  { id: 'bold_impact', label: 'Bold Impact', maxWords: 6, placeholder: 'STOP SCROLLING', hint: '3-6 words, punchy and bold' },
-  { id: 'minimal_clean', label: 'Minimal Clean', maxWords: 15, placeholder: 'Here\'s what the data actually shows...', hint: 'Short sentence, lower-third style' },
-  { id: 'brand_gradient', label: 'Brand Gradient', maxWords: 8, placeholder: 'This changes everything', hint: '4-8 words, fits in a pill' },
-  { id: 'story_cards', label: 'Story Cards', maxWords: 20, placeholder: 'Here\'s what nobody tells you about pricing your home', hint: '1-2 sentences in a card' },
-  { id: 'outlined_stroke', label: 'Outlined', maxWords: 5, placeholder: 'GAME CHANGER', hint: '2-5 words, one big statement' },
-  { id: 'neon_glow', label: 'Neon', maxWords: 6, placeholder: 'THINK DIFFERENT', hint: '3-6 words, short and glowing' },
+  { id: 'bold_impact', label: 'Bold Impact', maxWords: 6, placeholder: 'STOP SCROLLING', hint: '3-6 words, punchy and bold', defaultScale: 1.2 },
+  { id: 'minimal_clean', label: 'Minimal Clean', maxWords: 15, placeholder: 'Here\'s what the data actually shows...', hint: 'Short sentence, lower-third style', defaultScale: 0.8 },
+  { id: 'brand_gradient', label: 'Brand Gradient', maxWords: 8, placeholder: 'This changes everything', hint: '4-8 words, fits in a pill', defaultScale: 1.0 },
+  { id: 'story_cards', label: 'Story Cards', maxWords: 20, placeholder: 'Here\'s what nobody tells you about pricing your home', hint: '1-2 sentences in a card', defaultScale: 0.9 },
+  { id: 'outlined_stroke', label: 'Outlined', maxWords: 5, placeholder: 'GAME CHANGER', hint: '2-5 words, one big statement', defaultScale: 1.3 },
+  { id: 'neon_glow', label: 'Neon', maxWords: 6, placeholder: 'THINK DIFFERENT', hint: '3-6 words, short and glowing', defaultScale: 1.1 },
 ];
 
 export default function ReelEditorModal({
@@ -51,6 +52,7 @@ export default function ReelEditorModal({
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const [hookText, setHookText] = useState(instagramCaption ?? '');
   const [selectedStyle, setSelectedStyle] = useState<TextOverlayStyleId>('bold_impact');
+  const [textScale, setTextScale] = useState(1.2); // default for bold_impact
   const [loading, setLoading] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
@@ -202,8 +204,9 @@ export default function ReelEditorModal({
               <TextOverlayPreview
                 thumbnailUrl={selectedClip?.thumbnailUrl}
                 text={hookText || 'Your hook text here...'}
-                style={selectedStyle as 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards'}
+                style={selectedStyle}
                 position="center"
+                textScale={textScale}
               />
             </div>
           </div>
@@ -301,7 +304,10 @@ export default function ReelEditorModal({
                       <button
                         key={style.id}
                         type="button"
-                        onClick={() => setSelectedStyle(style.id)}
+                        onClick={() => {
+                          setSelectedStyle(style.id);
+                          setTextScale(style.defaultScale);
+                        }}
                         className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                           selectedStyle === style.id
                             ? 'bg-primary-interactive text-white'
@@ -311,6 +317,27 @@ export default function ReelEditorModal({
                         {style.label}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Text size slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-foreground">Text Size</label>
+                    <span className="text-[11px] text-muted-foreground/50">{Math.round(textScale * 100)}%</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-muted-foreground">A</span>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="1.5"
+                      step="0.05"
+                      value={textScale}
+                      onChange={(e) => setTextScale(parseFloat(e.target.value))}
+                      className="flex-1 h-1.5 accent-primary-interactive cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-muted-foreground">A</span>
                   </div>
                 </div>
 

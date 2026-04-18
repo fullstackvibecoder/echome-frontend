@@ -2,13 +2,15 @@
 
 import React from 'react';
 
-type OverlayStyle = 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards' | 'outlined_stroke' | 'neon_glow';
+type OverlayStyle = 'bold_impact' | 'minimal_clean' | 'brand_gradient' | 'story_cards' | 'outlined_stroke' | 'subtitle_bar' | 'neon_glow';
 
 interface TextOverlayPreviewProps {
   thumbnailUrl?: string;
   text: string;
   style: OverlayStyle;
   position?: 'top' | 'center' | 'bottom';
+  /** Scale multiplier for text size. 1.0 = default, 0.5 = half, 1.5 = 150%. */
+  textScale?: number;
 }
 
 const positionClasses: Record<string, string> = {
@@ -22,11 +24,13 @@ export default function TextOverlayPreview({
   text,
   style,
   position = 'center',
+  textScale = 1.0,
 }: TextOverlayPreviewProps) {
   const renderText = () => {
     // Truncate to ~12 words max for preview — overlay text should be short
     const words = text.split(/\s+/);
     const displayText = words.length > 12 ? words.slice(0, 12).join(' ') + '...' : text;
+    const scale = textScale;
 
     switch (style) {
       case 'bold_impact':
@@ -159,11 +163,16 @@ export default function TextOverlayPreview({
       {/* Dark overlay for text readability */}
       <div className="absolute inset-0 bg-black/30" />
 
-      {/* Text overlay */}
+      {/* Text overlay — scale applied via CSS transform for smooth resizing */}
       <div
         className={`absolute inset-0 flex flex-col items-center ${positionClasses[position]} px-1`}
       >
-        {renderText()}
+        <div
+          className="transition-transform duration-150 origin-center"
+          style={{ transform: `scale(${textScale})` }}
+        >
+          {renderText()}
+        </div>
       </div>
     </div>
   );
