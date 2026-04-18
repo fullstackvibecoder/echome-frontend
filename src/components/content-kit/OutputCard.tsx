@@ -34,7 +34,7 @@ interface OutputCardProps {
   subtitle?: string;
   thumbnailUrl?: string;
   thumbnailFallback?: React.ReactNode;
-  aspectRatio?: '16/9' | '9/16' | '1/1';
+  aspectRatio?: '16/9' | '9/16' | '4/5' | '1/1';
   onClick: () => void;
   badge?: string;
   /** Platform key for icon + accent color (e.g., 'linkedin', 'substack', 'clip') */

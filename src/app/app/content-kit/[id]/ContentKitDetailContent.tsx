@@ -552,7 +552,7 @@ export default function ContentKitDetailContent() {
           {((detail?.clips?.length ?? 0) > 0 || hasCarousel || carouselExpected) && (
             <div className="mt-6">
               <h3 className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-3">Visual Content</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
                 {/* Clip cards */}
                 {detail?.clips?.map((clip: any, index: number) => (
                   <OutputCard
@@ -560,7 +560,7 @@ export default function ContentKitDetailContent() {
                     title={clip.title || `Clip ${index + 1}`}
                     subtitle={`${Math.floor(clip.duration / 60)}:${String(Math.floor(clip.duration % 60)).padStart(2, '0')}`}
                     thumbnailUrl={clip.thumbnailUrl}
-                    aspectRatio="9/16"
+                    aspectRatio="4/5"
                     platform="clip"
                     variant="visual"
                     onClick={() => {
@@ -578,6 +578,7 @@ export default function ContentKitDetailContent() {
                     thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
                     platform="carousel"
                     variant="visual"
+                    aspectRatio="1/1"
                     onClick={() => {/* carousel editor - Phase 2 */}}
                     badge={`${detail.carousel.slides.length} slides`}
                   />
@@ -606,7 +607,7 @@ export default function ContentKitDetailContent() {
                     title="B-Roll Reel"
                     subtitle="Authority hook overlay"
                     thumbnailUrl={(detail as any)?.reel?.thumbnailUrl}
-                    aspectRatio="9/16"
+                    aspectRatio="4/5"
                     platform="reel"
                     variant="visual"
                     onClick={() => setReelEditorOpen(true)}
