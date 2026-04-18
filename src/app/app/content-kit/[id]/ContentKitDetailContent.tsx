@@ -20,14 +20,14 @@ import api from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { showErrorToast } from '@/lib/toast';
 import { ContentCategory } from '@/types';
-import { CalendarPlus } from 'lucide-react';
+import { CalendarPlus, Play } from 'lucide-react';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { downloadImage, downloadCarouselImages } from '@/lib/download';
 import { CaptionStylePopover } from '@/components/content-kit/CaptionStylePopover';
 import { CaptionPositionControl } from '@/components/content-kit/CaptionPositionControl';
 import type { CaptionPosition } from '@/components/content-kit/CaptionOverlay';
 import { BlogPostSection } from '@/components/blog-post-section';
-import { VideoReelSection } from '@/components/content-kit/VideoReelSection';
+import ReelEditorModal from '@/components/reels/ReelEditorModal';
 import { CarouselStyleEditor } from '@/components/content-kit/CarouselStyleEditor';
 import { ExportProgressModal } from '@/components/ExportProgressModal';
 
@@ -100,6 +100,7 @@ export default function ContentKitDetailContent() {
     platform?: string;
   } | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
+  const [reelEditorOpen, setReelEditorOpen] = useState(false);
 
   // Fetch caption data when active clip changes (for overlay mode)
   useEffect(() => {
@@ -1267,17 +1268,25 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
-          {/* Video Reel + B-Roll (admin-only — not yet functional for end users) */}
-          {isAdmin && (hasCarousel || detail?.contentKit?.videoUploadId) && (
-            <VideoReelSection
-              contentKitId={contentKitId}
-              videoUploadId={detail?.contentKit?.videoUploadId}
-              reel={(detail as any)?.reel}
-              hasCarousel={hasCarousel}
-              slideCount={detail?.carousel?.slides?.length || 0}
-              isAdmin={isAdmin}
-              refresh={refresh}
-            />
+          {/* B-Roll Reel Card */}
+          {(hasCarousel || detail?.contentKit?.videoUploadId) && (
+            <section>
+              <h2 className="text-lg font-semibold mb-3">Reel</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div
+                  onClick={() => setReelEditorOpen(true)}
+                  className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-primary-interactive transition-colors"
+                >
+                  <div className="aspect-[9/16] max-h-[160px] bg-surface-container-low flex items-center justify-center">
+                    <Play className="w-8 h-8 text-muted-foreground/30" />
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-foreground text-sm font-medium">B-Roll Reel</h3>
+                    <p className="text-muted-foreground text-xs mt-0.5">Authority hook overlay</p>
+                  </div>
+                </div>
+              </div>
+            </section>
           )}
 
           {/* Failed Generation State */}
@@ -1379,6 +1388,17 @@ export default function ContentKitDetailContent() {
         clipId={exportingClipId}
         onClose={() => setExportingClipId(null)}
       />
+
+      {/* Reel Editor Modal */}
+      {contentKitId && (
+        <ReelEditorModal
+          open={reelEditorOpen}
+          onClose={() => setReelEditorOpen(false)}
+          contentKitId={contentKitId}
+          reelProjectId={(detail as any)?.reel?.id}
+          instagramCaption={detail?.contentKit?.contentInstagram}
+        />
+      )}
     </div>
   );
 }
