@@ -28,7 +28,6 @@ import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
 import WrittenContentModal from '@/components/content-kit/WrittenContentModal';
 import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
 import CarouselEditorModal from '@/components/content-kit/CarouselEditorModal';
-import { InstagramPostActions } from '@/components/content-kit/InstagramPostActions';
 
 // Progress step component
 function ProgressStep({
@@ -578,50 +577,33 @@ export default function ContentKitDetailContent() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
                 {/* Clip cards */}
                 {detail?.clips?.map((clip: any, index: number) => (
-                  <div key={clip.id}>
-                    <OutputCard
-                      title={clip.title || `Clip ${index + 1}`}
-                      subtitle={`${Math.floor(clip.duration / 60)}:${String(Math.floor(clip.duration % 60)).padStart(2, '0')}`}
-                      thumbnailUrl={clip.thumbnailUrl}
-                      aspectRatio="4/5"
-                      platform="clip"
-                      variant="visual"
-                      onClick={() => {
-                        setActiveClipForEditor(clip);
-                        setClipEditorOpen(true);
-                      }}
-                    />
-                    <InstagramPostActions
-                      contentKitId={contentKitId || id}
-                      caption={clip.suggestedCaption || detail?.contentKit?.contentInstagram || ''}
-                      mediaUrls={[clip.exports?.[0]?.url].filter(Boolean)}
-                      igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
-                      label={clip.title || `Clip ${index + 1}`}
-                    />
-                  </div>
+                  <OutputCard
+                    key={clip.id}
+                    title={clip.title || `Clip ${index + 1}`}
+                    subtitle={`${Math.floor(clip.duration / 60)}:${String(Math.floor(clip.duration % 60)).padStart(2, '0')}`}
+                    thumbnailUrl={clip.thumbnailUrl}
+                    aspectRatio="4/5"
+                    platform="clip"
+                    variant="visual"
+                    onClick={() => {
+                      setActiveClipForEditor(clip);
+                      setClipEditorOpen(true);
+                    }}
+                  />
                 ))}
 
                 {/* Carousel card */}
                 {hasCarousel && (
-                  <div>
-                    <OutputCard
-                      title="Carousel"
-                      subtitle={`${detail.carousel.slides.length} slides`}
-                      thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
-                      platform="carousel"
-                      variant="visual"
-                      aspectRatio="1/1"
-                      onClick={() => setCarouselEditorOpen(true)}
-                      badge={`${detail.carousel.slides.length} slides`}
-                    />
-                    <InstagramPostActions
-                      contentKitId={contentKitId || id}
-                      caption={detail?.contentKit?.contentInstagram || ''}
-                      mediaUrls={detail.carousel.slides.map((s: any) => s.publicUrl).filter(Boolean)}
-                      igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
-                      label="Carousel"
-                    />
-                  </div>
+                  <OutputCard
+                    title="Carousel"
+                    subtitle={`${detail.carousel.slides.length} slides`}
+                    thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
+                    platform="carousel"
+                    variant="visual"
+                    aspectRatio="1/1"
+                    onClick={() => setCarouselEditorOpen(true)}
+                    badge={`${detail.carousel.slides.length} slides`}
+                  />
                 )}
 
                 {/* Carousel loading */}
@@ -643,26 +625,15 @@ export default function ContentKitDetailContent() {
 
                 {/* B-Roll Reel */}
                 {(hasCarousel || detail?.contentKit?.videoUploadId) && (
-                  <div>
-                    <OutputCard
-                      title="B-Roll Reel"
-                      subtitle="Authority hook overlay"
-                      thumbnailUrl={(detail as any)?.reel?.thumbnailUrl}
-                      aspectRatio="4/5"
-                      platform="reel"
-                      variant="visual"
-                      onClick={() => setReelEditorOpen(true)}
-                    />
-                    {(detail as any)?.reel?.outputUrl && (
-                      <InstagramPostActions
-                        contentKitId={contentKitId || id}
-                        caption={detail?.contentKit?.contentInstagram || ''}
-                        mediaUrls={[(detail as any).reel.outputUrl].filter(Boolean)}
-                        igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
-                        label="B-Roll Reel"
-                      />
-                    )}
-                  </div>
+                  <OutputCard
+                    title="B-Roll Reel"
+                    subtitle="Authority hook overlay"
+                    thumbnailUrl={(detail as any)?.reel?.thumbnailUrl}
+                    aspectRatio="4/5"
+                    platform="reel"
+                    variant="visual"
+                    onClick={() => setReelEditorOpen(true)}
+                  />
                 )}
               </div>
             </section>
@@ -849,6 +820,9 @@ export default function ContentKitDetailContent() {
             setActiveClipForEditor(null);
             setExportingClipId(clipId);
           }}
+          contentKitId={contentKitId || id}
+          igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
+          instagramCaption={detail?.contentKit?.contentInstagram}
         />
       )}
 
@@ -874,6 +848,8 @@ export default function ContentKitDetailContent() {
           designPreset={detail.carousel.designPreset}
           uploadId={detail?.clips?.[0]?.videoUploadId}
           onCarouselUpdate={() => refresh()}
+          igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
+          instagramCaption={detail?.contentKit?.contentInstagram}
         />
       )}
 
@@ -885,6 +861,7 @@ export default function ContentKitDetailContent() {
           contentKitId={contentKitId}
           reelProjectId={(detail as any)?.reel?.id}
           instagramCaption={detail?.contentKit?.contentInstagram}
+          igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
         />
       )}
     </div>

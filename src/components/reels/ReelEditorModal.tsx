@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Loader2, Download, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { InstagramPostActions } from '@/components/content-kit/InstagramPostActions';
 import { BRollStrip } from './BRollStrip';
 import SegmentPreview from './SegmentPreview';
 import SegmentEditor from './SegmentEditor';
@@ -22,6 +23,7 @@ interface ReelEditorModalProps {
   contentKitId: string;
   reelProjectId?: string;
   instagramCaption?: string;
+  igConnected?: boolean;
 }
 
 const STYLE_OPTIONS: Array<{
@@ -42,6 +44,7 @@ export default function ReelEditorModal({
   contentKitId,
   reelProjectId,
   instagramCaption,
+  igConnected = false,
 }: ReelEditorModalProps) {
   // ---- State ----
   const [clips, setClips] = useState<BRollClip[]>([]);
@@ -348,28 +351,37 @@ export default function ReelEditorModal({
                 {/* Action button */}
                 <div className="pt-2">
                   {outputUrl ? (
-                    <div className="flex gap-3">
-                      <a
-                        href={outputUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download Reel
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOutputUrl(null);
-                          handleGenerate();
-                        }}
-                        className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors"
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Re-generate
-                      </button>
-                    </div>
+                    <>
+                      <div className="flex gap-3">
+                        <a
+                          href={outputUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download Reel
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOutputUrl(null);
+                            handleGenerate();
+                          }}
+                          className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Re-generate
+                        </button>
+                      </div>
+                      <InstagramPostActions
+                        contentKitId={contentKitId}
+                        caption={instagramCaption || ''}
+                        mediaUrls={[outputUrl]}
+                        igConnected={igConnected}
+                        label="Reel"
+                      />
+                    </>
                   ) : (
                     <button
                       type="button"
