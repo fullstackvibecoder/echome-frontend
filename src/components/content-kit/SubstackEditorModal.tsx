@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { X, Loader2, Check, Copy, RefreshCw, Save } from 'lucide-react';
+import { X, Loader2, Check, Copy, RefreshCw, Save, ImageIcon, Download } from 'lucide-react';
 import { copyAsRichText, copyAsPlainText } from '@/lib/clipboard';
+import { downloadImage } from '@/lib/download';
 import api from '@/lib/api-client';
+import type { GeneratedImage } from '@/types';
 
 interface SubstackEditorModalProps {
   open: boolean;
@@ -61,6 +63,8 @@ export default function SubstackEditorModal({
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [headerImage, setHeaderImage] = useState<GeneratedImage | null>(null);
+  const [generatingImage, setGeneratingImage] = useState(false);
 
   const backdropRef = useRef<HTMLDivElement>(null);
 
@@ -94,6 +98,21 @@ export default function SubstackEditorModal({
       return updated;
     });
   }, []);
+
+  const handleGenerateImage = async () => {
+    setGeneratingImage(true);
+    try {
+      const fullText = reassembleMarkdown(sections);
+      const result = await api.images.generateBlogHeader(title, undefined, fullText);
+      if (result.success && result.data?.image) {
+        setHeaderImage(result.data.image);
+      }
+    } catch (err) {
+      console.error('Failed to generate header image:', err);
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
 
   const handleCopyRichText = async () => {
     const success = await copyAsRichText(fullMarkdown);
@@ -217,6 +236,45 @@ export default function SubstackEditorModal({
               >
                 <X className="h-5 w-5" />
               </button>
+            </div>
+
+            {/* Header image */}
+            <div className="space-y-2">
+              {headerImage ? (
+                <div className="relative rounded-lg overflow-hidden border border-border">
+                  <img src={headerImage.publicUrl} alt="Article header" className="w-full" />
+                  <div className="absolute bottom-2 right-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => downloadImage(headerImage.publicUrl, `substack-header-${Date.now()}.png`)}
+                      className="p-1.5 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateImage}
+                      disabled={generatingImage}
+                      className="p-1.5 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${generatingImage ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGenerateImage}
+                  disabled={generatingImage}
+                  className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-border rounded-lg text-sm text-muted-foreground hover:border-primary-interactive hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  {generatingImage ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Generating header image...</>
+                  ) : (
+                    <><ImageIcon className="w-4 h-4" /> Generate Header Image</>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Section editors */}
