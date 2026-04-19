@@ -98,18 +98,6 @@ export default function ContentKitDetailContent() {
   const [clipEditorOpen, setClipEditorOpen] = useState(false);
   const [carouselEditorOpen, setCarouselEditorOpen] = useState(false);
   const [activeClipForEditor, setActiveClipForEditor] = useState<any>(null);
-  const [connectedAccounts, setConnectedAccounts] = useState<Array<{ platform: string; id: string }>>([]);
-
-  // Fetch connected social accounts on mount (for auto-post button)
-  useEffect(() => {
-    api.socialPosting.listAccounts()
-      .then((res) => {
-        if (res.success && res.data) {
-          setConnectedAccounts(res.data.accounts.map((a) => ({ platform: a.platform, id: a.id })));
-        }
-      })
-      .catch(() => {}); // Non-critical — just won't show auto-post option
-  }, []);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -676,7 +664,6 @@ export default function ContentKitDetailContent() {
                       tiktok: detail.contentKit.contentTiktok,
                       youtube: detail.contentKit.contentYoutube,
                     }}
-                    connectedAccounts={connectedAccounts}
                     onContentUpdate={() => refresh()}
                     onSchedule={(platform) => setQuickScheduleConfig({ type: 'platform', platform })}
                   />
@@ -766,8 +753,6 @@ export default function ContentKitDetailContent() {
               ? ['instagram']
               : undefined
           }
-          connectedAccounts={connectedAccounts}
-          autoPostText={detail?.contentKit?.contentInstagram}
         />
       )}
 
@@ -821,7 +806,6 @@ export default function ContentKitDetailContent() {
             setExportingClipId(clipId);
           }}
           contentKitId={contentKitId || id}
-          igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
           instagramCaption={detail?.contentKit?.contentInstagram}
         />
       )}
@@ -848,8 +832,6 @@ export default function ContentKitDetailContent() {
           designPreset={detail.carousel.designPreset}
           uploadId={detail?.clips?.[0]?.videoUploadId}
           onCarouselUpdate={() => refresh()}
-          igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
-          instagramCaption={detail?.contentKit?.contentInstagram}
         />
       )}
 
@@ -861,7 +843,6 @@ export default function ContentKitDetailContent() {
           contentKitId={contentKitId}
           reelProjectId={(detail as any)?.reel?.id}
           instagramCaption={detail?.contentKit?.contentInstagram}
-          igConnected={connectedAccounts.some(a => a.platform === 'instagram')}
         />
       )}
     </div>

@@ -20,9 +20,6 @@ import {
   Music2,
 } from 'lucide-react';
 import { ContentCategory, CONTENT_CATEGORY_CONFIG } from '@/types';
-import { useSubscription } from '@/hooks/useSubscription';
-import { api } from '@/lib/api-client';
-import { toast } from 'sonner';
 
 interface QuickScheduleModalProps {
   isOpen: boolean;
@@ -39,10 +36,6 @@ interface QuickScheduleModalProps {
   defaultPlatform?: string;
   /** Multiple platforms to pre-select (takes precedence over defaultPlatform) */
   defaultPlatforms?: string[];
-  /** Connected social accounts for auto-posting */
-  connectedAccounts?: Array<{ platform: string; id: string }>;
-  /** The text content for auto-posting (e.g., Instagram caption) */
-  autoPostText?: string;
 }
 
 const PLATFORMS = [
@@ -80,25 +73,14 @@ export function QuickScheduleModal({
   contentTitle,
   defaultPlatform,
   defaultPlatforms,
-  connectedAccounts = [],
-  autoPostText,
 }: QuickScheduleModalProps) {
-  const { hasTierAccess } = useSubscription();
-  const canAutoPost = hasTierAccess('studio');
-
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('12:30');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ContentCategory | ''>('');
   const [notes, setNotes] = useState<string>('');
-  const [autoPostEnabled, setAutoPostEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Check if Instagram auto-post is available
-  const igConnected = connectedAccounts.some(a => a.platform === 'instagram');
-  const igSelected = selectedPlatforms.includes('instagram');
-  const showAutoPostToggle = canAutoPost && igConnected && igSelected;
 
   // Initialize with defaults when modal opens
   useEffect(() => {
@@ -143,23 +125,6 @@ export function QuickScheduleModal({
         contentCategory: selectedCategory || undefined,
         notes: notes || undefined,
       });
-
-      // Auto-post to Instagram via Outstand (if enabled + connected + has text)
-      if (showAutoPostToggle && autoPostEnabled && autoPostText) {
-        try {
-          await api.socialPosting.schedule({
-            contentKitId,
-            platform: 'instagram',
-            text: autoPostText,
-            scheduledAt: scheduledFor,
-          });
-          toast.success('Instagram auto-post scheduled!');
-        } catch (err) {
-          // Don't block the calendar schedule — just warn about auto-post failure
-          console.error('Auto-post to Instagram failed:', err);
-          toast.error('Calendar scheduled, but Instagram auto-post failed. You can retry from the calendar.');
-        }
-      }
 
       onClose();
     } catch (err) {
@@ -294,35 +259,6 @@ export function QuickScheduleModal({
               })}
             </div>
           </div>
-
-          {/* Auto-post to Instagram toggle */}
-          {showAutoPostToggle && (
-            <div className="flex items-center justify-between p-3 bg-accent/5 border border-accent/20 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Instagram className="w-4 h-4 text-accent" />
-                <div>
-                  <p className="text-sm font-medium text-text-primary">Auto-post to Instagram</p>
-                  <p className="text-[11px] text-text-secondary">EchoMe will post this to @{connectedAccounts.find(a => a.platform === 'instagram')?.id || 'your account'} automatically</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAutoPostEnabled(!autoPostEnabled)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${autoPostEnabled ? 'bg-accent' : 'bg-border'}`}
-              >
-                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${autoPostEnabled ? 'translate-x-5' : ''}`} />
-              </button>
-            </div>
-          )}
-
-          {/* Not connected hint for Instagram */}
-          {canAutoPost && igSelected && !igConnected && (
-            <div className="p-3 bg-bg-secondary rounded-lg">
-              <p className="text-xs text-text-secondary">
-                Connect Instagram in <a href="/app/settings?tab=connections" className="text-accent hover:underline">Settings → Connections</a> to auto-post.
-              </p>
-            </div>
-          )}
 
           {/* Category Selection */}
           <div>

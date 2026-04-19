@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Loader2, Download, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api-client';
-import { InstagramPostActions } from '@/components/content-kit/InstagramPostActions';
 import { BRollStrip } from './BRollStrip';
 import SegmentPreview from './SegmentPreview';
 import SegmentEditor from './SegmentEditor';
@@ -23,7 +22,6 @@ interface ReelEditorModalProps {
   contentKitId: string;
   reelProjectId?: string;
   instagramCaption?: string;
-  igConnected?: boolean;
 }
 
 const STYLE_OPTIONS: Array<{
@@ -44,7 +42,6 @@ export default function ReelEditorModal({
   contentKitId,
   reelProjectId,
   instagramCaption,
-  igConnected = false,
 }: ReelEditorModalProps) {
   // ---- State ----
   const [clips, setClips] = useState<BRollClip[]>([]);
@@ -374,13 +371,6 @@ export default function ReelEditorModal({
                           Re-generate
                         </button>
                       </div>
-                      <InstagramPostActions
-                        contentKitId={contentKitId}
-                        caption={instagramCaption || ''}
-                        mediaUrls={[outputUrl]}
-                        igConnected={igConnected}
-                        label="Reel"
-                      />
                     </>
                   ) : (
                     <button

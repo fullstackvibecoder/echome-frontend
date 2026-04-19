@@ -10,7 +10,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Download, Film } from 'lucide-react';
 import { api, type VideoClip } from '@/lib/api-client';
-import { InstagramPostActions } from './InstagramPostActions';
 import { formatDuration } from '@/lib/content-kit-utils';
 import { VideoPlayer } from './VideoPlayer';
 import { CaptionStylePopover } from './CaptionStylePopover';
@@ -26,7 +25,6 @@ interface ClipEditorModalProps {
   uploadId: string;
   onExport: (clipId: string) => void;
   contentKitId?: string;
-  igConnected?: boolean;
   instagramCaption?: string;
 }
 
@@ -88,7 +86,6 @@ export default function ClipEditorModal({
   uploadId,
   onExport,
   contentKitId,
-  igConnected = false,
   instagramCaption,
 }: ClipEditorModalProps) {
   const [captionStyle, setCaptionStyle] = useState<CaptionStylePreset>(clip.captionStyle || 'modern');
@@ -313,15 +310,6 @@ export default function ClipEditorModal({
                 Download 1080p
               </button>
 
-              {contentKitId && (
-                <InstagramPostActions
-                  contentKitId={contentKitId}
-                  caption={clip.suggestedCaption || instagramCaption || ''}
-                  mediaUrls={[videoSrc].filter(Boolean)}
-                  igConnected={igConnected}
-                  label={clip.title || 'Clip'}
-                />
-              )}
             </div>
           </div>
         </div>

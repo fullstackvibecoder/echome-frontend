@@ -14,7 +14,6 @@ import { downloadImage } from '@/lib/download';
 import { showErrorToast } from '@/lib/toast';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
-import { InstagramPostActions } from './InstagramPostActions';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 
@@ -39,8 +38,6 @@ interface CarouselEditorModalProps {
   designPreset?: string;
   uploadId?: string;
   onCarouselUpdate: () => void;
-  igConnected?: boolean;
-  instagramCaption?: string;
 }
 
 const TEMPLATE_TEXT_STYLES: Record<string, {
@@ -83,8 +80,6 @@ export default function CarouselEditorModal({
   designPreset,
   uploadId,
   onCarouselUpdate,
-  igConnected = false,
-  instagramCaption,
 }: CarouselEditorModalProps) {
   const [slides, setSlides] = useState<CarouselSlide[]>(initialSlides);
   const [edits, setEdits] = useState<SlideEdit[]>([]);
@@ -344,14 +339,6 @@ export default function CarouselEditorModal({
               </button>
             </div>
 
-            {/* Post carousel to Instagram */}
-            <InstagramPostActions
-              contentKitId={contentKitId}
-              caption={instagramCaption || ''}
-              mediaUrls={slides.map(s => s.publicUrl).filter(Boolean)}
-              igConnected={igConnected}
-              label="Carousel"
-            />
           </div>
         </div>
       </div>

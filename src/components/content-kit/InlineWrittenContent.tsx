@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useSubscription } from '@/hooks/useSubscription';
 import {
   Linkedin,
   Instagram,
@@ -14,16 +13,11 @@ import {
   RefreshCw,
   Copy,
   Check,
-  Send,
   CalendarClock,
-  ExternalLink,
-  Loader2,
   type LucideIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
-import { toast } from 'sonner';
 
 interface PlatformConfig {
   key: string;
@@ -52,16 +46,10 @@ const FIELD_MAP: Record<string, string> = {
   youtube: 'contentYoutube',
 };
 
-interface ConnectedAccount {
-  platform: string;
-  id: string;
-}
-
 interface InlineWrittenContentProps {
   contentKitId: string;
   content: Record<string, string | undefined>;
   onContentUpdate: () => void;
-  connectedAccounts?: ConnectedAccount[];
   onSchedule?: (platform: string) => void;
 }
 
@@ -69,7 +57,6 @@ export function InlineWrittenContent({
   contentKitId,
   content,
   onContentUpdate,
-  connectedAccounts = [],
   onSchedule,
 }: InlineWrittenContentProps) {
   // Only show platforms that have content
@@ -92,10 +79,6 @@ export function InlineWrittenContent({
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [postingNow, setPostingNow] = useState(false);
-  const [showIgSchedule, setShowIgSchedule] = useState(false);
-  const [igScheduledAt, setIgScheduledAt] = useState('');
-  const [schedulingIg, setSchedulingIg] = useState(false);
 
   if (availablePlatforms.length === 0) return null;
 
@@ -145,53 +128,6 @@ export function InlineWrittenContent({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const handlePostNow = async () => {
-    setPostingNow(true);
-    try {
-      await api.socialPosting.schedule({
-        contentKitId,
-        platform: 'instagram',
-        text: activeText,
-        scheduledAt: new Date().toISOString(),
-      });
-      toast.success('Posted to Instagram!');
-    } catch (err) {
-      console.error('Failed to post to Instagram:', err);
-      toast.error('Failed to post to Instagram');
-    } finally {
-      setPostingNow(false);
-    }
-  };
-
-  const handleScheduleIg = async () => {
-    if (!igScheduledAt) return;
-    setSchedulingIg(true);
-    try {
-      const isoDate = new Date(igScheduledAt).toISOString();
-      await api.socialPosting.schedule({
-        contentKitId,
-        platform: 'instagram',
-        text: activeText,
-        scheduledAt: isoDate,
-      });
-      const displayDate = new Date(igScheduledAt).toLocaleString('en-US', {
-        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
-      });
-      toast.success(`Instagram post scheduled for ${displayDate}`);
-      setShowIgSchedule(false);
-      setIgScheduledAt('');
-    } catch (err) {
-      console.error('Failed to schedule Instagram post:', err);
-      toast.error('Failed to schedule post');
-    } finally {
-      setSchedulingIg(false);
-    }
-  };
-
-  const { hasTierAccess } = useSubscription();
-  const canAutoPost = hasTierAccess('studio');
-  const igConnected = connectedAccounts.some((a) => a.platform === 'instagram');
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: 'var(--shadow-soft)' }}>
@@ -264,7 +200,7 @@ export function InlineWrittenContent({
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
-            {onSchedule && activePlatform !== 'instagram' && (
+            {onSchedule && (
               <button
                 onClick={() => onSchedule(activePlatform)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:text-foreground transition-colors"
@@ -277,74 +213,10 @@ export function InlineWrittenContent({
           </div>
         </div>
 
-        {/* Instagram auto-post actions */}
-        {activePlatform === 'instagram' && canAutoPost && igConnected && (
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              onClick={handlePostNow}
-              disabled={postingNow}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E4405F] text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {postingNow ? <Loader2 className="w-3 h-3 animate-spin" /> : <Instagram className="w-3 h-3" />}
-              {postingNow ? 'Posting...' : 'Post to Instagram Now'}
-            </button>
-            <button
-              onClick={() => setShowIgSchedule(!showIgSchedule)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                showIgSchedule ? 'bg-primary-interactive text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <CalendarClock className="w-3 h-3" />
-              Schedule IG Post
-            </button>
-          </div>
-        )}
-
-        {/* Instagram schedule picker */}
-        {activePlatform === 'instagram' && showIgSchedule && canAutoPost && igConnected && (
-          <div className="mt-2 flex items-center gap-2">
-            <input
-              type="datetime-local"
-              value={igScheduledAt}
-              onChange={(e) => setIgScheduledAt(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
-              className="flex-1 min-w-[180px] px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50"
-            />
-            <button
-              onClick={handleScheduleIg}
-              disabled={!igScheduledAt || schedulingIg}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary-interactive text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {schedulingIg ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-              {schedulingIg ? 'Scheduling...' : 'Confirm'}
-            </button>
-          </div>
-        )}
-
-        {/* Instagram connect prompt for Studio+ users */}
-        {activePlatform === 'instagram' && canAutoPost && !igConnected && (
-          <div className="mt-2 p-2.5 bg-surface-container-lowest rounded-lg border border-border">
-            <p className="text-[11px] text-muted-foreground">
-              <Link href="/app/settings?tab=connections" className="text-accent hover:underline font-medium">Connect Instagram</Link> to post directly from EchoMe.
-            </p>
-          </div>
-        )}
-
-        {/* Instagram upgrade prompt for lower tiers */}
-        {activePlatform === 'instagram' && !canAutoPost && (
-          <div className="mt-2 p-2.5 bg-surface-container-lowest rounded-lg border border-border">
-            <p className="text-[11px] text-muted-foreground">
-              Auto-posting to Instagram is available on Echo Studio and above. <Link href="/app/billing" className="text-accent hover:underline font-medium">Upgrade</Link>
-            </p>
-          </div>
-        )}
-
-        {/* Reminder hint for non-IG platforms */}
-        {activePlatform !== 'instagram' && onSchedule && (
-          <p className="mt-1 text-[10px] text-muted-foreground/50 px-1">
-            Set a reminder to post this to {activeConfig.label} — we'll notify you at the scheduled time.
-          </p>
-        )}
+        {/* Auto-posting coming soon hint */}
+        <p className="mt-1 text-[10px] text-muted-foreground/50 px-1">
+          Auto-posting coming soon
+        </p>
 
       </div>
     </div>
