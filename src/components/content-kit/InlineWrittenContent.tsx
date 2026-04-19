@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useSubscription } from '@/hooks/useSubscription';
 import {
   Linkedin,
   Instagram,
@@ -142,8 +143,10 @@ export function InlineWrittenContent({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const AUTO_POST_PLATFORMS = ['instagram', 'linkedin'];
-  const supportsAutoPost = AUTO_POST_PLATFORMS.includes(activePlatform);
+  const { hasTierAccess } = useSubscription();
+  const canAutoPost = hasTierAccess('studio');
+  const AUTO_POST_PLATFORMS = ['instagram'];
+  const supportsAutoPost = AUTO_POST_PLATFORMS.includes(activePlatform) && canAutoPost;
   const isConnected = connectedAccounts.some((a) => a.platform === activePlatform);
 
   const handleSchedulePost = async () => {
@@ -262,9 +265,14 @@ export function InlineWrittenContent({
         {/* Auto Post inline section */}
         {autoPostOpen && (
           <div className="mt-2 p-3 bg-surface-container-lowest rounded-lg border border-border">
-            {!supportsAutoPost ? (
+            {activePlatform === 'instagram' && !canAutoPost ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Auto-posting to Instagram is available on Echo Studio and above.</span>
+                <Link href="/app/billing" className="text-accent hover:underline font-medium">Upgrade</Link>
+              </div>
+            ) : !supportsAutoPost ? (
               <p className="text-xs text-muted-foreground">
-                Auto-posting to {activeConfig.label} is coming soon. Available now for Instagram and LinkedIn.
+                Auto-posting to {activeConfig.label} is coming soon. Available now for Instagram.
               </p>
             ) : isConnected ? (
               <div className="flex items-center gap-2 flex-wrap">

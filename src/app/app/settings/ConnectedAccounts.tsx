@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { useSubscription } from '@/hooks/useSubscription';
+import Link from 'next/link';
 import {
   Loader2,
   Plus,
@@ -46,6 +48,9 @@ interface ConnectedAccount {
 }
 
 export function ConnectedAccounts() {
+  const { hasTierAccess } = useSubscription();
+  const canAutoPost = hasTierAccess('studio');
+
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
@@ -150,15 +155,35 @@ export function ConnectedAccounts() {
     );
   }
 
+  if (!canAutoPost) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">Auto-Post to Instagram</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Schedule your content and EchoMe posts it automatically. No more copy-pasting — your content goes live on Instagram at the time you choose.
+          </p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-5 text-center space-y-3">
+          <p className="text-sm text-foreground font-medium">Available on Echo Studio and above</p>
+          <p className="text-xs text-muted-foreground">Upgrade to connect your Instagram account and start auto-posting directly from your content kits.</p>
+          <Link
+            href="/app/billing"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-interactive text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            View Plans
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-foreground">Connected Accounts</h3>
+        <h3 className="text-lg font-semibold text-foreground">Auto-Post to Instagram</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Connect your social accounts to schedule and auto-post content directly from EchoMe.
-        </p>
-        <p className="text-[11px] text-muted-foreground/60 mt-2">
-          Available now: Instagram and LinkedIn. More platforms coming soon.
+          Connect your Instagram account to schedule and auto-post content directly from EchoMe.
         </p>
       </div>
 
