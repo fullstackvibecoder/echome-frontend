@@ -88,6 +88,8 @@ export default function CarouselEditorModal({
   const [edits, setEdits] = useState<SlideEdit[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
+  const [preparingBackgrounds, setPreparingBackgrounds] = useState(false);
+  const bgPreparedRef = useRef(false);
   const backdropRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +100,39 @@ export default function CarouselEditorModal({
       text: s.text,
       position: { x: 0.5, y: 0.5 },
     })));
+    bgPreparedRef.current = false;
   }, [initialSlides]);
+
+  // Auto-regenerate backgrounds for old carousels that lack backgroundUrl
+  useEffect(() => {
+    if (!open || bgPreparedRef.current) return;
+    const needsBackgrounds = initialSlides.length > 0 && !initialSlides.some(s => s.backgroundUrl);
+    if (!needsBackgrounds) return;
+
+    bgPreparedRef.current = true;
+    setPreparingBackgrounds(true);
+
+    api.contentKits.regenerateCarousel(contentKitId, {
+      designPreset: (designPreset as any) || 'auto',
+    }).then((response) => {
+      if (response.success && response.data?.carousel?.slides) {
+        const newSlides = response.data.carousel.slides.map((s: any) => ({
+          slideNumber: s.slideNumber,
+          publicUrl: s.publicUrl,
+          backgroundUrl: s.backgroundUrl || s.background_url,
+          text: s.text,
+          template: s.template || s.slideType,
+        }));
+        setSlides(newSlides);
+        setEdits(newSlides.map((s: CarouselSlide) => ({ text: s.text, position: { x: 0.5, y: 0.5 } })));
+        onCarouselUpdate();
+      }
+    }).catch((err) => {
+      console.error('Failed to prepare carousel backgrounds:', err);
+    }).finally(() => {
+      setPreparingBackgrounds(false);
+    });
+  }, [open, initialSlides, contentKitId, designPreset, onCarouselUpdate]);
 
   // Keyboard nav
   useEffect(() => {
@@ -249,10 +283,11 @@ export default function CarouselEditorModal({
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">{activeIndex + 1} / {slides.length}</p>
 
-            {!hasBackground && (
-              <p className="text-[10px] text-muted-foreground/50 mt-2 text-center">
-                Drag-to-position available after next style change
-              </p>
+            {!hasBackground && preparingBackgrounds && (
+              <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Preparing editor...
+              </div>
             )}
           </div>
 
