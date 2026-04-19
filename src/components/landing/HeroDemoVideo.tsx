@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Play, Zap } from 'lucide-react';
 
-const LOOM_VIDEO_ID = '136ee8a0709e44eaa5a2ba128d3ab624';
-const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-3920a96cb0e456fa-full-play.gif#t=0.1`;
+const YOUTUBE_VIDEO_ID = 'Yr9VltWMqsY';
+const YOUTUBE_THUMBNAIL = `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`;
 
 export function HeroDemoVideo() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -19,12 +19,12 @@ export function HeroDemoVideo() {
             <button
               onClick={() => setIsPlaying(true)}
               className="relative w-full group/video cursor-pointer"
-              style={{ paddingBottom: '64.98%' }}
+              style={{ paddingBottom: '56.25%' }}
               aria-label="Play demo video"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={LOOM_THUMBNAIL_URL}
+                src={YOUTUBE_THUMBNAIL}
                 alt="EchoMe product demo"
                 fetchPriority="high"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/video:scale-105"
@@ -41,17 +41,17 @@ export function HeroDemoVideo() {
               {/* Bottom gradient with title */}
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                 <p className="text-white font-headline font-bold text-sm tracking-tight">
-                  EchoMe has levelled up! - Watch Video
+                  See EchoMe in Action
                 </p>
               </div>
             </button>
           ) : (
-            /* Loom iframe */
-            <div className="relative w-full" style={{ paddingBottom: '64.98%' }}>
+            /* YouTube iframe */
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
               <iframe
-                src={`https://www.loom.com/embed/${LOOM_VIDEO_ID}?autoplay=1`}
+                src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
                 title="EchoMe product demo"
-                allow="autoplay; fullscreen"
+                allow="autoplay; fullscreen; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"
               />
