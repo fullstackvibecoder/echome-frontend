@@ -95,7 +95,20 @@ export function ConnectedAccounts() {
         const w = 600, h = 700;
         const left = window.screenX + (window.outerWidth - w) / 2;
         const top = window.screenY + (window.outerHeight - h) / 2;
-        window.open(response.data.url, 'social-connect', `width=${w},height=${h},left=${left},top=${top}`);
+        const popup = window.open(response.data.url, 'social-connect', `width=${w},height=${h},left=${left},top=${top}`);
+
+        // Fallback: poll for popup close (in case postMessage doesn't fire cross-origin)
+        if (popup) {
+          const pollTimer = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(pollTimer);
+              setConnecting(null);
+              loadAccounts(); // Refresh — account may have been saved
+            }
+          }, 1000);
+          // Clean up after 5 minutes max
+          setTimeout(() => clearInterval(pollTimer), 300000);
+        }
       } else {
         toast.error('Could not get authorization URL. Please try again.');
         setConnecting(null);
