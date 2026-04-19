@@ -142,7 +142,7 @@ export function InlineWrittenContent({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const AUTO_POST_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads'];
+  const AUTO_POST_PLATFORMS = ['instagram', 'linkedin'];
   const supportsAutoPost = AUTO_POST_PLATFORMS.includes(activePlatform);
   const isConnected = connectedAccounts.some((a) => a.platform === activePlatform);
 
@@ -264,7 +264,7 @@ export function InlineWrittenContent({
           <div className="mt-2 p-3 bg-surface-container-lowest rounded-lg border border-border">
             {!supportsAutoPost ? (
               <p className="text-xs text-muted-foreground">
-                Auto-posting to {activeConfig.label} is coming soon. Available now for Instagram, LinkedIn, Facebook, and Threads.
+                Auto-posting to {activeConfig.label} is coming soon. Available now for Instagram and LinkedIn.
               </p>
             ) : isConnected ? (
               <div className="flex items-center gap-2 flex-wrap">

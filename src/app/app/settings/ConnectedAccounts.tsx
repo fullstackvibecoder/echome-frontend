@@ -21,14 +21,14 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-// Only show platforms that are ready (managed keys configured on Outstand)
-// X, TikTok, YouTube, Bluesky, Pinterest need Outstand to enable managed keys
-const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon }> = [
-  { id: 'instagram', name: 'Instagram', Icon: Instagram },
-  { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin },
-  { id: 'facebook', name: 'Facebook', Icon: Facebook },
-  { id: 'threads', name: 'Threads', Icon: AtSign },
-  // Uncomment as Outstand enables managed keys:
+// Platforms verified working with Outstand managed keys
+const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon; hint?: string }> = [
+  { id: 'instagram', name: 'Instagram', Icon: Instagram, hint: 'Business or Creator account' },
+  { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin, hint: 'Requires a Company Page' },
+  // Facebook/Threads — managed keys work but page connection flow needs verification
+  // { id: 'facebook', name: 'Facebook', Icon: Facebook, hint: 'Requires a Facebook Page' },
+  // { id: 'threads', name: 'Threads', Icon: AtSign },
+  // Pending Outstand managed keys:
   // { id: 'x', name: 'X (Twitter)', Icon: Twitter },
   // { id: 'tiktok', name: 'TikTok', Icon: Music2 },
   // { id: 'youtube', name: 'YouTube', Icon: Youtube },
@@ -158,7 +158,7 @@ export function ConnectedAccounts() {
           Connect your social accounts to schedule and auto-post content directly from EchoMe.
         </p>
         <p className="text-[11px] text-muted-foreground/60 mt-2">
-          Available now: Instagram, LinkedIn, Facebook, Threads. More platforms coming soon.
+          Available now: Instagram and LinkedIn. More platforms coming soon.
         </p>
       </div>
 
@@ -230,7 +230,10 @@ export function ConnectedAccounts() {
                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-foreground hover:bg-background transition-colors text-left"
                   >
                     <Icon className="w-4 h-4 text-muted-foreground" />
-                    {platform.name}
+                    <div>
+                      <div>{platform.name}</div>
+                      {platform.hint && <div className="text-[10px] text-muted-foreground/60">{platform.hint}</div>}
+                    </div>
                   </button>
                 );
               })}
