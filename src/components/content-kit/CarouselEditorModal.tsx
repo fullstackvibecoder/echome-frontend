@@ -86,6 +86,7 @@ export default function CarouselEditorModal({
   const [activeIndex, setActiveIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const [preparing, setPreparing] = useState(false);
+  const [currentPreset, setCurrentPreset] = useState(designPreset || 'auto');
   const abortRef = useRef<AbortController | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -136,7 +137,7 @@ export default function CarouselEditorModal({
     setPreparing(true);
     try {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
-        designPreset: (designPreset as any) || 'auto',
+        designPreset: (currentPreset as any) || 'auto',
       });
       if (controller.signal.aborted) return;
       if (response.success && response.data?.carousel?.slides) {
@@ -159,7 +160,7 @@ export default function CarouselEditorModal({
     } finally {
       if (!controller.signal.aborted) setPreparing(false);
     }
-  }, [preparing, hasBackground, contentKitId, designPreset, onCarouselUpdate]);
+  }, [preparing, hasBackground, contentKitId, currentPreset, onCarouselUpdate]);
 
   // Download: composeOnly if backgrounds exist, full regenerate with overrides otherwise
   const handleDownload = async (slideIndex?: number) => {
@@ -168,7 +169,7 @@ export default function CarouselEditorModal({
       if (hasBackground) {
         // Two-phase: compose text onto cached backgrounds
         const response = await api.contentKits.regenerateCarousel(contentKitId, {
-          designPreset: (designPreset as any) || 'auto',
+          designPreset: (currentPreset as any) || 'auto',
           composeOnly: true,
           slideOverrides: edits.map((e) => ({ text: e.text, textPosition: e.position })),
         });
@@ -184,7 +185,7 @@ export default function CarouselEditorModal({
       } else if (hasEdits) {
         // Single-pass (tweet-style): full regenerate with text overrides
         const response = await api.contentKits.regenerateCarousel(contentKitId, {
-          designPreset: (designPreset as any) || 'auto',
+          designPreset: (currentPreset as any) || 'auto',
           slideOverrides: edits.map((e) => ({ text: e.text })),
         });
         if (response.success && response.data?.carousel?.slides) {
@@ -229,6 +230,9 @@ export default function CarouselEditorModal({
     }));
     setSlides(newSlides);
     setEdits(newSlides.map((s) => ({ text: s.text, position: { x: 0.5, y: 0.5 } })));
+    if (carousel.designPreset) {
+      setCurrentPreset(carousel.designPreset);
+    }
     onCarouselUpdate();
   };
 
@@ -323,7 +327,7 @@ export default function CarouselEditorModal({
             )}
 
             {/* Style editor */}
-            <CarouselStyleEditor kitId={contentKitId} currentDesignPreset={designPreset} uploadId={uploadId} onRestyleComplete={handleRestyleComplete} />
+            <CarouselStyleEditor kitId={contentKitId} currentDesignPreset={currentPreset} uploadId={uploadId} onRestyleComplete={handleRestyleComplete} />
 
             {/* Download */}
             <div className="flex gap-3 pt-2">
