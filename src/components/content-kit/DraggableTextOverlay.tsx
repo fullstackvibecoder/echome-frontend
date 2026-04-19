@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface DraggableTextOverlayProps {
   text: string;
@@ -27,15 +27,31 @@ export function DraggableTextOverlay({
   style,
 }: DraggableTextOverlayProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
   const dragStartRef = useRef<{
     pointerX: number;
     pointerY: number;
     startPos: { x: number; y: number };
   } | null>(null);
 
+  // Measure container once to compute a fixed pixel width for the text box.
+  // This prevents the text from reflowing as it's dragged around.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const measure = () => setContainerWidth(container.getBoundingClientRect().width);
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [containerRef]);
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       e.preventDefault();
+      e.stopPropagation();
       e.currentTarget.setPointerCapture(e.pointerId);
       setIsDragging(true);
       dragStartRef.current = {
@@ -51,17 +67,12 @@ export function DraggableTextOverlay({
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (!dragStartRef.current || !containerRef.current) return;
 
-      const container = containerRef.current;
-      const rect = container.getBoundingClientRect();
-
+      const rect = containerRef.current.getBoundingClientRect();
       const deltaX = e.clientX - dragStartRef.current.pointerX;
       const deltaY = e.clientY - dragStartRef.current.pointerY;
 
-      const normalizedDeltaX = deltaX / rect.width;
-      const normalizedDeltaY = deltaY / rect.height;
-
-      const newX = Math.min(0.95, Math.max(0.05, dragStartRef.current.startPos.x + normalizedDeltaX));
-      const newY = Math.min(0.95, Math.max(0.05, dragStartRef.current.startPos.y + normalizedDeltaY));
+      const newX = Math.min(0.95, Math.max(0.05, dragStartRef.current.startPos.x + deltaX / rect.width));
+      const newY = Math.min(0.95, Math.max(0.05, dragStartRef.current.startPos.y + deltaY / rect.height));
 
       onPositionChange({ x: newX, y: newY });
     },
@@ -73,9 +84,10 @@ export function DraggableTextOverlay({
     dragStartRef.current = null;
   }, []);
 
-  if (!text || !text.trim()) {
-    return null;
-  }
+  if (!text || !text.trim()) return null;
+
+  // Fixed pixel width: 90% of container (wide default for ~2 line wrapping)
+  const fixedWidth = containerWidth > 0 ? containerWidth * 0.9 : undefined;
 
   return (
     <div
@@ -87,15 +99,27 @@ export function DraggableTextOverlay({
         left: `${position.x * 100}%`,
         top: `${position.y * 100}%`,
         transform: 'translate(-50%, -50%)',
+        // Fixed pixel width — does NOT change as the element moves
+        width: fixedWidth ? `${fixedWidth}px` : undefined,
         cursor: isDragging ? 'grabbing' : 'grab',
         lineHeight: 1.35,
         wordBreak: 'break-word',
         textAlign: 'center',
-        outline: isDragging ? '2px dashed rgba(0,212,255,0.6)' : 'none',
-        outlineOffset: isDragging ? '4px' : undefined,
         userSelect: 'none',
         touchAction: 'none',
-        ...style,
+        zIndex: 10,
+        // Visual feedback while dragging
+        outline: isDragging ? '2px dashed rgba(0,212,255,0.6)' : '1px dashed rgba(255,255,255,0.25)',
+        outlineOffset: '4px',
+        // Apply text styling from template (color, font, background, etc.)
+        // but NOT maxWidth — we use the fixed pixel width above
+        color: style?.color,
+        fontSize: style?.fontSize,
+        fontWeight: style?.fontWeight,
+        textShadow: style?.textShadow,
+        backgroundColor: style?.backgroundColor,
+        padding: style?.padding,
+        borderRadius: style?.borderRadius,
       }}
     >
       {text}
