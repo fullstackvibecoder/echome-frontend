@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   ChevronLeft,
@@ -8,6 +8,7 @@ import {
   Download,
   FileArchive,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import { downloadImage } from '@/lib/download';
 import { showErrorToast } from '@/lib/toast';
@@ -39,7 +40,6 @@ interface CarouselEditorModalProps {
   onCarouselUpdate: () => void;
 }
 
-/** Approximate CSS text style per template type for the drag overlay preview */
 const TEMPLATE_TEXT_STYLES: Record<string, {
   color: string;
   fontSize: string;
@@ -88,10 +88,12 @@ export default function CarouselEditorModal({
   const [edits, setEdits] = useState<SlideEdit[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
-  const [preparingBackgrounds, setPreparingBackgrounds] = useState(false);
-  const bgPreparedRef = useRef(false);
+  const [preparing, setPreparing] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  const hasBackground = slides.some(s => !!s.backgroundUrl);
 
   // Init edits from slides
   useEffect(() => {
@@ -100,39 +102,14 @@ export default function CarouselEditorModal({
       text: s.text,
       position: { x: 0.5, y: 0.5 },
     })));
-    bgPreparedRef.current = false;
   }, [initialSlides]);
 
-  // Auto-regenerate backgrounds for old carousels that lack backgroundUrl
+  // Cleanup on unmount/close
   useEffect(() => {
-    if (!open || bgPreparedRef.current) return;
-    const needsBackgrounds = initialSlides.length > 0 && !initialSlides.some(s => s.backgroundUrl);
-    if (!needsBackgrounds) return;
-
-    bgPreparedRef.current = true;
-    setPreparingBackgrounds(true);
-
-    api.contentKits.regenerateCarousel(contentKitId, {
-      designPreset: (designPreset as any) || 'auto',
-    }).then((response) => {
-      if (response.success && response.data?.carousel?.slides) {
-        const newSlides = response.data.carousel.slides.map((s: any) => ({
-          slideNumber: s.slideNumber,
-          publicUrl: s.publicUrl,
-          backgroundUrl: s.backgroundUrl || s.background_url,
-          text: s.text,
-          template: s.template || s.slideType,
-        }));
-        setSlides(newSlides);
-        setEdits(newSlides.map((s: CarouselSlide) => ({ text: s.text, position: { x: 0.5, y: 0.5 } })));
-        onCarouselUpdate();
-      }
-    }).catch((err) => {
-      console.error('Failed to prepare carousel backgrounds:', err);
-    }).finally(() => {
-      setPreparingBackgrounds(false);
-    });
-  }, [open, initialSlides, contentKitId, designPreset, onCarouselUpdate]);
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   // Keyboard nav
   useEffect(() => {
@@ -156,25 +133,84 @@ export default function CarouselEditorModal({
     setEdits((prev) => prev.map((e, i) => (i === index ? { ...e, ...patch } : e)));
   };
 
-  const handleDownload = async (slideIndex?: number) => {
-    setDownloading(true);
+  // User-initiated: prepare backgrounds for drag editing
+  const handlePrepareEditing = useCallback(async () => {
+    if (preparing || hasBackground) return;
+
+    // Abort any previous in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setPreparing(true);
     try {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
         designPreset: (designPreset as any) || 'auto',
-        composeOnly: true,
-        slideOverrides: edits.map((e) => ({
-          text: e.text,
-          textPosition: e.position,
-        })),
       });
 
+      // Check if we were aborted while waiting
+      if (controller.signal.aborted) return;
+
       if (response.success && response.data?.carousel?.slides) {
-        const composedSlides = response.data.carousel.slides;
+        const newSlides = response.data.carousel.slides.map((s: any) => ({
+          slideNumber: s.slideNumber,
+          publicUrl: s.publicUrl,
+          backgroundUrl: s.backgroundUrl || s.background_url,
+          text: s.text,
+          template: s.template || s.slideType,
+        }));
+        setSlides(newSlides);
+        setEdits(newSlides.map((s: CarouselSlide) => ({
+          text: s.text,
+          position: { x: 0.5, y: 0.5 },
+        })));
+        onCarouselUpdate();
+        toast.success('Editor ready — drag text to reposition');
+      }
+    } catch (err) {
+      if (!controller.signal.aborted) {
+        showErrorToast(err, 'preparing carousel editor');
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setPreparing(false);
+      }
+    }
+  }, [preparing, hasBackground, contentKitId, designPreset, onCarouselUpdate]);
+
+  const handleDownload = async (slideIndex?: number) => {
+    setDownloading(true);
+    try {
+      if (hasBackground) {
+        // Use composeOnly fast path
+        const response = await api.contentKits.regenerateCarousel(contentKitId, {
+          designPreset: (designPreset as any) || 'auto',
+          composeOnly: true,
+          slideOverrides: edits.map((e) => ({
+            text: e.text,
+            textPosition: e.position,
+          })),
+        });
+
+        if (response.success && response.data?.carousel?.slides) {
+          const composedSlides = response.data.carousel.slides;
+          if (slideIndex !== undefined) {
+            const slide = composedSlides[slideIndex];
+            if (slide) await downloadImage(slide.publicUrl, `carousel-slide-${slide.slideNumber}.png`);
+          } else {
+            for (const slide of composedSlides) {
+              await downloadImage(slide.publicUrl, `carousel-slide-${slide.slideNumber}.png`);
+            }
+          }
+          toast.success(slideIndex !== undefined ? 'Slide downloaded' : 'All slides downloaded');
+        }
+      } else {
+        // No backgrounds — download existing composites directly
         if (slideIndex !== undefined) {
-          const slide = composedSlides[slideIndex];
+          const slide = slides[slideIndex];
           if (slide) await downloadImage(slide.publicUrl, `carousel-slide-${slide.slideNumber}.png`);
         } else {
-          for (const slide of composedSlides) {
+          for (const slide of slides) {
             await downloadImage(slide.publicUrl, `carousel-slide-${slide.slideNumber}.png`);
           }
         }
@@ -208,8 +244,7 @@ export default function CarouselEditorModal({
 
   if (!open || slides.length === 0 || !activeSlide || !activeEdit) return null;
 
-  const previewImageUrl = activeSlide.backgroundUrl || activeSlide.publicUrl;
-  const hasBackground = !!activeSlide.backgroundUrl;
+  const previewImageUrl = hasBackground ? (activeSlide.backgroundUrl || activeSlide.publicUrl) : activeSlide.publicUrl;
   const templateStyle = TEMPLATE_TEXT_STYLES[activeSlide.template || 'text-box'] || TEMPLATE_TEXT_STYLES['text-box'];
 
   return (
@@ -220,7 +255,7 @@ export default function CarouselEditorModal({
     >
       <div className="relative flex w-full max-w-[920px] max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex flex-col lg:flex-row w-full overflow-y-auto">
-          {/* Left: Slide preview with draggable text */}
+          {/* Left: Slide preview */}
           <div className="flex flex-col items-center justify-center p-6 lg:w-[45%] shrink-0 bg-background/50">
             <div className="relative w-full max-w-[300px]" ref={previewContainerRef}>
               <div className="relative rounded-xl overflow-hidden border border-border">
@@ -231,6 +266,7 @@ export default function CarouselEditorModal({
                   draggable={false}
                 />
 
+                {/* Draggable text — only when backgrounds are ready */}
                 {hasBackground && (
                   <DraggableTextOverlay
                     text={activeEdit.text}
@@ -242,6 +278,7 @@ export default function CarouselEditorModal({
                 )}
               </div>
 
+              {/* Nav arrows */}
               {slides.length > 1 && (
                 <>
                   <button
@@ -264,6 +301,7 @@ export default function CarouselEditorModal({
               )}
             </div>
 
+            {/* Filmstrip */}
             <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-hide">
               {slides.map((slide, i) => (
                 <button
@@ -282,13 +320,6 @@ export default function CarouselEditorModal({
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">{activeIndex + 1} / {slides.length}</p>
-
-            {!hasBackground && preparingBackgrounds && (
-              <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                Preparing editor...
-              </div>
-            )}
           </div>
 
           {/* Right: Controls */}
@@ -305,24 +336,48 @@ export default function CarouselEditorModal({
               </button>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Slide {activeSlide.slideNumber} Text
-              </label>
-              <textarea
-                value={activeEdit.text}
-                onChange={(e) => updateEdit(activeIndex, { text: e.target.value })}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
-                rows={3}
-                placeholder="Slide text..."
-              />
-              {hasBackground && (
+            {/* Enable editing button — shown when no backgrounds exist */}
+            {!hasBackground && (
+              <button
+                type="button"
+                onClick={handlePrepareEditing}
+                disabled={preparing}
+                className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-interactive/40 bg-primary-interactive/5 px-4 py-3 text-sm font-medium text-primary-interactive hover:bg-primary-interactive/10 transition-colors disabled:opacity-50"
+              >
+                {preparing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Preparing editor...
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="h-4 w-4" />
+                    Enable text editing & positioning
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Text editor — always visible when backgrounds ready */}
+            {hasBackground && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Slide {activeSlide.slideNumber} Text
+                </label>
+                <textarea
+                  value={activeEdit.text}
+                  onChange={(e) => updateEdit(activeIndex, { text: e.target.value })}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
+                  rows={3}
+                  placeholder="Slide text..."
+                />
                 <p className="text-[11px] text-muted-foreground/60">
                   Drag the text on the preview to reposition
                 </p>
-              )}
-            </div>
+              </div>
+            )}
 
+            {/* Style editor */}
             <CarouselStyleEditor
               kitId={contentKitId}
               currentDesignPreset={designPreset}
@@ -330,6 +385,7 @@ export default function CarouselEditorModal({
               onRestyleComplete={handleRestyleComplete}
             />
 
+            {/* Download */}
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
