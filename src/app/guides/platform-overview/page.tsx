@@ -54,6 +54,13 @@ export default function PlatformOverviewGuidePage() {
           10 min read &middot; Video walkthrough included
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/create-page.png"
+          alt="EchoMe Create Page"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Video embed */}
         <div className="mb-10 rounded-xl overflow-hidden border border-border">
           <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
@@ -133,12 +140,12 @@ export default function PlatformOverviewGuidePage() {
             <p className="mt-2">Each post is written in your voice based on your voice profile. Copy and post directly, or schedule through your preferred tool.</p>
           </Step>
 
-          <Step number={7} title="Build Your Voice (Knowledge Base)">
-            <p className="mb-2">Train Echo on your voice using three methods:</p>
+          <Step number={7} title="Build Your Voice">
+            <p className="mb-2">Train Echo on your voice using the unified input on the Build Your Voice page. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Connect my Socials</strong> &mdash; Import content from YouTube or Instagram.</li>
-              <li><strong className="text-text-primary">Import my Writing</strong> &mdash; Upload PDFs, articles, blog posts, or emails.</li>
-              <li><strong className="text-text-primary">Record a Voice Note</strong> &mdash; Just talk. Echo figures out the rest.</li>
+              <li><strong className="text-text-primary">Paste social links</strong> &mdash; Import content from YouTube or Instagram.</li>
+              <li><strong className="text-text-primary">Drop files or paste URLs</strong> &mdash; Upload PDFs, articles, blog posts, or emails.</li>
+              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button in the toolbar. Just talk. Echo figures out the rest.</li>
             </ul>
             <p className="mt-2">The more content you add, the better the voice matching becomes. EchoMe learns your tone, vocabulary, sentence structure, and perspective over time.</p>
           </Step>
@@ -154,7 +161,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={9} title="Follow other creators">
-            <p className="mb-2">The <strong className="text-text-primary">Creator Radar</strong> feature in the sidebar lets you follow other creators on EchoMe. When they post new videos, you can repurpose their content through your voice and context.</p>
+            <p className="mb-2">The <strong className="text-text-primary">Following</strong> feature in the sidebar lets you follow other creators on EchoMe. When they post new videos, you can repurpose their content through your voice and context.</p>
             <p>The output sounds like you, not them. EchoMe applies your voice profile to transform their ideas into your style and perspective.</p>
           </Step>
 

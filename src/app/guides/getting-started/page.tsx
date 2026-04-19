@@ -47,6 +47,13 @@ export default function GettingStartedGuidePage() {
           3 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/create-page.png"
+          alt="EchoMe Create Page"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign up for free">
@@ -54,7 +61,7 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={2} title="Go to the Create page">
-            <p>From the sidebar, click Create. You have three ways to start: paste a link (YouTube, Zoom, or any public video URL), type a topic to generate content from scratch, or drag and drop a video file directly.</p>
+            <p>From the sidebar, click Create. You&apos;ll see a single unified conversational input where you can do everything: paste a link (YouTube, Zoom, or any public video URL), type a topic to generate content from scratch, drag and drop a video file, or record a voice note using the mic button in the toolbar.</p>
             <Tip>Zoom recordings work too &mdash; if your recording requires a passcode, a field appears automatically when you paste a Zoom link.</Tip>
           </Step>
 
@@ -69,14 +76,18 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={4} title="Review your Content Kit">
-            <p>Open your kit to see everything EchoMe created from a single input:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
+            <p>Open your kit to see everything EchoMe created from a single input. Content is organized into two sections:</p>
+            <p className="mt-2"><strong className="text-text-primary">Visual Content:</strong></p>
+            <ul className="list-disc list-inside mt-1 space-y-1">
               <li>Short-form clips with captions</li>
+              <li>Carousel slides</li>
+            </ul>
+            <p className="mt-2"><strong className="text-text-primary">Written Content:</strong></p>
+            <ul className="list-disc list-inside mt-1 space-y-1">
               <li>LinkedIn post</li>
               <li>Instagram caption</li>
               <li>Blog draft</li>
               <li>Email newsletter</li>
-              <li>Carousel slides</li>
             </ul>
             <p className="mt-2">Each piece is written in your voice, grounded in your context.</p>
           </Step>

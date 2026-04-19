@@ -47,6 +47,13 @@ export default function BuildYourVoiceGuidePage() {
           5 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/build-your-voice.png"
+          alt="EchoMe Build Your Voice"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Callout box */}
         <div className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <p className="text-sm text-text-secondary">For a full video walkthrough of this feature, watch the <a href="/guides/platform-overview" className="text-accent font-medium hover:underline">platform overview guide</a>.</p>
@@ -54,20 +61,20 @@ export default function BuildYourVoiceGuidePage() {
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="What is the Knowledge Base?">
-            <p>The Knowledge Base (called &quot;Build Your Voice&quot; in the app) is where EchoMe stores and analyzes your content. It maps your unique voice across dimensions like phrases, style, naturalness, and voice match. Think of it as teaching an AI how you think and communicate.</p>
+          <Step number={1} title="What is Build Your Voice?">
+            <p>Build Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across dimensions like phrases, style, naturalness, and voice match. Think of it as teaching an AI how you think and communicate.</p>
           </Step>
 
-          <Step number={2} title="Connect your socials">
-            <p>Import content from YouTube or Instagram. Paste a channel URL or profile link. EchoMe pulls your posts and analyzes them for voice patterns. Your social posts are some of the best training data because they show how you naturally communicate.</p>
+          <Step number={2} title="Use the unified input to add content">
+            <p>The Build Your Voice page features a single unified input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
           </Step>
 
           <Step number={3} title="Import your writing">
-            <p>Upload PDFs, Word docs, or text files. Import blog posts by pasting your blog URL &mdash; EchoMe auto-discovers RSS feeds. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
+            <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL &mdash; EchoMe auto-discovers RSS feeds. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
           </Step>
 
           <Step number={4} title="Record a voice note">
-            <p>Click &quot;Start Talking&quot; and speak naturally about any topic for 2+ minutes. EchoMe transcribes and analyzes your speaking patterns. This captures cadence, rhythm, and word choice that written content sometimes misses.</p>
+            <p>Use the mic button in the toolbar and speak naturally about any topic for 2+ minutes. EchoMe transcribes and analyzes your speaking patterns. This captures cadence, rhythm, and word choice that written content sometimes misses.</p>
           </Step>
 
           <Step number={5} title="How voice matching works">

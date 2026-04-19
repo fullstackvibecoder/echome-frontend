@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Rocket,
   Package,
-  Radar,
+  Heart,
   Captions,
   CalendarDays,
   Users,
@@ -32,6 +32,18 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://tryechome.com/guides',
   },
+};
+
+const guideThumbnails: Record<string, string> = {
+  'getting-started': '/guide-screenshots/create-page.png',
+  'platform-overview': '/guide-screenshots/create-page.png',
+  'build-your-voice': '/guide-screenshots/build-your-voice.png',
+  'knowledge-base': '/guide-screenshots/build-your-voice.png',
+  'content-kits': '/guide-screenshots/content-kit-detail.png',
+  'video-content': '/guide-screenshots/create-page.png',
+  'reels-and-captions': '/guide-screenshots/reel-maker.png',
+  'youtube-to-content': '/guide-screenshots/create-page.png',
+  'creator-radar': '/guide-screenshots/following.png',
 };
 
 const guides = [
@@ -102,7 +114,7 @@ const guides = [
     icon: <Package className="w-6 h-6" />,
     title: 'Working with Content Kits',
     description:
-      'Explore everything inside a Content Kit — clips, social posts, carousels, and transcripts. Learn how to download, copy, and share your content.',
+      'Explore everything inside a Content Kit — Visual Content and Written Content sections with clips, social posts, carousels, and transcripts.',
     category: 'Content',
     readTime: '4 min',
     hasVideo: false,
@@ -112,7 +124,7 @@ const guides = [
     icon: <Film className="w-6 h-6" />,
     title: 'Creating and Managing Video Content',
     description:
-      'Upload videos, use external links, edit clips with captions, and generate a full content kit from a single video.',
+      'Use the unified conversational input to upload videos, paste links, or describe a topic and generate a full content kit from a single input.',
     category: 'Features',
     readTime: '5 min',
     hasVideo: true,
@@ -122,7 +134,7 @@ const guides = [
     icon: <Captions className="w-6 h-6" />,
     title: 'Reels & Caption Styles',
     description:
-      'Choose from 8 caption styles, adjust position and timing, and export clips optimized for Instagram Reels, TikTok, and YouTube Shorts.',
+      'Manage your reels in the Reel Maker, choose from 8 caption styles, and export clips optimized for Instagram Reels, TikTok, and YouTube Shorts.',
     category: 'Content',
     readTime: '3 min',
     hasVideo: false,
@@ -132,7 +144,7 @@ const guides = [
     icon: <Youtube className="w-6 h-6" />,
     title: 'Turn YouTube Videos into Content',
     description:
-      'Paste any YouTube link and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
+      'Paste any YouTube link into the unified input and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
     category: 'Features',
     readTime: '4 min',
     hasVideo: false,
@@ -149,10 +161,10 @@ const guides = [
   },
   {
     slug: 'creator-radar',
-    icon: <Radar className="w-6 h-6" />,
-    title: "Creator Radar: Repurpose Creators' Videos",
+    icon: <Heart className="w-6 h-6" />,
+    title: "Following: Repurpose Creators' Videos",
     description:
-      'Discover trending content in your niche and repurpose it into original posts written in your voice. Stay active without filming new videos.',
+      'Follow creators in your niche and repurpose their videos into original posts written in your voice. Stay active without filming new videos.',
     category: 'Features',
     readTime: '3 min',
     hasVideo: false,
@@ -249,8 +261,16 @@ export default function GuidesIndexPage() {
             <Link
               key={guide.slug}
               href={`/guides/${guide.slug}`}
-              className="group block p-6 bg-bg-secondary border border-border rounded-xl hover:border-accent hover:shadow-lg transition-all"
+              className="group block bg-bg-secondary border border-border rounded-xl hover:border-accent hover:shadow-lg transition-all overflow-hidden"
             >
+              {guideThumbnails[guide.slug] && (
+                <img
+                  src={guideThumbnails[guide.slug]}
+                  alt={guide.title}
+                  className="w-full h-36 object-cover object-top border-b border-border"
+                />
+              )}
+              <div className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
                   {guide.icon}
@@ -277,6 +297,7 @@ export default function GuidesIndexPage() {
                   )}
                 </div>
                 <ArrowRight className="w-4 h-4 text-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
               </div>
             </Link>
           ))}

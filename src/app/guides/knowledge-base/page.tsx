@@ -47,14 +47,21 @@ export default function KnowledgeBaseGuidePage() {
           3 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/build-your-voice.png"
+          alt="EchoMe Build Your Voice"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Go to Knowledge Base in the sidebar">
-            <p>Open the sidebar and click Knowledge Base. This is where all your content sources live &mdash; everything EchoMe uses to learn how you write and speak.</p>
+          <Step number={1} title="Go to Build Your Voice in the sidebar">
+            <p>Open the sidebar and click <strong className="text-text-primary">Build Your Voice</strong>. This is where all your content sources live &mdash; everything EchoMe uses to learn how you write and speak.</p>
           </Step>
 
-          <Step number={2} title="Add content sources">
-            <p>You can add YouTube videos, blog posts, emails, PDFs, or paste text directly. Each source gives EchoMe more context about your voice, style, and ideas.</p>
+          <Step number={2} title="Add content using the unified input">
+            <p>The page features a single unified input where you can paste YouTube links, blog URLs, drop documents, or type text directly. Each source gives EchoMe more context about your voice, style, and ideas.</p>
           </Step>
 
           <Step number={3} title="Upload emails from Gmail">

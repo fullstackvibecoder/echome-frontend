@@ -47,6 +47,13 @@ export default function ContentKitsGuidePage() {
           4 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/content-kit-detail.png"
+          alt="EchoMe Content Kit Detail"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Find your kit in the Content Kits page">
@@ -54,31 +61,20 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={2} title="Open a kit">
-            <p>Click any kit to open it. Inside, you&apos;ll see all the content EchoMe generated: video clips with captions, LinkedIn posts, Instagram captions, X/Twitter posts, blog drafts, email newsletters, and carousel slides.</p>
+            <p>Click any kit to open it. Inside, your content is organized into two main sections: <strong className="text-text-primary">Visual Content</strong> and <strong className="text-text-primary">Written Content</strong>.</p>
           </Step>
 
-          <Step number={3} title="Edit any post">
-            <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, Twitter, blog, and email content are all editable inline. Make it yours, then save.</p>
+          <Step number={3} title="Browse Visual Content">
+            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is displayed in an OutputCard with a clean preview. Download captioned clips in 1080p, ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
+          </Step>
+
+          <Step number={4} title="Browse Written Content">
+            <p>The Written Content section contains your LinkedIn posts, Instagram captions, X/Twitter posts, blog drafts, and email newsletters. Each OutputCard shows a preview of the content with options to edit, copy, or export.</p>
             <Tip>Each piece of content is written in your voice &mdash; trained from your previous uploads and knowledge base.</Tip>
           </Step>
 
-          <Step number={4} title="Export clips">
-            <p>Download your captioned clips in 1080p, ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
-          </Step>
-
-          <Step number={5} title="Choose caption styles">
-            <p>EchoMe offers 8 caption styles to match your brand:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Modern</li>
-              <li>Classic</li>
-              <li>Bold</li>
-              <li>Minimal</li>
-              <li>Highlight</li>
-              <li>Karaoke</li>
-              <li>Underline</li>
-              <li>Word-by-word</li>
-            </ul>
-            <p className="mt-2">Preview all styles at <a href="/style-previews/captions/" className="text-accent hover:underline">/style-previews/captions/</a> and pick the one that fits your content.</p>
+          <Step number={5} title="Edit any post">
+            <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, Twitter, blog, and email content are all editable inline. Make it yours, then save.</p>
           </Step>
 
           <Step number={6} title="Share or copy">

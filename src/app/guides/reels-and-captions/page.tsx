@@ -41,20 +41,27 @@ export default function ReelsAndCaptionsGuidePage() {
           Reels &amp; Caption Styles
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Every video clip EchoMe generates comes with captions burned in. Choose from 8 distinct caption styles to match your brand and content type &mdash; then export at 1080p, ready for Instagram Reels, TikTok, or YouTube Shorts.
+          Manage all your reels in the dedicated Reel Maker page. Choose from 8 distinct caption styles to match your brand and content type &mdash; then export at 1080p, ready for Instagram Reels, TikTok, or YouTube Shorts.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/reel-maker.png"
+          alt="EchoMe Reel Maker"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Open any Content Kit with video clips">
-            <p>Navigate to your Content Library and open a Content Kit that includes video clips. Each kit generated from a video source will have clips ready to preview.</p>
+          <Step number={1} title="Open the Reel Maker">
+            <p>Navigate to the Reel Maker page at <strong className="text-text-primary">/app/reels</strong> from the sidebar. Your reels are organized in a status-grouped grid &mdash; Ready to Publish, Processing, and Earlier &mdash; so you can quickly find what you need.</p>
           </Step>
 
-          <Step number={2} title="Preview captions on each clip">
-            <p>Each clip comes with captions burned in. You can see the caption preview directly on the clip card &mdash; no need to download first. The preview shows exactly how the captions will look in the final export.</p>
+          <Step number={2} title="Create new reels from the create bar">
+            <p>Use the compact create bar at the top of the Reel Maker to start a new reel. You can also access the <strong className="text-text-primary">B-Roll Wizard</strong> directly from the create bar to add cinematic b-roll footage to your clips.</p>
           </Step>
 
           <Step number={3} title="Choose from 8 caption styles">

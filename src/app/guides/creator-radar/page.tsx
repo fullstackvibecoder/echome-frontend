@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Creator Radar — Repurpose Other Creators\' Videos | EchoMe Guide',
+  title: 'Following — Repurpose Other Creators\' Videos | EchoMe Guide',
   description: 'Follow creators in your niche and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
-  keywords: ['echome creator radar', 'repurpose content', 'follow creators', 'content repurposing', 'ai content'],
+  keywords: ['echome following', 'repurpose content', 'follow creators', 'content repurposing', 'ai content'],
   alternates: { canonical: 'https://tryechome.com/guides/creator-radar' },
 };
 
@@ -11,11 +11,11 @@ export default function CreatorRadarGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Creator Radar — Repurpose Other Creators\' Videos',
+    headline: 'Following — Repurpose Other Creators\' Videos',
     description: 'Follow creators in your niche and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
     url: 'https://tryechome.com/guides/creator-radar',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-04-18',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -23,7 +23,7 @@ export default function CreatorRadarGuidePage() {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tryechome.com' },
         { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://tryechome.com/guides' },
-        { '@type': 'ListItem', position: 3, name: 'Creator Radar', item: 'https://tryechome.com/guides/creator-radar' },
+        { '@type': 'ListItem', position: 3, name: 'Following', item: 'https://tryechome.com/guides/creator-radar' },
       ],
     },
   };
@@ -38,7 +38,7 @@ export default function CreatorRadarGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Creator Radar &mdash; Repurpose Other Creators&apos; Videos
+          Following &mdash; Repurpose Other Creators&apos; Videos
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           Follow creators in your niche and turn their latest videos into original content &mdash; written in your voice, grounded in your context. Same ideas, your words.
@@ -47,6 +47,13 @@ export default function CreatorRadarGuidePage() {
           3 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/following.png"
+          alt="EchoMe Following"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Callout box */}
         <div className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <p className="text-sm text-text-secondary"><strong>Important:</strong> This is NOT copying. The output is original because the perspective is yours. EchoMe uses their ideas as a starting point, then writes everything through your voice, your style, and your framing.</p>
@@ -54,17 +61,17 @@ export default function CreatorRadarGuidePage() {
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Go to Creator Radar">
-            <p>Open Creator Radar from the sidebar under DISCOVER. This is your feed for staying on top of what creators in your space are publishing.</p>
+          <Step number={1} title="Go to Following">
+            <p>Open Following from the sidebar under DISCOVER. This is your feed for staying on top of what creators in your space are publishing.</p>
           </Step>
 
           <Step number={2} title="Follow creators in your niche">
-            <p>Search for creators by name or paste their channel URL directly. Once you follow a creator, their new video content will appear in your Creator Radar feed automatically.</p>
-            <Tip>Free users get 1 Creator Radar slot. Paid plans unlock 3&ndash;10+ slots.</Tip>
+            <p>Search for creators by name or paste their channel URL directly. Once you follow a creator, their new video content will appear in your Following feed automatically.</p>
+            <Tip>Free users get 1 Following slot. Paid plans unlock 3&ndash;10+ slots.</Tip>
           </Step>
 
           <Step number={3} title="New videos appear in your feed">
-            <p>When a creator you follow posts new video content, it shows up in your Creator Radar feed. You&apos;ll see the video title, thumbnail, and publish date &mdash; no need to check YouTube manually.</p>
+            <p>When a creator you follow posts new video content, it shows up in your Following feed. You&apos;ll see the video title, thumbnail, and publish date &mdash; no need to check YouTube manually.</p>
           </Step>
 
           <Step number={4} title="Hit Repurpose on any video">

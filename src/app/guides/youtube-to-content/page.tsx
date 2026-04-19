@@ -47,6 +47,13 @@ export default function YouTubeToContentGuidePage() {
           4 min read
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/create-page.png"
+          alt="EchoMe Create Page"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Callout box */}
         <div className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <p className="text-sm text-text-secondary">For a full video walkthrough of this feature, watch the <a href="/guides/platform-overview" className="text-accent font-medium hover:underline">platform overview guide</a>.</p>
@@ -55,7 +62,7 @@ export default function YouTubeToContentGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Paste any YouTube link">
-            <p>Go to the Create page and paste your YouTube URL directly into the input. EchoMe auto-detects YouTube links &mdash; just hit submit. Works with any public YouTube video: watch pages, share links, and shorts.</p>
+            <p>Go to the Create page and paste your YouTube URL directly into the unified conversational input. EchoMe auto-detects YouTube links &mdash; just hit submit. Works with any public YouTube video: watch pages, share links, and shorts. The unified input accepts YouTube links alongside any other content type.</p>
           </Step>
 
           <Step number={2} title="EchoMe downloads and transcribes">

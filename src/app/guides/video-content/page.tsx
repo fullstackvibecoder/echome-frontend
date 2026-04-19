@@ -54,6 +54,13 @@ export default function VideoContentGuidePage() {
           5 min read &middot; Video walkthrough included
         </p>
 
+        {/* Hero image */}
+        <img
+          src="/guide-screenshots/create-page.png"
+          alt="EchoMe Create Page"
+          className="w-full rounded-xl border border-border mb-8"
+        />
+
         {/* Video embed */}
         <div className="mb-10 rounded-xl overflow-hidden border border-border">
           <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
@@ -77,7 +84,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={2} title="Uploading videos">
             <p>
-              Click <strong className="text-text-primary">Select Video File</strong> or drag and drop your file onto the upload area. Keep files under 500MB. Avoid 4K footage &mdash; 1080p or 720p works great and uploads much faster. Larger files (30&ndash;40 minutes) may take longer to process.
+              Drag and drop your video file directly onto the input area, or use the attachment button in the toolbar. Keep files under 500MB. Avoid 4K footage &mdash; 1080p or 720p works great and uploads much faster. Larger files (30&ndash;40 minutes) may take longer to process.
             </p>
             <p className="mt-2">
               If your file is too large, see our <a href="/guides/compress-video" className="text-accent hover:underline">compression guide</a> for free tools to shrink it.
