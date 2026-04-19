@@ -678,6 +678,7 @@ export default function ContentKitDetailContent() {
                     }}
                     connectedAccounts={connectedAccounts}
                     onContentUpdate={() => refresh()}
+                    onSchedule={(platform) => setQuickScheduleConfig({ type: 'platform', platform })}
                   />
                 )}
               </div>

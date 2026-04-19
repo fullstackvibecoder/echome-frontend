@@ -62,6 +62,7 @@ interface InlineWrittenContentProps {
   content: Record<string, string | undefined>;
   onContentUpdate: () => void;
   connectedAccounts?: ConnectedAccount[];
+  onSchedule?: (platform: string) => void;
 }
 
 export function InlineWrittenContent({
@@ -69,6 +70,7 @@ export function InlineWrittenContent({
   content,
   onContentUpdate,
   connectedAccounts = [],
+  onSchedule,
 }: InlineWrittenContentProps) {
   // Only show platforms that have content
   const availablePlatforms = useMemo(
@@ -248,6 +250,15 @@ export function InlineWrittenContent({
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
+            {onSchedule && (
+              <button
+                onClick={() => onSchedule(activePlatform)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:text-foreground transition-colors"
+              >
+                <CalendarClock className="w-3 h-3" />
+                Schedule
+              </button>
+            )}
           </div>
         </div>
 
