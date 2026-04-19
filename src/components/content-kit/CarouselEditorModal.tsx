@@ -51,12 +51,9 @@ const TEMPLATE_TEXT_STYLES: Record<string, {
 }> = {
   'tweet-style': {
     color: '#0f1419',
-    fontSize: '11px',
-    fontWeight: '500',
+    fontSize: '12px',
+    fontWeight: '400',
     textShadow: 'none',
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    padding: '8px 12px',
-    borderRadius: '10px',
   },
   'text-box': {
     color: '#FFFFFF',
