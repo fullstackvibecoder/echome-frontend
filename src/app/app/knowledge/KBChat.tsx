@@ -5,9 +5,9 @@ import { Sparkles, X, Send, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 
 const VOICE_PROMPTS = [
-  { label: 'How close is the match?', prompt: 'How well do you know my voice right now? What would make the match stronger?' },
-  { label: 'Describe my style', prompt: 'Summarize my writing voice in 3 sentences based on what you\'ve learned so far' },
-  { label: 'What am I missing?', prompt: 'What types of content am I missing that would help you sound more like me?' },
+  { label: 'How well do you know me?', prompt: 'Based on everything in my knowledge base, summarize my voice, my key topics, and where the gaps are.' },
+  { label: 'Give me content ideas', prompt: 'Using what you know about my expertise and voice, suggest 5 content ideas I could create right now.' },
+  { label: 'What should I add next?', prompt: 'What types of content am I missing that would help you sound more like me? Be specific about what to add.' },
 ];
 
 interface KBChatProps {
@@ -67,7 +67,7 @@ export default function KBChat({ kbId, hasContent }: KBChatProps) {
           <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-3 h-3 text-white" />
           </div>
-          <h2 className="text-sm font-semibold text-foreground">What Echo Knows</h2>
+          <h2 className="text-sm font-semibold text-foreground">Ask Echo</h2>
         </div>
         {messages.length > 0 && (
           <button
@@ -131,7 +131,7 @@ export default function KBChat({ kbId, hasContent }: KBChatProps) {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) sendMessage(); }}
-          placeholder="Ask Echo about your voice..."
+          placeholder="Ask about your voice, get content ideas, or explore what's in your KB..."
           disabled={loading}
           className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-bg-primary focus:border-accent focus:ring-1 focus:ring-accent/30 transition-all disabled:opacity-50"
         />

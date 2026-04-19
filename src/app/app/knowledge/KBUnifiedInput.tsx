@@ -22,7 +22,7 @@ type PlatformHint = 'youtube' | 'instagram' | 'blog' | null;
 export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedInputProps) {
   // Text input
   const [text, setText] = useState('');
-  const [placeholder, setPlaceholder] = useState('Drop a file, paste a link, or record your voice...');
+  const [placeholder, setPlaceholder] = useState('Paste your best writing, a YouTube link, or drop a file — Echo learns your voice from it');
   const [platformHint, setPlatformHint] = useState<PlatformHint>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -324,7 +324,7 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
       toast.success('Content added to Knowledge Base');
       setText('');
       setPlatformHint(null);
-      setPlaceholder('Drop a file, paste a link, or record your voice...');
+      setPlaceholder('Paste your best writing, a YouTube link, or drop a file — Echo learns your voice from it');
       onImportComplete();
     } catch (err) {
       toast.error(`Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`);

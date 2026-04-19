@@ -30,10 +30,10 @@ function getStrengthTier(strength: number) {
 }
 
 function getStrengthMessage(score: number): string {
-  if (score <= 30) return 'Echo is just getting started. Add a few sources and watch the match improve fast.';
-  if (score <= 60) return 'Echo is picking up your patterns. Keep feeding it. The jump from here is where it gets real.';
-  if (score <= 80) return 'Strong foundation. Your content is already starting to sound like you wrote it.';
-  return 'Echo knows your voice. Every new source fine-tunes the match even further.';
+  if (score <= 30) return 'Add your writing, social posts, or voice recordings below. The more Echo learns, the more your generated content sounds like you — not AI.';
+  if (score <= 60) return 'Echo is learning your style. Add more of your best content — blog posts, LinkedIn posts, or emails you\'re proud of. Quality over quantity.';
+  if (score <= 80) return 'Your generated content already sounds like you. Try asking Echo what it knows about your voice below.';
+  return 'Echo has a strong read on your voice. Everything you generate will carry your tone, phrasing, and perspective.';
 }
 
 // No-op for SourcesDrawer's onOpenModal (modals now live inside KBUnifiedInput)
