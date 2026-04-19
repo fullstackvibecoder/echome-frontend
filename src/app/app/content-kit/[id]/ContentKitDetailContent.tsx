@@ -765,6 +765,8 @@ export default function ContentKitDetailContent() {
               ? ['instagram']
               : undefined
           }
+          connectedAccounts={connectedAccounts}
+          autoPostText={detail?.contentKit?.contentInstagram}
         />
       )}
 

@@ -248,68 +248,9 @@ export function InlineWrittenContent({
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
-            <button
-              onClick={() => setAutoPostOpen(!autoPostOpen)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                autoPostOpen
-                  ? 'bg-accent text-white'
-                  : 'border border-border text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Send className="w-3 h-3" />
-              Auto Post
-            </button>
           </div>
         </div>
 
-        {/* Auto Post inline section */}
-        {autoPostOpen && (
-          <div className="mt-2 p-3 bg-surface-container-lowest rounded-lg border border-border">
-            {activePlatform === 'instagram' && !canAutoPost ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Auto-posting to Instagram is available on Echo Studio and above.</span>
-                <Link href="/app/billing" className="text-accent hover:underline font-medium">Upgrade</Link>
-              </div>
-            ) : !supportsAutoPost ? (
-              <p className="text-xs text-muted-foreground">
-                Auto-posting to {activeConfig.label} is coming soon. Available now for Instagram.
-              </p>
-            ) : isConnected ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <CalendarClock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                  min={new Date().toISOString().slice(0, 16)}
-                  className="flex-1 min-w-[180px] px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50"
-                />
-                <button
-                  onClick={handleSchedulePost}
-                  disabled={!scheduledAt || scheduling}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary-interactive text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {scheduling ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <Check className="w-3 h-3" />
-                  )}
-                  {scheduling ? 'Scheduling...' : 'Schedule'}
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Connect {activeConfig.label} to auto-post.</span>
-                <Link
-                  href="/app/settings?tab=connections"
-                  className="inline-flex items-center gap-1 text-accent hover:underline font-medium"
-                >
-                  Connect <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
