@@ -58,6 +58,7 @@ export default function ReelEditorModal({
   const [textScale, setTextScale] = useState(0.5);
   const [loading, setLoading] = useState(true);
   const [rendering, setRendering] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | undefined>(reelProjectId);
@@ -69,16 +70,24 @@ export default function ReelEditorModal({
     setLoading(true);
     setError(null);
     try {
-      const [libraryRes, reelProject] = await Promise.all([
+      const [libraryRes, reelProject, userClipsRes] = await Promise.all([
         api.brollReels.getBRollLibrary(),
         projectId
           ? api.reels.getProject(projectId).then((r) => r.data?.project ?? null)
           : api.brollReels.getByKitId(contentKitId),
+        api.brollReels.getUserClips().catch(() => ({ clips: [] })),
       ]);
 
-      // Library — defensive: API might return unexpected shape
-      setClips(libraryRes?.clips || []);
-      setCategories(libraryRes?.categories || []);
+      // Merge user clips with library clips
+      const userClips = userClipsRes?.clips || [];
+      const allClips = [...userClips, ...(libraryRes?.clips || [])];
+      const allCategories = [
+        ...(userClips.length > 0 ? ['My Clips'] : []),
+        ...(libraryRes?.categories || []),
+      ];
+
+      setClips(allClips);
+      setCategories(allCategories);
 
       // Project defaults
       if (reelProject) {
@@ -95,9 +104,9 @@ export default function ReelEditorModal({
       }
 
       // Select first realestate clip if nothing selected, else first clip
-      if (!selectedClipId && libraryRes.clips.length > 0) {
-        const realEstateClip = libraryRes.clips.find((c: BRollClip) => c.category === 'realestate');
-        setSelectedClipId(realEstateClip?.id || libraryRes.clips[0].id);
+      if (!selectedClipId && allClips.length > 0) {
+        const realEstateClip = allClips.find((c: BRollClip) => c.category === 'realestate');
+        setSelectedClipId(realEstateClip?.id || allClips[0].id);
       }
     } catch (err) {
       console.error('Failed to load reel editor data', err);
@@ -106,6 +115,26 @@ export default function ReelEditorModal({
       setLoading(false);
     }
   }, [projectId, contentKitId, selectedClipId]);
+
+  const handleBrollUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const result = await api.brollReels.uploadClip(file);
+      if (result.success && result.data?.clip) {
+        const newClip = result.data.clip;
+        setClips((prev) => [newClip, ...prev]);
+        setCategories((prev) =>
+          prev.includes('My Clips') ? prev : ['My Clips', ...prev]
+        );
+        setSelectedClipId(newClip.id);
+      }
+    } catch (err) {
+      console.error('B-Roll upload failed', err);
+      setError('Upload failed. Check file size (max 50MB) and format (MP4/MOV/WebM).');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -250,6 +279,8 @@ export default function ReelEditorModal({
                     categories={categories}
                     selectedClipId={selectedClipId}
                     onSelect={setSelectedClipId}
+                    onUpload={handleBrollUpload}
+                    uploading={uploading}
                   />
                 </div>
 
