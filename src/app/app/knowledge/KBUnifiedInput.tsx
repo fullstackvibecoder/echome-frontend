@@ -333,29 +333,6 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
     }
   };
 
-  // --- Platform pills ---
-  const handlePlatformPill = (platform: PlatformHint) => {
-    if (platform === null) return;
-
-    setPlatformHint(platform);
-    switch (platform) {
-      case 'youtube':
-        setPlaceholder('Paste a YouTube link...');
-        break;
-      case 'instagram':
-        setPlaceholder('Paste an Instagram link...');
-        break;
-      case 'blog':
-        setPlaceholder('Paste a blog URL...');
-        break;
-    }
-    textareaRef.current?.focus();
-  };
-
-  const handleGmailPill = () => {
-    mboxFileInputRef.current?.click();
-  };
-
   // --- Keyboard submit ---
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -441,34 +418,10 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
         </div>
       </div>
 
-      {/* Platform shortcut pills */}
-      <div className="flex flex-wrap gap-2">
-        {(['youtube', 'instagram', 'blog'] as const).map((platform) => (
-          <button
-            key={platform}
-            type="button"
-            onClick={() => handlePlatformPill(platform)}
-            disabled={isBusy}
-            className={`px-3 py-1 text-xs font-medium rounded-full border transition-colors disabled:opacity-50 ${
-              platformHint === platform
-                ? 'border-accent text-accent bg-accent/10'
-                : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
-            }`}
-          >
-            {platform === 'youtube' && 'YouTube'}
-            {platform === 'instagram' && 'Instagram'}
-            {platform === 'blog' && 'Blog'}
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={handleGmailPill}
-          disabled={isBusy}
-          className="px-3 py-1 text-xs font-medium rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors disabled:opacity-50"
-        >
-          Gmail Export
-        </button>
-      </div>
+      {/* Helper text — what you can add */}
+      <p className="text-[11px] text-muted-foreground/70 leading-relaxed px-1">
+        YouTube links · Instagram profiles · blog URLs · PDFs · text you wrote · voice recordings · Gmail exports (.mbox)
+      </p>
 
       {/* Hidden file inputs */}
       <input
