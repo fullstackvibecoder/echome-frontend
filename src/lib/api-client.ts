@@ -3809,6 +3809,35 @@ export const api = {
         } : null,
       } as ApiResponse<{ overlays: Array<{ text: string; position: string }> }>;
     },
+
+    /** Upload a user's own B-Roll video clip */
+    uploadClip: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await apiClient.post('/reels/broll-uploads', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 min for large uploads
+      });
+      return response.data as {
+        success: boolean;
+        data: {
+          clip: { id: string; url: string; thumbnailUrl: string; category: string; label: string };
+        };
+      };
+    },
+
+    /** List the authenticated user's uploaded B-Roll clips */
+    getUserClips: async () => {
+      const response = await apiClient.get('/reels/broll-uploads', { timeout: 30000 });
+      const envelope = response.data as { success: boolean; data: { clips: Array<{ id: string; url: string; thumbnailUrl: string; category: string; label: string }> } };
+      return envelope.data;
+    },
+
+    /** Delete a user's uploaded B-Roll clip */
+    deleteClip: async (clipId: string) => {
+      const response = await apiClient.delete(`/reels/broll-uploads/${clipId}`);
+      return response.data as { success: boolean };
+    },
   },
 
   // -------- CURATED ASSETS --------
