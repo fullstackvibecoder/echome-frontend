@@ -131,19 +131,21 @@ export default function KnowledgeContent() {
             </span>
           )}
         </div>
-        {voiceStrength && voiceStrength.waveformData.length > 0 && (
-          <div className="mt-2" style={{ maxWidth: 200, height: 32 }}>
-            <VoiceWaveform
-              waveformData={voiceStrength.waveformData}
-              overallStrength={voiceStrength.overallStrength}
-              className="h-8"
-            />
-          </div>
-        )}
         {voiceStrength && (
-          <p className="text-sm text-text-secondary mt-2">
-            {getStrengthMessage(voiceStrength.overallStrength)}
-          </p>
+          <div className="mt-3 space-y-2">
+            {voiceStrength.waveformData.length > 0 && (
+              <div className="w-[200px] h-8 overflow-hidden">
+                <VoiceWaveform
+                  waveformData={voiceStrength.waveformData}
+                  overallStrength={voiceStrength.overallStrength}
+                  className="h-8"
+                />
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">
+              {getStrengthMessage(voiceStrength.overallStrength)}
+            </p>
+          </div>
         )}
       </div>
 
