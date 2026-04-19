@@ -1,28 +1,15 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { X, Mic, Settings, Plus } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Mic, ChevronRight, Sprout, TrendingUp, Zap, Star, type LucideIcon } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
-import { useFileUpload } from '@/hooks/useFileUpload';
-import { useVoiceContext } from '@/contexts/voice-context';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
-import { UploadZone } from '@/components/upload-zone';
-import { FileList } from '@/components/file-list';
-import { PasteContentModal } from '@/components/paste-content-modal';
-import { VoiceRecorder } from '@/components/voice-recorder';
-import { SocialImportModal } from '@/components/social-import-modal';
-import { BlogImportModal } from '@/components/blog-import-modal';
-import { api } from '@/lib/api-client';
-import { toast } from 'sonner';
-import { parseMboxFile } from '@/lib/mbox-parser';
-import { isMboxFile } from '@/lib/file-utils';
-import { MboxProgressUI } from '@/components/mbox-progress-ui';
-import { UpgradeBanner } from '@/components/upgrade-banner';
+import { useVoiceContext } from '@/contexts/voice-context';
 import { VoiceWaveform } from '@/components/voice-waveform';
-import { AskYourVoice } from './components/AskYourVoice';
+import { UpgradeBanner } from '@/components/upgrade-banner';
+import { KBUnifiedInput } from './KBUnifiedInput';
+import KBChat from './KBChat';
 import { SourcesDrawer } from './components/SourcesDrawer';
-
-import { Sprout, TrendingUp, Zap, Star, type LucideIcon } from 'lucide-react';
 
 // ============================================
 // HELPERS
@@ -49,20 +36,8 @@ function getStrengthMessage(score: number): string {
   return 'Echo knows your voice. Every new source fine-tunes the match even further.';
 }
 
-function buildContentSummary(bySourceType: Record<string, number>): string {
-  const labels: Record<string, string> = {
-    voice_recording: 'voice', youtube_import: 'YouTube', instagram_import: 'Instagram',
-    blog_import: 'blog', mbox_import: 'email', paste_text: 'writing',
-    paste_social: 'social', paste_email: 'email', file_upload: 'files',
-  };
-  const activeTypes = Object.entries(bySourceType)
-    .filter(([, count]) => count > 0)
-    .map(([type]) => labels[type] || type)
-    .filter((v, i, a) => a.indexOf(v) === i);
-  const total = Object.values(bySourceType).reduce((a, b) => a + b, 0);
-  if (total === 0) return '';
-  return `Trained on ${total} source${total !== 1 ? 's' : ''} across ${activeTypes.join(', ')}`;
-}
+// No-op for SourcesDrawer's onOpenModal (modals now live inside KBUnifiedInput)
+const noop = () => {};
 
 // ============================================
 // MAIN COMPONENT
@@ -73,7 +48,6 @@ export default function KnowledgeContent() {
   const {
     contentItems, contentStats, loading, selectedKb, selectKb, deleteContent, refresh,
   } = useKnowledgeBase(isTeamsUser ? activeVoice?.knowledgeBaseId : undefined);
-  const { files: uploadFiles, uploading, addFiles, removeFile, uploadFiles: doUpload, totalSize } = useFileUpload();
   const { data: voiceStrength, refresh: refreshVoiceStrength } = useVoiceStrength();
 
   // KB switching for teams
@@ -91,152 +65,12 @@ export default function KnowledgeContent() {
   // Sources drawer
   const [showSources, setShowSources] = useState(false);
 
-  // Modal state
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showPasteModal, setShowPasteModal] = useState(false);
-  const [showVoiceModal, setShowVoiceModal] = useState(false);
-  const [showSocialModal, setShowSocialModal] = useState(false);
-  const [showBlogModal, setShowBlogModal] = useState(false);
-  const [showMboxInstructions, setShowMboxInstructions] = useState(false);
-  const [mboxUploading, setMboxUploading] = useState(false);
-  const [mboxProgress, setMboxProgress] = useState(0);
-  const [mboxStatus, setMboxStatus] = useState<string>('');
-  const [mboxResult, setMboxResult] = useState<{ emailsIngested: number; chunksCreated: number } | null>(null);
-  const mboxInputRef = useRef<HTMLInputElement>(null);
-
   // Derived
   const hasContent = contentItems.length > 0;
   const totalChunks = contentStats?.totalChunks || 0;
   const totalItems = contentStats?.totalItems || 0;
   const bySourceType = contentStats?.bySourceType || {};
 
-  // Modal opener — triggered by both chat action cards AND sources drawer
-  const handleOpenModal = useCallback((modal: string) => {
-    switch (modal) {
-      case 'voice': setShowVoiceModal(true); break;
-      case 'social': setShowSocialModal(true); break;
-      case 'blog': setShowBlogModal(true); break;
-      case 'email': setShowMboxInstructions(true); break;
-      case 'paste': setShowPasteModal(true); break;
-      case 'upload': setShowUploadModal(true); break;
-    }
-  }, []);
-
-  // File upload with chat notification
-  const handleUpload = async () => {
-    if (!selectedKb) return;
-    const mboxFiles = uploadFiles.filter(f => f.status === 'pending' && isMboxFile(f.file));
-    const otherFiles = uploadFiles.filter(f => f.status === 'pending' && !isMboxFile(f.file));
-
-    if (mboxFiles.length > 0) {
-      setShowUploadModal(false);
-      for (const fileWithProgress of mboxFiles) {
-        await processMboxFile(fileWithProgress.file);
-      }
-    }
-
-    if (otherFiles.length > 0) {
-      await doUpload(selectedKb);
-      setShowUploadModal(false);
-
-    } else if (mboxFiles.length === 0) {
-      setShowUploadModal(false);
-    }
-
-    await refresh();
-    refreshVoiceStrength();
-  };
-
-  // MBOX pipeline (unchanged logic, adds chat notification)
-  const processMboxFile = async (file: File) => {
-    setMboxUploading(true);
-    setMboxProgress(0);
-    setMboxStatus('Reading file...');
-    setMboxResult(null);
-
-    try {
-      const parseResult = await parseMboxFile(file, {
-        maxEmails: 100,
-        minContentLength: 50,
-        onProgress: ({ percent, emailsFound, status }) => {
-          setMboxProgress(Math.round(percent * 0.7));
-          setMboxStatus(status || `Found ${emailsFound} emails...`);
-        },
-      });
-
-      if (parseResult.emails.length === 0) {
-        toast.info('No emails found to import. Make sure you\'re uploading your "Sent" folder.');
-        return;
-      }
-
-      setMboxProgress(70);
-      setMboxStatus(`Uploading ${parseResult.emails.length} emails...`);
-
-      const result = await api.kbContent.ingestParsedEmails({
-        emails: parseResult.emails,
-        knowledgeBaseId: selectedKb ?? undefined,
-        fileName: file.name,
-        parseStats: {
-          totalEmailsFound: parseResult.totalEmailsFound,
-          emailsParsed: parseResult.emailsParsed,
-          emailsFiltered: parseResult.emailsFiltered,
-          parseErrors: parseResult.parseErrors,
-        },
-        onBatchProgress: (batchNum, totalBatches) => {
-          setMboxProgress(70 + Math.round((batchNum / totalBatches) * 30));
-          setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
-        },
-      });
-
-      setMboxProgress(100);
-      setMboxResult({ emailsIngested: result.emailsIngested, chunksCreated: result.chunksCreated });
-
-      await refresh();
-      refreshVoiceStrength();
-    } catch (err) {
-      toast.error(`Failed to import emails: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setMboxUploading(false);
-      setMboxStatus('');
-    }
-  };
-
-  const handleMboxUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setShowMboxInstructions(false);
-    await processMboxFile(file);
-    if (mboxInputRef.current) mboxInputRef.current.value = '';
-  };
-
-  const mboxInput = (
-    <input
-      ref={mboxInputRef}
-      type="file"
-      accept=".mbox,application/mbox,application/octet-stream,text/plain"
-      onChange={handleMboxUpload}
-      className="hidden"
-    />
-  );
-
-  // Paste success handler
-  const handlePasteSuccess = () => {
-    refresh();
-    refreshVoiceStrength();
-  };
-
-  const handleVoiceSuccess = () => {
-    setShowVoiceModal(false);
-    refresh();
-    refreshVoiceStrength();
-  };
-
-  const handleSocialImportComplete = () => {
-    refresh();
-    refreshVoiceStrength();
-  };
-
-  // Refresh voice strength after inline URL imports complete (called from AskYourVoice)
   const handleImportComplete = useCallback(() => {
     refresh();
     refreshVoiceStrength();
@@ -247,57 +81,10 @@ export default function KnowledgeContent() {
   const TierIcon = tier?.icon;
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-4rem)]">
-      {mboxInput}
-
-      {/* ─── Compact Header ─── */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3 flex-shrink-0 border-b border-border">
-        <div className="flex items-center gap-3 min-w-0">
-          <div>
-            <h1 className="text-lg font-bold text-text-primary leading-tight">Build Your Voice</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              {tier && TierIcon && (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${tier.badgeBg} ${tier.badgeText}`}>
-                  <TierIcon className="w-3 h-3" />
-                  {tier.name}
-                </span>
-              )}
-              {voiceStrength && (
-                <span className="text-xs text-text-secondary tabular-nums">
-                  {voiceStrength.overallStrength}<span className="text-text-tertiary">/100</span>
-                </span>
-              )}
-              {hasContent && (
-                <span className="text-xs text-text-tertiary">
-                  · {totalItems} source{totalItems !== 1 ? 's' : ''}
-                </span>
-              )}
-            </div>
-          </div>
-          {voiceStrength && voiceStrength.waveformData.length > 0 && (
-            <div className="hidden sm:block" style={{ width: 120, height: 28 }}>
-              <VoiceWaveform
-                waveformData={voiceStrength.waveformData}
-                overallStrength={voiceStrength.overallStrength}
-                className="h-7"
-              />
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={() => setShowSources(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary border border-border rounded-lg hover:border-accent/40 transition-colors"
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Sources</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ─── Banners ─── */}
+    <div className="container mx-auto px-6 py-8 max-w-4xl">
+      {/* Banners */}
       {!loading && (
-        <div className="flex-shrink-0 px-4 sm:px-6">
+        <div className="mb-6">
           <UpgradeBanner />
           {isTeamsUser && activeVoice && !activeVoice.knowledgeBaseId && (
             <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-sm">
@@ -320,42 +107,85 @@ export default function KnowledgeContent() {
               </span>
             </div>
           )}
-          {mboxUploading && <div className="mt-3"><MboxProgressUI progress={mboxProgress} status={mboxStatus} /></div>}
-          {mboxResult && (
-            <div className="mt-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-600">✓</span>
-                <span className="text-sm text-emerald-700 dark:text-emerald-300">{mboxResult.emailsIngested} emails imported</span>
-              </div>
-              <button onClick={() => setMboxResult(null)} className="text-emerald-600 hover:text-emerald-800">✕</button>
-            </div>
-          )}
         </div>
       )}
 
-      {/* ─── Loading ─── */}
+      {/* Header: title + voice strength */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-foreground">Build Your Voice</h1>
+        <div className="flex items-center gap-2 mt-1">
+          {tier && TierIcon && (
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${tier.badgeBg} ${tier.badgeText}`}>
+              <TierIcon className="w-3 h-3" />
+              {tier.name}
+            </span>
+          )}
+          {voiceStrength && (
+            <span className="text-xs text-text-secondary tabular-nums">
+              {voiceStrength.overallStrength}<span className="text-text-tertiary">/100</span>
+            </span>
+          )}
+          {hasContent && (
+            <span className="text-xs text-text-tertiary">
+              · {totalItems} source{totalItems !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        {voiceStrength && voiceStrength.waveformData.length > 0 && (
+          <div className="mt-2" style={{ maxWidth: 200, height: 32 }}>
+            <VoiceWaveform
+              waveformData={voiceStrength.waveformData}
+              overallStrength={voiceStrength.overallStrength}
+              className="h-8"
+            />
+          </div>
+        )}
+        {voiceStrength && (
+          <p className="text-sm text-text-secondary mt-2">
+            {getStrengthMessage(voiceStrength.overallStrength)}
+          </p>
+        )}
+      </div>
+
+      {/* Loading */}
       {loading && (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center py-16">
           <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      {/* ─── Chat (fills remaining space) ─── */}
       {!loading && (
-        <div className="flex-1 min-h-0">
-          <AskYourVoice
-            kbId={selectedKb}
-            contentSummary={hasContent ? buildContentSummary(bySourceType) : undefined}
-            hasContent={hasContent}
-            contentItems={contentItems}
-            onOpenModal={handleOpenModal}
-            onImportComplete={handleImportComplete}
-            knowledgeBaseId={selectedKb ?? undefined}
-          />
-        </div>
+        <>
+          {/* Unified Input */}
+          <div className="mb-8">
+            <KBUnifiedInput
+              knowledgeBaseId={selectedKb}
+              onImportComplete={handleImportComplete}
+            />
+          </div>
+
+          {/* Chat */}
+          <div className="mb-8">
+            <KBChat
+              kbId={selectedKb}
+              hasContent={hasContent}
+            />
+          </div>
+
+          {/* Sources (collapsible) */}
+          <section>
+            <button
+              onClick={() => setShowSources(true)}
+              className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+              Sources ({totalItems})
+            </button>
+          </section>
+        </>
       )}
 
-      {/* ─── Sources Drawer ─── */}
+      {/* Sources Drawer */}
       <SourcesDrawer
         isOpen={showSources}
         onClose={() => setShowSources(false)}
@@ -363,130 +193,11 @@ export default function KnowledgeContent() {
         totalChunks={totalChunks}
         contentItems={contentItems}
         bySourceType={bySourceType}
-        mboxUploading={mboxUploading}
-        onOpenModal={handleOpenModal}
+        mboxUploading={false}
+        onOpenModal={noop}
         onDeleteContent={deleteContent}
         onRefresh={refresh}
         loading={loading}
-      />
-
-      {/* ─── Modals ─── */}
-
-      {showUploadModal && (
-        <>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowUploadModal(false)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Upload Files</h2>
-                <button onClick={() => setShowUploadModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
-              </div>
-              <UploadZone onFilesAdded={addFiles} disabled={uploading} />
-              <FileList files={uploadFiles} onRemove={removeFile} totalSize={totalSize} />
-              <div className="flex gap-3 mt-4">
-                <button onClick={() => setShowUploadModal(false)} className="flex-1 px-4 py-2 border border-border rounded-lg hover:border-accent">Cancel</button>
-                <button onClick={handleUpload} disabled={uploading || uploadFiles.length === 0} className="flex-1 btn-primary py-2 disabled:opacity-50">
-                  {uploading ? 'Uploading...' : 'Upload'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {showMboxInstructions && (
-        <>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowMboxInstructions(false)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-lg w-full p-6 my-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Import Emails</h2>
-                <button onClick={() => setShowMboxInstructions(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
-              </div>
-
-              {/* Warning banner */}
-              <div className="p-3 mb-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-1">Before you upload, read this</p>
-                <p className="text-xs text-amber-700 dark:text-amber-300">Only export your <strong>Sent</strong> folder from the last <strong>6 months</strong>. Uploading your entire inbox will include other people&apos;s writing &mdash; that&apos;s their voice, not yours.</p>
-              </div>
-
-              {/* Video walkthrough */}
-              <div className="mb-4 rounded-lg overflow-hidden border border-border">
-                <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
-                  <iframe
-                    src="https://www.loom.com/embed/78b0e064185a440d9edc3fb2015debff"
-                    frameBorder="0"
-                    allowFullScreen
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                    title="How to Upload Emails to EchoMe"
-                  />
-                </div>
-              </div>
-
-              <p className="text-sm text-text-secondary mb-4">Import your sent emails to train Echo on your writing style.</p>
-              <div className="space-y-3 mb-4">
-                <div className="p-3 bg-bg-secondary rounded-lg text-xs">
-                  <p className="font-medium mb-1">Gmail (recommended)</p>
-                  <p className="text-text-secondary">Filter Sent folder &rarr; Label them &rarr; Google Takeout &rarr; Export only that label &rarr; Unzip &rarr; Upload the .mbox file</p>
-                </div>
-                <div className="p-3 bg-bg-secondary rounded-lg text-xs">
-                  <p className="font-medium mb-1">Apple Mail</p>
-                  <p className="text-text-secondary">Mailbox &rarr; Export Mailbox &rarr; Upload .mbox file</p>
-                </div>
-              </div>
-              <a
-                href="/guides/email-upload"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-center text-xs text-accent hover:underline mb-4"
-              >
-                Read the full step-by-step guide &rarr;
-              </a>
-              <div className="flex gap-3">
-                <button onClick={() => setShowMboxInstructions(false)} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm">Cancel</button>
-                <button onClick={() => mboxInputRef.current?.click()} className="flex-1 btn-primary py-2 text-sm">Select File</button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      <PasteContentModal
-        isOpen={showPasteModal}
-        onClose={() => setShowPasteModal(false)}
-        onSuccess={handlePasteSuccess}
-        knowledgeBaseId={selectedKb ?? undefined}
-      />
-
-      {showVoiceModal && (
-        <>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowVoiceModal(false)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-bg-primary border border-border rounded-xl shadow-xl max-w-md w-full">
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <h2 className="font-semibold">Record Voice</h2>
-                <button onClick={() => setShowVoiceModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="p-4">
-                <VoiceRecorder onSaved={handleVoiceSuccess} knowledgeBaseId={selectedKb ?? undefined} />
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      <SocialImportModal
-        isOpen={showSocialModal}
-        onClose={() => setShowSocialModal(false)}
-        onImportComplete={handleSocialImportComplete}
-        knowledgeBaseId={selectedKb ?? undefined}
-      />
-
-      <BlogImportModal
-        isOpen={showBlogModal}
-        onClose={() => setShowBlogModal(false)}
-        onImportComplete={handleSocialImportComplete}
-        knowledgeBaseId={selectedKb ?? undefined}
       />
     </div>
   );
