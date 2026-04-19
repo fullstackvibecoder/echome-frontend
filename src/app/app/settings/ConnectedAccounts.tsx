@@ -21,16 +21,19 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+// Only show platforms that are ready (managed keys configured on Outstand)
+// X, TikTok, YouTube, Bluesky, Pinterest need Outstand to enable managed keys
 const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon }> = [
   { id: 'instagram', name: 'Instagram', Icon: Instagram },
   { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin },
-  { id: 'twitter', name: 'X (Twitter)', Icon: Twitter },
   { id: 'facebook', name: 'Facebook', Icon: Facebook },
-  { id: 'tiktok', name: 'TikTok', Icon: Music2 },
   { id: 'threads', name: 'Threads', Icon: AtSign },
-  { id: 'youtube', name: 'YouTube', Icon: Youtube },
-  { id: 'bluesky', name: 'Bluesky', Icon: CloudSun },
-  { id: 'pinterest', name: 'Pinterest', Icon: Pin },
+  // Uncomment as Outstand enables managed keys:
+  // { id: 'x', name: 'X (Twitter)', Icon: Twitter },
+  // { id: 'tiktok', name: 'TikTok', Icon: Music2 },
+  // { id: 'youtube', name: 'YouTube', Icon: Youtube },
+  // { id: 'bluesky', name: 'Bluesky', Icon: CloudSun },
+  // { id: 'pinterest', name: 'Pinterest', Icon: Pin },
 ];
 
 interface ConnectedAccount {
