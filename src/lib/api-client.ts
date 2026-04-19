@@ -4021,7 +4021,9 @@ export const api = {
       mediaUrls?: string[];
       scheduledAt: string;
     }) => {
-      const response = await apiClient.post('/social-posting/schedule', data);
+      const response = await apiClient.post('/social-posting/schedule', data, {
+        timeout: 120000, // 2 min — video uploads to Outstand take time
+      });
       return response.data as ApiResponse<{
         id: string;
         outstandPostId: string;
