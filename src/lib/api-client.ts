@@ -3983,6 +3983,81 @@ export const api = {
       return response.data as { deleted: boolean };
     },
   },
+
+  // -------- SOCIAL POSTING (Outstand) --------
+  socialPosting: {
+    /** Get OAuth URL for connecting a social platform */
+    getAuthUrl: async (platform: string) => {
+      const response = await apiClient.post('/social-posting/auth-url', { platform });
+      return response.data as ApiResponse<{ url: string }>;
+    },
+
+    /** List user's connected social accounts */
+    listAccounts: async () => {
+      const response = await apiClient.get('/social-posting/accounts');
+      return response.data as ApiResponse<{
+        accounts: Array<{
+          id: string;
+          outstandAccountId: string;
+          platform: string;
+          platformUsername: string;
+          platformAvatarUrl: string | null;
+          connectedAt: string;
+        }>;
+      }>;
+    },
+
+    /** Disconnect a social account */
+    disconnectAccount: async (id: string) => {
+      const response = await apiClient.delete(`/social-posting/accounts/${id}`);
+      return response.data as ApiResponse;
+    },
+
+    /** Schedule a post to a social platform */
+    schedule: async (data: {
+      contentKitId?: string;
+      platform: string;
+      text: string;
+      mediaUrls?: string[];
+      scheduledAt: string;
+    }) => {
+      const response = await apiClient.post('/social-posting/schedule', data);
+      return response.data as ApiResponse<{
+        id: string;
+        outstandPostId: string;
+        platform: string;
+        scheduledAt: string;
+        status: string;
+      }>;
+    },
+
+    /** List scheduled/posted items */
+    listPosts: async (filters?: { status?: string; limit?: number }) => {
+      const response = await apiClient.get('/social-posting/posts', { params: filters });
+      return response.data as ApiResponse<{
+        posts: Array<{
+          id: string;
+          contentKitId: string | null;
+          outstandPostId: string;
+          platform: string;
+          text: string;
+          mediaUrls: string[] | null;
+          scheduledAt: string;
+          status: string;
+          postedAt: string | null;
+          errorMessage: string | null;
+          analytics: Record<string, unknown> | null;
+          createdAt: string;
+        }>;
+      }>;
+    },
+
+    /** Cancel a scheduled post */
+    cancelPost: async (id: string) => {
+      const response = await apiClient.delete(`/social-posting/posts/${id}`);
+      return response.data as ApiResponse;
+    },
+  },
 };
 
 // -------- TEAM VOICE TYPES --------

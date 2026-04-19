@@ -11,9 +11,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { AppPageHeader } from '@/components/app-page-header';
+import { ConnectedAccounts } from './ConnectedAccounts';
 
-type SettingsTab = 'profile' | 'account' | 'preferences' | 'billing' | 'referral';
-const VALID_TABS: SettingsTab[] = ['profile', 'account', 'preferences', 'billing', 'referral'];
+type SettingsTab = 'profile' | 'account' | 'connections' | 'preferences' | 'billing' | 'referral';
+const VALID_TABS: SettingsTab[] = ['profile', 'account', 'connections', 'preferences', 'billing', 'referral'];
 
 export default function SettingsContent() {
   const { user } = useAuth();
@@ -270,6 +271,16 @@ export default function SettingsContent() {
           }`}
         >
           Account
+        </button>
+        <button
+          onClick={() => handleTabChange('connections')}
+          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+            activeTab === 'connections'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          Connections
         </button>
         <button
           onClick={() => handleTabChange('preferences')}
@@ -903,6 +914,11 @@ export default function SettingsContent() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Connections Tab */}
+      {activeTab === 'connections' && (
+        <ConnectedAccounts />
       )}
 
       {/* Preferences Tab */}
