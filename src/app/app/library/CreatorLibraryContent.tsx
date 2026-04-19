@@ -18,18 +18,12 @@ const ASSET_TYPE_TABS: { id: CuratedAssetType; label: string }[] = [
   { id: 'reel_script', label: 'Reel Scripts' },
 ];
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 export default function CreatorLibraryContent() {
   const { loading: authLoading } = useAuth();
   const now = new Date();
   const [activeType, setActiveType] = useState<CuratedAssetType>('b_roll');
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [activeCategory, setActiveCategory] = useState<string>('realestate');
   const [assets, setAssets] = useState<CuratedAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +41,6 @@ export default function CreatorLibraryContent() {
       try {
         const response = await api.curatedAssets.list({
           type: activeType,
-          month: selectedMonth,
-          year: selectedYear,
           category: activeCategory !== 'all' ? activeCategory : undefined,
         });
         if (response.success && response.data) {
@@ -67,7 +59,7 @@ export default function CreatorLibraryContent() {
       }
     }
     fetchAssets();
-  }, [authLoading, freeUserExhausted, activeType, selectedMonth, selectedYear, activeCategory, retryKey]);
+  }, [authLoading, freeUserExhausted, activeType, activeCategory, retryKey]);
 
   if (authLoading) {
     return (
@@ -78,15 +70,6 @@ export default function CreatorLibraryContent() {
   }
 
   const categories = ['all', ...new Set(assets.map(a => a.category).filter(Boolean))];
-
-  const navigateMonth = (direction: -1 | 1) => {
-    let newMonth = selectedMonth + direction;
-    let newYear = selectedYear;
-    if (newMonth < 1) { newMonth = 12; newYear--; }
-    if (newMonth > 12) { newMonth = 1; newYear++; }
-    setSelectedMonth(newMonth);
-    setSelectedYear(newYear);
-  };
 
   const handleCopyContent = async (content: string) => {
     try {
@@ -163,44 +146,24 @@ export default function CreatorLibraryContent() {
             ))}
           </div>
 
-          {/* Month Navigation + Category Filters */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigateMonth(-1)}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-border text-text-secondary hover:text-text-primary hover:border-accent transition-colors"
-              >
-                &#9664;
-              </button>
-              <span className="text-sm font-medium text-text-primary min-w-[140px] text-center">
-                {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-              </span>
-              <button
-                onClick={() => navigateMonth(1)}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-border text-text-secondary hover:text-text-primary hover:border-accent transition-colors"
-              >
-                &#9654;
-              </button>
+          {/* Category Filters */}
+          {categories.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    activeCategory === cat
+                      ? 'bg-primary-interactive text-white'
+                      : 'border border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {cat === 'all' ? 'All' : cat}
+                </button>
+              ))}
             </div>
-
-            {categories.length > 1 && (
-              <div className="flex flex-wrap gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`px-4 py-2 rounded-full text-sm border-2 transition-colors ${
-                      activeCategory === cat
-                        ? 'border-accent bg-accent/5 text-accent'
-                        : 'border-border text-text-secondary hover:text-text-primary hover:border-text-secondary'
-                    }`}
-                  >
-                    {cat === 'all' ? 'All' : cat}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -233,10 +196,10 @@ export default function CreatorLibraryContent() {
 
           {/* B-Roll Grid */}
           {!isLoading && activeType === 'b_roll' && assets.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-3">
               {assets.map((asset) => (
-                <div key={asset.id} className="bg-card rounded-xl border border-border overflow-hidden group">
-                  <div className="aspect-[9/16] bg-bg-secondary relative">
+                <div key={asset.id} className="bg-card rounded-xl border border-border overflow-hidden group" style={{ boxShadow: 'var(--shadow-soft)' }}>
+                  <div className="aspect-[4/5] bg-surface-container-low relative">
                     {asset.thumbnailUrl ? (
                       <img
                         src={asset.thumbnailUrl}
