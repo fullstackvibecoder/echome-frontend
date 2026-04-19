@@ -93,6 +93,7 @@ export default function ClipEditorModal({
 }: ClipEditorModalProps) {
   const [captionStyle, setCaptionStyle] = useState<CaptionStylePreset>(clip.captionStyle || 'modern');
   const [captionPosition, setCaptionPosition] = useState<CaptionPosition>(clip.captionPosition || 'bottom');
+  const [viewMode, setViewMode] = useState<'single' | 'split'>('single');
   const [saving, setSaving] = useState(false);
 
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -100,9 +101,12 @@ export default function ClipEditorModal({
   // Build caption segments from transcript text
   const captionSegments = buildCaptionSegments(clip);
 
-  // Determine video source — use first export URL or fall back to thumbnail
-  const videoSrc = clip.exports?.[0]?.url || '';
-  const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
+  // Determine video source based on view mode
+  const hasSplitScreen = !!(clip as any).splitScreenUrl;
+  const videoSrc = viewMode === 'split' && hasSplitScreen
+    ? (clip as any).splitScreenUrl
+    : clip.exports?.[0]?.url || '';
+  const aspectRatio = viewMode === 'split' ? '16:9' : (FORMAT_TO_ASPECT[clip.format] || '9:16');
   const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
 
   // Persist caption style changes to backend
@@ -215,6 +219,37 @@ export default function ClipEditorModal({
                 <X className="h-5 w-5" />
               </button>
             </div>
+
+            {/* View Mode Toggle — single vs split screen */}
+            {hasSplitScreen && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-foreground">View</h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('single')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      viewMode === 'single'
+                        ? 'bg-primary-interactive text-white'
+                        : 'border border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Single Speaker
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('split')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      viewMode === 'split'
+                        ? 'bg-primary-interactive text-white'
+                        : 'border border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Split Screen
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Caption Controls — only show when captions are not burned in */}
             {!clip.captionsBurnedIn && (
