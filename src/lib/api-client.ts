@@ -615,6 +615,7 @@ export const api = {
           slides: (rawData.carousel.slides || []).map((s: any) => ({
             ...s,
             template: s.template || s.slideType, // Map old slideType to new template
+            backgroundUrl: s.backgroundUrl || s.background_url, // snake_case from DB
           })),
           qualityScore: rawData.carousel.quality_score,
           createdAt: rawData.carousel.created_at,
