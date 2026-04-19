@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Loader2, Plus } from 'lucide-react';
 
 interface BRollClip {
   id: string;
@@ -17,6 +18,8 @@ interface BRollStripProps {
   onSelect: (clipId: string) => void;
   /** Default category tab. Defaults to 'realestate' if available, else 'All'. */
   defaultCategory?: string;
+  onUpload?: (file: File) => void;
+  uploading?: boolean;
 }
 
 export function BRollStrip({
@@ -25,7 +28,19 @@ export function BRollStrip({
   selectedClipId,
   onSelect,
   defaultCategory,
+  onUpload,
+  uploading,
 }: BRollStripProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onUpload) {
+      onUpload(file);
+    }
+    // Reset so the same file can be re-selected
+    e.target.value = '';
+  };
   const [activeCategory, setActiveCategory] = useState<string>(
     defaultCategory || (categories.includes('realestate') ? 'realestate' : 'All')
   );
@@ -67,12 +82,35 @@ export function BRollStrip({
       </div>
 
       {/* Clip thumbnails */}
-      {filteredClips.length === 0 ? (
+      {filteredClips.length === 0 && !onUpload ? (
         <p className="py-4 text-center text-sm text-muted-foreground">
           No clips in this category
         </p>
       ) : (
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          {onUpload && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-primary-interactive/40 text-primary-interactive/60 transition-colors hover:border-primary-interactive hover:text-primary-interactive disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Plus className="h-5 w-5" />
+                )}
+              </button>
+            </>
+          )}
           {filteredClips.map((clip) => (
             <button
               key={clip.id}
