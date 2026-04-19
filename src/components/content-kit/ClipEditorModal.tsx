@@ -164,9 +164,10 @@ export default function ClipEditorModal({
             <div className="w-full max-w-[280px]">
               {videoSrc ? (
                 <VideoPlayer
+                  key={`${viewMode}-${videoSrc}`}
                   src={videoSrc}
-                  poster={clip.thumbnailUrl}
-                  aspectRatio={aspectRatio}
+                  poster={viewMode === 'split' ? undefined : clip.thumbnailUrl}
+                  aspectRatio="9:16"
                   showControls
                   duration={clip.duration}
                   captionSegments={showCaptionOverlay ? captionSegments : undefined}
