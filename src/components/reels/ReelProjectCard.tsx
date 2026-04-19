@@ -1,101 +1,96 @@
 'use client';
 
-/**
- * Reel Project Card Component
- *
- * Displays a reel project with status and thumbnail.
- */
-
+import { useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import type { ReelProject } from '@/types';
 
 interface ReelProjectCardProps {
   project: ReelProject;
   onClick: () => void;
+  onDelete?: (projectId: string) => void;
 }
 
-export function ReelProjectCard({ project, onClick }: ReelProjectCardProps) {
+const STYLE_LABELS: Record<string, string> = {
+  bold_impact: 'Bold Impact',
+  minimal_clean: 'Minimal Clean',
+  brand_gradient: 'Brand Gradient',
+  story_cards: 'Story Cards',
+  outlined_stroke: 'Outlined',
+  neon_glow: 'Neon',
+};
+
+export function ReelProjectCard({ project, onClick, onDelete }: ReelProjectCardProps) {
+  const [confirming, setConfirming] = useState(false);
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const formatDuration = (ms?: number) => {
-    if (!ms) return '--';
-    const seconds = Math.round(ms / 1000);
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
+  const statusConfig = {
+    completed: { label: 'Ready', bg: 'bg-green-500/20', text: 'text-green-400', dot: 'bg-green-500' },
+    processing: { label: 'Rendering...', bg: 'bg-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-500 animate-pulse' },
+    failed: { label: 'Failed', bg: 'bg-red-500/20', text: 'text-red-400', dot: 'bg-red-500' },
+    draft: { label: 'Draft', bg: 'bg-gray-500/20', text: 'text-gray-400', dot: 'bg-gray-500' },
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-500';
-      case 'processing':
-        return 'bg-accent animate-pulse';
-      case 'failed':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
+  const status = statusConfig[project.status as keyof typeof statusConfig] || statusConfig.draft;
+
+  // Hook text for draft preview
+  const hookText = project.generatedContent?.hookText
+    || project.generatedContent?.segmentOverlays?.[0]?.text
+    || project.title
+    || 'Untitled Reel';
+
+  // Style label
+  const styleId = (project.generatedContent as unknown as Record<string, unknown>)?.style as string || '';
+  const styleLabel = STYLE_LABELS[styleId] || '';
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirming) {
+      onDelete?.(project.id);
+      setConfirming(false);
+    } else {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 3000);
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'Ready';
-      case 'processing':
-        return 'Rendering...';
-      case 'failed':
-        return 'Failed';
-      default:
-        return 'Draft';
-    }
-  };
+  const isRendering = project.status === 'processing';
 
   return (
     <button
       onClick={onClick}
-      className="group bg-surface rounded-xl overflow-hidden border border-border hover:border-accent/50 transition-all text-left"
+      className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary-interactive/40 transition-all text-left w-full"
+      style={{ boxShadow: 'var(--shadow-soft)' }}
     >
-      {/* Thumbnail */}
-      <div className="aspect-[9/16] bg-surface-secondary relative">
+      {/* Thumbnail / Draft Preview */}
+      <div className="aspect-[9/16] relative overflow-hidden bg-surface-container-low">
         {project.thumbnailUrl ? (
           <img
             src={project.thumbnailUrl}
-            alt={project.title || 'Reel thumbnail'}
-            className="w-full h-full object-cover"
+            alt={project.title || 'Reel'}
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg
-              className="w-12 h-12 text-text-secondary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
+          <div className="w-full h-full bg-gradient-to-b from-gray-900 to-black flex items-center justify-center p-4">
+            <p className="text-white text-center text-sm font-bold leading-snug line-clamp-6">
+              {hookText}
+            </p>
           </div>
         )}
 
-        {/* Play button overlay for completed */}
+        {/* Play overlay for completed */}
         {project.status === 'completed' && project.outputUrl && (
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
@@ -103,40 +98,48 @@ export function ReelProjectCard({ project, onClick }: ReelProjectCardProps) {
         )}
 
         {/* Status badge */}
-        <div className="absolute top-3 left-3 flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-          <div className={`w-2 h-2 rounded-full ${getStatusColor(project.status)}`} />
-          <span className="text-xs text-white">{getStatusLabel(project.status)}</span>
+        <div className={`absolute top-2 left-2 flex items-center gap-1.5 ${status.bg} backdrop-blur-sm rounded-full px-2 py-0.5`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+          <span className={`text-[10px] font-medium ${status.text}`}>{status.label}</span>
         </div>
 
-        {/* Duration badge */}
-        {project.outputDurationMs && (
-          <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded">
-            {formatDuration(project.outputDurationMs)}
+        {/* Progress bar */}
+        {isRendering && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
+            <div className="h-full bg-amber-500 transition-all" style={{ width: `${project.progress || 5}%` }} />
           </div>
         )}
 
-        {/* Progress bar for rendering */}
-        {project.status === 'processing' && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-            <div
-              className="h-full bg-accent transition-all"
-              style={{ width: `${project.progress}%` }}
-            />
+        {/* Hover delete (not during rendering) */}
+        {!isRendering && onDelete && (
+          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium backdrop-blur-sm transition-colors ${
+                confirming
+                  ? 'bg-red-500/80 text-white'
+                  : 'bg-black/50 text-white/80 hover:bg-black/70'
+              }`}
+            >
+              <Trash2 className="w-3 h-3" />
+              {confirming ? 'Confirm?' : 'Delete'}
+            </button>
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="p-4">
-        <h3 className="font-medium text-text-primary truncate group-hover:text-accent transition-colors">
+      <div className="px-2.5 py-2">
+        <p className="text-[13px] font-medium text-foreground truncate">
           {project.title || 'Untitled Reel'}
-        </h3>
-        <div className="flex items-center gap-2 mt-1 text-xs text-text-secondary">
-          <span>{formatDate(project.createdAt)}</span>
-          {project.addCaptions && (
+        </p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[11px] text-muted-foreground">{formatDate(project.createdAt)}</span>
+          {styleLabel && (
             <>
-              <span>•</span>
-              <span>Captions</span>
+              <span className="text-[11px] text-muted-foreground/30">&middot;</span>
+              <span className="text-[10px] text-muted-foreground/60">{styleLabel}</span>
             </>
           )}
         </div>
