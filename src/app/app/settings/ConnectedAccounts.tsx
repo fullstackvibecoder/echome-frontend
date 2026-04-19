@@ -157,6 +157,9 @@ export function ConnectedAccounts() {
         <p className="text-sm text-muted-foreground mt-1">
           Connect your social accounts to schedule and auto-post content directly from EchoMe.
         </p>
+        <p className="text-[11px] text-muted-foreground/60 mt-2">
+          Available now: Instagram, LinkedIn, Facebook, Threads. More platforms coming soon.
+        </p>
       </div>
 
       {/* Connected accounts list */}

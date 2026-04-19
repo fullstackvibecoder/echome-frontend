@@ -142,6 +142,8 @@ export function InlineWrittenContent({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const AUTO_POST_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads'];
+  const supportsAutoPost = AUTO_POST_PLATFORMS.includes(activePlatform);
   const isConnected = connectedAccounts.some((a) => a.platform === activePlatform);
 
   const handleSchedulePost = async () => {
@@ -260,7 +262,11 @@ export function InlineWrittenContent({
         {/* Auto Post inline section */}
         {autoPostOpen && (
           <div className="mt-2 p-3 bg-surface-container-lowest rounded-lg border border-border">
-            {isConnected ? (
+            {!supportsAutoPost ? (
+              <p className="text-xs text-muted-foreground">
+                Auto-posting to {activeConfig.label} is coming soon. Available now for Instagram, LinkedIn, Facebook, and Threads.
+              </p>
+            ) : isConnected ? (
               <div className="flex items-center gap-2 flex-wrap">
                 <CalendarClock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
