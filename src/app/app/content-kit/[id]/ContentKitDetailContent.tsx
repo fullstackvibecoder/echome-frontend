@@ -27,6 +27,7 @@ import { InlineWrittenContent } from '@/components/content-kit/InlineWrittenCont
 import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
 import WrittenContentModal from '@/components/content-kit/WrittenContentModal';
 import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
+import CarouselEditorModal from '@/components/content-kit/CarouselEditorModal';
 
 // Progress step component
 function ProgressStep({
@@ -95,6 +96,7 @@ export default function ContentKitDetailContent() {
   const [substackModalOpen, setSubstackModalOpen] = useState(false);
   const [writtenContentModalOpen, setWrittenContentModalOpen] = useState(false);
   const [clipEditorOpen, setClipEditorOpen] = useState(false);
+  const [carouselEditorOpen, setCarouselEditorOpen] = useState(false);
   const [activeClipForEditor, setActiveClipForEditor] = useState<any>(null);
 
   // Determine if we're in processing state
@@ -587,7 +589,7 @@ export default function ContentKitDetailContent() {
                     platform="carousel"
                     variant="visual"
                     aspectRatio="1/1"
-                    onClick={() => {/* carousel editor — pending drag-to-position redesign */}}
+                    onClick={() => setCarouselEditorOpen(true)}
                     badge={`${detail.carousel.slides.length} slides`}
                   />
                 )}
@@ -810,6 +812,25 @@ export default function ContentKitDetailContent() {
         clipId={exportingClipId}
         onClose={() => setExportingClipId(null)}
       />
+
+      {/* Carousel Editor Modal */}
+      {hasCarousel && (
+        <CarouselEditorModal
+          open={carouselEditorOpen}
+          onClose={() => setCarouselEditorOpen(false)}
+          slides={detail.carousel.slides.map((s: any) => ({
+            slideNumber: s.slideNumber,
+            publicUrl: s.publicUrl,
+            backgroundUrl: s.backgroundUrl || s.background_url,
+            text: s.text || '',
+            template: s.template || s.slideType,
+          }))}
+          contentKitId={contentKitId || id}
+          designPreset={detail.carousel.designPreset}
+          uploadId={detail?.clips?.[0]?.videoUploadId}
+          onCarouselUpdate={() => refresh()}
+        />
+      )}
 
       {/* Reel Editor Modal */}
       {contentKitId && (
