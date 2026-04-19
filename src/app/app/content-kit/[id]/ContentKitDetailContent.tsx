@@ -589,7 +589,7 @@ export default function ContentKitDetailContent() {
                     platform="carousel"
                     variant="visual"
                     aspectRatio="1/1"
-                    onClick={() => setCarouselEditorOpen(true)}
+                    onClick={() => {/* carousel editor — stabilizing drag-to-position pipeline */}}
                     badge={`${detail.carousel.slides.length} slides`}
                   />
                 )}
