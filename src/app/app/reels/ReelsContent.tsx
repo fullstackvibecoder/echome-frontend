@@ -82,11 +82,8 @@ export default function ReelsContent() {
 
   // ---- Card click routing ----
   const handleCardClick = (project: ReelProject) => {
-    if (project.templateId) {
-      router.push(`/app/reels/${project.id}`);
-    } else {
-      setReelModalProjectId(project.id);
-    }
+    setReelModalProjectId(project.id);
+    setReelModalContentKitId(project.contentKitId);
   };
 
   // ---- Status groups ----
