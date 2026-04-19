@@ -44,20 +44,6 @@ function getChunkTier(chunks: number) {
   return { tier: TIERS[tierIndex], tierIndex, nextTier, progress, remaining };
 }
 
-const DIMENSION_LABELS: Record<string, string> = {
-  signaturePresence: 'Phrases',
-  avoidAbsence: 'Clean',
-  styleAlignment: 'Style',
-  aiBlacklistAbsence: 'Natural',
-  embeddingSimilarity: 'Voice Match',
-};
-
-function getDimensionColor(score: number): string {
-  if (score >= 70) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-  if (score >= 40) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-  return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-}
-
 function getGuidanceMessage(dimensionBreakdown: Record<string, number | null>): string {
   // Find weakest dimension and give actionable guidance
   let weakest = '';
@@ -119,26 +105,6 @@ export function VoiceIntelligenceDashboard({
             waveformData={strength.waveformData}
             overallStrength={strength.overallStrength}
           />
-
-          {/* Dimension pills */}
-          {strength.recentPerformance.generationCount > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {Object.entries(bd).map(([key, val]) => {
-                if (val === null || val === undefined) return null;
-                const label = DIMENSION_LABELS[key];
-                if (!label) return null;
-                return (
-                  <span
-                    key={key}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${getDimensionColor(val)}`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${val >= 70 ? 'bg-emerald-500' : val >= 40 ? 'bg-amber-500' : 'bg-red-500'}`} />
-                    {label}
-                  </span>
-                );
-              })}
-            </div>
-          )}
 
           {/* Guidance message */}
           <p className="mt-2 text-xs text-text-secondary">
