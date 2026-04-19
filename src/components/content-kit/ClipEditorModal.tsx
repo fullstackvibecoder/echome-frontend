@@ -103,7 +103,7 @@ export default function ClipEditorModal({
   const videoSrc = viewMode === 'split' && hasSplitScreen
     ? (clip as any).splitScreenUrl
     : clip.exports?.[0]?.url || '';
-  const aspectRatio = viewMode === 'split' ? '16:9' : (FORMAT_TO_ASPECT[clip.format] || '9:16');
+  const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
   const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
 
   // Persist caption style changes to backend
