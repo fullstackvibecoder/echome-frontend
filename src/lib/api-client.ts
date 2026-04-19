@@ -57,6 +57,8 @@ const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow w
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 const STRIPE_TIMEOUT = 45000; // 45 seconds for Stripe API operations (billing, usage limits)
 const DASHBOARD_TIMEOUT = 25000; // 25 seconds for dashboard data loading operations
+const PROFILE_TIMEOUT = 30000; // 30 seconds for profile operations (getProfile, updateProfile)
+const UPLOAD_TIMEOUT = 60000; // 60 seconds for file uploads (profile images, etc.)
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -311,12 +313,16 @@ export const api = {
 
     // Extended profile methods (stored in users table)
     getProfile: async (): Promise<ApiResponse<UserProfile>> => {
-      const response = await apiClient.get('/auth/profile/extended');
+      const response = await apiClient.get('/auth/profile/extended', {
+        timeout: PROFILE_TIMEOUT
+      });
       return response.data;
     },
 
     updateProfile: async (data: UserProfileUpdate): Promise<ApiResponse<UserProfile>> => {
-      const response = await apiClient.patch('/auth/profile/extended', data);
+      const response = await apiClient.patch('/auth/profile/extended', data, {
+        timeout: PROFILE_TIMEOUT
+      });
       return response.data;
     },
 
@@ -327,6 +333,7 @@ export const api = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: UPLOAD_TIMEOUT
       });
       return response.data;
     },

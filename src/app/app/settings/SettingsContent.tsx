@@ -101,8 +101,20 @@ export default function SettingsContent() {
       if (response.success && response.data) {
         setUsage(response.data as UsageSummary);
       }
-    } catch (error) {
-      console.error('Failed to load usage:', error);
+    } catch (error: any) {
+      // Enhanced error handling for timeout scenarios
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        console.warn('Usage data loading timed out - this usually resolves automatically');
+        toast.error('Loading took longer than expected. Please try refreshing the page.', {
+          action: {
+            label: 'Refresh',
+            onClick: () => window.location.reload()
+          }
+        });
+      } else {
+        console.error('Failed to load usage:', error);
+        toast.error('Failed to load billing information. Please try again.');
+      }
     } finally {
       setUsageLoading(false);
     }
@@ -111,6 +123,7 @@ export default function SettingsContent() {
   const loadProfile = async () => {
     try {
       setProfileLoading(true);
+      setProfileError(null);
       const response = await api.auth.getProfile();
       if (response.success && response.data) {
         setProfile(response.data);
@@ -130,9 +143,14 @@ export default function SettingsContent() {
         setWeeklyDigest(response.data.weekly_digest ?? false);
         setTheme(response.data.theme ?? 'light');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load profile:', error);
-      setProfileError('Failed to load profile');
+      // Enhanced timeout error handling
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        setProfileError('Loading profile timed out. Please try refreshing the page or try again in a moment.');
+      } else {
+        setProfileError('Failed to load profile. Please try again.');
+      }
     } finally {
       setProfileLoading(false);
     }
@@ -163,10 +181,16 @@ export default function SettingsContent() {
         setProfile(response.data);
         setProfileSuccess(true);
         setTimeout(() => setProfileSuccess(false), 3000);
+        toast.success('Profile updated successfully!');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save profile:', error);
-      setProfileError(extractErrorMessage(error, 'Failed to save profile'));
+      // Enhanced timeout error handling
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        setProfileError('Profile update timed out. Please try again. If this continues, try updating fewer fields at once.');
+      } else {
+        setProfileError(extractErrorMessage(error, 'Failed to save profile'));
+      }
     } finally {
       setProfileSaving(false);
     }
@@ -190,10 +214,16 @@ export default function SettingsContent() {
         setProfile(prev => prev ? { ...prev, profile_image_url: imageUrl } : null);
         setProfileSuccess(true);
         setTimeout(() => setProfileSuccess(false), 3000);
+        toast.success('Profile image updated successfully!');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to upload image:', error);
-      setProfileError(extractErrorMessage(error, 'Failed to upload image'));
+      // Enhanced timeout error handling for uploads
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        setProfileError('Image upload timed out. This usually happens with large files or slow connections. Please try a smaller image or check your connection.');
+      } else {
+        setProfileError(extractErrorMessage(error, 'Failed to upload image'));
+      }
     } finally {
       setImageUploading(false);
       if (fileInputRef.current) {
@@ -232,10 +262,25 @@ export default function SettingsContent() {
           setTheme(value as 'light' | 'dark' | 'auto');
         }
         setProfile(response.data);
+        toast.success('Preference updated!');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save preference:', error);
-      setProfileError('Failed to save preference');
+      // Enhanced timeout error handling for preferences
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        setProfileError('Preference update timed out. Please try again.');
+        // Revert local state change
+        if (key === 'email_notifications') {
+          setEmailNotifications(!value as boolean);
+        } else if (key === 'weekly_digest') {
+          setWeeklyDigest(!value as boolean);
+        } else if (key === 'theme') {
+          // Revert theme to previous value from profile
+          setTheme(profile?.theme ?? 'light');
+        }
+      } else {
+        setProfileError('Failed to save preference. Please try again.');
+      }
     } finally {
       setPreferencesSaving(false);
     }
@@ -516,7 +561,17 @@ export default function SettingsContent() {
 
                 {profileError && (
                   <div className="p-3 bg-error/10 border border-error/20 rounded-lg">
-                    <p className="text-sm text-error">{profileError}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm text-error flex-1">{profileError}</p>
+                      {profileError.includes('timed out') && (
+                        <button
+                          onClick={loadProfile}
+                          className="text-xs text-error hover:text-error/80 underline whitespace-nowrap"
+                        >
+                          Retry
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1117,8 +1172,13 @@ export default function SettingsContent() {
                     if (response.success && response.data?.url) {
                       window.location.href = response.data.url;
                     }
-                  } catch (error) {
+                  } catch (error: any) {
                     console.error('Failed to open billing portal:', error);
+                    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+                      toast.error('Billing portal is taking longer than expected to load. Please try again in a moment.');
+                    } else {
+                      toast.error('Failed to open billing portal. Please try again.');
+                    }
                   }
                 }}
                 className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
