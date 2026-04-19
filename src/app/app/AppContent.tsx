@@ -365,14 +365,6 @@ export default function AppContent() {
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {!hasResults && !generating && (
         <div className="animate-fade-in">
-          {/* First-time Welcome Banner */}
-          {isFirstTime && (
-            <WelcomeBanner
-              userName={user?.name}
-              onDismiss={dismissWelcome}
-              onScrollToForm={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
-            />
-          )}
 
           {/* Teams Onboarding Banner (zero-voice state) */}
           {showTeamsOnboarding && (
