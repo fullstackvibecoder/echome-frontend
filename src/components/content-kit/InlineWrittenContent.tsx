@@ -13,10 +13,16 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Send,
+  CalendarClock,
+  ExternalLink,
+  Loader2,
   type LucideIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
+import { toast } from 'sonner';
 
 interface PlatformConfig {
   key: string;
@@ -45,16 +51,23 @@ const FIELD_MAP: Record<string, string> = {
   youtube: 'contentYoutube',
 };
 
+interface ConnectedAccount {
+  platform: string;
+  id: string;
+}
+
 interface InlineWrittenContentProps {
   contentKitId: string;
   content: Record<string, string | undefined>;
   onContentUpdate: () => void;
+  connectedAccounts?: ConnectedAccount[];
 }
 
 export function InlineWrittenContent({
   contentKitId,
   content,
   onContentUpdate,
+  connectedAccounts = [],
 }: InlineWrittenContentProps) {
   // Only show platforms that have content
   const availablePlatforms = useMemo(
@@ -76,6 +89,9 @@ export function InlineWrittenContent({
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [autoPostOpen, setAutoPostOpen] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [scheduling, setScheduling] = useState(false);
 
   if (availablePlatforms.length === 0) return null;
 
@@ -124,6 +140,36 @@ export function InlineWrittenContent({
     await copyAsPlainText(activeText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isConnected = connectedAccounts.some((a) => a.platform === activePlatform);
+
+  const handleSchedulePost = async () => {
+    if (!scheduledAt) return;
+    setScheduling(true);
+    try {
+      const isoDate = new Date(scheduledAt).toISOString();
+      await api.socialPosting.schedule({
+        contentKitId,
+        platform: activePlatform,
+        text: activeText,
+        scheduledAt: isoDate,
+      });
+      const displayDate = new Date(scheduledAt).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      toast.success(`Scheduled for ${displayDate} on ${activeConfig.label}`);
+      setAutoPostOpen(false);
+      setScheduledAt('');
+    } catch (err) {
+      console.error('Failed to schedule post', err);
+      toast.error('Failed to schedule post');
+    } finally {
+      setScheduling(false);
+    }
   };
 
   return (
@@ -197,8 +243,59 @@ export function InlineWrittenContent({
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
+            <button
+              onClick={() => setAutoPostOpen(!autoPostOpen)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                autoPostOpen
+                  ? 'bg-accent text-white'
+                  : 'border border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Send className="w-3 h-3" />
+              Auto Post
+            </button>
           </div>
         </div>
+
+        {/* Auto Post inline section */}
+        {autoPostOpen && (
+          <div className="mt-2 p-3 bg-surface-container-lowest rounded-lg border border-border">
+            {isConnected ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <CalendarClock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <input
+                  type="datetime-local"
+                  value={scheduledAt}
+                  onChange={(e) => setScheduledAt(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="flex-1 min-w-[180px] px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50"
+                />
+                <button
+                  onClick={handleSchedulePost}
+                  disabled={!scheduledAt || scheduling}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary-interactive text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {scheduling ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Check className="w-3 h-3" />
+                  )}
+                  {scheduling ? 'Scheduling...' : 'Schedule'}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Connect {activeConfig.label} to auto-post.</span>
+                <Link
+                  href="/app/settings?tab=connections"
+                  className="inline-flex items-center gap-1 text-accent hover:underline font-medium"
+                >
+                  Connect <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
