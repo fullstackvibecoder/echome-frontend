@@ -813,23 +813,30 @@ function BusinessMetrics() {
   );
 }
 
-// ==================== User Segmentation ====================
+// ==================== User Segmentation — Funnel View ====================
 
-const SEGMENT_COLORS: Record<string, { border: string; bg: string; text: string; dot: string }> = {
-  'Active Trial': { border: 'border-l-blue-500', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
-  'Converted (Free → Paid)': { border: 'border-l-emerald-500', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
-  'Hit the Wall': { border: 'border-l-amber-500', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
-  'Tried Once': { border: 'border-l-orange-500', bg: 'bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', dot: 'bg-orange-500' },
-  'Never Generated': { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-300', dot: 'bg-gray-400' },
-  'All Paid': { border: 'border-l-purple-500', bg: 'bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', dot: 'bg-purple-500' },
-};
+// Ordered funnel stages: maps backend segment names to display config.
+// Technical slugs (free_idle, free_hit_wall, etc.) and aggregates (All Users, free_eligible)
+// are excluded — they duplicate these canonical stages.
+const FUNNEL_STAGES = [
+  { name: 'Never Generated', color: 'bg-gray-500', colorLight: 'bg-gray-500/15', text: 'text-gray-400', ring: 'ring-gray-500/30', label: 'Never Generated' },
+  { name: 'Tried Once', color: 'bg-orange-500', colorLight: 'bg-orange-500/15', text: 'text-orange-400', ring: 'ring-orange-500/30', label: 'Tried Once' },
+  { name: 'Hit the Wall', color: 'bg-amber-500', colorLight: 'bg-amber-500/15', text: 'text-amber-400', ring: 'ring-amber-500/30', label: 'Hit the Wall' },
+  { name: 'Active Trial', color: 'bg-blue-500', colorLight: 'bg-blue-500/15', text: 'text-blue-400', ring: 'ring-blue-500/30', label: 'Active Trial' },
+  { name: 'Converted (Free → Paid)', color: 'bg-emerald-500', colorLight: 'bg-emerald-500/15', text: 'text-emerald-400', ring: 'ring-emerald-500/30', label: 'Converted' },
+  { name: 'All Paid', color: 'bg-purple-500', colorLight: 'bg-purple-500/15', text: 'text-purple-400', ring: 'ring-purple-500/30', label: 'Paid' },
+] as const;
 
-const DEFAULT_SEGMENT_COLOR = { border: 'border-l-gray-400', bg: 'bg-gray-500/10', text: 'text-gray-500 dark:text-gray-300', dot: 'bg-gray-400' };
+// Segments to hide from funnel (technical slugs & aggregates that duplicate the stages above)
+const HIDDEN_SEGMENTS = new Set([
+  'free_idle', 'free_tried_once', 'free_hit_wall', 'studio_trial_expiring',
+  'free_eligible', 'All Users',
+]);
 
 function UserSegmentation() {
   const [data, setData] = useState<AdminSegmentationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [composeSegment, setComposeSegment] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -840,17 +847,40 @@ function UserSegmentation() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Build a lookup from segment name → segment data
+  const segmentMap = useMemo(() => {
+    if (!data) return new Map<string, AdminUserSegment>();
+    const map = new Map<string, AdminUserSegment>();
+    for (const seg of data.segments) {
+      map.set(seg.name, seg);
+    }
+    return map;
+  }, [data]);
+
+  // Resolve funnel stages with counts
+  const funnelData = useMemo(() => {
+    return FUNNEL_STAGES.map(stage => {
+      const seg = segmentMap.get(stage.name);
+      return { ...stage, count: seg?.count ?? 0, users: seg?.users ?? [], description: seg?.description ?? '' };
+    });
+  }, [segmentMap]);
+
+  // Summary stats from aggregate segments
+  const allUsers = segmentMap.get('All Users')?.count ?? data?.totalUsers ?? 0;
+  const freeEligible = segmentMap.get('free_eligible')?.count ?? 0;
+  const totalFunnel = funnelData.reduce((sum, s) => sum + s.count, 0);
+
+  // Selected stage data
+  const selected = funnelData.find(s => s.name === selectedStage);
+
   if (loading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="h-5 bg-muted rounded w-40 animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="h-16 bg-card rounded-xl border border-border animate-pulse" />
+        <div className="flex gap-2">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-card rounded-xl border border-border p-5 animate-pulse">
-              <div className="h-4 bg-muted rounded w-28 mb-2" />
-              <div className="h-8 bg-muted rounded w-12 mb-1" />
-              <div className="h-3 bg-muted rounded w-40" />
-            </div>
+            <div key={i} className="h-10 bg-muted rounded-lg animate-pulse flex-1" />
           ))}
         </div>
       </div>
@@ -860,91 +890,124 @@ function UserSegmentation() {
   if (!data) return null;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Header with summary stats */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground">User Segments ({data.totalUsers} total)</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-sm font-semibold text-foreground">User Journey</h2>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>{allUsers} total users</span>
+            <span className="w-px h-3 bg-border" />
+            <span>{freeEligible} free eligible</span>
+          </div>
+        </div>
         <span className="text-xs text-muted-foreground">Updated {timeAgo(data.lastUpdated)}</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {data.segments.map((segment) => {
-          const colors = SEGMENT_COLORS[segment.name] || DEFAULT_SEGMENT_COLOR;
-          const isExpanded = expandedSegment === segment.name;
+      {/* Funnel bar */}
+      <div className="bg-card rounded-xl border border-border p-3">
+        <div className="flex gap-1 h-12 rounded-lg overflow-hidden">
+          {funnelData.map((stage) => {
+            const widthPct = totalFunnel > 0 ? Math.max((stage.count / totalFunnel) * 100, 4) : 100 / funnelData.length;
+            const isSelected = selectedStage === stage.name;
 
-          return (
-            <div
-              key={segment.name}
-              className={`bg-card rounded-xl border border-border border-l-4 ${colors.border} transition-all ${isExpanded ? 'md:col-span-2 lg:col-span-3' : ''}`}
-            >
+            return (
               <button
-                onClick={() => setExpandedSegment(isExpanded ? null : segment.name)}
-                className="w-full p-4 text-left hover:bg-muted/30 transition-colors rounded-xl"
+                key={stage.name}
+                onClick={() => setSelectedStage(isSelected ? null : stage.name)}
+                className={`relative group/stage transition-all duration-200 rounded-md overflow-hidden ${
+                  isSelected ? `${stage.color} ring-2 ${stage.ring}` : `${stage.colorLight} hover:opacity-80`
+                }`}
+                style={{ width: `${widthPct}%` }}
+                title={`${stage.label}: ${stage.count}`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`w-2 h-2 rounded-full ${colors.dot} shrink-0`} />
-                    <span className={`text-sm font-semibold ${colors.text}`}>{segment.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setComposeSegment(segment.name); }}
-                      className="px-2 py-1 text-xs font-medium rounded-md bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
-                      title={`Send email to ${segment.name} segment`}
-                    >
-                      Send Email
-                    </button>
-                    <span className="text-2xl font-bold text-foreground">{segment.count}</span>
-                    <svg
-                      className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-1">
+                  <span className={`text-lg font-bold leading-tight ${isSelected ? 'text-white' : 'text-foreground'}`}>
+                    {stage.count}
+                  </span>
+                  <span className={`text-[10px] font-medium leading-tight truncate max-w-full ${
+                    isSelected ? 'text-white/80' : 'text-muted-foreground'
+                  }`}>
+                    {stage.label}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{segment.description}</p>
               </button>
+            );
+          })}
+        </div>
 
-              {isExpanded && segment.users.length > 0 && (
-                <div className="border-t border-border overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left p-3 pl-5 font-medium text-muted-foreground">Email</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Joined</th>
-                        <th className="text-right p-3 font-medium text-muted-foreground">Gens</th>
-                        <th className="text-right p-3 pr-5 font-medium text-muted-foreground">Last Active</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {segment.users.map((u, i) => (
-                        <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
-                          <td className="p-3 pl-5 text-foreground font-mono text-xs">{u.email}</td>
-                          <td className="p-3 text-muted-foreground">{u.fullName || '--'}</td>
-                          <td className="p-3 text-muted-foreground whitespace-nowrap">
-                            {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </td>
-                          <td className="p-3 text-right font-medium text-foreground">{u.generationCount}</td>
-                          <td className="p-3 pr-5 text-right text-muted-foreground whitespace-nowrap">
-                            {u.lastActiveAt ? timeAgo(u.lastActiveAt) : 'Never'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {isExpanded && segment.users.length === 0 && (
-                <div className="border-t border-border px-5 py-3">
-                  <p className="text-sm text-muted-foreground">No users in this segment</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {/* Funnel flow arrows */}
+        <div className="flex items-center justify-between mt-2 px-2">
+          <span className="text-[10px] text-muted-foreground/60">Signed Up</span>
+          <div className="flex-1 mx-2 border-t border-dashed border-border relative">
+            <svg className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 text-muted-foreground/40" viewBox="0 0 8 8" fill="currentColor">
+              <path d="M0 0 L8 4 L0 8 Z" />
+            </svg>
+          </div>
+          <span className="text-[10px] text-muted-foreground/60">Paying</span>
+        </div>
       </div>
+
+      {/* Selected stage detail */}
+      {selected && (
+        <div className="bg-card rounded-xl border border-border overflow-hidden animate-in slide-in-from-top-2 duration-200">
+          {/* Stage header */}
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <span className={`w-3 h-3 rounded-full ${selected.color}`} />
+              <div>
+                <h3 className={`text-sm font-semibold ${selected.text}`}>{selected.label}</h3>
+                <p className="text-xs text-muted-foreground">{selected.description}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setComposeSegment(selected.name)}
+                className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Send Email
+              </button>
+              <span className="text-xl font-bold text-foreground">{selected.count} users</span>
+            </div>
+          </div>
+
+          {/* User table */}
+          {selected.users.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-3 pl-5 font-medium text-muted-foreground">Email</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground">Joined</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">Gens</th>
+                    <th className="text-right p-3 pr-5 font-medium text-muted-foreground">Last Active</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selected.users.map((u, i) => (
+                    <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
+                      <td className="p-3 pl-5 text-foreground font-mono text-xs">{u.email}</td>
+                      <td className="p-3 text-muted-foreground">{u.fullName || '--'}</td>
+                      <td className="p-3 text-muted-foreground whitespace-nowrap">
+                        {new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="p-3 text-right font-medium text-foreground">{u.generationCount}</td>
+                      <td className="p-3 pr-5 text-right text-muted-foreground whitespace-nowrap">
+                        {u.lastActiveAt ? timeAgo(u.lastActiveAt) : 'Never'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="px-5 py-4">
+              <p className="text-sm text-muted-foreground">No users in this segment</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {composeSegment && (
         <EmailComposeModal
