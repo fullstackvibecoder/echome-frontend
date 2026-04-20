@@ -467,20 +467,42 @@ export default function ContentKitDetailContent() {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-16">
-          <div className="text-center">
+          <div className="text-center max-w-md">
             <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-text-secondary">Loading content...</p>
+            <p className="text-text-secondary mb-2">Loading content kit...</p>
+            <p className="text-sm text-text-secondary/70">
+              This may take a moment for content kits with videos and carousels
+            </p>
           </div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
-          {error}
-          <button onClick={refresh} className="ml-4 underline hover:no-underline">
-            Try again
-          </button>
+        <div className="p-6 bg-error/10 border border-error/20 rounded-lg text-center">
+          <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center mx-auto mb-4">
+            <span className="text-error text-xl">⚠️</span>
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-error">Loading Failed</h3>
+          <p className="text-error mb-4 max-w-lg mx-auto leading-relaxed">
+            {error}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button 
+              onClick={refresh} 
+              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
+            >
+              Try Again
+            </button>
+            {error.includes('timeout') || error.includes('longer than expected') ? (
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-4 py-2 bg-bg-tertiary text-text-secondary hover:text-text-primary rounded-lg transition-colors"
+              >
+                Refresh Page
+              </button>
+            ) : null}
+          </div>
         </div>
       )}
 

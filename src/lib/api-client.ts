@@ -57,6 +57,7 @@ const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow w
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 const STRIPE_TIMEOUT = 45000; // 45 seconds for Stripe API operations (billing, usage limits)
 const DASHBOARD_TIMEOUT = 25000; // 25 seconds for dashboard data loading operations
+const CONTENT_KIT_TIMEOUT = 60000; // 60 seconds for content kit loading (includes clips, carousel, content generation)
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -507,7 +508,7 @@ export const api = {
     getRequest: async (id: string) => {
       const response = await apiClient.get<ApiResponse<any>>(
         `/generate/${id}`,
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_TIMEOUT }
       );
 
       // Transform snake_case to camelCase
@@ -2046,7 +2047,7 @@ export const api = {
     /** Get upload with clips and content kit */
     get: async (uploadId: string) => {
       const response = await apiClient.get(`/clips/${uploadId}`, {
-        timeout: GENERATION_TIMEOUT
+        timeout: CONTENT_KIT_TIMEOUT
       });
       return response.data as {
         success: boolean;
@@ -2091,7 +2092,9 @@ export const api = {
       startTime?: number;
       endTime?: number;
     }) => {
-      const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data);
+      const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data, {
+        timeout: LIST_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2108,7 +2111,9 @@ export const api = {
       viewMode?: 'single' | 'split';
       addCaptions?: boolean;
     }) => {
-      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {});
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/export`, options || {}, {
+        timeout: GENERATION_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2150,7 +2155,9 @@ export const api = {
   contentKits: {
     /** Get content kit with full data */
     get: async (kitId: string) => {
-      const response = await apiClient.get(`/content-kits/${kitId}`);
+      const response = await apiClient.get(`/content-kits/${kitId}`, {
+        timeout: CONTENT_KIT_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {

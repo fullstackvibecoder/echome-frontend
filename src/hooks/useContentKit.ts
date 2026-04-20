@@ -101,7 +101,18 @@ export function useContentKit(options: UseContentKitOptions = {}): UseContentKit
       const validItems = items.filter(item => item.status !== 'failed');
       setAllItems(validItems);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load content');
+      // Enhanced error handling for timeout scenarios
+      if (err instanceof Error) {
+        if (err.message.includes('timeout') || err.message.includes('ECONNABORTED')) {
+          setError('Loading is taking longer than expected. This can happen during high server load. Please try refreshing the page.');
+        } else if (err.message.includes('Network Error')) {
+          setError('Network connection issue. Please check your internet connection and try again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to load content');
+      }
     } finally {
       setLoading(false);
     }
@@ -252,7 +263,20 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
 
       throw new Error('Content not found');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load content');
+      // Enhanced error handling for timeout scenarios
+      if (err instanceof Error) {
+        if (err.message.includes('timeout') || err.message.includes('ECONNABORTED')) {
+          setError('Loading is taking longer than expected. This usually happens with large content kits or during high server load. Please try refreshing the page.');
+        } else if (err.message.includes('Network Error')) {
+          setError('Network connection issue. Please check your internet connection and try again.');
+        } else if (err.message.includes('500') || err.message.includes('Server Error')) {
+          setError('Server error occurred while loading content. Please try again in a moment.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to load content');
+      }
     } finally {
       setLoading(false);
     }
