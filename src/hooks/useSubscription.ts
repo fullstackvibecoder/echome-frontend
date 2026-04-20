@@ -87,11 +87,18 @@ export function useSubscription(): UseSubscriptionReturn {
         // API returned but no subscription - user is genuinely not subscribed
         setSubscription(null);
       }
-    } catch (error) {
-      console.error('Failed to fetch subscription:', error);
-      // API failed - don't assume user isn't subscribed, could be network/server issue
-      // Set error flag so we can show retry UI instead of immediately redirecting
-      setFetchError(true);
+    } catch (error: any) {
+      // Enhanced error handling for timeout scenarios
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        console.warn('Subscription check timed out - this is usually temporary due to high server load');
+        // On timeout, don't set error state immediately - let user continue
+        setFetchError(false);
+      } else {
+        console.error('Failed to fetch subscription:', error);
+        // API failed - don't assume user isn't subscribed, could be network/server issue
+        // Set error flag so we can show retry UI instead of immediately redirecting
+        setFetchError(true);
+      }
       setSubscription(null);
     } finally {
       setLoading(false);

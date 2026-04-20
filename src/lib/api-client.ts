@@ -58,6 +58,7 @@ const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + ini
 const STRIPE_TIMEOUT = 45000; // 45 seconds for Stripe API operations (billing, usage limits)
 const DASHBOARD_TIMEOUT = 25000; // 25 seconds for dashboard data loading operations
 const CONTENT_KIT_TIMEOUT = 60000; // 60 seconds for content kit loading (includes clips, carousel, content generation)
+const PROFILE_TIMEOUT = 30000; // 30 seconds for profile operations (getCurrentUser, getProfile, updateProfile)
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -306,13 +307,17 @@ export const api = {
     },
 
     getCurrentUser: async () => {
-      const response = await apiClient.get('/auth/me');
+      const response = await apiClient.get('/auth/me', {
+        timeout: PROFILE_TIMEOUT
+      });
       return response.data;
     },
 
     // Extended profile methods (stored in users table)
     getProfile: async (): Promise<ApiResponse<UserProfile>> => {
-      const response = await apiClient.get('/auth/profile/extended');
+      const response = await apiClient.get('/auth/profile/extended', {
+        timeout: PROFILE_TIMEOUT
+      });
       return response.data;
     },
 
@@ -2400,7 +2405,9 @@ export const api = {
      */
     getSubscription: async (justPaid?: boolean): Promise<StripeSubscriptionResponse> => {
       const params = justPaid ? '?just_paid=true' : '';
-      const response = await apiClient.get(`/stripe/subscription${params}`);
+      const response = await apiClient.get(`/stripe/subscription${params}`, {
+        timeout: STRIPE_TIMEOUT
+      });
       return response.data;
     },
 

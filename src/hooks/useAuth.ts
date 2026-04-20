@@ -44,10 +44,16 @@ export function useAuth(): UseAuthReturn {
       if (response.success && response.data) {
         setUser(response.data);
       }
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      localStorage.removeItem('authToken');
-      setUser(null);
+    } catch (error: any) {
+      // Enhanced error handling for timeout scenarios
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        console.warn('User authentication check timed out - user may still be logged in');
+        // Don't remove token on timeout - let user continue
+      } else {
+        console.error('Failed to fetch user:', error);
+        localStorage.removeItem('authToken');
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
