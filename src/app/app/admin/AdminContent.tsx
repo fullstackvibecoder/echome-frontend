@@ -819,6 +819,7 @@ function BusinessMetrics() {
 // Technical slugs (free_idle, free_hit_wall, etc.) and aggregates (All Users, free_eligible)
 // are excluded — they duplicate these canonical stages.
 const FUNNEL_STAGES = [
+  { name: 'Waitlist', color: 'bg-rose-500', colorLight: 'bg-rose-500/15', text: 'text-rose-400', ring: 'ring-rose-500/30', label: 'Waitlist' },
   { name: 'Never Generated', color: 'bg-gray-500', colorLight: 'bg-gray-500/15', text: 'text-gray-400', ring: 'ring-gray-500/30', label: 'Never Generated' },
   { name: 'Tried Once', color: 'bg-orange-500', colorLight: 'bg-orange-500/15', text: 'text-orange-400', ring: 'ring-orange-500/30', label: 'Tried Once' },
   { name: 'Hit the Wall', color: 'bg-amber-500', colorLight: 'bg-amber-500/15', text: 'text-amber-400', ring: 'ring-amber-500/30', label: 'Hit the Wall' },
@@ -901,7 +902,15 @@ function UserSegmentation() {
             <span>{freeEligible} free eligible</span>
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">Updated {timeAgo(data.lastUpdated)}</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setComposeSegment('All Users')}
+            className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-primary-interactive/10 text-primary-interactive hover:bg-primary-interactive/20 transition-colors"
+          >
+            Email All Users
+          </button>
+          <span className="text-xs text-muted-foreground">Updated {timeAgo(data.lastUpdated)}</span>
+        </div>
       </div>
 
       {/* Funnel bar */}
@@ -938,7 +947,7 @@ function UserSegmentation() {
 
         {/* Funnel flow arrows */}
         <div className="flex items-center justify-between mt-2 px-2">
-          <span className="text-[10px] text-muted-foreground/60">Signed Up</span>
+          <span className="text-[10px] text-muted-foreground/60">Waitlist</span>
           <div className="flex-1 mx-2 border-t border-dashed border-border relative">
             <svg className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 text-muted-foreground/40" viewBox="0 0 8 8" fill="currentColor">
               <path d="M0 0 L8 4 L0 8 Z" />
