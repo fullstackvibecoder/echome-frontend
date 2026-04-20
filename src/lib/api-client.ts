@@ -2074,7 +2074,10 @@ export const api = {
 
     /** List user's video uploads */
     list: async (limit?: number, offset?: number) => {
-      const response = await apiClient.get('/clips', { params: { limit, offset } });
+      const response = await apiClient.get('/clips', { 
+        params: { limit, offset },
+        timeout: LIST_TIMEOUT
+      });
       return response.data as {
         success: boolean;
         data: {

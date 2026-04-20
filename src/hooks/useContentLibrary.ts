@@ -389,13 +389,15 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
     } catch (err: any) {
       console.error('Content Library fetch error:', err);
-      // Better error messages
+      // Enhanced error messages with specific guidance
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        setError('Request timed out. Please try again.');
+        setError('Loading is taking longer than expected. This can happen when you have many content items or during high server load. Please try refreshing the page.');
+      } else if (err.message?.includes('Network Error')) {
+        setError('Network connection issue. Please check your internet connection and try again.');
       } else if (err.response?.status === 401) {
         setError('Please log in to view your content.');
       } else if (err.response?.status >= 500) {
-        setError('Server error. Please try again later.');
+        setError('Server error occurred. Please try again in a moment.');
       } else {
         setError(err.message || 'Failed to load content');
       }
