@@ -2046,17 +2046,31 @@ export const api = {
 
     /** Get upload with clips and content kit */
     get: async (uploadId: string) => {
-      const response = await apiClient.get(`/clips/${uploadId}`, {
-        timeout: CONTENT_KIT_TIMEOUT
-      });
-      return response.data as {
-        success: boolean;
-        data: {
-          upload: VideoUpload;
-          clips: VideoClip[];
-          contentKit: ContentKit | null;
+      try {
+        const response = await apiClient.get(`/clips/${uploadId}`, {
+          timeout: CONTENT_KIT_TIMEOUT
+        });
+        return response.data as {
+          success: boolean;
+          data: {
+            upload: VideoUpload;
+            clips: VideoClip[];
+            contentKit: ContentKit | null;
+          };
         };
-      };
+      } catch (error: any) {
+        // Enhanced error handling for video upload loading
+        if (error.response?.status >= 500) {
+          throw new Error(`Server error loading video upload (${error.response.status}): ${error.response?.data?.error || 'Internal server error'}. Please try again.`);
+        } else if (error.response?.status === 404) {
+          throw new Error('Video upload not found. It may have been deleted or the link is incorrect.');
+        } else if (error.response?.status === 403) {
+          throw new Error('You do not have permission to view this video upload.');
+        } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          throw new Error('Request timed out loading video upload. Please try again or check your connection.');
+        }
+        throw error;
+      }
     },
 
     /** Get job status */
@@ -2155,17 +2169,31 @@ export const api = {
   contentKits: {
     /** Get content kit with full data */
     get: async (kitId: string) => {
-      const response = await apiClient.get(`/content-kits/${kitId}`, {
-        timeout: CONTENT_KIT_TIMEOUT
-      });
-      return response.data as {
-        success: boolean;
-        data: {
-          kit: ContentKit;
-          upload: VideoUpload;
-          clips: VideoClip[];
+      try {
+        const response = await apiClient.get(`/content-kits/${kitId}`, {
+          timeout: CONTENT_KIT_TIMEOUT
+        });
+        return response.data as {
+          success: boolean;
+          data: {
+            kit: ContentKit;
+            upload: VideoUpload;
+            clips: VideoClip[];
+          };
         };
-      };
+      } catch (error: any) {
+        // Enhanced error handling for content kit loading
+        if (error.response?.status >= 500) {
+          throw new Error(`Server error loading content kit (${error.response.status}): ${error.response?.data?.error || 'Internal server error'}. Please try again.`);
+        } else if (error.response?.status === 404) {
+          throw new Error('Content kit not found. It may have been deleted or the link is incorrect.');
+        } else if (error.response?.status === 403) {
+          throw new Error('You do not have permission to view this content kit.');
+        } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          throw new Error('Request timed out loading content kit. Please try again or check your connection.');
+        }
+        throw error;
+      }
     },
 
     /** List user's content kits */

@@ -137,6 +137,9 @@ export function useContentKit(options: UseContentKitOptions = {}): UseContentKit
   const stats = calculateStats(allItems);
 
   const refresh = useCallback(async () => {
+    // Reset retry count on manual refresh
+    retryCountRef.current = 0;
+    setError(null);
     setLoading(true);
     await fetchData();
   }, [fetchData]);
@@ -262,20 +265,78 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
       }
 
       throw new Error('Content not found');
-    } catch (err) {
-      // Enhanced error handling for timeout scenarios
-      if (err instanceof Error) {
-        if (err.message.includes('timeout') || err.message.includes('ECONNABORTED')) {
-          setError('Loading is taking longer than expected. This usually happens with large content kits or during high server load. Please try refreshing the page.');
-        } else if (err.message.includes('Network Error')) {
-          setError('Network connection issue. Please check your internet connection and try again.');
-        } else if (err.message.includes('500') || err.message.includes('Server Error')) {
-          setError('Server error occurred while loading content. Please try again in a moment.');
+    } catch (err: any) {
+      console.error('Content kit detail loading failed:', err);
+      
+      // Enhanced error handling with retry logic and specific messaging
+      if (err instanceof Error || err?.response) {
+        const isAxiosError = err?.response || err?.code === 'ECONNABORTED';
+        const statusCode = err?.response?.status;
+        const errorMessage = err?.response?.data?.error || err.message || String(err);
+        
+        // Implement automatic retry for transient server errors
+        if ((statusCode >= 500 && statusCode < 600) || errorMessage.includes('500')) {
+          console.warn('Server error detected, attempting retry...');
+          
+          if (retryCountRef.current < 3) {
+            retryCountRef.current += 1;
+            const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 5000);
+            
+            setTimeout(() => {
+              console.log(`Retrying content kit load attempt ${retryCountRef.current}/3 after ${retryDelay}ms`);
+              fetchData();
+            }, retryDelay);
+            
+            setError(`Server error (attempt ${retryCountRef.current}/3). Retrying...`);
+            return;
+          } else {
+            setError(
+              'Server is currently experiencing issues loading this content kit. ' +
+              'This could be due to high server load or temporary backend problems. ' +
+              'Please try refreshing the page or come back in a few minutes.'
+            );
+          }
+        } else if (statusCode === 404) {
+          setError(
+            'This content kit was not found. It may have been deleted or the link is incorrect. ' +
+            'Please check the URL or contact support if you believe this is an error.'
+          );
+        } else if (statusCode === 403) {
+          setError(
+            'You do not have permission to view this content kit. ' +
+            'Please make sure you are logged in with the correct account.'
+          );
+        } else if (statusCode === 401) {
+          setError(
+            'Your session has expired. Please log in again to access your content kits.'
+          );
+        } else if (err.message?.includes('timeout') || err.code === 'ECONNABORTED') {
+          setError(
+            'Loading is taking longer than expected. This usually happens with large content kits ' +
+            'or during high server load. Please try refreshing the page or check your internet connection.'
+          );
+        } else if (err.message?.includes('Network Error') || !navigator.onLine) {
+          setError(
+            'Unable to connect to the server. Please check your internet connection and try again. ' +
+            'If the problem persists, our servers may be temporarily unavailable.'
+          );
         } else {
-          setError(err.message);
+          // Generic fallback with helpful context
+          setError(
+            `Failed to load content kit: ${errorMessage}. ` +
+            'If this error persists, please try refreshing the page or contact support.'
+          );
         }
       } else {
-        setError('Failed to load content');
+        setError(
+          'An unexpected error occurred while loading the content kit. ' +
+          'Please try refreshing the page or contact support if the problem continues.'
+        );
+      }
+      
+      // Reset retry count on non-retryable errors
+      if (!err?.response?.status || err.response.status < 500 || err.response.status >= 600) {
+        retryCountRef.current = 0;
       }
     } finally {
       setLoading(false);
