@@ -8,9 +8,12 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { analyzeError } from '@/lib/error-handler';
 import { UploadZone } from '@/components/upload-zone';
 import { VoiceRecorder } from '@/components/voice-recorder';
 import { MboxProgressUI } from '@/components/mbox-progress-ui';
+import { NetworkStatusIndicator, NetworkErrorBanner } from '@/components/NetworkStatusIndicator';
 import { isMboxFile } from '@/lib/file-utils';
 import { parseMboxFile } from '@/lib/mbox-parser';
 import { extractErrorMessage } from '@/lib/error-utils';
@@ -66,11 +69,21 @@ function EchoAvatar() {
 export default function OnboardingContent() {
   const router = useRouter();
   const { kbs, loading: kbLoading, contentItems: existingContent, refresh } = useKnowledgeBase();
+  const { 
+    isOnline, 
+    getConnectionQuality, 
+    getStatusMessage, 
+    retryWithNetworkCheck,
+    isRecoveringFromOffline 
+  } = useNetworkStatus();
 
   const [step, setStep] = useState<Step>('welcome');
   const [messages, setMessages] = useState<Message[]>([]);
   const [completedItems, setCompletedItems] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Network error state
+  const [networkError, setNetworkError] = useState<string | null>(null);
 
   // Profile
   const [displayName, setDisplayName] = useState('');
@@ -219,18 +232,34 @@ export default function OnboardingContent() {
   const handleSaveProfile = async () => {
     if (!displayName.trim()) return;
     setProfileSaving(true);
+    setNetworkError(null);
     addUser(displayName.trim());
 
     try {
-      await api.auth.updateProfile({
-        display_name: displayName.trim() || undefined,
-        twitter_handle: twitterHandle.trim() || null,
-        instagram_handle: instagramHandle.trim() || null,
+      await retryWithNetworkCheck(async () => {
+        await api.auth.updateProfile({
+          display_name: displayName.trim() || undefined,
+          twitter_handle: twitterHandle.trim() || null,
+          instagram_handle: instagramHandle.trim() || null,
+        });
       });
-    } catch {}
-
-    setProfileSaving(false);
-    addEcho(`Got it, ${displayName.trim().split(' ')[0]}. Now let's teach me your voice.`);
+      
+      setProfileSaving(false);
+      addEcho(`Got it, ${displayName.trim().split(' ')[0]}. Now let's teach me your voice.`);
+      
+    } catch (error: any) {
+      setProfileSaving(false);
+      const errorAnalysis = analyzeError(error);
+      
+      if (errorAnalysis.errorType === 'network') {
+        setNetworkError('Unable to save your profile due to network issues. Please check your connection and try again.');
+        addEcho("I'm having trouble saving your profile due to a connection issue. Once your network is stable, just try again.");
+      } else {
+        console.warn('Profile save error:', error);
+        addEcho("I had a small hiccup saving your profile, but let's continue. You can update it later from settings.");
+      }
+      return;
+    }
 
     // Start the guided import flow
     setTimeout(() => advanceToStep('youtube'), 500);
@@ -244,14 +273,17 @@ export default function OnboardingContent() {
 
     addUser(normalizedUrl);
     setImporting(true);
+    setNetworkError(null);
 
     try {
-      const apiPlatform = platform === 'blog' ? 'blog' : platform as 'youtube' | 'instagram';
-      const result = await api.kbContent.startSocialImport({
-        platform: apiPlatform,
-        url: normalizedUrl,
-        knowledgeBaseId: defaultKbId,
-        useForVoiceMatching: true,
+      const result = await retryWithNetworkCheck(async () => {
+        const apiPlatform = platform === 'blog' ? 'blog' : platform as 'youtube' | 'instagram';
+        return await api.kbContent.startSocialImport({
+          platform: apiPlatform,
+          url: normalizedUrl,
+          knowledgeBaseId: defaultKbId,
+          useForVoiceMatching: true,
+        });
       });
 
       if (!result.success) throw new Error('Import failed');
@@ -260,8 +292,16 @@ export default function OnboardingContent() {
       const label = platform.charAt(0).toUpperCase() + platform.slice(1);
       addSystem(`${label} import started. Processing in background.`);
       await refresh();
-    } catch (err) {
-      addSystem(extractErrorMessage(err, 'Import failed. Check the URL and try again.'));
+      
+    } catch (err: any) {
+      const errorAnalysis = analyzeError(err);
+      
+      if (errorAnalysis.errorType === 'network') {
+        setNetworkError(`Unable to import ${platform} content due to network issues. Please check your connection and try again.`);
+        addSystem('Network connection issue detected. Please check your internet and try the import again.');
+      } else {
+        addSystem(extractErrorMessage(err, 'Import failed. Check the URL and try again.'));
+      }
     }
 
     setImporting(false);
@@ -282,19 +322,31 @@ export default function OnboardingContent() {
 
     addUser(`Pasted ${pasteText.split(/\s+/).length} words`);
     setPasting(true);
+    setNetworkError(null);
 
     try {
-      await api.kbContent.paste({
-        text: pasteText,
-        title: 'Writing sample',
-        sourceType: 'writing_sample',
-        knowledgeBaseId: defaultKbId,
+      await retryWithNetworkCheck(async () => {
+        await api.kbContent.paste({
+          text: pasteText,
+          title: 'Writing sample',
+          sourceType: 'writing_sample',
+          knowledgeBaseId: defaultKbId,
+        });
       });
+      
       setCompletedItems(prev => prev + 1);
       addSystem('Writing sample added.');
       await refresh();
-    } catch {
-      addSystem('Failed to save. Try again.');
+      
+    } catch (error: any) {
+      const errorAnalysis = analyzeError(error);
+      
+      if (errorAnalysis.errorType === 'network') {
+        setNetworkError('Unable to save your writing sample due to network issues. Please check your connection and try again.');
+        addSystem('Network connection issue. Please check your internet and try saving again.');
+      } else {
+        addSystem('Failed to save. Try again.');
+      }
     }
 
     setPasting(false);
@@ -325,11 +377,19 @@ export default function OnboardingContent() {
     for (const file of otherFiles) {
       addUser(file.name);
       try {
-        await api.files.upload(defaultKbId, file);
+        await retryWithNetworkCheck(async () => {
+          await api.files.upload(defaultKbId, file);
+        });
         setCompletedItems(prev => prev + 1);
         addSystem(`${file.name} uploaded.`);
-      } catch {
-        addSystem(`Failed to upload ${file.name}.`);
+      } catch (error: any) {
+        const errorAnalysis = analyzeError(error);
+        if (errorAnalysis.errorType === 'network') {
+          setNetworkError(`Unable to upload ${file.name} due to network issues. Please check your connection and try again.`);
+          addSystem(`Network issue uploading ${file.name}. Please check your internet and try again.`);
+        } else {
+          addSystem(`Failed to upload ${file.name}.`);
+        }
       }
     }
 
@@ -341,6 +401,7 @@ export default function OnboardingContent() {
     setMboxUploading(true);
     setMboxProgress(0);
     setMboxStatus('Reading file...');
+    setNetworkError(null);
     addUser(file.name);
 
     try {
@@ -361,26 +422,36 @@ export default function OnboardingContent() {
       setMboxProgress(70);
       setMboxStatus(`Uploading ${parseResult.emails.length} emails...`);
 
-      const result = await api.kbContent.ingestParsedEmails({
-        emails: parseResult.emails,
-        knowledgeBaseId: defaultKbId,
-        fileName: file.name,
-        parseStats: {
-          totalEmailsFound: parseResult.totalEmailsFound,
-          emailsParsed: parseResult.emailsParsed,
-          emailsFiltered: parseResult.emailsFiltered,
-          parseErrors: parseResult.parseErrors,
-        },
-        onBatchProgress: (batchNum, totalBatches) => {
-          setMboxProgress(70 + Math.round((batchNum / totalBatches) * 30));
-          setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
-        },
+      const result = await retryWithNetworkCheck(async () => {
+        return await api.kbContent.ingestParsedEmails({
+          emails: parseResult.emails,
+          knowledgeBaseId: defaultKbId,
+          fileName: file.name,
+          parseStats: {
+            totalEmailsFound: parseResult.totalEmailsFound,
+            emailsParsed: parseResult.emailsParsed,
+            emailsFiltered: parseResult.emailsFiltered,
+            parseErrors: parseResult.parseErrors,
+          },
+          onBatchProgress: (batchNum, totalBatches) => {
+            setMboxProgress(70 + Math.round((batchNum / totalBatches) * 30));
+            setMboxStatus(`Uploading batch ${batchNum}/${totalBatches}...`);
+          },
+        });
       });
 
       setCompletedItems(prev => prev + 1);
       addSystem(`${result.emailsIngested} emails imported.`);
-    } catch (err) {
-      addSystem(`Email import failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      
+    } catch (err: any) {
+      const errorAnalysis = analyzeError(err);
+      
+      if (errorAnalysis.errorType === 'network') {
+        setNetworkError('Unable to upload email archive due to network issues. Please check your connection and try again.');
+        addSystem('Network connection issue during email upload. Please check your internet and try again.');
+      } else {
+        addSystem(`Email import failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     } finally {
       setMboxUploading(false);
       setMboxStatus('');
@@ -421,6 +492,19 @@ export default function OnboardingContent() {
   // ─── RENDER ───
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Network Status Indicator */}
+      <NetworkStatusIndicator />
+      
+      {/* Network Error Banner */}
+      {networkError && (
+        <div className="p-4">
+          <NetworkErrorBanner
+            error={networkError}
+            onRetry={() => setNetworkError(null)}
+          />
+        </div>
+      )}
+      
       {/* Hidden mbox input */}
       <input
         ref={mboxInputRef}
