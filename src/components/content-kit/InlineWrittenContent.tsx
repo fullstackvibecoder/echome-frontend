@@ -14,6 +14,7 @@ import {
   Copy,
   Check,
   CalendarClock,
+  Clapperboard,
   type LucideIcon,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
@@ -36,6 +37,7 @@ const PLATFORMS: PlatformConfig[] = [
   { key: 'email', label: 'Email', field: 'contentEmail', icon: Mail, accent: '#0077AA', charLimit: null },
   { key: 'tiktok', label: 'TikTok', field: 'contentTiktok', icon: Music2, accent: '#000000', charLimit: 2200 },
   { key: 'youtube', label: 'YouTube', field: 'contentYoutube', icon: Youtube, accent: '#FF0000', charLimit: 5000 },
+  { key: 'video-script', label: 'Video Script', field: 'contentVideoScript', icon: Clapperboard, accent: '#8B5CF6', charLimit: null },
 ];
 
 const FIELD_MAP: Record<string, string> = {
@@ -45,6 +47,7 @@ const FIELD_MAP: Record<string, string> = {
   email: 'contentEmail',
   tiktok: 'contentTiktok',
   youtube: 'contentYoutube',
+  'video-script': 'contentVideoScript',
 };
 
 interface InlineWrittenContentProps {

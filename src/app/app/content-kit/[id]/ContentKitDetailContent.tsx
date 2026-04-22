@@ -663,6 +663,7 @@ export default function ContentKitDetailContent() {
                       email: detail.contentKit.contentEmail,
                       tiktok: detail.contentKit.contentTiktok,
                       youtube: detail.contentKit.contentYoutube,
+                      'video-script': detail.contentKit.contentVideoScript,
                     }}
                     onContentUpdate={() => refresh()}
                     onSchedule={(platform) => setQuickScheduleConfig({ type: 'platform', platform })}
