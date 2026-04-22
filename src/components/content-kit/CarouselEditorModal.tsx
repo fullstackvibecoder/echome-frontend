@@ -14,6 +14,7 @@ import { downloadImage } from '@/lib/download';
 import { showErrorToast } from '@/lib/toast';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
+import { PostCaptionBlock } from './PostCaptionBlock';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 
@@ -38,6 +39,10 @@ interface CarouselEditorModalProps {
   designPreset?: string;
   uploadId?: string;
   onCarouselUpdate: () => void;
+  /** Per-carousel Instagram post caption. Falls back to content_instagram if null. */
+  suggestedCaption?: string | null;
+  /** Kit-level Instagram caption, used as fallback when per-carousel caption is missing. */
+  fallbackCaption?: string | null;
 }
 
 const TEMPLATE_TEXT_STYLES: Record<string, {
@@ -77,6 +82,8 @@ export default function CarouselEditorModal({
   onClose,
   slides: initialSlides,
   contentKitId,
+  suggestedCaption,
+  fallbackCaption,
   designPreset,
   uploadId,
   onCarouselUpdate,
@@ -329,6 +336,11 @@ export default function CarouselEditorModal({
             {/* Style editor */}
             <CarouselStyleEditor kitId={contentKitId} currentDesignPreset={currentPreset} uploadId={uploadId} onRestyleComplete={handleRestyleComplete} />
 
+            {/* Post caption — the text to paste into Instagram when uploading.
+                Falls back to the kit-level Instagram caption if a per-carousel
+                caption hasn't been generated yet. */}
+            <PostCaptionBlock caption={suggestedCaption} fallback={fallbackCaption} />
+
             {/* Download */}
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => handleDownload(activeIndex)} disabled={downloading}
@@ -349,3 +361,4 @@ export default function CarouselEditorModal({
     </div>
   );
 }
+

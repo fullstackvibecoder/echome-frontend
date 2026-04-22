@@ -6,6 +6,7 @@ import { api } from '@/lib/api-client';
 import { BRollStrip } from './BRollStrip';
 import SegmentPreview from './SegmentPreview';
 import SegmentEditor from './SegmentEditor';
+import { PostCaptionBlock } from '@/components/content-kit/PostCaptionBlock';
 import type { TextOverlayStyleId } from '@/types';
 
 interface BRollClip {
@@ -21,7 +22,10 @@ interface ReelEditorModalProps {
   onClose: () => void;
   contentKitId: string;
   reelProjectId?: string;
+  /** Kit-level IG caption — also used as the default text overlay body */
   instagramCaption?: string;
+  /** Per-reel post caption (preferred for the post-caption display) */
+  postCaption?: string | null;
 }
 
 const STYLE_OPTIONS: Array<{
@@ -42,6 +46,7 @@ export default function ReelEditorModal({
   contentKitId,
   reelProjectId,
   instagramCaption,
+  postCaption,
 }: ReelEditorModalProps) {
   // ---- State ----
   const [clips, setClips] = useState<BRollClip[]>([]);
@@ -344,6 +349,11 @@ export default function ReelEditorModal({
                     {error}
                   </p>
                 )}
+
+                {/* Post caption — the text to paste into Instagram when uploading.
+                    Falls back to the kit-level IG caption if a per-reel caption
+                    hasn't been generated yet. */}
+                <PostCaptionBlock caption={postCaption} fallback={instagramCaption} />
 
                 {/* Action button */}
                 <div className="pt-2">

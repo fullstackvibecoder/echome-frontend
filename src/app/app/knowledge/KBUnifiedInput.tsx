@@ -420,7 +420,11 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
 
       {/* Helper text — what you can add */}
       <p className="text-[11px] text-muted-foreground/70 leading-relaxed px-1">
-        YouTube links · Instagram profiles · blog URLs · PDFs · text you wrote · voice recordings · Gmail exports (.mbox)
+        YouTube links · Instagram profiles · blog URLs · PDFs · text you wrote · voice recordings · Gmail exports (
+        <a href="/guides/email-upload" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+          .mbox — how to export
+        </a>
+        )
       </p>
 
       {/* Hidden file inputs */}

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
+import { QuickShareButton } from '@/components/share-buttons';
 
 interface PlatformConfig {
   key: string;
@@ -210,13 +211,16 @@ export function InlineWrittenContent({
                 Set Reminder
               </button>
             )}
+            {/* Direct-to-platform post button. Opens the platform's web composer
+                pre-filled with the current text (Twitter/X, LinkedIn, Threads,
+                Facebook) or copies to clipboard for platforms without a text
+                intent URL (Instagram, TikTok). */}
+            <QuickShareButton
+              content={activeText}
+              platformKey={activePlatform}
+            />
           </div>
         </div>
-
-        {/* Auto-posting coming soon hint */}
-        <p className="mt-1 text-[10px] text-muted-foreground/50 px-1">
-          Auto-posting coming soon
-        </p>
 
       </div>
     </div>

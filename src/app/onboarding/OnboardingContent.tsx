@@ -723,7 +723,12 @@ export default function OnboardingContent() {
                 <h2 className="text-lg font-semibold">Import Emails</h2>
                 <button onClick={() => setShowMboxModal(false)} className="text-text-secondary hover:text-text-primary" aria-label="Close"><X className="w-5 h-5" /></button>
               </div>
-              <p className="text-sm text-text-secondary mb-4">Import your sent emails to teach Echo your writing style.</p>
+              <p className="text-sm text-text-secondary mb-4">
+                Import your sent emails to teach Echo your writing style.{' '}
+                <a href="/guides/email-upload" target="_blank" rel="noopener noreferrer" className="underline hover:text-text-primary">
+                  Step-by-step guide →
+                </a>
+              </p>
               <div className="space-y-3 mb-4">
                 <div className="p-3 bg-bg-secondary rounded-lg text-xs">
                   <p className="font-medium mb-1">Gmail</p>

@@ -831,6 +831,8 @@ export default function ContentKitDetailContent() {
           contentKitId={contentKitId || id}
           designPreset={detail.carousel.designPreset}
           uploadId={detail?.clips?.[0]?.videoUploadId}
+          suggestedCaption={(detail.carousel as any)?.suggestedCaption}
+          fallbackCaption={detail?.contentKit?.contentInstagram}
           onCarouselUpdate={() => refresh()}
         />
       )}
@@ -843,6 +845,7 @@ export default function ContentKitDetailContent() {
           contentKitId={contentKitId}
           reelProjectId={(detail as any)?.reel?.id}
           instagramCaption={detail?.contentKit?.contentInstagram}
+          postCaption={(detail as any)?.reelContent?.postCaption}
         />
       )}
     </div>
