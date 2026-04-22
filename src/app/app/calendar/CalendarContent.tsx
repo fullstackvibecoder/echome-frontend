@@ -66,14 +66,15 @@ export default function CalendarContent() {
       )}
 
       {!loading && items.length === 0 && (
-        <div className="text-center py-16 bg-card border border-border rounded-xl">
+        <div className="text-center py-16 bg-card border border-border rounded-xl px-6 max-w-xl mx-auto">
           <Calendar className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
           <h3 className="text-lg font-medium text-foreground mb-2">No scheduled content</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Schedule content from any Content Kit to see it here.
+          <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+            Open any Content Kit and pick a date — Echo will remind you when it&apos;s time to publish.
+            Auto-posting is coming soon; for now you copy-paste into each platform.
           </p>
           <Link href="/app/content-kit" className="text-sm text-primary-interactive hover:underline">
-            Go to Content Kits
+            Open a Content Kit →
           </Link>
         </div>
       )}

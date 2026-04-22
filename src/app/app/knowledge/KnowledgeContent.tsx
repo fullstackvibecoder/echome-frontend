@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Mic, ChevronRight, Sprout, TrendingUp, Zap, Star, type LucideIcon } from 'lucide-react';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { VoiceWaveform } from '@/components/voice-waveform';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { InfoTooltip } from '@/components/info-tooltip';
 import { KBUnifiedInput } from './KBUnifiedInput';
 import KBChat from './KBChat';
 import { SourcesDrawer } from './components/SourcesDrawer';
@@ -76,9 +78,12 @@ export default function KnowledgeContent() {
     refreshVoiceStrength();
   }, [refresh, refreshVoiceStrength]);
 
-  // Voice strength
+  // Voice strength — tier/icon fall back to Seed so the scale is always visible
   const tier = voiceStrength ? getStrengthTier(voiceStrength.overallStrength) : null;
   const TierIcon = tier?.icon;
+  const displayTier = tier ?? TIERS[0];
+  const DisplayIcon = TierIcon ?? TIERS[0].icon;
+  const displayScore = voiceStrength?.overallStrength ?? 0;
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
@@ -110,26 +115,21 @@ export default function KnowledgeContent() {
         </div>
       )}
 
-      {/* Header: title + voice strength */}
+      {/* Header: title + voice strength (always renders the scale, even at 0) */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Build Your Voice</h1>
         <div className="flex items-center gap-2 mt-1">
-          {tier && TierIcon && (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${tier.badgeBg} ${tier.badgeText}`}>
-              <TierIcon className="w-3 h-3" />
-              {tier.name}
-            </span>
-          )}
-          {voiceStrength && (
-            <span className="text-xs text-text-secondary tabular-nums">
-              {voiceStrength.overallStrength}<span className="text-text-tertiary">/100</span>
-            </span>
-          )}
-          {hasContent && (
-            <span className="text-xs text-text-tertiary">
-              · {totalItems} source{totalItems !== 1 ? 's' : ''}
-            </span>
-          )}
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${displayTier.badgeBg} ${displayTier.badgeText}`}>
+            <DisplayIcon className="w-3 h-3" />
+            {displayTier.name}
+          </span>
+          <span className="text-xs text-text-secondary tabular-nums">
+            {displayScore}<span className="text-text-tertiary">/100</span>
+          </span>
+          <span className="text-xs text-text-tertiary">
+            · {totalItems} source{totalItems !== 1 ? 's' : ''}
+          </span>
+          <InfoTooltip text="Seed (0–25) · Growing (26–50) · Strong (51–75) · Signature (76+). Most people reach Strong with 15–20 good sources." />
         </div>
         {voiceStrength && (
           <div className="mt-3 space-y-2">
@@ -158,6 +158,33 @@ export default function KnowledgeContent() {
 
       {!loading && (
         <>
+          {/* First-visit teaching — disappears once the user adds any source */}
+          {!hasContent && (
+            <div className="mb-6 rounded-xl border border-border bg-card p-5">
+              <h2 className="text-base font-semibold text-foreground mb-1">
+                Teach Echo how you write.
+              </h2>
+              <p className="text-sm text-text-secondary mb-4 leading-relaxed">
+                Paste your best writing, drop a YouTube link, or upload a file.
+                The more Echo learns, the more your generated content sounds like
+                you — not AI.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {['Blog posts', 'LinkedIn posts', 'Past emails', 'YouTube channel', 'Voice recordings', 'PDFs'].map(tag => (
+                  <span key={tag} className="text-xs px-2 py-1 rounded-full bg-bg-secondary text-text-secondary">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <Link
+                href="/guides/build-your-voice"
+                className="text-xs text-primary-interactive hover:underline"
+              >
+                How this works →
+              </Link>
+            </div>
+          )}
+
           {/* Unified Input */}
           <div className="mb-8">
             <KBUnifiedInput
@@ -166,24 +193,28 @@ export default function KnowledgeContent() {
             />
           </div>
 
-          {/* Chat */}
-          <div className="mb-8">
-            <KBChat
-              kbId={selectedKb}
-              hasContent={hasContent}
-            />
-          </div>
+          {/* Chat — only once there's something to ask about */}
+          {hasContent && (
+            <div className="mb-8">
+              <KBChat
+                kbId={selectedKb}
+                hasContent={hasContent}
+              />
+            </div>
+          )}
 
-          {/* Sources (collapsible) */}
-          <section>
-            <button
-              onClick={() => setShowSources(true)}
-              className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-              Sources ({totalItems})
-            </button>
-          </section>
+          {/* Sources (collapsible) — hidden at zero to avoid a dead link */}
+          {totalItems > 0 && (
+            <section>
+              <button
+                onClick={() => setShowSources(true)}
+                className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+                Sources ({totalItems})
+              </button>
+            </section>
+          )}
         </>
       )}
 

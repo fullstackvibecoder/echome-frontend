@@ -121,13 +121,21 @@ function ContentKitListInner() {
   if (!isLoading && items.length === 0 && !error) {
     return (
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <h3 className="text-lg font-semibold mb-1">No content kits yet</h3>
-          <p className="text-text-secondary mb-6 text-sm">
-            Create your first content kit to get started
+        <div className="flex flex-col items-center justify-center py-20 text-center max-w-xl mx-auto">
+          <h3 className="text-lg font-semibold mb-2">No content kits yet</h3>
+          <p className="text-text-secondary text-sm mb-6 leading-relaxed">
+            A Content Kit is a week&apos;s worth of content from one input.
+            Drop a YouTube link, upload a video, or type a topic — Echo turns it
+            into clips, carousels, captions, a Substack article, and an email newsletter.
           </p>
           <Link href="/app" className="btn-primary">
-            Create Content
+            Create your first kit
+          </Link>
+          <Link
+            href="/guides/content-kits"
+            className="text-xs text-text-tertiary hover:text-text-secondary mt-3"
+          >
+            See a sample kit →
           </Link>
         </div>
       </div>
