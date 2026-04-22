@@ -3,16 +3,20 @@
 /**
  * PostCaptionBlock
  *
- * Displays a contextual post caption for a visual output (carousel, reel)
- * with Copy + direct-to-Instagram share buttons. Falls back to a kit-level
- * caption when the per-output caption hasn't been generated yet, with a
- * small note so the user knows it's shared.
+ * Displays a contextual post caption for a visual output (clip, carousel,
+ * reel). Single Copy button — no duplicate platform share button, because
+ * Instagram (the primary target for these visual outputs) has no web text
+ * intent URL and would behave identically to Copy, confusing users.
  *
- * Used from: CarouselEditorModal, ReelEditorModal.
+ * For per-platform Post buttons with real intent URLs (LinkedIn, X,
+ * Threads, Facebook), see InlineWrittenContent which handles the written
+ * platform tabs where those URLs actually do something distinct.
+ *
+ * Falls back to a kit-level caption when the per-output caption hasn't
+ * been generated yet, with a small note so the user knows it's shared.
  */
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { QuickShareButton } from '@/components/share-buttons';
 
 interface PostCaptionBlockProps {
   /** Preferred caption (per-output). If null/empty, fallback is used. */
@@ -48,19 +52,18 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption' }: 
             </span>
           )}
         </label>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-border text-muted-foreground text-xs font-medium hover:text-foreground transition-colors"
-          >
-            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-            {copied ? 'Copied' : 'Copy'}
-          </button>
-          <QuickShareButton content={text} platformKey="instagram" />
-        </div>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-muted-foreground text-xs font-medium hover:text-foreground transition-colors"
+        >
+          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          {copied ? 'Copied' : 'Copy caption'}
+        </button>
       </div>
-      <div className="bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
+      {/* No height cap — parent modal column handles overflow scroll.
+          Caps that silently clip text were confusing users. */}
+      <div className="bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
         {text}
       </div>
     </div>
