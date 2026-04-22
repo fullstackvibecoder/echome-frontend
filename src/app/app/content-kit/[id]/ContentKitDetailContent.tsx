@@ -28,6 +28,8 @@ import { CaptionPositionControl } from '@/components/content-kit/CaptionPosition
 import type { CaptionPosition } from '@/components/content-kit/CaptionOverlay';
 import { BlogPostSection } from '@/components/blog-post-section';
 import { VideoReelSection } from '@/components/content-kit/VideoReelSection';
+import { NetworkStatusIndicator, NetworkErrorBanner } from '@/components/NetworkStatusIndicator';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 // Progress step component
 function ProgressStep({
@@ -73,6 +75,7 @@ export default function ContentKitDetailContent() {
   const { user } = useAuth();
   const isAdmin = !!user?.isAdmin;
   const { activeVoice, isTeamsUser } = useVoiceContext();
+  const { isOnline, getConnectionQuality, getStatusMessage } = useNetworkStatus();
   const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const [showSplitScreen, setShowSplitScreen] = useState(false);
@@ -477,80 +480,91 @@ export default function ContentKitDetailContent() {
         </div>
       )}
 
+      {/* Network Status Indicator */}
+      <NetworkStatusIndicator />
+
       {/* Error State */}
       {error && (
-        <div className="p-6 bg-error/10 border border-error/20 rounded-lg text-center">
-          <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center mx-auto mb-4">
-            <span className="text-error text-xl">
-              {error.includes('Server') || error.includes('500') ? '🔧' : 
-               error.includes('Network') ? '🌐' : 
-               error.includes('timeout') ? '⏱️' : '⚠️'}
-            </span>
-          </div>
-          <h3 className="text-lg font-semibold mb-2 text-error">
-            {error.includes('Server') || error.includes('500') ? 'Server Issue' :
-             error.includes('Network') ? 'Connection Problem' :
-             error.includes('timeout') ? 'Loading Timeout' :
-             error.includes('not found') || error.includes('404') ? 'Content Not Found' :
-             'Loading Failed'}
-          </h3>
-          <p className="text-error mb-4 max-w-lg mx-auto leading-relaxed">
-            {error}
-          </p>
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={refresh} 
-                className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
-              >
-                {error.includes('Server') || error.includes('500') ? 'Retry Request' : 'Try Again'}
-              </button>
-              {error.includes('timeout') || error.includes('longer than expected') ? (
-                <button 
-                  onClick={() => window.location.reload()} 
-                  className="px-4 py-2 bg-bg-tertiary text-text-secondary hover:text-text-primary rounded-lg transition-colors"
-                >
-                  Refresh Page
-                </button>
-              ) : null}
+        <div className="space-y-4">
+          {/* Network-specific error banner for network errors */}
+          {error.includes('Network') || error.includes('connectivity') || !isOnline ? (
+            <NetworkErrorBanner
+              error={error}
+              onRetry={refresh}
+            />
+          ) : (
+            /* Standard error UI for non-network errors */
+            <div className="p-6 bg-error/10 border border-error/20 rounded-lg text-center">
+              <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center mx-auto mb-4">
+                <span className="text-error text-xl">
+                  {error.includes('Server') || error.includes('500') ? '🔧' : 
+                   error.includes('timeout') ? '⏱️' : 
+                   error.includes('not found') || error.includes('404') ? '📄' : '⚠️'}
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-error">
+                {error.includes('Server') || error.includes('500') ? 'Server Issue' :
+                 error.includes('timeout') ? 'Loading Timeout' :
+                 error.includes('not found') || error.includes('404') ? 'Content Not Found' :
+                 'Loading Failed'}
+              </h3>
+              <p className="text-error mb-4 max-w-lg mx-auto leading-relaxed">
+                {error}
+              </p>
+              
+              {/* Connection status info for context */}
+              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Connection Status:</span> {getStatusMessage()}
+                  <span className="ml-2 inline-block w-2 h-2 rounded-full bg-{getConnectionQuality() === 'good' ? 'green' : getConnectionQuality() === 'fair' ? 'yellow' : getConnectionQuality() === 'poor' ? 'orange' : 'red'}-500"></span>
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={refresh} 
+                    className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
+                  >
+                    {error.includes('Server') || error.includes('500') ? 'Retry Request' : 'Try Again'}
+                  </button>
+                  {error.includes('timeout') || error.includes('longer than expected') ? (
+                    <button 
+                      onClick={() => window.location.reload()} 
+                      className="px-4 py-2 bg-bg-tertiary text-text-secondary hover:text-text-primary rounded-lg transition-colors"
+                    >
+                      Refresh Page
+                    </button>
+                  ) : null}
+                </div>
+                
+                {/* Additional help for specific error types */}
+                {error.includes('Server') || error.includes('500') ? (
+                  <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg max-w-lg">
+                    <p className="text-orange-700 text-sm">
+                      <strong>Server Error Tips:</strong>
+                    </p>
+                    <ul className="text-orange-600 text-sm mt-1 space-y-1 text-left">
+                      <li>• Wait a moment and try again</li>
+                      <li>• Check if the content kit ID is correct</li>
+                      <li>• Contact support if the error persists</li>
+                    </ul>
+                  </div>
+                ) : error.includes('not found') || error.includes('404') ? (
+                  <div className="mt-4 p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg max-w-lg">
+                    <p className="text-gray-700 text-sm">
+                      <strong>Content Not Found:</strong>
+                    </p>
+                    <ul className="text-gray-600 text-sm mt-1 space-y-1 text-left">
+                      <li>• Check if the URL is correct</li>
+                      <li>• Content may have been deleted</li>
+                      <li>• Try accessing from your content library</li>
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
             </div>
-            
-            {/* Additional help for specific error types */}
-            {error.includes('Server') || error.includes('500') ? (
-              <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg max-w-lg">
-                <p className="text-orange-700 text-sm">
-                  <strong>Server Error Tips:</strong>
-                </p>
-                <ul className="text-orange-600 text-sm mt-1 space-y-1 text-left">
-                  <li>• Wait a moment and try again</li>
-                  <li>• Check if the content kit ID is correct</li>
-                  <li>• Contact support if the error persists</li>
-                </ul>
-              </div>
-            ) : error.includes('Network') ? (
-              <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg max-w-lg">
-                <p className="text-blue-700 text-sm">
-                  <strong>Network Troubleshooting:</strong>
-                </p>
-                <ul className="text-blue-600 text-sm mt-1 space-y-1 text-left">
-                  <li>• Check your internet connection</li>
-                  <li>• Try refreshing the page</li>
-                  <li>• Disable VPN if you're using one</li>
-                </ul>
-              </div>
-            ) : error.includes('not found') || error.includes('404') ? (
-              <div className="mt-4 p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg max-w-lg">
-                <p className="text-gray-700 text-sm">
-                  <strong>Content Not Found:</strong>
-                </p>
-                <ul className="text-gray-600 text-sm mt-1 space-y-1 text-left">
-                  <li>• Check if the URL is correct</li>
-                  <li>• Content may have been deleted</li>
-                  <li>• Try accessing from your content library</li>
-                </ul>
-              </div>
-            ) : null}
-          </div>
+          )}
         </div>
       )}
 

@@ -9,6 +9,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api-client';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { analyzeError } from '@/lib/error-handler';
 import {
   transformGenerationRequest,
   transformVideoUpload,
@@ -186,6 +188,8 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const retryCountRef = useRef(0);
+  
+  const { retryWithNetworkCheck, isOnline, isRecoveringFromOffline } = useNetworkStatus();
 
   const fetchData = useCallback(async () => {
     try {
@@ -268,11 +272,124 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
     } catch (err: any) {
       console.error('Content kit detail loading failed:', err);
       
+      // Analyze error type for appropriate handling
+      const errorAnalysis = analyzeError(err);
+      
       // Enhanced error handling with retry logic and specific messaging
       if (err instanceof Error || err?.response) {
         const isAxiosError = err?.response || err?.code === 'ECONNABORTED';
         const statusCode = err?.response?.status;
         const errorMessage = err?.response?.data?.error || err.message || String(err);
+        
+        // Handle network errors with network-aware retry
+        if (errorAnalysis.errorType === 'network') {
+          console.warn('Network error detected, attempting network-aware retry...');
+          
+          if (retryCountRef.current < 3) {
+            retryCountRef.current += 1;
+            
+            try {
+              // Use network-aware retry that checks connectivity
+              const result = await retryWithNetworkCheck(async () => {
+                // Reset error state for retry
+                setError(`Network issue (attempt ${retryCountRef.current}/3). Checking connectivity...`);
+                
+                // Try the API call again
+                if (sourceType === 'auto' || sourceType === 'generation') {
+                  const response = await api.generation.getRequest(id);
+                  if (response.success && response.data) {
+                    return { type: 'generation', data: response.data };
+                  }
+                }
+                
+                if (sourceType === 'auto' || sourceType === 'clip-finder') {
+                  const response = await api.clips.get(id);
+                  if (response.success && response.data) {
+                    return { type: 'clips', data: response.data };
+                  }
+                }
+                
+                throw new Error('Content not found');
+              }, {
+                maxRetries: 1, // Use our own retry count
+                baseDelay: errorAnalysis.retryDelay || 3000,
+              });
+              
+              // Process successful result
+              if (result.type === 'generation') {
+                const data = result.data;
+                const unifiedItem: UnifiedContentItem = {
+                  id: data.request.id,
+                  type: data.clips?.length ? 'mixed' : data.carousel ? 'carousel' : 'text',
+                  title: data.contentKit?.title ||
+                         (data.request.inputText?.slice(0, 60) + '...') ||
+                         'Generated Content',
+                  sourceType: 'generation',
+                  generationRequestId: data.request.id,
+                  videoUploadId: data.contentKit?.videoUploadId,
+                  clipCount: data.clips?.length || 0,
+                  platformCount: data.content?.length || 0,
+                  carouselSlideCount: data.carousel?.slides?.length || 0,
+                  chunkCount: 0,
+                  thumbnailUrl: data.clips?.[0]?.thumbnailUrl,
+                  platforms: data.request.platforms || [],
+                  voiceScore: data.request.voiceScore,
+                  qualityScore: data.request.qualityScore,
+                  status: data.request.status,
+                  createdAt: typeof data.request.createdAt === 'string'
+                    ? data.request.createdAt
+                    : data.request.createdAt.toString(),
+                  updatedAt: typeof data.request.createdAt === 'string'
+                    ? data.request.createdAt
+                    : data.request.createdAt.toString(),
+                  inputType: data.request.inputType,
+                };
+                
+                setItem(unifiedItem);
+                setDetail({
+                  clips: data.clips || [],
+                  contentKit: data.contentKit || null,
+                  carousel: data.carousel || null,
+                  content: data.content || [],
+                });
+              } else {
+                const { upload, clips, contentKit } = result.data;
+                const unifiedItem = transformVideoUpload(upload, contentKit, clips?.length || 0);
+                setItem(unifiedItem);
+                setDetail({
+                  clips: clips || [],
+                  contentKit: contentKit || null,
+                  carousel: null,
+                  content: [],
+                });
+              }
+              
+              // Success - reset retry count and return
+              retryCountRef.current = 0;
+              setError(null);
+              return;
+              
+            } catch (networkRetryError: any) {
+              // Network retry failed
+              if (retryCountRef.current >= 3) {
+                setError(
+                  'Unable to connect to the server after multiple attempts. ' +
+                  'Please check your internet connection and try refreshing the page. ' +
+                  'If you continue to have issues, our servers may be temporarily unavailable.'
+                );
+              } else {
+                setError(`Network connectivity issue (attempt ${retryCountRef.current}/3). Retrying...`);
+              }
+              return;
+            }
+          } else {
+            setError(
+              'Unable to load content due to network connectivity issues. ' +
+              'Please check your internet connection and try refreshing the page. ' +
+              'If the problem persists, our servers may be temporarily unavailable.'
+            );
+          }
+        }
         
         // Implement automatic retry for transient server errors
         if ((statusCode >= 500 && statusCode < 600) || errorMessage.includes('500')) {

@@ -109,14 +109,46 @@ export function analyzeError(error: any): ErrorHandlerResult {
     };
   }
 
-  // Network errors
-  if (errorMessage.includes('Network Error') || errorMessage.includes('ERR_NETWORK') || !navigator.onLine) {
+  // Network errors - enhanced detection and categorization
+  if (errorMessage.includes('Network Error') || 
+      errorMessage.includes('ERR_NETWORK') || 
+      errorMessage.includes('ERR_INTERNET_DISCONNECTED') ||
+      errorMessage.includes('ERR_NAME_NOT_RESOLVED') ||
+      errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+      errorMessage.includes('ERR_CONNECTION_TIMED_OUT') ||
+      errorMessage.includes('NETWORK_ERROR') ||
+      error?.code === 'NETWORK_ERROR' ||
+      !navigator.onLine) {
+    
+    // Detect specific network issues for better user guidance
+    const isOffline = !navigator.onLine;
+    const isDNSIssue = errorMessage.includes('ERR_NAME_NOT_RESOLVED') || errorMessage.includes('DNS');
+    const isConnectionRefused = errorMessage.includes('ERR_CONNECTION_REFUSED') || errorMessage.includes('refused');
+    const isConnectionTimeout = errorMessage.includes('ERR_CONNECTION_TIMED_OUT') || errorMessage.includes('timed out');
+    
+    let specificGuidance = 'Please check your internet connection and try again.';
+    let retryDelay = 3000;
+    
+    if (isOffline) {
+      specificGuidance = 'You appear to be offline. Please check your internet connection.';
+      retryDelay = 5000; // Longer delay for offline scenarios
+    } else if (isDNSIssue) {
+      specificGuidance = 'DNS resolution failed. Try switching to a different network or DNS server (like 8.8.8.8).';
+      retryDelay = 4000;
+    } else if (isConnectionRefused) {
+      specificGuidance = 'Connection was refused by the server. The service may be temporarily unavailable.';
+      retryDelay = 6000; // Longer delay for server unavailability
+    } else if (isConnectionTimeout) {
+      specificGuidance = 'Connection timed out. Your network may be slow or the server may be overloaded.';
+      retryDelay = 4000;
+    }
+    
     return {
       userMessage: 
-        'Unable to connect to the server. Please check your internet connection ' +
-        'and try again. If the problem persists, our servers may be temporarily unavailable.',
+        `Unable to connect to the server. ${specificGuidance} ` +
+        'If the problem persists after trying again, our servers may be temporarily unavailable.',
       shouldRetry: true,
-      retryDelay: 3000,
+      retryDelay,
       errorType: 'network',
       logLevel: 'warn',
     };
