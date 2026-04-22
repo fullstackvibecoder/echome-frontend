@@ -58,6 +58,7 @@ const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + ini
 const STRIPE_TIMEOUT = 45000; // 45 seconds for Stripe API operations (billing, usage limits)
 const DASHBOARD_TIMEOUT = 25000; // 25 seconds for dashboard data loading operations
 const CONTENT_KIT_TIMEOUT = 60000; // 60 seconds for content kit loading (includes clips, carousel, content generation)
+const CONTENT_KIT_ACTION_TIMEOUT = 90000; // 90 seconds for user-triggered content kit actions (regenerate, resize, reel creation)
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -2265,7 +2266,7 @@ export const api = {
       additionalInstructions?: string;
     }) => {
       const response = await apiClient.post(`/content-kits/${kitId}/regenerate`, options || {}, {
-        timeout: GENERATION_TIMEOUT,
+        timeout: CONTENT_KIT_ACTION_TIMEOUT,
       });
       return response.data as {
         success: boolean;
@@ -2295,7 +2296,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/resize-carousel`,
         { aspectRatio },
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2325,7 +2326,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/generate-reel-content`,
         { templateId, contentType },
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2348,7 +2349,9 @@ export const api = {
 
     /** Get reel project linked to a content kit */
     getLinkedReel: async (kitId: string) => {
-      const response = await apiClient.get(`/content-kits/${kitId}/reel`);
+      const response = await apiClient.get(`/content-kits/${kitId}/reel`, {
+        timeout: CONTENT_KIT_TIMEOUT,
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2379,7 +2382,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/create-reel`,
         data,
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2400,7 +2403,7 @@ export const api = {
           music_track_id: options?.musicTrackId,
           smart_timing: options?.smartTiming,
         },
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;

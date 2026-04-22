@@ -338,9 +338,14 @@ export default function ContentKitDetailContent() {
           slides: mappedSlides,
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to resize carousel:', err);
-      showErrorToast(err, 'resizing carousel');
+      const isTimeout = err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
+      if (isTimeout) {
+        showErrorToast('Carousel resize is taking longer than expected. The server may be busy — please try again in a moment.', 'resizing carousel');
+      } else {
+        showErrorToast(err, 'resizing carousel');
+      }
     } finally {
       setResizing(false);
     }
