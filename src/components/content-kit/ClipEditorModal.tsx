@@ -17,6 +17,7 @@ import { CaptionPositionControl } from './CaptionPositionControl';
 import type { CaptionStylePreset } from '@/lib/caption-parser';
 import type { CaptionPosition } from './CaptionOverlay';
 import type { CaptionSegment } from '@/lib/caption-parser';
+import { PostCaptionBlock } from './PostCaptionBlock';
 
 interface ClipEditorModalProps {
   open: boolean;
@@ -299,6 +300,11 @@ export default function ClipEditorModal({
                 </div>
               </div>
             )}
+
+            {/* Post caption — the text to paste into Instagram/LinkedIn/etc
+                when uploading this clip. Falls back to kit-level IG caption
+                if this clip's per-clip caption is missing (rare, older data). */}
+            <PostCaptionBlock caption={clip.suggestedCaption} fallback={instagramCaption} />
 
             {/* Export + Post Section */}
             <div className="pt-2 mt-auto space-y-3">
