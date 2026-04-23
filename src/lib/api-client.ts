@@ -4134,6 +4134,8 @@ export const api = {
           kit_title?: string;
           source_output_id?: string;
           content_preview: string;
+          content_full?: string;
+          media_urls?: string[];
           output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
           platforms: Array<{
             post_id: string;

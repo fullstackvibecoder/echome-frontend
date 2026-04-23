@@ -17,6 +17,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { EventPreviewModal, type FanoutEventForPreview } from './EventPreviewModal';
+import { CalendarFilters, applyCalendarFilters, type PlatformFilter, type StatusFilter } from './CalendarFilters';
 import {
   Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   CheckCircle, AlertTriangle, Clock, RefreshCw, Sparkles,
@@ -61,7 +63,10 @@ interface FanoutEvent {
   fanout_id: string;
   content_kit_id?: string;
   kit_title?: string;
+  source_output_id?: string;
   content_preview: string;
+  content_full?: string;
+  media_urls?: string[];
   output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
   platforms: FanoutPlatform[];
   aggregate_status: string;
@@ -76,6 +81,9 @@ export function WeekGrid() {
   const [weekStats, setWeekStats] = useState<WeekStats>({ scheduled: 0, posted: 0, failed: 0 });
   const [nextUp, setNextUp] = useState<{ title: string; scheduled_at: string; platforms: string[] } | undefined>();
   const [loading, setLoading] = useState(true);
+  const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [selectedEvent, setSelectedEvent] = useState<FanoutEventForPreview | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -110,22 +118,35 @@ export function WeekGrid() {
     });
   }, [weekStart]);
 
-  // Group events by ISO date string of their earliest-platform scheduled_at
+  // Set of platforms present in the data — used to hide platform filter chips for
+  // platforms the user doesn't actually have events on (keeps the bar uncluttered).
+  const visiblePlatforms = useMemo(() => {
+    const s = new Set<string>();
+    for (const e of events) for (const p of e.platforms) s.add(p.platform);
+    return s;
+  }, [events]);
+
+  // Apply platform + status filters before grouping
+  const filteredEvents = useMemo(
+    () => applyCalendarFilters(events, platformFilter, statusFilter),
+    [events, platformFilter, statusFilter],
+  );
+
+  // Group filtered events by ISO date string of their earliest-platform scheduled_at
   const eventsByDay = useMemo(() => {
     const byDay = new Map<string, FanoutEvent[]>();
-    for (const e of events) {
+    for (const e of filteredEvents) {
       const earliest = e.platforms.reduce((min, p) => p.scheduled_at < min ? p.scheduled_at : min, e.platforms[0]?.scheduled_at);
       if (!earliest) continue;
       const key = toDateKey(new Date(earliest));
       if (!byDay.has(key)) byDay.set(key, []);
       byDay.get(key)!.push(e);
     }
-    // Sort each day's events by time
     for (const arr of byDay.values()) {
       arr.sort((a, b) => a.platforms[0].scheduled_at.localeCompare(b.platforms[0].scheduled_at));
     }
     return byDay;
-  }, [events]);
+  }, [filteredEvents]);
 
   const weekLabel = useMemo(() => {
     const end = new Date(weekStart); end.setDate(weekStart.getDate() + 6);
@@ -141,7 +162,7 @@ export function WeekGrid() {
   const goToday = () => setWeekStart(startOfWeek(new Date()));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header: week stats + next-up + navigation */}
       <div className="flex items-center justify-between gap-3 flex-wrap bg-card border border-border rounded-xl px-4 py-3 text-xs">
         <div className="flex items-center gap-3">
@@ -169,6 +190,17 @@ export function WeekGrid() {
           </button>
         </div>
       </div>
+
+      {/* Filters — only shown once we have any events to filter */}
+      {events.length > 0 && (
+        <CalendarFilters
+          platform={platformFilter}
+          status={statusFilter}
+          onPlatformChange={setPlatformFilter}
+          onStatusChange={setStatusFilter}
+          visiblePlatforms={visiblePlatforms}
+        />
+      )}
 
       {loading && events.length === 0 ? (
         <div className="flex items-center justify-center py-16">
@@ -206,7 +238,7 @@ export function WeekGrid() {
                       <span className="text-[10px] text-muted-foreground/40">—</span>
                     </div>
                   ) : (
-                    dayEvents.map((e) => <EventCard key={e.fanout_id} event={e} />)
+                    dayEvents.map((e) => <EventCard key={e.fanout_id} event={e} onOpen={() => setSelectedEvent(e as unknown as FanoutEventForPreview)} />)
                   )}
                 </div>
               </div>
@@ -224,24 +256,37 @@ export function WeekGrid() {
             <Link href="/app/content-kit" className="underline hover:text-foreground">
               Content Kit
             </Link>
-            {' '}and click AI Schedule to rollout a week's worth of posts.
+            {' '}and click AI Schedule to rollout a week&apos;s worth of posts.
           </p>
         </div>
       )}
+
+      {/* Event preview on click — fills in full content + media thumbnails + per-platform status */}
+      <EventPreviewModal
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onChanged={() => { setSelectedEvent(null); load(); }}
+      />
     </div>
   );
 }
 
-function EventCard({ event }: { event: FanoutEvent }) {
+function EventCard({ event, onOpen }: { event: FanoutEvent; onOpen: () => void }) {
   const tint = tintForKit(event.content_kit_id);
   const earliest = event.platforms[0]?.scheduled_at;
   const timeLabel = earliest
     ? new Date(earliest).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     : '';
 
+  // Thumbnail URL: first media url if present (for visual content).
+  const firstMedia = event.media_urls?.[0];
+  const isVideoThumb = firstMedia && /\.(mp4|mov|webm|m4v)(\?|$)/i.test(firstMedia);
+
   return (
-    <div
-      className="text-[11px] rounded-md px-2 py-1.5 border-l-2 cursor-default hover:bg-background/60 transition-colors"
+    <button
+      type="button"
+      onClick={onOpen}
+      className="w-full text-left text-[11px] rounded-md px-2 py-1.5 border-l-2 hover:bg-background/80 transition-colors"
       style={{ borderLeftColor: tint.border, backgroundColor: tint.bg }}
       title={[
         timeLabel,
@@ -249,27 +294,46 @@ function EventCard({ event }: { event: FanoutEvent }) {
         event.content_preview,
       ].filter(Boolean).join('\n')}
     >
-      <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
-        <StatusIcon status={event.aggregate_status} />
-        <span>{timeLabel}</span>
-        {event.ai_suggested && <Sparkles className="w-2.5 h-2.5" aria-label="AI suggested time" />}
-        {event.is_reminder && <span className="ml-auto text-[9px] uppercase tracking-wide">rem</span>}
-      </div>
-      <p className="text-foreground line-clamp-2 leading-tight mb-1">
-        {event.content_preview || 'Untitled'}
-      </p>
-      <div className="flex items-center gap-1 flex-wrap">
-        {event.platforms.slice(0, 4).map((p) => {
-          const Icon = PLATFORM_ICON[p.platform];
-          return Icon ? (
-            <Icon key={p.post_id} className="w-2.5 h-2.5 text-muted-foreground" />
-          ) : null;
-        })}
-        {event.platforms.length > 4 && (
-          <span className="text-[9px] text-muted-foreground">+{event.platforms.length - 4}</span>
+      <div className="flex items-start gap-1.5">
+        {firstMedia && (
+          <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0 relative">
+            {isVideoThumb ? (
+              <video src={firstMedia} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={firstMedia} alt="" className="w-full h-full object-cover" loading="lazy" />
+            )}
+            {(event.media_urls?.length ?? 0) > 1 && (
+              <span className="absolute bottom-0 right-0 text-[8px] bg-black/60 text-white px-0.5 leading-none">
+                +{(event.media_urls?.length ?? 0) - 1}
+              </span>
+            )}
+          </div>
         )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
+            <StatusIcon status={event.aggregate_status} />
+            <span>{timeLabel}</span>
+            {event.ai_suggested && <Sparkles className="w-2.5 h-2.5" aria-label="AI suggested time" />}
+            {event.is_reminder && <span className="ml-auto text-[9px] uppercase tracking-wide">rem</span>}
+          </div>
+          <p className="text-foreground line-clamp-2 leading-tight mb-1">
+            {event.content_preview || 'Untitled'}
+          </p>
+          <div className="flex items-center gap-1 flex-wrap">
+            {event.platforms.slice(0, 4).map((p) => {
+              const Icon = PLATFORM_ICON[p.platform];
+              return Icon ? (
+                <Icon key={p.post_id} className="w-2.5 h-2.5 text-muted-foreground" />
+              ) : null;
+            })}
+            {event.platforms.length > 4 && (
+              <span className="text-[9px] text-muted-foreground">+{event.platforms.length - 4}</span>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </button>
   );
 }
 
