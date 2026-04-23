@@ -2664,30 +2664,44 @@ export const api = {
       };
       notes?: string;
     }) => {
-      const response = await apiClient.post('/scheduling', data);
-      const post = response.data.data?.post;
-      return {
-        success: response.data.success,
-        data: {
-          post: post ? {
-            id: post.id,
-            contentKitId: post.content_kit_id,
-            generatedContentId: post.generated_content_id,
-            title: post.title,
-            scheduledFor: post.scheduled_for,
-            platforms: post.platforms,
-            contentCategory: post.content_category,
-            contentType: post.content_type,
-            contentSnapshot: post.content_snapshot,
-            status: post.status,
-            postedAt: post.posted_at,
-            notes: post.notes,
-            createdAt: post.created_at,
-            updatedAt: post.updated_at,
-          } : undefined,
-        },
-        timestamp: response.data.timestamp,
-      };
+      try {
+        const response = await apiClient.post('/scheduling', data);
+        const post = response.data.data?.post;
+        return {
+          success: response.data.success,
+          data: {
+            post: post ? {
+              id: post.id,
+              contentKitId: post.content_kit_id,
+              generatedContentId: post.generated_content_id,
+              title: post.title,
+              scheduledFor: post.scheduled_for,
+              platforms: post.platforms,
+              contentCategory: post.content_category,
+              contentType: post.content_type,
+              contentSnapshot: post.content_snapshot,
+              status: post.status,
+              postedAt: post.posted_at,
+              notes: post.notes,
+              createdAt: post.created_at,
+              updatedAt: post.updated_at,
+            } : undefined,
+          },
+          timestamp: response.data.timestamp,
+        };
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined =
+          err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 400 && backendMsg) throw new Error(backendMsg);
+        if (status === 401) throw new Error('Please log in again to schedule posts.');
+        if (status === 403) throw new Error('You do not have permission to schedule posts.');
+        if (status === 500) {
+          const detail = backendMsg || 'Failed to save the scheduled post. Please try again.';
+          throw new Error(detail);
+        }
+        throw err;
+      }
     },
 
     /** Update a scheduled post */
@@ -2701,28 +2715,38 @@ export const api = {
         notes?: string;
       }
     ) => {
-      const response = await apiClient.patch(`/scheduling/${id}`, data);
-      const post = response.data.data?.post;
-      return {
-        success: response.data.success,
-        data: {
-          post: post ? {
-            id: post.id,
-            contentKitId: post.content_kit_id,
-            generatedContentId: post.generated_content_id,
-            title: post.title,
-            scheduledFor: post.scheduled_for,
-            platforms: post.platforms,
-            contentCategory: post.content_category,
-            status: post.status,
-            postedAt: post.posted_at,
-            notes: post.notes,
-            createdAt: post.created_at,
-            updatedAt: post.updated_at,
-          } : undefined,
-        },
-        timestamp: response.data.timestamp,
-      };
+      try {
+        const response = await apiClient.patch(`/scheduling/${id}`, data);
+        const post = response.data.data?.post;
+        return {
+          success: response.data.success,
+          data: {
+            post: post ? {
+              id: post.id,
+              contentKitId: post.content_kit_id,
+              generatedContentId: post.generated_content_id,
+              title: post.title,
+              scheduledFor: post.scheduled_for,
+              platforms: post.platforms,
+              contentCategory: post.content_category,
+              status: post.status,
+              postedAt: post.posted_at,
+              notes: post.notes,
+              createdAt: post.created_at,
+              updatedAt: post.updated_at,
+            } : undefined,
+          },
+          timestamp: response.data.timestamp,
+        };
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined =
+          err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) throw new Error('Scheduled post not found. It may have already been deleted.');
+        if (status === 403) throw new Error('You do not have permission to update this scheduled post.');
+        if (status === 500) throw new Error(backendMsg || 'Failed to update the scheduled post. Please try again.');
+        throw err;
+      }
     },
 
     /** Delete a scheduled post */

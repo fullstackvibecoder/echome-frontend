@@ -214,24 +214,29 @@ export default function ContentKitDetailContent() {
       }
     }
 
-    const response = await api.scheduling.create({
-      contentKitId: id,
-      title: item?.title || 'Scheduled Content',
-      scheduledFor: data.scheduledFor,
-      platforms: data.platforms,
-      contentCategory: data.contentCategory,
-      contentType,
-      contentSnapshot,
-      notes: data.notes,
-    });
+    try {
+      const response = await api.scheduling.create({
+        contentKitId: id,
+        title: item?.title || 'Scheduled Content',
+        scheduledFor: data.scheduledFor,
+        platforms: data.platforms,
+        contentCategory: data.contentCategory,
+        contentType,
+        contentSnapshot,
+        notes: data.notes,
+      });
 
-    if (!response.success) {
-      throw new Error('Failed to schedule content');
+      if (!response.success) {
+        throw new Error('Failed to schedule content');
+      }
+
+      // Show success message
+      setScheduleSuccess('Content scheduled successfully!');
+      setTimeout(() => setScheduleSuccess(null), 3000);
+    } catch (err) {
+      console.error('[content-kit] handleQuickSchedule failed:', err);
+      showErrorToast(err, 'scheduling content');
     }
-
-    // Show success message
-    setScheduleSuccess('Content scheduled successfully!');
-    setTimeout(() => setScheduleSuccess(null), 3000);
   };
 
   const handleResizeCarousel = async (targetAspectRatio: '1:1' | '9:16') => {
