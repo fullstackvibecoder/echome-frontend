@@ -56,6 +56,10 @@ const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 const EXPORT_TIMEOUT = 120000; // 2 minutes for clip export (FFmpeg burns captions on-demand)
+// Content-kit page timeouts — separated from the raw AI generation timeout so
+// page-load reads and user-triggered mutations surface failures sooner.
+const CONTENT_KIT_LOAD_TIMEOUT = 60000;   // 60 s — GET reads (clips, kit, reel link)
+const CONTENT_KIT_ACTION_TIMEOUT = 90000; // 90 s — POST mutations (regenerate, resize, reel create)
 
 // Check if a JWT is expired or expiring within the next 60 seconds
 function isTokenExpiringSoon(token: string): boolean {
@@ -506,7 +510,8 @@ export const api = {
 
     getRequest: async (id: string) => {
       const response = await apiClient.get<ApiResponse<any>>(
-        `/generate/${id}`
+        `/generate/${id}`,
+        { timeout: CONTENT_KIT_LOAD_TIMEOUT }
       );
 
       // Transform snake_case to camelCase
@@ -2263,7 +2268,7 @@ export const api = {
       additionalInstructions?: string;
     }) => {
       const response = await apiClient.post(`/content-kits/${kitId}/regenerate`, options || {}, {
-        timeout: GENERATION_TIMEOUT,
+        timeout: CONTENT_KIT_ACTION_TIMEOUT,
       });
       return response.data as {
         success: boolean;
@@ -2301,7 +2306,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/regenerate-carousel`,
         options,
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2328,7 +2333,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/resize-carousel`,
         { aspectRatio },
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2358,7 +2363,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/generate-reel-content`,
         { templateId, contentType },
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2381,7 +2386,9 @@ export const api = {
 
     /** Get reel project linked to a content kit */
     getLinkedReel: async (kitId: string) => {
-      const response = await apiClient.get(`/content-kits/${kitId}/reel`);
+      const response = await apiClient.get(`/content-kits/${kitId}/reel`, {
+        timeout: CONTENT_KIT_LOAD_TIMEOUT,
+      });
       return response.data as {
         success: boolean;
         data: {
@@ -2412,7 +2419,7 @@ export const api = {
       const response = await apiClient.post(
         `/content-kits/${kitId}/create-reel`,
         data,
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
@@ -2433,7 +2440,7 @@ export const api = {
           music_track_id: options?.musicTrackId,
           smart_timing: options?.smartTiming,
         },
-        { timeout: GENERATION_TIMEOUT }
+        { timeout: CONTENT_KIT_ACTION_TIMEOUT }
       );
       return response.data as {
         success: boolean;
