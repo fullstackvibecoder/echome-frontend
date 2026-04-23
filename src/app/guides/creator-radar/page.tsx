@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
   title: 'Following — Repurpose Other Creators\' Videos | EchoMe Guide',
@@ -30,7 +31,7 @@ export default function CreatorRadarGuidePage() {
 
   return (
     <div className="min-h-screen bg-bg-primary">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
       <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16">
         {/* Header */}
         <div className="mb-8">

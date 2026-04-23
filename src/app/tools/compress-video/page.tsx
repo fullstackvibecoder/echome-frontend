@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Upload, Download, Zap, Shield, Clock, FileVideo, Check, ArrowRight, ChevronDown, Loader2 } from 'lucide-react';
+import { JsonLd } from '@/components/json-ld';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.tryechome.com/api';
 const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
@@ -199,7 +200,7 @@ export default function CompressVideoToolPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
 
       {/* Nav */}
       <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-xl border-b border-white/10">

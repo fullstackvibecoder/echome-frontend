@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Check, ArrowRight, Video, MessageSquare, Mic, FileText, Mail, Brain, Play } from 'lucide-react';
+import { JsonLd } from '@/components/json-ld';
 
 const LOOM_VIDEO_ID = '136ee8a0709e44eaa5a2ba128d3ab624';
 const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-3920a96cb0e456fa-full-play.gif#t=0.1`;
@@ -29,10 +30,7 @@ export default function RealtorsPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
 
       {/* Nav */}
       <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-xl border-b border-white/10">

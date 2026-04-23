@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
+import { JsonLd } from '@/components/json-ld';
 
 const faqCategories = [
   {
@@ -133,14 +134,8 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-      />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={breadcrumbLd} />
 
       <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16">
         {/* Back link */}

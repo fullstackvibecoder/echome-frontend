@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { JsonLd } from '@/components/json-ld';
 import {
   Video,
   FileText,
@@ -131,10 +132,7 @@ export default function DevelopersPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
 
       {/* ── Nav ───────────────────────────────────────────────────── */}
       <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-xl border-b border-white/10">
