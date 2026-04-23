@@ -1,0 +1,229 @@
+'use client';
+
+/**
+ * WrittenPostActions
+ *
+ * Per-platform Post Now + Schedule buttons for a written post output. Platform
+ * is implicit from the content type (Instagram caption → IG, LinkedIn post → LI,
+ * etc.) — no platform picker, just two buttons.
+ *
+ * Tier behavior:
+ *   Studio+ → Post Now calls the API, Schedule opens the time picker
+ *   Lower tiers → Schedule becomes "Schedule reminder" (creates a calendar
+ *   reminder with email notification at the scheduled time)
+ *
+ * Platform behavior:
+ *   api-mode platforms (ig/li/fb/threads) → Post Now calls the API
+ *   link-mode platforms (x/tiktok/...) → Post Now copies content and opens
+ *     the native compose view
+ */
+import { useState } from 'react';
+import Link from 'next/link';
+import { api } from '@/lib/api-client';
+import { useSubscription } from '@/hooks/useSubscription';
+import { toast } from 'sonner';
+import { Loader2, Send, CalendarClock, ExternalLink, Copy } from 'lucide-react';
+
+type PostingMode = 'api' | 'link';
+
+const PLATFORM_CONFIG: Record<string, { label: string; mode: PostingMode; composeUrl: string }> = {
+  instagram:       { label: 'Instagram', mode: 'api',  composeUrl: 'https://www.instagram.com' },
+  linkedin:        { label: 'LinkedIn',  mode: 'api',  composeUrl: 'https://www.linkedin.com/feed/' },
+  facebook:        { label: 'Facebook',  mode: 'api',  composeUrl: 'https://www.facebook.com' },
+  threads:         { label: 'Threads',   mode: 'api',  composeUrl: 'https://www.threads.net' },
+  x:               { label: 'X',         mode: 'link', composeUrl: 'https://x.com/intent/tweet' },
+  tiktok:          { label: 'TikTok',    mode: 'link', composeUrl: 'https://www.tiktok.com/upload' },
+  youtube:         { label: 'YouTube',   mode: 'link', composeUrl: 'https://studio.youtube.com' },
+  pinterest:       { label: 'Pinterest', mode: 'link', composeUrl: 'https://www.pinterest.com/pin-creation-tool/' },
+  bluesky:         { label: 'Bluesky',   mode: 'link', composeUrl: 'https://bsky.app' },
+  google_business: { label: 'Google Business', mode: 'link', composeUrl: 'https://business.google.com' },
+};
+
+interface Props {
+  platform: string;
+  contentKitId?: string;
+  sourceOutputId?: string;
+  text: string;
+  /** Whether this user has connected this platform (for api-mode only) */
+  connected: boolean;
+}
+
+export function WrittenPostActions({ platform, contentKitId, sourceOutputId, text, connected }: Props) {
+  const { hasTierAccess } = useSubscription();
+  const canAutoPost = hasTierAccess('studio');
+
+  const cfg = PLATFORM_CONFIG[platform];
+  if (!cfg) return null;
+
+  const [postingNow, setPostingNow] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [scheduling, setScheduling] = useState(false);
+
+  // Compose URL for link-mode platforms (copy-and-open)
+  const composeUrl = (() => {
+    if (platform === 'x') {
+      const q = new URLSearchParams({ text }).toString();
+      return `${cfg.composeUrl}?${q}`;
+    }
+    return cfg.composeUrl;
+  })();
+
+  const handlePostNow = async () => {
+    if (cfg.mode === 'link') {
+      // Copy content + open native compose view
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        // clipboard can fail in some contexts; still open the tab
+      }
+      window.open(composeUrl, '_blank', 'noopener,noreferrer');
+      toast.success(`Content copied — paste into ${cfg.label}`);
+      return;
+    }
+
+    // API mode
+    if (!canAutoPost) {
+      toast.error('Auto-post requires Echo Studio or above.');
+      return;
+    }
+    if (!connected) {
+      toast.error(`Connect your ${cfg.label} account in Settings first.`);
+      return;
+    }
+
+    setPostingNow(true);
+    try {
+      await api.socialPosting.schedule({
+        contentKitId,
+        platform,
+        text,
+        scheduledAt: new Date().toISOString(),
+      });
+      toast.success(`Posted to ${cfg.label}`);
+    } catch (err: any) {
+      console.error('Post failed', err);
+      toast.error(err?.message || `Failed to post to ${cfg.label}`);
+    } finally {
+      setPostingNow(false);
+    }
+  };
+
+  const handleSchedule = async () => {
+    if (!scheduledAt) return;
+    const scheduleIso = new Date(scheduledAt).toISOString();
+    setScheduling(true);
+    try {
+      if (canAutoPost && cfg.mode === 'api' && connected) {
+        await api.socialPosting.schedule({
+          contentKitId,
+          platform,
+          text,
+          scheduledAt: scheduleIso,
+        });
+        toast.success(`Scheduled for ${cfg.label}`);
+      } else {
+        // Fallback: create a reminder (works for all tiers and all platforms)
+        await api.socialPosting.createReminder({
+          content_kit_id: contentKitId,
+          source_output_id: sourceOutputId,
+          platform,
+          text,
+          scheduled_at: scheduleIso,
+          created_via: 'manual_inline',
+        });
+        toast.success(`Reminder set for ${cfg.label}`);
+      }
+      setShowSchedule(false);
+      setScheduledAt('');
+    } catch (err: any) {
+      console.error('Schedule failed', err);
+      toast.error(err?.message || 'Failed to schedule');
+    } finally {
+      setScheduling(false);
+    }
+  };
+
+  // --- Render ---
+
+  if (showSchedule) {
+    return (
+      <div className="mt-2 flex items-center gap-2 flex-wrap">
+        <input
+          type="datetime-local"
+          value={scheduledAt}
+          onChange={(e) => setScheduledAt(e.target.value)}
+          className="text-xs bg-background border border-border rounded-md px-2 py-1.5"
+          min={new Date().toISOString().slice(0, 16)}
+        />
+        <button
+          type="button"
+          onClick={handleSchedule}
+          disabled={!scheduledAt || scheduling}
+          className="inline-flex items-center gap-1 px-3 py-1.5 bg-foreground text-background rounded-md text-xs font-medium hover:opacity-90 disabled:opacity-50"
+        >
+          {scheduling ? <Loader2 className="w-3 h-3 animate-spin" /> : <CalendarClock className="w-3 h-3" />}
+          {canAutoPost && cfg.mode === 'api' && connected ? 'Schedule' : 'Set reminder'}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setShowSchedule(false); setScheduledAt(''); }}
+          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1.5"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+      <button
+        type="button"
+        onClick={handlePostNow}
+        disabled={postingNow || (cfg.mode === 'api' && canAutoPost && !connected)}
+        title={
+          cfg.mode === 'link'
+            ? `Copies content and opens ${cfg.label}`
+            : !canAutoPost
+              ? 'Auto-post is available on Echo Studio and above'
+              : !connected
+                ? `Connect ${cfg.label} in Settings to post directly`
+                : `Post to ${cfg.label} now`
+        }
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-foreground text-background hover:opacity-90 disabled:opacity-50 transition-opacity"
+      >
+        {postingNow ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : cfg.mode === 'link' ? (
+          <ExternalLink className="w-3 h-3" />
+        ) : (
+          <Send className="w-3 h-3" />
+        )}
+        {cfg.mode === 'link' ? `Open ${cfg.label}` : 'Post now'}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setShowSchedule(true)}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-border text-foreground hover:bg-card transition-colors"
+        title={canAutoPost && cfg.mode === 'api' && connected ? 'Schedule an auto-post' : 'Set a reminder'}
+      >
+        <CalendarClock className="w-3 h-3" />
+        Schedule
+      </button>
+
+      {/* Helper text for non-capable states */}
+      {cfg.mode === 'api' && !canAutoPost && (
+        <span className="text-[10px] text-muted-foreground/70">
+          <Link href="/app/billing" className="underline hover:text-foreground">Upgrade to Studio</Link> for auto-post
+        </span>
+      )}
+      {cfg.mode === 'api' && canAutoPost && !connected && (
+        <span className="text-[10px] text-muted-foreground/70">
+          <Link href="/app/settings" className="underline hover:text-foreground">Connect {cfg.label}</Link> to post directly
+        </span>
+      )}
+    </div>
+  );
+}

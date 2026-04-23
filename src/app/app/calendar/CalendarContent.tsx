@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Calendar, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { FanoutCalendar } from '@/components/scheduling/FanoutCalendar';
 
 interface ScheduledItem {
   id: string;
@@ -55,8 +56,13 @@ export default function CalendarContent() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Content Calendar</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Your scheduled content reminders. Auto-posting coming soon.
+          Your scheduled posts and reminders. Studio+ plans auto-post; lower tiers get email reminders at the scheduled time.
         </p>
+      </div>
+
+      {/* Fanout-grouped events from the new scheduling flow */}
+      <div className="mb-10">
+        <FanoutCalendar />
       </div>
 
       {loading && (

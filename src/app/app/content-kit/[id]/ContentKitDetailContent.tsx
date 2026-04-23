@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useContentKitDetail } from '@/hooks/useContentKit';
 import { useGenerationProgress, mapStepToIndex, GENERATION_STEPS, VIDEO_GENERATION_STEPS, isVideoStep } from '@/hooks/useGenerationProgress';
 import { ScheduleModal, QuickScheduleModal } from '@/components/scheduling';
+import { SuggestedScheduleModal } from '@/components/scheduling/SuggestedScheduleModal';
 import { CONTENT_TYPE_CONFIG } from '@/lib/content-kit-utils';
 import api from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
@@ -86,6 +87,7 @@ export default function ContentKitDetailContent() {
   } | null>(null);
   const squareFetchedRef = useRef(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [suggestedScheduleOpen, setSuggestedScheduleOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [quickScheduleConfig, setQuickScheduleConfig] = useState<{
     type: 'platform' | 'clips' | 'carousel';
@@ -495,13 +497,23 @@ export default function ContentKitDetailContent() {
                   <span>Refresh</span>
                 </button>
                 {!isProcessing && item?.status === 'completed' && (
-                  <button
-                    onClick={() => setScheduleModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <span>📅</span>
-                    <span>Schedule</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setSuggestedScheduleOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity"
+                      title="Let EchoMe suggest an AI-picked rollout for this whole kit"
+                    >
+                      <span>✨</span>
+                      <span>AI Schedule</span>
+                    </button>
+                    <button
+                      onClick={() => setScheduleModalOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <span>📅</span>
+                      <span>Schedule</span>
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -735,6 +747,17 @@ export default function ContentKitDetailContent() {
             thumbnailUrl: detail?.clips?.[0]?.thumbnailUrl || detail?.carousel?.slides?.[0]?.publicUrl,
             createdAt: item.createdAt,
           }]}
+        />
+      )}
+
+      {/* AI Suggested Schedule Modal — rollout across platforms with best-time defaults */}
+      {item && (
+        <SuggestedScheduleModal
+          open={suggestedScheduleOpen}
+          onClose={() => setSuggestedScheduleOpen(false)}
+          kitId={item.id}
+          kitTitle={item.title}
+          onScheduled={() => { refresh(); }}
         />
       )}
 
