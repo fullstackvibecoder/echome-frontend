@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { FanoutCalendar } from '@/components/scheduling/FanoutCalendar';
 import { WeekGrid } from '@/components/scheduling/WeekGrid';
-import { List, LayoutGrid } from 'lucide-react';
+import { MonthGrid } from '@/components/scheduling/MonthGrid';
+import { List, LayoutGrid, CalendarDays } from 'lucide-react';
 
-type CalendarView = 'week' | 'list';
+type CalendarView = 'week' | 'month' | 'list';
 
 export default function CalendarContent() {
   const [view, setView] = useState<CalendarView>('week');
@@ -20,32 +21,38 @@ export default function CalendarContent() {
           </p>
         </div>
         <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
-          <button
-            type="button"
-            onClick={() => setView('week')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              view === 'week' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
-            }`}
-            title="Week grid view"
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            Week
-          </button>
-          <button
-            type="button"
-            onClick={() => setView('list')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              view === 'list' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
-            }`}
-            title="Flat chronological list"
-          >
-            <List className="w-3.5 h-3.5" />
-            List
-          </button>
+          <ViewButton active={view === 'week'} onClick={() => setView('week')} Icon={LayoutGrid} label="Week" />
+          <ViewButton active={view === 'month'} onClick={() => setView('month')} Icon={CalendarDays} label="Month" />
+          <ViewButton active={view === 'list'} onClick={() => setView('list')} Icon={List} label="List" />
         </div>
       </div>
 
-      {view === 'week' ? <WeekGrid /> : <FanoutCalendar />}
+      {view === 'week' && <WeekGrid />}
+      {view === 'month' && <MonthGrid />}
+      {view === 'list' && <FanoutCalendar />}
     </div>
+  );
+}
+
+function ViewButton({
+  active, onClick, Icon, label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  Icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+        active ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
+      }`}
+      title={`${label} view`}
+    >
+      <Icon className="w-3.5 h-3.5" />
+      {label}
+    </button>
   );
 }
