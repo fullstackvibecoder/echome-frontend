@@ -17,6 +17,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { EventPreviewModal, type FanoutEventForPreview } from './EventPreviewModal';
 import { CalendarFilters, applyCalendarFilters, type PlatformFilter, type StatusFilter } from './CalendarFilters';
 import {
@@ -84,6 +86,9 @@ export function WeekGrid() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedEvent, setSelectedEvent] = useState<FanoutEventForPreview | null>(null);
+  const [draggedEvent, setDraggedEvent] = useState<FanoutEvent | null>(null);
+  const [hoveredDayKey, setHoveredDayKey] = useState<string | null>(null);
+  const [reschedulingFanout, setReschedulingFanout] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -161,6 +166,58 @@ export function WeekGrid() {
   const goNext = () => { const n = new Date(weekStart); n.setDate(n.getDate() + 7); setWeekStart(n); };
   const goToday = () => setWeekStart(startOfWeek(new Date()));
 
+  /**
+   * Drag-to-reschedule: compute day delta between the dragged event's earliest
+   * scheduled_at and the target day, call the backend to shift the whole fanout,
+   * then refetch. We optimistically update local state first so the UI feels snappy.
+   */
+  const handleDropOnDay = async (targetDayKey: string) => {
+    if (!draggedEvent || reschedulingFanout) { setHoveredDayKey(null); return; }
+    const originalEarliest = draggedEvent.platforms.reduce(
+      (min, p) => (p.scheduled_at < min ? p.scheduled_at : min),
+      draggedEvent.platforms[0].scheduled_at,
+    );
+    const originalKey = toDateKey(new Date(originalEarliest));
+    if (originalKey === targetDayKey) { setHoveredDayKey(null); setDraggedEvent(null); return; }
+
+    const dayDelta = Math.round(
+      (new Date(targetDayKey).getTime() - new Date(originalKey).getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    const fanoutId = draggedEvent.fanout_id;
+    setReschedulingFanout(fanoutId);
+    setHoveredDayKey(null);
+
+    // Optimistic update — shift the event locally so the card moves immediately
+    setEvents((prev) => prev.map((e) => {
+      if (e.fanout_id !== fanoutId) return e;
+      return {
+        ...e,
+        platforms: e.platforms.map((p) => ({
+          ...p,
+          scheduled_at: shiftIsoDays(p.scheduled_at, dayDelta),
+        })),
+      };
+    }));
+
+    try {
+      const resp = await api.socialPosting.rescheduleFanout(fanoutId, dayDelta);
+      if (resp.success) {
+        toast.success(`Rescheduled to ${new Date(targetDayKey).toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`);
+      } else {
+        const failed = (resp.data?.results || []).filter((r) => !r.succeeded);
+        toast.error(`${failed.length} post${failed.length === 1 ? '' : 's'} failed to reschedule`);
+      }
+      await load(); // reconcile with server truth
+    } catch (err) {
+      toast.error(extractErrorMessage(err, 'Failed to reschedule'));
+      await load(); // revert optimistic update
+    } finally {
+      setReschedulingFanout(null);
+      setDraggedEvent(null);
+    }
+  };
+
   return (
     <div className="space-y-3">
       {/* Header: week stats + next-up + navigation */}
@@ -212,10 +269,23 @@ export function WeekGrid() {
             const key = toDateKey(day);
             const dayEvents = eventsByDay.get(key) || [];
             const isToday = toDateKey(new Date()) === key;
+            const isDropTarget = hoveredDayKey === key && draggedEvent !== null;
+
             return (
               <div
                 key={key}
-                className={`flex flex-col min-h-[160px] bg-card border ${isToday ? 'border-foreground/40' : 'border-border'} rounded-xl overflow-hidden`}
+                onDragOver={(e) => {
+                  if (draggedEvent) { e.preventDefault(); setHoveredDayKey(key); }
+                }}
+                onDragLeave={() => { if (hoveredDayKey === key) setHoveredDayKey(null); }}
+                onDrop={(e) => { e.preventDefault(); handleDropOnDay(key); }}
+                className={`flex flex-col min-h-[160px] bg-card border rounded-xl overflow-hidden transition-colors ${
+                  isDropTarget
+                    ? 'border-foreground border-dashed bg-foreground/5'
+                    : isToday
+                      ? 'border-foreground/40'
+                      : 'border-border'
+                }`}
               >
                 <div className={`px-3 py-2 border-b border-border flex items-center justify-between ${isToday ? 'bg-foreground/5' : ''}`}>
                   <div>
@@ -235,10 +305,22 @@ export function WeekGrid() {
                 <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto">
                   {dayEvents.length === 0 ? (
                     <div className="h-full flex items-center justify-center">
-                      <span className="text-[10px] text-muted-foreground/40">—</span>
+                      <span className="text-[10px] text-muted-foreground/40">
+                        {isDropTarget ? 'Drop to move here' : '—'}
+                      </span>
                     </div>
                   ) : (
-                    dayEvents.map((e) => <EventCard key={e.fanout_id} event={e} onOpen={() => setSelectedEvent(e as unknown as FanoutEventForPreview)} />)
+                    dayEvents.map((e) => (
+                      <EventCard
+                        key={e.fanout_id}
+                        event={e}
+                        onOpen={() => setSelectedEvent(e as unknown as FanoutEventForPreview)}
+                        onDragStart={() => setDraggedEvent(e)}
+                        onDragEnd={() => { setDraggedEvent(null); setHoveredDayKey(null); }}
+                        isDragging={draggedEvent?.fanout_id === e.fanout_id}
+                        isBusy={reschedulingFanout === e.fanout_id}
+                      />
+                    ))
                   )}
                 </div>
               </div>
@@ -271,7 +353,23 @@ export function WeekGrid() {
   );
 }
 
-function EventCard({ event, onOpen }: { event: FanoutEvent; onOpen: () => void }) {
+function EventCard({
+  event,
+  onOpen,
+  onDragStart,
+  onDragEnd,
+  isDragging,
+  isBusy,
+}: {
+  event: FanoutEvent;
+  onOpen: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
+  isBusy: boolean;
+}) {
+  // Only scheduled fanouts are draggable — a posted/failed fanout can't be moved.
+  const canDrag = event.aggregate_status === 'scheduled' || event.aggregate_status === 'publishing';
   const tint = tintForKit(event.content_kit_id);
   const earliest = event.platforms[0]?.scheduled_at;
   const timeLabel = earliest
@@ -286,12 +384,25 @@ function EventCard({ event, onOpen }: { event: FanoutEvent; onOpen: () => void }
     <button
       type="button"
       onClick={onOpen}
-      className="w-full text-left text-[11px] rounded-md px-2 py-1.5 border-l-2 hover:bg-background/80 transition-colors"
+      draggable={canDrag}
+      onDragStart={(e) => {
+        if (!canDrag) { e.preventDefault(); return; }
+        e.dataTransfer.effectAllowed = 'move';
+        // Payload is minimal — the parent tracks the dragged event by ref
+        e.dataTransfer.setData('text/plain', event.fanout_id);
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+      disabled={isBusy}
+      className={`w-full text-left text-[11px] rounded-md px-2 py-1.5 border-l-2 hover:bg-background/80 transition-all ${
+        isDragging ? 'opacity-40' : ''
+      } ${isBusy ? 'opacity-50 pointer-events-none' : canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
       style={{ borderLeftColor: tint.border, backgroundColor: tint.bg }}
       title={[
         timeLabel,
         event.kit_title ? `From kit: ${event.kit_title}` : null,
         event.content_preview,
+        canDrag ? '\n(drag to reschedule)' : null,
       ].filter(Boolean).join('\n')}
     >
       <div className="flex items-start gap-1.5">
@@ -359,4 +470,10 @@ function startOfWeek(d: Date): Date {
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function shiftIsoDays(iso: string, days: number): string {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
 }

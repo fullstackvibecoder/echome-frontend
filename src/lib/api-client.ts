@@ -4166,6 +4166,21 @@ export const api = {
       const response = await apiClient.post(`/social-posting/posts/${id}/reschedule`, { scheduled_at });
       return response.data as ApiResponse<{ post_id: string; scheduled_at: string; status: string }>;
     },
+
+    /**
+     * Shift a whole fanout by N days (preserves per-platform stagger).
+     * Used by the week-grid drag-to-reschedule UX. Studio+ only.
+     */
+    rescheduleFanout: async (fanoutId: string, day_delta: number) => {
+      const response = await apiClient.post(`/social-posting/fanouts/${fanoutId}/reschedule`, { day_delta }, {
+        timeout: 180000, // can take a while — cancels + recreates every post in the fanout
+      });
+      return response.data as ApiResponse<{
+        fanout_id: string;
+        day_delta: number;
+        results: Array<{ post_id: string; new_scheduled_at: string; succeeded: boolean; error?: string }>;
+      }>;
+    },
   },
 };
 
