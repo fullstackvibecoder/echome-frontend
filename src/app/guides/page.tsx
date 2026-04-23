@@ -18,6 +18,7 @@ import {
   Lock,
   CreditCard,
   TrendingUp,
+  Images,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ const guideThumbnails: Record<string, string> = {
   'build-your-voice': '/guide-screenshots/build-your-voice.png',
   'knowledge-base': '/guide-screenshots/build-your-voice.png',
   'content-kits': '/guide-screenshots/content-kit-detail.png',
+  'carousels': '/guide-screenshots/carousel-editor.png',
   'video-content': '/guide-screenshots/create-page.png',
   'reels-and-captions': '/guide-screenshots/reel-maker.png',
   'youtube-to-content': '/guide-screenshots/create-page.png',
@@ -115,6 +117,16 @@ const guides = [
     title: 'Working with Content Kits',
     description:
       'Explore everything inside a Content Kit — Visual Content and Written Content sections with clips, social posts, carousels, and transcripts.',
+    category: 'Content',
+    readTime: '4 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'carousels',
+    icon: <Images className="w-6 h-6" />,
+    title: 'Editing Carousels — Text, Style, Layout, Download',
+    description:
+      'Edit slide text, drag to reposition, restyle the whole set with Quote Card / Text on Color / My Image / Video Frame, and download single slides or a zip.',
     category: 'Content',
     readTime: '4 min',
     hasVideo: false,
