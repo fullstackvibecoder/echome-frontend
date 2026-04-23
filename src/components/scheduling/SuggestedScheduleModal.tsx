@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Loader2, X, Info, Calendar, CheckCircle } from 'lucide-react';
 
@@ -116,8 +117,10 @@ export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onSched
       }
       onScheduled?.();
       onClose();
-    } catch (e: any) {
-      toast.error(e?.message || 'Failed to schedule. Please try again.');
+    } catch (e: unknown) {
+      const msg = extractErrorMessage(e, 'Failed to schedule. Please try again.');
+      toast.error(msg);
+      console.error('[SuggestedScheduleModal] Accept failed:', e);
     } finally {
       setSubmitting(false);
     }

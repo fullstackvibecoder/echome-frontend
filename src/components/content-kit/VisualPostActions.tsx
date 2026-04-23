@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { Loader2, Send, CalendarClock, Sparkles } from 'lucide-react';
 import { PlatformMultiPicker, type PlatformId } from '@/components/scheduling/PlatformMultiPicker';
 
@@ -123,8 +124,10 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
           window.open(url, '_blank', 'noopener,noreferrer');
         }
       }
-    } catch (e: any) {
-      toast.error(e?.message || 'Failed to post');
+    } catch (e: unknown) {
+      const msg = extractErrorMessage(e, 'Failed to post');
+      toast.error(msg);
+      console.error('[VisualPostActions] Post Now failed:', e);
     } finally {
       setSubmitting(false);
     }
@@ -168,8 +171,10 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
       toast.success(`Scheduled for ${selected.length} platform${selected.length === 1 ? '' : 's'}`);
       setShowSchedule(false);
       setScheduledAt('');
-    } catch (e: any) {
-      toast.error(e?.message || 'Failed to schedule');
+    } catch (e: unknown) {
+      const msg = extractErrorMessage(e, 'Failed to schedule');
+      toast.error(msg);
+      console.error('[VisualPostActions] Schedule failed:', e);
     } finally {
       setSubmitting(false);
     }

@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { Loader2, Send, CalendarClock, ExternalLink, Copy } from 'lucide-react';
 
 type PostingMode = 'api' | 'link';
@@ -101,9 +102,9 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
         scheduledAt: new Date().toISOString(),
       });
       toast.success(`Posted to ${cfg.label}`);
-    } catch (err: any) {
-      console.error('Post failed', err);
-      toast.error(err?.message || `Failed to post to ${cfg.label}`);
+    } catch (err: unknown) {
+      console.error('[WrittenPostActions] Post failed', err);
+      toast.error(extractErrorMessage(err, `Failed to post to ${cfg.label}`));
     } finally {
       setPostingNow(false);
     }
@@ -136,9 +137,9 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
       }
       setShowSchedule(false);
       setScheduledAt('');
-    } catch (err: any) {
-      console.error('Schedule failed', err);
-      toast.error(err?.message || 'Failed to schedule');
+    } catch (err: unknown) {
+      console.error('[WrittenPostActions] Schedule failed', err);
+      toast.error(extractErrorMessage(err, 'Failed to schedule'));
     } finally {
       setScheduling(false);
     }
