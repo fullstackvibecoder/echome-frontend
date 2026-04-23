@@ -7,6 +7,7 @@ import api, { StripePlan, StripeSubscriptionStatus } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { trackSubscribe } from '@/lib/meta-pixel';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { DowngradeWarningModal } from '@/components/scheduling/DowngradeWarningModal';
 
 type BillingInterval = 'month' | 'year';
 
@@ -199,6 +200,7 @@ function BillingContentInner() {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [downgradeWarningOpen, setDowngradeWarningOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -425,9 +427,22 @@ function BillingContentInner() {
     }
   }, [loading, plans]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle portal redirect
-  const handleManageSubscription = async () => {
+  // Open the downgrade warning first if the user is on Studio+ with scheduled auto-posts.
+  // The modal fetches upcoming auto-posts and warns about conversion to reminders.
+  // If they proceed, the confirm handler calls the actual portal redirect.
+  const handleManageSubscription = () => {
+    const tier = subscription?.tier || '';
+    const hasAutoPostAccess = ['studio', 'enterprise', 'teams_2', 'teams_5', 'teams_10'].includes(tier);
+    if (hasAutoPostAccess) {
+      setDowngradeWarningOpen(true);
+    } else {
+      performPortalRedirect();
+    }
+  };
+
+  const performPortalRedirect = async () => {
     try {
+      setDowngradeWarningOpen(false);
       setPortalLoading(true);
       setError(null);
 
@@ -840,6 +855,13 @@ function BillingContentInner() {
           <ExternalLink className="w-4 h-4" />
         </a>
       </div>
+
+      <DowngradeWarningModal
+        open={downgradeWarningOpen}
+        cycleEndDate={subscription?.currentPeriodEnd}
+        onConfirm={performPortalRedirect}
+        onClose={() => setDowngradeWarningOpen(false)}
+      />
     </div>
   );
 }
