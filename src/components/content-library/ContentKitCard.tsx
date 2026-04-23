@@ -8,14 +8,17 @@
  */
 
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import type { NormalizedContent } from '@/lib/content-normalizer';
+import type { KitScheduleCounts } from '@/hooks/useScheduledKitCounts';
 
 interface ContentKitCardProps {
   item: NormalizedContent;
+  /** Per-kit scheduling counts keyed by content_kit_id. Optional — when omitted, no indicator is shown. */
+  scheduleCounts?: KitScheduleCounts;
 }
 
-export function ContentKitCard({ item }: ContentKitCardProps) {
+export function ContentKitCard({ item, scheduleCounts }: ContentKitCardProps) {
   const isProcessing = item.status === 'processing' || item.status === 'pending';
   const isFailed = item.status === 'failed';
   const detailUrl = `/app/content-kit/${item.videoUploadId || item.generationRequestId || item.sourceId}`;
@@ -83,10 +86,29 @@ export function ContentKitCard({ item }: ContentKitCardProps) {
           )}
         </div>
 
-        {/* Date */}
-        <p className="mt-1 text-[10px] text-[#555]">
-          {formatDate(item.createdAt)}
-        </p>
+        {/* Date + schedule indicator */}
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <p className="text-[10px] text-[#555]">{formatDate(item.createdAt)}</p>
+          {scheduleCounts && (scheduleCounts.scheduled + scheduleCounts.posted + scheduleCounts.failed > 0) && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground" title="Scheduling progress for this kit">
+              {scheduleCounts.scheduled > 0 && (
+                <span className="inline-flex items-center gap-0.5" title={`${scheduleCounts.scheduled} scheduled`}>
+                  <Clock className="w-3 h-3" />{scheduleCounts.scheduled}
+                </span>
+              )}
+              {scheduleCounts.posted > 0 && (
+                <span className="inline-flex items-center gap-0.5 text-green-600 ml-1" title={`${scheduleCounts.posted} posted`}>
+                  <CheckCircle className="w-3 h-3" />{scheduleCounts.posted}
+                </span>
+              )}
+              {scheduleCounts.failed > 0 && (
+                <span className="inline-flex items-center gap-0.5 text-red-500 ml-1" title={`${scheduleCounts.failed} failed`}>
+                  <AlertTriangle className="w-3 h-3" />{scheduleCounts.failed}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

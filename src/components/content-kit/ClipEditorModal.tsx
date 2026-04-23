@@ -18,6 +18,7 @@ import type { CaptionStylePreset } from '@/lib/caption-parser';
 import type { CaptionPosition } from './CaptionOverlay';
 import type { CaptionSegment } from '@/lib/caption-parser';
 import { PostCaptionBlock } from './PostCaptionBlock';
+import { VisualPostActions } from './VisualPostActions';
 
 interface ClipEditorModalProps {
   open: boolean;
@@ -317,6 +318,15 @@ export default function ClipEditorModal({
                 Download 1080p
               </button>
 
+              {/* Multi-platform post actions — after the user has reviewed the clip
+                  and its caption, they pick platforms and post or schedule. */}
+              <VisualPostActions
+                contentKitId={undefined}
+                sourceOutputId={`clip:${clip.id}`}
+                caption={clip.suggestedCaption || instagramCaption || ''}
+                mediaUrls={videoSrc ? [videoSrc] : []}
+                outputKind="clip"
+              />
             </div>
           </div>
         </div>

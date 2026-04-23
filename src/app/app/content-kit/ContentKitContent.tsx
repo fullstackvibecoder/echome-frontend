@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { StatusSection } from '@/components/content-library/StatusSection';
+import { useScheduledKitCounts } from '@/hooks/useScheduledKitCounts';
 import { Search, RefreshCw } from 'lucide-react';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 
@@ -37,6 +38,9 @@ function ContentKitListInner() {
     setSearchQuery,
     refresh,
   } = useContentLibrary();
+
+  // Scheduling counts per kit — renders as a small "N scheduled / M posted" indicator on each card
+  const { counts: scheduleCounts } = useScheduledKitCounts();
 
   // Apply voice filter for teams users
   const items = useMemo(() => {
@@ -205,22 +209,26 @@ function ContentKitListInner() {
         label="Ready to Publish"
         dotColor="#22c55e"
         items={readyToPublish}
+        scheduleCounts={scheduleCounts}
       />
       <StatusSection
         label="Processing"
         dotColor="#f59e0b"
         items={processing}
+        scheduleCounts={scheduleCounts}
       />
       <StatusSection
         label="Failed"
         dotColor="#ef4444"
         items={failed}
+        scheduleCounts={scheduleCounts}
       />
       <StatusSection
         label="Earlier"
         dotColor="#555"
         items={earlier}
         defaultCollapsed
+        scheduleCounts={scheduleCounts}
       />
     </div>
   );

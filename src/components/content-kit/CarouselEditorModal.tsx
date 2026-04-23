@@ -15,6 +15,7 @@ import { showErrorToast } from '@/lib/toast';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
 import { PostCaptionBlock } from './PostCaptionBlock';
+import { VisualPostActions } from './VisualPostActions';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 
@@ -354,6 +355,16 @@ export default function CarouselEditorModal({
                 All ({slides.length})
               </button>
             </div>
+
+            {/* Multi-platform post actions — appear after edits are final so the user commits
+                to a platform only once they know what the asset looks like. */}
+            <VisualPostActions
+              contentKitId={contentKitId}
+              sourceOutputId={`carousel:${contentKitId}`}
+              caption={suggestedCaption || fallbackCaption || ''}
+              mediaUrls={slides.map((s) => s.publicUrl).filter(Boolean)}
+              outputKind="carousel"
+            />
 
           </div>
         </div>
