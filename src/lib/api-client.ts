@@ -4021,16 +4021,32 @@ export const api = {
       mediaUrls?: string[];
       scheduledAt: string;
     }) => {
-      const response = await apiClient.post('/social-posting/schedule', data, {
-        timeout: 120000, // 2 min — video uploads to Outstand take time
-      });
-      return response.data as ApiResponse<{
-        id: string;
-        outstandPostId: string;
-        platform: string;
-        scheduledAt: string;
-        status: string;
-      }>;
+      try {
+        const response = await apiClient.post('/social-posting/schedule', data, {
+          timeout: 120000, // 2 min — video uploads to Outstand take time
+        });
+        return response.data as ApiResponse<{
+          id: string;
+          outstandPostId: string;
+          platform: string;
+          scheduledAt: string;
+          status: string;
+        }>;
+      } catch (err: any) {
+        // Surface the backend error message instead of a raw 500 to Sentry
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 400 && backendMsg) throw new Error(backendMsg);
+        if (status === 402) throw new Error('Scheduling requires an active Studio subscription.');
+        if (status === 403) throw new Error('You do not have permission to schedule posts.');
+        if (status === 500) {
+          // Outstand API key not configured or Outstand returned an error — give users
+          // an actionable message rather than a raw server error.
+          const detail = backendMsg || 'Unable to reach the posting service. Please try again shortly.';
+          throw new Error(detail);
+        }
+        throw err;
+      }
     },
 
     /** List scheduled/posted items */
@@ -4066,21 +4082,32 @@ export const api = {
       timezone?: string;
       platforms?: string[];
     }) => {
-      const response = await apiClient.post('/social-posting/suggest-schedule', params);
-      return response.data as ApiResponse<{
-        kit_id: string;
-        kit_title: string;
-        timezone: string;
-        rows: Array<{
-          output_id: string;
-          output_label: string;
-          platform: string;
-          suggested_at: string;
-          output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
-          content_preview: string;
-          reason_text: string;
+      try {
+        const response = await apiClient.post('/social-posting/suggest-schedule', params, {
+          timeout: 30000, // 30 s — purely deterministic, no AI call
+        });
+        return response.data as ApiResponse<{
+          kit_id: string;
+          kit_title: string;
+          timezone: string;
+          rows: Array<{
+            output_id: string;
+            output_label: string;
+            platform: string;
+            suggested_at: string;
+            output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
+            content_preview: string;
+            reason_text: string;
+          }>;
         }>;
-      }>;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) throw new Error('Content kit not found. It may have been deleted.');
+        if (status === 500 && backendMsg) throw new Error(backendMsg);
+        if (status === 500) throw new Error('Could not generate schedule suggestions. Please try again.');
+        throw err;
+      }
     },
 
     /** Schedule one content piece to N platforms sharing one fanout_id. Studio+ only. */
@@ -4098,13 +4125,26 @@ export const api = {
       created_via: 'ai_suggest' | 'manual_inline' | 'manual_bulk' | 'downgrade_conversion';
       is_ai_suggested?: boolean;
     }) => {
-      const response = await apiClient.post('/social-posting/schedule-fanout', data, {
-        timeout: 180000,
-      });
-      return response.data as ApiResponse<{
-        fanout_id: string;
-        created_post_ids: string[];
-      }>;
+      try {
+        const response = await apiClient.post('/social-posting/schedule-fanout', data, {
+          timeout: 90000, // 90 s — fanout rarely needs the full 3-minute window
+        });
+        return response.data as ApiResponse<{
+          fanout_id: string;
+          created_post_ids: string[];
+        }>;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 400 && backendMsg) throw new Error(backendMsg);
+        if (status === 402) throw new Error('Scheduling requires an active Studio subscription.');
+        if (status === 403) throw new Error('Studio plan required to schedule posts automatically.');
+        if (status === 500) {
+          const detail = backendMsg || 'Unable to reach the posting service. Please try again shortly.';
+          throw new Error(detail);
+        }
+        throw err;
+      }
     },
 
     /** Create a manual-post reminder (lower-tier path, no Outstand). */
