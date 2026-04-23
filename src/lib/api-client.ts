@@ -4059,6 +4059,111 @@ export const api = {
       const response = await apiClient.delete(`/social-posting/posts/${id}`);
       return response.data as ApiResponse;
     },
+
+    /** Request an AI-suggested rollout for a kit. Universal across tiers. */
+    suggestSchedule: async (params: {
+      kit_id: string;
+      timezone?: string;
+      platforms?: string[];
+    }) => {
+      const response = await apiClient.post('/social-posting/suggest-schedule', params);
+      return response.data as ApiResponse<{
+        kit_id: string;
+        kit_title: string;
+        timezone: string;
+        rows: Array<{
+          output_id: string;
+          output_label: string;
+          platform: string;
+          suggested_at: string;
+          output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
+          content_preview: string;
+          reason_text: string;
+        }>;
+      }>;
+    },
+
+    /** Schedule one content piece to N platforms sharing one fanout_id. Studio+ only. */
+    scheduleFanout: async (data: {
+      content_kit_id?: string;
+      source_output_id?: string;
+      text?: string;
+      media_urls?: string[];
+      rows: Array<{
+        platform: string;
+        scheduled_at: string;
+        text?: string;
+        media_urls?: string[];
+      }>;
+      created_via: 'ai_suggest' | 'manual_inline' | 'manual_bulk' | 'downgrade_conversion';
+      is_ai_suggested?: boolean;
+    }) => {
+      const response = await apiClient.post('/social-posting/schedule-fanout', data, {
+        timeout: 180000,
+      });
+      return response.data as ApiResponse<{
+        fanout_id: string;
+        created_post_ids: string[];
+      }>;
+    },
+
+    /** Create a manual-post reminder (lower-tier path, no Outstand). */
+    createReminder: async (data: {
+      content_kit_id?: string;
+      source_output_id?: string;
+      platform: string;
+      text?: string;
+      media_urls?: string[];
+      scheduled_at: string;
+      created_via: 'ai_suggest' | 'manual_inline' | 'manual_bulk' | 'downgrade_conversion';
+    }) => {
+      const response = await apiClient.post('/social-posting/reminders', data);
+      return response.data as ApiResponse<{
+        reminder_id: string;
+        fanout_id: string;
+      }>;
+    },
+
+    /** Fanout-grouped calendar view. */
+    getCalendar: async (params?: { start?: string; end?: string; kit_id?: string }) => {
+      const response = await apiClient.get('/social-posting/calendar', { params });
+      return response.data as ApiResponse<{
+        events: Array<{
+          fanout_id: string;
+          content_kit_id?: string;
+          kit_title?: string;
+          source_output_id?: string;
+          content_preview: string;
+          output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
+          platforms: Array<{
+            post_id: string;
+            platform: string;
+            status: string;
+            scheduled_at: string;
+            posted_at?: string;
+            platform_post_url?: string;
+            error_message?: string;
+          }>;
+          aggregate_status: string;
+          ai_suggested: boolean;
+          is_reminder: boolean;
+        }>;
+        this_week: { scheduled: number; posted: number; failed: number };
+        next_up?: { title: string; scheduled_at: string; platforms: string[] };
+      }>;
+    },
+
+    /** Retry a failed post. Studio+ only. */
+    retryPost: async (id: string) => {
+      const response = await apiClient.post(`/social-posting/posts/${id}/retry`);
+      return response.data as ApiResponse<{ post_id: string; status: string }>;
+    },
+
+    /** Reschedule a scheduled/failed post to a new time. Studio+ only. */
+    reschedulePost: async (id: string, scheduled_at: string) => {
+      const response = await apiClient.post(`/social-posting/posts/${id}/reschedule`, { scheduled_at });
+      return response.data as ApiResponse<{ post_id: string; scheduled_at: string; status: string }>;
+    },
   },
 };
 
