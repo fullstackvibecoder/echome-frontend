@@ -85,10 +85,37 @@ export function EventPreviewModal({ event, onClose, onChanged }: Props) {
     setBusyPostId(postId);
     try {
       await api.socialPosting.cancelPost(postId);
-      toast.success('Cancelled');
+      toast.success('Dismissed');
       onChanged();
     } catch (e: unknown) {
-      toast.error(extractErrorMessage(e, 'Cancel failed'));
+      toast.error(extractErrorMessage(e, 'Dismiss failed'));
+    } finally {
+      setBusyPostId(null);
+    }
+  };
+
+  /**
+   * Dismiss the entire event — walks every non-cancelled platform row and flips
+   * each to cancelled. The calendar SQL filter hides events with only cancelled
+   * rows, so the card disappears after this. Kept as best-effort: if one row
+   * fails to dismiss (e.g. Outstand cancel call errors), the rest still proceed.
+   */
+  const handleDismissEvent = async () => {
+    if (!event) return;
+    const toDismiss = event.platforms.filter((p) => p.status !== 'cancelled');
+    if (toDismiss.length === 0) return;
+    const ok = window.confirm(
+      `Dismiss this ${toDismiss.length}-platform event from your calendar? The database record is kept.`,
+    );
+    if (!ok) return;
+    setBusyPostId('__all__');
+    try {
+      await Promise.allSettled(toDismiss.map((p) => api.socialPosting.cancelPost(p.post_id)));
+      toast.success('Event dismissed');
+      onChanged();
+      onClose();
+    } catch (e: unknown) {
+      toast.error(extractErrorMessage(e, 'Dismiss failed'));
     } finally {
       setBusyPostId(null);
     }
@@ -124,9 +151,20 @@ export function EventPreviewModal({ event, onClose, onChanged }: Props) {
               </Link>
             ) : null}
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-background flex-shrink-0" aria-label="Close">
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleDismissEvent}
+              disabled={busyPostId === '__all__'}
+              className="text-[11px] text-muted-foreground hover:text-red-500 px-2 py-1 rounded-md hover:bg-background disabled:opacity-30"
+              title="Remove this event from the calendar (database record is kept)"
+            >
+              Dismiss event
+            </button>
+            <button onClick={onClose} className="p-1 rounded-md hover:bg-background" aria-label="Close">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         {/* Body */}
@@ -180,14 +218,37 @@ export function EventPreviewModal({ event, onClose, onChanged }: Props) {
                     )}
 
                     {p.status === 'failed' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleRetry(p.post_id)}
+                          disabled={isBusy}
+                          className="text-[11px] text-red-500 underline disabled:opacity-50"
+                          title={p.error_message || 'Retry this post'}
+                        >
+                          retry
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCancel(p.post_id)}
+                          disabled={isBusy}
+                          className="text-[11px] text-muted-foreground hover:text-red-500 disabled:opacity-30"
+                          title="Dismiss this failure (hide from calendar, keeps audit row)"
+                        >
+                          dismiss
+                        </button>
+                      </>
+                    )}
+
+                    {p.status === 'posted' && (
                       <button
                         type="button"
-                        onClick={() => handleRetry(p.post_id)}
+                        onClick={() => handleCancel(p.post_id)}
                         disabled={isBusy}
-                        className="text-[11px] text-red-500 underline disabled:opacity-50"
-                        title={p.error_message || 'Retry this post'}
+                        className="text-[11px] text-muted-foreground hover:text-red-500 disabled:opacity-30"
+                        title="Hide this posted row from the calendar (keeps DB record)"
                       >
-                        retry
+                        dismiss
                       </button>
                     )}
 
@@ -251,6 +312,7 @@ function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { icon: LucideIcon; label: string; color: string }> = {
     posted: { icon: CheckCircle, label: 'Posted', color: 'text-green-600 bg-green-500/10' },
     published: { icon: CheckCircle, label: 'Posted', color: 'text-green-600 bg-green-500/10' },
+    partial: { icon: AlertTriangle, label: 'Partial', color: 'text-amber-600 bg-amber-500/10' },
     failed: { icon: AlertTriangle, label: 'Failed', color: 'text-red-500 bg-red-500/10' },
     publishing: { icon: RefreshCw, label: 'Publishing', color: 'text-blue-500 bg-blue-500/10' },
     pending_finalize: { icon: Loader2, label: 'Preparing media…', color: 'text-amber-600 bg-amber-500/10' },

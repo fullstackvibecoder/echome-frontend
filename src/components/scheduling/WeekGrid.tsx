@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { EventPreviewModal, type FanoutEventForPreview } from './EventPreviewModal';
 import { CalendarFilters, applyCalendarFilters, type PlatformFilter, type StatusFilter } from './CalendarFilters';
+import { FailedPostsPanel } from './FailedPostsPanel';
 import {
   Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   CheckCircle, AlertTriangle, Clock, RefreshCw, Sparkles,
@@ -86,6 +87,7 @@ export function WeekGrid() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedEvent, setSelectedEvent] = useState<FanoutEventForPreview | null>(null);
+  const [showFailedPanel, setShowFailedPanel] = useState(false);
   const [draggedEvent, setDraggedEvent] = useState<FanoutEvent | null>(null);
   const [hoveredDayKey, setHoveredDayKey] = useState<string | null>(null);
   const [reschedulingFanout, setReschedulingFanout] = useState<string | null>(null);
@@ -226,7 +228,18 @@ export function WeekGrid() {
           <span className="font-medium text-foreground">This week</span>
           <span className="text-muted-foreground">
             {weekStats.scheduled} scheduled · {weekStats.posted} posted ·{' '}
-            {weekStats.failed > 0 ? <span className="text-red-500">{weekStats.failed} failed</span> : '0 failed'}
+            {weekStats.failed > 0 ? (
+              <button
+                type="button"
+                onClick={() => setShowFailedPanel(true)}
+                className="text-red-500 underline underline-offset-2 hover:text-red-600"
+                title="Review and dismiss failed posts"
+              >
+                {weekStats.failed} failed
+              </button>
+            ) : (
+              '0 failed'
+            )}
           </span>
           {nextUp && (
             <span className="text-muted-foreground hidden sm:inline">
@@ -349,6 +362,30 @@ export function WeekGrid() {
         onClose={() => setSelectedEvent(null)}
         onChanged={() => { setSelectedEvent(null); load(); }}
       />
+
+      {/* Failed-posts bulk dismiss panel — opens from the "N failed" counter. We
+          pass the unfiltered events (not the platform/status-filtered view) so
+          the panel always reflects the real backlog regardless of active chips. */}
+      {showFailedPanel && (
+        <FailedPostsPanel
+          events={events
+            .filter((e) => e.platforms.some((p) => p.status === 'failed'))
+            .map((e) => ({
+              fanout_id: e.fanout_id,
+              content_preview: e.content_preview,
+              platforms: e.platforms.map((p) => ({
+                post_id: p.post_id,
+                platform: p.platform,
+                status: p.status,
+                scheduled_at: p.scheduled_at,
+                error_message: p.error_message,
+              })),
+            }))
+          }
+          onClose={() => setShowFailedPanel(false)}
+          onDismissed={() => load()}
+        />
+      )}
     </div>
   );
 }
@@ -434,9 +471,25 @@ function EventCard({
           <div className="flex items-center gap-1 flex-wrap">
             {event.platforms.slice(0, 4).map((p) => {
               const Icon = PLATFORM_ICON[p.platform];
-              return Icon ? (
-                <Icon key={p.post_id} className="w-2.5 h-2.5 text-muted-foreground" />
-              ) : null;
+              if (!Icon) return null;
+              // Per-platform status color — the whole tile used to be one color
+              // based on the aggregate, which lost the "which platform failed?"
+              // signal. Now each platform's icon carries its own state so the
+              // user sees IG ✓ LI ✓ FB ⚠ at a glance.
+              const statusColor =
+                p.status === 'posted' ? 'text-green-600'
+                : p.status === 'failed' ? 'text-red-500'
+                : p.status === 'publishing' ? 'text-blue-500'
+                : p.status === 'pending_finalize' ? 'text-amber-500'
+                : p.status === 'cancelled' ? 'text-muted-foreground/30 line-through'
+                : 'text-muted-foreground';
+              return (
+                <Icon
+                  key={p.post_id}
+                  className={`w-2.5 h-2.5 ${statusColor}`}
+                  aria-label={`${p.platform} ${p.status}`}
+                />
+              );
             })}
             {event.platforms.length > 4 && (
               <span className="text-[9px] text-muted-foreground">+{event.platforms.length - 4}</span>
@@ -451,8 +504,10 @@ function EventCard({
 function StatusIcon({ status }: { status: string }) {
   switch (status) {
     case 'posted': return <CheckCircle className="w-2.5 h-2.5 text-green-600" />;
+    case 'partial': return <AlertTriangle className="w-2.5 h-2.5 text-amber-500" />;
     case 'failed': return <AlertTriangle className="w-2.5 h-2.5 text-red-500" />;
     case 'publishing': return <RefreshCw className="w-2.5 h-2.5 text-blue-500 animate-spin" />;
+    case 'pending_finalize': return <RefreshCw className="w-2.5 h-2.5 text-amber-500 animate-spin" />;
     case 'scheduled': return <Clock className="w-2.5 h-2.5" />;
     default: return <CalendarIcon className="w-2.5 h-2.5" />;
   }

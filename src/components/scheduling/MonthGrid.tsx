@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { EventPreviewModal, type FanoutEventForPreview } from './EventPreviewModal';
+import { FailedPostsPanel } from './FailedPostsPanel';
 import { CalendarFilters, applyCalendarFilters, type PlatformFilter, type StatusFilter } from './CalendarFilters';
 import {
   Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon,
@@ -66,6 +67,7 @@ export function MonthGrid() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedEvent, setSelectedEvent] = useState<FanoutEventForPreview | null>(null);
+  const [showFailedPanel, setShowFailedPanel] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -144,7 +146,19 @@ export function MonthGrid() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap bg-card border border-border rounded-xl px-4 py-3 text-xs">
-        <span className="font-medium text-foreground">{monthLabel}</span>
+        <div className="flex items-center gap-3">
+          <span className="font-medium text-foreground">{monthLabel}</span>
+          {events.some((e) => e.platforms.some((p) => p.status === 'failed')) && (
+            <button
+              type="button"
+              onClick={() => setShowFailedPanel(true)}
+              className="text-red-500 underline underline-offset-2 hover:text-red-600 text-[11px]"
+              title="Review and dismiss failed posts"
+            >
+              {events.filter((e) => e.platforms.some((p) => p.status === 'failed')).length} failed
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={goPrev} className="p-1.5 rounded-md hover:bg-background" title="Previous month">
             <ChevronLeft className="w-4 h-4" />
@@ -240,6 +254,27 @@ export function MonthGrid() {
         onClose={() => setSelectedEvent(null)}
         onChanged={() => { setSelectedEvent(null); load(); }}
       />
+
+      {showFailedPanel && (
+        <FailedPostsPanel
+          events={events
+            .filter((e) => e.platforms.some((p) => p.status === 'failed'))
+            .map((e) => ({
+              fanout_id: e.fanout_id,
+              content_preview: e.content_preview,
+              platforms: e.platforms.map((p) => ({
+                post_id: p.post_id,
+                platform: p.platform,
+                status: p.status,
+                scheduled_at: p.scheduled_at,
+                error_message: p.error_message,
+              })),
+            }))
+          }
+          onClose={() => setShowFailedPanel(false)}
+          onDismissed={() => load()}
+        />
+      )}
     </div>
   );
 }

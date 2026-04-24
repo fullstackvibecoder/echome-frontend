@@ -19,7 +19,10 @@ import {
 export type PlatformFilter = 'all' | 'instagram' | 'linkedin' | 'facebook' | 'threads'
   | 'x' | 'tiktok' | 'youtube' | 'pinterest' | 'bluesky' | 'google_business';
 
-export type StatusFilter = 'all' | 'scheduled' | 'publishing' | 'posted' | 'failed' | 'cancelled';
+// 'partial' is never a filter choice — a partial event already shows under
+// both 'posted' and 'failed' filters (since it has ≥1 of each per-platform).
+// Same reason 'cancelled' is omitted: those rows are hidden at the SQL layer.
+export type StatusFilter = 'all' | 'scheduled' | 'publishing' | 'pending_finalize' | 'posted' | 'failed';
 
 const PLATFORM_META: Array<{ id: PlatformFilter; label: string; Icon?: LucideIcon }> = [
   { id: 'all', label: 'All platforms' },
@@ -38,10 +41,10 @@ const PLATFORM_META: Array<{ id: PlatformFilter; label: string; Icon?: LucideIco
 const STATUS_META: Array<{ id: StatusFilter; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'scheduled', label: 'Scheduled' },
+  { id: 'pending_finalize', label: 'Preparing' },
   { id: 'publishing', label: 'Publishing' },
   { id: 'posted', label: 'Posted' },
   { id: 'failed', label: 'Failed' },
-  { id: 'cancelled', label: 'Cancelled' },
 ];
 
 interface Props {
@@ -109,7 +112,16 @@ export function CalendarFilters({ platform, status, onPlatformChange, onStatusCh
 
 /**
  * Apply platform + status filters to a fanout events array.
- * Shared helper so WeekGrid and FanoutCalendar filter identically.
+ *
+ * Filters match PER-PLATFORM, not against the aggregate status. So a partial
+ * event (IG posted, LI posted, FB failed) appears under the 'Posted' filter
+ * (because ≥1 platform posted) AND under the 'Failed' filter (because ≥1
+ * failed). That's deliberate — it lets the user view the calendar through
+ * either lens without the aggregate erasing one side of the story.
+ *
+ * Previously this matched on `aggregate_status`, which meant any failure in
+ * a fanout kept the whole event out of 'Posted' even when most platforms had
+ * succeeded — the exact UX bug that made "0 posted · 3 failed" feel dishonest.
  */
 export function applyCalendarFilters<T extends {
   platforms: Array<{ platform: string; status: string }>;
@@ -117,7 +129,7 @@ export function applyCalendarFilters<T extends {
 }>(events: T[], platform: PlatformFilter, status: StatusFilter): T[] {
   return events.filter((e) => {
     if (platform !== 'all' && !e.platforms.some((p) => p.platform === platform)) return false;
-    if (status !== 'all' && e.aggregate_status !== status) return false;
+    if (status !== 'all' && !e.platforms.some((p) => p.status === status)) return false;
     return true;
   });
 }
