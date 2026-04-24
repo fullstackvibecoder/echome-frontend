@@ -99,6 +99,8 @@ export default function FollowingContent() {
   const loadAllContent = async (creatorsList: MonitoredCreator[]) => {
     try {
       setLoadingContent(true);
+
+      // Use allSettled so one slow/failing creator doesn't block the rest
       const contentPromises = creatorsList.map(async (creator) => {
         const response = await api.creators.getContent(creator.id, 10);
         if (response.success) {
@@ -107,8 +109,21 @@ export default function FollowingContent() {
         return [];
       });
 
-      const results = await Promise.all(contentPromises);
-      const flatContent = results.flat();
+      const results = await Promise.allSettled(contentPromises);
+
+      const flatContent: ContentWithCreator[] = [];
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled') {
+          flatContent.push(...result.value);
+        } else {
+          // One creator timed out or errored — log but don't surface to the user
+          console.warn(
+            `[following] Failed to load content for creator ${creatorsList[idx]?.id}:`,
+            result.reason?.message ?? result.reason,
+          );
+        }
+      });
+
       flatContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setAllContent(flatContent);
     } catch (err) {
@@ -185,9 +200,13 @@ export default function FollowingContent() {
       if (updatedCreators.success) {
         setCreators(updatedCreators.creators);
       }
-    } catch (err) {
+    } catch (err: any) {
+      const isTimeout = err?.code === 'ECONNABORTED' || err?.message?.includes('timeout');
       console.error('Failed to poll:', err);
-      showErrorToast(err, 'syncing creator content');
+      showErrorToast(
+        isTimeout ? 'Sync is taking longer than expected. New content will appear shortly.' : err,
+        isTimeout ? undefined : 'syncing creator content',
+      );
     }
   };
 

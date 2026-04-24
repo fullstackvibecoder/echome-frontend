@@ -1466,7 +1466,7 @@ export const api = {
 
     /** Get all followed creators */
     list: async () => {
-      const response = await apiClient.get('/creators');
+      const response = await apiClient.get('/creators', { timeout: LIST_TIMEOUT });
       return response.data as {
         success: boolean;
         creators: MonitoredCreator[];
@@ -1476,7 +1476,7 @@ export const api = {
 
     /** Get a single creator */
     get: async (creatorId: string) => {
-      const response = await apiClient.get(`/creators/${creatorId}`);
+      const response = await apiClient.get(`/creators/${creatorId}`, { timeout: LIST_TIMEOUT });
       return response.data as {
         success: boolean;
         creator: MonitoredCreator;
@@ -1499,6 +1499,7 @@ export const api = {
     getContent: async (creatorId: string, limit?: number) => {
       const response = await apiClient.get(`/creators/${creatorId}/content`, {
         params: { limit },
+        timeout: LIST_TIMEOUT,
       });
       return response.data as {
         success: boolean;
@@ -1509,7 +1510,8 @@ export const api = {
 
     /** Manually trigger poll for a creator */
     poll: async (creatorId: string) => {
-      const response = await apiClient.post(`/creators/${creatorId}/poll`, undefined, { timeout: 60000 });
+      // 30s is sufficient; the backend processes asynchronously after returning
+      const response = await apiClient.post(`/creators/${creatorId}/poll`, undefined, { timeout: 30000 });
       return response.data as {
         success: boolean;
         newContentCount: number;
