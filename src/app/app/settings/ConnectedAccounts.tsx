@@ -76,6 +76,31 @@ export function ConnectedAccounts() {
     return () => window.removeEventListener('message', handleMessage);
   }, [loadAccounts]);
 
+  // While a connect is in flight, poll the account list every 2.5s. postMessage
+  // and popup-close detection are both unreliable once the popup has crossed
+  // origins (Outstand → LinkedIn → our callback — COOP can sever window.opener).
+  // Polling the server state is the one reliable signal. Stops the moment
+  // connecting resets or after 3 minutes.
+  useEffect(() => {
+    if (!connecting) return;
+    const startCount = accounts.length;
+    const poll = setInterval(async () => {
+      try {
+        const resp = await api.socialPosting.listAccounts();
+        if (resp.success && resp.data && resp.data.accounts.length > startCount) {
+          setAccounts(resp.data.accounts);
+          setConnecting(null);
+          setDropdownOpen(false);
+          toast.success(`${connecting} connected!`);
+        }
+      } catch {
+        // transient — keep polling
+      }
+    }, 2500);
+    const stop = setTimeout(() => clearInterval(poll), 180_000);
+    return () => { clearInterval(poll); clearTimeout(stop); };
+  }, [connecting, accounts.length]);
+
   useEffect(() => {
     if (!dropdownOpen) return;
     const close = () => setDropdownOpen(false);
