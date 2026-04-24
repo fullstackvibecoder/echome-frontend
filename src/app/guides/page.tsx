@@ -47,7 +47,9 @@ const guideThumbnails: Record<string, string> = {
   'reels-and-captions': '/guide-screenshots/reel-maker.png',
   'youtube-to-content': '/guide-screenshots/create-page.png',
   'creator-radar': '/guide-screenshots/following.png',
-  'scheduling-posts': '/guide-screenshots/scheduling-clip-post-actions.png',
+  // Animated Loom thumbnail — autoplays on hover in most browsers and signals
+  // "this guide has a video" without needing a separate badge.
+  'scheduling-posts': 'https://cdn.loom.com/sessions/thumbnails/6425ffcdd0c840228a714efeacd0465e-with-play.gif',
   'content-calendar': '/guide-screenshots/scheduling-preparing-media.png',
 };
 

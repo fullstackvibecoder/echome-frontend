@@ -62,7 +62,22 @@ export default function SchedulingPostsGuidePage() {
           each post, and let EchoMe auto-publish at the exact time you choose &mdash; all from inside your
           Content Kits.
         </p>
-        <p className="text-sm text-text-secondary/70 mb-8">4 min read</p>
+        <p className="text-sm text-text-secondary/70 mb-8">4 min read &middot; Video walkthrough below</p>
+
+        {/* Loom walkthrough — 2-minute SOP covering the full flow. Aspect-ratio
+            padding-bottom trick lets the iframe stay responsive without a
+            dedicated wrapper component. */}
+        <div className="mb-10 rounded-xl overflow-hidden border border-border bg-black">
+          <div style={{ position: 'relative', paddingBottom: '62.7906976744186%', height: 0 }}>
+            <iframe
+              src="https://www.loom.com/embed/6425ffcdd0c840228a714efeacd0465e"
+              title="EchoMe — Scheduling & Auto-Posting walkthrough"
+              allow="fullscreen"
+              allowFullScreen
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+            />
+          </div>
+        </div>
 
         {/* Steps */}
         <section className="space-y-10 mb-10">
