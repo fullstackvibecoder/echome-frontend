@@ -47,6 +47,8 @@ const guideThumbnails: Record<string, string> = {
   'reels-and-captions': '/guide-screenshots/reel-maker.png',
   'youtube-to-content': '/guide-screenshots/create-page.png',
   'creator-radar': '/guide-screenshots/following.png',
+  'scheduling-posts': '/guide-screenshots/scheduling-clip-post-actions.png',
+  'content-calendar': '/guide-screenshots/scheduling-preparing-media.png',
 };
 
 const guides = [
@@ -183,11 +185,21 @@ const guides = [
     hasVideo: false,
   },
   {
+    slug: 'scheduling-posts',
+    icon: <CalendarDays className="w-6 h-6" />,
+    title: 'Scheduling & Auto-Posting to IG, LinkedIn & Facebook',
+    description:
+      'Connect Instagram, LinkedIn, and Facebook and auto-publish your content at the time you choose. Manage everything from the Content Calendar.',
+    category: 'Features',
+    readTime: '4 min',
+    hasVideo: true,
+  },
+  {
     slug: 'content-calendar',
     icon: <CalendarDays className="w-6 h-6" />,
-    title: 'Content Calendar: Schedule Your Posts',
+    title: 'Content Calendar: Overview',
     description:
-      'Plan and schedule your generated content across platforms. Drag and drop posts onto your calendar for consistent publishing.',
+      'A tour of the Content Calendar view — week and month layouts, filters, drag-to-reschedule, and how events group by Content Kit.',
     category: 'Features',
     readTime: '2 min',
     hasVideo: false,
