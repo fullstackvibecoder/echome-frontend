@@ -53,8 +53,12 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         if (resp.success && resp.data) {
           const platforms = resp.data.accounts.map((a) => a.platform as PlatformId);
           setConnectedAccounts(platforms);
-          // Default-select Instagram if connected (matches most users' primary target)
-          if (platforms.includes('instagram' as PlatformId)) setSelected(['instagram' as PlatformId]);
+          // Default-select every api-mode platform the user has connected. Saves clicks for
+          // the common case of "post this visual to all my managed platforms."
+          const apiPlatforms = platforms.filter((p) =>
+            (['instagram', 'linkedin', 'facebook', 'threads'] as PlatformId[]).includes(p),
+          );
+          if (apiPlatforms.length > 0) setSelected(apiPlatforms);
         }
       } catch {
         // Non-critical

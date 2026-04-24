@@ -67,9 +67,9 @@ export default function ContentCalendarGuidePage() {
             <p>Click on a post to open the full preview. Edit the copy, swap images, or adjust the platform before publishing. Everything is editable right from the calendar.</p>
           </Step>
 
-          <Step number={5} title="Export your calendar or connect integrations">
-            <p>Export your content calendar for external tools. Direct integrations with social media platforms are coming soon &mdash; for now, copy posts and download clips from the calendar view.</p>
-            <Tip>Use the calendar to plan a full week of content from a single video upload.</Tip>
+          <Step number={5} title="Connect your social accounts and auto-post">
+            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, Facebook, and Threads directly. Studio and above auto-post at the scheduled time; lower tiers get email reminders with copy-ready content. More platforms coming as they&apos;re added to our posting service.</p>
+            <Tip>Use the AI Schedule button on any content kit to rollout a full week of staggered posts with one click.</Tip>
           </Step>
         </section>
 

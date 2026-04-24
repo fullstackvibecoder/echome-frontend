@@ -221,7 +221,7 @@ function ContentPreview({
         <div className="pt-2 border-t border-border">
           <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
-            Auto-posting coming soon! For now, open your platform to post:
+            Open the native app to post manually (or use AI Schedule for auto-post):
           </p>
           <div className="flex flex-wrap gap-2">
             {post.platforms.map((platform) => (
