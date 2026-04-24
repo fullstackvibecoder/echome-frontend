@@ -48,8 +48,11 @@ const guideThumbnails: Record<string, string> = {
   'youtube-to-content': '/guide-screenshots/create-page.png',
   'creator-radar': '/guide-screenshots/following.png',
   // Animated Loom thumbnail — autoplays on hover in most browsers and signals
-  // "this guide has a video" without needing a separate badge.
-  'scheduling-posts': 'https://cdn.loom.com/sessions/thumbnails/6425ffcdd0c840228a714efeacd0465e-with-play.gif',
+  // "this guide has a video" without needing a separate badge. Loom requires
+  // a salted token in the path (`-<token>-full-play.gif`); without it the
+  // CDN returns 403. Token comes from scraping the /share/<id> page HTML.
+  'scheduling-posts':
+    'https://cdn.loom.com/sessions/thumbnails/6425ffcdd0c840228a714efeacd0465e-912442c0bd3c7ef4-full-play.gif',
   'content-calendar': '/guide-screenshots/scheduling-preparing-media.png',
 };
 
