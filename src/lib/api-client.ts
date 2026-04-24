@@ -2195,44 +2195,56 @@ export const api = {
 
     /** List user's content kits (slim response — boolean platform flags, no content text) */
     list: async (limit?: number, offset?: number) => {
-      const response = await apiClient.get('/content-kits', {
-        params: { limit, offset },
-        timeout: LIST_TIMEOUT,
-      });
+      try {
+        const response = await apiClient.get('/content-kits', {
+          params: { limit, offset },
+          timeout: LIST_TIMEOUT,
+        });
 
-      // Transform snake_case to camelCase for frontend consumption.
-      // The list endpoint returns has_* boolean flags instead of full content text.
-      const transformedKits = (response.data.data?.kits || []).map((kit: any) => ({
-        id: kit.id,
-        userId: kit.user_id,
-        videoUploadId: kit.video_upload_id,
-        title: kit.title,
-        description: kit.description,
-        hasLinkedin: kit.has_linkedin || false,
-        hasTwitter: kit.has_twitter || false,
-        hasInstagram: kit.has_instagram || false,
-        hasBlog: kit.has_blog || false,
-        hasEmail: kit.has_email || false,
-        hasTiktok: kit.has_tiktok || false,
-        hasYoutube: kit.has_youtube || false,
-        hasVideoScript: kit.has_video_script || false,
-        generationRequestId: kit.generation_request_id,
-        voiceId: kit.voice_id,
-        clipsGenerated: kit.clips_generated || 0,
-        contentGenerated: kit.content_generated || false,
-        createdAt: kit.created_at,
-        updatedAt: kit.updated_at,
-        thumbnailUrl: kit.thumbnail_url || undefined,
-        // Include joined video_uploads data if present
-        video_uploads: kit.video_uploads,
-      }));
+        // Transform snake_case to camelCase for frontend consumption.
+        // The list endpoint returns has_* boolean flags instead of full content text.
+        const transformedKits = (response.data.data?.kits || []).map((kit: any) => ({
+          id: kit.id,
+          userId: kit.user_id,
+          videoUploadId: kit.video_upload_id,
+          title: kit.title,
+          description: kit.description,
+          hasLinkedin: kit.has_linkedin || false,
+          hasTwitter: kit.has_twitter || false,
+          hasInstagram: kit.has_instagram || false,
+          hasBlog: kit.has_blog || false,
+          hasEmail: kit.has_email || false,
+          hasTiktok: kit.has_tiktok || false,
+          hasYoutube: kit.has_youtube || false,
+          hasVideoScript: kit.has_video_script || false,
+          generationRequestId: kit.generation_request_id,
+          voiceId: kit.voice_id,
+          clipsGenerated: kit.clips_generated || 0,
+          contentGenerated: kit.content_generated || false,
+          createdAt: kit.created_at,
+          updatedAt: kit.updated_at,
+          thumbnailUrl: kit.thumbnail_url || undefined,
+          // Include joined video_uploads data if present
+          video_uploads: kit.video_uploads,
+        }));
 
-      return {
-        success: response.data.success,
-        data: {
-          kits: transformedKits as ContentKitListItem[],
-        },
-      };
+        return {
+          success: response.data.success,
+          data: {
+            kits: transformedKits as ContentKitListItem[],
+          },
+        };
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 401) throw new Error('Please log in to view your content.');
+        if (status === 403) throw new Error('You do not have permission to view this content.');
+        if (status >= 500) throw new Error(backendMsg || 'Server error loading your content. Please try again in a moment.');
+        if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+          throw new Error('Loading your content took too long. Please try refreshing the page.');
+        }
+        throw err;
+      }
     },
 
     /** Update content kit */
@@ -3562,12 +3574,20 @@ export const api = {
   // -------- TEAM VOICES --------
   teamVoices: {
     list: async (): Promise<ApiResponse<TeamVoice[]>> => {
-      const response = await apiClient.get('/team-voices');
-      const raw = response.data as ApiResponse<Record<string, unknown>[]>;
-      return {
-        ...raw,
-        data: raw.data ? raw.data.map(transformTeamVoice) : undefined,
-      } as ApiResponse<TeamVoice[]>;
+      try {
+        const response = await apiClient.get('/team-voices', { timeout: LIST_TIMEOUT });
+        const raw = response.data as ApiResponse<Record<string, unknown>[]>;
+        return {
+          ...raw,
+          data: raw.data ? raw.data.map(transformTeamVoice) : undefined,
+        } as ApiResponse<TeamVoice[]>;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) return { success: true, data: [] } as any; // team-voices feature not deployed
+        if (status >= 500) throw new Error(backendMsg || 'Failed to load team voices. Please try again.');
+        throw err;
+      }
     },
 
     get: async (voiceId: string): Promise<ApiResponse<TeamVoice>> => {
@@ -3639,17 +3659,33 @@ export const api = {
     },
 
     getLimits: async (): Promise<ApiResponse<{ voiceCount: number; voiceLimit: number; tier: string }>> => {
-      const response = await apiClient.get('/team-voices/limits');
-      return response.data;
+      try {
+        const response = await apiClient.get('/team-voices/limits', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        // 404 means the endpoint isn't deployed yet; caller has a tier-based fallback
+        if (status === 404 || status === 501) return { success: false, data: undefined } as any;
+        if (status >= 500) throw new Error('Failed to load voice limits. Please try again.');
+        throw err;
+      }
     },
 
     createDefault: async (): Promise<ApiResponse<TeamVoice>> => {
-      const response = await apiClient.post('/team-voices/create-default');
-      const raw = response.data as ApiResponse<Record<string, unknown>>;
-      return {
-        ...raw,
-        data: raw.data ? transformTeamVoice(raw.data) : undefined,
-      } as ApiResponse<TeamVoice>;
+      try {
+        const response = await apiClient.post('/team-voices/create-default');
+        const raw = response.data as ApiResponse<Record<string, unknown>>;
+        return {
+          ...raw,
+          data: raw.data ? transformTeamVoice(raw.data) : undefined,
+        } as ApiResponse<TeamVoice>;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) throw new Error('Default voice creation is not available yet.');
+        if (status >= 500) throw new Error(backendMsg || 'Failed to create default voice. Please try again.');
+        throw err;
+      }
     },
   },
 
@@ -4151,7 +4187,7 @@ export const api = {
 
     /** Fanout-grouped calendar view. */
     getCalendar: async (params?: { start?: string; end?: string; kit_id?: string }) => {
-      const response = await apiClient.get('/social-posting/calendar', { params });
+      const response = await apiClient.get('/social-posting/calendar', { params, timeout: LIST_TIMEOUT });
       return response.data as ApiResponse<{
         events: Array<{
           fanout_id: string;
