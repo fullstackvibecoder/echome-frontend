@@ -319,13 +319,25 @@ export default function ClipEditorModal({
               </button>
 
               {/* Multi-platform post actions — after the user has reviewed the clip
-                  and its caption, they pick platforms and post or schedule. */}
+                  and its caption, they pick platforms and post or schedule. We pass
+                  a finalization recipe so the backend worker burns captions with the
+                  user's current style/position *before* posting to Outstand. Without
+                  this, LinkedIn/IG/FB receive the raw uncaptioned clip. */}
               <VisualPostActions
                 contentKitId={undefined}
                 sourceOutputId={`clip:${clip.id}`}
                 caption={clip.suggestedCaption || instagramCaption || ''}
                 mediaUrls={videoSrc ? [videoSrc] : []}
                 outputKind="clip"
+                finalizationRecipe={{
+                  kind: 'clip',
+                  upload_id: uploadId,
+                  clip_id: clip.id,
+                  caption_style: captionStyle,
+                  caption_position: captionPosition,
+                  view_mode: viewMode,
+                  skip_captions: clip.captionsBurnedIn ? false : captionSegments.length === 0,
+                }}
               />
             </div>
           </div>

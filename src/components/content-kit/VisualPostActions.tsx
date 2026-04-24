@@ -24,18 +24,53 @@ import { extractErrorMessage } from '@/lib/error-utils';
 import { Loader2, Send, CalendarClock, Sparkles } from 'lucide-react';
 import { PlatformMultiPicker, type PlatformId } from '@/components/scheduling/PlatformMultiPicker';
 
+/**
+ * Finalization recipe describes how the backend should produce post-ready media.
+ * When present, the schedule endpoint defers to a background worker instead of
+ * posting raw URLs to Outstand immediately. This is what lets clips go out
+ * *with captions burned in* and carousels go out *with the user's text edits*.
+ * See src/services/social-posting/clip-finalizer.ts + carousel-finalizer.ts.
+ */
+export type FinalizationRecipe =
+  | {
+      kind: 'clip';
+      upload_id: string;
+      clip_id: string;
+      caption_style?: string;
+      caption_position?: 'top' | 'center' | 'bottom';
+      view_mode?: 'single' | 'split';
+      skip_captions?: boolean;
+    }
+  | {
+      kind: 'carousel';
+      kit_id: string;
+      design_preset?: 'auto' | 'tweet-style' | 'text-box';
+      aspect_ratio?: '9:16' | '1:1';
+      slide_overrides?: Array<{ text?: string; text_position?: { x: number; y: number } }>;
+      background?: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string };
+    };
+
 interface Props {
   contentKitId?: string;
   sourceOutputId?: string;
   /** Caption/content that will be posted to each platform */
   caption: string;
-  /** Media URLs to attach. For carousels, pass all slides. For clips/reels, the video URL. */
+  /** Media URLs to attach. For carousels, pass all slides. For clips/reels, the video URL.
+   *  These are placeholder/preview URLs when a finalization recipe is provided —
+   *  the backend worker replaces them with finalized URLs at post time. */
   mediaUrls: string[];
   /** Hint for the platform list: e.g., 'carousel', 'reel' — not used yet but reserved */
   outputKind?: 'carousel' | 'clip' | 'reel';
+  /**
+   * Optional recipe for producing post-ready media in the background. When set,
+   * the post is saved as `pending_finalize` and rendered by a worker before
+   * going to Outstand. Pass this from ClipEditorModal / CarouselEditorModal so
+   * user edits (captions, overlays) actually land on the published post.
+   */
+  finalizationRecipe?: FinalizationRecipe;
 }
 
-export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls }: Props) {
+export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe }: Props) {
   const { hasTierAccess } = useSubscription();
   const canAutoPost = hasTierAccess('studio');
 
@@ -112,10 +147,15 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         source_output_id: sourceOutputId,
         text: caption,
         media_urls: mediaUrls,
+        finalization_recipe: finalizationRecipe,
         rows: apiRows,
         created_via: 'manual_inline',
       });
-      toast.success(`Posting to ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'}`);
+      toast.success(
+        finalizationRecipe
+          ? `Queued for ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'} — finalizing media in background`
+          : `Posting to ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'}`,
+      );
 
       // Also open any link-mode selections for the user to complete manually
       const linkSelections = selected.filter((p) => !['instagram', 'linkedin', 'facebook', 'threads'].includes(p));
@@ -153,6 +193,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
           source_output_id: sourceOutputId,
           text: caption,
           media_urls: mediaUrls,
+          finalization_recipe: finalizationRecipe,
           rows: apiRows,
           created_via: 'manual_inline',
         });

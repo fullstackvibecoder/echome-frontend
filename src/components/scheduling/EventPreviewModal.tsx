@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { extractErrorMessage } from '@/lib/error-utils';
 import {
   X, CheckCircle, AlertTriangle, Clock, RefreshCw, ExternalLink, Sparkles,
+  Loader2,
   Instagram, Linkedin, Facebook, AtSign,
   Twitter, Music2, Youtube, Pin, CloudSun, MapPin,
   type LucideIcon,
@@ -190,7 +191,7 @@ export function EventPreviewModal({ event, onClose, onChanged }: Props) {
                       </button>
                     )}
 
-                    {(p.status === 'scheduled' || p.status === 'publishing') && (
+                    {(p.status === 'scheduled' || p.status === 'publishing' || p.status === 'pending_finalize') && (
                       <button
                         type="button"
                         onClick={() => handleCancel(p.post_id)}
@@ -249,16 +250,19 @@ function MediaThumb({ url }: { url: string }) {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { icon: LucideIcon; label: string; color: string }> = {
     posted: { icon: CheckCircle, label: 'Posted', color: 'text-green-600 bg-green-500/10' },
+    published: { icon: CheckCircle, label: 'Posted', color: 'text-green-600 bg-green-500/10' },
     failed: { icon: AlertTriangle, label: 'Failed', color: 'text-red-500 bg-red-500/10' },
     publishing: { icon: RefreshCw, label: 'Publishing', color: 'text-blue-500 bg-blue-500/10' },
+    pending_finalize: { icon: Loader2, label: 'Preparing media…', color: 'text-amber-600 bg-amber-500/10' },
     scheduled: { icon: Clock, label: 'Scheduled', color: 'text-foreground bg-muted' },
     cancelled: { icon: X, label: 'Cancelled', color: 'text-muted-foreground bg-muted line-through' },
   };
   const c = config[status] || { icon: Clock, label: status, color: 'text-foreground bg-muted' };
   const Icon = c.icon;
+  const spinning = status === 'publishing' || status === 'pending_finalize';
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] ${c.color}`}>
-      <Icon className={`w-2.5 h-2.5 ${status === 'publishing' ? 'animate-spin' : ''}`} />
+      <Icon className={`w-2.5 h-2.5 ${spinning ? 'animate-spin' : ''}`} />
       {c.label}
     </span>
   );

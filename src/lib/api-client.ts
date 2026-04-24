@@ -4089,6 +4089,31 @@ export const api = {
       source_output_id?: string;
       text?: string;
       media_urls?: string[];
+      /**
+       * Optional recipe describing how to produce post-ready media. When set,
+       * the backend defers post creation to a worker that burns captions on
+       * clips / composes carousel slides before handing off to Outstand.
+       * Rows start in pending_finalize and transition to scheduled once the
+       * worker finishes. Pass this from ClipEditorModal / CarouselEditorModal.
+       */
+      finalization_recipe?:
+        | {
+            kind: 'clip';
+            upload_id: string;
+            clip_id: string;
+            caption_style?: string;
+            caption_position?: 'top' | 'center' | 'bottom';
+            view_mode?: 'single' | 'split';
+            skip_captions?: boolean;
+          }
+        | {
+            kind: 'carousel';
+            kit_id: string;
+            design_preset?: 'auto' | 'tweet-style' | 'text-box';
+            aspect_ratio?: '9:16' | '1:1';
+            slide_overrides?: Array<{ text?: string; text_position?: { x: number; y: number } }>;
+            background?: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string };
+          };
       rows: Array<{
         platform: string;
         scheduled_at: string;

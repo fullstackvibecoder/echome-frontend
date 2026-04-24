@@ -357,13 +357,25 @@ export default function CarouselEditorModal({
             </div>
 
             {/* Multi-platform post actions — appear after edits are final so the user commits
-                to a platform only once they know what the asset looks like. */}
+                to a platform only once they know what the asset looks like. The finalization
+                recipe ensures the backend worker recomposes slides with the user's latest
+                text/position edits right before posting; without it, Outstand would receive
+                whatever slide URLs happened to be in state, which may be stale. */}
             <VisualPostActions
               contentKitId={contentKitId}
               sourceOutputId={`carousel:${contentKitId}`}
               caption={suggestedCaption || fallbackCaption || ''}
               mediaUrls={slides.map((s) => s.publicUrl).filter(Boolean)}
               outputKind="carousel"
+              finalizationRecipe={{
+                kind: 'carousel',
+                kit_id: contentKitId,
+                design_preset: (currentPreset === 'photo-overlay' ? 'auto' : currentPreset) as 'auto' | 'tweet-style' | 'text-box',
+                slide_overrides: edits.map((e) => ({
+                  text: e.text,
+                  text_position: e.position,
+                })),
+              }}
             />
 
           </div>
