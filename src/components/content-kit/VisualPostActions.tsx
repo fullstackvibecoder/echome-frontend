@@ -71,8 +71,7 @@ interface Props {
 }
 
 export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe }: Props) {
-  const { hasTierAccess } = useSubscription();
-  const canAutoPost = hasTierAccess('studio');
+  const { canAutoPost } = useSubscription();
 
   const [connectedAccounts, setConnectedAccounts] = useState<PlatformId[]>([]);
   const [selected, setSelected] = useState<PlatformId[]>([]);

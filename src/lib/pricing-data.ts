@@ -25,6 +25,7 @@ export const individualPlans: PlanData[] = [
       'Voice matching from your content',
       '1 platform per generation',
       'Standard templates',
+      'Full auto-posting to Instagram, LinkedIn & Facebook during your 2 generations',
     ],
   },
   {
@@ -43,6 +44,7 @@ export const individualPlans: PlanData[] = [
       'Standard carousel templates',
       '1080p exports',
       'Manual document upload only',
+      'Content calendar with scheduled email reminders (no auto-posting)',
     ],
   },
   {
@@ -65,6 +67,7 @@ export const individualPlans: PlanData[] = [
       '750MB file upload limit',
       'Email import (up to 50 emails)',
       'Priority processing queue',
+      'Auto-post to Instagram, LinkedIn & Facebook',
     ],
   },
   {
@@ -86,6 +89,7 @@ export const individualPlans: PlanData[] = [
       'Email import (up to 100 emails)',
       'Priority processing queue',
       'Priority support',
+      'Auto-post to Instagram, LinkedIn & Facebook',
     ],
   },
 ];
@@ -109,6 +113,7 @@ export const teamsPlans: PlanData[] = [
       'Up to 15 clips per video',
       '5GB file upload limit',
       'Priority support',
+      'Auto-post to Instagram, LinkedIn & Facebook',
     ],
   },
   {
@@ -131,6 +136,7 @@ export const teamsPlans: PlanData[] = [
       'Up to 15 clips per video',
       '5GB file upload limit',
       'Priority support',
+      'Auto-post to Instagram, LinkedIn & Facebook',
     ],
   },
   {
@@ -151,6 +157,7 @@ export const teamsPlans: PlanData[] = [
       'Up to 15 clips per video',
       '5GB file upload limit',
       'Priority support',
+      'Auto-post to Instagram, LinkedIn & Facebook',
     ],
   },
 ];

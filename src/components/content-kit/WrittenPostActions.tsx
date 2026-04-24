@@ -50,8 +50,7 @@ interface Props {
 }
 
 export function WrittenPostActions({ platform, contentKitId, sourceOutputId, text, connected }: Props) {
-  const { hasTierAccess } = useSubscription();
-  const canAutoPost = hasTierAccess('studio');
+  const { canAutoPost } = useSubscription();
 
   const cfg = PLATFORM_CONFIG[platform];
   if (!cfg) return null;

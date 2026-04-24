@@ -42,6 +42,23 @@ interface UseSubscriptionReturn {
   refresh: (forceSync?: boolean) => Promise<void>;
   /** Check if user has access to a tier-gated feature */
   hasTierAccess: (requiredTier: SubscriptionTier) => boolean;
+  /**
+   * Whether the user can auto-post to connected social platforms.
+   *
+   * Access rules (product spec 2026-04-24):
+   *   - Studio / Echo Pro (enterprise) / Teams — always true
+   *   - Free tier with freeGenerationsRemaining > 0 — true
+   *   - Echo ($29 / 'pro') — false (scheduling via reminders only)
+   *   - Free with no quota, or no subscription — false
+   *
+   * Use this instead of hasTierAccess('studio') for any auto-post UX.
+   */
+  canAutoPost: boolean;
+  /**
+   * If canAutoPost is false, this explains why — drives the tooltip copy
+   * on disabled Connections / Post-now controls. null when canAutoPost is true.
+   */
+  autoPostBlockedReason: null | 'echo-tier' | 'free-exhausted' | 'no-subscription';
   /** Redirect to billing page if not subscribed */
   requireSubscription: () => boolean;
 }
@@ -164,6 +181,25 @@ export function useSubscription(): UseSubscriptionReturn {
     return false;
   }, [tier, isSubscribed, isTrial, freeGenerationsRemaining]);
 
+  // Auto-post access — Studio+ OR free-with-quota. See the interface comment
+  // for the full rule table. Echo ($29 / 'pro') is explicitly excluded so that
+  // Echo users fall into the reminders path instead.
+  const canAutoPost: boolean = (() => {
+    if (isSubscribed || isTrial) {
+      return (TIER_LEVELS[tier] || 0) >= TIER_LEVELS.studio;
+    }
+    return freeGenerationsRemaining > 0;
+  })();
+
+  const autoPostBlockedReason: UseSubscriptionReturn['autoPostBlockedReason'] =
+    canAutoPost
+      ? null
+      : isSubscribed || isTrial
+        ? 'echo-tier'
+        : freeGenerationsRemaining === 0 && freeGenerationsUsed > 0
+          ? 'free-exhausted'
+          : 'no-subscription';
+
   // Require subscription - allows free users with remaining generations
   const requireSubscription = useCallback((): boolean => {
     if (loading) return false;
@@ -193,6 +229,8 @@ export function useSubscription(): UseSubscriptionReturn {
     isFreeUser,
     refresh,
     hasTierAccess,
+    canAutoPost,
+    autoPostBlockedReason,
     requireSubscription,
   };
 }

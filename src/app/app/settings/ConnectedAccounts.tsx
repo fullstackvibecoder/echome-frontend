@@ -39,8 +39,7 @@ interface ConnectedAccount {
 }
 
 export function ConnectedAccounts() {
-  const { hasTierAccess } = useSubscription();
-  const canAutoPost = hasTierAccess('studio');
+  const { canAutoPost, autoPostBlockedReason } = useSubscription();
 
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,20 +168,44 @@ export function ConnectedAccounts() {
   }
 
   if (!canAutoPost) {
+    // Messaging varies by why the user is blocked — Echo users don't need to
+    // be told they're "not subscribed", and free-exhausted users have a
+    // different upgrade framing than a genuinely signed-out visitor.
+    const [headline, subcopy] = (() => {
+      switch (autoPostBlockedReason) {
+        case 'echo-tier':
+          return [
+            'Available on Echo Studio, Echo Pro, and Teams',
+            'Your Echo plan can still schedule posts on the calendar — we\'ll email you the copy-ready content at the scheduled time.',
+          ];
+        case 'free-exhausted':
+          return [
+            'Your free generations are used up',
+            'Upgrade to Echo Studio or above to connect your accounts and auto-post. Your Echo plan alternative uses scheduled email reminders.',
+          ];
+        case 'no-subscription':
+        default:
+          return [
+            'Connect your accounts and auto-post',
+            'Free plan includes full auto-post access during your 2 generations. Upgrade any time to keep going.',
+          ];
+      }
+    })();
+
     return (
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Auto-Post to Social</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Schedule your content and let EchoMe post it automatically to Instagram, LinkedIn, Facebook, and Threads. Available on Studio and above.
-          </p>
-          <p className="text-xs text-muted-foreground/80 mt-2">
-            On your current plan you can still schedule posts as calendar reminders — we&apos;ll send you the copy-ready content at the right time.
+            Schedule your content and let EchoMe post it automatically to Instagram, LinkedIn, Facebook, and Threads.
           </p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-5 text-center space-y-3">
-          <p className="text-sm text-foreground font-medium">Available on Echo Studio and above</p>
-          <p className="text-xs text-muted-foreground">Upgrade to connect your social accounts and start auto-posting directly from your content kits.</p>
+        <div
+          className="bg-card border border-border rounded-xl p-5 text-center space-y-3 opacity-70 cursor-not-allowed"
+          title={headline}
+        >
+          <p className="text-sm text-foreground font-medium">{headline}</p>
+          <p className="text-xs text-muted-foreground">{subcopy}</p>
           <Link
             href="/app/billing"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-interactive text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"

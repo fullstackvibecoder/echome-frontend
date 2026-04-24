@@ -51,7 +51,7 @@ export default function PlansGuidePage() {
         {/* Plan sections */}
         <section className="space-y-8 mb-10">
           <PlanSection title="Free Tier">
-            <p>2 lifetime generations, no credit card required. You get the full pro experience for those 2 generations &mdash; clips, captions, posts, newsletters, blog posts, and voice matching. Try everything before you commit.</p>
+            <p>2 lifetime generations, no credit card required. You get the full pro experience for those 2 generations &mdash; clips, captions, posts, newsletters, blog posts, voice matching, and <strong>auto-posting to Instagram, LinkedIn &amp; Facebook</strong>. Try everything before you commit.</p>
           </PlanSection>
 
           <PlanSection title="Echo &mdash; $29/mo">
@@ -61,6 +61,7 @@ export default function PlansGuidePage() {
               <li>Voice matching</li>
               <li>3 Creator Radar slots</li>
               <li>1080p exports</li>
+              <li>Content calendar with email reminders at your scheduled times (auto-posting unlocks at Studio)</li>
             </ul>
           </PlanSection>
 
@@ -71,6 +72,7 @@ export default function PlansGuidePage() {
               <li>Deep voice matching</li>
               <li>10 Creator Radar slots</li>
               <li>Email import (50)</li>
+              <li>Auto-post to Instagram, LinkedIn &amp; Facebook</li>
             </ul>
           </PlanSection>
 
@@ -82,6 +84,7 @@ export default function PlansGuidePage() {
               <li>Unlimited Creator Radar</li>
               <li>Email import (100)</li>
               <li>Priority support</li>
+              <li>Auto-post to Instagram, LinkedIn &amp; Facebook</li>
             </ul>
           </PlanSection>
 
@@ -91,7 +94,7 @@ export default function PlansGuidePage() {
               <li>Pro &mdash; $179/mo (5 voices)</li>
               <li>Agency &mdash; $249/mo (10 voices)</li>
             </ul>
-            <p className="mt-2">All team plans include shared content libraries and collaborative workflows.</p>
+            <p className="mt-2">All team plans include shared content libraries, collaborative workflows, and auto-posting to Instagram, LinkedIn &amp; Facebook.</p>
           </PlanSection>
         </section>
 

@@ -38,8 +38,7 @@ interface Props {
 }
 
 export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onScheduled }: Props) {
-  const { hasTierAccess } = useSubscription();
-  const canAutoPost = hasTierAccess('studio');
+  const { canAutoPost } = useSubscription();
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
