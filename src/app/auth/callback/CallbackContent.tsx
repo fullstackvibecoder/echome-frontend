@@ -42,7 +42,10 @@ export default function CallbackContent() {
           }
 
           if (!hasContent) {
-            router.push('/onboarding');
+            // First-time / empty user: route through the WBTW lookup loading
+            // screen (privacy disclosure → public-data lookup → review → /app).
+            // Falls through silently to /app if the backend flag is off.
+            router.push('/onboarding/lookup');
           } else {
             // Check for stored redirect path (from 401 session expiry)
             const redirectPath = localStorage.getItem('redirectAfterLogin');

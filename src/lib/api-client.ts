@@ -4207,6 +4207,75 @@ export const api = {
       }>;
     },
   },
+
+  // -------- WBTW (Work Before The Work) --------
+  // Public-data lookup: backend reads brand site / Instagram / RE/MAX / NAR
+  // and returns a populated profile so the user doesn't fill a form.
+  // Routes return 404 until WBTW_ENABLED_AT_SIGNUP=true on the backend.
+  wbtw: {
+    /**
+     * Kick off a public-data lookup. Synchronous on the backend (5–15s).
+     * Body fields are optional — backend defaults to the current user's email.
+     */
+    lookup: async (body?: {
+      email?: string;
+      domain?: string;
+      instagram_handle?: string;
+    }) => {
+      const response = await apiClient.post('/wbtw/lookup', body ?? {}, {
+        timeout: 30000, // backend lookup is 5–15s, give some headroom
+      });
+      return response.data as {
+        profile_id: string;
+        fields: Record<string, unknown>;
+        field_confidence: Record<string, number>;
+        source_trace: Record<string, string>;
+        ready: boolean;
+        expires_at: string;
+      };
+    },
+
+    /**
+     * Read the latest cached profile for the current user. No work performed.
+     * Use to render the review screen on subsequent visits / refresh.
+     */
+    getProfile: async () => {
+      const response = await apiClient.get('/wbtw/profile');
+      return response.data as {
+        profile_id: string;
+        fields: Record<string, unknown>;
+        field_confidence: Record<string, number>;
+        source_trace: Record<string, string>;
+        ready: boolean;
+        expires_at: string;
+      };
+    },
+
+    /**
+     * User accepts/overrides the profile. Backend writes users.profile_*
+     * columns and ingests bios/captions as KB voice samples.
+     */
+    confirm: async (body: {
+      fields_to_accept: string[];
+      fields_to_override: Record<string, string>;
+    }) => {
+      const response = await apiClient.post('/wbtw/profile/confirm', body);
+      return response.data as {
+        success: boolean;
+        fields_written: number;
+        kb_chunks_ingested: number;
+      };
+    },
+
+    /**
+     * Hard-delete the user's public_profiles row(s) and any KB chunks
+     * with metadata.source === 'wbtw_lookup'. Reversible (re-lookup repopulates).
+     */
+    delete: async () => {
+      const response = await apiClient.delete('/wbtw/profile');
+      return response.data as { success: boolean };
+    },
+  },
 };
 
 // -------- TEAM VOICE TYPES --------
