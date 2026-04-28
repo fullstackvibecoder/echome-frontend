@@ -67,7 +67,15 @@ interface SourceOrigin {
 function getSourceOrigin(item: UnifiedContentItem): SourceOrigin {
   const meta = (item.metadata ?? {}) as Record<string, unknown>;
   const source = typeof meta.source === 'string' ? meta.source : undefined;
-  if (source === 'wbtw_lookup') {
+  // Backend tags WBTW-ingested files two ways: metadata.source = 'wbtw_lookup'
+  // when the chunking service persists it, AND a 'WBTW: ' prefix on file_name
+  // (the `files` table has no JSONB metadata column, so the prefix is the
+  // load-bearing tag — see echome-platform-v2/src/routes/wbtw.ts).
+  const fileName = typeof (item as { file_name?: unknown }).file_name === 'string'
+    ? ((item as { file_name?: string }).file_name as string)
+    : undefined;
+  const isWbtw = source === 'wbtw_lookup' || (fileName?.startsWith('WBTW: ') ?? false);
+  if (isWbtw) {
     const sourceUrl =
       typeof meta.source_url === 'string'
         ? meta.source_url
