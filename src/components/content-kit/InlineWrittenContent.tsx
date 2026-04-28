@@ -20,6 +20,7 @@ import {
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
 import { QuickShareButton } from '@/components/share-buttons';
+import { FeedbackThumbs } from '@/components/feedback-thumbs';
 
 interface PlatformConfig {
   key: string;
@@ -53,6 +54,8 @@ const FIELD_MAP: Record<string, string> = {
 interface InlineWrittenContentProps {
   contentKitId: string;
   content: Record<string, string | undefined>;
+  /** Per-platform generated_content.id, used as feedback target. Missing platforms hide the thumbs. */
+  platformIds?: Record<string, string | undefined>;
   onContentUpdate: () => void;
   onSchedule?: (platform: string) => void;
 }
@@ -60,6 +63,7 @@ interface InlineWrittenContentProps {
 export function InlineWrittenContent({
   contentKitId,
   content,
+  platformIds,
   onContentUpdate,
   onSchedule,
 }: InlineWrittenContentProps) {
@@ -169,16 +173,26 @@ export function InlineWrittenContent({
           rows={6}
         />
 
-        {/* Footer: char count + actions */}
-        <div className="flex items-center justify-between mt-2">
-          <span
-            className={`text-[11px] ${
-              isOverLimit ? 'text-red-400 font-medium' : 'text-muted-foreground/50'
-            }`}
-          >
-            {charCount}
-            {activeConfig.charLimit ? ` / ${activeConfig.charLimit}` : ''} characters
-          </span>
+        {/* Footer: char count + feedback + actions */}
+        <div className="flex items-center justify-between mt-2 gap-3 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <span
+              className={`text-[11px] ${
+                isOverLimit ? 'text-red-400 font-medium' : 'text-muted-foreground/50'
+              }`}
+            >
+              {charCount}
+              {activeConfig.charLimit ? ` / ${activeConfig.charLimit}` : ''} characters
+            </span>
+            {platformIds?.[activePlatform] && (
+              <FeedbackThumbs
+                key={`thumbs-${activePlatform}-${platformIds[activePlatform]}`}
+                contentId={platformIds[activePlatform]!}
+                label="On voice?"
+                compact
+              />
+            )}
+          </div>
 
           <div className="flex items-center gap-1.5">
             <button

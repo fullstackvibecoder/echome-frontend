@@ -380,6 +380,16 @@ export default function ContentKitDetailContent() {
   const platformContent = getPlatformContent();
   const hasClips = detail?.clips && detail.clips.length > 0;
   const hasWrittenContent = platformContent.length > 0;
+
+  // Map of platform → generated_content.id for feedback widgets.
+  // Pulls from detail.content[] (per-platform generated_content rows). Late-arriving
+  // platforms may not have a row yet; the thumbs widget hides for those.
+  const platformIds: Record<string, string> = {};
+  if (detail?.content && Array.isArray(detail.content)) {
+    for (const item of detail.content) {
+      if (item?.platform && item?.id) platformIds[item.platform] = item.id;
+    }
+  }
   const hasCarousel = detail?.carousel?.slides && detail.carousel.slides.length > 0;
   const typeConfig = item ? CONTENT_TYPE_CONFIG[item.type] : null;
 
@@ -677,6 +687,7 @@ export default function ContentKitDetailContent() {
                       youtube: detail.contentKit.contentYoutube,
                       'video-script': detail.contentKit.contentVideoScript,
                     }}
+                    platformIds={platformIds}
                     onContentUpdate={() => refresh()}
                     onSchedule={(platform) => setQuickScheduleConfig({ type: 'platform', platform })}
                   />
