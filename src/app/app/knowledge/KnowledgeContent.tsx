@@ -32,9 +32,9 @@ function getStrengthTier(strength: number) {
 }
 
 function getStrengthMessage(score: number): string {
-  if (score <= 30) return 'Add your writing, social posts, or voice recordings below. The more Echo learns, the more your generated content sounds like you — not AI.';
-  if (score <= 60) return 'Echo is learning your style. Add more of your best content — blog posts, LinkedIn posts, or emails you\'re proud of. Quality over quantity.';
-  if (score <= 80) return 'Your generated content already sounds like you. Try asking Echo what it knows about your voice below.';
+  if (score <= 30) return 'Echo has a starting read on you. Add a YouTube link, blog, or paste some writing below — the more it has, the more your generated content sounds like you.';
+  if (score <= 60) return 'Echo has your style now. Add more of your best work — blog posts, LinkedIn posts, emails you\'re proud of. Quality over quantity.';
+  if (score <= 80) return 'Your generated content already sounds like you. Ask Echo below what it knows about your voice.';
   return 'Echo has a strong read on your voice. Everything you generate will carry your tone, phrasing, and perspective.';
 }
 
@@ -117,7 +117,7 @@ export default function KnowledgeContent() {
 
       {/* Header: title + voice strength (always renders the scale, even at 0) */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Build Your Voice</h1>
+        <h1 className="text-2xl font-bold text-foreground">Your Voice</h1>
         <div className="flex items-center gap-2 mt-1">
           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${displayTier.badgeBg} ${displayTier.badgeText}`}>
             <DisplayIcon className="w-3 h-3" />
@@ -162,12 +162,12 @@ export default function KnowledgeContent() {
           {!hasContent && (
             <div className="mb-6 rounded-xl border border-border bg-card p-5">
               <h2 className="text-base font-semibold text-foreground mb-1">
-                Teach Echo how you write.
+                What Echo knows about you.
               </h2>
               <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-                Paste your best writing, drop a YouTube link, or upload a file.
-                The more Echo learns, the more your generated content sounds like
-                you — not AI.
+                Drop a YouTube link, paste some writing, or upload a file.
+                Echo reads what you&apos;ve already made so the next post
+                sounds like you, not like AI.
               </p>
               <div className="flex flex-wrap gap-1.5 mb-4">
                 {['Blog posts', 'LinkedIn posts', 'Past emails', 'YouTube channel', 'Voice recordings', 'PDFs'].map(tag => (

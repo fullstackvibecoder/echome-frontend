@@ -128,9 +128,8 @@ function ContentKitListInner() {
         <div className="flex flex-col items-center justify-center py-20 text-center max-w-xl mx-auto">
           <h3 className="text-lg font-semibold mb-2">No content kits yet</h3>
           <p className="text-text-secondary text-sm mb-6 leading-relaxed">
-            A Content Kit is a week&apos;s worth of content from one input.
-            Drop a YouTube link, upload a video, or type a topic — Echo turns it
-            into clips, carousels, captions, a Substack article, and an email newsletter.
+            Give Echo a link, file, or topic on the home page. It already knows
+            your voice — the kits show up here when they&apos;re ready.
           </p>
           <Link href="/app" className="btn-primary">
             Create your first kit

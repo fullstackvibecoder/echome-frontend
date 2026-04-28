@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { HeroDemoVideo } from './HeroDemoVideo';
 
 export function HeroSection() {
@@ -18,15 +18,6 @@ export function HeroSection() {
           {/* Content Left */}
           <div className="flex flex-col space-y-10">
             <div className="space-y-6">
-              {/* Badge */}
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 opacity-0 animate-fade-in"
-                style={{ animationDelay: '0ms' }}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-primary font-bold text-xs tracking-widest uppercase">Content Transformation</span>
-              </div>
-
               {/* Headline */}
               <h1
                 className="font-headline text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight opacity-0 animate-fade-in"

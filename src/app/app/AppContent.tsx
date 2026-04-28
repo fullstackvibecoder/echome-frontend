@@ -35,14 +35,14 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
   if (generationsUsed && generationsUsed >= 10) {
     return {
       headline: `${firstName}, you're on fire 🔥`,
-      subheadline: `${generationsUsed} pieces created this month and counting. Let's keep the momentum going.`
+      subheadline: `Your voice profile keeps getting sharper. ${generationsUsed} pieces shipped this month.`
     };
   }
 
   if (generationsUsed && generationsUsed >= 5) {
     return {
       headline: `Welcome back, ${firstName}!`,
-      subheadline: `You've created ${generationsUsed} pieces this month. Ready to add more?`
+      subheadline: `Echo has more to draw from every time you generate. ${generationsUsed} pieces this month.`
     };
   }
 
@@ -50,20 +50,20 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
   if (hour < 12) {
     return {
       headline: `${timeGreeting}, ${firstName}!`,
-      subheadline: 'Ready to turn some footage into content?'
+      subheadline: "What's on your mind? Echo already knows your voice — just give it a topic, link, or video."
     };
   }
 
   if (hour >= 20) {
     return {
       headline: `Working late, ${firstName}?`,
-      subheadline: `Let's make it count. Upload and we'll handle the rest.`
+      subheadline: 'Drop a thought, link, or video. Echo already knows your style.'
     };
   }
 
   return {
     headline: `Welcome back, ${firstName}!`,
-    subheadline: `What would you like to create today?`
+    subheadline: 'What should Echo turn into a kit today?'
   };
 }
 

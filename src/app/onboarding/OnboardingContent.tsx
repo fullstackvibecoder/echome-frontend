@@ -19,7 +19,7 @@ import { extractErrorMessage } from '@/lib/error-utils';
 // TYPES & CONSTANTS
 // ============================================
 
-const MIN_CONTENT_ITEMS = 3;
+const MIN_CONTENT_ITEMS = 0;
 
 type Step =
   | 'welcome'
@@ -193,14 +193,12 @@ export default function OnboardingContent() {
         addEcho("Want to record a quick voice note? Nothing captures tone like your actual voice.");
         break;
       case 'check':
-        if (isReady || totalCompleted >= MIN_CONTENT_ITEMS) {
-          addEcho(`Looking good. I have ${totalCompleted} sources to work with. Your voice profile is building. Ready to start creating?`);
-          setStep('done');
-        } else {
-          const remaining = MIN_CONTENT_ITEMS - totalCompleted;
-          addEcho(`I have ${totalCompleted} source${totalCompleted !== 1 ? 's' : ''} so far. I need ${remaining} more to get started. Want to add more?`);
-          break;
-        }
+        addEcho(
+          totalCompleted > 0
+            ? `Got ${totalCompleted} source${totalCompleted !== 1 ? 's' : ''} so far. I'll be sharper with more, but we can start now — or add another.`
+            : "I'll be honest — I'll be approximate without any sources, but I can still generate. Want to feed me one quick thing first, or just go?"
+        );
+        setStep('done');
         break;
       case 'done':
         addEcho("You're all set. Let's go create something that sounds like you.");
@@ -230,7 +228,7 @@ export default function OnboardingContent() {
     } catch {}
 
     setProfileSaving(false);
-    addEcho(`Got it, ${displayName.trim().split(' ')[0]}. Now let's teach me your voice.`);
+    addEcho(`Got it, ${displayName.trim().split(' ')[0]}. Drop me a few sources and I'll start reading — the more I see, the more your generated content sounds like you.`);
 
     // Start the guided import flow
     setTimeout(() => advanceToStep('youtube'), 500);

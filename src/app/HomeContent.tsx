@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Check, Mail, Users, ArrowRight, FileDown } from 'lucide-react';
+import { Menu, X, Check, Mail, Users, ArrowRight } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
@@ -533,30 +533,6 @@ export default function HomeContent() {
               Contact Sales
             </a>
           </div>
-        </div>
-      </section>
-
-      {/* Free Tools */}
-      <section className="py-16 px-6 bg-gradient-to-br from-emerald-950/40 to-background border-y border-emerald-500/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/15 border border-emerald-500/25 rounded-full mb-6">
-            <span className="text-lg">🎁</span>
-            <span className="text-emerald-400 font-semibold text-sm">Free Tools — No Signup Required</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3 text-foreground">
-            Free Video Compressor
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto mb-8 text-lg">
-            Reduce your video file size without losing quality. No account, no email, no watermark. Just drop your file and download.
-          </p>
-          <a
-            href="/tools/compress-video"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold text-lg hover:bg-emerald-500 hover:scale-105 transition-all shadow-lg shadow-emerald-600/20"
-          >
-            <FileDown className="w-5 h-5" />
-            Compress a Video — Free
-          </a>
-          <p className="text-xs text-muted-foreground mt-4">Supports MP4, MOV, WebM, AVI, MKV up to 500MB</p>
         </div>
       </section>
 

@@ -399,7 +399,7 @@ export default function FollowingContent() {
       ) : creators.length === 0 ? (
         <div className="card py-16 px-8 text-center">
           <p className="text-muted-foreground max-w-md mx-auto">
-            Follow a creator to see their latest content here. Paste a YouTube or Instagram URL above to get started.
+            Add a creator and any new video they post gets filtered through your knowledge base. Their idea, your voice. Paste a YouTube channel or Instagram profile above.
           </p>
         </div>
       ) : (
