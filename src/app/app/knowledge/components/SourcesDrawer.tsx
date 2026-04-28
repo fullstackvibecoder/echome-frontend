@@ -56,6 +56,61 @@ function StatusDot({ status }: { status: string }) {
 }
 
 // ============================================
+// SOURCE ORIGIN — was this source found by Echo's auto-lookup, or added by the user?
+// ============================================
+
+interface SourceOrigin {
+  kind: 'echo' | 'user';
+  sourceUrl?: string;
+}
+
+function getSourceOrigin(item: UnifiedContentItem): SourceOrigin {
+  const meta = (item.metadata ?? {}) as Record<string, unknown>;
+  const source = typeof meta.source === 'string' ? meta.source : undefined;
+  // Backend tags WBTW-ingested files two ways: metadata.source = 'wbtw_lookup'
+  // when the chunking service persists it, AND a 'WBTW: ' prefix on file_name
+  // (the `files` table has no JSONB metadata column, so the prefix is the
+  // load-bearing tag — see echome-platform-v2/src/routes/wbtw.ts).
+  const fileName = typeof (item as { file_name?: unknown }).file_name === 'string'
+    ? ((item as { file_name?: string }).file_name as string)
+    : undefined;
+  const isWbtw = source === 'wbtw_lookup' || (fileName?.startsWith('WBTW: ') ?? false);
+  if (isWbtw) {
+    const sourceUrl =
+      typeof meta.source_url === 'string'
+        ? meta.source_url
+        : typeof meta.url === 'string'
+        ? meta.url
+        : undefined;
+    return { kind: 'echo', sourceUrl };
+  }
+  return { kind: 'user' };
+}
+
+function SourceOriginBadge({ origin }: { origin: SourceOrigin }) {
+  if (origin.kind === 'echo') {
+    return (
+      <span
+        title={origin.sourceUrl ? `Found by Echo from ${origin.sourceUrl}` : 'Found by Echo'}
+        className="hidden md:inline-flex items-center gap-1 flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-accent/10 text-accent border border-accent/20"
+      >
+        <span aria-hidden>🔍</span>
+        Found by Echo
+      </span>
+    );
+  }
+  return (
+    <span
+      title="Added by you"
+      className="hidden md:inline-flex items-center gap-1 flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-bg-secondary text-text-secondary border border-border"
+    >
+      <span aria-hidden>✋</span>
+      Added by you
+    </span>
+  );
+}
+
+// ============================================
 // LIST ITEM
 // ============================================
 
@@ -72,6 +127,7 @@ interface KBListItemProps {
 function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onToggleExpand, onDelete }: KBListItemProps) {
   const [hovered, setHovered] = useState(false);
   const config = CONTENT_SOURCE_CONFIG[item.sourceType as ContentSourceType];
+  const origin = getSourceOrigin(item);
 
   return (
     <div>
@@ -100,6 +156,7 @@ function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onT
           <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
           {item.description && <p className="text-xs text-text-secondary truncate">{item.description}</p>}
         </div>
+        <SourceOriginBadge origin={origin} />
         <div className="flex items-center gap-2 flex-shrink-0">
           <StatusDot status={item.status} />
           <span className="text-xs text-text-secondary whitespace-nowrap">{item.chunkCount || 0} patterns</span>
@@ -120,6 +177,24 @@ function KBListItem({ item, isExpanded, selectionMode, isSelected, onSelect, onT
       {isExpanded && (
         <div className="ml-11 mr-3 mb-2 p-3 bg-bg-secondary rounded-lg border border-border space-y-2">
           {item.description && <p className="text-xs text-text-secondary">{item.description}</p>}
+          {/* Origin badge — visible in expanded panel for mobile (where the inline badge is hidden) */}
+          <div className="md:hidden">
+            <SourceOriginBadge origin={origin} />
+          </div>
+          {origin.kind === 'echo' && origin.sourceUrl && (
+            <p className="text-xs text-text-tertiary truncate">
+              Source:{' '}
+              <a
+                href={origin.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline text-text-secondary"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {origin.sourceUrl}
+              </a>
+            </p>
+          )}
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-tertiary">
             <span>Type: {config?.label || item.sourceType}</span>
             {item.fileType && <span>File: {item.fileType}</span>}

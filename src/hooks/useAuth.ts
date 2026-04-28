@@ -95,8 +95,11 @@ export function useAuth(): UseAuthReturn {
         // Track signup for Meta Pixel (ad conversion optimization)
         trackSignup(email);
 
-        // New users go straight to onboarding (2 free generations, no billing required)
-        router.push('/onboarding');
+        // New users go to the WBTW lookup loading screen first.
+        // It surfaces a privacy disclosure, then auto-populates from public sources
+        // and routes onward (review → /app, or silent fallthrough to /app if the
+        // backend feature flag is off / lookup empty).
+        router.push('/onboarding/lookup');
       } else {
         throw new Error(response.error || 'Signup failed');
       }
