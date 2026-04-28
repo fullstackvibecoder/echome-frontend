@@ -53,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Your Voice',
     items: [
-      { id: 'knowledge', label: 'Build Your Voice', icon: Brain, path: '/app/knowledge' },
+      { id: 'knowledge', label: 'Your Voice', icon: Brain, path: '/app/knowledge' },
       { id: 'team-voices', label: 'Team Voices', icon: Mic, path: '/app/team-voices', teamsOnly: true },
       { id: 'library', label: 'Creator Library', icon: FolderOpen, path: '/app/library' },
     ],
@@ -62,7 +62,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Discover',
     items: [
       { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides', external: true },
-      { id: 'following', label: 'Following', icon: Users, path: '/app/following' },
+      { id: 'following', label: 'Creator Radar', icon: Users, path: '/app/following' },
       { id: 'trends', label: 'Trends', icon: TrendingUp, path: '/app/trends', adminOnly: true },
       { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
       { id: 'community', label: 'Community', icon: MessageCircle, path: '/community', external: true },
