@@ -387,23 +387,54 @@ export const api = {
   // -------- API KEYS --------
   apiKeys: {
     list: async (): Promise<ApiResponse<any[]>> => {
-      const response = await apiClient.get('/account/api-keys');
-      return response.data;
+      try {
+        const response = await apiClient.get('/account/api-keys', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error loading API keys. Please try again.');
+        if (err?.code === 'ECONNABORTED') throw new Error('Loading timed out. Please try refreshing.');
+        throw err;
+      }
     },
 
     create: async (data: { name: string; scopes?: string[] }): Promise<ApiResponse<any>> => {
-      const response = await apiClient.post('/account/api-keys', data);
-      return response.data;
+      try {
+        const response = await apiClient.post('/account/api-keys', data);
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error creating API key. Please try again.');
+        if (status === 403) throw new Error('You do not have permission to create API keys.');
+        throw err;
+      }
     },
 
     revoke: async (keyId: string): Promise<ApiResponse<{ message: string }>> => {
-      const response = await apiClient.delete(`/account/api-keys/${keyId}`);
-      return response.data;
+      try {
+        const response = await apiClient.delete(`/account/api-keys/${keyId}`);
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) throw new Error('API key not found. It may have already been revoked.');
+        if (status >= 500) throw new Error(msg || 'Server error revoking API key. Please try again.');
+        throw err;
+      }
     },
 
     getUsage: async (keyId: string, days?: number): Promise<ApiResponse<any>> => {
-      const response = await apiClient.get(`/account/api-keys/${keyId}/usage`, { params: { days } });
-      return response.data;
+      try {
+        const response = await apiClient.get(`/account/api-keys/${keyId}/usage`, { params: { days }, timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 404) throw new Error('API key not found.');
+        if (status >= 500) throw new Error('Server error loading usage data. Please try again.');
+        throw err;
+      }
     },
   },
 
@@ -420,13 +451,28 @@ export const api = {
         has_payment_method: boolean;
       };
     }>> => {
-      const response = await apiClient.get('/account/api-credits');
-      return response.data;
+      try {
+        const response = await apiClient.get('/account/api-credits', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error loading credit balance. Please try again.');
+        if (err?.code === 'ECONNABORTED') throw new Error('Loading timed out. Please try refreshing.');
+        throw err;
+      }
     },
 
     getTransactions: async (params?: { limit?: number; offset?: number; type?: string }): Promise<ApiResponse<any[]>> => {
-      const response = await apiClient.get('/account/api-credits/transactions', { params });
-      return response.data;
+      try {
+        const response = await apiClient.get('/account/api-credits/transactions', { params, timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error loading transactions. Please try again.');
+        throw err;
+      }
     },
 
     getPacks: async (): Promise<ApiResponse<Array<{
@@ -436,13 +482,28 @@ export const api = {
       price: number;
       priceInCents: number;
     }>>> => {
-      const response = await apiClient.get('/account/api-credits/packs');
-      return response.data;
+      try {
+        const response = await apiClient.get('/account/api-credits/packs', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error loading credit packs. Please try again.');
+        throw err;
+      }
     },
 
     checkout: async (data: { packId: string; successUrl: string; cancelUrl: string }): Promise<ApiResponse<{ sessionId: string; url: string }>> => {
-      const response = await apiClient.post('/account/api-credits/checkout', data);
-      return response.data;
+      try {
+        const response = await apiClient.post('/account/api-credits/checkout', data);
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 402) throw new Error('Payment required. Please add a payment method.');
+        if (status >= 500) throw new Error(msg || 'Server error processing checkout. Please try again.');
+        throw err;
+      }
     },
 
     updateAutoReload: async (config: {
@@ -451,8 +512,16 @@ export const api = {
       packId?: string;
       stripePaymentMethodId?: string;
     }): Promise<ApiResponse<{ message: string }>> => {
-      const response = await apiClient.post('/account/api-credits/auto-reload', config);
-      return response.data;
+      try {
+        const response = await apiClient.post('/account/api-credits/auto-reload', config);
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 400 && msg) throw new Error(msg);
+        if (status >= 500) throw new Error(msg || 'Server error updating auto-reload settings. Please try again.');
+        throw err;
+      }
     },
 
     getPaymentMethods: async (): Promise<ApiResponse<Array<{
@@ -462,13 +531,27 @@ export const api = {
       exp_month: number;
       exp_year: number;
     }>>> => {
-      const response = await apiClient.get('/account/api-credits/payment-methods');
-      return response.data;
+      try {
+        const response = await apiClient.get('/account/api-credits/payment-methods', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error loading payment methods. Please try again.');
+        throw err;
+      }
     },
 
     setupPaymentMethod: async (data: { returnUrl: string }): Promise<ApiResponse<{ url: string }>> => {
-      const response = await apiClient.post('/account/api-credits/setup-payment-method', data);
-      return response.data;
+      try {
+        const response = await apiClient.post('/account/api-credits/setup-payment-method', data);
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error setting up payment method. Please try again.');
+        throw err;
+      }
     },
   },
 
