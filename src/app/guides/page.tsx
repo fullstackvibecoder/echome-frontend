@@ -18,7 +18,6 @@ import {
   BookOpen,
   Lock,
   CreditCard,
-  TrendingUp,
   Images,
 } from 'lucide-react';
 
@@ -205,16 +204,6 @@ const guides = [
     title: 'Content Calendar: Overview',
     description:
       'A tour of the Content Calendar view — week and month layouts, filters, drag-to-reschedule, and how events group by Content Kit.',
-    category: 'Features',
-    readTime: '2 min',
-    hasVideo: false,
-  },
-  {
-    slug: 'trends',
-    icon: <TrendingUp className="w-6 h-6" />,
-    title: "Trends: What's Working in Your Niche",
-    description:
-      'See which topics and formats are performing best in your niche. Use trend data to guide your content strategy.',
     category: 'Features',
     readTime: '2 min',
     hasVideo: false,
