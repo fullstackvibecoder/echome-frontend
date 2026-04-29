@@ -34,7 +34,7 @@ export function HeroSection() {
                 className="text-base sm:text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
                 style={{ animationDelay: '300ms' }}
               >
-                Stop starting from zero. EchoMe transforms your raw videos into a full week of social media posts in your unique voice.
+                Stop starting from zero. EchoMe reads what you&apos;ve already made — your videos, posts, emails, voice — so the next thing you ship is already 80% you.
               </p>
             </div>
 

@@ -37,13 +37,13 @@ export function KnowledgeBaseSection() {
           {/* Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-foreground leading-tight">
-              One Video In.{' '}
+              It already read{' '}
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                Everything Out.
+                your last hundred posts.
               </span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              Drop a video, get a week of content. Every piece is grounded in your voice because the system already knows how you think.
+              Now drop the next one. Echo writes it in your voice — your phrases, your tone, your framing — because it&apos;s been studying you all along.
             </p>
           </div>
 
@@ -139,9 +139,9 @@ export function KnowledgeBaseSection() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
             <div className="relative grid md:grid-cols-3 gap-8 text-center">
               {[
-                { stat: '6', label: 'platforms', detail: 'LinkedIn, Twitter/X, Instagram, TikTok, Blog, Email' },
-                { stat: '15+', label: 'content pieces', detail: 'Posts, carousels, clips, captions, blog drafts' },
-                { stat: '1', label: 'video', detail: 'That\u2019s all it takes. Your voice does the rest.' },
+                { stat: '0', label: 'prompts to engineer', detail: 'No "act like me" instructions. Echo reads what you\u2019ve already made.' },
+                { stat: '10+', label: 'source types', detail: 'YouTube, Instagram, blog, email, voice notes, PDFs, your public web.' },
+                { stat: '1', label: 'voice profile', detail: 'Yours. Built from everything you give it. No generic LLM defaults.' },
               ].map((item) => (
                 <div key={item.label}>
                   <div className="text-5xl md:text-6xl font-black text-primary mb-1">{item.stat}</div>

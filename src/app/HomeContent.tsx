@@ -227,13 +227,11 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      '2 hours of video processing',
-                      '5 clips per video',
-                      '1 Knowledge Base (your voice profile)',
+                      'Your voice profile (1 knowledge base, learns continuously)',
+                      'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
                       '3 Creator Radar slots',
-                      'Standard carousel templates',
-                      '1080p exports',
-                      'Manual document upload only',
+                      'Up to 5 clips per video, 2 hrs of processing',
+                      'Standard templates, 1080p exports',
                       'Monthly Creator Library (B-roll, captions, scripts)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
@@ -278,14 +276,11 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-white/30">
                     {[
-                      'Up to 5 hours of video processing',
-                      'Up to 10 clips per video',
-                      'Deep voice matching',
+                      'Deep voice matching (continuous learning + thumbs feedback)',
+                      'Reads YouTube, Instagram, blog, email (50 imports), voice notes, PDFs',
                       'Up to 10 Creator Radar slots',
-                      'All templates + custom colors',
-                      '1080p exports',
-                      '750MB file upload limit',
-                      'Email import (up to 50 emails)',
+                      'Up to 10 clips per video, 5 hrs processing, 750MB upload',
+                      'All templates + custom colors, 1080p exports',
                       'Priority processing queue',
                       'Monthly Creator Library (B-roll, captions, scripts)'
                     ].map((feature, idx) => (
@@ -328,16 +323,12 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      'Unlimited video processing',
-                      'Up to 15 clips per video',
-                      'Full voice matching pipeline',
+                      'Full voice matching pipeline (custom guardrails + brand context)',
+                      'Reads everything you give it (100 emails, 5GB upload)',
                       'Unlimited Creator Radar',
-                      'Custom carousel design system',
-                      '1080p exports',
-                      '5GB file upload limit',
-                      'Email import (up to 100 emails)',
-                      'Priority processing queue',
-                      'Priority support',
+                      'Unlimited video processing, up to 15 clips per video',
+                      'Custom carousel design system, 1080p exports',
+                      'Priority processing + Priority support',
                       'Monthly Creator Library (B-roll, captions, scripts)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
@@ -401,11 +392,6 @@ export default function HomeContent() {
                         'Per-voice knowledge bases',
                         'Per-voice profile context',
                         'Shared usage pool across voices',
-                        'Unlimited video processing',
-                        'Up to 15 clips per video',
-                        '5GB file upload limit',
-                        'Priority support',
-                        'Monthly Creator Library (B-roll, captions, scripts)',
                       ].map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -454,11 +440,6 @@ export default function HomeContent() {
                         'Per-voice knowledge bases',
                         'Per-voice profile context',
                         'Shared usage pool across voices',
-                        'Unlimited video processing',
-                        'Up to 15 clips per video',
-                        '5GB file upload limit',
-                        'Priority support',
-                        'Monthly Creator Library (B-roll, captions, scripts)',
                       ].map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -504,11 +485,6 @@ export default function HomeContent() {
                         'Per-voice knowledge bases',
                         'Per-voice profile context',
                         'Shared usage pool across voices',
-                        'Unlimited video processing',
-                        'Up to 15 clips per video',
-                        '5GB file upload limit',
-                        'Priority support',
-                        'Monthly Creator Library (B-roll, captions, scripts)',
                       ].map((feature, idx) => (
                         <div key={idx} className="flex items-start gap-2">
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
