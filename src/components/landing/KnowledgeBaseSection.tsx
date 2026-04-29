@@ -55,7 +55,7 @@ export function KnowledgeBaseSection() {
               <div className="rounded-2xl overflow-hidden border border-border shadow-xl">
                 <Image
                   src="/showcase/platform/upload-video.png"
-                  alt="Upload Video interface"
+                  alt="EchoMe create page — paste a link, type a topic, drop a video, or record a voice note"
                   width={800}
                   height={500}
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -63,7 +63,7 @@ export function KnowledgeBaseSection() {
                 />
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                Any video. YouTube link, file upload, or paste a URL.
+                A link, a video, a topic, a voice note — whatever you&apos;ve got.
               </p>
             </div>
 
