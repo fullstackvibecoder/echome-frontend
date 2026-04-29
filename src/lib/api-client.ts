@@ -52,7 +52,7 @@ export const apiClient: AxiosInstance = axios.create({
 // Extended timeouts for long-running operations
 const GENERATION_TIMEOUT = 180000; // 3 minutes for AI generation (includes potential transcript extraction)
 const TRANSCRIPTION_TIMEOUT = 180000; // 3 minutes for transcript extraction (download + Whisper)
-const LIST_TIMEOUT = 10000; // 10 seconds for list/query operations
+const LIST_TIMEOUT = 20000; // 20 seconds for list/query operations (increased from 10s — cold-start DB queries routinely took 10-12s)
 const DELETE_TIMEOUT = 60000; // 60 seconds for cascade deletions (can be slow with storage cleanup)
 const FOLLOW_TIMEOUT = 60000; // 60 seconds for follow (channel resolution + initial poll)
 const EXPORT_TIMEOUT = 120000; // 2 minutes for clip export (FFmpeg burns captions on-demand)
@@ -629,7 +629,7 @@ export const api = {
     },
 
     listRequests: async (params?: { limit?: number; offset?: number; voice_id?: string }) => {
-      const response = await apiClient.get<ApiResponse<any[]>>('/generate', { params });
+      const response = await apiClient.get<ApiResponse<any[]>>('/generate', { params, timeout: LIST_TIMEOUT });
 
       // Transform snake_case to camelCase for frontend consumption
       const transformedData = response.data.data?.map((item: any) => ({
@@ -1549,6 +1549,7 @@ export const api = {
     getPendingRepurpose: async (limit?: number) => {
       const response = await apiClient.get('/creators/repurpose/pending', {
         params: { limit },
+        timeout: LIST_TIMEOUT,
       });
       return response.data as {
         success: boolean;
@@ -2459,7 +2460,7 @@ export const api = {
      */
     getSubscription: async (justPaid?: boolean): Promise<StripeSubscriptionResponse> => {
       const params = justPaid ? '?just_paid=true' : '';
-      const response = await apiClient.get(`/stripe/subscription${params}`);
+      const response = await apiClient.get(`/stripe/subscription${params}`, { timeout: LIST_TIMEOUT });
       return response.data;
     },
 
@@ -2491,7 +2492,7 @@ export const api = {
 
     /** Get usage limits for current tier */
     getUsageLimits: async (): Promise<StripeUsageLimitsResponse> => {
-      const response = await apiClient.get('/stripe/usage');
+      const response = await apiClient.get('/stripe/usage', { timeout: LIST_TIMEOUT });
       return response.data;
     },
 
