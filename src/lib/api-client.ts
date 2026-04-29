@@ -163,13 +163,22 @@ apiClient.interceptors.response.use(
     }
 
     // Handle network errors and server errors — report to Sentry
-    if (!error.response) {
-      console.error('Network error:', error.message);
-    }
-
-    // Report 5xx and network errors to Sentry (not 4xx which are expected)
     const status = error.response?.status;
-    if (!status || status >= 500) {
+    const isNetworkError = !error.response && (
+      error.message === 'Network Error' ||
+      error.code === 'ERR_NETWORK' ||
+      error.code === 'ERR_INTERNET_DISCONNECTED' ||
+      error.code === 'ECONNABORTED' ||
+      (typeof navigator !== 'undefined' && !navigator.onLine)
+    );
+
+    if (isNetworkError) {
+      // Transient connectivity issue (user offline, DNS failure, flaky connection).
+      // Log locally but do NOT report to Sentry — these are environment issues, not
+      // application bugs, and they create noise that buries real errors.
+      console.warn('[api] Network error (offline / connectivity):', error.config?.url, error.message);
+    } else if (!status || status >= 500) {
+      // Report 5xx and genuine application errors to Sentry (not 4xx which are expected)
       import('@sentry/nextjs').then((Sentry) => {
         Sentry.captureException(error, {
           extra: {
@@ -305,14 +314,29 @@ export const api = {
     },
 
     getCurrentUser: async () => {
-      const response = await apiClient.get('/auth/me');
-      return response.data;
+      try {
+        const response = await apiClient.get('/auth/me');
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 401) throw new Error('Session expired. Please log in again.');
+        if (status >= 500) throw new Error('Unable to verify your session. Please try again.');
+        throw err;
+      }
     },
 
     // Extended profile methods (stored in users table)
     getProfile: async (): Promise<ApiResponse<UserProfile>> => {
-      const response = await apiClient.get('/auth/profile/extended');
-      return response.data;
+      try {
+        const response = await apiClient.get('/auth/profile/extended');
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) return { success: true, data: null } as any; // profile row not yet created
+        if (status >= 500) throw new Error(backendMsg || 'Failed to load profile. Please try again.');
+        throw err;
+      }
     },
 
     updateProfile: async (data: UserProfileUpdate): Promise<ApiResponse<UserProfile>> => {
@@ -700,9 +724,16 @@ export const api = {
   // -------- KNOWLEDGE BASE --------
   kb: {
     list: async () => {
-      const response =
-        await apiClient.get<ApiResponse<KnowledgeBase[]>>('/kb');
-      return response.data;
+      try {
+        const response =
+          await apiClient.get<ApiResponse<KnowledgeBase[]>>('/kb', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(backendMsg || 'Failed to load knowledge bases. Please try again.');
+        throw err;
+      }
     },
 
     get: async (id: string) => {
@@ -2195,44 +2226,61 @@ export const api = {
 
     /** List user's content kits (slim response — boolean platform flags, no content text) */
     list: async (limit?: number, offset?: number) => {
-      const response = await apiClient.get('/content-kits', {
-        params: { limit, offset },
-        timeout: LIST_TIMEOUT,
-      });
+      try {
+        const response = await apiClient.get('/content-kits', {
+          params: { limit, offset },
+          timeout: LIST_TIMEOUT,
+        });
 
-      // Transform snake_case to camelCase for frontend consumption.
-      // The list endpoint returns has_* boolean flags instead of full content text.
-      const transformedKits = (response.data.data?.kits || []).map((kit: any) => ({
-        id: kit.id,
-        userId: kit.user_id,
-        videoUploadId: kit.video_upload_id,
-        title: kit.title,
-        description: kit.description,
-        hasLinkedin: kit.has_linkedin || false,
-        hasTwitter: kit.has_twitter || false,
-        hasInstagram: kit.has_instagram || false,
-        hasBlog: kit.has_blog || false,
-        hasEmail: kit.has_email || false,
-        hasTiktok: kit.has_tiktok || false,
-        hasYoutube: kit.has_youtube || false,
-        hasVideoScript: kit.has_video_script || false,
-        generationRequestId: kit.generation_request_id,
-        voiceId: kit.voice_id,
-        clipsGenerated: kit.clips_generated || 0,
-        contentGenerated: kit.content_generated || false,
-        createdAt: kit.created_at,
-        updatedAt: kit.updated_at,
-        thumbnailUrl: kit.thumbnail_url || undefined,
-        // Include joined video_uploads data if present
-        video_uploads: kit.video_uploads,
-      }));
+        // Transform snake_case to camelCase for frontend consumption.
+        // The list endpoint returns has_* boolean flags instead of full content text.
+        const transformedKits = (response.data.data?.kits || []).map((kit: any) => ({
+          id: kit.id,
+          userId: kit.user_id,
+          videoUploadId: kit.video_upload_id,
+          title: kit.title,
+          description: kit.description,
+          hasLinkedin: kit.has_linkedin || false,
+          hasTwitter: kit.has_twitter || false,
+          hasInstagram: kit.has_instagram || false,
+          hasBlog: kit.has_blog || false,
+          hasEmail: kit.has_email || false,
+          hasTiktok: kit.has_tiktok || false,
+          hasYoutube: kit.has_youtube || false,
+          hasVideoScript: kit.has_video_script || false,
+          generationRequestId: kit.generation_request_id,
+          voiceId: kit.voice_id,
+          clipsGenerated: kit.clips_generated || 0,
+          contentGenerated: kit.content_generated || false,
+          createdAt: kit.created_at,
+          updatedAt: kit.updated_at,
+          thumbnailUrl: kit.thumbnail_url || undefined,
+          // Include joined video_uploads data if present
+          video_uploads: kit.video_uploads,
+        }));
 
-      return {
-        success: response.data.success,
-        data: {
-          kits: transformedKits as ContentKitListItem[],
-        },
-      };
+        return {
+          success: response.data.success,
+          data: {
+            kits: transformedKits as ContentKitListItem[],
+          },
+        };
+      } catch (err: any) {
+        const isNetworkError = !err?.response && (
+          err?.message === 'Network Error' || err?.code === 'ERR_NETWORK' ||
+          (typeof navigator !== 'undefined' && !navigator.onLine)
+        );
+        if (isNetworkError) {
+          throw new Error('No internet connection. Please check your network and try again.');
+        }
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 401) throw new Error('Please log in to view your content.');
+        if (status === 403) throw new Error('You do not have permission to view this content.');
+        if (status >= 500) throw new Error(msg || 'Server error loading your content. Please try again.');
+        if (err?.code === 'ECONNABORTED') throw new Error('Loading timed out. Please try refreshing.');
+        throw err;
+      }
     },
 
     /** Update content kit */
@@ -2458,9 +2506,18 @@ export const api = {
      * @param justPaid - Set to true after checkout to force sync from Stripe (handles webhook race condition)
      */
     getSubscription: async (justPaid?: boolean): Promise<StripeSubscriptionResponse> => {
-      const params = justPaid ? '?just_paid=true' : '';
-      const response = await apiClient.get(`/stripe/subscription${params}`);
-      return response.data;
+      try {
+        const params = justPaid ? '?just_paid=true' : '';
+        const response = await apiClient.get(`/stripe/subscription${params}`);
+        return response.data;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        // 404 means no subscription row yet — treat as unsubscribed, don't throw
+        if (status === 404) return { success: true, data: null } as any;
+        if (status >= 500) throw new Error(backendMsg || 'Unable to check subscription status. Please try again.');
+        throw err;
+      }
     },
 
     /** Create checkout session and get redirect URL */
@@ -3580,25 +3637,32 @@ export const api = {
     },
 
     create: async (data: TeamVoiceInput): Promise<ApiResponse<TeamVoice>> => {
-      const response = await apiClient.post('/team-voices', {
-        name: data.name,
-        description: data.description,
-        avatar_url: data.avatarUrl,
-        knowledge_base_id: data.knowledgeBaseId,
-        profile_role: data.profileRole,
-        profile_topics: data.profileTopics,
-        profile_cta: data.profileCta,
-        profile_guardrails: data.profileGuardrails,
-        display_name: data.displayName,
-        twitter_handle: data.twitterHandle,
-        instagram_handle: data.instagramHandle,
-        website_url: data.websiteUrl,
-      });
-      const raw = response.data as ApiResponse<Record<string, unknown>>;
-      return {
-        ...raw,
-        data: raw.data ? transformTeamVoice(raw.data) : undefined,
-      } as ApiResponse<TeamVoice>;
+      try {
+        const response = await apiClient.post('/team-voices', {
+          name: data.name,
+          description: data.description,
+          avatar_url: data.avatarUrl,
+          knowledge_base_id: data.knowledgeBaseId,
+          profile_role: data.profileRole,
+          profile_topics: data.profileTopics,
+          profile_cta: data.profileCta,
+          profile_guardrails: data.profileGuardrails,
+          display_name: data.displayName,
+          twitter_handle: data.twitterHandle,
+          instagram_handle: data.instagramHandle,
+          website_url: data.websiteUrl,
+        });
+        const raw = response.data as ApiResponse<Record<string, unknown>>;
+        return {
+          ...raw,
+          data: raw.data ? transformTeamVoice(raw.data) : undefined,
+        } as ApiResponse<TeamVoice>;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const backendMsg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(backendMsg || 'Failed to create voice. Please try again.');
+        throw err;
+      }
     },
 
     update: async (voiceId: string, data: Partial<TeamVoiceInput>): Promise<ApiResponse<TeamVoice>> => {
