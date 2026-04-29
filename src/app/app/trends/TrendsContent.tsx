@@ -165,26 +165,35 @@ export default function TrendsContent() {
   return (
     <div className="container mx-auto px-6 py-8 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-display text-3xl mb-1">Trending Reels</h1>
-          <p className="text-body text-text-secondary">
-            Discover trending formats and generate ready-to-post reels in your voice
-          </p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
+          Trends
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+          Echo scans the web every morning at 6 AM ET for fresh Reel formats. Pick one,
+          hit generate, and the system writes the script and caption in your voice.
+        </p>
+      </div>
+
+      {/* Daily-cadence banner — admin-only refresh CTA tucked in */}
+      <div className="mb-6 flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-border bg-card">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span>Daily auto-refresh enabled. Trends decay after 7 days.</span>
         </div>
         {isAdmin && (
           <button
             onClick={handleRefreshTrends}
             disabled={refreshing}
-            className="btn-primary px-4 py-2 flex items-center gap-2 disabled:opacity-50"
+            className="text-xs font-medium text-primary-interactive hover:underline disabled:opacity-50 flex items-center gap-1.5"
           >
             {refreshing ? (
               <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Refreshing...
+                <span className="w-3 h-3 border-2 border-primary-interactive border-t-transparent rounded-full animate-spin" />
+                Scanning…
               </>
             ) : (
-              'Refresh Trends'
+              'Refresh now'
             )}
           </button>
         )}
@@ -210,7 +219,7 @@ export default function TrendsContent() {
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          My Reels
+          My Trend Reels
         </button>
       </div>
 
@@ -223,35 +232,54 @@ export default function TrendsContent() {
       {/* ==================== DISCOVER TAB ==================== */}
       {activeTab === 'discover' && (
         <>
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-bg-secondary rounded-lg">
-            <select
-              value={categoryFilter}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value);
-                setTrendsPagination(p => ({ ...p, offset: 0 }));
-              }}
-              className="px-3 py-2 border border-border rounded-lg bg-bg-primary text-sm"
-            >
-              <option value="">All Categories</option>
-              <option value="lifestyle">Lifestyle</option>
-              <option value="real_estate">Real Estate</option>
-              <option value="business">Business</option>
-              <option value="wellness">Wellness</option>
-            </select>
-
-            <select
-              value={platformFilter}
-              onChange={(e) => {
-                setPlatformFilter(e.target.value);
-                setTrendsPagination(p => ({ ...p, offset: 0 }));
-              }}
-              className="px-3 py-2 border border-border rounded-lg bg-bg-primary text-sm"
-            >
-              <option value="">All Platforms</option>
-              <option value="instagram">Instagram</option>
-              <option value="tiktok">TikTok</option>
-            </select>
+          {/* Filters — chip pills, matching /following + /discover patterns */}
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            {/* Category chips */}
+            {[
+              { value: '', label: 'All' },
+              { value: 'real_estate', label: 'Real Estate' },
+              { value: 'business', label: 'Business' },
+              { value: 'lifestyle', label: 'Lifestyle' },
+              { value: 'wellness', label: 'Wellness' },
+            ].map(opt => (
+              <button
+                key={opt.value || 'all-categories'}
+                onClick={() => {
+                  setCategoryFilter(opt.value);
+                  setTrendsPagination(p => ({ ...p, offset: 0 }));
+                }}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  categoryFilter === opt.value
+                    ? 'bg-primary-interactive text-white'
+                    : 'border border-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+            {/* Divider */}
+            <div className="h-6 w-px bg-border mx-2" aria-hidden />
+            {/* Platform chips */}
+            {[
+              { value: '', label: 'All platforms' },
+              { value: 'instagram', label: 'Instagram' },
+              { value: 'tiktok', label: 'TikTok' },
+            ].map(opt => (
+              <button
+                key={opt.value || 'all-platforms'}
+                onClick={() => {
+                  setPlatformFilter(opt.value);
+                  setTrendsPagination(p => ({ ...p, offset: 0 }));
+                }}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  platformFilter === opt.value
+                    ? 'bg-primary-interactive text-white'
+                    : 'border border-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
           {/* Trends Grid */}
@@ -260,11 +288,11 @@ export default function TrendsContent() {
               <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : trends.length === 0 ? (
-            <div className="card text-center py-16">
-              <div className="text-6xl mb-4">🔥</div>
-              <h2 className="text-display text-2xl mb-2">No trends found</h2>
-              <p className="text-body text-text-secondary mb-6">
-                {isAdmin ? 'Click "Refresh Trends" to discover current trending formats' : 'Check back soon for trending formats'}
+            <div className="card text-center py-16 px-6 max-w-xl mx-auto">
+              <h2 className="text-lg font-semibold text-foreground mb-2">No trends in this view yet</h2>
+              <p className="text-sm text-muted-foreground">
+                Echo refreshes daily at 6 AM ET. If this is empty, the next scan
+                will populate it. Try a different category or check back tomorrow.
               </p>
             </div>
           ) : (
@@ -381,7 +409,7 @@ export default function TrendsContent() {
                       }}
                       className="w-full btn-primary py-2.5 text-sm font-medium"
                     >
-                      Make This Reel
+                      Generate in your voice
                     </button>
                   </div>
                 );
@@ -399,14 +427,14 @@ export default function TrendsContent() {
               <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : myReels.length === 0 ? (
-            <div className="card text-center py-16">
-              <div className="text-6xl mb-4">🎬</div>
-              <h2 className="text-display text-2xl mb-2">No reels yet</h2>
-              <p className="text-body text-text-secondary mb-6">
-                Discover a trend and click &quot;Make This Reel&quot; to generate your first one
+            <div className="card text-center py-16 px-6 max-w-xl mx-auto">
+              <h2 className="text-lg font-semibold text-foreground mb-2">Nothing here yet</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Pick a trend from Discover, hit Generate, and Echo writes the script
+                and caption in your voice. Your reels show up here.
               </p>
               <button onClick={() => setActiveTab('discover')} className="btn-primary px-6 py-3">
-                Discover Trends
+                Browse Trends
               </button>
             </div>
           ) : (
