@@ -1,7 +1,7 @@
-import LibraryDetailContent from './LibraryDetailContent';
+import ContentKitDetailContent from './ContentKitDetailContent';
 
 export const dynamic = 'force-dynamic';
 
-export default function LibraryDetailPage() {
-  return <LibraryDetailContent />;
+export default function ContentKitDetailPage() {
+  return <ContentKitDetailContent />;
 }

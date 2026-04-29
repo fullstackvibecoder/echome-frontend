@@ -225,7 +225,7 @@ function EventCard({
           </div>
           {event.kit_title && event.content_kit_id && (
             <Link
-              href={`/app/content-kit/${event.content_kit_id}`}
+              href={`/app/library/${event.content_kit_id}`}
               className="text-[11px] text-muted-foreground hover:text-foreground"
             >
               From kit: {event.kit_title}

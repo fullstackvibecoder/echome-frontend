@@ -126,13 +126,13 @@ function ContentKitListInner() {
     return (
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         <div className="flex flex-col items-center justify-center py-20 text-center max-w-xl mx-auto">
-          <h3 className="text-lg font-semibold mb-2">No content kits yet</h3>
+          <h3 className="text-lg font-semibold mb-2">Your library is empty</h3>
           <p className="text-text-secondary text-sm mb-6 leading-relaxed">
             Give Echo a link, file, or topic on the home page. It already knows
-            your voice — the kits show up here when they&apos;re ready.
+            your voice — what you generate shows up here when it&apos;s ready.
           </p>
           <Link href="/app" className="btn-primary">
-            Create your first kit
+            Create your first piece
           </Link>
           <Link
             href="/guides/content-kits"
@@ -150,7 +150,7 @@ function ContentKitListInner() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-xl font-semibold">Content Kits</h1>
+          <h1 className="text-xl font-semibold">Library</h1>
           <p className="text-sm text-text-secondary mt-0.5">{summaryLine}</p>
         </div>
 

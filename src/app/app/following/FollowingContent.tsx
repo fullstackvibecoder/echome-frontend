@@ -308,7 +308,7 @@ export default function FollowingContent() {
 
       if (response.success && response.result.requestId) {
         closeRepurposeModal();
-        router.push(`/app/content-kit/${response.result.requestId}`);
+        router.push(`/app/library/${response.result.requestId}`);
       } else {
         throw new Error(response.result?.error || 'Repurposing failed');
       }

@@ -12,7 +12,7 @@ export default function ClipsContent() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/app/content-kit?filter=videos');
+    router.replace('/app/library?filter=videos');
   }, [router]);
 
   return (

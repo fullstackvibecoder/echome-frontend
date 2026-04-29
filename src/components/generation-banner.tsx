@@ -261,7 +261,7 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
             </button>
           </div>
           <Link
-            href={`/app/content-kit/${activeGeneration.requestId}`}
+            href={`/app/library/${activeGeneration.requestId}`}
             className="mt-3 flex items-center gap-1.5 text-sm font-bold text-primary hover:underline"
             onClick={handleDismiss}
           >

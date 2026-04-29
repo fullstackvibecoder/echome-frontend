@@ -90,9 +90,9 @@ export default function CreatorLibraryContent() {
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-display text-3xl mb-2">Creator Library</h1>
+        <h1 className="text-display text-3xl mb-2">Toolkit</h1>
         <p className="text-body text-text-secondary">
-          Fresh content drops every month.
+          Curated B-roll, caption templates, and reel scripts. Fresh drops monthly.
         </p>
       </div>
 
@@ -102,7 +102,7 @@ export default function CreatorLibraryContent() {
           <div className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm z-10 rounded-xl flex items-center justify-center">
             <div className="text-center p-8">
               <h3 className="text-xl font-semibold text-text-primary mb-2">
-                Upgrade to access the Creator Library
+                Upgrade to access the Toolkit
               </h3>
               <p className="text-text-secondary mb-4">
                 Get curated B-roll, caption templates, and reel scripts every month.

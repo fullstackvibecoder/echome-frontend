@@ -21,7 +21,7 @@ interface ContentKitCardProps {
 export function ContentKitCard({ item, scheduleCounts }: ContentKitCardProps) {
   const isProcessing = item.status === 'processing' || item.status === 'pending';
   const isFailed = item.status === 'failed';
-  const detailUrl = `/app/content-kit/${item.videoUploadId || item.generationRequestId || item.sourceId}`;
+  const detailUrl = `/app/library/${item.videoUploadId || item.generationRequestId || item.sourceId}`;
 
   return (
     <Link

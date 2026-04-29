@@ -143,7 +143,7 @@ export function EventPreviewModal({ event, onClose, onChanged }: Props) {
             </div>
             {event.kit_title && event.content_kit_id ? (
               <Link
-                href={`/app/content-kit/${event.content_kit_id}`}
+                href={`/app/library/${event.content_kit_id}`}
                 className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
               >
                 From kit: <span className="text-foreground">{event.kit_title}</span>

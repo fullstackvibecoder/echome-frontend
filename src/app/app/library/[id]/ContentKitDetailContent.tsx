@@ -409,7 +409,7 @@ export default function ContentKitDetailContent() {
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {/* Back Button */}
       <Link
-        href="/app/content-kit"
+        href="/app/library"
         className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary mb-6 transition-colors"
       >
         <span>←</span>
@@ -731,7 +731,7 @@ export default function ContentKitDetailContent() {
           {/* Quick Navigation */}
           <div className="flex items-center justify-between pt-6 border-t border-border">
             <Link
-              href="/app/content-kit"
+              href="/app/library"
               className="text-text-secondary hover:text-accent transition-colors"
             >
               ← Back to Content Kit

@@ -241,7 +241,7 @@ export function MonthGrid() {
           <p>No scheduled content yet this month.</p>
           <p className="text-xs mt-1">
             Open a{' '}
-            <Link href="/app/content-kit" className="underline hover:text-foreground">
+            <Link href="/app/library" className="underline hover:text-foreground">
               Content Kit
             </Link>
             {' '}and click AI Schedule to start.

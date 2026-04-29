@@ -292,7 +292,7 @@ export default function AppContent() {
     // This matches the behavior of handleRepurpose and handleVideoProcessing
     if (reqId) {
       clearActiveGeneration();
-      router.push(`/app/content-kit/${reqId}`);
+      router.push(`/app/library/${reqId}`);
     }
   };
 
@@ -312,7 +312,7 @@ export default function AppContent() {
     if (reqId) {
       // Clear the banner since detail page has its own progress UI
       clearActiveGeneration();
-      router.push(`/app/content-kit/${reqId}`);
+      router.push(`/app/library/${reqId}`);
     }
   };
 
@@ -324,7 +324,7 @@ export default function AppContent() {
   }) => {
     // If we have a generation request ID, redirect to Content Kit detail
     if (data.contentKit?.generationRequestId) {
-      router.push(`/app/content-kit/${data.contentKit.generationRequestId}`);
+      router.push(`/app/library/${data.contentKit.generationRequestId}`);
       return;
     }
 

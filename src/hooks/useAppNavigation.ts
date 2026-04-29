@@ -46,7 +46,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Create',
     items: [
       { id: 'create', label: 'Create', icon: Sparkles, path: '/app' },
-      { id: 'content-kit', label: 'Content Kit', icon: Package, path: '/app/content-kit' },
+      { id: 'library', label: 'Library', icon: Package, path: '/app/library' },
       { id: 'reels', label: 'Reel Maker', icon: Film, path: '/app/reels', adminOnly: true },
     ],
   },
@@ -55,7 +55,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'knowledge', label: 'Your Voice', icon: Brain, path: '/app/knowledge' },
       { id: 'team-voices', label: 'Team Voices', icon: Mic, path: '/app/team-voices', teamsOnly: true },
-      { id: 'library', label: 'Creator Library', icon: FolderOpen, path: '/app/library' },
+      { id: 'toolkit', label: 'Toolkit', icon: FolderOpen, path: '/app/toolkit' },
     ],
   },
   {

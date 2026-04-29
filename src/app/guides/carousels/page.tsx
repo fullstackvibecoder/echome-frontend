@@ -133,7 +133,7 @@ export default function CarouselsGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to edit a carousel?</p>
-          <a href="/app/content-kit" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">
+          <a href="/app/library" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">
             Open Content Kits
           </a>
           <p className="text-xs text-text-secondary/70 mt-3">Log in to view your generated content.</p>
