@@ -426,7 +426,7 @@ export default function ContentKitDetailContent() {
             Voice: <span className="font-medium">{activeVoice.name}</span>
           </span>
           <Link
-            href="/app/team-voices"
+            href="/app/voice?tab=team"
             className="text-xs text-primary hover:underline ml-auto"
           >
             Switch

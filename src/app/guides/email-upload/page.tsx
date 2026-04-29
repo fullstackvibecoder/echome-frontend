@@ -146,7 +146,7 @@ export default function EmailUploadGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <a
-            href="/app/knowledge"
+            href="/app/voice"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors"
           >
             Go to Build Your Voice &rarr;

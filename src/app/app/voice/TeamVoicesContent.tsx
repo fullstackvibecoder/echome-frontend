@@ -90,7 +90,7 @@ export default function TeamVoicesContent() {
     if (searchParams.get('welcome') === 'true') {
       // Mark as not dismissed so it persists
       localStorage.removeItem('echome_teams_welcome_dismissed');
-      window.history.replaceState({}, '', '/app/team-voices');
+      window.history.replaceState({}, '', '/app/voice?tab=team');
     }
     setShowWelcome(!localStorage.getItem('echome_teams_welcome_dismissed'));
   }, [searchParams]);

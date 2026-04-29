@@ -96,7 +96,7 @@ export default function KnowledgeContent() {
               <span>&#9888;&#65039;</span>
               <span className="text-text-secondary">
                 <strong>{activeVoice.name}</strong> has no Knowledge Base yet.
-                <a href="/app/team-voices" className="text-primary hover:underline ml-1">Assign or create one</a>.
+                <a href="/app/voice?tab=team" className="text-primary hover:underline ml-1">Assign or create one</a>.
               </span>
             </div>
           )}

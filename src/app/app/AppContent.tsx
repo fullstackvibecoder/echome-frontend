@@ -383,7 +383,7 @@ export default function AppContent() {
                 Your account supports up to {voiceLimit} voice{voiceLimit !== 1 ? 's' : ''}. Let&apos;s get set up:
               </p>
               <a
-                href="/app/team-voices"
+                href="/app/voice?tab=team"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm"
               >
                 Go to Team Voices

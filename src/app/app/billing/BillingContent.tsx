@@ -240,20 +240,20 @@ function BillingContentInner() {
                   const hasContent = contentResponse.success && contentResponse.data && contentResponse.data.items.length > 0;
                   if (!hasContent) {
                     // New user with empty KB - onboard first, then team voices
-                    localStorage.setItem('postOnboardingRedirect', '/app/team-voices?welcome=true');
+                    localStorage.setItem('postOnboardingRedirect', '/app/voice?tab=team&welcome=true');
                     window.location.href = '/onboarding';
                     return;
                   }
                 } else {
                   // No KB at all - definitely needs onboarding first
-                  localStorage.setItem('postOnboardingRedirect', '/app/team-voices?welcome=true');
+                  localStorage.setItem('postOnboardingRedirect', '/app/voice?tab=team&welcome=true');
                   window.location.href = '/onboarding';
                   return;
                 }
               } catch {
                 // If check fails, still go to team voices
               }
-              window.location.href = '/app/team-voices?welcome=true';
+              window.location.href = '/app/voice?tab=team&welcome=true';
               return;
             }
           } else {

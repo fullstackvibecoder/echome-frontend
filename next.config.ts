@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
       // /app/reels list folded into /app/library as the Reels tab (Tier 3 Phase 2).
       // The editor at /app/reels/:id stays put — different concern, deeper route.
       { source: '/app/reels', destination: '/app/library?tab=reels', permanent: true },
+      // Tier 3 Phase 3: /knowledge → /voice (route name now matches the H1
+      // we shipped yesterday) and /team-voices → /voice?tab=team (folded
+      // into the unified Voice page as a Teams-tier tab).
+      { source: '/app/knowledge', destination: '/app/voice', permanent: true },
+      { source: '/app/team-voices', destination: '/app/voice?tab=team', permanent: true },
     ];
   },
 };

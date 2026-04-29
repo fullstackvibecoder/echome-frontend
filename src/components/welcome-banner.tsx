@@ -66,7 +66,7 @@ export function WelcomeBanner({ userName, onDismiss, onScrollToForm }: WelcomeBa
 
           {/* Knowledge Base */}
           <Link
-            href="/app/knowledge"
+            href="/app/voice"
             className="rounded-[1.5rem] bg-white dark:bg-card border border-outline-variant/40 hover:border-primary/30 hover:shadow-lg transition-all p-6 text-left group"
           >
             <div className="w-12 h-12 rounded-2xl bg-surface-container-low flex items-center justify-center group-hover:bg-primary transition-colors mb-3">
