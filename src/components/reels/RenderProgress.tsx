@@ -184,7 +184,7 @@ export function RenderProgress({ status, isRendering, onBack }: RenderProgressPr
 
         {/* Create another */}
         <div className="text-center pt-4 border-t border-border">
-          <a href="/app/reels" className="text-sm text-accent hover:underline">
+          <a href="/app/library?tab=reels" className="text-sm text-accent hover:underline">
             Create another reel
           </a>
         </div>

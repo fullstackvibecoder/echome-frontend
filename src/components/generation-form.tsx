@@ -1580,7 +1580,7 @@ export function GenerationForm({
           </div>
           <p className="text-small text-gray-600 dark:text-gray-300 mt-2">
             After generation, create animated reels from your carousel slides or compose B-roll reels with text overlays in the{' '}
-            <a href="/app/reels" className="text-accent hover:underline">Reel Maker</a>.
+            <a href="/app/library?tab=reels" className="text-accent hover:underline">Reel Maker</a>.
           </p>
         </div>
       )}

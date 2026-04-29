@@ -58,7 +58,7 @@ export default function ReelsAndCaptionsGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Open the Reel Maker">
-            <p>Navigate to the Reel Maker page at <strong className="text-text-primary">/app/reels</strong> from the sidebar. Your reels are organized in a status-grouped grid &mdash; Ready to Publish, Processing, and Earlier &mdash; so you can quickly find what you need.</p>
+            <p>Open the <strong className="text-text-primary">Reels</strong> tab inside <strong className="text-text-primary">Library</strong> (<code>/app/library?tab=reels</code>). Your reels are organized in a status-grouped grid &mdash; Rendering, Drafts, Ready, and Earlier &mdash; so you can quickly find what you need.</p>
           </Step>
 
           <Step number={2} title="Create new reels from the create bar">

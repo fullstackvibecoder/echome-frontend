@@ -240,7 +240,7 @@ export function VideoReelSection({
               <p className="text-sm font-medium text-text-primary">B-Roll Clips</p>
             </div>
             <Link
-              href="/app/reels"
+              href="/app/library?tab=reels"
               className="flex items-center gap-1 text-xs text-accent hover:underline"
             >
               Reel Maker

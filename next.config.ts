@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     return [
       { source: '/app/content-kit', destination: '/app/library', permanent: true },
       { source: '/app/content-kit/:id', destination: '/app/library/:id', permanent: true },
+      // /app/reels list folded into /app/library as the Reels tab (Tier 3 Phase 2).
+      // The editor at /app/reels/:id stays put — different concern, deeper route.
+      { source: '/app/reels', destination: '/app/library?tab=reels', permanent: true },
     ];
   },
 };
