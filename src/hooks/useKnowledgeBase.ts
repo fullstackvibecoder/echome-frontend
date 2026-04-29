@@ -87,8 +87,13 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
           setSelectedKb(preferredKb ? preferredKb.id : kbList[0].id);
         }
       }
-    } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to load knowledge bases'));
+    } catch (err: any) {
+      const isNetwork = !err?.response &&
+        (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK' ||
+         (typeof navigator !== 'undefined' && !navigator.onLine));
+      setError(isNetwork
+        ? 'No internet connection. Please check your network.'
+        : extractErrorMessage(err, 'Failed to load knowledge bases'));
     } finally {
       setLoading(false);
     }
@@ -127,8 +132,13 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
           }));
         setFiles(legacyFiles);
       }
-    } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to load content'));
+    } catch (err: any) {
+      const isNetwork = !err?.response &&
+        (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK' ||
+         (typeof navigator !== 'undefined' && !navigator.onLine));
+      setError(isNetwork
+        ? 'No internet connection. Please check your network.'
+        : extractErrorMessage(err, 'Failed to load content'));
       // Reset to empty state on error
       setContentItems([]);
       setContentStats(DEFAULT_STATS);

@@ -700,24 +700,55 @@ export const api = {
   // -------- KNOWLEDGE BASE --------
   kb: {
     list: async () => {
-      const response =
-        await apiClient.get<ApiResponse<KnowledgeBase[]>>('/kb');
-      return response.data;
+      try {
+        const response =
+          await apiClient.get<ApiResponse<KnowledgeBase[]>>('/kb', { timeout: LIST_TIMEOUT });
+        return response.data;
+      } catch (err: any) {
+        if (!err?.response && (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK')) {
+          throw new Error('No internet connection. Please check your network and try again.');
+        }
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error loading knowledge bases. Please try again.');
+        if (err?.code === 'ECONNABORTED') throw new Error('Loading timed out. Please try refreshing.');
+        throw err;
+      }
     },
 
     get: async (id: string) => {
-      const response = await apiClient.get<ApiResponse<KnowledgeBase>>(
-        `/kb/${id}`
-      );
-      return response.data;
+      try {
+        const response = await apiClient.get<ApiResponse<KnowledgeBase>>(
+          `/kb/${id}`,
+          { timeout: LIST_TIMEOUT }
+        );
+        return response.data;
+      } catch (err: any) {
+        if (!err?.response && (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK')) {
+          throw new Error('No internet connection. Please check your network and try again.');
+        }
+        const status = err?.response?.status;
+        if (status === 404) throw new Error('Knowledge base not found.');
+        throw err;
+      }
     },
 
     create: async (name: string, isDefault?: boolean) => {
-      const response = await apiClient.post<ApiResponse<KnowledgeBase>>(
-        '/kb',
-        { name, is_default: isDefault }
-      );
-      return response.data;
+      try {
+        const response = await apiClient.post<ApiResponse<KnowledgeBase>>(
+          '/kb',
+          { name, is_default: isDefault }
+        );
+        return response.data;
+      } catch (err: any) {
+        if (!err?.response && (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK')) {
+          throw new Error('No internet connection. Could not create knowledge base.');
+        }
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status >= 500) throw new Error(msg || 'Server error creating knowledge base. Please try again.');
+        throw err;
+      }
     },
 
     delete: async (id: string) => {
@@ -732,10 +763,23 @@ export const api = {
      * Returns all content items (files, paste, voice, social) with stats
      */
     getContent: async (kbId: string) => {
-      const response = await apiClient.get<ApiResponse<UnifiedContentResponse>>(
-        `/kb/${kbId}/content`
-      );
-      return response.data;
+      try {
+        const response = await apiClient.get<ApiResponse<UnifiedContentResponse>>(
+          `/kb/${kbId}/content`,
+          { timeout: LIST_TIMEOUT }
+        );
+        return response.data;
+      } catch (err: any) {
+        if (!err?.response && (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK')) {
+          throw new Error('No internet connection. Please check your network and try again.');
+        }
+        const status = err?.response?.status;
+        const msg: string | undefined = err?.response?.data?.error || err?.response?.data?.message;
+        if (status === 404) throw new Error('Knowledge base not found.');
+        if (status >= 500) throw new Error(msg || 'Server error loading content. Please try again.');
+        if (err?.code === 'ECONNABORTED') throw new Error('Loading timed out. Please try refreshing.');
+        throw err;
+      }
     },
 
     /** Chat with your KB content (returns SSE stream) */
