@@ -22,13 +22,16 @@ function EchoAvatar() {
   );
 }
 
-// The four sources the backend reads. We simulate progress for perceived
-// speed; the response itself is one shot, so on resolution we mark them all ✓.
+// Phases mirror the actual backend orchestration: brand-site fetch +
+// general web-search fan-out + (optional) Instagram + Haiku anchor
+// verification. The remax/nar-specific lines were retired in 2026-04-28
+// (commit ba1cbc7) when shadow runs found 0% hit rate on those domains
+// and we replaced them with a general Tavily search.
 const LOOKUP_SOURCES: Array<{ key: string; label: string }> = [
+  { key: 'web', label: 'Searching the web for your profile' },
   { key: 'brand', label: 'Reading your brand site' },
-  { key: 'remax', label: 'Reading remax.ca' },
-  { key: 'nar', label: 'Reading realtor.ca' },
-  { key: 'instagram', label: 'Reading your Instagram' },
+  { key: 'social', label: 'Reading your social profiles' },
+  { key: 'verify', label: 'Verifying what we found' },
 ];
 
 type SourceStatus = 'pending' | 'reading' | 'done';

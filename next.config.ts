@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
       // verb; "Radar" matches the active industrial-repurposing positioning
       // already shipped on the homepage Creator Radar section.
       { source: '/app/following', destination: '/app/radar', permanent: true },
+      // Audit §5.4: the legacy 750-line /onboarding wizard is retired.
+      // Signups land at /onboarding/lookup (WBTW); existing users add
+      // sources via /app/voice. Re-onboarding flows from /app/billing
+      // also redirect to /app/voice. Deeper /onboarding/* paths
+      // (e.g., /onboarding/lookup) are NOT caught — only the bare
+      // /onboarding route.
+      { source: '/onboarding', destination: '/app/voice', permanent: true },
     ];
   },
 };

@@ -190,13 +190,13 @@ function BillingContentInner() {
                   if (!hasContent) {
                     // New user with empty KB - onboard first, then team voices
                     localStorage.setItem('postOnboardingRedirect', '/app/voice?tab=team&welcome=true');
-                    window.location.href = '/onboarding';
+                    window.location.href = '/app/voice';
                     return;
                   }
                 } else {
                   // No KB at all - definitely needs onboarding first
                   localStorage.setItem('postOnboardingRedirect', '/app/voice?tab=team&welcome=true');
-                  window.location.href = '/onboarding';
+                  window.location.href = '/app/voice';
                   return;
                 }
               } catch {
@@ -216,7 +216,7 @@ function BillingContentInner() {
         const needsOnboarding = searchParams.get('onboarding') === 'true' || localStorage.getItem('needsOnboarding');
         if (needsOnboarding) {
           localStorage.removeItem('needsOnboarding');
-          window.location.href = '/onboarding';
+          window.location.href = '/app/voice';
           return;
         }
         // Even without the flag, check if the account has no content (returning empty user)
@@ -226,13 +226,13 @@ function BillingContentInner() {
             const contentResponse = await api.kb.getContent(kbResponse.data[0].id);
             if (contentResponse.success && contentResponse.data) {
               if (contentResponse.data.items.length === 0) {
-                window.location.href = '/onboarding';
+                window.location.href = '/app/voice';
                 return;
               }
             }
           } else {
             // No knowledge base at all - definitely needs onboarding
-            window.location.href = '/onboarding';
+            window.location.href = '/app/voice';
             return;
           }
         } catch {
