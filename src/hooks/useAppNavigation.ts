@@ -61,7 +61,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Discover',
     items: [
       { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides', external: true },
-      { id: 'following', label: 'Creator Radar', icon: Users, path: '/app/following' },
+      { id: 'radar', label: 'Creator Radar', icon: Users, path: '/app/radar' },
       { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
       { id: 'community', label: 'Community', icon: MessageCircle, path: '/community', external: true },
     ],

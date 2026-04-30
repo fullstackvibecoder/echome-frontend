@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
       // into the unified Voice page as a Teams-tier tab).
       { source: '/app/knowledge', destination: '/app/voice', permanent: true },
       { source: '/app/team-voices', destination: '/app/voice?tab=team', permanent: true },
+      // Audit §5.1: in-app route name now matches the marketing/sidebar
+      // name. "Following" framed the feature as a passive social-network
+      // verb; "Radar" matches the active industrial-repurposing positioning
+      // already shipped on the homepage Creator Radar section.
+      { source: '/app/following', destination: '/app/radar', permanent: true },
     ];
   },
 };
