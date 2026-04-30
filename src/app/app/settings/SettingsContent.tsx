@@ -22,9 +22,12 @@ export default function SettingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = searchParams.get('tab') as SettingsTab | null;
+  // Default landing is Connections (audit §5.5): WBTW means we should know
+  // most profile facts already — manual fields under Profile are a fallback.
   const [activeTab, setActiveTab] = useState<SettingsTab>(
-    tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'profile'
+    tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'connections'
   );
+  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
 
   const handleTabChange = useCallback((tab: SettingsTab) => {
     setActiveTab(tab);
@@ -250,68 +253,29 @@ export default function SettingsContent() {
         description="Manage your account and profile"
       />
 
-      {/* Tabs */}
+      {/* Tabs — Connections leads (audit §5.5): WBTW makes integrations
+          the primary path; manual Profile fields are a fallback. */}
       <div className="flex gap-2 mb-8 border-b border-border overflow-x-auto">
-        <button
-          onClick={() => handleTabChange('profile')}
-          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-            activeTab === 'profile'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Profile
-        </button>
-        <button
-          onClick={() => handleTabChange('account')}
-          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-            activeTab === 'account'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Account
-        </button>
-        <button
-          onClick={() => handleTabChange('connections')}
-          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-            activeTab === 'connections'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Connections
-        </button>
-        <button
-          onClick={() => handleTabChange('preferences')}
-          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-            activeTab === 'preferences'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Preferences
-        </button>
-        <button
-          onClick={() => handleTabChange('billing')}
-          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-            activeTab === 'billing'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Billing
-        </button>
-        <button
-          onClick={() => handleTabChange('referral')}
-          className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
-            activeTab === 'referral'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Refer & Earn
-        </button>
+        {([
+          { id: 'connections', label: 'Connections' },
+          { id: 'profile', label: 'Profile' },
+          { id: 'account', label: 'Account' },
+          { id: 'preferences', label: 'Preferences' },
+          { id: 'billing', label: 'Billing' },
+          { id: 'referral', label: 'Refer & Earn' },
+        ] as Array<{ id: SettingsTab; label: string }>).map(t => (
+          <button
+            key={t.id}
+            onClick={() => handleTabChange(t.id)}
+            className={`px-3 sm:px-6 py-3 text-body font-medium transition-all duration-200 border-b-2 whitespace-nowrap ${
+              activeTab === t.id
+                ? 'border-accent text-accent'
+                : 'border-transparent text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* Profile Tab */}
@@ -370,6 +334,26 @@ export default function SettingsContent() {
                   </div>
                 </div>
 
+                {/* Audit §5.5: collapse the rest of the manual-entry fields
+                    behind an expander. Most users won't need to touch these
+                    once WBTW has populated context from public sources. */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setProfileDetailsOpen(o => !o)}
+                    className="text-sm font-medium text-accent hover:opacity-80 transition-opacity inline-flex items-center gap-1.5"
+                    aria-expanded={profileDetailsOpen}
+                  >
+                    <span>{profileDetailsOpen ? '−' : '+'}</span>
+                    {profileDetailsOpen ? 'Hide details' : 'Adjust details'}
+                  </button>
+                  <p className="text-xs text-text-secondary mt-1">
+                    Social handles, website, bio, and brand context. Most of this is auto-filled from your connected accounts.
+                  </p>
+                </div>
+
+                {profileDetailsOpen && (
+                <>
                 {/* Social Handles */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -524,6 +508,9 @@ export default function SettingsContent() {
                     </div>
                   </div>
                 </div>
+
+                </>
+                )}
 
                 {profileError && (
                   <div className="p-3 bg-error/10 border border-error/20 rounded-lg">
