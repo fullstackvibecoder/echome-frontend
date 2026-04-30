@@ -454,6 +454,9 @@ export function GenerationForm({
   const [recapPiecesCount, setRecapPiecesCount] = useState<number | null>(null);
   const [recapLatestTitle, setRecapLatestTitle] = useState<string | null>(null);
   const [recapLatestThumbnail, setRecapLatestThumbnail] = useState<string | null>(null);
+  // Live customer-count for the social-proof line. Falls back to 30 (a
+  // safe lower bound) if the API call fails so the line never breaks.
+  const [communityCount, setCommunityCount] = useState<number>(30);
   const wallActive = isFreeUser && freeGenerationsRemaining <= 0;
   useEffect(() => {
     if (!wallActive || recapKitsCount !== null) return;
@@ -495,6 +498,24 @@ export function GenerationForm({
     })();
     return () => { cancelled = true; };
   }, [wallActive, recapKitsCount]);
+
+  // Fetch live customer count when the wall appears. Cached server-side
+  // for 10 min so this is cheap. Failure is silent — fallback to 30.
+  useEffect(() => {
+    if (!wallActive) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.stats.userCount();
+        if (!cancelled && typeof res.count === 'number' && res.count > 0) {
+          setCommunityCount(res.count);
+        }
+      } catch {
+        // Silent fallback to 30 (the initial state value).
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [wallActive]);
   // Wall billing interval. Defaults to annual because annual buyers
   // have higher LTV and the "2 months free" framing is a stronger close
   // than monthly. User can flip to monthly via the toggle on the wall.
@@ -1939,7 +1960,7 @@ export function GenerationForm({
             Previously generated content is still available in your Content Library.
           </p>
           <p className="text-xs text-gray-400 mt-3 font-medium">
-            Join 30+ creators on EchoMe.
+            Join {communityCount}+ creators on EchoMe.
           </p>
         </div>
       ) : (

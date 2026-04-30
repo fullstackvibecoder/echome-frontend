@@ -4031,6 +4031,20 @@ export const api = {
   },
 
   // -------- WBTW (Work Before The Work) --------
+  // Public stats — vanity numbers for marketing-page social proof.
+  // No auth required; safe to call from logged-out landing pages.
+  stats: {
+    /**
+     * Total registered users (rounded down to nearest 10). Used by the
+     * paywall's "Join N+ creators" line. Cached server-side for 10 min,
+     * so calls are cheap.
+     */
+    userCount: async (): Promise<{ count: number }> => {
+      const response = await apiClient.get('/stats/user-count');
+      return response.data;
+    },
+  },
+
   // Public-data lookup: backend reads brand site / Instagram / RE/MAX / NAR
   // and returns a populated profile so the user doesn't fill a form.
   // Routes return 404 until WBTW_ENABLED_AT_SIGNUP=true on the backend.
