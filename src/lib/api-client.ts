@@ -4514,9 +4514,9 @@ export interface VideoSnapshot {
 // STRIPE / BILLING TYPES
 // ============================================
 
-export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise' | 'teams_2' | 'teams_5' | 'teams_10';
+export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise' | 'teams_2' | 'teams_5' | 'teams_10' | 'echo_teams';
 export type BillingInterval = 'month' | 'year';
-export type PlanId = 'echo' | 'echo-studio' | 'echo-pro' | 'echo-teams-2' | 'echo-teams-5' | 'echo-teams-10';
+export type PlanId = 'echo' | 'echo-studio' | 'echo-pro' | 'echo-teams' | 'echo-teams-2' | 'echo-teams-5' | 'echo-teams-10';
 
 export interface StripePlan {
   id: PlanId;

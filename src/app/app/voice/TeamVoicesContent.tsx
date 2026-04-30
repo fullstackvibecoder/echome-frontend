@@ -9,6 +9,7 @@ import { useVoiceContext } from '@/contexts/voice-context';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { showErrorToast } from '@/lib/toast';
 import { AppPageHeader } from '@/components/app-page-header';
+import { InfoTooltip } from '@/components/info-tooltip';
 
 interface VoiceIntegrationAssignment {
   integrationId: string;
@@ -650,7 +651,10 @@ export default function TeamVoicesContent() {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Role / Title</label>
+                    <label className="text-sm font-medium mb-1 inline-flex items-center">
+                      Role / Title
+                      <InfoTooltip text="Tells EchoMe who this voice is when generating content. Specific is better — 'Leadership coach for women in tech' beats 'Coach'." />
+                    </label>
                     <input
                       type="text"
                       value={formData.profileRole}
@@ -661,7 +665,10 @@ export default function TeamVoicesContent() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Topics / Niche</label>
+                    <label className="text-sm font-medium mb-1 inline-flex items-center">
+                      Topics / Niche
+                      <InfoTooltip text="The 2-5 areas this voice writes about. Used to ground generation in the right subject space and ignore off-topic KB content." />
+                    </label>
                     <input
                       type="text"
                       value={formData.profileTopics}
@@ -672,7 +679,10 @@ export default function TeamVoicesContent() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Call-to-Action</label>
+                    <label className="text-sm font-medium mb-1 inline-flex items-center">
+                      Call-to-Action
+                      <InfoTooltip text="Default offer or next step EchoMe will weave into posts when relevant. Skip if you want generic CTAs." />
+                    </label>
                     <input
                       type="text"
                       value={formData.profileCta}
@@ -683,7 +693,10 @@ export default function TeamVoicesContent() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Guardrails</label>
+                    <label className="text-sm font-medium mb-1 inline-flex items-center">
+                      Guardrails
+                      <InfoTooltip text="Brand rules EchoMe must follow on every generation. Examples: 'Never say hustle or grind', 'No bro-marketing language', 'Always include FINRA disclosure'." />
+                    </label>
                     <input
                       type="text"
                       value={formData.profileGuardrails}
