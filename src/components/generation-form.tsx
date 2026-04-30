@@ -446,15 +446,68 @@ export function GenerationForm({
   // On any failure we fall back to /app/billing — the user can still
   // complete checkout there, just with one extra click.
   const [paywallCheckoutLoading, setPaywallCheckoutLoading] = useState<string | null>(null);
-  const handlePaywallCheckout = useCallback(async (planId: string) => {
+
+  // Wall recap data — the user's history shown above the plan buttons
+  // to anchor the loss-aversion moment ("here's what you made; library
+  // stays, generation stops"). Fetched lazily when the wall appears.
+  const [recapKitsCount, setRecapKitsCount] = useState<number | null>(null);
+  const [recapPiecesCount, setRecapPiecesCount] = useState<number | null>(null);
+  const [recapLatestTitle, setRecapLatestTitle] = useState<string | null>(null);
+  const [recapLatestThumbnail, setRecapLatestThumbnail] = useState<string | null>(null);
+  const wallActive = isFreeUser && freeGenerationsRemaining <= 0;
+  useEffect(() => {
+    if (!wallActive || recapKitsCount !== null) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.contentKits.list(50, 0);
+        if (cancelled) return;
+        const kits = res.data?.kits ?? [];
+        // Each kit contains some subset of: 8 written platforms +
+        // N video clips. Sum across kits to surface a single "pieces
+        // of content created" stat.
+        let pieces = 0;
+        for (const k of kits) {
+          if (k.hasLinkedin) pieces++;
+          if (k.hasTwitter) pieces++;
+          if (k.hasInstagram) pieces++;
+          if (k.hasBlog) pieces++;
+          if (k.hasEmail) pieces++;
+          if (k.hasTiktok) pieces++;
+          if (k.hasYoutube) pieces++;
+          if (k.hasVideoScript) pieces++;
+          pieces += k.clipsGenerated || 0;
+        }
+        setRecapKitsCount(kits.length);
+        setRecapPiecesCount(pieces);
+        if (kits[0]) {
+          setRecapLatestTitle(kits[0].title || null);
+          setRecapLatestThumbnail(kits[0].thumbnailUrl || null);
+        }
+      } catch {
+        // Non-fatal — wall falls back to its generic copy if recap
+        // can't be fetched.
+        if (!cancelled) {
+          setRecapKitsCount(0);
+          setRecapPiecesCount(0);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [wallActive, recapKitsCount]);
+  // Wall billing interval. Defaults to annual because annual buyers
+  // have higher LTV and the "2 months free" framing is a stronger close
+  // than monthly. User can flip to monthly via the toggle on the wall.
+  const [paywallBillingInterval, setPaywallBillingInterval] = useState<'month' | 'year'>('year');
+  const handlePaywallCheckout = useCallback(async (planId: string, interval: 'month' | 'year') => {
     try {
       setPaywallCheckoutLoading(planId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await api.stripe.createCheckoutSession(planId as any, 'month');
+      const response = await api.stripe.createCheckoutSession(planId as any, interval);
       if (response.success && response.data.url) {
         // Persist plan selection so post-checkout sync can reconcile if
         // the session expires during Stripe redirect.
-        localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval: 'month' }));
+        localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval: interval }));
         window.location.href = response.data.url;
         return;
       }
@@ -1760,9 +1813,43 @@ export function GenerationForm({
           <h3 className="text-xl font-bold text-white mb-2">
             You&apos;ve used your {freeGenerationsLimit} free generations
           </h3>
-          <p className="text-gray-400 mb-6">
-            You&apos;ve seen what EchoMe can do. Subscribe to unlock:
-          </p>
+
+          {/* Recap of what they made — anchors the loss-aversion moment.
+              Falls back to generic copy when the user has no kits (rare:
+              all generations failed) so we don't misrepresent activity. */}
+          {recapPiecesCount !== null && recapPiecesCount > 0 ? (
+            <div className="mt-4 mb-6 p-4 bg-gray-900/60 border border-gray-700 rounded-xl text-left max-w-md mx-auto">
+              {recapLatestThumbnail && (
+                <div className="flex items-start gap-3 mb-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={recapLatestThumbnail}
+                    alt={recapLatestTitle ?? 'Latest content kit'}
+                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-700"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Your latest kit</p>
+                    <p className="text-sm font-semibold text-white truncate">
+                      {recapLatestTitle ?? 'Untitled'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <p className="text-sm text-gray-300">
+                You created <strong className="text-white">{recapPiecesCount}</strong> piece{recapPiecesCount === 1 ? '' : 's'} of content
+                {recapKitsCount && recapKitsCount > 0 ? <> from <strong className="text-white">{recapKitsCount}</strong> kit{recapKitsCount === 1 ? '' : 's'}</> : null}.
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Your library stays. Generation stops without a plan.
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-400 mb-6">
+              You&apos;ve seen what EchoMe can do. Your library stays — generation stops without a plan.
+            </p>
+          )}
+
+          <p className="text-gray-300 text-sm font-medium mb-3">Subscribe to unlock:</p>
           <div className="text-left max-w-sm mx-auto mb-6 space-y-2">
             {[
               'Unlimited content generation',
@@ -1776,18 +1863,56 @@ export function GenerationForm({
               </div>
             ))}
           </div>
+
+          {/* Monthly/Annual toggle. Default annual — higher LTV + the
+              "2 months free" framing closes better than month-to-month. */}
+          <div className="flex justify-center mb-4">
+            <div className="inline-flex items-center bg-gray-900 border border-gray-700 rounded-xl p-1 text-sm">
+              <button
+                type="button"
+                onClick={() => setPaywallBillingInterval('month')}
+                className={`px-4 py-1.5 rounded-lg font-semibold transition-colors ${
+                  paywallBillingInterval === 'month'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaywallBillingInterval('year')}
+                className={`px-4 py-1.5 rounded-lg font-semibold transition-colors relative ${
+                  paywallBillingInterval === 'year'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Annual
+                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-green-500/20 text-green-300 border border-green-500/40 align-middle">
+                  2 MONTHS FREE
+                </span>
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-3">
             {[
-              { name: 'Echo', price: '$37/mo', id: 'echo' },
-              { name: 'Echo Studio', price: '$87/mo', id: 'echo-studio', popular: true },
-              { name: 'Echo Teams', price: '$47/voice/mo', id: 'echo-teams' },
+              { name: 'Echo', monthly: 37, annual: 370, id: 'echo' },
+              { name: 'Echo Studio', monthly: 87, annual: 870, id: 'echo-studio', popular: true },
+              { name: 'Echo Teams', monthly: 47, annual: 470, id: 'echo-teams', perVoice: true },
             ].map((plan) => {
               const isLoading = paywallCheckoutLoading === plan.id;
               const isAnyLoading = paywallCheckoutLoading !== null;
+              const amount = paywallBillingInterval === 'year' ? plan.annual : plan.monthly;
+              const periodLabel = paywallBillingInterval === 'year' ? '/yr' : '/mo';
+              const priceLabel = plan.perVoice
+                ? `$${amount}/voice${periodLabel}`
+                : `$${amount}${periodLabel}`;
               return (
                 <button
                   key={plan.id}
-                  onClick={() => handlePaywallCheckout(plan.id)}
+                  onClick={() => handlePaywallCheckout(plan.id, paywallBillingInterval)}
                   disabled={isAnyLoading}
                   className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between disabled:opacity-60 disabled:cursor-not-allowed ${
                     plan.popular
@@ -1795,7 +1920,7 @@ export function GenerationForm({
                       : 'bg-gray-800 border-2 border-gray-600 text-gray-200 hover:border-accent hover:scale-[1.02]'
                   }`}
                 >
-                  <span>{plan.name} - {plan.price}</span>
+                  <span>{plan.name} - {priceLabel}</span>
                   <span className="text-sm flex items-center gap-1">
                     {isLoading ? (
                       <>
@@ -1812,6 +1937,9 @@ export function GenerationForm({
           </div>
           <p className="text-xs text-gray-500 mt-4">
             Previously generated content is still available in your Content Library.
+          </p>
+          <p className="text-xs text-gray-400 mt-3 font-medium">
+            Join 30+ creators on EchoMe.
           </p>
         </div>
       ) : (
