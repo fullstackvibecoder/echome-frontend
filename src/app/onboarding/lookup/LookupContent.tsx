@@ -137,8 +137,10 @@ export default function LookupContent() {
     }
   }, [router, startProgressAnimation]);
 
-  // If the user declines, drop them at /app — no scary banner, just go.
+  // If the user declines, record the outcome (so /app/voice can later
+  // offer them a chance to opt back in) then drop them at /app.
   const handleDecline = useCallback(() => {
+    api.wbtw.decline().catch(() => { /* non-blocking */ });
     router.push('/app');
   }, [router]);
 

@@ -4066,6 +4066,8 @@ export const api = {
       email?: string;
       domain?: string;
       instagram_handle?: string;
+      /** Bypass the 30-day cache and re-run the lookup. Used by the "Refresh my profile" button. */
+      force?: boolean;
     }) => {
       const response = await apiClient.post('/wbtw/lookup', body ?? {}, {
         timeout: 30000, // backend lookup is 5–15s, give some headroom
@@ -4077,6 +4079,28 @@ export const api = {
         source_trace: Record<string, string>;
         ready: boolean;
         expires_at: string;
+      };
+    },
+
+    /** Record that the user declined the privacy disclosure. Idempotent. */
+    decline: async () => {
+      await apiClient.post('/wbtw/decline');
+    },
+
+    /**
+     * Latest outcome for the current user. Drives the retry CTA in /app/voice
+     * (capped/errored) and the slow-path quiet toast (pending → has_fields).
+     */
+    outcome: async () => {
+      const response = await apiClient.get('/wbtw/outcome');
+      return response.data as {
+        success: boolean;
+        data: {
+          outcome: 'pending' | 'confirmed' | 'empty' | 'declined' | 'capped' | 'errored' | null;
+          fetched_at: string | null;
+          has_fields: boolean;
+          confirmed: boolean;
+        };
       };
     },
 

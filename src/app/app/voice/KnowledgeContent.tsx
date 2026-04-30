@@ -2,16 +2,20 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Mic, ChevronRight, Sprout, TrendingUp, Zap, Star, type LucideIcon } from 'lucide-react';
+import { Mic, ChevronRight, Sprout, TrendingUp, Zap, Star, RefreshCw, AlertCircle, type LucideIcon } from 'lucide-react';
+import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { VoiceWaveform } from '@/components/voice-waveform';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { InfoTooltip } from '@/components/info-tooltip';
+import { showInfoToast, showErrorToast, showSuccessToast } from '@/lib/toast';
 import { KBUnifiedInput } from './KBUnifiedInput';
 import KBChat from './KBChat';
 import { SourcesDrawer } from './components/SourcesDrawer';
+
+type WBTWOutcome = 'pending' | 'confirmed' | 'empty' | 'declined' | 'capped' | 'errored' | null;
 
 // ============================================
 // HELPERS
@@ -67,11 +71,70 @@ export default function KnowledgeContent() {
   // Sources drawer
   const [showSources, setShowSources] = useState(false);
 
+  // WBTW outcome — drives retry CTA (capped/errored), slow-path toast
+  // (pending → has_fields), and the manual "Refresh my profile" button.
+  const [wbtwOutcome, setWbtwOutcome] = useState<WBTWOutcome>(null);
+  const [wbtwHasFields, setWbtwHasFields] = useState(false);
+  const [wbtwConfirmed, setWbtwConfirmed] = useState(false);
+  const [wbtwRefreshing, setWbtwRefreshing] = useState(false);
+  const wbtwToastFiredRef = useState({ current: false })[0];
+
+  const loadWbtwOutcome = useCallback(async () => {
+    try {
+      const r = await api.wbtw.outcome();
+      if (!r.success) return;
+      setWbtwOutcome(r.data.outcome);
+      setWbtwHasFields(r.data.has_fields);
+      setWbtwConfirmed(r.data.confirmed);
+      // Slow-path toast: lookup ran in BG, finished, has fields, but
+      // user hasn't confirmed yet. Fire once per page load.
+      if (
+        !wbtwToastFiredRef.current &&
+        r.data.outcome === 'pending' &&
+        r.data.has_fields &&
+        !r.data.confirmed
+      ) {
+        wbtwToastFiredRef.current = true;
+        showInfoToast(
+          'We finished reading your sources',
+          'Want to review what we found?',
+        );
+      }
+    } catch {
+      // Silent — outcome surface is decorative, not blocking.
+    }
+  }, [wbtwToastFiredRef]);
+
+  useEffect(() => {
+    loadWbtwOutcome();
+  }, [loadWbtwOutcome]);
+
+  const handleRefreshProfile = useCallback(async () => {
+    if (wbtwRefreshing) return;
+    setWbtwRefreshing(true);
+    try {
+      await api.wbtw.lookup({ force: true });
+      await loadWbtwOutcome();
+      await refresh();
+      await refreshVoiceStrength();
+      showSuccessToast(
+        'Profile refreshed',
+        'Echo re-read your public sources. Check your voice strength.',
+      );
+    } catch (err) {
+      showErrorToast(err, 'refreshing your profile');
+    } finally {
+      setWbtwRefreshing(false);
+    }
+  }, [wbtwRefreshing, loadWbtwOutcome, refresh, refreshVoiceStrength]);
+
   // Derived
   const hasContent = contentItems.length > 0;
   const totalChunks = contentStats?.totalChunks || 0;
   const totalItems = contentStats?.totalItems || 0;
   const bySourceType = contentStats?.bySourceType || {};
+  const showRetryCta = wbtwOutcome === 'capped' || wbtwOutcome === 'errored';
+  const showRefreshButton = !showRetryCta;
 
   const handleImportComplete = useCallback(() => {
     refresh();
@@ -115,8 +178,37 @@ export default function KnowledgeContent() {
         </div>
       )}
 
+      {/* WBTW retry banner — only when last outcome was capped/errored.
+          Lookup never produced fields for this user; offer a one-click
+          retry instead of leaving the empty state to look like nothing
+          ever happened. */}
+      {showRetryCta && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground mb-1">
+              {wbtwOutcome === 'capped' ? "We didn't finish reading your profile" : 'Something went wrong reading your profile'}
+            </p>
+            <p className="text-xs text-text-secondary mb-3">
+              {wbtwOutcome === 'capped'
+                ? 'Your free monthly lookup quota was used. Want me to try again now?'
+                : "I'll try again — sometimes the public sources rate-limit us on the first try."}
+            </p>
+            <button
+              onClick={handleRefreshProfile}
+              disabled={wbtwRefreshing}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:opacity-80 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${wbtwRefreshing ? 'animate-spin' : ''}`} />
+              {wbtwRefreshing ? 'Reading your sources…' : 'Retry the lookup'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header: title + voice strength (always renders the scale, even at 0) */}
-      <div className="mb-8">
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
         <h1 className="text-2xl font-bold text-foreground">Your Voice</h1>
         <div className="flex items-center gap-2 mt-1">
           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${displayTier.badgeBg} ${displayTier.badgeText}`}>
@@ -146,6 +238,24 @@ export default function KnowledgeContent() {
               {getStrengthMessage(voiceStrength.overallStrength)}
             </p>
           </div>
+        )}
+        </div>
+
+        {/* Refresh my profile — re-runs the WBTW lookup with force=true,
+            bypassing the 30-day cache. Useful when the user joined a
+            new brokerage / launched a new site / wants to pick up
+            recent public posts. Hidden in retry-CTA mode (the banner
+            above already offers a retry). */}
+        {showRefreshButton && (
+          <button
+            onClick={handleRefreshProfile}
+            disabled={wbtwRefreshing}
+            title="Re-read your public sources to update Echo's read on you"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted/50 text-xs font-medium text-text-secondary hover:text-foreground transition-colors disabled:opacity-50 shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${wbtwRefreshing ? 'animate-spin' : ''}`} />
+            {wbtwRefreshing ? 'Refreshing…' : 'Refresh my profile'}
+          </button>
         )}
       </div>
 
