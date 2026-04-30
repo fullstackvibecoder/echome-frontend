@@ -51,10 +51,10 @@ export default function PlansGuidePage() {
         {/* Plan sections */}
         <section className="space-y-8 mb-10">
           <PlanSection title="Free Tier">
-            <p>2 lifetime generations, no credit card required. You get the full pro experience for those 2 generations &mdash; clips, captions, posts, newsletters, blog posts, voice matching, and <strong>auto-posting to Instagram, LinkedIn &amp; Facebook</strong>. Try everything before you commit.</p>
+            <p>3 lifetime generations, no credit card required. You get the full pro experience for those 3 generations &mdash; clips, captions, posts, newsletters, blog posts, voice matching, and <strong>auto-posting to Instagram, LinkedIn &amp; Facebook</strong>. Try everything before you commit.</p>
           </PlanSection>
 
-          <PlanSection title="Echo &mdash; $29/mo">
+          <PlanSection title="Echo &mdash; $37/mo">
             <ul className="list-disc list-inside space-y-1">
               <li>2hr video length</li>
               <li>5 clips per video</li>
@@ -65,7 +65,7 @@ export default function PlansGuidePage() {
             </ul>
           </PlanSection>
 
-          <PlanSection title="Echo Studio &mdash; $49/mo">
+          <PlanSection title="Echo Studio &mdash; $87/mo">
             <ul className="list-disc list-inside space-y-1">
               <li>5hr video length</li>
               <li>10 clips per video</li>
@@ -76,25 +76,18 @@ export default function PlansGuidePage() {
             </ul>
           </PlanSection>
 
-          <PlanSection title="Echo Pro &mdash; $99/mo">
+          <PlanSection title="Echo Teams &mdash; $47/voice/mo (2-voice min)">
             <ul className="list-disc list-inside space-y-1">
+              <li>Per-voice scaling &mdash; pay only for what you use</li>
+              <li>2-voice minimum, no upper cap</li>
+              <li>Per-voice knowledge bases &amp; profile context</li>
+              <li>Shared usage pool across voices</li>
               <li>Unlimited video length</li>
               <li>15 clips per video</li>
-              <li>Full voice matching</li>
-              <li>Unlimited Creator Radar</li>
-              <li>Email import (100)</li>
-              <li>Priority support</li>
+              <li>Email import (100), priority support</li>
               <li>Auto-post to Instagram, LinkedIn &amp; Facebook</li>
             </ul>
-          </PlanSection>
-
-          <PlanSection title="EchoTeams">
-            <ul className="list-disc list-inside space-y-1">
-              <li>Duo &mdash; $129/mo (2 voices)</li>
-              <li>Pro &mdash; $179/mo (5 voices)</li>
-              <li>Agency &mdash; $249/mo (10 voices)</li>
-            </ul>
-            <p className="mt-2">All team plans include shared content libraries, collaborative workflows, and auto-posting to Instagram, LinkedIn &amp; Facebook.</p>
+            <p className="mt-2">Total cost = $47 &times; the number of voices on your plan. 2 voices = $94/mo, 5 voices = $235/mo, etc.</p>
           </PlanSection>
         </section>
 
@@ -105,7 +98,7 @@ export default function PlansGuidePage() {
 
         {/* Tip */}
         <div className="mb-10">
-          <Tip>Not sure which plan? Start with Echo ($29/mo) &mdash; you can upgrade anytime and your content carries over.</Tip>
+          <Tip>Not sure which plan? Start with Echo ($37/mo) &mdash; you can upgrade anytime and your content carries over.</Tip>
         </div>
 
         {/* CTA */}

@@ -9,8 +9,22 @@ export interface PlanData {
   highlight?: boolean;
   badge?: string;
   accentColor: 'primary' | 'purple';
+  /**
+   * For Echo Teams (per-voice billing): treat monthlyPrice/annualPrice as
+   * the unit rate, not the total. UI multiplies by user-selected voice
+   * count (2 minimum). Set on the Echo Teams plan only.
+   */
+  perVoice?: boolean;
 }
 
+// Marketing pricing — what new signups see. Updated 2026-04-30:
+// - Echo: $29 → $37, Echo Studio: $49 → $87
+// - Echo Pro $99 dropped (zero customers; no advertising)
+// - EchoTeams Pro $179 / Agency $249 dropped (zero customers; no advertising)
+// - EchoTeams Duo $129 retained in code only for the one grandfathered
+//   customer (not in this list anymore)
+// - NEW: Echo Teams ($47/voice/mo, 2-voice min) replaces all Teams plans
+// - Free tier bumped 2 → 3 generations
 export const individualPlans: PlanData[] = [
   {
     name: 'Free',
@@ -21,19 +35,19 @@ export const individualPlans: PlanData[] = [
     buttonText: 'Start Free',
     accentColor: 'primary',
     features: [
-      '2 free generations',
+      '3 free generations',
       'Voice matching from your content',
       '1 platform per generation',
       'Standard templates',
-      'Full auto-posting to Instagram, LinkedIn & Facebook during your 2 generations',
+      'Full auto-posting to Instagram, LinkedIn & Facebook during your 3 generations',
     ],
   },
   {
     name: 'Echo',
     slug: 'echo',
     description: 'For creators with a body of work to draw from',
-    monthlyPrice: 29,
-    annualPrice: 290,
+    monthlyPrice: 37,
+    annualPrice: 370,
     buttonText: 'Go Echo',
     accentColor: 'primary',
     features: [
@@ -51,8 +65,8 @@ export const individualPlans: PlanData[] = [
     name: 'Echo Studio',
     slug: 'echo-studio',
     description: 'For creators who publish frequently and take their output seriously',
-    monthlyPrice: 49,
-    annualPrice: 490,
+    monthlyPrice: 87,
+    annualPrice: 870,
     buttonText: 'Go Studio',
     highlight: true,
     badge: 'MOST POPULAR',
@@ -70,86 +84,26 @@ export const individualPlans: PlanData[] = [
       'Auto-post to Instagram, LinkedIn & Facebook',
     ],
   },
-  {
-    name: 'Echo Pro',
-    slug: 'echo-pro',
-    description: 'For agencies and teams managing multiple voices',
-    monthlyPrice: 99,
-    annualPrice: 990,
-    buttonText: 'Go Pro',
-    accentColor: 'purple',
-    features: [
-      'Unlimited video processing',
-      'Up to 15 clips per video',
-      'Full voice matching pipeline',
-      'Unlimited Creator Radar',
-      'Custom carousel design system',
-      '1080p exports',
-      '5GB file upload limit',
-      'Email import (up to 100 emails)',
-      'Priority processing queue',
-      'Priority support',
-      'Auto-post to Instagram, LinkedIn & Facebook',
-    ],
-  },
 ];
 
+// Multi-voice plans. Single SKU now: Echo Teams with per-voice pricing.
+// Replaces the old fixed-quantity Duo/Pro/Agency tiers.
 export const teamsPlans: PlanData[] = [
   {
-    name: 'EchoTeams Duo',
-    slug: 'echo-teams-2',
-    description: '2 voices',
-    monthlyPrice: 129,
-    annualPrice: 1075,
-    buttonText: 'Get Started',
-    accentColor: 'purple',
-    features: [
-      'Everything in Echo Pro',
-      '2 distinct voice profiles',
-      'Per-voice knowledge bases',
-      'Per-voice profile context',
-      'Shared usage pool across voices',
-      'Unlimited video processing',
-      'Up to 15 clips per video',
-      '5GB file upload limit',
-      'Priority support',
-      'Auto-post to Instagram, LinkedIn & Facebook',
-    ],
-  },
-  {
-    name: 'EchoTeams Pro',
-    slug: 'echo-teams-5',
-    description: '5 voices',
-    monthlyPrice: 179,
-    annualPrice: 1492,
+    name: 'Echo Teams',
+    slug: 'echo-teams',
+    description: 'For agencies and teams managing multiple voices',
+    // Per-voice unit rate. UI multiplies by selected voice count (2 min).
+    monthlyPrice: 47,
+    annualPrice: 470,
     buttonText: 'Get Started',
     highlight: true,
-    badge: 'BEST VALUE',
+    badge: 'PER VOICE',
     accentColor: 'purple',
+    perVoice: true,
     features: [
-      'Everything in Echo Pro',
-      '5 distinct voice profiles',
-      'Per-voice knowledge bases',
-      'Per-voice profile context',
-      'Shared usage pool across voices',
-      'Unlimited video processing',
-      'Up to 15 clips per video',
-      '5GB file upload limit',
-      'Priority support',
-      'Auto-post to Instagram, LinkedIn & Facebook',
-    ],
-  },
-  {
-    name: 'EchoTeams Agency',
-    slug: 'echo-teams-10',
-    description: '10 voices',
-    monthlyPrice: 249,
-    annualPrice: 2075,
-    buttonText: 'Get Started',
-    accentColor: 'purple',
-    features: [
-      'Everything in Echo Pro',
-      '10 distinct voice profiles',
+      'Per-voice scaling — pay only for what you use',
+      '2-voice minimum, no upper cap',
       'Per-voice knowledge bases',
       'Per-voice profile context',
       'Shared usage pool across voices',

@@ -19,6 +19,8 @@ export default function HomeContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  // Echo Teams card uses a per-voice selector. State default = 2 (plan minimum).
+  const [echoTeamsVoices, setEchoTeamsVoices] = useState<number>(2);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -128,7 +130,7 @@ export default function HomeContent() {
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
-              Start with 2 free generations - no credit card required.
+              Start with 3 free generations - no credit card required.
               <br />
               <span className="text-base">Then choose a plan that works with your creative rhythm.</span>
             </p>
@@ -183,7 +185,7 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      '2 free generations',
+                      '3 free generations',
                       'Voice matching from your content',
                       '1 platform per generation',
                       'Standard templates',
@@ -200,7 +202,7 @@ export default function HomeContent() {
               </div>
             </div>
 
-            {/* Echo - $29 */}
+            {/* Echo - $37 */}
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-accent-purple/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
@@ -210,7 +212,7 @@ export default function HomeContent() {
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
-                        ${billingPeriod === 'monthly' ? '29' : '290'}
+                        ${billingPeriod === 'monthly' ? '37' : '370'}
                       </span>
                       <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
@@ -246,7 +248,7 @@ export default function HomeContent() {
               </div>
             </div>
 
-            {/* Echo Studio - $49 - Popular */}
+            {/* Echo Studio - $87 - Popular */}
             <div className="relative md:-mt-6 group">
               <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent-purple rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-gradient-to-br from-primary via-primary-dark to-primary rounded-3xl p-6 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(0,212,255,0.5)] hover:-translate-y-2 transition-all duration-300 h-full">
@@ -259,7 +261,7 @@ export default function HomeContent() {
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold text-white drop-shadow-lg">
-                        ${billingPeriod === 'monthly' ? '49' : '490'}
+                        ${billingPeriod === 'monthly' ? '87' : '870'}
                       </span>
                       <span className="text-sm font-light text-white/80">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
@@ -296,40 +298,70 @@ export default function HomeContent() {
               </div>
             </div>
 
-            {/* Echo Pro - $99 */}
+            {/* Echo Teams - $47/voice (per-voice billing, 2-voice min) */}
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple/30 to-accent-purple/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-accent-purple/40 p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-extrabold text-foreground mb-2">Echo Pro</h3>
+                  <h3 className="text-2xl font-extrabold text-foreground mb-2">Echo Teams</h3>
                   <p className="text-sm font-normal text-muted-foreground mb-4 leading-relaxed">For agencies and teams managing multiple voices</p>
+
+                  {/* Voice selector */}
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">Voices:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setEchoTeamsVoices(v => Math.max(2, v - 1))}
+                        disabled={echoTeamsVoices <= 2}
+                        className="w-8 h-8 rounded-lg border-2 border-accent-purple/40 bg-card hover:bg-accent-purple/10 disabled:opacity-40 disabled:cursor-not-allowed text-base font-bold text-accent-purple"
+                        aria-label="Decrease voice count"
+                      >
+                        -
+                      </button>
+                      <span className="min-w-[2.5rem] text-center font-extrabold text-foreground text-lg">{echoTeamsVoices}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEchoTeamsVoices(v => v + 1)}
+                        className="w-8 h-8 rounded-lg border-2 border-accent-purple/40 bg-card hover:bg-accent-purple/10 text-base font-bold text-accent-purple"
+                        aria-label="Increase voice count"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span className="text-xs text-muted-foreground">2 min</span>
+                  </div>
+
                   <div className="mb-3">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
-                        ${billingPeriod === 'monthly' ? '99' : '990'}
+                        ${(billingPeriod === 'monthly' ? 47 : 470) * echoTeamsVoices}
                       </span>
                       <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ${billingPeriod === 'monthly' ? 47 : 470}/voice × {echoTeamsVoices} voices
+                    </p>
                     {billingPeriod === 'annual' && (
                       <div className="mt-2 inline-block bg-accent-purple/10 border border-accent-purple/30 rounded-lg px-2 py-0.5">
                         <p className="text-xs font-semibold text-accent-purple">2 months free</p>
                       </div>
                     )}
                   </div>
-                  <a href="/auth/signup?plan=echo-pro" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                    Go Pro
+                  <a href={`/auth/signup?plan=echo-teams&voices=${echoTeamsVoices}`} className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
+                    Get Started
                   </a>
                 </div>
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      'Full voice matching pipeline (custom guardrails + brand context)',
-                      'Reads everything you give it (100 emails, 5GB upload)',
-                      'Unlimited Creator Radar',
+                      'Per-voice scaling — pay only for what you use',
+                      'Per-voice knowledge bases',
+                      'Per-voice profile context',
+                      'Shared usage pool across voices',
                       'Unlimited video processing, up to 15 clips per video',
-                      'Custom carousel design system, 1080p exports',
                       'Priority processing + Priority support',
-                      'Monthly Creator Library (B-roll, captions, scripts)'
+                      'Auto-post to Instagram, LinkedIn & Facebook',
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -344,161 +376,11 @@ export default function HomeContent() {
             </div>
           </div>
 
-          {/* Teams Plans */}
-          <div className="mt-20 mb-16">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-purple/10 border border-accent-purple/20 rounded-full mb-4">
-                <Users className="w-4 h-4 text-accent-purple" />
-                <span className="text-accent-purple font-semibold text-sm">For Teams</span>
-              </div>
-              <h3 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
-                Multi-Voice Management
-              </h3>
-              <p className="text-muted-foreground font-light max-w-2xl mx-auto">
-                Manage multiple voices from one account. Everything in Echo Pro, plus per-voice knowledge bases and profile context.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {/* EchoTeams Duo - $129 */}
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple/20 to-primary/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-extrabold text-foreground mb-1">EchoTeams Duo</h3>
-                    <p className="text-sm font-normal text-muted-foreground mb-4">2 voices</p>
-                    <div className="mb-3">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
-                          ${billingPeriod === 'monthly' ? '129' : '1,075'}
-                        </span>
-                        <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                      </div>
-                      {billingPeriod === 'annual' && (
-                        <div className="mt-2 inline-block bg-accent-purple/10 border border-accent-purple/30 rounded-lg px-2 py-0.5">
-                          <p className="text-xs font-semibold text-accent-purple">2 months free</p>
-                        </div>
-                      )}
-                    </div>
-                    <a href="/auth/signup?plan=echo-teams-2" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                      Get Started
-                    </a>
-                  </div>
-                  <div className="flex-1">
-                    <div className="space-y-3 pt-4 border-t-2 border-border">
-                      {[
-                        'Everything in Echo Pro',
-                        '2 distinct voice profiles',
-                        'Per-voice knowledge bases',
-                        'Per-voice profile context',
-                        'Shared usage pool across voices',
-                      ].map((feature, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="text-sm font-medium text-foreground">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* EchoTeams Pro - $179 - Best Value */}
-              <div className="relative md:-mt-6 group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-accent-purple to-accent-purple rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-gradient-to-br from-accent-purple via-accent-purple to-accent-purple rounded-3xl p-6 flex flex-col shadow-2xl hover:shadow-[0_30px_60px_-15px_rgba(183,148,246,0.5)] hover:-translate-y-2 transition-all duration-300 h-full">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-accent-purple to-accent-purple text-white text-xs font-extrabold px-4 py-1.5 rounded-full shadow-lg">
-                    BEST VALUE
-                  </div>
-                  <div className="mb-6 mt-3">
-                    <h3 className="text-2xl font-extrabold text-white mb-1">EchoTeams Pro</h3>
-                    <p className="text-xs font-light text-white/90 mb-4">5 voices</p>
-                    <div className="mb-3">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold text-white drop-shadow-lg">
-                          ${billingPeriod === 'monthly' ? '179' : '1,492'}
-                        </span>
-                        <span className="text-sm font-light text-white/80">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                      </div>
-                      {billingPeriod === 'annual' && (
-                        <div className="mt-2 inline-block bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-0.5">
-                          <p className="text-xs font-semibold text-white">2 months free</p>
-                        </div>
-                      )}
-                    </div>
-                    <a href="/auth/signup?plan=echo-teams-5" className="relative w-full px-4 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
-                      Get Started
-                    </a>
-                  </div>
-                  <div className="flex-1">
-                    <div className="space-y-3 pt-4 border-t-2 border-white/30">
-                      {[
-                        'Everything in Echo Pro',
-                        '5 distinct voice profiles',
-                        'Per-voice knowledge bases',
-                        'Per-voice profile context',
-                        'Shared usage pool across voices',
-                      ].map((feature, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="text-sm font-medium text-white">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* EchoTeams Agency - $249 */}
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-accent-purple/20 to-primary/20 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border p-6 flex flex-col shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full">
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-extrabold text-foreground mb-1">EchoTeams Agency</h3>
-                    <p className="text-sm font-normal text-muted-foreground mb-4">10 voices</p>
-                    <div className="mb-3">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold bg-gradient-to-r from-accent-purple to-accent-purple bg-clip-text text-transparent">
-                          ${billingPeriod === 'monthly' ? '249' : '2,075'}
-                        </span>
-                        <span className="text-sm font-light text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                      </div>
-                      {billingPeriod === 'annual' && (
-                        <div className="mt-2 inline-block bg-accent-purple/10 border border-accent-purple/30 rounded-lg px-2 py-0.5">
-                          <p className="text-xs font-semibold text-accent-purple">2 months free</p>
-                        </div>
-                      )}
-                    </div>
-                    <a href="/auth/signup?plan=echo-teams-10" className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                      Get Started
-                    </a>
-                  </div>
-                  <div className="flex-1">
-                    <div className="space-y-3 pt-4 border-t-2 border-border">
-                      {[
-                        'Everything in Echo Pro',
-                        '10 distinct voice profiles',
-                        'Per-voice knowledge bases',
-                        'Per-voice profile context',
-                        'Shared usage pool across voices',
-                      ].map((feature, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="text-sm font-medium text-foreground">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Multi-Voice subsection dropped 2026-04-30 — Echo Teams now
+              lives in the main 4-column grid above with a per-voice
+              quantity selector. Legacy EchoTeams Duo/Pro/Agency cards
+              retired from advertising; their Stripe products remain
+              active for the one grandfathered customer on Duo. */}
 
           {/* Enterprise CTA */}
           <div className="max-w-3xl mx-auto text-center mt-12 p-8 bg-gray-900 rounded-3xl">
@@ -546,9 +428,9 @@ export default function HomeContent() {
 
             <div className="grid grid-cols-1 gap-4">
               {[
-                { plan: 'Echo', price: '$29/mo', commission: '$7.25', color: 'from-primary/20 to-primary/5' },
-                { plan: 'Echo Studio', price: '$49/mo', commission: '$12.25', color: 'from-primary/25 to-primary/10', popular: true },
-                { plan: 'Echo Pro', price: '$99/mo', commission: '$24.75', color: 'from-accent-purple/20 to-accent-purple/5' },
+                { plan: 'Echo', price: '$37/mo', commission: '$9.25', color: 'from-primary/20 to-primary/5' },
+                { plan: 'Echo Studio', price: '$87/mo', commission: '$21.75', color: 'from-primary/25 to-primary/10', popular: true },
+                { plan: 'Echo Teams', price: '$47/voice/mo', commission: '$11.75/voice', color: 'from-accent-purple/20 to-accent-purple/5' },
               ].map((tier) => (
                 <div
                   key={tier.plan}

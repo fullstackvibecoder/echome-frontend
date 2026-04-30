@@ -187,7 +187,7 @@ export function ConnectedAccounts() {
         default:
           return [
             'Connect your accounts and auto-post',
-            'Free plan includes full auto-post access during your 2 generations. Upgrade any time to keep going.',
+            'Free plan includes full auto-post access during your 3 generations. Upgrade any time to keep going.',
           ];
       }
     })();

@@ -1026,7 +1026,7 @@ export default function SettingsContent() {
                       {usage?.isUnlimited
                         ? 'Unlimited generations'
                         : usage?.tier === 'free'
-                        ? '2 free generations (lifetime)'
+                        ? '3 free generations (lifetime)'
                         : `${usage?.generationsLimit || 10} generations per month`}
                     </p>
                   </div>
@@ -1209,9 +1209,9 @@ export default function SettingsContent() {
               <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg">
                 <h4 className="text-body font-semibold text-accent mb-2">Commission Structure</h4>
                 <ul className="text-small text-text-secondary space-y-1">
-                  <li>• Echo ($29/mo) → <span className="text-accent font-medium">$7.25/mo per referral</span></li>
-                  <li>• Echo Studio ($49/mo) → <span className="text-accent font-medium">$12.25/mo per referral</span></li>
-                  <li>• Echo Pro ($99/mo) → <span className="text-accent font-medium">$24.75/mo per referral</span></li>
+                  <li>• Echo ($37/mo) → <span className="text-accent font-medium">$9.25/mo per referral</span></li>
+                  <li>• Echo Studio ($87/mo) → <span className="text-accent font-medium">$21.75/mo per referral</span></li>
+                  <li>• Echo Teams ($47/voice/mo) → <span className="text-accent font-medium">$11.75/voice/mo per referral</span></li>
                 </ul>
               </div>
 

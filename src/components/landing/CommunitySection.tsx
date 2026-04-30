@@ -182,7 +182,7 @@ export function CommunitySection() {
                 <h3 className="text-lg font-extrabold text-foreground">Try EchoMe Before the Call</h3>
               </div>
               <p className="text-muted-foreground text-sm max-w-lg">
-                2 free generations, no credit card. Try it before the call so you show up with real questions.
+                3 free generations, no credit card. Try it before the call so you show up with real questions.
               </p>
             </div>
             <a

@@ -204,7 +204,7 @@ export default function RealtorsPage() {
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Upload a listing video, get a week of posts</p>
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Context is King &mdash; grounded in your history</p>
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Your sphere thinks you wrote it</p>
-                <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Starts at $29/mo</p>
+                <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Starts at $37/mo</p>
               </div>
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function RealtorsPage() {
             />
             <FAQ
               q="How much does it cost?"
-              a="EchoMe starts at $29/mo with 2 free generations to try (no credit card). Compare that to template tools charging $99/mo for fill-in-the-blank posts, or a social media manager charging $1,000+/mo who still won't capture your voice."
+              a="EchoMe starts at $37/mo with 3 free generations to try (no credit card). Compare that to template tools charging $99/mo for fill-in-the-blank posts, or a social media manager charging $1,000+/mo who still won't capture your voice."
             />
             <FAQ
               q="I already have a social media person. Why would I need this?"
@@ -363,7 +363,7 @@ export default function RealtorsPage() {
             </span>
           </h2>
           <p className="text-lg text-white/60 mb-8 max-w-xl mx-auto">
-            2 free generations. No credit card. See if EchoMe gets your voice right.
+            3 free generations. No credit card. See if EchoMe gets your voice right.
           </p>
           <a
             href="/auth/signup"

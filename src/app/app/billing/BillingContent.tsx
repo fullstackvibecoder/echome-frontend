@@ -11,7 +11,12 @@ import { DowngradeWarningModal } from '@/components/scheduling/DowngradeWarningM
 
 type BillingInterval = 'month' | 'year';
 
-// Fallback plans in case API fails
+// Fallback plans in case API fails. Updated 2026-04-30 to match backend
+// getPricingPlans(): Echo $37, Echo Studio $87, Echo Teams $47/voice (2-voice
+// minimum). Echo Pro and EchoTeams Pro/Agency dropped entirely. Only the
+// teams_2 fallback is retained because there's one grandfathered customer
+// whose billing page still needs to display their plan card if the API
+// hiccups.
 const FALLBACK_PLANS: StripePlan[] = [
   {
     id: 'echo',
@@ -19,8 +24,8 @@ const FALLBACK_PLANS: StripePlan[] = [
     tier: 'pro',
     monthlyPriceId: '',
     annualPriceId: '',
-    monthlyPrice: 29,
-    annualPrice: 290,
+    monthlyPrice: 37,
+    annualPrice: 370,
     features: [
       'Up to 2 hours of video processing',
       'Up to 5 clips per video',
@@ -47,8 +52,8 @@ const FALLBACK_PLANS: StripePlan[] = [
     tier: 'studio',
     monthlyPriceId: '',
     annualPriceId: '',
-    monthlyPrice: 49,
-    annualPrice: 490,
+    monthlyPrice: 87,
+    annualPrice: 870,
     features: [
       'Up to 5 hours of video processing',
       'Up to 10 clips per video',
@@ -71,33 +76,34 @@ const FALLBACK_PLANS: StripePlan[] = [
     },
   },
   {
-    id: 'echo-pro',
-    name: 'Echo Pro',
-    tier: 'enterprise',
+    id: 'echo-teams',
+    name: 'Echo Teams',
+    tier: 'echo_teams',
     monthlyPriceId: '',
     annualPriceId: '',
-    monthlyPrice: 99,
-    annualPrice: 990,
+    // Per-voice unit price; total = monthlyPrice × voice count (2 minimum).
+    monthlyPrice: 47,
+    annualPrice: 470,
     features: [
+      'Per-voice scaling — pay only for what you use',
+      '2-voice minimum, no upper cap',
+      'Per-voice knowledge bases',
+      'Per-voice profile context',
+      'Shared usage pool across voices',
       'Unlimited video processing',
       'Up to 15 clips per video',
-      'Full voice matching pipeline',
-      'Unlimited Creator Radar',
-      'Custom carousel design system',
-      '1080p exports',
       '5GB file upload limit',
-      'Email import (up to 100 emails)',
-      'Priority processing queue',
       'Priority support',
-      'Monthly Creator Library (B-roll, captions, scripts)',
+      'Auto-post to Instagram, LinkedIn & Facebook',
     ],
     limits: {
       videoMinutesPerMonth: -1,
       clipsPerVideo: 15,
-      knowledgeBases: -1,
+      knowledgeBases: 99,
       creatorRadar: -1,
       exportQuality: '1080p',
       emailImportMaxEmails: 100,
+      maxVoices: 99, // Real cap reads from users.voice_count
     },
   },
   {
@@ -109,7 +115,6 @@ const FALLBACK_PLANS: StripePlan[] = [
     monthlyPrice: 129,
     annualPrice: 1075,
     features: [
-      'Everything in Echo Pro',
       '2 distinct voice profiles',
       'Per-voice knowledge bases',
       'Per-voice profile context',
@@ -130,66 +135,6 @@ const FALLBACK_PLANS: StripePlan[] = [
       maxVoices: 2,
     },
   },
-  {
-    id: 'echo-teams-5',
-    name: 'EchoTeams Pro',
-    tier: 'teams_5',
-    monthlyPriceId: '',
-    annualPriceId: '',
-    monthlyPrice: 179,
-    annualPrice: 1492,
-    features: [
-      'Everything in Echo Pro',
-      '5 distinct voice profiles',
-      'Per-voice knowledge bases',
-      'Per-voice profile context',
-      'Shared usage pool across voices',
-      'Unlimited video processing',
-      'Up to 15 clips per video',
-      '5GB file upload limit',
-      'Priority support',
-      'Monthly Creator Library (B-roll, captions, scripts)',
-    ],
-    limits: {
-      videoMinutesPerMonth: -1,
-      clipsPerVideo: 15,
-      knowledgeBases: 5,
-      creatorRadar: -1,
-      exportQuality: '1080p',
-      emailImportMaxEmails: 100,
-      maxVoices: 5,
-    },
-  },
-  {
-    id: 'echo-teams-10',
-    name: 'EchoTeams Agency',
-    tier: 'teams_10',
-    monthlyPriceId: '',
-    annualPriceId: '',
-    monthlyPrice: 249,
-    annualPrice: 2075,
-    features: [
-      'Everything in Echo Pro',
-      '10 distinct voice profiles',
-      'Per-voice knowledge bases',
-      'Per-voice profile context',
-      'Shared usage pool across voices',
-      'Unlimited video processing',
-      'Up to 15 clips per video',
-      '5GB file upload limit',
-      'Priority support',
-      'Monthly Creator Library (B-roll, captions, scripts)',
-    ],
-    limits: {
-      videoMinutesPerMonth: -1,
-      clipsPerVideo: 15,
-      knowledgeBases: 10,
-      creatorRadar: -1,
-      exportQuality: '1080p',
-      emailImportMaxEmails: 100,
-      maxVoices: 10,
-    },
-  },
 ];
 
 function BillingContentInner() {
@@ -203,6 +148,9 @@ function BillingContentInner() {
   const [downgradeWarningOpen, setDowngradeWarningOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Echo Teams card has a per-voice quantity selector. Default to 2 (the
+  // plan minimum). Pushed to Stripe checkout as `quantity` on the line item.
+  const [echoTeamsVoices, setEchoTeamsVoices] = useState<number>(2);
 
   // Handle success/cancel/upgrade query params
   useEffect(() => {
@@ -217,6 +165,7 @@ function BillingContentInner() {
             const tierName = syncResult.data.tier === 'pro' ? 'Echo' :
                             syncResult.data.tier === 'studio' ? 'Echo Studio' :
                             syncResult.data.tier === 'enterprise' ? 'Echo Pro' :
+                            syncResult.data.tier === 'echo_teams' ? 'Echo Teams' :
                             syncResult.data.tier === 'teams_2' ? 'EchoTeams Duo' :
                             syncResult.data.tier === 'teams_5' ? 'EchoTeams Pro' :
                             syncResult.data.tier === 'teams_10' ? 'EchoTeams Agency' : 'your plan';
@@ -231,7 +180,7 @@ function BillingContentInner() {
             }
 
             // Teams-specific redirect: onboarding first if empty KB, then team voices
-            if (syncResult.data.tier?.startsWith('teams_')) {
+            if ((syncResult.data.tier?.startsWith('teams_') || syncResult.data.tier === 'echo_teams')) {
               try {
                 const kbResponse = await api.kb.list();
                 const hasKb = kbResponse.success && kbResponse.data && kbResponse.data.length > 0;
@@ -365,8 +314,10 @@ function BillingContentInner() {
   }, []);
 
   // Separate individual and teams plans
-  const individualPlans = plans.filter(p => !p.tier.startsWith('teams_'));
-  const teamsPlans = plans.filter(p => p.tier.startsWith('teams_'));
+  // Multi-voice tiers: legacy teams_* and the new echo_teams.
+  const isMultiVoiceTier = (t: string) => t.startsWith('teams_') || t === 'echo_teams';
+  const individualPlans = plans.filter(p => !isMultiVoiceTier(p.tier));
+  const teamsPlans = plans.filter(p => isMultiVoiceTier(p.tier));
 
   // Handle plan selection - either checkout for new users or switch for existing subscribers
   const handlePlanSelect = async (planId: string) => {
@@ -432,7 +383,7 @@ function BillingContentInner() {
   // If they proceed, the confirm handler calls the actual portal redirect.
   const handleManageSubscription = () => {
     const tier = subscription?.tier || '';
-    const hasAutoPostAccess = ['studio', 'enterprise', 'teams_2', 'teams_5', 'teams_10'].includes(tier);
+    const hasAutoPostAccess = ['studio', 'enterprise', 'teams_2', 'teams_5', 'teams_10', 'echo_teams'].includes(tier);
     if (hasAutoPostAccess) {
       setDowngradeWarningOpen(true);
     } else {
@@ -595,7 +546,7 @@ function BillingContentInner() {
               <h3 className="text-lg font-bold">Free Plan</h3>
               <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current</span>
             </div>
-            <p className="text-sm text-muted-foreground">2 free generations, basic voice matching, 1 platform per generation</p>
+            <p className="text-sm text-muted-foreground">3 free generations, basic voice matching, 1 platform per generation</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-foreground">$0</p>
@@ -690,27 +641,40 @@ function BillingContentInner() {
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold mb-1">For Teams</h2>
             <p className="text-muted-foreground">
-              Manage multiple voices from one account. Everything in Echo Pro, plus multi-voice management.
+              Manage multiple voices from one account. Per-voice scaling for agencies and teams.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 stagger-children">
             {teamsPlans.map((plan) => {
               const isCurrent = isCurrentPlan(plan);
-              const price = billingInterval === 'month' ? plan.monthlyPrice : plan.annualPrice;
-              const voiceCount = plan.tier === 'teams_2' ? 2 : plan.tier === 'teams_5' ? 5 : 10;
+              const isEchoTeams = plan.tier === 'echo_teams';
+              // Static voice count for legacy fixed-quantity teams_*; user-
+              // controlled quantity for the new echo_teams.
+              const voiceCount = isEchoTeams
+                ? echoTeamsVoices
+                : plan.tier === 'teams_2'
+                  ? 2
+                  : plan.tier === 'teams_5'
+                    ? 5
+                    : 10;
+              const unitPrice = billingInterval === 'month' ? plan.monthlyPrice : plan.annualPrice;
+              // For echo_teams the displayed total is unit × voice count.
+              // For legacy teams_* the unitPrice already represents the
+              // total at that fixed voice count.
+              const totalPrice = isEchoTeams ? unitPrice * voiceCount : unitPrice;
 
               return (
                 <div
                   key={plan.id}
                   className={`relative rounded-2xl border-2 p-6 flex flex-col card-lift ${
-                    plan.tier === 'teams_5'
+                    isEchoTeams
                       ? 'border-primary bg-primary/5 shadow-lg'
                       : 'border-border bg-card'
                   } ${isCurrent ? 'ring-2 ring-green-500' : ''}`}
                 >
-                  {plan.tier === 'teams_5' && (
+                  {isEchoTeams && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
-                      BEST VALUE
+                      MOST FLEXIBLE
                     </div>
                   )}
                   {isCurrent && (
@@ -721,13 +685,45 @@ function BillingContentInner() {
 
                   <div className="mb-4 mt-2">
                     <h3 className="text-xl font-bold">{plan.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">{voiceCount} voices</p>
+                    {isEchoTeams ? (
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">Voices:</span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setEchoTeamsVoices(v => Math.max(2, v - 1))}
+                            disabled={echoTeamsVoices <= 2}
+                            className="w-7 h-7 rounded-md border border-border bg-background hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
+                            aria-label="Decrease voice count"
+                          >
+                            -
+                          </button>
+                          <span className="min-w-[2rem] text-center font-bold">{voiceCount}</span>
+                          <button
+                            type="button"
+                            onClick={() => setEchoTeamsVoices(v => v + 1)}
+                            className="w-7 h-7 rounded-md border border-border bg-background hover:bg-muted text-sm font-bold"
+                            aria-label="Increase voice count"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <span className="text-xs text-muted-foreground">2 minimum</span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-0.5">{voiceCount} voices</p>
+                    )}
                     <div className="flex items-baseline gap-1 mt-2">
-                      <span className="text-4xl font-extrabold">${price}</span>
+                      <span className="text-4xl font-extrabold">${totalPrice}</span>
                       <span className="text-muted-foreground">
                         /{billingInterval === 'month' ? 'mo' : 'yr'}
                       </span>
                     </div>
+                    {isEchoTeams && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ${unitPrice}/voice × {voiceCount} voices
+                      </p>
+                    )}
                     {billingInterval === 'year' && (
                       <p className="text-sm text-green-600 font-medium mt-1">
                         2 months free
@@ -750,7 +746,7 @@ function BillingContentInner() {
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
                       isCurrent
                         ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                        : plan.tier === 'teams_5'
+                        : isEchoTeams
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'bg-foreground text-background hover:bg-foreground/90'
                     } disabled:opacity-50`}

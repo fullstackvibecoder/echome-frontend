@@ -42,7 +42,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'How do free generations work?',
     answer:
-      'You get 2 free lifetime generations - no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 2 generations = 12+ pieces of content.',
+      'You get 3 free lifetime generations - no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 3 generations = 18+ pieces of content.',
     category: 'getting-started',
   },
   {
@@ -102,7 +102,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'How much does it cost?',
     answer:
-      'Plans start at $29/mo (Echo), $49/mo (Echo Studio - most popular), and $99/mo (Echo Pro). You get 2 free generations to try before subscribing. Annual billing saves 17%.',
+      'Plans start at $37/mo (Echo), $87/mo (Echo Studio - most popular), and $47/voice/mo (Echo Teams, 2-voice min). You get 3 free generations to try before subscribing. Annual billing saves 17%.',
     category: 'billing',
   },
   {

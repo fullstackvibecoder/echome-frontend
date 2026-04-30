@@ -1751,9 +1751,9 @@ export function GenerationForm({
           </div>
           <div className="space-y-3">
             {[
-              { name: 'Echo', price: '$29/mo', id: 'echo' },
-              { name: 'Echo Studio', price: '$49/mo', id: 'echo-studio', popular: true },
-              { name: 'Echo Pro', price: '$99/mo', id: 'echo-pro' },
+              { name: 'Echo', price: '$37/mo', id: 'echo' },
+              { name: 'Echo Studio', price: '$87/mo', id: 'echo-studio', popular: true },
+              { name: 'Echo Teams', price: '$47/voice/mo', id: 'echo-teams' },
             ].map((plan) => (
               <button
                 key={plan.id}

@@ -36,10 +36,18 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [voiceCount, setVoiceCount] = useState(0);
   const hasAttemptedFallbackRef = useRef(false);
 
-  const isTeamsUser = (isSubscribed || isTrial) && (tier === 'teams_2' || tier === 'teams_5' || tier === 'teams_10');
+  const isTeamsUser = (isSubscribed || isTrial) && (
+    tier === 'teams_2' ||
+    tier === 'teams_5' ||
+    tier === 'teams_10' ||
+    tier === 'echo_teams'
+  );
 
-  // Tier-based fallback limits (used when /limits endpoint isn't available)
-  const tierLimits: Record<string, number> = { teams_2: 2, teams_5: 5, teams_10: 10 };
+  // Tier-based fallback limits (used when /limits endpoint isn't available).
+  // For echo_teams the real limit is in users.voice_count and comes back from
+  // /limits — this fallback is just a safety net. Default to the 2-voice
+  // plan minimum.
+  const tierLimits: Record<string, number> = { teams_2: 2, teams_5: 5, teams_10: 10, echo_teams: 2 };
 
   const fetchLimits = useCallback(async () => {
     if (!isTeamsUser) {

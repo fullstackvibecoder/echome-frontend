@@ -26,7 +26,7 @@ export default function AffiliatesContent() {
     },
     {
       q: "What if someone I refer upgrades their plan?",
-      a: "You earn 25% of whatever they pay. If they upgrade from Echo ($29) to Echo Pro ($99), your commission increases too."
+      a: "You earn 25% of whatever they pay. If they upgrade from Echo ($37) to Echo Studio ($87) or Echo Teams ($47/voice), your commission increases too."
     },
     {
       q: "Can I promote EchoMe on social media?",

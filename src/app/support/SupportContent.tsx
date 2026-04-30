@@ -48,7 +48,7 @@ export default function SupportContent() {
                   1. Create your account
                 </h3>
                 <p className="text-stone-700 text-sm">
-                  Sign up with your email or Google account. Your first 2 generations are free, no credit card required.
+                  Sign up with your email or Google account. Your first 3 generations are free, no credit card required.
                 </p>
               </div>
               <div className="pl-4 border-l-2 border-accent">
@@ -305,13 +305,13 @@ export default function SupportContent() {
               <div>
                 <h3 className="text-base font-medium text-stone-800 mb-2">Free plan</h3>
                 <p className="text-stone-700 text-sm">
-                  Includes 2 free generations with voice matching, 1 platform per generation, and standard templates. No credit card required.
+                  Includes 3 free generations with voice matching, 1 platform per generation, and standard templates. No credit card required.
                 </p>
               </div>
               <div>
                 <h3 className="text-base font-medium text-stone-800 mb-2">Paid plans</h3>
                 <p className="text-stone-700 text-sm">
-                  Echo ($29/mo), Echo Studio ($49/mo), and Echo Pro ($99/mo) offer increasing processing hours, clips per video, Knowledge Base slots, export quality, and Creator Library access. Team plans are available starting at $129/mo for agencies managing multiple voices.
+                  Echo ($37/mo), Echo Studio ($87/mo), and Echo Teams ($47/voice/mo with a 2-voice minimum) offer increasing processing hours, clips per video, Knowledge Base slots, and export quality. Echo Teams scales per voice for agencies managing multiple voices.
                 </p>
               </div>
               <div>
