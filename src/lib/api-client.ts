@@ -2983,6 +2983,12 @@ export const api = {
       return response.data as { success: boolean; data: { id: string } };
     },
 
+    /** Admin: count of feedback rows in 'new' status (for sidebar badge) */
+    adminUnreadCount: async () => {
+      const response = await apiClient.get('/help/admin/feedback/unread-count');
+      return response.data as { success: boolean; count: number };
+    },
+
     /** Admin: list feedback with filters */
     adminListFeedback: async (params?: {
       category?: FeedbackCategory;
