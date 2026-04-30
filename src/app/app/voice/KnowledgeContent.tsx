@@ -10,7 +10,7 @@ import { useVoiceContext } from '@/contexts/voice-context';
 import { VoiceWaveform } from '@/components/voice-waveform';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { InfoTooltip } from '@/components/info-tooltip';
-import { showInfoToast, showErrorToast, showSuccessToast } from '@/lib/toast';
+import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { KBUnifiedInput } from './KBUnifiedInput';
 import KBChat from './KBChat';
 import { SourcesDrawer } from './components/SourcesDrawer';
@@ -71,38 +71,22 @@ export default function KnowledgeContent() {
   // Sources drawer
   const [showSources, setShowSources] = useState(false);
 
-  // WBTW outcome — drives retry CTA (capped/errored), slow-path toast
-  // (pending → has_fields), and the manual "Refresh my profile" button.
+  // WBTW outcome — drives the retry CTA (capped/errored) and gates the
+  // refresh button. The slow-path toast was removed (2026-04-30) when we
+  // moved to auto-confirm: backend now commits the WBTW profile right
+  // after the slow-path BG lookup completes, so there's nothing pending
+  // for the user to act on by the time they land here.
   const [wbtwOutcome, setWbtwOutcome] = useState<WBTWOutcome>(null);
-  const [wbtwHasFields, setWbtwHasFields] = useState(false);
-  const [wbtwConfirmed, setWbtwConfirmed] = useState(false);
   const [wbtwRefreshing, setWbtwRefreshing] = useState(false);
-  const wbtwToastFiredRef = useState({ current: false })[0];
 
   const loadWbtwOutcome = useCallback(async () => {
     try {
       const r = await api.wbtw.outcome();
       setWbtwOutcome(r.outcome);
-      setWbtwHasFields(r.has_fields);
-      setWbtwConfirmed(r.confirmed);
-      // Slow-path toast: lookup ran in BG, finished, has fields, but
-      // user hasn't confirmed yet. Fire once per page load.
-      if (
-        !wbtwToastFiredRef.current &&
-        r.outcome === 'pending' &&
-        r.has_fields &&
-        !r.confirmed
-      ) {
-        wbtwToastFiredRef.current = true;
-        showInfoToast(
-          'We finished reading your sources',
-          'Want to review what we found?',
-        );
-      }
     } catch {
       // Silent — outcome surface is decorative, not blocking.
     }
-  }, [wbtwToastFiredRef]);
+  }, []);
 
   useEffect(() => {
     loadWbtwOutcome();
