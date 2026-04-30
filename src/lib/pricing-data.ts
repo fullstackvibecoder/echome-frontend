@@ -48,7 +48,7 @@ export const individualPlans: PlanData[] = [
     description: 'For creators with a body of work to draw from',
     monthlyPrice: 37,
     annualPrice: 370,
-    buttonText: 'Go Echo',
+    buttonText: 'Try Echo Free',
     accentColor: 'primary',
     features: [
       '2 hours of video processing',
@@ -67,7 +67,7 @@ export const individualPlans: PlanData[] = [
     description: 'For creators who publish frequently and take their output seriously',
     monthlyPrice: 87,
     annualPrice: 870,
-    buttonText: 'Go Studio',
+    buttonText: 'Try Studio Free',
     highlight: true,
     badge: 'MOST POPULAR',
     accentColor: 'primary',
@@ -96,7 +96,7 @@ export const teamsPlans: PlanData[] = [
     // Per-voice unit rate. UI multiplies by selected voice count (2 min).
     monthlyPrice: 47,
     annualPrice: 470,
-    buttonText: 'Get Started',
+    buttonText: 'Try Echo Teams Free',
     highlight: true,
     badge: 'PER VOICE',
     accentColor: 'purple',

@@ -223,7 +223,7 @@ export default function HomeContent() {
                     )}
                   </div>
                   <a href="/auth/signup?plan=echo" className="relative w-full px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                    Go Echo
+                    Try Echo Free
                   </a>
                 </div>
                 <div className="flex-1">
@@ -272,7 +272,7 @@ export default function HomeContent() {
                     )}
                   </div>
                   <a href="/auth/signup?plan=echo-studio" className="relative w-full px-4 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20 block text-center text-sm">
-                    Go Studio
+                    Try Studio Free
                   </a>
                 </div>
                 <div className="flex-1">
@@ -349,7 +349,7 @@ export default function HomeContent() {
                     )}
                   </div>
                   <a href={`/auth/signup?plan=echo-teams&voices=${echoTeamsVoices}`} className="relative w-full px-4 py-3 bg-gradient-to-r from-accent-purple to-accent-purple text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 block text-center text-sm">
-                    Get Started
+                    Try Echo Teams Free
                   </a>
                 </div>
                 <div className="flex-1">

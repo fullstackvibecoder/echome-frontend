@@ -74,7 +74,7 @@ export default function AppContent() {
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
   const { user } = useAuth();
   const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
-  const { isFreeUser, freeGenerationsRemaining } = useSubscription();
+  const { isFreeUser, freeGenerationsRemaining, freeGenerationsLimit } = useSubscription();
   const formRef = useRef<HTMLDivElement>(null);
 
   // Teams onboarding banner (dismissible via localStorage)
@@ -397,7 +397,7 @@ export default function AppContent() {
               <span className="text-lg">⚡</span>
               <span className="font-medium text-foreground">
                 {freeGenerationsRemaining > 0
-                  ? `${freeGenerationsRemaining} of 2 free generation${freeGenerationsRemaining !== 1 ? 's' : ''} remaining`
+                  ? `${freeGenerationsRemaining} of ${freeGenerationsLimit} free generation${freeGenerationsRemaining !== 1 ? 's' : ''} remaining`
                   : 'Free generations used up'}
               </span>
               {freeGenerationsRemaining <= 0 && (
