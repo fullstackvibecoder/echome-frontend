@@ -441,6 +441,33 @@ export function GenerationForm({
   const { user } = useAuth();
   const router = useRouter();
 
+  // One-click paywall checkout. Tracks per-plan loading so the right
+  // button shows a spinner while we hit the API + redirect to Stripe.
+  // On any failure we fall back to /app/billing — the user can still
+  // complete checkout there, just with one extra click.
+  const [paywallCheckoutLoading, setPaywallCheckoutLoading] = useState<string | null>(null);
+  const handlePaywallCheckout = useCallback(async (planId: string) => {
+    try {
+      setPaywallCheckoutLoading(planId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await api.stripe.createCheckoutSession(planId as any, 'month');
+      if (response.success && response.data.url) {
+        // Persist plan selection so post-checkout sync can reconcile if
+        // the session expires during Stripe redirect.
+        localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval: 'month' }));
+        window.location.href = response.data.url;
+        return;
+      }
+      throw new Error('Failed to create checkout session');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not start checkout';
+      showErrorToast('Checkout failed', `${message}. Redirecting to billing page.`);
+      // Fallback: route to the existing billing page so the user isn't stuck.
+      setPaywallCheckoutLoading(null);
+      router.push(`/app/billing?plan=${planId}`);
+    }
+  }, [router]);
+
   // Refresh subscription state when a quota error comes back from the backend
   // This updates freeGenerationsRemaining so the paywall card replaces the button
   useEffect(() => {
@@ -1754,20 +1781,34 @@ export function GenerationForm({
               { name: 'Echo', price: '$37/mo', id: 'echo' },
               { name: 'Echo Studio', price: '$87/mo', id: 'echo-studio', popular: true },
               { name: 'Echo Teams', price: '$47/voice/mo', id: 'echo-teams' },
-            ].map((plan) => (
-              <button
-                key={plan.id}
-                onClick={() => router.push(`/app/billing?plan=${plan.id}`)}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between ${
-                  plan.popular
-                    ? 'bg-gradient-to-r from-accent to-primary-dark text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
-                    : 'bg-gray-800 border-2 border-gray-600 text-gray-200 hover:border-accent hover:scale-[1.02]'
-                }`}
-              >
-                <span>{plan.name} - {plan.price}</span>
-                <span className="text-sm">{plan.popular ? 'Most Popular →' : 'Subscribe →'}</span>
-              </button>
-            ))}
+            ].map((plan) => {
+              const isLoading = paywallCheckoutLoading === plan.id;
+              const isAnyLoading = paywallCheckoutLoading !== null;
+              return (
+                <button
+                  key={plan.id}
+                  onClick={() => handlePaywallCheckout(plan.id)}
+                  disabled={isAnyLoading}
+                  className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-between disabled:opacity-60 disabled:cursor-not-allowed ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-accent to-primary-dark text-white shadow-lg hover:shadow-xl hover:scale-[1.02]'
+                      : 'bg-gray-800 border-2 border-gray-600 text-gray-200 hover:border-accent hover:scale-[1.02]'
+                  }`}
+                >
+                  <span>{plan.name} - {plan.price}</span>
+                  <span className="text-sm flex items-center gap-1">
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Redirecting…
+                      </>
+                    ) : (
+                      <>{plan.popular ? 'Most Popular →' : 'Subscribe →'}</>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           <p className="text-xs text-gray-500 mt-4">
             Previously generated content is still available in your Content Library.
@@ -1775,20 +1816,39 @@ export function GenerationForm({
         </div>
       ) : (
         <>
-          {/* Free generation banner */}
-          {isFreeUser && freeGenerationsRemaining > 0 && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-primary/5 to-accent-purple/5 border border-primary/15 rounded-2xl flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">
-                ✨ Free Plan - {freeGenerationsUsed} of {freeGenerationsLimit} generations used
-              </span>
-              <button
-                onClick={() => router.push('/app/billing')}
-                className="text-xs font-semibold text-accent hover:text-primary-dark transition-colors"
-              >
-                Subscribe for unlimited →
-              </button>
-            </div>
-          )}
+          {/* Free generation banner — progressive nudge based on how
+              many generations remain. The "last one" variant flips to an
+              amber accent so the user knows this is their final use
+              before the wall hits. */}
+          {isFreeUser && freeGenerationsRemaining > 0 && (() => {
+            const isLastOne = freeGenerationsRemaining === 1;
+            const isPenultimate = freeGenerationsRemaining === 2 && freeGenerationsLimit >= 3;
+            const containerClass = isLastOne
+              ? 'mb-4 p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-2 border-amber-500/40 rounded-2xl flex items-center justify-between'
+              : 'mb-4 p-4 bg-gradient-to-r from-primary/5 to-accent-purple/5 border border-primary/15 rounded-2xl flex items-center justify-between';
+            const buttonClass = isLastOne
+              ? 'text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 transition-colors whitespace-nowrap'
+              : 'text-xs font-semibold text-accent hover:text-primary-dark transition-colors whitespace-nowrap';
+            const label = isLastOne
+              ? '⚠️ Last free generation — make it count'
+              : isPenultimate
+                ? `✨ ${freeGenerationsRemaining} free generations left — subscribe before you hit the wall`
+                : `✨ Free Plan — ${freeGenerationsUsed} of ${freeGenerationsLimit} generations used`;
+            const buttonLabel = isLastOne
+              ? 'Secure unlimited →'
+              : 'Subscribe for unlimited →';
+            return (
+              <div className={containerClass}>
+                <span className="text-sm font-medium text-foreground">{label}</span>
+                <button
+                  onClick={() => router.push('/app/billing')}
+                  className={buttonClass}
+                >
+                  {buttonLabel}
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Generate Button */}
           <div className="pt-2">

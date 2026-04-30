@@ -391,22 +391,36 @@ export default function AppContent() {
             </div>
           )}
 
-          {/* Free User Quota Counter */}
-          {isFreeUser && (
-            <div className="mb-4 flex items-center gap-2 px-4 py-2.5 glass border border-accent-yellow/30 rounded-lg text-sm">
-              <span className="text-lg">⚡</span>
-              <span className="font-medium text-foreground">
-                {freeGenerationsRemaining > 0
-                  ? `${freeGenerationsRemaining} of ${freeGenerationsLimit} free generation${freeGenerationsRemaining !== 1 ? 's' : ''} remaining`
-                  : 'Free generations used up'}
-              </span>
-              {freeGenerationsRemaining <= 0 && (
-                <a href="/app/billing" className="ml-auto text-primary font-semibold hover:underline text-sm">
-                  Upgrade
-                </a>
-              )}
-            </div>
-          )}
+          {/* Free User Quota Counter — flips to an amber accent on the
+              last generation so users know they're about to hit the wall. */}
+          {isFreeUser && (() => {
+            const isLastOne = freeGenerationsRemaining === 1;
+            const isExhausted = freeGenerationsRemaining <= 0;
+            const containerClass = isLastOne
+              ? 'mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-lg text-sm'
+              : 'mb-4 flex items-center gap-2 px-4 py-2.5 glass border border-accent-yellow/30 rounded-lg text-sm';
+            const label = isExhausted
+              ? 'Free generations used up'
+              : isLastOne
+                ? '⚠️ Last free generation — make it count'
+                : `${freeGenerationsRemaining} of ${freeGenerationsLimit} free generations remaining`;
+            return (
+              <div className={containerClass}>
+                <span className="text-lg">{isLastOne ? '⚡' : '⚡'}</span>
+                <span className="font-medium text-foreground">{label}</span>
+                {isExhausted && (
+                  <a href="/app/billing" className="ml-auto text-primary font-semibold hover:underline text-sm">
+                    Upgrade
+                  </a>
+                )}
+                {isLastOne && (
+                  <a href="/app/billing" className="ml-auto text-amber-700 dark:text-amber-400 font-bold hover:underline text-sm whitespace-nowrap">
+                    Subscribe →
+                  </a>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Input Form */}
           <div ref={formRef}>
