@@ -82,17 +82,16 @@ export default function KnowledgeContent() {
   const loadWbtwOutcome = useCallback(async () => {
     try {
       const r = await api.wbtw.outcome();
-      if (!r.success) return;
-      setWbtwOutcome(r.data.outcome);
-      setWbtwHasFields(r.data.has_fields);
-      setWbtwConfirmed(r.data.confirmed);
+      setWbtwOutcome(r.outcome);
+      setWbtwHasFields(r.has_fields);
+      setWbtwConfirmed(r.confirmed);
       // Slow-path toast: lookup ran in BG, finished, has fields, but
       // user hasn't confirmed yet. Fire once per page load.
       if (
         !wbtwToastFiredRef.current &&
-        r.data.outcome === 'pending' &&
-        r.data.has_fields &&
-        !r.data.confirmed
+        r.outcome === 'pending' &&
+        r.has_fields &&
+        !r.confirmed
       ) {
         wbtwToastFiredRef.current = true;
         showInfoToast(

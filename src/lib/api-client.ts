@@ -4062,6 +4062,12 @@ export const api = {
      * Kick off a public-data lookup. Synchronous on the backend (5–15s).
      * Body fields are optional — backend defaults to the current user's email.
      */
+    // NOTE: every wbtw endpoint reaches into response.data.data — the
+    // backend wraps every response in `{ success, data, timestamp }`. An
+    // earlier version of these wrappers returned `response.data` typed as
+    // the inner shape, which silently broke the lookup → review flow
+    // (consumers read `result.fields` and got undefined → "couldn't find
+    // much yet" toast on every signup, even when WBTW found 11 fields).
     lookup: async (body?: {
       email?: string;
       domain?: string;
@@ -4072,7 +4078,7 @@ export const api = {
       const response = await apiClient.post('/wbtw/lookup', body ?? {}, {
         timeout: 30000, // backend lookup is 5–15s, give some headroom
       });
-      return response.data as {
+      return response.data.data as {
         profile_id: string;
         fields: Record<string, unknown>;
         field_confidence: Record<string, number>;
@@ -4093,14 +4099,11 @@ export const api = {
      */
     outcome: async () => {
       const response = await apiClient.get('/wbtw/outcome');
-      return response.data as {
-        success: boolean;
-        data: {
-          outcome: 'pending' | 'confirmed' | 'empty' | 'declined' | 'capped' | 'errored' | null;
-          fetched_at: string | null;
-          has_fields: boolean;
-          confirmed: boolean;
-        };
+      return response.data.data as {
+        outcome: 'pending' | 'confirmed' | 'empty' | 'declined' | 'capped' | 'errored' | null;
+        fetched_at: string | null;
+        has_fields: boolean;
+        confirmed: boolean;
       };
     },
 
@@ -4110,7 +4113,7 @@ export const api = {
      */
     getProfile: async () => {
       const response = await apiClient.get('/wbtw/profile');
-      return response.data as {
+      return response.data.data as {
         profile_id: string;
         fields: Record<string, unknown>;
         field_confidence: Record<string, number>;
@@ -4129,10 +4132,11 @@ export const api = {
       fields_to_override: Record<string, string>;
     }) => {
       const response = await apiClient.post('/wbtw/profile/confirm', body);
-      return response.data as {
-        success: boolean;
-        fields_written: number;
-        kb_chunks_ingested: number;
+      return response.data.data as {
+        confirmed_at: string;
+        fields_written: string[];
+        overrides_recorded: string[];
+        kb_files_ingested: number;
       };
     },
 
@@ -4142,7 +4146,7 @@ export const api = {
      */
     delete: async () => {
       const response = await apiClient.delete('/wbtw/profile');
-      return response.data as { success: boolean };
+      return response.data.data as { deleted: boolean };
     },
   },
 };
