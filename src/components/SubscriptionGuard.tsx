@@ -67,6 +67,7 @@ export function SubscriptionGuard({
         teams_2: 'EchoTeams Duo',
         teams_5: 'EchoTeams Pro',
         teams_10: 'EchoTeams Agency',
+        echo_teams: 'Echo Teams',
       };
       router.push(`${redirectTo}&tier=${requiredTier}&tierName=${encodeURIComponent(tierNames[requiredTier])}`);
     }

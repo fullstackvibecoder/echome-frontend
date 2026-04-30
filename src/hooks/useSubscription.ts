@@ -9,7 +9,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, StripeSubscriptionStatus } from '@/lib/api-client';
 
-export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise' | 'teams_2' | 'teams_5' | 'teams_10';
+export type SubscriptionTier = 'free' | 'pro' | 'studio' | 'enterprise' | 'teams_2' | 'teams_5' | 'teams_10' | 'echo_teams';
 
 interface UseSubscriptionReturn {
   /** Current subscription status */
@@ -66,12 +66,13 @@ interface UseSubscriptionReturn {
 // Tier hierarchy for comparison
 const TIER_LEVELS: Record<SubscriptionTier, number> = {
   free: 0,
-  pro: 1,        // Echo ($29/mo)
-  studio: 2,     // Echo Studio ($49/mo)
-  enterprise: 3, // Echo Pro ($99/mo)
-  teams_2: 4,    // EchoTeams Duo ($129/mo)
-  teams_5: 4,    // EchoTeams Pro ($179/mo)
-  teams_10: 4,   // EchoTeams Agency ($249/mo)
+  pro: 1,         // Echo ($37/mo new, $29/mo legacy)
+  studio: 2,      // Echo Studio ($87/mo new, $49/mo legacy)
+  enterprise: 3,  // Echo Pro (legacy $99/mo — retired, no new signups)
+  teams_2: 4,     // EchoTeams Duo (legacy $129/mo — 1 grandfathered, retired)
+  teams_5: 4,     // EchoTeams Pro (legacy $179/mo — retired)
+  teams_10: 4,    // EchoTeams Agency (legacy $249/mo — retired)
+  echo_teams: 4,  // Echo Teams ($47/voice/mo, 2-voice min) — replaces all teams_* for new signups
 };
 
 export function useSubscription(): UseSubscriptionReturn {
