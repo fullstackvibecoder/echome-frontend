@@ -6,6 +6,7 @@ import Link from 'next/link';
 const ADMIN_TABS = [
   { label: 'Dashboard', href: '/app/admin/dashboard' },
   { label: 'Users', href: '/app/admin/users' },
+  { label: 'Feedback', href: '/app/admin/feedback' },
   { label: 'Campaigns', href: '/app/admin/campaigns' },
   { label: 'Curated', href: '/app/admin/curated' },
   { label: 'Voice Lab', href: '/app/admin/voice-lab' },

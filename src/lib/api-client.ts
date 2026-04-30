@@ -2982,6 +2982,33 @@ export const api = {
       const response = await apiClient.post('/help/feedback', data);
       return response.data as { success: boolean; data: { id: string } };
     },
+
+    /** Admin: list feedback with filters */
+    adminListFeedback: async (params?: {
+      category?: FeedbackCategory;
+      status?: FeedbackStatus;
+      userId?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.category) queryParams.set('category', params.category);
+      if (params?.status) queryParams.set('status', params.status);
+      if (params?.userId) queryParams.set('userId', params.userId);
+      if (params?.limit) queryParams.set('limit', String(params.limit));
+      if (params?.offset) queryParams.set('offset', String(params.offset));
+      const response = await apiClient.get(`/help/admin/feedback?${queryParams.toString()}`);
+      return response.data as { success: boolean; data: FeedbackRecord[]; count: number };
+    },
+
+    /** Admin: update feedback status / notes */
+    adminUpdateFeedback: async (
+      id: string,
+      data: { status?: FeedbackStatus; admin_notes?: string },
+    ) => {
+      const response = await apiClient.patch(`/help/admin/feedback/${id}`, data);
+      return response.data as { success: boolean; data: FeedbackRecord };
+    },
   },
 
   // -------- REELS --------
@@ -4178,6 +4205,26 @@ export interface HelpArticle {
   category: string;
   content: string;
   summary: string;
+}
+
+export type FeedbackCategory = 'bug' | 'feature_request' | 'general' | 'help_chat';
+export type FeedbackStatus = 'new' | 'in_progress' | 'resolved' | 'dismissed';
+
+export interface FeedbackRecord {
+  id: string;
+  user_id: string;
+  category: FeedbackCategory;
+  text: string;
+  rating: number | null;
+  page_context: string | null;
+  screenshot_url: string | null;
+  metadata: Record<string, unknown>;
+  admin_notes: string | null;
+  status: FeedbackStatus;
+  created_at: string;
+  updated_at: string;
+  user_email?: string | null;
+  user_name?: string | null;
 }
 
 // Types for creator monitoring

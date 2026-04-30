@@ -1063,6 +1063,21 @@ export default function AdminContent({ initialTab }: { initialTab?: Tab }) {
     { id: 'voice-lab', label: 'Voice Lab' },
   ];
 
+  // Per-tab page titles. The dashboard tab gets the platform overview;
+  // other tabs are focused single-purpose surfaces and get their own header.
+  const HEADERS: Record<Tab, { title: string; sub: string }> = {
+    overview: { title: 'Admin Dashboard', sub: 'Platform health, business metrics, and API costs' },
+    services: { title: 'API Costs by Service', sub: 'Spend, tokens, and request volume per upstream service' },
+    users: { title: 'Cost by User', sub: 'Top users by API spend this period' },
+    trends: { title: 'Daily Cost Trends', sub: 'Cost over time, broken down by service' },
+    providers: { title: 'Provider Metrics', sub: 'Live metrics from each upstream provider dashboard' },
+    curated: { title: 'Curated Assets', sub: 'Platform-wide B-roll and stock asset library' },
+    'voice-lab': { title: 'Voice Lab', sub: 'Compare voice profiles and test outputs' },
+  };
+  const isDashboard = !initialTab || initialTab === 'overview';
+  const usesMonth = tab !== 'curated' && tab !== 'voice-lab' && tab !== 'providers';
+  const header = HEADERS[tab];
+
   // Generate month options (last 6 months)
   const monthOptions: string[] = [];
   for (let i = 0; i < 6; i++) {
@@ -1076,28 +1091,32 @@ export default function AdminContent({ initialTab }: { initialTab?: Tab }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground text-sm">Platform-wide API usage and cost monitoring</p>
+          <h1 className="text-2xl font-bold text-foreground">{header.title}</h1>
+          <p className="text-muted-foreground text-sm">{header.sub}</p>
         </div>
-        <select
-          value={month}
-          onChange={e => setMonth(e.target.value)}
-          className="px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          {monthOptions.map(m => (
-            <option key={m} value={m}>{getMonthLabel(m)}</option>
-          ))}
-        </select>
+        {usesMonth && (
+          <select
+            value={month}
+            onChange={e => setMonth(e.target.value)}
+            className="px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {monthOptions.map(m => (
+              <option key={m} value={m}>{getMonthLabel(m)}</option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {/* Business Metrics - always visible */}
-      <BusinessMetrics />
-
-      {/* User Segmentation */}
-      <UserSegmentation />
-
-      {/* Error Health Monitor */}
-      <ErrorHealthMonitor />
+      {/* Platform health widgets — Dashboard tab only. Each other tab is a
+          focused single-purpose surface; pulling these onto every page made
+          all sub-routes look identical. */}
+      {isDashboard && (
+        <>
+          <BusinessMetrics />
+          <UserSegmentation />
+          <ErrorHealthMonitor />
+        </>
+      )}
 
       {/* Tabs */}
       {!initialTab && (
