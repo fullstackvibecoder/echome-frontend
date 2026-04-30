@@ -12,6 +12,7 @@ import type { StyleOption } from './style-picker';
 import { setActiveGeneration, useActiveGeneration } from './generation-banner';
 import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
+import { track } from '@/lib/telemetry';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
 import UnifiedCreateInput from './UnifiedCreateInput';
@@ -516,11 +517,45 @@ export function GenerationForm({
     })();
     return () => { cancelled = true; };
   }, [wallActive]);
+
+  // Funnel telemetry — track once per session per event so a user
+  // re-rendering the page doesn't inflate counts. Refs are scoped per
+  // component mount; navigating away and back IS counted as a fresh
+  // session, which is what we want for funnel-stage analysis.
+  const telemetryFiredRef = useRef<{ wallShown?: boolean; bannerVariant?: string }>({});
+  useEffect(() => {
+    if (wallActive && !telemetryFiredRef.current.wallShown) {
+      telemetryFiredRef.current.wallShown = true;
+      track('paywall.wall_shown', {
+        free_generations_limit: freeGenerationsLimit,
+      });
+    }
+  }, [wallActive, freeGenerationsLimit]);
+
+  // Track banner variant on first view + each transition (e.g. user just
+  // burned their second-to-last generation, banner flipped to amber).
+  useEffect(() => {
+    if (!isFreeUser || freeGenerationsRemaining <= 0) return;
+    const variant =
+      freeGenerationsRemaining === 1
+        ? 'last'
+        : freeGenerationsRemaining === 2 && freeGenerationsLimit >= 3
+          ? 'penultimate'
+          : 'standard';
+    if (telemetryFiredRef.current.bannerVariant === variant) return;
+    telemetryFiredRef.current.bannerVariant = variant;
+    track('paywall.banner_shown', {
+      variant,
+      free_generations_remaining: freeGenerationsRemaining,
+      free_generations_limit: freeGenerationsLimit,
+    });
+  }, [isFreeUser, freeGenerationsRemaining, freeGenerationsLimit]);
   // Wall billing interval. Defaults to annual because annual buyers
   // have higher LTV and the "2 months free" framing is a stronger close
   // than monthly. User can flip to monthly via the toggle on the wall.
   const [paywallBillingInterval, setPaywallBillingInterval] = useState<'month' | 'year'>('year');
   const handlePaywallCheckout = useCallback(async (planId: string, interval: 'month' | 'year') => {
+    track('paywall.plan_clicked', { plan: planId, interval });
     try {
       setPaywallCheckoutLoading(planId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -529,12 +564,18 @@ export function GenerationForm({
         // Persist plan selection so post-checkout sync can reconcile if
         // the session expires during Stripe redirect.
         localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval: interval }));
+        track('paywall.checkout_redirected', { plan: planId, interval });
         window.location.href = response.data.url;
         return;
       }
       throw new Error('Failed to create checkout session');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not start checkout';
+      track('paywall.checkout_failed', {
+        plan: planId,
+        interval,
+        error: message.substring(0, 200),
+      });
       showErrorToast('Checkout failed', `${message}. Redirecting to billing page.`);
       // Fallback: route to the existing billing page so the user isn't stuck.
       setPaywallCheckoutLoading(null);
@@ -1891,7 +1932,12 @@ export function GenerationForm({
             <div className="inline-flex items-center bg-gray-900 border border-gray-700 rounded-xl p-1 text-sm">
               <button
                 type="button"
-                onClick={() => setPaywallBillingInterval('month')}
+                onClick={() => {
+                  if (paywallBillingInterval !== 'month') {
+                    track('paywall.billing_toggled', { from: paywallBillingInterval, to: 'month' });
+                  }
+                  setPaywallBillingInterval('month');
+                }}
                 className={`px-4 py-1.5 rounded-lg font-semibold transition-colors ${
                   paywallBillingInterval === 'month'
                     ? 'bg-gray-700 text-white'
@@ -1902,7 +1948,12 @@ export function GenerationForm({
               </button>
               <button
                 type="button"
-                onClick={() => setPaywallBillingInterval('year')}
+                onClick={() => {
+                  if (paywallBillingInterval !== 'year') {
+                    track('paywall.billing_toggled', { from: paywallBillingInterval, to: 'year' });
+                  }
+                  setPaywallBillingInterval('year');
+                }}
                 className={`px-4 py-1.5 rounded-lg font-semibold transition-colors relative ${
                   paywallBillingInterval === 'year'
                     ? 'bg-gray-700 text-white'

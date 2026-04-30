@@ -4031,6 +4031,15 @@ export const api = {
   },
 
   // -------- WBTW (Work Before The Work) --------
+  // Funnel telemetry write endpoint. Fire-and-forget from the UI;
+  // backend stores asynchronously. Used to instrument the paywall
+  // conversion funnel (banner shown / wall shown / plan clicked / etc).
+  telemetry: {
+    event: async (body: { event_name: string; event_data?: Record<string, unknown> }): Promise<void> => {
+      await apiClient.post('/telemetry/event', body);
+    },
+  },
+
   // Public stats — vanity numbers for marketing-page social proof.
   // No auth required; safe to call from logged-out landing pages.
   stats: {
