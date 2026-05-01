@@ -150,7 +150,7 @@ function ContentKitListInner() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-xl font-semibold">Library</h1>
+          <h1 className="text-xl font-semibold">Your Library</h1>
           <p className="text-sm text-text-secondary mt-0.5">{summaryLine}</p>
         </div>
 

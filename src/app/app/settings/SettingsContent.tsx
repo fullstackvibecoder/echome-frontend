@@ -921,47 +921,9 @@ export default function SettingsContent() {
             )}
           </div>
           <div className="space-y-6">
-            {/* Theme */}
-            <div>
-              <label className="block text-small font-medium text-text-primary mb-3">
-                Theme
-              </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handlePreferenceChange('theme', 'light')}
-                  className={`px-4 py-2 border-2 rounded-lg transition-colors ${
-                    theme === 'light'
-                      ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-border text-text-secondary hover:border-accent'
-                  }`}
-                >
-                  Light
-                </button>
-                <button
-                  onClick={() => handlePreferenceChange('theme', 'dark')}
-                  className={`px-4 py-2 border-2 rounded-lg transition-colors ${
-                    theme === 'dark'
-                      ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-border text-text-secondary hover:border-accent'
-                  }`}
-                >
-                  Dark
-                </button>
-                <button
-                  onClick={() => handlePreferenceChange('theme', 'auto')}
-                  className={`px-4 py-2 border-2 rounded-lg transition-colors ${
-                    theme === 'auto'
-                      ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-border text-text-secondary hover:border-accent'
-                  }`}
-                >
-                  Auto
-                </button>
-              </div>
-              <p className="text-xs text-text-secondary mt-2">
-                Choose your preferred color theme. Dark mode coming soon.
-              </p>
-            </div>
+            {/* Theme block removed: app is dark-only by default and the
+                light-mode toggle was a stub. If a real light theme ever
+                ships, restore the picker here. */}
 
             {/* Email Notifications */}
             <div>

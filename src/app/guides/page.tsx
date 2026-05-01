@@ -88,6 +88,16 @@ const guides = [
     hasVideo: false,
   },
   {
+    slug: 'teleprompter',
+    icon: <Video className="w-6 h-6" />,
+    title: 'Built-in Teleprompter',
+    description:
+      'Record talking-head video against a script EchoMe wrote in your voice. WPM control, voice tracking, pause-on-silence, 9:16/16:9 framing.',
+    category: 'Getting Started',
+    readTime: '4 min',
+    hasVideo: false,
+  },
+  {
     slug: 'knowledge-base',
     icon: <BookOpen className="w-6 h-6" />,
     title: 'Building Your Knowledge Base',

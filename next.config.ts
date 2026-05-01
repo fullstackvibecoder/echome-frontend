@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
       // (e.g., /onboarding/lookup) are NOT caught — only the bare
       // /onboarding route.
       { source: '/onboarding', destination: '/app/voice', permanent: true },
+      // /app/integrations was a "Coming Soon" stub — the real connections
+      // UI lives in Settings. Redirect so existing bookmarks resolve.
+      { source: '/app/integrations', destination: '/app/settings#connections', permanent: true },
     ];
   },
 };

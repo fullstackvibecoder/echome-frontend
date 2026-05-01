@@ -45,7 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Create',
     items: [
       { id: 'create', label: 'Create', icon: Sparkles, path: '/app' },
-      { id: 'library', label: 'Library', icon: Package, path: '/app/library' },
+      { id: 'library', label: 'Your Library', icon: Package, path: '/app/library' },
       { id: 'reels', label: 'Reel Maker', icon: Film, path: '/app/library?tab=reels', adminOnly: true },
     ],
   },
