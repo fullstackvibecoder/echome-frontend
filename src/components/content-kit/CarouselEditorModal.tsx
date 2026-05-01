@@ -78,6 +78,15 @@ const TEMPLATE_TEXT_STYLES: Record<string, {
   },
 };
 
+/**
+ * Templates rendered single-pass (text burned into the slide image — no
+ * separate background layer). For these, the live preview can't reflect
+ * text edits because there's no overlay to draw the new text on; the only
+ * way to refresh the preview is a server-side re-render. Mirrors the
+ * backend's cf63c01 fix ("single-pass for tweet-style, two-phase for others").
+ */
+const SINGLE_PASS_TEMPLATES = new Set(['tweet-style']);
+
 export default function CarouselEditorModal({
   open,
   onClose,
@@ -94,6 +103,7 @@ export default function CarouselEditorModal({
   const [activeIndex, setActiveIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const [preparing, setPreparing] = useState(false);
+  const [refreshingPreview, setRefreshingPreview] = useState(false);
   const [currentPreset, setCurrentPreset] = useState(designPreset || 'auto');
   const abortRef = useRef<AbortController | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -169,6 +179,40 @@ export default function CarouselEditorModal({
       if (!controller.signal.aborted) setPreparing(false);
     }
   }, [preparing, hasBackground, contentKitId, currentPreset, onCarouselUpdate]);
+
+  /**
+   * Refresh preview for single-pass templates (tweet-style). Calls the
+   * backend regenerate with the current text overrides, then swaps the
+   * slide image URLs in state so the preview reflects the user's edits.
+   * Same code path as the download fallback but doesn't trigger a file
+   * download. ~15-30s on the backend (full re-render of all slides).
+   */
+  const handleRefreshPreview = async () => {
+    if (refreshingPreview) return;
+    setRefreshingPreview(true);
+    try {
+      const response = await api.contentKits.regenerateCarousel(contentKitId, {
+        designPreset: (currentPreset as any) || 'auto',
+        slideOverrides: edits.map((e) => ({ text: e.text })),
+      });
+      if (response.success && response.data?.carousel?.slides) {
+        const composed = response.data.carousel.slides;
+        setSlides(composed.map((s: any) => ({
+          slideNumber: s.slideNumber,
+          publicUrl: s.publicUrl,
+          backgroundUrl: s.backgroundUrl,
+          text: s.text,
+          template: s.template || s.slideType,
+        })));
+        toast.success('Preview updated');
+        onCarouselUpdate();
+      }
+    } catch (err) {
+      showErrorToast(err, 'refreshing preview');
+    } finally {
+      setRefreshingPreview(false);
+    }
+  };
 
   // Download: composeOnly if backgrounds exist, full regenerate with overrides otherwise
   const handleDownload = async (slideIndex?: number) => {
@@ -323,6 +367,34 @@ export default function CarouselEditorModal({
               />
               {supportsDrag && (
                 <p className="text-[11px] text-muted-foreground/60">Drag the text on the preview to reposition</p>
+              )}
+              {/* Single-pass templates (tweet-style) bake text into the image
+                  at render time, so the live preview can't reflect edits in
+                  real time. Surface the constraint + a manual refresh path
+                  so the user isn't left wondering why their edit isn't
+                  showing on the card. */}
+              {SINGLE_PASS_TEMPLATES.has(activeSlide.template || '') &&
+                activeEdit.text.trim() !== (activeSlide.text || '').trim() && (
+                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2">
+                  <p className="text-[11px] text-amber-700 dark:text-amber-200 flex-1 leading-relaxed">
+                    Text is baked into the tweet card layout for this style. The preview will refresh on download &mdash; or click below to refresh now.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRefreshPreview}
+                    disabled={refreshingPreview}
+                    className="flex items-center gap-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-200 disabled:opacity-50 transition-colors flex-shrink-0"
+                  >
+                    {refreshingPreview ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Refreshing...
+                      </>
+                    ) : (
+                      'Refresh preview'
+                    )}
+                  </button>
+                </div>
               )}
             </div>
 
