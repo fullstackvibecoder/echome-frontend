@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
 /**
- * Atomic block for inline GIFs from Tenor.
+ * Atomic block for inline GIFs from GIPHY.
  * Serializes to <img src="..." data-gif="1" alt="GIF" style="max-width:100%; ...">.
  */
 export const GifNode = Node.create({
