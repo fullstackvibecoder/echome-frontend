@@ -274,7 +274,11 @@ export default function ContentKitDetailContent() {
     // modal passes its own captionStyle state so the user's most recent
     // pick wins regardless of any persistence timing. Falls back to the
     // page-level state for older callsites that don't pass one.
-    captionStyleOverride?: import('@/lib/caption-parser').CaptionStylePreset
+    captionStyleOverride?: import('@/lib/caption-parser').CaptionStylePreset,
+    /** Pass true for the no-captions ("clean") download option. Caller is
+     *  responsible for the UI affordance — this just plumbs the flag through
+     *  to the backend's skip_captions path. */
+    skipCaptions: boolean = false,
   ) => {
     const uploadId = clip.videoUploadId || id;
 
@@ -293,7 +297,7 @@ export default function ContentKitDetailContent() {
       const r = await api.clips.exportClip(uploadId, clip.id, {
         captionStyle: captionStyleOverride ?? captionStyle,
         viewMode,
-        addCaptions: captionsEnabled,
+        addCaptions: skipCaptions ? false : captionsEnabled,
       });
       if (r.data?.export?.url) {
         window.open(r.data.export.url, '_blank');
@@ -842,7 +846,7 @@ export default function ContentKitDetailContent() {
           onClose={() => { setClipEditorOpen(false); setActiveClipForEditor(null); }}
           clip={activeClipForEditor}
           uploadId={detail?.clips?.[0]?.videoUploadId || (detail as any)?.uploadId || id}
-          onExport={(clipId, viewMode, modalCaptionStyle) => {
+          onExport={(clipId, viewMode, modalCaptionStyle, skipCaptions) => {
             // Capture the clip object before we close the modal — once
             // setActiveClipForEditor(null) fires, we lose the reference.
             const clipForExport = activeClipForEditor && activeClipForEditor.id === clipId
@@ -856,7 +860,7 @@ export default function ContentKitDetailContent() {
               // any parent-level state or PATCH timing.
               // handleDownloadClip both opens the progress modal AND fires
               // the POST that starts the encoder.
-              void handleDownloadClip(clipForExport, viewMode, modalCaptionStyle);
+              void handleDownloadClip(clipForExport, viewMode, modalCaptionStyle, skipCaptions);
             } else {
               // Fallback: at least open the progress modal so the user sees
               // SOME indication. Without the clip object we can't POST, so

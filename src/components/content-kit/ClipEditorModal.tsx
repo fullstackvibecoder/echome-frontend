@@ -32,7 +32,13 @@ interface ClipEditorModalProps {
    * the DB on every change, but threading it explicitly here avoids a
    * race where Download fires before the persistStyle PATCH lands.)
    */
-  onExport: (clipId: string, viewMode: 'single' | 'split', captionStyle: CaptionStylePreset) => void;
+  /**
+   * Fired when the user clicks Download or "Download without captions".
+   * `skipCaptions=true` is the no-burn variant — the export route returns
+   * the raw clip URL without ffmpeg, useful when the user wants to caption
+   * elsewhere or post a clean version to a system that adds its own.
+   */
+  onExport: (clipId: string, viewMode: 'single' | 'split', captionStyle: CaptionStylePreset, skipCaptions?: boolean) => void;
   contentKitId?: string;
   instagramCaption?: string;
 }
@@ -524,11 +530,19 @@ export default function ClipEditorModal({
             <div className="pt-2 mt-auto space-y-3">
               <button
                 type="button"
-                onClick={() => onExport(clip.id, viewMode, captionStyle)}
+                onClick={() => onExport(clip.id, viewMode, captionStyle, false)}
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
               >
                 <Download className="h-4 w-4" />
                 Download 1080p
+              </button>
+              <button
+                type="button"
+                onClick={() => onExport(clip.id, viewMode, captionStyle, true)}
+                className="w-full text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+                title="Download the clip without captions burned in — useful if you'll caption it elsewhere"
+              >
+                Download without captions
               </button>
 
               {/* Multi-platform post actions — after the user has reviewed the clip
