@@ -85,6 +85,18 @@ function fileExtensionFor(mimeType: string): string {
   return 'webm';
 }
 
+/**
+ * Strip the codec parameters from a MediaRecorder mime type before sending
+ * to the backend. Recorded blobs come back as e.g. "video/mp4;codecs=h264,aac"
+ * but the backend r2-init validator does a strict `allowedTypes.includes()`
+ * against unsuffixed types ("video/mp4", "video/webm", etc.). The codec
+ * suffix is informational only — the actual file is fine.
+ */
+function baseMimeType(mimeType: string): string {
+  const semicolonIdx = mimeType.indexOf(';');
+  return semicolonIdx >= 0 ? mimeType.slice(0, semicolonIdx).trim() : mimeType;
+}
+
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -114,6 +126,13 @@ export function TeleprompterModal({
   const [mirror, setMirror] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('overlay');
+  const [aspectRatio, setAspectRatio] = useState<'9:16' | '16:9'>('9:16');
+
+  // wpm mirror — the rAF scroll loop reads this on every frame so changing
+  // the slider during recording updates speed live (without re-binding the
+  // animation, which would reset progress).
+  const wpmRef = useRef(wpm);
+  useEffect(() => { wpmRef.current = wpm; }, [wpm]);
 
   // ─── Refs ────────────────────────────────────────────────────────────
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -139,8 +158,14 @@ export function TeleprompterModal({
       return;
     }
     try {
+      // Aspect-ratio HINTS (browsers may ignore them — phones especially
+      // rotate freely). We still pass them so desktop webcams pick the
+      // closest available mode.
+      const dims = aspectRatio === '9:16'
+        ? { width: { ideal: 720 }, height: { ideal: 1280 } }
+        : { width: { ideal: 1280 }, height: { ideal: 720 } };
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { facingMode, ...dims },
         audio: true,
       });
       streamRef.current = stream;
@@ -170,16 +195,19 @@ export function TeleprompterModal({
     }
   }, []);
 
-  // Best-effort portrait lock on mobile webapp. Fails silently on desktop
-  // and on browsers that don't expose the orientation lock API.
+  // Best-effort orientation lock on mobile webapp. Fails silently on desktop
+  // and on browsers that don't expose the orientation lock API. Locks to
+  // portrait for 9:16 capture and landscape for 16:9 — without this, the
+  // 16:9 toggle would still leave the device in portrait and clip the frame.
   const lockOrientation = useCallback(() => {
     try {
       const screenAny = screen as Screen & { orientation?: { lock?: (o: string) => Promise<void>; unlock?: () => void } };
-      screenAny.orientation?.lock?.('portrait').catch(() => {});
+      const target = aspectRatio === '16:9' ? 'landscape' : 'portrait';
+      screenAny.orientation?.lock?.(target).catch(() => {});
     } catch {
       // ignore
     }
-  }, []);
+  }, [aspectRatio]);
   const unlockOrientation = useCallback(() => {
     try {
       const screenAny = screen as Screen & { orientation?: { lock?: (o: string) => Promise<void>; unlock?: () => void } };
@@ -210,44 +238,78 @@ export function TeleprompterModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // When facingMode flips, restart the stream.
+  // When facingMode or aspectRatio flips, restart the stream + re-target
+  // the orientation lock so the new constraints take effect.
   useEffect(() => {
     if (!open || phase === 'recording' || phase === 'countdown') return;
     if (!streamRef.current) return;
     stopStream();
+    lockOrientation();
     startStream();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facingMode]);
+  }, [facingMode, aspectRatio]);
+
+  // Re-attach the live stream to the <video> element whenever it re-mounts.
+  // The conditional renderer swaps the element on phase change (review →
+  // ready) and on layoutMode change (overlay ↔ fullscreen). When that
+  // happens, the ref points at a fresh DOM node whose srcObject is empty —
+  // without this, "Retake" leaves the user staring at a black box.
+  useEffect(() => {
+    if (!open) return;
+    if (phase === 'review' || phase === 'permission' || phase === 'denied' || phase === 'unsupported') return;
+    if (!videoRef.current || !streamRef.current) return;
+    if (videoRef.current.srcObject !== streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [open, phase, layoutMode]);
 
   // ─── Script scrolling ──────────────────────────────────────────────
-  const scrollDurationMs = useMemo(() => {
-    const wordCount = script.trim().split(/\s+/).filter(Boolean).length;
-    if (wordCount === 0) return 0;
-    return (wordCount / wpm) * 60 * 1000;
-  }, [script, wpm]);
+  // Word count is fixed for the session; total scroll distance depends on
+  // layout (recomputed once per scroll start). The PER-FRAME pixel delta
+  // reads `wpmRef.current` so dragging the WPM slider mid-recording adjusts
+  // speed live instead of waiting for the next take.
+  const wordCount = useMemo(
+    () => script.trim().split(/\s+/).filter(Boolean).length,
+    [script],
+  );
+
+  // Estimated reading time displayed before recording (uses current wpm; not
+  // load-bearing once recording starts).
+  const estimatedSecondsAtStart = useMemo(
+    () => (wordCount === 0 ? 0 : Math.round((wordCount / wpm) * 60)),
+    [wordCount, wpm],
+  );
 
   const startScroll = useCallback(() => {
     const el = scriptScrollRef.current;
     if (!el) return;
-    const startTime = performance.now();
-    const initial = el.scrollTop;
-    // Total distance we need to scroll: the difference between the content
-    // height and the visible viewport. Add a little tail so the last line
-    // crosses up off-screen rather than stopping at the bottom edge.
+    let lastFrameTime = performance.now();
+    // Total distance: content height minus viewport plus a tail so the last
+    // line scrolls off-screen rather than stopping at the bottom edge.
     const totalScroll = Math.max(0, el.scrollHeight - el.clientHeight + 80);
+    if (totalScroll === 0 || wordCount === 0) {
+      scrollAnimationRef.current = null;
+      return;
+    }
 
-    const tick = () => {
-      const elapsed = performance.now() - startTime;
-      const progress = Math.min(1, elapsed / Math.max(1, scrollDurationMs));
-      el.scrollTop = initial + totalScroll * progress;
-      if (progress < 1) {
+    const tick = (now: number) => {
+      const elapsedFrameMs = now - lastFrameTime;
+      lastFrameTime = now;
+      // Pixels-per-ms at the CURRENT wpm:
+      //   secondsToRead = wordCount / wpm * 60
+      //   pixelsPerMs   = totalScroll / (secondsToRead * 1000)
+      //                 = totalScroll * wpm / (wordCount * 60_000)
+      const currentWpm = wpmRef.current;
+      const pixelsPerMs = (totalScroll * currentWpm) / (wordCount * 60_000);
+      el.scrollTop = el.scrollTop + pixelsPerMs * elapsedFrameMs;
+      if (el.scrollTop < totalScroll) {
         scrollAnimationRef.current = requestAnimationFrame(tick);
       } else {
         scrollAnimationRef.current = null;
       }
     };
     scrollAnimationRef.current = requestAnimationFrame(tick);
-  }, [scrollDurationMs]);
+  }, [wordCount]);
 
   const stopScroll = useCallback(() => {
     if (scrollAnimationRef.current) {
@@ -346,8 +408,13 @@ export function TeleprompterModal({
     try {
       setUploadProgress(0);
       const ext = fileExtensionFor(recordedMimeType);
+      // The backend's allowedTypes check is a strict `.includes()` against
+      // unsuffixed mime types ("video/mp4", "video/webm", ...). MediaRecorder
+      // hands us "video/mp4;codecs=h264,aac" — strip the codec suffix so the
+      // r2-init validator accepts the upload.
+      const fileMime = baseMimeType(recordedMimeType) || 'video/mp4';
       const filename = `teleprompter-${contentKitId ?? Date.now()}.${ext}`;
-      const file = new File([recordedBlob], filename, { type: recordedMimeType });
+      const file = new File([recordedBlob], filename, { type: fileMime });
       await api.clips.uploadViaR2(
         file,
         {
@@ -357,7 +424,10 @@ export function TeleprompterModal({
         (pct) => setUploadProgress(pct),
       );
       setUploadProgress(100);
-      showSuccessToast('Uploaded to Echo', 'Your recording is processing — check your library in a minute.');
+      showSuccessToast(
+        'Uploaded to Echo',
+        'Your recording is processing — Echo will turn it into clips, captions, and posts in a minute.',
+      );
       onClose();
     } catch (err) {
       showErrorToast(err, 'uploading recording');
@@ -385,8 +455,7 @@ export function TeleprompterModal({
 
   if (!open) return null;
 
-  const wordCount = script.trim().split(/\s+/).filter(Boolean).length;
-  const estimatedSeconds = Math.round((wordCount / wpm) * 60);
+  const estimatedSeconds = estimatedSecondsAtStart;
 
   // ─── Render ────────────────────────────────────────────────────────
   return (
@@ -577,6 +646,16 @@ export function TeleprompterModal({
               >
                 {layoutMode === 'overlay' ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
                 {layoutMode === 'overlay' ? 'Big script' : 'Camera-first'}
+              </button>
+              {/* Aspect-ratio toggle: 9:16 (vertical) vs 16:9 (horizontal).
+                  Hint to getUserMedia; phones may rotate freely. */}
+              <button
+                type="button"
+                onClick={() => setAspectRatio((a) => (a === '9:16' ? '16:9' : '9:16'))}
+                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm bg-black/50 text-white hover:bg-black/70 transition"
+                title="Toggle vertical (9:16) vs horizontal (16:9) framing"
+              >
+                {aspectRatio}
               </button>
             </div>
           )}
