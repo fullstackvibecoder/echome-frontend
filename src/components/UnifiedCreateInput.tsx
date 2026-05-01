@@ -51,8 +51,8 @@ const GUIDES = [
   {
     href: '/guides/build-your-voice',
     icon: Mic2,
-    title: 'Build Your Voice',
-    description: 'Train EchoMe to sound like you',
+    title: 'Your Voice',
+    description: 'How EchoMe learns to sound like you',
   },
   {
     href: '/guides/compress-video',

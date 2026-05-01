@@ -80,9 +80,9 @@ const guides = [
   {
     slug: 'build-your-voice',
     icon: <Mic className="w-6 h-6" />,
-    title: 'How to Build Your Voice Profile',
+    title: 'How EchoMe Reads Your Voice',
     description:
-      'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base.',
+      'EchoMe writes in your voice by reading what you have already published. Drop videos, social media, emails, blog posts.',
     category: 'Getting Started',
     readTime: '5 min',
     hasVideo: false,

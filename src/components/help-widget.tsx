@@ -19,8 +19,8 @@ const PUBLIC_FAQS: FAQItem[] = [
     answer: 'EchoMe generates content from your existing work. It reads your past writing, videos, and emails, then uses that context to produce new content that sounds like you.',
   },
   {
-    question: 'How do free generations work?',
-    answer: '5 free generations, no credit card. Each generation produces content across all platforms at once - Instagram, LinkedIn, Blog, Email, TikTok, and Video Script.',
+    question: 'How do free content kits work?',
+    answer: '5 free content kits, no credit card. Each kit produces content across all platforms at once — Instagram, LinkedIn, Blog, Email, TikTok, plus a video script you can record on the built-in teleprompter.',
   },
   {
     question: 'What can I add to my Knowledge Base?',
@@ -36,7 +36,7 @@ const PUBLIC_FAQS: FAQItem[] = [
   },
   {
     question: 'How much does it cost?',
-    answer: '$37/mo (Echo), $87/mo (Echo Studio), or $47/voice/mo (Echo Teams, 2-voice min). 5 free generations to try it. Annual billing saves 17%.',
+    answer: '$37/mo (Echo), $87/mo (Echo Studio), or $47/voice/mo (Echo Teams, 2-voice min). 5 free content kits to try it. Annual billing saves 17%.',
   },
 ];
 

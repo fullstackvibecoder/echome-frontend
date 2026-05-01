@@ -141,8 +141,8 @@ export default function PlatformOverviewGuidePage() {
             <p className="mt-2">Each post is written in your voice based on your voice profile. Copy and post directly, or schedule through your preferred tool.</p>
           </Step>
 
-          <Step number={7} title="Build Your Voice">
-            <p className="mb-2">Train Echo on your voice using the unified input on the Build Your Voice page. You can:</p>
+          <Step number={7} title="Your Voice">
+            <p className="mb-2">Add sources via the unified input on the Your Voice page so Echo can match your style. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong className="text-text-primary">Paste social links</strong> &mdash; Import content from YouTube or Instagram.</li>
               <li><strong className="text-text-primary">Drop files or paste URLs</strong> &mdash; Upload PDFs, articles, blog posts, or emails.</li>
@@ -181,7 +181,7 @@ export default function PlatformOverviewGuidePage() {
             </li>
             <li>
               <a href="/guides/email-upload" className="text-accent hover:underline">How to upload emails</a>
-              <span className="text-text-secondary"> &mdash; Import your emails to build your voice profile.</span>
+              <span className="text-text-secondary"> &mdash; Import your emails so Echo learns how you communicate.</span>
             </li>
             <li>
               <a href="/guides/video-content" className="text-accent hover:underline">Creating video content</a>

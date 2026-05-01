@@ -92,7 +92,7 @@ export function HowItWorks() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
             <p className="text-sm text-muted-foreground font-light mt-3">
-              No credit card. 5 free generations.
+              No credit card. 5 free content kits.
             </p>
           </div>
         </div>

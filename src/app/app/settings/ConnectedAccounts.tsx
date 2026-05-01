@@ -180,14 +180,14 @@ export function ConnectedAccounts() {
           ];
         case 'free-exhausted':
           return [
-            'Your free generations are used up',
+            'Your free content kits are used up',
             'Upgrade to Echo Studio or above to connect your accounts and auto-post. Your Echo plan alternative uses scheduled email reminders.',
           ];
         case 'no-subscription':
         default:
           return [
             'Connect your accounts and auto-post',
-            'Free plan includes full auto-post access during your 5 generations. Upgrade any time to keep going.',
+            'Free plan includes full auto-post access during your 5 content kits. Upgrade any time to keep going.',
           ];
       }
     })();

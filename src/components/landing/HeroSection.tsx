@@ -34,7 +34,7 @@ export function HeroSection() {
                 className="text-base sm:text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
                 style={{ animationDelay: '300ms' }}
               >
-                Stop starting from zero. EchoMe reads what you&apos;ve already made — your videos, posts, emails, voice — so the next thing you ship is already 80% you.
+                It read your videos, posts, emails, voice. Drop the next idea — or record yourself reading the script it writes on the built-in teleprompter.
               </p>
             </div>
 

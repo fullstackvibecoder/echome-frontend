@@ -1873,7 +1873,7 @@ export function GenerationForm({
         <div className="mt-6 p-8 bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-2xl text-center">
           <div className="text-4xl mb-3">🔒</div>
           <h3 className="text-xl font-bold text-white mb-2">
-            You&apos;ve used your {freeGenerationsLimit} free generations
+            You&apos;ve used your {freeGenerationsLimit} free content kits
           </h3>
 
           {/* Recap of what they made — anchors the loss-aversion moment.
@@ -2030,10 +2030,10 @@ export function GenerationForm({
               ? 'text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 transition-colors whitespace-nowrap'
               : 'text-xs font-semibold text-accent hover:text-primary-dark transition-colors whitespace-nowrap';
             const label = isLastOne
-              ? '⚠️ Last free generation — make it count'
+              ? '⚠️ Last free content kit — make it count'
               : isPenultimate
-                ? `✨ ${freeGenerationsRemaining} free generations left — subscribe before you hit the wall`
-                : `✨ Free Plan — ${freeGenerationsUsed} of ${freeGenerationsLimit} generations used`;
+                ? `✨ ${freeGenerationsRemaining} free content kits left — subscribe before you hit the wall`
+                : `✨ Free Plan — ${freeGenerationsUsed} of ${freeGenerationsLimit} content kits used`;
             const buttonLabel = isLastOne
               ? 'Secure unlimited →'
               : 'Subscribe for unlimited →';

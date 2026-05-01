@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'How to Build Your Voice Profile in EchoMe | Guide',
-  description: 'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base. The more you add, the more it sounds like you.',
+  title: 'How EchoMe Reads Your Voice | Guide',
+  description: 'EchoMe writes in your voice by reading what you have already published. Drop videos, social media, emails, and blog posts into your Knowledge Base — the more it reads, the more it sounds like you.',
   keywords: ['ai content in my voice', 'train ai writing style', 'personal brand content generator', 'ai that sounds like me', 'voice matching AI', 'knowledge base for AI writing'],
   alternates: { canonical: 'https://tryechome.com/guides/build-your-voice' },
 };
@@ -12,7 +12,7 @@ export default function BuildYourVoiceGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'How to Build Your Voice Profile in EchoMe',
+    headline: 'How EchoMe Reads Your Voice',
     description: 'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base. The more you add, the more it sounds like you.',
     url: 'https://tryechome.com/guides/build-your-voice',
     datePublished: '2026-04-01',
@@ -24,7 +24,7 @@ export default function BuildYourVoiceGuidePage() {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tryechome.com' },
         { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://tryechome.com/guides' },
-        { '@type': 'ListItem', position: 3, name: 'Build Your Voice', item: 'https://tryechome.com/guides/build-your-voice' },
+        { '@type': 'ListItem', position: 3, name: 'Your Voice', item: 'https://tryechome.com/guides/build-your-voice' },
       ],
     },
   };
@@ -39,7 +39,7 @@ export default function BuildYourVoiceGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          How to Build Your Voice Profile in EchoMe
+          How EchoMe Reads Your Voice
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           Your Knowledge Base is what makes EchoMe different from every other AI writing tool. It learns your tone, vocabulary, sentence structure, and communication style from your existing content. The more you feed it, the more the output sounds like you wrote it yourself.
@@ -51,7 +51,7 @@ export default function BuildYourVoiceGuidePage() {
         {/* Hero image */}
         <img
           src="/guide-screenshots/build-your-voice.png"
-          alt="EchoMe Build Your Voice"
+          alt="EchoMe Your Voice"
           className="w-full rounded-xl border border-border mb-8"
         />
 
@@ -62,12 +62,12 @@ export default function BuildYourVoiceGuidePage() {
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="What is Build Your Voice?">
-            <p>Build Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across dimensions like phrases, style, naturalness, and voice match. Think of it as teaching an AI how you think and communicate.</p>
+          <Step number={1} title="What is Your Voice?">
+            <p>Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across dimensions like phrases, style, naturalness, and voice match. Think of it as teaching an AI how you think and communicate.</p>
           </Step>
 
           <Step number={2} title="Use the unified input to add content">
-            <p>The Build Your Voice page features a single unified input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
+            <p>The Your Voice page has a single unified input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
           </Step>
 
           <Step number={3} title="Import your writing">
@@ -97,7 +97,7 @@ export default function BuildYourVoiceGuidePage() {
           </Step>
 
           <Step number={8} title="Checking your voice strength">
-            <p>Go to Build Your Voice in the sidebar. Your voice strength shows as a score with a visual waveform. Ask Echo about your voice:</p>
+            <p>Go to Your Voice in the sidebar. Your voice strength shows as a score with a visual waveform. Ask Echo about your voice:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>&quot;How close is the match?&quot;</li>
               <li>&quot;Describe my style&quot;</li>

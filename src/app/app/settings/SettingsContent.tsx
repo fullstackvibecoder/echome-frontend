@@ -1024,10 +1024,10 @@ export default function SettingsContent() {
                     </p>
                     <p className="text-body text-text-secondary">
                       {usage?.isUnlimited
-                        ? 'Unlimited generations'
+                        ? 'Unlimited content kits'
                         : usage?.tier === 'free'
-                        ? '5 free generations (lifetime)'
-                        : `${usage?.generationsLimit || 10} generations per month`}
+                        ? '5 free content kits (lifetime)'
+                        : `${usage?.generationsLimit || 10} content kits per month`}
                     </p>
                   </div>
                   {(!usage || usage.tier === 'free') && (

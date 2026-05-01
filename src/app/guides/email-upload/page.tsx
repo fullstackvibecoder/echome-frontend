@@ -120,7 +120,7 @@ export default function EmailUploadGuidePage() {
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
-            <p>Go to <strong>Build Your Voice</strong> in EchoMe, click <strong>Email</strong>, and select the <strong>.mbox file</strong> you extracted. EchoMe will parse your emails and start processing them.</p>
+            <p>Go to <strong>Your Voice</strong> in EchoMe, click <strong>Email</strong>, and select the <strong>.mbox file</strong> you extracted. EchoMe will parse your emails and start processing them.</p>
           </Step>
 
           <Step number={9} title="Wait for processing">
@@ -149,7 +149,7 @@ export default function EmailUploadGuidePage() {
             href="/app/voice"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors"
           >
-            Go to Build Your Voice &rarr;
+            Go to Your Voice &rarr;
           </a>
         </section>
 

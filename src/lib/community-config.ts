@@ -40,9 +40,9 @@ export const FAQS: FAQItem[] = [
     category: 'getting-started',
   },
   {
-    question: 'How do free generations work?',
+    question: 'How do free content kits work?',
     answer:
-      'You get 5 free lifetime generations - no credit card required. Each generation creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, and Video Script), so 5 generations = 30+ pieces of content.',
+      'You get 5 free lifetime content kits — no credit card required. Each kit creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, plus a video script you can record on the built-in teleprompter), so 5 kits = 30+ pieces of content.',
     category: 'getting-started',
   },
   {
@@ -102,7 +102,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'How much does it cost?',
     answer:
-      'Plans start at $37/mo (Echo), $87/mo (Echo Studio - most popular), and $47/voice/mo (Echo Teams, 2-voice min). You get 5 free generations to try before subscribing. Annual billing saves 17%.',
+      'Plans start at $37/mo (Echo), $87/mo (Echo Studio - most popular), and $47/voice/mo (Echo Teams, 2-voice min). You get 5 free content kits to try before subscribing. Annual billing saves 17%.',
     category: 'billing',
   },
   {

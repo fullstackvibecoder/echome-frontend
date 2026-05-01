@@ -11,11 +11,11 @@ const faqCategories = [
     questions: [
       {
         q: 'What is EchoMe?',
-        a: 'EchoMe is an AI content creation platform that turns your videos into ready-to-post content that sounds like you wrote it. Upload a video, paste a YouTube link, or type a prompt, and EchoMe generates social posts, captioned clips, carousel slides, and more — all matched to your unique voice and writing style.',
+        a: 'EchoMe is the context engine that turns what you have already published into a month of posts in your voice. It reads your videos, blog, emails, and social profiles to learn how you sound, then generates social posts, captioned clips, carousel slides, and full content kits — and now also lets you originate video content by recording yourself reading a generated script on the built-in teleprompter.',
       },
       {
         q: 'How do I create my first content?',
-        a: 'Sign up with your email or Google account, then choose one of three input methods: upload a video file, paste a YouTube link, or use Quick Create to type or speak your idea. EchoMe processes your input and generates a complete Content Kit with clips, social posts, and carousels. Your first 5 generations are free — no credit card required.',
+        a: 'Sign up with your email or Google account, then choose one of three input methods: upload a video file, paste a YouTube link, or use Quick Create to type or speak your idea. EchoMe processes your input and generates a complete Content Kit with clips, social posts, and carousels. Your first 5 content kits are free — no credit card required.',
       },
       {
         q: 'What input types does EchoMe accept?',
@@ -23,7 +23,7 @@ const faqCategories = [
       },
       {
         q: 'Is EchoMe free to use?',
-        a: 'Yes. EchoMe includes a free plan with 5 free generations, voice matching, 1 platform per generation, and standard templates. No credit card is required to get started. Paid plans start at $37/month for more processing hours, clips, and features.',
+        a: 'Yes. EchoMe includes a free plan with 5 free content kits, voice matching, and full auto-posting to Instagram, LinkedIn, and Facebook during your trial. No credit card is required to get started. Paid plans start at $37/month for unlimited content kits and deeper features.',
       },
     ],
   },
@@ -87,7 +87,7 @@ const faqCategories = [
     questions: [
       {
         q: 'What plans are available?',
-        a: 'EchoMe offers a free plan (5 generations, no credit card required), Echo ($37/mo), Echo Studio ($87/mo), and Echo Teams ($47/voice/mo with a 2-voice minimum, scales up from there). Paid plans offer increasing processing hours, clips per video, Knowledge Base slots, export quality, and Creator Library access.',
+        a: 'EchoMe offers a free plan (5 content kits, no credit card required), Echo ($37/mo), Echo Studio ($87/mo), and Echo Teams ($47/voice/mo with a 2-voice minimum, scales up from there). Paid plans add unlimited content kits, deeper voice matching, more Creator Radar slots, and the built-in teleprompter for talking-head video.',
       },
       {
         q: 'Can I cancel anytime?',

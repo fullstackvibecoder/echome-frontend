@@ -51,14 +51,14 @@ export default function KnowledgeBaseGuidePage() {
         {/* Hero image */}
         <img
           src="/guide-screenshots/build-your-voice.png"
-          alt="EchoMe Build Your Voice"
+          alt="EchoMe Your Voice"
           className="w-full rounded-xl border border-border mb-8"
         />
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Go to Build Your Voice in the sidebar">
-            <p>Open the sidebar and click <strong className="text-text-primary">Build Your Voice</strong>. This is where all your content sources live &mdash; everything EchoMe uses to learn how you write and speak.</p>
+          <Step number={1} title="Open Your Voice in the sidebar">
+            <p>Open the sidebar and click <strong className="text-text-primary">Your Voice</strong>. This is where all your content sources live &mdash; everything EchoMe reads to learn how you write and speak.</p>
           </Step>
 
           <Step number={2} title="Add content using the unified input">
@@ -86,8 +86,8 @@ export default function KnowledgeBaseGuidePage() {
 
         {/* CTA */}
         <section className="text-center py-8">
-          <p className="text-text-secondary mb-4">Ready to build your voice profile?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
+          <p className="text-text-secondary mb-4">Ready to see your voice profile?</p>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Content Kits</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

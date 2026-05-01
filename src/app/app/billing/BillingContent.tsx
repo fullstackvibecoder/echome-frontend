@@ -27,15 +27,12 @@ const FALLBACK_PLANS: StripePlan[] = [
     monthlyPrice: 37,
     annualPrice: 370,
     features: [
-      'Up to 2 hours of video processing',
-      'Up to 5 clips per video',
-      'Voice matching from your content',
-      'Up to 3 Creator Radar slots',
-      'Standard carousel templates',
-      '1080p exports',
-      '250MB file upload limit',
-      'Manual document upload only',
-      'Monthly Creator Library (B-roll, captions, scripts)',
+      'Your voice profile, learning continuously',
+      'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
+      'Creator Radar — track what your audience watches',
+      'Auto-post to Instagram, LinkedIn & Facebook',
+      'Built-in teleprompter for talking-head video',
+      'Content calendar with email reminders',
     ],
     limits: {
       videoMinutesPerMonth: 120,
@@ -55,16 +52,12 @@ const FALLBACK_PLANS: StripePlan[] = [
     monthlyPrice: 87,
     annualPrice: 870,
     features: [
-      'Up to 5 hours of video processing',
-      'Up to 10 clips per video',
-      'Deep voice matching',
-      'Up to 10 Creator Radar slots',
-      'All carousel templates + custom colors',
-      '1080p exports',
-      '750MB file upload limit',
-      'Email import (up to 50 emails)',
-      'Priority processing queue',
-      'Monthly Creator Library (B-roll, captions, scripts)',
+      'Deep voice matching with thumbs feedback',
+      'Reads your full email history',
+      'Creator Radar with deeper insights',
+      'Auto-post to Instagram, LinkedIn & Facebook',
+      'Built-in teleprompter for talking-head video',
+      'Priority processing',
     ],
     limits: {
       videoMinutesPerMonth: 300,
@@ -546,7 +539,7 @@ function BillingContentInner() {
               <h3 className="text-lg font-bold">Free Plan</h3>
               <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current</span>
             </div>
-            <p className="text-sm text-muted-foreground">5 free generations, basic voice matching, 1 platform per generation</p>
+            <p className="text-sm text-muted-foreground">5 free content kits with full auto-posting and voice matching</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-foreground">$0</p>
@@ -787,11 +780,13 @@ function BillingContentInner() {
               </thead>
               <tbody className="divide-y divide-border">
                 {([
-                  { label: 'Video Processing', key: 'videoMinutesPerMonth', format: (v: number | string) => v === -1 ? 'Unlimited' : `${Math.floor(Number(v) / 60)} hrs` },
+                  // Video-minute row dropped — caps were unenforced and the
+                  // new tier structure removes the axis. Clips-per-video
+                  // count and email-import count are real (enforced by
+                  // clip-finder + ingest workers), so we keep those rows.
                   { label: 'Clips per Video', key: 'clipsPerVideo', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
                   { label: 'Creator Radar Slots', key: 'creatorRadar', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
                   { label: 'Email Import', key: 'emailImportMaxEmails', format: (v: number | string) => v === 0 ? '-' : v === -1 ? 'Unlimited' : `Up to ${v}` },
-                  { label: 'Export Quality', key: 'exportQuality', format: (v: number | string) => String(v) },
                 ] as const).map(row => (
                   <tr key={row.label} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 font-medium text-foreground">{row.label}</td>

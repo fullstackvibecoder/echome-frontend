@@ -126,9 +126,9 @@ export default function VideoContentGuidePage() {
             </p>
           </Step>
 
-          <Step number={8} title="Building your voice from video">
+          <Step number={8} title="Your videos shape your voice">
             <p>
-              Your uploaded videos also train your voice profile. The more videos you process, the better EchoMe matches your tone, vocabulary, and style. Check your voice strength on the <strong className="text-text-primary">Build Your Voice</strong> page.
+              Every video you upload also feeds your voice profile. The more it reads, the better EchoMe matches your tone, vocabulary, and style. Check your voice strength on the <strong className="text-text-primary">Your Voice</strong> page.
             </p>
           </Step>
         </section>

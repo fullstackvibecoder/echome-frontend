@@ -44,7 +44,7 @@ export function UpgradeBanner() {
       </button>
       <div className="pr-6">
         <p className="text-sm font-semibold text-foreground">
-          Your 5 free generations are used up
+          Your 5 free content kits are used up
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
           Subscribe to keep generating from your knowledge base.

@@ -130,7 +130,7 @@ export default function HomeContent() {
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
-              Start with 5 free generations - no credit card required.
+              Start with 5 free content kits - no credit card required.
               <br />
               <span className="text-base">Then choose a plan that works with your creative rhythm.</span>
             </p>
@@ -185,10 +185,10 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      '5 free generations',
-                      'Voice matching from your content',
-                      '1 platform per generation',
-                      'Standard templates',
+                      '5 free content kits to try it out',
+                      'Your voice, learning from what you publish',
+                      'Auto-post to Instagram, LinkedIn & Facebook',
+                      'Clips, captions, carousels, and posts',
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -229,12 +229,12 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      'Your voice profile (1 knowledge base, learns continuously)',
+                      'Your voice profile, learning continuously',
                       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
-                      '3 Creator Radar slots',
-                      'Up to 5 clips per video, 2 hrs of processing',
-                      'Standard templates, 1080p exports',
-                      'Monthly Creator Library (B-roll, captions, scripts)'
+                      'Creator Radar — track what your audience watches',
+                      'Auto-post to Instagram, LinkedIn & Facebook',
+                      'Built-in teleprompter for talking-head video',
+                      'Content calendar with email reminders'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -278,13 +278,12 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-white/30">
                     {[
-                      'Deep voice matching (continuous learning + thumbs feedback)',
-                      'Reads YouTube, Instagram, blog, email (50 imports), voice notes, PDFs',
-                      'Up to 10 Creator Radar slots',
-                      'Up to 10 clips per video, 5 hrs processing, 750MB upload',
-                      'All templates + custom colors, 1080p exports',
-                      'Priority processing queue',
-                      'Monthly Creator Library (B-roll, captions, scripts)'
+                      'Deep voice matching with thumbs feedback',
+                      'Reads your full email history',
+                      'Creator Radar with deeper insights',
+                      'Auto-post to Instagram, LinkedIn & Facebook',
+                      'Built-in teleprompter for talking-head video',
+                      'Priority processing'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center flex-shrink-0 mt-0.5">

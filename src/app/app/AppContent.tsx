@@ -400,10 +400,10 @@ export default function AppContent() {
               ? 'mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-lg text-sm'
               : 'mb-4 flex items-center gap-2 px-4 py-2.5 glass border border-accent-yellow/30 rounded-lg text-sm';
             const label = isExhausted
-              ? 'Free generations used up'
+              ? 'Free content kits used up'
               : isLastOne
-                ? '⚠️ Last free generation — make it count'
-                : `${freeGenerationsRemaining} of ${freeGenerationsLimit} free generations remaining`;
+                ? '⚠️ Last free content kit — make it count'
+                : `${freeGenerationsRemaining} of ${freeGenerationsLimit} free content kits remaining`;
             return (
               <div className={containerClass}>
                 <span className="text-lg">{isLastOne ? '⚡' : '⚡'}</span>
