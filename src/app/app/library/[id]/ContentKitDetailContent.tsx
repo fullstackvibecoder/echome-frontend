@@ -269,7 +269,12 @@ export default function ContentKitDetailContent() {
    */
   const handleDownloadClip = async (
     clip: { id: string; videoUploadId?: string; captionsBurnedIn?: boolean; splitScreenUrl?: string; exports?: Array<{ url?: string }> },
-    viewMode: 'single' | 'split'
+    viewMode: 'single' | 'split',
+    // Optional override — when the call comes from the editor modal, the
+    // modal passes its own captionStyle state so the user's most recent
+    // pick wins regardless of any persistence timing. Falls back to the
+    // page-level state for older callsites that don't pass one.
+    captionStyleOverride?: import('@/lib/caption-parser').CaptionStylePreset
   ) => {
     const uploadId = clip.videoUploadId || id;
 
@@ -286,7 +291,7 @@ export default function ContentKitDetailContent() {
     setExportingClipId(clip.id); // Opens the modal + SSE subscription
     try {
       const r = await api.clips.exportClip(uploadId, clip.id, {
-        captionStyle,
+        captionStyle: captionStyleOverride ?? captionStyle,
         viewMode,
         addCaptions: captionsEnabled,
       });
@@ -837,7 +842,7 @@ export default function ContentKitDetailContent() {
           onClose={() => { setClipEditorOpen(false); setActiveClipForEditor(null); }}
           clip={activeClipForEditor}
           uploadId={detail?.clips?.[0]?.videoUploadId || (detail as any)?.uploadId || id}
-          onExport={(clipId, viewMode) => {
+          onExport={(clipId, viewMode, modalCaptionStyle) => {
             // Capture the clip object before we close the modal — once
             // setActiveClipForEditor(null) fires, we lose the reference.
             const clipForExport = activeClipForEditor && activeClipForEditor.id === clipId
@@ -846,12 +851,12 @@ export default function ContentKitDetailContent() {
             setClipEditorOpen(false);
             setActiveClipForEditor(null);
             if (clipForExport) {
-              // viewMode comes straight from the modal's own toggle state,
-              // so a user who picked Split Screen gets the split-screen
-              // export and not the default single-speaker render.
+              // Both viewMode AND captionStyle come straight from the
+              // modal's own state, so the user's picks win regardless of
+              // any parent-level state or PATCH timing.
               // handleDownloadClip both opens the progress modal AND fires
               // the POST that starts the encoder.
-              void handleDownloadClip(clipForExport, viewMode);
+              void handleDownloadClip(clipForExport, viewMode, modalCaptionStyle);
             } else {
               // Fallback: at least open the progress modal so the user sees
               // SOME indication. Without the clip object we can't POST, so

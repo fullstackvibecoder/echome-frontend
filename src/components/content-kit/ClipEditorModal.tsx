@@ -25,11 +25,14 @@ interface ClipEditorModalProps {
   uploadId: string;
   /**
    * Fired when the user clicks Download. Includes the current viewMode
-   * (single vs split-screen) so the parent can route the export through
-   * the matching encoder pipeline. The modal is the source of truth for
-   * the viewMode toggle, so the parent shouldn't guess.
+   * (single vs split-screen) AND the current caption style so the parent
+   * can route the export through the matching encoder pipeline. The
+   * modal is the source of truth for both — the parent shouldn't guess
+   * or pull from a separate state. (caption style is also persisted to
+   * the DB on every change, but threading it explicitly here avoids a
+   * race where Download fires before the persistStyle PATCH lands.)
    */
-  onExport: (clipId: string, viewMode: 'single' | 'split') => void;
+  onExport: (clipId: string, viewMode: 'single' | 'split', captionStyle: CaptionStylePreset) => void;
   contentKitId?: string;
   instagramCaption?: string;
 }
@@ -521,7 +524,7 @@ export default function ClipEditorModal({
             <div className="pt-2 mt-auto space-y-3">
               <button
                 type="button"
-                onClick={() => onExport(clip.id, viewMode)}
+                onClick={() => onExport(clip.id, viewMode, captionStyle)}
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
               >
                 <Download className="h-4 w-4" />
