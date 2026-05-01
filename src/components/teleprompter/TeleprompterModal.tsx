@@ -24,7 +24,7 @@
  * scrolling script in the top third so the user's eyes stay near the lens.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, RotateCcw, Download, Upload, Loader2, Type, Gauge, FlipHorizontal2, Camera, AlertCircle, Maximize2, Minimize2, ZoomIn, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, RotateCcw, Download, Upload, Loader2, Type, Gauge, FlipHorizontal2, Camera, AlertCircle, Maximize2, Minimize2, ZoomIn, ChevronUp, ChevronDown, Pause, Play } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
 
@@ -42,6 +42,44 @@ interface TeleprompterModalProps {
 
 type FontSize = 'S' | 'M' | 'L';
 type LayoutMode = 'overlay' | 'fullscreen';
+type FontFamily = 'sans' | 'serif' | 'mono';
+type ScrollDriver = 'manual' | 'pause-on-silence' | 'voice-track';
+
+const FONT_FAMILY_CSS: Record<FontFamily, string> = {
+  sans: 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  serif: 'Georgia, "Times New Roman", Times, serif',
+  mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace',
+};
+
+// Web Speech API feature detection. Chrome/Edge expose plain SpeechRecognition;
+// Safari (and older Chrome) use webkitSpeechRecognition. Returns the constructor
+// or null when the browser doesn't support it (Firefox notably doesn't).
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as Record<string, unknown>;
+  const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as
+    | (new () => SpeechRecognitionLike)
+    | undefined;
+  return Ctor ?? null;
+}
+
+// Loose typing for SpeechRecognition since the lib types aren't universally
+// available. We only touch the fields we actually use.
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onresult: ((e: { results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }>; resultIndex: number }) => void) | null;
+  onerror: ((e: unknown) => void) | null;
+  onend: (() => void) | null;
+  onspeechstart: (() => void) | null;
+  onspeechend: (() => void) | null;
+  onsoundstart: (() => void) | null;
+  onsoundend: (() => void) | null;
+}
 // Two layout presets:
 //  - overlay: camera fills the screen, script sits in the top third (eyes near
 //    the lens). Default; matches the mobile spec.
@@ -57,6 +95,7 @@ type Phase =
   | 'ready'        // preview live, awaiting Record press
   | 'countdown'    // 3-2-1 before recording starts
   | 'recording'    // recording + script scrolling
+  | 'paused'       // recording paused mid-take (resume or stop)
   | 'review';      // recording stopped, blob in hand
 
 /**
@@ -133,6 +172,15 @@ export function TeleprompterModal({
   // fall back to a CSS transform on the preview only — that does NOT
   // reflect in the recording, which we surface in the slider label.
   const [zoomCapability, setZoomCapability] = useState<{ min: number; max: number; step: number } | null>(null);
+  const [fontFamily, setFontFamily] = useState<FontFamily>('sans');
+  // Eye-line / margin narrowing — 0.5–1.0 of the script container width.
+  // Smaller value = narrower script box = less side-to-side eye sweep.
+  const [marginScale, setMarginScale] = useState(1.0);
+  // Auto-pause on silence (BIGVU-style) and voice-tracked scrolling
+  // (PromptSmart-style). Both ride the Web Speech API; only one can be
+  // active at a time, and both gracefully no-op when the browser lacks it.
+  const [scrollDriver, setScrollDriver] = useState<ScrollDriver>('manual');
+  const speechAvailable = useMemo(() => getSpeechRecognition() !== null, []);
 
   // wpm mirror — the rAF scroll loop reads this on every frame so changing
   // the slider during recording updates speed live (without re-binding the
@@ -150,6 +198,19 @@ export function TeleprompterModal({
   const recordingTimerRef = useRef<number | null>(null);
   const scriptScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollAnimationRef = useRef<number | null>(null);
+  // Speech recognition for pause-on-silence + VoiceTrack. Held in a ref so
+  // we can safely start/stop without re-creating between phases.
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const recognitionRunningRef = useRef(false);
+  // Pause-state machine: tracks when a pause-on-silence pause started so
+  // we resume only after a user-defined grace window. Without this, micro-
+  // pauses between sentences would keep flipping scroll state.
+  const silenceTimerRef = useRef<number | null>(null);
+  // For VoiceTrack: snapshot of the script split into lowercased word
+  // tokens. Computed once per script change. Used to map recognized speech
+  // to a scroll position.
+  const scriptTokensRef = useRef<string[]>([]);
+  const lastVoiceTrackIndexRef = useRef(0);
 
   // ─── Permission + stream lifecycle ──────────────────────────────────
   const startStream = useCallback(async () => {
@@ -398,6 +459,149 @@ export function TeleprompterModal({
     }
   }, []);
 
+  // Pause/resume mid-record. MediaRecorder.pause() halts encoding without
+  // discarding chunks; the elapsed-seconds timer is shifted on resume so
+  // the recorded duration shown excludes paused time.
+  const pauseStartRef = useRef<number>(0);
+  const pauseRecording = useCallback(() => {
+    if (!recorderRef.current || recorderRef.current.state !== 'recording') return;
+    recorderRef.current.pause();
+    stopScroll();
+    pauseStartRef.current = performance.now();
+    if (recordingTimerRef.current) {
+      window.clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    setPhase('paused');
+  }, [stopScroll]);
+
+  const resumeRecording = useCallback(() => {
+    if (!recorderRef.current || recorderRef.current.state !== 'paused') return;
+    recorderRef.current.resume();
+    // Shift the recording-start reference forward by the pause duration so
+    // (now - recordingStartRef) keeps being the actual recorded time.
+    const pauseDur = performance.now() - pauseStartRef.current;
+    recordingStartRef.current += pauseDur;
+    recordingTimerRef.current = window.setInterval(() => {
+      setRecordedSeconds((performance.now() - recordingStartRef.current) / 1000);
+    }, 250);
+    startScroll();
+    setPhase('recording');
+  }, [startScroll]);
+
+  // ─── Speech-driven scroll (pause-on-silence + VoiceTrack) ──────────
+  // On scrollDriver change (or recording start) we tear down + rebuild the
+  // recognition session. Both modes share the same SpeechRecognition; only
+  // the result handler differs.
+  useEffect(() => {
+    if (phase !== 'recording') {
+      // Always stop any prior recognition when leaving recording phase.
+      if (recognitionRef.current && recognitionRunningRef.current) {
+        try { recognitionRef.current.stop(); } catch { /* ignore */ }
+      }
+      recognitionRunningRef.current = false;
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      return;
+    }
+    if (scrollDriver === 'manual') return;
+    const Ctor = getSpeechRecognition();
+    if (!Ctor) return;
+    const rec = new Ctor() as SpeechRecognitionLike;
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+    recognitionRef.current = rec;
+
+    // Cache script tokens for VoiceTrack matching (lowercased, alphanumeric only).
+    scriptTokensRef.current = script
+      .toLowerCase()
+      .replace(/[^a-z0-9'\s]+/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean);
+    lastVoiceTrackIndexRef.current = 0;
+
+    if (scrollDriver === 'pause-on-silence') {
+      rec.onspeechstart = () => {
+        if (silenceTimerRef.current) {
+          window.clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+        if (!scrollAnimationRef.current) startScroll();
+      };
+      rec.onspeechend = () => {
+        // Wait ~1.2s before pausing so brief between-sentence breaths
+        // don't yo-yo the scroll.
+        if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = window.setTimeout(() => {
+          stopScroll();
+        }, 1200);
+      };
+    } else if (scrollDriver === 'voice-track') {
+      rec.onresult = (e) => {
+        // Pull the latest interim/final phrase, take its last few words,
+        // find them in the script, scroll there.
+        let phrase = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          phrase += ' ' + e.results[i][0].transcript;
+        }
+        const heard = phrase
+          .toLowerCase()
+          .replace(/[^a-z0-9'\s]+/g, ' ')
+          .split(/\s+/)
+          .filter(Boolean);
+        if (heard.length === 0) return;
+        // Try the last 4 → 3 → 2 words; first match against the script wins.
+        const tokens = scriptTokensRef.current;
+        const fromIdx = Math.max(0, lastVoiceTrackIndexRef.current - 5);
+        for (const windowSize of [4, 3, 2]) {
+          if (heard.length < windowSize) continue;
+          const tail = heard.slice(-windowSize);
+          for (let i = fromIdx; i <= tokens.length - windowSize; i++) {
+            let match = true;
+            for (let k = 0; k < windowSize; k++) {
+              if (tokens[i + k] !== tail[k]) { match = false; break; }
+            }
+            if (match) {
+              lastVoiceTrackIndexRef.current = i + windowSize;
+              const el = scriptScrollRef.current;
+              if (el && tokens.length > 0) {
+                const totalScroll = Math.max(0, el.scrollHeight - el.clientHeight + 80);
+                const target = ((i + windowSize) / tokens.length) * totalScroll;
+                // Smooth toward target rather than snapping
+                el.scrollTo({ top: target, behavior: 'smooth' });
+              }
+              return;
+            }
+          }
+        }
+      };
+    }
+
+    rec.onerror = () => { /* silently abandon; no-op back to manual */ };
+    rec.onend = () => { recognitionRunningRef.current = false; };
+
+    try {
+      rec.start();
+      recognitionRunningRef.current = true;
+    } catch {
+      recognitionRunningRef.current = false;
+    }
+
+    return () => {
+      try {
+        if (recognitionRunningRef.current) rec.stop();
+      } catch { /* ignore */ }
+      recognitionRunningRef.current = false;
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+    };
+  }, [phase, scrollDriver, script, startScroll, stopScroll]);
+
   const startCountdown = useCallback(() => {
     setPhase('countdown');
     setCountdown(3);
@@ -539,6 +743,12 @@ export function TeleprompterModal({
               {formatDuration(recordedSeconds)}
             </span>
           )}
+          {phase === 'paused' && (
+            <span className="flex items-center gap-2 text-amber-300">
+              <Pause className="w-3 h-3" />
+              {formatDuration(recordedSeconds)} paused
+            </span>
+          )}
           {phase === 'ready' && (
             <span className="text-white/70">
               ~{formatDuration(estimatedSeconds)} estimated
@@ -562,7 +772,7 @@ export function TeleprompterModal({
           - overlay mode: fills the screen behind everything (script sits on top)
           - fullscreen mode: shrinks to a 120×180 thumbnail in the top-right
             corner so the user can confirm framing while reading the big script. */}
-      {phase !== 'review' && layoutMode === 'overlay' && (
+      {phase !== 'review' && phase !== 'permission' && phase !== 'denied' && phase !== 'unsupported' && layoutMode === 'overlay' && (
         <video
           ref={videoRef}
           autoPlay
@@ -572,7 +782,7 @@ export function TeleprompterModal({
           style={{ transform: videoTransform }}
         />
       )}
-      {phase !== 'review' && layoutMode === 'fullscreen' && (
+      {phase !== 'review' && phase !== 'permission' && phase !== 'denied' && phase !== 'unsupported' && layoutMode === 'fullscreen' && (
         <video
           ref={videoRef}
           autoPlay
@@ -615,7 +825,7 @@ export function TeleprompterModal({
       {/* Manual nudge — up/down arrows on the right edge of the screen.
           Lets the user correct script drift during recording without
           touching WPM. Hidden during permission/review/error phases. */}
-      {(phase === 'ready' || phase === 'countdown' || phase === 'recording') && (
+      {(phase === 'ready' || phase === 'countdown' || phase === 'recording' || phase === 'paused') && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
           <button
             type="button"
@@ -642,7 +852,7 @@ export function TeleprompterModal({
           - overlay mode: top-third banner, smaller font, eyes-near-lens
           - fullscreen mode: dominates the viewport (~70vh), bigger font for
             distance reading; camera thumbnail floats above it. */}
-      {(phase === 'ready' || phase === 'countdown' || phase === 'recording') && (
+      {(phase === 'ready' || phase === 'countdown' || phase === 'recording' || phase === 'paused') && (
         <div
           className={
             layoutMode === 'overlay'
@@ -654,13 +864,17 @@ export function TeleprompterModal({
             ref={scriptScrollRef}
             className={
               layoutMode === 'overlay'
-                ? 'bg-black/60 backdrop-blur-sm rounded-xl px-5 py-4 text-white overflow-y-auto pointer-events-auto'
-                : 'bg-black/85 backdrop-blur-sm rounded-2xl px-8 py-6 text-white overflow-y-auto pointer-events-auto h-full'
+                ? 'bg-black/60 backdrop-blur-sm rounded-xl px-5 py-4 text-white overflow-y-auto pointer-events-auto mx-auto'
+                : 'bg-black/85 backdrop-blur-sm rounded-2xl px-8 py-6 text-white overflow-y-auto pointer-events-auto h-full mx-auto'
             }
             style={{
               fontSize: (layoutMode === 'fullscreen' ? FONT_SIZE_PX_FULLSCREEN : FONT_SIZE_PX_OVERLAY)[fontSize],
+              fontFamily: FONT_FAMILY_CSS[fontFamily],
               lineHeight: 1.5,
               maxHeight: layoutMode === 'overlay' ? '38vh' : undefined,
+              // Eye-line / margin narrowing — collapses the script box width
+              // to reduce side-to-side eye sweep on long lines.
+              width: `${Math.round(marginScale * 100)}%`,
               transform: mirror ? 'scaleX(-1)' : undefined,
               // Touch-pan only on the Y axis so a horizontal swipe doesn't
               // hijack a system gesture (e.g. iOS back-swipe).
@@ -682,9 +896,9 @@ export function TeleprompterModal({
       )}
 
       {/* Bottom controls — settings row + record button */}
-      {(phase === 'ready' || phase === 'recording') && (
+      {(phase === 'ready' || phase === 'recording' || phase === 'paused') && (
         <div className="absolute bottom-0 left-0 right-0 z-10 px-4 py-6 bg-gradient-to-t from-black/80 to-transparent">
-          {phase === 'ready' && (
+          {(phase === 'ready' || phase === 'paused') && (
             <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
               {/* Font size */}
               <div className="flex items-center gap-1 bg-black/50 rounded-full px-3 py-1.5 text-white text-sm">
@@ -770,10 +984,66 @@ export function TeleprompterModal({
                   </span>
                 )}
               </div>
+              {/* Font family — sans / serif / mono. Helps users who prefer a
+                  Georgia-style serif for long reading. */}
+              <div className="flex items-center gap-1 bg-black/50 rounded-full px-3 py-1.5 text-white text-sm">
+                {(['sans', 'serif', 'mono'] as FontFamily[]).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFontFamily(f)}
+                    className={`px-2 py-0.5 rounded-full transition ${fontFamily === f ? 'bg-white text-black' : 'hover:bg-white/10'}`}
+                    style={{ fontFamily: FONT_FAMILY_CSS[f] }}
+                    title={`${f.charAt(0).toUpperCase()}${f.slice(1)} font`}
+                  >
+                    {f === 'sans' ? 'Sans' : f === 'serif' ? 'Serif' : 'Mono'}
+                  </button>
+                ))}
+              </div>
+              {/* Eye-line / margin narrowing — slider 50%–100% of script
+                  container width. Lower values reduce eye sweep on long lines. */}
+              <div className="flex items-center gap-2 bg-black/50 rounded-full px-3 py-1.5 text-white text-sm" title="Script box width — narrow it to reduce side-to-side eye movement">
+                <span className="text-[11px] text-white/70">Width</span>
+                <input
+                  type="range"
+                  min={0.5}
+                  max={1}
+                  step={0.05}
+                  value={marginScale}
+                  onChange={(e) => setMarginScale(parseFloat(e.target.value))}
+                  className="w-20 accent-white"
+                />
+                <span className="tabular-nums w-9 text-right">{Math.round(marginScale * 100)}%</span>
+              </div>
+              {/* Scroll driver — manual / pause-on-silence / VoiceTrack.
+                  Hidden when Web Speech API isn't available. */}
+              {speechAvailable && (
+                <div className="flex items-center gap-1 bg-black/50 rounded-full px-3 py-1.5 text-white text-sm">
+                  {([
+                    { v: 'manual', l: 'Manual' },
+                    { v: 'pause-on-silence', l: 'Auto-pause' },
+                    { v: 'voice-track', l: 'VoiceTrack' },
+                  ] as Array<{ v: ScrollDriver; l: string }>).map((opt) => (
+                    <button
+                      key={opt.v}
+                      type="button"
+                      onClick={() => setScrollDriver(opt.v)}
+                      className={`px-2 py-0.5 rounded-full transition ${scrollDriver === opt.v ? 'bg-white text-black' : 'hover:bg-white/10'}`}
+                      title={
+                        opt.v === 'manual' ? 'Constant WPM scroll' :
+                        opt.v === 'pause-on-silence' ? 'Pause scroll when you stop talking, resume when you speak' :
+                        'Match scroll position to what you say'
+                      }
+                    >
+                      {opt.l}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center gap-4">
             {phase === 'ready' && (
               <button
                 type="button"
@@ -786,14 +1056,46 @@ export function TeleprompterModal({
               </button>
             )}
             {phase === 'recording' && (
-              <button
-                type="button"
-                onClick={stopRecording}
-                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 active:scale-95 transition flex items-center justify-center shadow-2xl"
-                aria-label="Stop recording"
-              >
-                <span className="w-8 h-8 rounded-md bg-white" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={pauseRecording}
+                  className="w-14 h-14 rounded-full bg-white/20 hover:bg-white/30 text-white active:scale-95 transition flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/20"
+                  aria-label="Pause recording"
+                  title="Pause"
+                >
+                  <Pause className="w-6 h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={stopRecording}
+                  className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 active:scale-95 transition flex items-center justify-center shadow-2xl"
+                  aria-label="Stop recording"
+                >
+                  <span className="w-8 h-8 rounded-md bg-white" />
+                </button>
+              </>
+            )}
+            {phase === 'paused' && (
+              <>
+                <button
+                  type="button"
+                  onClick={resumeRecording}
+                  className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white active:scale-95 transition flex items-center justify-center shadow-lg"
+                  aria-label="Resume recording"
+                  title="Resume"
+                >
+                  <Play className="w-6 h-6 ml-0.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={stopRecording}
+                  className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 active:scale-95 transition flex items-center justify-center shadow-2xl"
+                  aria-label="Stop recording"
+                >
+                  <span className="w-8 h-8 rounded-md bg-white" />
+                </button>
+              </>
             )}
           </div>
         </div>
