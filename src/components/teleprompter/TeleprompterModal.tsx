@@ -460,8 +460,9 @@ export function TeleprompterModal({
   // ─── Render ────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
-      {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
+      {/* Top bar — z-30 so the close (X) button stays clickable above the
+          review screen and the camera-thumbnail in fullscreen mode (both z-20). */}
+      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
         <button
           type="button"
           onClick={onClose}
