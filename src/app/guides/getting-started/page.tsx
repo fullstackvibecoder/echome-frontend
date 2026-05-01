@@ -58,7 +58,7 @@ export default function GettingStartedGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign up for free">
-            <p>Create your EchoMe account &mdash; it&apos;s free, no credit card required. You get 2 full content generations to try everything out before deciding on a plan.</p>
+            <p>Create your EchoMe account &mdash; it&apos;s free, no credit card required. You get 5 full content generations to try everything out before deciding on a plan.</p>
           </Step>
 
           <Step number={2} title="Go to the Create page">
@@ -106,7 +106,7 @@ export default function GettingStartedGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to create your first Content Kit?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 2 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

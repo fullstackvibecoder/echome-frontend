@@ -16,7 +16,7 @@ export default function ContentCalendarGuidePage() {
     description: 'See all your generated content organized by date. Drag posts to reschedule, preview before publishing, and plan a full week from a single video.',
     url: 'https://tryechome.com/guides/content-calendar',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-05-01',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -51,32 +51,38 @@ export default function ContentCalendarGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Go to Calendar in the sidebar">
-            <p>Open the Calendar from the main sidebar navigation. The calendar view shows your content organized by date in a familiar weekly or monthly layout.</p>
+            <p>Open the Calendar from the main sidebar navigation. Toggle between <strong>Week</strong> and <strong>Month</strong> view at the top. Each scheduled item shows up as a card colored by which Content Kit it came from, with platform icons telling you exactly what&rsquo;s scheduled per platform on that day.</p>
           </Step>
 
-          <Step number={2} title="See all your content organized by date">
-            <p>Every piece of generated content &mdash; posts, clips, carousels, newsletters &mdash; appears on the calendar at its scheduled date. Get a bird&rsquo;s-eye view of your entire content pipeline.</p>
-            <Tip>The calendar automatically populates with content from your latest Content Kits. New generation = new posts on your calendar.</Tip>
+          <Step number={2} title="See everything organized by date">
+            <p>Every piece of generated content &mdash; clips, carousels, written posts, newsletters &mdash; appears at its scheduled date. Each card has small platform dots so you can see at a glance which platforms are firing on which day.</p>
+            <Tip>The calendar populates from your Content Kits the moment you schedule a post or use AI Schedule. New generation = new posts on your calendar.</Tip>
           </Step>
 
-          <Step number={3} title="Drag posts to different dates">
-            <p>Need to reschedule? Drag any post to a new date. The calendar updates instantly. Rearrange your content plan without leaving the view.</p>
+          <Step number={3} title="Drag in the week view to reschedule">
+            <p>On the week view you can drag any scheduled card to a different day &mdash; EchoMe re-times every platform in that fanout together. Great for shuffling a plan after the week starts.</p>
           </Step>
 
-          <Step number={4} title="Click any post to preview and edit">
-            <p>Click on a post to open the full preview. Edit the copy, swap images, or adjust the platform before publishing. Everything is editable right from the calendar.</p>
+          <Step number={4} title="Click any card to preview, retry, or cancel">
+            <p>Click a card to open its detail view. From there:</p>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li><strong>Cancel</strong> a scheduled or preparing post before it goes out.</li>
+              <li><strong>Retry</strong> a failed post if a platform-side issue (Meta verification, rate limit) cleared after the first attempt.</li>
+              <li><strong>Dismiss</strong> a failed or completed row to clear it from the calendar without losing the audit record.</li>
+            </ul>
+            <p className="mt-2">If the calendar header shows a red <strong>N failed</strong> counter, click it &mdash; you&rsquo;ll get a side panel listing every failed post with <strong>Dismiss all</strong> to clear stale issues in one click.</p>
           </Step>
 
           <Step number={5} title="Connect your social accounts and auto-post">
-            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, Facebook, and Threads directly. Studio and above auto-post at the scheduled time; lower tiers get email reminders with copy-ready content. More platforms coming as they&apos;re added to our posting service.</p>
-            <Tip>Use the AI Schedule button on any content kit to rollout a full week of staggered posts with one click.</Tip>
+            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, and Facebook directly. Free tier includes auto-post during your trial generations &mdash; same access as Studio. Threads piggybacks on Instagram&rsquo;s cross-post setting; X/TikTok use copy-and-open links.</p>
+            <Tip>Use the AI Schedule button on any content kit to roll out a full week of staggered posts with one click.</Tip>
           </Step>
         </section>
 
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to plan your content week?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 2 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

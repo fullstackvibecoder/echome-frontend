@@ -81,7 +81,7 @@ export default function ZoomRecordingsGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Have a Zoom recording? Try it now.</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 2 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

@@ -16,7 +16,7 @@ export default function ContentKitsGuidePage() {
     description: 'Learn how to edit posts, export captioned clips in 8 styles, and share content from your EchoMe Content Kits.',
     url: 'https://tryechome.com/guides/content-kits',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-05-01',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -76,9 +76,14 @@ export default function ContentKitsGuidePage() {
 
           <Step number={5} title="Edit any post">
             <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, Twitter, blog, and email content are all editable inline. Make it yours, then save.</p>
+            <Tip>Thumbs up the outputs that sound like you, thumbs down the ones that don&apos;t. The system trains on both &mdash; for 30 days, the patterns you flagged as off get excluded from future generations.</Tip>
           </Step>
 
-          <Step number={6} title="Share or copy">
+          <Step number={6} title="Edit captions and clip text in the clip editor">
+            <p>Open any clip and you&rsquo;ll get the full editor. Pick from 8 caption styles, drag the caption block anywhere on the video, drag a corner handle to resize the text, and click any transcript line to fix a mis-transcription &mdash; the preview jumps to that moment so you can see your edit live. The post caption that goes alongside the clip is also editable inline.</p>
+          </Step>
+
+          <Step number={7} title="Share or copy">
             <p>Copy any text to clipboard with one click. Download video clips directly. Share content to your platforms or save it in your Content Kits for later publishing.</p>
             <Tip>Use the carousel slides for LinkedIn carousels and Instagram posts &mdash; they&apos;re generated automatically from your content.</Tip>
           </Step>

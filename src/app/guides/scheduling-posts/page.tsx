@@ -25,7 +25,7 @@ export default function SchedulingPostsGuidePage() {
       'How to connect your social accounts and schedule posts to Instagram, LinkedIn, and Facebook directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
     url: 'https://tryechome.com/guides/scheduling-posts',
     datePublished: '2026-04-24',
-    dateModified: '2026-04-24',
+    dateModified: '2026-05-01',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -243,7 +243,7 @@ export default function SchedulingPostsGuidePage() {
             href="/auth/signup"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors"
           >
-            Start Free &mdash; 2 Generations
+            Start Free &mdash; 5 Generations
           </a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>

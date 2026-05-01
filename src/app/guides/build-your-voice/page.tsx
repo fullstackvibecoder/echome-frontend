@@ -16,7 +16,7 @@ export default function BuildYourVoiceGuidePage() {
     description: 'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base. The more you add, the more it sounds like you.',
     url: 'https://tryechome.com/guides/build-your-voice',
     datePublished: '2026-04-01',
-    dateModified: '2026-04-01',
+    dateModified: '2026-05-01',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -82,7 +82,11 @@ export default function BuildYourVoiceGuidePage() {
             <p>EchoMe analyzes your content across 5 dimensions: phrases you use, writing style, cleanliness, naturalness, and voice match. Your voice strength score (0&ndash;100) shows how well Echo can replicate your voice. Each source you add strengthens the profile.</p>
           </Step>
 
-          <Step number={6} title="Tips for best results">
+          <Step number={6} title="Train it as you use it (thumbs up/down)">
+            <p>Every generated piece &mdash; LinkedIn post, blog draft, carousel slide &mdash; has a thumbs widget. Thumbs up the outputs that sound like you, thumbs down the ones that don&rsquo;t. The system trains on both: for 30 days, the patterns you flagged as off get excluded from future generations. The voice gets closer to yours every week you use it.</p>
+          </Step>
+
+          <Step number={7} title="Tips for best results">
             <ul className="list-disc list-inside space-y-1">
               <li>Add at least 3 different content sources &mdash; variety helps.</li>
               <li>Emails are gold because they show how you really communicate.</li>
@@ -92,7 +96,7 @@ export default function BuildYourVoiceGuidePage() {
             </ul>
           </Step>
 
-          <Step number={7} title="Checking your voice strength">
+          <Step number={8} title="Checking your voice strength">
             <p>Go to Build Your Voice in the sidebar. Your voice strength shows as a score with a visual waveform. Ask Echo about your voice:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>&quot;How close is the match?&quot;</li>
