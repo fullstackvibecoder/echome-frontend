@@ -358,9 +358,9 @@ export default function HomeContent() {
                       'Per-voice knowledge bases',
                       'Per-voice profile context',
                       'Shared usage pool across voices',
-                      'Unlimited video processing, up to 15 clips per video',
-                      'Priority processing + Priority support',
                       'Auto-post to Instagram, LinkedIn & Facebook',
+                      'Built-in teleprompter for talking-head video',
+                      'Priority processing + Priority support',
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-accent-purple to-accent-purple flex items-center justify-center flex-shrink-0 mt-0.5">

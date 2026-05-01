@@ -100,11 +100,9 @@ export const teamsPlans: PlanData[] = [
       'Per-voice knowledge bases',
       'Per-voice profile context',
       'Shared usage pool across voices',
-      'Unlimited video processing',
-      'Up to 15 clips per video',
-      '5GB file upload limit',
-      'Priority support',
       'Auto-post to Instagram, LinkedIn & Facebook',
+      'Built-in teleprompter for talking-head video',
+      'Priority support',
     ],
   },
 ];
