@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Linkedin,
   Instagram,
@@ -20,9 +20,9 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
-import { QuickShareButton } from '@/components/share-buttons';
 import { FeedbackThumbs } from '@/components/feedback-thumbs';
 import { TeleprompterModal } from '@/components/teleprompter/TeleprompterModal';
+import { WrittenPostActions } from './WrittenPostActions';
 
 interface PlatformConfig {
   key: string;
@@ -56,6 +56,18 @@ const FIELD_MAP: Record<string, string> = {
 // Tabs that get the "Record with Teleprompter" CTA. Limited to script-shaped
 // content; LinkedIn/IG/Twitter/Email don't read aloud as cleanly.
 const TELEPROMPTER_PLATFORMS = new Set(['video-script', 'youtube', 'tiktok']);
+
+// Platform-key map: InlineWrittenContent uses 'twitter', WrittenPostActions
+// uses 'x' (Outstand's API key for the same platform). Map the keys we hand
+// to WrittenPostActions. Missing entries (email, video-script) are platforms
+// without API/link posting — they show a calendar Schedule button instead.
+const POST_ACTION_PLATFORM_MAP: Record<string, string> = {
+  linkedin: 'linkedin',
+  instagram: 'instagram',
+  twitter: 'x',
+  tiktok: 'tiktok',
+  youtube: 'youtube',
+};
 
 interface InlineWrittenContentProps {
   contentKitId: string;
@@ -100,6 +112,24 @@ export function InlineWrittenContent({
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   const [teleprompterOpen, setTeleprompterOpen] = useState(false);
+
+  // Per-platform connection state for WrittenPostActions. Fetched once on
+  // mount; if the user connects an account in another tab, they'll need to
+  // refresh to see the Post Now button enable. That's fine — connections
+  // change rarely and the alternative (subscribing to changes) is overkill.
+  const [connectedPlatforms, setConnectedPlatforms] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    let cancelled = false;
+    api.socialPosting.listAccounts()
+      .then((res) => {
+        if (cancelled) return;
+        if (res.success && res.data?.accounts) {
+          setConnectedPlatforms(new Set(res.data.accounts.map(a => a.platform)));
+        }
+      })
+      .catch(() => { /* silent — Post Now will just be disabled */ });
+    return () => { cancelled = true; };
+  }, []);
 
   if (availablePlatforms.length === 0) return null;
 
@@ -241,24 +271,31 @@ export function InlineWrittenContent({
                 Record with Teleprompter
               </button>
             )}
-            {onSchedule && (
+            {/* Post Now + Schedule for postable platforms. WrittenPostActions
+                handles the api/link mode split internally (auto-post for
+                connected IG/LI/FB/Threads; copy-and-open compose for X/
+                TikTok/YouTube). Tier fallback: when canAutoPost is false,
+                the Schedule button becomes a calendar reminder.
+                For platforms not in the map (email, video-script), fall
+                back to a plain Schedule button that opens the kit-level
+                calendar reminder flow. */}
+            {POST_ACTION_PLATFORM_MAP[activePlatform] ? (
+              <WrittenPostActions
+                platform={POST_ACTION_PLATFORM_MAP[activePlatform]}
+                contentKitId={contentKitId}
+                text={activeText}
+                connected={connectedPlatforms.has(POST_ACTION_PLATFORM_MAP[activePlatform])}
+              />
+            ) : onSchedule ? (
               <button
                 onClick={() => onSchedule(activePlatform)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:text-foreground transition-colors"
-                title="Add a calendar reminder to post this manually"
+                title="Add a calendar reminder for this content"
               >
                 <CalendarClock className="w-3 h-3" />
-                Set Reminder
+                Schedule
               </button>
-            )}
-            {/* Direct-to-platform post button. Opens the platform's web composer
-                pre-filled with the current text (Twitter/X, LinkedIn, Threads,
-                Facebook) or copies to clipboard for platforms without a text
-                intent URL (Instagram, TikTok). */}
-            <QuickShareButton
-              content={activeText}
-              platformKey={activePlatform}
-            />
+            ) : null}
           </div>
         </div>
 
