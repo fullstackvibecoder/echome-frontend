@@ -2120,6 +2120,10 @@ export const api = {
       isSelected?: boolean;
       captionStyle?: string;
       captionPosition?: 'bottom' | 'center' | 'top';
+      /** Free-form drag-to-position (0-1 normalized; references caption block CENTER). */
+      captionPositionXY?: { x: number; y: number };
+      /** Per-segment text overrides for typo fixes. Index is into the clip-scoped segment array. */
+      segmentOverrides?: Array<{ index: number; text: string }>;
       startTime?: number;
       endTime?: number;
     }) => {
@@ -4436,7 +4440,16 @@ export interface VideoClip {
   faceCropApplied?: boolean; // Whether GPT-4 Vision face detection was used
   faceCropCenter?: { x: number; y: number }; // Face center coordinates (0-1)
   captionStyle: 'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word';
-  captionConfig?: Record<string, unknown>;
+  /**
+   * Free-form caption editing config. JSONB; extends without DB migration.
+   *   positionXY: { x, y }  — drag-to-position; takes precedence over captionPosition enum
+   *   segmentOverrides     — per-segment typo fixes; applied at burn time, falls back to original
+   */
+  captionConfig?: {
+    positionXY?: { x: number; y: number };
+    segmentOverrides?: Array<{ index: number; text: string }>;
+    [key: string]: unknown;
+  };
   hasCaptions: boolean;
   captionsBurnedIn: boolean;
   captionUrl?: string;

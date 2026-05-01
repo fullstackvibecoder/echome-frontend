@@ -34,6 +34,12 @@ interface VideoPlayerProps {
   captionsEnabled?: boolean;
   viewMode?: 'single' | 'split';
   captionPosition?: 'bottom' | 'center' | 'top';
+  /** Free-form drag-to-position. Takes precedence over captionPosition + viewMode default. */
+  captionPositionXY?: { x: number; y: number };
+  /** Enable drag-to-reposition on the caption overlay (used in editor preview). */
+  captionDraggable?: boolean;
+  /** Called when the user releases a drag — emits new positionXY. */
+  onCaptionPositionChange?: (pos: { x: number; y: number }) => void;
 }
 
 export function VideoPlayer({
@@ -55,8 +61,12 @@ export function VideoPlayer({
   captionsEnabled = false,
   viewMode = 'single',
   captionPosition,
+  captionPositionXY,
+  captionDraggable,
+  onCaptionPositionChange,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(initialMuted);
   const [currentTime, setCurrentTime] = useState(0);
@@ -189,6 +199,7 @@ export function VideoPlayer({
 
   return (
     <div
+      ref={playerContainerRef}
       className={`relative bg-black rounded-lg overflow-hidden group ${aspectClasses[aspectRatio]} ${className}`}
       onClick={togglePlay}
     >
@@ -213,6 +224,10 @@ export function VideoPlayer({
           style={captionStyle}
           viewMode={viewMode}
           position={captionPosition}
+          positionXY={captionPositionXY}
+          draggable={captionDraggable}
+          onPositionChange={onCaptionPositionChange}
+          containerRef={playerContainerRef}
         />
       )}
 
