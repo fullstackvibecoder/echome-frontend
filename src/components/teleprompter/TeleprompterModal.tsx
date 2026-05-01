@@ -24,7 +24,7 @@
  * scrolling script in the top third so the user's eyes stay near the lens.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, RotateCcw, Download, Upload, Loader2, Type, Gauge, FlipHorizontal2, Camera, AlertCircle, Maximize2, Minimize2 } from 'lucide-react';
+import { X, RotateCcw, Download, Upload, Loader2, Type, Gauge, FlipHorizontal2, Camera, AlertCircle, Maximize2, Minimize2, ZoomIn, ChevronUp, ChevronDown } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
 
@@ -127,6 +127,12 @@ export function TeleprompterModal({
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('overlay');
   const [aspectRatio, setAspectRatio] = useState<'9:16' | '16:9'>('9:16');
+  const [zoom, setZoom] = useState(1);
+  // Hardware zoom probe — `track.getCapabilities().zoom` exists on Android
+  // Chrome (back camera) and some Safari iOS builds. When unsupported we
+  // fall back to a CSS transform on the preview only — that does NOT
+  // reflect in the recording, which we surface in the slider label.
+  const [zoomCapability, setZoomCapability] = useState<{ min: number; max: number; step: number } | null>(null);
 
   // wpm mirror — the rAF scroll loop reads this on every frame so changing
   // the slider during recording updates speed live (without re-binding the
@@ -171,6 +177,26 @@ export function TeleprompterModal({
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+      }
+      // Probe zoom capability of the freshly-acquired video track. Cast
+      // through unknown because MediaTrackCapabilities.zoom isn't in
+      // every TS lib version. When present, the slider drives a real
+      // hardware zoom that's reflected in the recording. When absent, we
+      // fall back to a CSS transform on the preview only.
+      const track = stream.getVideoTracks()[0];
+      const caps = (track && typeof track.getCapabilities === 'function')
+        ? (track.getCapabilities() as unknown as { zoom?: { min: number; max: number; step?: number } })
+        : {};
+      if (caps.zoom && typeof caps.zoom.min === 'number' && typeof caps.zoom.max === 'number') {
+        setZoomCapability({
+          min: caps.zoom.min,
+          max: caps.zoom.max,
+          step: caps.zoom.step ?? 0.1,
+        });
+        setZoom(caps.zoom.min);
+      } else {
+        setZoomCapability(null);
+        setZoom(1);
       }
       setPhase('ready');
       setErrorMessage(null);
@@ -248,6 +274,18 @@ export function TeleprompterModal({
     startStream();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode, aspectRatio]);
+
+  // Apply the zoom slider to the live track when hardware zoom is supported.
+  // No-op when zoomCapability is null — the CSS-fallback transform is wired
+  // directly on the <video> element below.
+  useEffect(() => {
+    if (!streamRef.current || !zoomCapability) return;
+    const track = streamRef.current.getVideoTracks()[0];
+    if (!track) return;
+    track
+      .applyConstraints({ advanced: [{ zoom } as MediaTrackConstraintSet & { zoom: number }] })
+      .catch(() => {/* device declined; visual transform still applies */});
+  }, [zoom, zoomCapability]);
 
   // Re-attach the live stream to the <video> element whenever it re-mounts.
   // The conditional renderer swaps the element on phase change (review →
@@ -456,6 +494,28 @@ export function TeleprompterModal({
   if (!open) return null;
 
   const estimatedSeconds = estimatedSecondsAtStart;
+  // Combine mirror flip + CSS-fallback zoom into one transform string.
+  // Hardware zoom (when supported) is applied to the track itself, so the
+  // CSS scale stays at 1 in that path — otherwise CSS scale handles the
+  // visual zoom on the preview only.
+  const cssScale = zoomCapability ? 1 : zoom;
+  const videoTransform = [
+    mirror ? 'scaleX(-1)' : '',
+    cssScale !== 1 ? `scale(${cssScale})` : '',
+  ].filter(Boolean).join(' ') || undefined;
+
+  // Manual nudge for the script container — used by the up/down arrow
+  // buttons so the user can correct drift without changing WPM. The auto-
+  // scroll loop reads/writes scrollTop on every frame, so this nudge just
+  // changes "where the loop continues from" — no special pause needed.
+  const nudgeScroll = (direction: 'up' | 'down') => {
+    const el = scriptScrollRef.current;
+    if (!el) return;
+    // Roughly one line of text at current font size (line-height 1.5).
+    const sizeMap = layoutMode === 'fullscreen' ? FONT_SIZE_PX_FULLSCREEN : FONT_SIZE_PX_OVERLAY;
+    const lineHeight = sizeMap[fontSize] * 1.5;
+    el.scrollTop += direction === 'up' ? -lineHeight * 2 : lineHeight * 2;
+  };
 
   // ─── Render ────────────────────────────────────────────────────────
   return (
@@ -509,7 +569,7 @@ export function TeleprompterModal({
           playsInline
           muted
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ transform: mirror ? 'scaleX(-1)' : undefined }}
+          style={{ transform: videoTransform }}
         />
       )}
       {phase !== 'review' && layoutMode === 'fullscreen' && (
@@ -519,7 +579,7 @@ export function TeleprompterModal({
           playsInline
           muted
           className="absolute top-16 right-3 w-[120px] h-[180px] rounded-lg object-cover border-2 border-white/30 shadow-2xl z-20 bg-black"
-          style={{ transform: mirror ? 'scaleX(-1)' : undefined }}
+          style={{ transform: videoTransform }}
         />
       )}
 
@@ -552,6 +612,32 @@ export function TeleprompterModal({
         </div>
       )}
 
+      {/* Manual nudge — up/down arrows on the right edge of the screen.
+          Lets the user correct script drift during recording without
+          touching WPM. Hidden during permission/review/error phases. */}
+      {(phase === 'ready' || phase === 'countdown' || phase === 'recording') && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => nudgeScroll('up')}
+            className="w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm border border-white/15 active:scale-95 transition"
+            aria-label="Scroll script up"
+            title="Scroll script up"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => nudgeScroll('down')}
+            className="w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm border border-white/15 active:scale-95 transition"
+            aria-label="Scroll script down"
+            title="Scroll script down"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
       {/* Scrolling script overlay.
           - overlay mode: top-third banner, smaller font, eyes-near-lens
           - fullscreen mode: dominates the viewport (~70vh), bigger font for
@@ -568,14 +654,17 @@ export function TeleprompterModal({
             ref={scriptScrollRef}
             className={
               layoutMode === 'overlay'
-                ? 'bg-black/60 backdrop-blur-sm rounded-xl px-5 py-4 text-white overflow-hidden'
-                : 'bg-black/85 backdrop-blur-sm rounded-2xl px-8 py-6 text-white overflow-hidden h-full'
+                ? 'bg-black/60 backdrop-blur-sm rounded-xl px-5 py-4 text-white overflow-y-auto pointer-events-auto'
+                : 'bg-black/85 backdrop-blur-sm rounded-2xl px-8 py-6 text-white overflow-y-auto pointer-events-auto h-full'
             }
             style={{
               fontSize: (layoutMode === 'fullscreen' ? FONT_SIZE_PX_FULLSCREEN : FONT_SIZE_PX_OVERLAY)[fontSize],
               lineHeight: 1.5,
               maxHeight: layoutMode === 'overlay' ? '38vh' : undefined,
               transform: mirror ? 'scaleX(-1)' : undefined,
+              // Touch-pan only on the Y axis so a horizontal swipe doesn't
+              // hijack a system gesture (e.g. iOS back-swipe).
+              touchAction: 'pan-y',
             }}
           >
             <div style={{ paddingBottom: '50vh' }} className="whitespace-pre-wrap">
@@ -658,6 +747,29 @@ export function TeleprompterModal({
               >
                 {aspectRatio}
               </button>
+              {/* Zoom slider — hardware zoom when supported, CSS preview-only
+                  fallback otherwise. Different bounds depending on path so
+                  CSS zoom doesn't pixelate too aggressively. */}
+              <div className="flex items-center gap-2 bg-black/50 rounded-full px-3 py-1.5 text-white text-sm">
+                <ZoomIn className="w-4 h-4" />
+                <input
+                  type="range"
+                  min={zoomCapability ? zoomCapability.min : 1}
+                  max={zoomCapability ? zoomCapability.max : 2.5}
+                  step={zoomCapability ? zoomCapability.step : 0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-24 accent-white"
+                />
+                <span className="tabular-nums w-12 text-right">
+                  {zoom.toFixed(1)}×
+                </span>
+                {!zoomCapability && zoom !== 1 && (
+                  <span className="text-[10px] text-amber-300 ml-1" title="This camera doesn't expose hardware zoom; the slider only affects the preview, not your recording.">
+                    preview
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
