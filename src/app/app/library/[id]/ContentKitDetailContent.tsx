@@ -837,7 +837,7 @@ export default function ContentKitDetailContent() {
           onClose={() => { setClipEditorOpen(false); setActiveClipForEditor(null); }}
           clip={activeClipForEditor}
           uploadId={detail?.clips?.[0]?.videoUploadId || (detail as any)?.uploadId || id}
-          onExport={(clipId) => {
+          onExport={(clipId, viewMode) => {
             // Capture the clip object before we close the modal — once
             // setActiveClipForEditor(null) fires, we lose the reference.
             const clipForExport = activeClipForEditor && activeClipForEditor.id === clipId
@@ -846,11 +846,12 @@ export default function ContentKitDetailContent() {
             setClipEditorOpen(false);
             setActiveClipForEditor(null);
             if (clipForExport) {
-              // Single view-mode is the default download from the modal —
-              // split-screen only triggers via the dedicated split download
-              // path. handleDownloadClip both opens the progress modal AND
-              // fires the POST that starts the encoder.
-              void handleDownloadClip(clipForExport, 'single');
+              // viewMode comes straight from the modal's own toggle state,
+              // so a user who picked Split Screen gets the split-screen
+              // export and not the default single-speaker render.
+              // handleDownloadClip both opens the progress modal AND fires
+              // the POST that starts the encoder.
+              void handleDownloadClip(clipForExport, viewMode);
             } else {
               // Fallback: at least open the progress modal so the user sees
               // SOME indication. Without the clip object we can't POST, so
