@@ -7,12 +7,22 @@
  * poster images, and overlay controls.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { formatDuration } from '@/lib/content-kit-utils';
 import { CaptionOverlay } from './CaptionOverlay';
 import { CaptionSegment, CaptionStylePreset } from '@/lib/caption-parser';
 
 type AspectRatio = '16:9' | '9:16' | '1:1';
+
+/**
+ * Imperative handle exposed via forwardRef so parents (e.g., ClipEditorModal)
+ * can drive the underlying <video> element without owning it. Used by the
+ * transcript editor to jump preview playback to a clicked segment's timestamp.
+ */
+export interface VideoPlayerHandle {
+  /** Seek to time in seconds. Optionally start playback. Clamps to [0, duration]. */
+  seekTo: (time: number, opts?: { play?: boolean }) => void;
+}
 
 interface VideoPlayerProps {
   src: string;
@@ -36,13 +46,17 @@ interface VideoPlayerProps {
   captionPosition?: 'bottom' | 'center' | 'top';
   /** Free-form drag-to-position. Takes precedence over captionPosition + viewMode default. */
   captionPositionXY?: { x: number; y: number };
+  /** User-resized caption box scale (1.0 default). */
+  captionSizeScale?: number;
   /** Enable drag-to-reposition on the caption overlay (used in editor preview). */
   captionDraggable?: boolean;
   /** Called when the user releases a drag — emits new positionXY. */
   onCaptionPositionChange?: (pos: { x: number; y: number }) => void;
+  /** Called as the user resizes the caption box via the corner handle. */
+  onCaptionSizeChange?: (scale: number) => void;
 }
 
-export function VideoPlayer({
+export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(function VideoPlayer({
   src,
   poster,
   aspectRatio = '9:16',
@@ -62,9 +76,11 @@ export function VideoPlayer({
   viewMode = 'single',
   captionPosition,
   captionPositionXY,
+  captionSizeScale,
   captionDraggable,
   onCaptionPositionChange,
-}: VideoPlayerProps) {
+  onCaptionSizeChange,
+}, ref) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -195,6 +211,25 @@ export function VideoPlayer({
     setCurrentTime(time);
   };
 
+  // Expose imperative seekTo so parent components (e.g., transcript editor)
+  // can jump playback to a specific segment without re-rendering the player.
+  useImperativeHandle(ref, () => ({
+    seekTo: (time: number, opts?: { play?: boolean }) => {
+      const video = videoRef.current;
+      if (!video) return;
+      const dur = Number.isFinite(video.duration) ? video.duration : duration ?? 0;
+      const clamped = Math.max(0, Math.min(dur || time, time));
+      video.currentTime = clamped;
+      setCurrentTime(clamped);
+      // Force the caption overlay to re-evaluate at the new time even if paused.
+      lastCaptionTimeRef.current = clamped;
+      setCaptionTime(clamped);
+      if (opts?.play) {
+        video.play().catch(() => { /* autoplay block — silently ignore */ });
+      }
+    },
+  }), [duration]);
+
   const progress = videoDuration > 0 ? (currentTime / videoDuration) * 100 : 0;
 
   return (
@@ -225,8 +260,10 @@ export function VideoPlayer({
           viewMode={viewMode}
           position={captionPosition}
           positionXY={captionPositionXY}
+          sizeScale={captionSizeScale}
           draggable={captionDraggable}
           onPositionChange={onCaptionPositionChange}
+          onSizeChange={onCaptionSizeChange}
           containerRef={playerContainerRef}
         />
       )}
@@ -315,6 +352,6 @@ export function VideoPlayer({
       )}
     </div>
   );
-}
+});
 
 export default VideoPlayer;

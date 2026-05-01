@@ -2122,8 +2122,12 @@ export const api = {
       captionPosition?: 'bottom' | 'center' | 'top';
       /** Free-form drag-to-position (0-1 normalized; references caption block CENTER). */
       captionPositionXY?: { x: number; y: number };
+      /** Caption box scale factor (1.0 = default, 0.4–2.0 sane range). Scales font size + box. */
+      captionSizeScale?: number;
       /** Per-segment text overrides for typo fixes. Index is into the clip-scoped segment array. */
       segmentOverrides?: Array<{ index: number; text: string }>;
+      /** Editable post caption — the text to paste alongside this clip when posting to socials. */
+      suggestedCaption?: string;
       startTime?: number;
       endTime?: number;
     }) => {
@@ -4447,6 +4451,8 @@ export interface VideoClip {
    */
   captionConfig?: {
     positionXY?: { x: number; y: number };
+    /** Caption box scale (font + padding multiplier). 1.0 default. */
+    sizeScale?: number;
     segmentOverrides?: Array<{ index: number; text: string }>;
     [key: string]: unknown;
   };

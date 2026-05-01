@@ -11,7 +11,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { X, Download, Film, RotateCcw } from 'lucide-react';
 import { api, type VideoClip } from '@/lib/api-client';
 import { formatDuration } from '@/lib/content-kit-utils';
-import { VideoPlayer } from './VideoPlayer';
+import { VideoPlayer, type VideoPlayerHandle } from './VideoPlayer';
 import { CaptionStylePopover } from './CaptionStylePopover';
 import type { CaptionStylePreset } from '@/lib/caption-parser';
 import type { CaptionSegment } from '@/lib/caption-parser';
@@ -93,6 +93,11 @@ export default function ClipEditorModal({
   const [captionPositionXY, setCaptionPositionXY] = useState<{ x: number; y: number } | undefined>(
     clip.captionConfig?.positionXY,
   );
+  // User-resized caption box scale. undefined → preset default (1.0). Persists
+  // independently from positionXY so a user can resize without first dragging.
+  const [captionSizeScale, setCaptionSizeScale] = useState<number | undefined>(
+    typeof clip.captionConfig?.sizeScale === 'number' ? clip.captionConfig.sizeScale : undefined,
+  );
   // Per-segment text overrides (typo fixes). Map keyed by filtered-segment index.
   const [segmentEdits, setSegmentEdits] = useState<Map<number, string>>(() => {
     const initial = new Map<number, string>();
@@ -101,8 +106,19 @@ export default function ClipEditorModal({
   });
   const [viewMode, setViewMode] = useState<'single' | 'split'>('single');
   const [saving, setSaving] = useState(false);
+  // Editable post caption (text accompanying the clip on social platforms).
+  // Local mirror of clip.suggestedCaption — empty string means "user cleared
+  // the per-clip caption" so the kit-level fallback (instagramCaption prop)
+  // shows through at post-time. Persisted via debounced PATCH.
+  const [postCaption, setPostCaption] = useState<string>(clip.suggestedCaption ?? '');
+  const [savingCaption, setSavingCaption] = useState(false);
 
   const backdropRef = useRef<HTMLDivElement>(null);
+  // Imperative handle on the video player so we can jump to a transcript
+  // segment's start time when the user focuses/clicks that segment's input.
+  // This keeps the live caption preview in sync with what the user is editing
+  // — they see their typo fix on-frame instead of having to scrub manually.
+  const playerRef = useRef<VideoPlayerHandle>(null);
   // Refs for the per-segment <input> elements so focus survives a re-render
   // when the user types fast (overlay updates → re-render → naive React would
   // unmount-and-remount the input). Storing keyed by index lets us key the
@@ -127,23 +143,51 @@ export default function ClipEditorModal({
   const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
   const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
 
-  // Debounced save for transcript edits + drag positions. Style change still
-  // saves immediately (it's a discrete pick). Edits to text/position fire
-  // many state updates; debounce so we PATCH once after the user pauses.
+  // Debounced save for transcript edits, drag positions, and box resize.
+  // Style change still saves immediately (it's a discrete pick). Edits to
+  // text/position/size fire many state updates; debounce so we PATCH once
+  // after the user pauses.
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const persistEdits = useCallback((overrides: Array<{ index: number; text: string }>, posXY: { x: number; y: number } | undefined) => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(async () => {
-      setSaving(true);
+  const persistEdits = useCallback(
+    (
+      overrides: Array<{ index: number; text: string }>,
+      posXY: { x: number; y: number } | undefined,
+      scale: number | undefined,
+    ) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(async () => {
+        setSaving(true);
+        try {
+          const payload: Parameters<typeof api.clips.updateClip>[2] = {};
+          payload.segmentOverrides = overrides;
+          if (posXY) payload.captionPositionXY = posXY;
+          if (scale !== undefined) payload.captionSizeScale = scale;
+          await api.clips.updateClip(uploadId, clip.id, payload);
+        } catch (err) {
+          console.error('Failed to save caption edits', err);
+        } finally {
+          setSaving(false);
+        }
+      }, 600);
+    },
+    [uploadId, clip.id],
+  );
+
+  // Debounced post-caption save — separate timer from segmentEdits so a fast
+  // typist editing the post caption doesn't queue up segment-edit saves and
+  // vice versa. Same 600ms cadence for consistency.
+  const captionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handlePostCaptionChange = useCallback((next: string) => {
+    setPostCaption(next);
+    if (captionSaveTimerRef.current) clearTimeout(captionSaveTimerRef.current);
+    captionSaveTimerRef.current = setTimeout(async () => {
+      setSavingCaption(true);
       try {
-        const payload: Parameters<typeof api.clips.updateClip>[2] = {};
-        payload.segmentOverrides = overrides;
-        if (posXY) payload.captionPositionXY = posXY;
-        await api.clips.updateClip(uploadId, clip.id, payload);
+        await api.clips.updateClip(uploadId, clip.id, { suggestedCaption: next });
       } catch (err) {
-        console.error('Failed to save caption edits', err);
+        console.error('Failed to save post caption', err);
       } finally {
-        setSaving(false);
+        setSavingCaption(false);
       }
     }, 600);
   }, [uploadId, clip.id]);
@@ -167,8 +211,18 @@ export default function ClipEditorModal({
   const handlePositionDragChange = useCallback((pos: { x: number; y: number }) => {
     setCaptionPositionXY(pos);
     const overrides = Array.from(segmentEdits.entries()).map(([index, text]) => ({ index, text }));
-    persistEdits(overrides, pos);
-  }, [segmentEdits, persistEdits]);
+    persistEdits(overrides, pos, captionSizeScale);
+  }, [segmentEdits, persistEdits, captionSizeScale]);
+
+  // Resize is independent from drag — never touches positionXY. Movement of
+  // the corner handle in CaptionOverlay calls this with the new clamped
+  // scale. Same debounced persist path; size becomes one more key in the
+  // caption_config JSONB merge.
+  const handleSizeChange = useCallback((scale: number) => {
+    setCaptionSizeScale(scale);
+    const overrides = Array.from(segmentEdits.entries()).map(([index, text]) => ({ index, text }));
+    persistEdits(overrides, captionPositionXY, scale);
+  }, [segmentEdits, persistEdits, captionPositionXY]);
 
   const handleSegmentTextChange = useCallback((index: number, text: string) => {
     setSegmentEdits(prev => {
@@ -179,10 +233,10 @@ export default function ClipEditorModal({
       if (text === original) next.delete(index);
       else next.set(index, text);
       const overrides = Array.from(next.entries()).map(([i, t]) => ({ index: i, text: t }));
-      persistEdits(overrides, captionPositionXY);
+      persistEdits(overrides, captionPositionXY, captionSizeScale);
       return next;
     });
-  }, [baseSegments, captionPositionXY, persistEdits]);
+  }, [baseSegments, captionPositionXY, captionSizeScale, persistEdits]);
 
   const handleResetPosition = useCallback(() => {
     setCaptionPositionXY(undefined);
@@ -191,13 +245,22 @@ export default function ClipEditorModal({
     // caption_config.positionXY untouched on undefined; if we want to clear
     // it explicitly we'd need a separate endpoint. For v1, leaving the prior
     // position in caption_config is fine — the editor state shows the reset.
-    persistEdits(overrides, undefined);
-  }, [segmentEdits, persistEdits]);
+    persistEdits(overrides, undefined, captionSizeScale);
+  }, [segmentEdits, captionSizeScale, persistEdits]);
 
-  // Flush pending debounced save on unmount so a quick close doesn't lose edits.
+  const handleResetSize = useCallback(() => {
+    setCaptionSizeScale(undefined);
+    const overrides = Array.from(segmentEdits.entries()).map(([index, text]) => ({ index, text }));
+    // Sending sizeScale=1 explicitly clears the override at burn time —
+    // buildPositionPrefix omits \fscx when sizeScale is 1.
+    persistEdits(overrides, captionPositionXY, 1);
+  }, [segmentEdits, captionPositionXY, persistEdits]);
+
+  // Flush pending debounced saves on unmount so a quick close doesn't lose edits.
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (captionSaveTimerRef.current) clearTimeout(captionSaveTimerRef.current);
     };
   }, []);
 
@@ -231,6 +294,7 @@ export default function ClipEditorModal({
             <div className="w-full max-w-[280px]">
               {videoSrc ? (
                 <VideoPlayer
+                  ref={playerRef}
                   key={`${viewMode}-${videoSrc}`}
                   src={videoSrc}
                   poster={viewMode === 'split' ? undefined : clip.thumbnailUrl}
@@ -241,8 +305,10 @@ export default function ClipEditorModal({
                   captionStyle={captionStyle}
                   captionsEnabled={showCaptionOverlay}
                   captionPositionXY={captionPositionXY}
+                  captionSizeScale={captionSizeScale}
                   captionDraggable={showCaptionOverlay}
                   onCaptionPositionChange={handlePositionDragChange}
+                  onCaptionSizeChange={handleSizeChange}
                 />
               ) : (
                 <div className={`flex items-center justify-center bg-black/40 rounded-lg ${
@@ -348,9 +414,21 @@ export default function ClipEditorModal({
                       Reset position
                     </button>
                   )}
+                  {captionSizeScale !== undefined && captionSizeScale !== 1 && (
+                    <button
+                      type="button"
+                      onClick={handleResetSize}
+                      className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      title="Reset caption to default size"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      Reset size
+                    </button>
+                  )}
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Drag the caption on the video to reposition. Edit text below to fix typos.
+                  Drag the caption to move it. Drag the corner handle to resize.
+                  Edit text below to fix typos — clicking a line jumps the preview to that moment.
                 </p>
               </div>
             )}
@@ -383,9 +461,14 @@ export default function ClipEditorModal({
                     const original = baseSegments[i]?.text ?? '';
                     return (
                       <div key={i} className="flex gap-2 text-xs items-center">
-                        <span className="text-muted-foreground font-mono shrink-0 w-12 text-right tabular-nums">
+                        <button
+                          type="button"
+                          onClick={() => playerRef.current?.seekTo(seg.start, { play: true })}
+                          className="text-muted-foreground hover:text-foreground font-mono shrink-0 w-12 text-right tabular-nums cursor-pointer transition-colors"
+                          title="Jump to this moment in the preview"
+                        >
                           {formatDuration(seg.start)}
-                        </span>
+                        </button>
                         {clip.captionsBurnedIn ? (
                           <span className="text-foreground/80 flex-1">{seg.text}</span>
                         ) : (
@@ -393,6 +476,8 @@ export default function ClipEditorModal({
                             type="text"
                             value={seg.text}
                             onChange={(e) => handleSegmentTextChange(i, e.target.value)}
+                            onFocus={() => playerRef.current?.seekTo(seg.start)}
+                            onClick={() => playerRef.current?.seekTo(seg.start)}
                             className={`flex-1 bg-transparent border-b border-transparent hover:border-border focus:border-primary-interactive focus:outline-none text-foreground/90 transition-colors px-1 py-0.5 ${
                               isEdited ? 'text-accent' : ''
                             }`}
@@ -415,9 +500,16 @@ export default function ClipEditorModal({
             )}
 
             {/* Post caption — the text to paste into Instagram/LinkedIn/etc
-                when uploading this clip. Falls back to kit-level IG caption
-                if this clip's per-clip caption is missing (rare, older data). */}
-            <PostCaptionBlock caption={clip.suggestedCaption} fallback={instagramCaption} />
+                when uploading this clip. Editable: typing persists to
+                video_clips.suggested_caption (debounced 600ms). Falls back
+                to the kit-level IG caption when the per-clip value is empty,
+                so unedited clips still inherit the kit default. */}
+            <PostCaptionBlock
+              caption={postCaption}
+              fallback={instagramCaption}
+              onChange={handlePostCaptionChange}
+              saving={savingCaption}
+            />
 
             {/* Export + Post Section */}
             <div className="pt-2 mt-auto space-y-3">
@@ -438,7 +530,7 @@ export default function ClipEditorModal({
               <VisualPostActions
                 contentKitId={undefined}
                 sourceOutputId={`clip:${clip.id}`}
-                caption={clip.suggestedCaption || instagramCaption || ''}
+                caption={postCaption.trim() || instagramCaption || ''}
                 mediaUrls={videoSrc ? [videoSrc] : []}
                 outputKind="clip"
                 finalizationRecipe={{

@@ -13,7 +13,7 @@
  * burned-in export path uses ASS \an5\pos(x,y) — same anchor convention.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import {
   CaptionSegment,
   CaptionStylePreset,
@@ -40,6 +40,13 @@ interface CaptionOverlayProps {
    */
   positionXY?: { x: number; y: number };
   /**
+   * Caption box size multiplier. 1.0 = preset default. Applied as a font-size
+   * + padding multiplier in preview, and as ASS \fscx/\fscy in the burn path.
+   * Drag and resize are independent gestures: dragging the body moves x/y;
+   * dragging the bottom-right handle adjusts sizeScale and never mutates x/y.
+   */
+  sizeScale?: number;
+  /**
    * Enable drag-to-reposition mode. When true + onPositionChange supplied,
    * the caption block accepts pointer drags and emits new positionXY values.
    * The container element used for coordinate normalization is `containerRef`
@@ -48,6 +55,12 @@ interface CaptionOverlayProps {
    */
   draggable?: boolean;
   onPositionChange?: (pos: { x: number; y: number }) => void;
+  /**
+   * Called when the user resizes the caption block via the corner handle.
+   * Emits a size multiplier clamped to [0.4, 2.0]. Only wired when draggable
+   * is true; resize without drag-mode would be confusing.
+   */
+  onSizeChange?: (scale: number) => void;
   containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -155,17 +168,36 @@ export function CaptionOverlay({
   viewMode,
   position,
   positionXY,
+  sizeScale,
   draggable,
   onPositionChange,
+  onSizeChange,
   containerRef,
 }: CaptionOverlayProps) {
   const activeSegment = getActiveSegment(segments, currentTime, 0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const dragStartRef = useRef<{
     pointerX: number;
     pointerY: number;
     startPos: { x: number; y: number };
   } | null>(null);
+  const resizeStartRef = useRef<{
+    pointerX: number;
+    pointerY: number;
+    startScale: number;
+    /** Captured pixel size of the box at gesture start — used so a 1px drag
+     *  delta corresponds to ~1px size change at any starting scale. */
+    startBoxDim: number;
+  } | null>(null);
+
+  // Pixel-locked width during interaction. While dragging or resizing, we
+  // pin the inner block to its measured width so the box doesn't visually
+  // reflow as the active segment text changes (the bug user flagged from
+  // the carousel implementation: "moving also resizes it"). Released on
+  // gesture end so subsequent segments size to fit naturally.
+  const innerBlockRef = useRef<HTMLDivElement | null>(null);
+  const [lockedWidthPx, setLockedWidthPx] = useState<number | null>(null);
 
   // Drag handlers — only wired when draggable mode is on. Mirrors the
   // pattern from DraggableTextOverlay (carousel work) so coordinate math
@@ -173,9 +205,15 @@ export function CaptionOverlay({
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (!draggable || !onPositionChange) return;
+      // Resize handle has its own pointerdown that stops propagation; if we
+      // reach this handler, the user is dragging the body (move-only).
       e.preventDefault();
       e.stopPropagation();
       e.currentTarget.setPointerCapture(e.pointerId);
+      // Capture current rendered width so the box doesn't reflow mid-drag.
+      if (innerBlockRef.current) {
+        setLockedWidthPx(innerBlockRef.current.offsetWidth);
+      }
       setIsDragging(true);
       const startXY = positionXY ?? { x: 0.5, y: 0.85 };
       dragStartRef.current = {
@@ -203,6 +241,65 @@ export function CaptionOverlay({
   const handlePointerUp = useCallback(() => {
     setIsDragging(false);
     dragStartRef.current = null;
+    setLockedWidthPx(null);
+  }, []);
+
+  // Resize handlers — pointer-down on the corner handle. Independent from
+  // drag: this never reads or writes positionXY. Movement is interpreted as
+  // a size delta relative to the box's diagonal, so the user gets a uniform
+  // "pull to grow / push to shrink" feel regardless of starting size.
+  const handleResizePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!draggable || !onSizeChange) return;
+      e.preventDefault();
+      // Critical: stop propagation so the body's pointerdown handler doesn't
+      // also fire and start a drag. Without this, the user resizing would
+      // also pan the box.
+      e.stopPropagation();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      if (innerBlockRef.current) {
+        setLockedWidthPx(innerBlockRef.current.offsetWidth);
+      }
+      setIsResizing(true);
+      const box = innerBlockRef.current;
+      const dim = box ? Math.max(box.offsetWidth, box.offsetHeight) : 200;
+      resizeStartRef.current = {
+        pointerX: e.clientX,
+        pointerY: e.clientY,
+        startScale: sizeScale ?? 1,
+        startBoxDim: dim,
+      };
+    },
+    [draggable, onSizeChange, sizeScale],
+  );
+
+  const handleResizePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!resizeStartRef.current || !onSizeChange) return;
+      const start = resizeStartRef.current;
+      // Use diagonal pointer travel as scale delta. Bottom-right corner
+      // grows as the user drags down-right (matches the visual cue).
+      const deltaX = e.clientX - start.pointerX;
+      const deltaY = e.clientY - start.pointerY;
+      const diag = (deltaX + deltaY) / 2; // average so vertical-only also works
+      const ratio = (start.startBoxDim + diag) / start.startBoxDim;
+      const next = Math.max(0.4, Math.min(2.0, start.startScale * ratio));
+      onSizeChange(next);
+    },
+    [onSizeChange],
+  );
+
+  const handleResizePointerUp = useCallback(() => {
+    setIsResizing(false);
+    resizeStartRef.current = null;
+    setLockedWidthPx(null);
+  }, []);
+
+  // Fail-safe: if the component unmounts mid-gesture, clear lock state.
+  useEffect(() => () => {
+    setLockedWidthPx(null);
+    setIsDragging(false);
+    setIsResizing(false);
   }, []);
 
   if (!isVisible || !activeSegment) return null;
@@ -234,6 +331,19 @@ export function CaptionOverlay({
     ? getVisibleText(activeSegment.text, currentTime, activeSegment)
     : '';
 
+  // Effective scale: 1.0 default; user resize multiplies. Applied to font-size
+  // so text REFITS into the resized box rather than just stretching the
+  // container. Also nudges padding so the box visually scales with the text.
+  const effectiveScale = sizeScale ?? 1;
+  const baseFontSize = parseFloat(config.fontSize) || 18;
+  const scaledFontSize = `${baseFontSize * effectiveScale}px`;
+  const basePadding = config.padding || '4px 8px';
+  // Multiply numeric pixel values in padding by the scale. Keeps spacing
+  // proportional so the box looks like a coherent unit at any size.
+  const scaledPadding = basePadding.replace(/(\d+(?:\.\d+)?)(px|em|rem)/g, (_m, n, u) => `${parseFloat(n) * effectiveScale}${u}`);
+
+  const isInteracting = isDragging || isResizing;
+
   return (
     <div
       className={wrapperClasses}
@@ -243,20 +353,29 @@ export function CaptionOverlay({
       onPointerUp={draggable ? handlePointerUp : undefined}
     >
       <div
-        className="text-center max-w-[85%] leading-snug"
+        ref={innerBlockRef}
+        className="text-center leading-snug relative"
         style={{
           fontFamily: config.fontFamily,
-          fontSize: config.fontSize,
+          fontSize: scaledFontSize,
           fontWeight: config.fontWeight,
           color: config.color,
           textShadow: config.textShadow,
           backgroundColor: config.backgroundColor,
-          padding: config.padding || '4px 8px',
+          padding: scaledPadding,
           borderRadius: config.borderRadius,
+          // Width handling:
+          //  - During drag/resize: pin to measured pixel width so the box
+          //    can't visually reflow on segment changes (fixes "moving also
+          //    resizes" carousel bug).
+          //  - Otherwise: 85% max so long segments don't run off-screen.
+          ...(lockedWidthPx
+            ? { width: `${lockedWidthPx}px`, maxWidth: 'none' as const }
+            : { maxWidth: '85%' as const }),
           // Draggable affordance: dashed outline + grab cursor when edit mode
           ...(draggable ? {
-            cursor: isDragging ? 'grabbing' : 'grab',
-            outline: isDragging ? '2px dashed rgba(0,212,255,0.7)' : '1px dashed rgba(255,255,255,0.4)',
+            cursor: isResizing ? 'nwse-resize' : isDragging ? 'grabbing' : 'grab',
+            outline: isInteracting ? '2px dashed rgba(0,212,255,0.7)' : '1px dashed rgba(255,255,255,0.4)',
             outlineOffset: '4px',
             userSelect: 'none' as const,
             touchAction: 'none' as const,
@@ -272,6 +391,33 @@ export function CaptionOverlay({
           />
         ) : (
           <span>{displayText}</span>
+        )}
+        {draggable && onSizeChange && (
+          // Bottom-right resize handle. Stops pointerdown propagation so it
+          // never triggers the body's drag handler. Visible only in editor
+          // mode; pointer-events isolated from the rest of the block.
+          <div
+            onPointerDown={handleResizePointerDown}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            title="Drag to resize captions"
+            style={{
+              position: 'absolute',
+              bottom: '-6px',
+              right: '-6px',
+              width: '14px',
+              height: '14px',
+              borderRadius: '3px',
+              background: isResizing ? 'rgba(0,212,255,0.9)' : 'rgba(255,255,255,0.85)',
+              border: '1.5px solid rgba(0,0,0,0.6)',
+              cursor: 'nwse-resize',
+              touchAction: 'none',
+              zIndex: 1,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+            }}
+            aria-label="Resize captions"
+            role="slider"
+          />
         )}
       </div>
     </div>
