@@ -836,9 +836,26 @@ export default function ContentKitDetailContent() {
           clip={activeClipForEditor}
           uploadId={detail?.clips?.[0]?.videoUploadId || (detail as any)?.uploadId || id}
           onExport={(clipId) => {
+            // Capture the clip object before we close the modal — once
+            // setActiveClipForEditor(null) fires, we lose the reference.
+            const clipForExport = activeClipForEditor && activeClipForEditor.id === clipId
+              ? activeClipForEditor
+              : null;
             setClipEditorOpen(false);
             setActiveClipForEditor(null);
-            setExportingClipId(clipId);
+            if (clipForExport) {
+              // Single view-mode is the default download from the modal —
+              // split-screen only triggers via the dedicated split download
+              // path. handleDownloadClip both opens the progress modal AND
+              // fires the POST that starts the encoder.
+              void handleDownloadClip(clipForExport, 'single');
+            } else {
+              // Fallback: at least open the progress modal so the user sees
+              // SOME indication. Without the clip object we can't POST, so
+              // surface an error.
+              setExportingClipId(clipId);
+              showErrorToast('Could not start export — please retry from the clip card.');
+            }
           }}
           contentKitId={contentKitId || id}
           instagramCaption={detail?.contentKit?.contentInstagram}
