@@ -231,8 +231,13 @@ export function CaptionOverlay({
       const rect = containerRef.current.getBoundingClientRect();
       const deltaX = e.clientX - dragStartRef.current.pointerX;
       const deltaY = e.clientY - dragStartRef.current.pointerY;
-      const newX = Math.min(0.95, Math.max(0.05, dragStartRef.current.startPos.x + deltaX / rect.width));
-      const newY = Math.min(0.95, Math.max(0.05, dragStartRef.current.startPos.y + deltaY / rect.height));
+      // Clamp at 0.15/0.85 (not 0.05/0.95). The burn-time auto-margin
+      // logic guarantees text wraps inside the available space, but
+      // positions in the outer 5-15% strip force wrap windows < ~250px
+      // wide where text degenerates into 1-2 word lines. The tighter
+      // range keeps rendered output legible at any user-chosen position.
+      const newX = Math.min(0.85, Math.max(0.15, dragStartRef.current.startPos.x + deltaX / rect.width));
+      const newY = Math.min(0.85, Math.max(0.15, dragStartRef.current.startPos.y + deltaY / rect.height));
       onPositionChange({ x: newX, y: newY });
     },
     [containerRef, onPositionChange],

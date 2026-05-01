@@ -163,7 +163,7 @@ export function useSubscription(): UseSubscriptionReturn {
 
   // Free generation tracking
   const freeGenerationsUsed = subscription?.freeGenerationsUsed || 0;
-  const freeGenerationsLimit = subscription?.freeGenerationsLimit || 3;
+  const freeGenerationsLimit = subscription?.freeGenerationsLimit || 5;
   const freeGenerationsRemaining = Math.max(0, freeGenerationsLimit - freeGenerationsUsed);
   const isFreeUser = !isSubscribed && !isTrial;
   const canGenerate = isSubscribed || isTrial || freeGenerationsRemaining > 0;

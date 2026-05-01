@@ -20,7 +20,7 @@ const PUBLIC_FAQS: FAQItem[] = [
   },
   {
     question: 'How do free generations work?',
-    answer: '3 free generations, no credit card. Each generation produces content across all platforms at once - Instagram, LinkedIn, Blog, Email, TikTok, and Video Script.',
+    answer: '5 free generations, no credit card. Each generation produces content across all platforms at once - Instagram, LinkedIn, Blog, Email, TikTok, and Video Script.',
   },
   {
     question: 'What can I add to my Knowledge Base?',
@@ -36,7 +36,7 @@ const PUBLIC_FAQS: FAQItem[] = [
   },
   {
     question: 'How much does it cost?',
-    answer: '$37/mo (Echo), $87/mo (Echo Studio), or $47/voice/mo (Echo Teams, 2-voice min). 3 free generations to try it. Annual billing saves 17%.',
+    answer: '$37/mo (Echo), $87/mo (Echo Studio), or $47/voice/mo (Echo Teams, 2-voice min). 5 free generations to try it. Annual billing saves 17%.',
   },
 ];
 

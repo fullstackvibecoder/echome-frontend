@@ -546,7 +546,7 @@ function BillingContentInner() {
               <h3 className="text-lg font-bold">Free Plan</h3>
               <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current</span>
             </div>
-            <p className="text-sm text-muted-foreground">3 free generations, basic voice matching, 1 platform per generation</p>
+            <p className="text-sm text-muted-foreground">5 free generations, basic voice matching, 1 platform per generation</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-foreground">$0</p>

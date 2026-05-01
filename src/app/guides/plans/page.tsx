@@ -51,7 +51,7 @@ export default function PlansGuidePage() {
         {/* Plan sections */}
         <section className="space-y-8 mb-10">
           <PlanSection title="Free Tier">
-            <p>3 lifetime generations, no credit card required. You get the full pro experience for those 3 generations &mdash; clips, captions, posts, newsletters, blog posts, voice matching, and <strong>auto-posting to Instagram, LinkedIn &amp; Facebook</strong>. Try everything before you commit.</p>
+            <p>5 lifetime generations, no credit card required. You get the full pro experience for those 5 generations &mdash; clips, captions, posts, newsletters, blog posts, voice matching, and <strong>auto-posting to Instagram, LinkedIn &amp; Facebook</strong>. Try everything before you commit.</p>
           </PlanSection>
 
           <PlanSection title="Echo &mdash; $37/mo">

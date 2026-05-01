@@ -10,7 +10,7 @@ const DISMISS_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * UpgradeBanner - Shows a persistent CTA for free users who have exhausted
- * their 3 free generations. Renders nothing for paid/trial users or
+ * their 5 free generations. Renders nothing for paid/trial users or
  * free users who still have generations remaining. Can be dismissed for 24h.
  */
 export function UpgradeBanner() {
@@ -44,7 +44,7 @@ export function UpgradeBanner() {
       </button>
       <div className="pr-6">
         <p className="text-sm font-semibold text-foreground">
-          Your 3 free generations are used up
+          Your 5 free generations are used up
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
           Subscribe to keep generating from your knowledge base.

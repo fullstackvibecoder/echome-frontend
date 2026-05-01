@@ -130,7 +130,7 @@ export default function HomeContent() {
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Plan</span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
-              Start with 3 free generations - no credit card required.
+              Start with 5 free generations - no credit card required.
               <br />
               <span className="text-base">Then choose a plan that works with your creative rhythm.</span>
             </p>
@@ -185,7 +185,7 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      '3 free generations',
+                      '5 free generations',
                       'Voice matching from your content',
                       '1 platform per generation',
                       'Standard templates',

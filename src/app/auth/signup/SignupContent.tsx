@@ -50,7 +50,7 @@ function SignupForm() {
       <ul className="space-y-2 mb-8 text-sm text-muted-foreground">
         <li className="flex items-center gap-2">
           <span className="text-primary">✓</span>
-          3 free generations, no credit card
+          5 free generations, no credit card
         </li>
         <li className="flex items-center gap-2">
           <span className="text-primary">✓</span>

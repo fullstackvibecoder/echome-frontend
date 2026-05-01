@@ -1026,7 +1026,7 @@ export default function SettingsContent() {
                       {usage?.isUnlimited
                         ? 'Unlimited generations'
                         : usage?.tier === 'free'
-                        ? '3 free generations (lifetime)'
+                        ? '5 free generations (lifetime)'
                         : `${usage?.generationsLimit || 10} generations per month`}
                     </p>
                   </div>

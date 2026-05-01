@@ -339,7 +339,7 @@ export default function RealtorsPage() {
             />
             <FAQ
               q="How much does it cost?"
-              a="EchoMe starts at $37/mo with 3 free generations to try (no credit card). Compare that to template tools charging $99/mo for fill-in-the-blank posts, or a social media manager charging $1,000+/mo who still won't capture your voice."
+              a="EchoMe starts at $37/mo with 5 free generations to try (no credit card). Compare that to template tools charging $99/mo for fill-in-the-blank posts, or a social media manager charging $1,000+/mo who still won't capture your voice."
             />
             <FAQ
               q="I already have a social media person. Why would I need this?"
@@ -363,7 +363,7 @@ export default function RealtorsPage() {
             </span>
           </h2>
           <p className="text-lg text-white/60 mb-8 max-w-xl mx-auto">
-            3 free generations. No credit card. See if EchoMe gets your voice right.
+            5 free generations. No credit card. See if EchoMe gets your voice right.
           </p>
           <a
             href="/auth/signup"

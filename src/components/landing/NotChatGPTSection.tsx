@@ -97,7 +97,7 @@ export function NotChatGPTSection() {
             <p className="text-lg text-white/60 mb-8">
               Upload your work. It handles the rest.
             </p>
-            <SectionCTA headline="" buttonText="Start Free" trust="3 free generations. No credit card." />
+            <SectionCTA headline="" buttonText="Start Free" trust="5 free generations. No credit card." />
           </div>
         </div>
       </section>

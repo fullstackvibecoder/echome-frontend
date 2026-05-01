@@ -523,7 +523,7 @@ export default function CompressVideoToolPage() {
             Try EchoMe Free
             <ArrowRight className="w-5 h-5" />
           </a>
-          <p className="text-xs text-white/30 mt-4">3 free generations. No credit card required.</p>
+          <p className="text-xs text-white/30 mt-4">5 free generations. No credit card required.</p>
         </div>
       </section>
 

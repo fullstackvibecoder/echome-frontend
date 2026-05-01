@@ -24,7 +24,7 @@ export interface PlanData {
 // - EchoTeams Duo $129 retained in code only for the one grandfathered
 //   customer (not in this list anymore)
 // - NEW: Echo Teams ($47/voice/mo, 2-voice min) replaces all Teams plans
-// - Free tier bumped 2 → 3 generations
+// - Free tier bumped 3 → 5 generations on 2026-05-01
 export const individualPlans: PlanData[] = [
   {
     name: 'Free',
@@ -35,11 +35,11 @@ export const individualPlans: PlanData[] = [
     buttonText: 'Start Free',
     accentColor: 'primary',
     features: [
-      '3 free generations',
+      '5 free generations',
       'Voice matching from your content',
       '1 platform per generation',
       'Standard templates',
-      'Full auto-posting to Instagram, LinkedIn & Facebook during your 3 generations',
+      'Full auto-posting to Instagram, LinkedIn & Facebook during your 5 generations',
     ],
   },
   {
