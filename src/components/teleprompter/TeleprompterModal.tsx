@@ -38,6 +38,11 @@ interface TeleprompterModalProps {
   contentKitTitle?: string;
   /** Optional KB to ingest the recording into. Defaults to user's primary. */
   knowledgeBaseId?: string;
+  /** Called after a successful upload so the parent kit detail can refresh
+   *  its clips list. Note: backend processing is async (5-30s for short
+   *  recordings) so the parent should plan to refetch a few times rather
+   *  than rely on this single signal. */
+  onRecordingUploaded?: () => void;
 }
 
 type FontSize = 'S' | 'M' | 'L';
@@ -149,6 +154,7 @@ export function TeleprompterModal({
   contentKitId,
   contentKitTitle,
   knowledgeBaseId,
+  onRecordingUploaded,
 }: TeleprompterModalProps) {
   // ─── State ──────────────────────────────────────────────────────────
   const [phase, setPhase] = useState<Phase>('permission');
@@ -675,12 +681,19 @@ export function TeleprompterModal({
           ? "We'll add this to your kit as a new clip and start a fresh content kit from it in the background."
           : "We'll add this to your kit as a new clip — caption it and schedule from your library in a minute.",
       );
+      // Tell the parent to refetch immediately, then again at intervals
+      // so the new clip surfaces as soon as the backend's transcribe +
+      // insert finishes (typically 5-30s for short recordings).
+      onRecordingUploaded?.();
+      window.setTimeout(() => onRecordingUploaded?.(), 10_000);
+      window.setTimeout(() => onRecordingUploaded?.(), 30_000);
+      window.setTimeout(() => onRecordingUploaded?.(), 60_000);
       onClose();
     } catch (err) {
       showErrorToast(err, 'uploading recording');
       setUploadProgress(null);
     }
-  }, [recordedBlob, recordedMimeType, contentKitId, contentKitTitle, knowledgeBaseId, recordedSeconds, onClose]);
+  }, [recordedBlob, recordedMimeType, contentKitId, contentKitTitle, knowledgeBaseId, recordedSeconds, onClose, onRecordingUploaded]);
 
   // Wire the recorded blob into the review video element once it's set.
   useEffect(() => {

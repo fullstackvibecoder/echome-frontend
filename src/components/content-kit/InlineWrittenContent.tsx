@@ -308,6 +308,7 @@ export function InlineWrittenContent({
         contentKitId={contentKitId}
         contentKitTitle={contentKitTitle}
         knowledgeBaseId={knowledgeBaseId}
+        onRecordingUploaded={onContentUpdate}
       />
     </div>
   );
