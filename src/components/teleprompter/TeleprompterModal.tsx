@@ -662,20 +662,25 @@ export function TeleprompterModal({
         {
           knowledgeBaseId,
           title: contentKitTitle ? `Teleprompter: ${contentKitTitle}` : undefined,
+          parentContentKitId: contentKitId,
+          recordingDurationSeconds: Math.round(recordedSeconds),
         },
         (pct) => setUploadProgress(pct),
       );
       setUploadProgress(100);
+      const longEnoughForDerivedKit = recordedSeconds >= 180;
       showSuccessToast(
         'Uploaded to Echo',
-        'Your recording is processing — Echo will turn it into clips, captions, and posts in a minute.',
+        longEnoughForDerivedKit
+          ? "We'll add this to your kit as a new clip and start a fresh content kit from it in the background."
+          : "We'll add this to your kit as a new clip — caption it and schedule from your library in a minute.",
       );
       onClose();
     } catch (err) {
       showErrorToast(err, 'uploading recording');
       setUploadProgress(null);
     }
-  }, [recordedBlob, recordedMimeType, contentKitId, contentKitTitle, knowledgeBaseId, onClose]);
+  }, [recordedBlob, recordedMimeType, contentKitId, contentKitTitle, knowledgeBaseId, recordedSeconds, onClose]);
 
   // Wire the recorded blob into the review video element once it's set.
   useEffect(() => {
@@ -1113,6 +1118,17 @@ export function TeleprompterModal({
           <div className="text-white/70 text-sm mt-3">
             {formatDuration(recordedSeconds)} · {(recordedBlob.size / (1024 * 1024)).toFixed(1)} MB
           </div>
+          {/* Honest expectation copy — under 3 min stays a single clip; over
+              3 min also kicks off a fresh content kit derived from the
+              recording (clip-finder may still return a single full clip if
+              the audio doesn't have enough natural cut points). */}
+          {contentKitId && (
+            <p className="text-white/60 text-xs mt-2 max-w-md text-center">
+              {recordedSeconds >= 180
+                ? 'Uploading will add this as a clip on your kit AND start a fresh content kit from the recording.'
+                : 'Uploading will add this as a clip on your kit. Recordings under 3 min stay as a single clip — caption and schedule from your library.'}
+            </p>
+          )}
           {uploadProgress !== null && uploadProgress < 100 && (
             <div className="w-full max-w-sm mt-4">
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">

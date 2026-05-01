@@ -1884,6 +1884,13 @@ export const api = {
       options?: {
         knowledgeBaseId?: string;
         title?: string;
+        /** When set, the resulting "whole-recording" clip is attached to this
+         *  content kit so it appears in that kit's clips list. Used by the
+         *  teleprompter so a recording reads against an existing kit's script. */
+        parentContentKitId?: string;
+        /** Recording duration in seconds. Backend uses this to decide whether
+         *  to skip clip-finder (<180s → just one clip, no derived kit). */
+        recordingDurationSeconds?: number;
       },
       onProgress?: (progress: number) => void
     ) => {
@@ -1904,6 +1911,8 @@ export const api = {
         fileSize: file.size,
         knowledgeBaseId: options?.knowledgeBaseId,
         title: options?.title,
+        parentContentKitId: options?.parentContentKitId,
+        recordingDurationSeconds: options?.recordingDurationSeconds,
       });
 
       if (!initResponse.data.success || !initResponse.data.data) {
