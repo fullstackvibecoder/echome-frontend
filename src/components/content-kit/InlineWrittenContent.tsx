@@ -15,12 +15,14 @@ import {
   Check,
   CalendarClock,
   Clapperboard,
+  Video,
   type LucideIcon,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
 import { QuickShareButton } from '@/components/share-buttons';
 import { FeedbackThumbs } from '@/components/feedback-thumbs';
+import { TeleprompterModal } from '@/components/teleprompter/TeleprompterModal';
 
 interface PlatformConfig {
   key: string;
@@ -51,8 +53,16 @@ const FIELD_MAP: Record<string, string> = {
   'video-script': 'contentVideoScript',
 };
 
+// Tabs that get the "Record with Teleprompter" CTA. Limited to script-shaped
+// content; LinkedIn/IG/Twitter/Email don't read aloud as cleanly.
+const TELEPROMPTER_PLATFORMS = new Set(['video-script', 'youtube', 'tiktok']);
+
 interface InlineWrittenContentProps {
   contentKitId: string;
+  /** Optional kit title — used as the recording filename when the user records via teleprompter. */
+  contentKitTitle?: string;
+  /** Optional KB id — when set, teleprompter recordings get ingested as voice samples. */
+  knowledgeBaseId?: string;
   content: Record<string, string | undefined>;
   /** Per-platform generated_content.id, used as feedback target. Missing platforms hide the thumbs. */
   platformIds?: Record<string, string | undefined>;
@@ -62,6 +72,8 @@ interface InlineWrittenContentProps {
 
 export function InlineWrittenContent({
   contentKitId,
+  contentKitTitle,
+  knowledgeBaseId,
   content,
   platformIds,
   onContentUpdate,
@@ -87,6 +99,7 @@ export function InlineWrittenContent({
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [teleprompterOpen, setTeleprompterOpen] = useState(false);
 
   if (availablePlatforms.length === 0) return null;
 
@@ -218,6 +231,16 @@ export function InlineWrittenContent({
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
+            {TELEPROMPTER_PLATFORMS.has(activePlatform) && activeText.trim() && (
+              <button
+                onClick={() => setTeleprompterOpen(true)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors"
+                title="Read this script with a built-in teleprompter and record with your camera"
+              >
+                <Video className="w-3 h-3" />
+                Record with Teleprompter
+              </button>
+            )}
             {onSchedule && (
               <button
                 onClick={() => onSchedule(activePlatform)}
@@ -240,6 +263,15 @@ export function InlineWrittenContent({
         </div>
 
       </div>
+
+      <TeleprompterModal
+        open={teleprompterOpen}
+        onClose={() => setTeleprompterOpen(false)}
+        script={editedTexts[activePlatform] || ''}
+        contentKitId={contentKitId}
+        contentKitTitle={contentKitTitle}
+        knowledgeBaseId={knowledgeBaseId}
+      />
     </div>
   );
 }

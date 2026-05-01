@@ -678,6 +678,8 @@ export default function ContentKitDetailContent() {
                 {detail?.contentKit?.contentLinkedin && (
                   <InlineWrittenContent
                     contentKitId={detail.contentKit.id}
+                    contentKitTitle={detail.contentKit.title}
+                    knowledgeBaseId={detail.contentKit.knowledgeBaseId}
                     content={{
                       linkedin: detail.contentKit.contentLinkedin,
                       instagram: detail.contentKit.contentInstagram,
