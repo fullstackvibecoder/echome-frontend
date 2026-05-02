@@ -49,25 +49,25 @@ export function SiteFooter() {
           <div>
             <h4 className="font-extrabold text-lg mb-6 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Product</h4>
             <ul className="space-y-3 text-white/70 font-light">
-              <li><a href="#how" className="hover:text-primary transition-colors duration-200">How It Works</a></li>
-              <li><a href="#pricing" className="hover:text-primary transition-colors duration-200">Pricing</a></li>
-              <li><a href="/developers" className="hover:text-primary transition-colors duration-200">API</a></li>
-              <li><a href="/community" className="hover:text-primary transition-colors duration-200">Community</a></li>
-              <li><a href="/guides" className="hover:text-primary transition-colors duration-200">Guides</a></li>
-              <li><a href="/tools/compress-video" className="hover:text-primary transition-colors duration-200">Free Video Compressor</a></li>
+              <li><a href="#how" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">How It Works</a></li>
+              <li><a href="#pricing" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Pricing</a></li>
+              <li><a href="/developers" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">API</a></li>
+              <li><a href="/community" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Community</a></li>
+              <li><a href="/guides" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Guides</a></li>
+              <li><a href="/tools/compress-video" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Free Video Compressor</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-extrabold text-lg mb-6 bg-gradient-to-r from-accent-purple to-accent-pink bg-clip-text text-transparent">Company</h4>
             <ul className="space-y-3 text-white/70 font-light">
-              <li><a href="/auth/login" className="hover:text-accent-purple transition-colors duration-200">Sign In</a></li>
-              <li><a href="/auth/signup" className="hover:text-accent-purple transition-colors duration-200">Sign Up</a></li>
-              <li><a href="/affiliates" className="hover:text-accent-purple transition-colors duration-200">Affiliates</a></li>
-              <li><a href="/support" className="hover:text-accent-purple transition-colors duration-200">Support</a></li>
-              <li><a href="/privacy" className="hover:text-accent-purple transition-colors duration-200">Privacy Policy</a></li>
-              <li><a href="/terms" className="hover:text-accent-purple transition-colors duration-200">Terms of Service</a></li>
-              <li><a href="/data-deletion" className="hover:text-accent-purple transition-colors duration-200">Data Deletion</a></li>
+              <li><a href="/auth/login" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Sign In</a></li>
+              <li><a href="/auth/signup" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Sign Up</a></li>
+              <li><a href="/affiliates" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Affiliates</a></li>
+              <li><a href="/support" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Support</a></li>
+              <li><a href="/privacy" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Privacy Policy</a></li>
+              <li><a href="/terms" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Terms of Service</a></li>
+              <li><a href="/data-deletion" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Data Deletion</a></li>
             </ul>
           </div>
         </div>

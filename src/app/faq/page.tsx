@@ -142,7 +142,7 @@ export default function FAQPage() {
         <div className="mb-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors"
+            className="inline-flex items-center gap-2 py-2 -my-1 text-sm text-muted-foreground hover:text-accent transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to EchoMe
@@ -206,7 +206,7 @@ export default function FAQPage() {
           </p>
           <a
             href="mailto:support@tryechome.com"
-            className="text-accent font-semibold hover:underline"
+            className="inline-block py-2 -my-1 text-accent font-semibold hover:underline"
           >
             Contact support@tryechome.com
           </a>

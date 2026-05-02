@@ -62,7 +62,7 @@ export default function HomeContent() {
               </a>
             </div>
 
-            <button aria-label="Toggle navigation menu" aria-expanded={isMenuOpen} className={`md:hidden p-2.5 -m-2.5 ${scrolled ? 'text-foreground' : 'text-white'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <button aria-label="Toggle navigation menu" aria-expanded={isMenuOpen} className={`md:hidden p-3 -m-3 ${scrolled ? 'text-foreground' : 'text-white'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
