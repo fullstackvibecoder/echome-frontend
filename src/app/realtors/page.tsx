@@ -83,7 +83,7 @@ export default function RealtorsPage() {
 
           <div className="flex flex-wrap justify-center gap-4">
             <a href="/auth/signup" className="px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white rounded-full font-bold text-lg hover:scale-105 transition-all shadow-lg shadow-primary/30 flex items-center gap-3">
-              Try Free &mdash; 2 Generations
+              Try Free &mdash; 5 Content Kits
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>
