@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Wand2, FolderOpen, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { showErrorToast } from '@/lib/toast';
 import { StatusSection } from '@/components/StatusSection';
 import { ReelProjectCard } from '@/components/reels/ReelProjectCard';
 import ReelEditorModal from '@/components/reels/ReelEditorModal';
@@ -36,7 +37,11 @@ export default function ReelsContent() {
       const res = await api.reels.listProjects({ limit: 50 });
       setProjects(res.data || []);
     } catch (err) {
+      // Surface to the user — silent console.error here (paired with the
+      // create silent-fail below) is what hid the createProjectSchema
+      // contract mismatch in production for ~5 days.
       console.error('Failed to load reel projects', err);
+      showErrorToast(err, 'loading your reels');
     } finally {
       setLoading(false);
     }
@@ -64,6 +69,7 @@ export default function ReelsContent() {
       }
     } catch (err) {
       console.error('Failed to create reel', err);
+      showErrorToast(err, 'creating your reel');
     } finally {
       setCreating(false);
     }
@@ -76,6 +82,7 @@ export default function ReelsContent() {
       await api.reels.deleteProject(projectId);
     } catch (err) {
       console.error('Failed to delete reel', err);
+      showErrorToast(err, 'deleting your reel');
       fetchProjects(); // Revert on failure
     }
   };
