@@ -24,6 +24,8 @@ interface UnifiedCreateInputProps {
   disabled?: boolean;
   zoomPasswordValue: string;
   onZoomPasswordChange: (value: string) => void;
+  /** Pre-seeds the text box (used by /app?topic=... prefill from Mind-Reader chip). */
+  initialText?: string;
 }
 
 const OUTPUT_ITEMS = [
@@ -69,8 +71,9 @@ export default function UnifiedCreateInput({
   disabled,
   zoomPasswordValue,
   onZoomPasswordChange,
+  initialText,
 }: UnifiedCreateInputProps) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText ?? '');
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);

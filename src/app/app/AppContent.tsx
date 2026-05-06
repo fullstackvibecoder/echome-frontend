@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
 import { useGenerationProgress } from '@/hooks/useGenerationProgress';
@@ -70,6 +70,11 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
 
 export default function AppContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // ?topic=… set by the Mind-Reader chip's "Generate" button — pre-fills the
+  // input so the user can review/edit before submitting. Read once on mount;
+  // subsequent navigation away clears it.
+  const initialTopic = searchParams.get('topic') ?? undefined;
   const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
@@ -437,6 +442,7 @@ export default function AppContent() {
               generating={false}
               isQuotaError={isQuotaError}
               activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
+              initialInput={initialTopic}
             />
           </div>
 

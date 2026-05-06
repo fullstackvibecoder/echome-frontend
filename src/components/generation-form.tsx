@@ -362,6 +362,8 @@ interface FirstGenerationProps {
   }) => void;
   generating: boolean;
   isQuotaError?: boolean;
+  /** Pre-seeds the topic input (used by /app?topic=... prefill from Mind-Reader chip). */
+  initialInput?: string;
 }
 
 const ALL_PLATFORMS: Platform[] = [
@@ -383,8 +385,9 @@ export function GenerationForm({
   generating,
   isQuotaError: quotaErrorFromParent,
   activeVoice,
+  initialInput,
 }: FirstGenerationProps) {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(initialInput ?? '');
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -1262,6 +1265,7 @@ export function GenerationForm({
           disabled={generating || videoProcessing}
           zoomPasswordValue={zoomPasswordUpfront}
           onZoomPasswordChange={setZoomPasswordUpfront}
+          initialText={initialInput}
         />
         {uploadError && (
           <p className="text-destructive text-sm mt-4 text-center max-w-md">{uploadError}</p>

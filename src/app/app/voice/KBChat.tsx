@@ -1,9 +1,34 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Sparkles, X, Send, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Sparkles, X, Send, Loader2, Wand2, ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api-client';
+
+const ANGLES_MARKER = '<<ANGLES_JSON>>';
+
+/**
+ * Split an assistant message at the ANGLES_JSON marker. Returns the prose
+ * portion (for chat display) and the parsed angles array (for IdeaCards),
+ * or null if no marker / unparseable.
+ */
+function splitMindReaderMessage(content: string): { display: string; angles: string[] | null } {
+  const idx = content.indexOf(ANGLES_MARKER);
+  if (idx === -1) return { display: content, angles: null };
+  const display = content.slice(0, idx).trimEnd();
+  const jsonPart = content.slice(idx + ANGLES_MARKER.length).trim();
+  try {
+    // Strip markdown code fences if model wrapped the JSON in ```json ... ```
+    const cleaned = jsonPart.replace(/^```(?:json)?\s*/, '').replace(/\s*```\s*$/, '');
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed) && parsed.every((a) => typeof a === 'string')) {
+      return { display, angles: parsed };
+    }
+  } catch {
+    // JSON malformed — show prose only, skip cards
+  }
+  return { display, angles: null };
+}
 
 const VOICE_PROMPTS = [
   { label: 'How well do you know me?', prompt: 'Based on everything in my knowledge base, summarize my voice, my key topics, and where the gaps are.' },
@@ -29,7 +54,16 @@ Hard rules:
 - If you find fewer than 3 angles that fit the criteria, return only what fits. Do not pad with generic ideas.
 - Avoid industry-trend commentary unless it's anchored in something I've personally said or experienced.
 - Do not invent a SignatureMethod or process name — use only names I've already used in my KB.
-- If the KB is too thin for any personal-story angle, tell me honestly and suggest what to record next (a 30-second voice note about a recent client situation, a closing, or a moment that taught me something).`;
+- If the KB is too thin for any personal-story angle, tell me honestly and suggest what to record next (a 30-second voice note about a recent client situation, a closing, or a moment that taught me something).
+
+After your prose response, on a new line, output exactly this marker:
+<<ANGLES_JSON>>
+
+Then, on the next line, output a JSON array containing just the angle strings (one per item, each ≤ 200 chars). The angles should be self-contained — phrased so I could paste any one of them into a "Topic" box and start drafting a post from it. Output [] if you have no angles. Output the JSON even if you returned only 1 or 2 angles.
+
+Example:
+<<ANGLES_JSON>>
+["The buyer who almost backed out — what changed her mind", "Why I price under market on the first listing call", "The closing-week call that taught me to stop apologizing"]`;
 
 interface KBChatProps {
   kbId: string | null;
@@ -43,6 +77,7 @@ export default function KBChat({ kbId, hasContent }: KBChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoFiredRef = useRef(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -132,18 +167,62 @@ export default function KBChat({ kbId, hasContent }: KBChatProps) {
 
       {/* Messages */}
       {messages.length > 0 && (
-        <div ref={scrollRef} className="max-h-[300px] overflow-y-auto space-y-3">
-          {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed ${
-                m.role === 'user'
-                  ? 'bg-accent text-white rounded-br-md'
-                  : 'bg-bg-secondary text-text-primary rounded-bl-md'
-              }`}>
-                {m.content}
+        <div ref={scrollRef} className="max-h-[400px] overflow-y-auto space-y-3">
+          {messages.map((m, i) => {
+            // Suppress the auto-fired Mind-Reader rule wall — it's not user-typed,
+            // it's a system instruction. Show a friendlier "Echo is finding ideas…"
+            // status line instead.
+            const isAutoFired = m.role === 'user' && m.content === MIND_READER_PROMPT;
+            if (isAutoFired) {
+              return (
+                <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground italic px-1">
+                  <Wand2 className="w-3 h-3" />
+                  <span>Pulling angles from your knowledge base…</span>
+                </div>
+              );
+            }
+
+            const parsed = m.role === 'assistant'
+              ? splitMindReaderMessage(m.content)
+              : { display: m.content, angles: null };
+
+            return (
+              <div key={i} className="space-y-2">
+                <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed ${
+                    m.role === 'user'
+                      ? 'bg-accent text-white rounded-br-md'
+                      : 'bg-bg-secondary text-text-primary rounded-bl-md'
+                  }`}>
+                    {parsed.display}
+                  </div>
+                </div>
+                {parsed.angles && parsed.angles.length > 0 && (
+                  <div className="ml-1 space-y-2 pt-1">
+                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                      Generate from one of these angles
+                    </p>
+                    {parsed.angles.map((angle, j) => (
+                      <button
+                        key={j}
+                        onClick={() => router.push(`/app?topic=${encodeURIComponent(angle)}`)}
+                        className="group w-full text-left flex items-start gap-3 p-3 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/[0.02] transition-colors"
+                      >
+                        <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors flex-shrink-0">
+                          <Wand2 className="w-3.5 h-3.5 text-primary" />
+                        </div>
+                        <span className="flex-1 text-sm text-foreground leading-snug">{angle}</span>
+                        <ArrowRight
+                          size={14}
+                          className="mt-1 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
           {loading && (
             <div className="flex justify-start">
               <div className="bg-bg-secondary px-4 py-2.5 rounded-2xl rounded-bl-md">
