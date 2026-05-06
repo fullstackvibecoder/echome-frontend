@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Toaster } from 'sonner';
 import { CookieConsent } from '@/components/cookie-consent';
+import { ReceiptHost } from '@/components/shared/ReceiptHost';
 import { satoshi, manrope, montserrat, inter, bebasNeue } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
@@ -118,6 +119,7 @@ export default function RootLayout({
       <body className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
         <Toaster position="top-right" richColors closeButton />
+        <ReceiptHost />
         <CookieConsent />
       </body>
     </html>

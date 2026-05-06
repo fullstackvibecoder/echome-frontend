@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Sparkles, X, Send, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 
@@ -9,6 +10,26 @@ const VOICE_PROMPTS = [
   { label: 'Give me content ideas', prompt: 'Using what you know about my expertise and voice, suggest 5 content ideas I could create right now.' },
   { label: 'What should I add next?', prompt: 'What types of content am I missing that would help you sound more like me? Be specific about what to add.' },
 ];
+
+// TLL-tuned prompt fired when the dashboard "Draft a Mind-Reader post" chip
+// lands here with ?ask=mind-reader. Encodes anti-aggression guards from
+// docs/2026-05-06-tll-methodology.md so Echo never pads or forces.
+const MIND_READER_PROMPT = `Pull up to 3 fresh content angles from my knowledge base. Prioritize personal stories that meet at least one of these criteria:
+(a) the niche relates,
+(b) the story defines my core values, or
+(c) the facts of the story led me toward real estate.
+
+For each angle, give me:
+- The angle in one sentence (lead with the symptom my audience recognizes, never the diagnosis they don't)
+- A 1-2 sentence excerpt from the source that anchors it
+- The source type (YouTube transcript, voice note, email, etc.)
+- A note on whether this should end with a soft engagement question, a hard CTA, or no CTA at all (personal-philosophy posts often need no CTA)
+
+Hard rules:
+- If you find fewer than 3 angles that fit the criteria, return only what fits. Do not pad with generic ideas.
+- Avoid industry-trend commentary unless it's anchored in something I've personally said or experienced.
+- Do not invent a SignatureMethod or process name — use only names I've already used in my KB.
+- If the KB is too thin for any personal-story angle, tell me honestly and suggest what to record next (a 30-second voice note about a recent client situation, a closing, or a moment that taught me something).`;
 
 interface KBChatProps {
   kbId: string | null;
@@ -20,6 +41,8 @@ export default function KBChat({ kbId, hasContent }: KBChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoFiredRef = useRef(false);
+  const searchParams = useSearchParams();
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -58,6 +81,17 @@ export default function KBChat({ kbId, hasContent }: KBChatProps) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }]);
     } finally { setLoading(false); }
   }, [input, loading, messages, kbId]);
+
+  // Auto-fire TLL Mind-Reader prompt when user lands here from the dashboard
+  // chip (URL: /app/voice?ask=mind-reader). Guarded so it only fires once
+  // per mount and only when the KB has content to query.
+  useEffect(() => {
+    if (autoFiredRef.current) return;
+    if (!kbId || !hasContent) return;
+    if (searchParams.get('ask') !== 'mind-reader') return;
+    autoFiredRef.current = true;
+    sendMessage(MIND_READER_PROMPT);
+  }, [kbId, hasContent, searchParams, sendMessage]);
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 space-y-3">

@@ -13,6 +13,7 @@ import { setActiveGeneration, clearActiveGeneration } from '@/components/generat
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { WelcomeBanner } from '@/components/welcome-banner';
+import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -50,7 +51,7 @@ function getWelcomeMessage(userName?: string, generationsUsed?: number): { headl
   if (hour < 12) {
     return {
       headline: `${timeGreeting}, ${firstName}!`,
-      subheadline: "What's on your mind? Echo already knows your voice — just give it a topic, link, or video."
+      subheadline: "What's on your mind? Echo already knows your voice. Just give it a topic, link, or video."
     };
   }
 
@@ -421,6 +422,11 @@ export default function AppContent() {
               </div>
             );
           })()}
+
+          {/* Outcome Chips — intent-driven suggestions keyed off real data state */}
+          <div className="mb-6">
+            <OutcomeChips />
+          </div>
 
           {/* Input Form */}
           <div ref={formRef}>

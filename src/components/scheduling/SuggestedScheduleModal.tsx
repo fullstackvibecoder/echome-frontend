@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { receipt } from '@/lib/receipt';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Loader2, X, Info, Calendar, CheckCircle } from 'lucide-react';
@@ -100,7 +101,11 @@ export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onSched
             is_ai_suggested: true,
           });
         }
-        toast.success(`Scheduled ${rows.length} ${rows.length === 1 ? 'post' : 'posts'}`);
+        receipt.show({
+          summary: `Scheduled ${rows.length} ${rows.length === 1 ? 'post' : 'posts'}`,
+          why: `Echo timed each one based on your weekly content mix and platform.`,
+          autoDismissMs: 8000,
+        });
       } else {
         for (const row of rows) {
           await api.socialPosting.createReminder({
@@ -112,7 +117,11 @@ export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onSched
             created_via: 'ai_suggest',
           });
         }
-        toast.success(`Created ${rows.length} ${rows.length === 1 ? 'reminder' : 'reminders'}`);
+        receipt.show({
+          summary: `Created ${rows.length} ${rows.length === 1 ? 'reminder' : 'reminders'}`,
+          why: `Echo built a calendar of nudges so you can post these at the right time.`,
+          autoDismissMs: 8000,
+        });
       }
       onScheduled?.();
       onClose();
