@@ -106,6 +106,9 @@ export interface GeneratedContent {
     wordCount?: number;
     hashtags?: string[];
   };
+  // 9-Point Conversion Sequence — optional so legacy rows remain valid
+  breakdown?: NinePointBreakdown;
+  hemingway?: HemingwayScore;
   createdAt: Date;
 }
 
@@ -147,6 +150,25 @@ export interface GenerationRequestDetail {
   carousel?: GeneratedCarouselDetail;
 }
 
+/**
+ * Detail view augmented with kit-level psychological aggregation.
+ * Used by the Receipt Card on the dashboard and the content kit detail page.
+ *
+ * `kitScorecard` is `Partial | null` deliberately:
+ *   - `null` (or undefined): backend hasn't started/has failed the audit;
+ *     UI renders content kit as-is, scorecard area shows pending/info state.
+ *   - `Partial<PsychologicalScorecard>`: some checks computed, others not;
+ *     UI renders verified checks green, missing fields grayed-out.
+ *   - Full `PsychologicalScorecard`: all six booleans known.
+ *
+ * This is the resilience contract — content delivery never blocks on audit.
+ */
+export interface GenerationRequestDetailWithBreakdown extends GenerationRequestDetail {
+  kitScorecard?: Partial<PsychologicalScorecard> | null;
+  signatureMethod?: SignatureMethod;
+  leadMagnet?: LeadMagnet;
+}
+
 export interface GeneratedContentItem {
   id: string;
   platform: string;
@@ -154,6 +176,9 @@ export interface GeneratedContentItem {
   voiceScore?: number;
   qualityScore?: number;
   metadata?: Record<string, unknown>;
+  // 9-Point Conversion Sequence — optional so legacy rows remain valid
+  breakdown?: NinePointBreakdown;
+  hemingway?: HemingwayScore;
   createdAt?: string;
 }
 
@@ -255,6 +280,183 @@ export interface GeneratedCarouselDetail {
   slides: GeneratedCarouselSlide[];
   qualityScore?: number;
   createdAt: string;
+}
+
+// ============================================
+// 9-POINT CONVERSION SEQUENCE TYPES
+// ============================================
+
+/**
+ * The nine ordered steps of the conversion sequence applied to long-form
+ * outputs (LinkedIn, blog, newsletter). Short-form (Twitter, IG caption)
+ * uses a compressed subset — see NinePointBreakdown.format.
+ *
+ * Maps to existing ContentCategory in the scheduling system:
+ *   pain_problem  -> pain, problem, consequences
+ *   authority     -> expert_story, signature_method
+ *   testimonial   -> proof
+ *   personal_story-> vision
+ * (objection and action are gaps in the existing category model.)
+ */
+export type NinePointStep =
+  | 'pain'              // 1. Sensory-specific current struggle
+  | 'problem'           // 2. Headache (user-visible) vs Blood Clot (expert-visible)
+  | 'consequences'      // 3. Nightmare scenario of inaction
+  | 'expert_story'      // 4. DomainExpert qualifications
+  | 'signature_method'  // 5. The named process
+  | 'proof'             // 6. Data, testimonial, or KB-sourced evidence
+  | 'objection'         // 7. Pre-empts "no time" / "tried before"
+  | 'vision'            // 8. Sensory-specific future state
+  | 'action';           // 9. Gift-first next step (the LeadMagnet)
+
+/**
+ * Per-step result inside a NinePointBreakdown.
+ *
+ * Two-branch discriminated union pulls rigidity into the right place:
+ * a 'present' step is structurally rigorous (evidence + evidenceSource
+ * are required, verified by the compiler), while 'weak' and 'absent'
+ * steps are permissive — they let the backend honestly report partial
+ * audit results without forcing the entire kit to fail.
+ *
+ * The Mind-Reader effect depends on the Receipt Card surfacing the
+ * user's own "Headache" language back at them on confirmed steps;
+ * the schema enforces this for 'present' so an unevidenced check
+ * literally cannot be constructed.
+ */
+export type NinePointStepResult =
+  | {
+      step: NinePointStep;
+      status: 'present';
+      evidence: string;                          // Required — literal prose
+      evidenceSource: {                          // Required — full provenance for the Receipt Card
+        kbItemId: string;
+        excerpt: string;
+        sourceType: ContentSourceType;           // Drives icon-based source indicator in UI
+      };
+      reasoning?: string;
+    }
+  | {
+      step: NinePointStep;
+      status: 'weak' | 'absent';
+      evidence?: string;
+      evidenceSource?: {                         // Outer optional, but if present all three required
+        kbItemId: string;
+        excerpt: string;
+        sourceType: ContentSourceType;
+      };
+      reasoning?: string;        // Essential for audit transparency on weak/absent steps
+    };
+
+/**
+ * Structured psychological breakdown of a single generated piece.
+ *
+ * `format` discriminates expectations: long-form pieces SHOULD have all
+ * nine steps populated; short-form is allowed to compress to 3–4
+ * (typically pain, problem, action).
+ *
+ * `auditStatus` is the resilience handle — it lets the backend defer
+ * or partially complete the psychological audit without blocking
+ * content delivery. The UI keys off this to decide whether to render
+ * checks ('complete'), grayed-out states ('partial'), a spinner
+ * ('pending'), or an info icon ('failed'). Done is better than perfect.
+ *
+ * Per-piece SignatureMethod / LeadMagnet FKs intentionally omitted —
+ * those are kit-level and live on GenerationRequestDetailWithBreakdown.
+ */
+export interface NinePointBreakdown {
+  format: 'long-form' | 'short-form';
+  steps: NinePointStepResult[];
+  // 'complete' = audit cycle finished end-to-end (individual steps may
+  // still be 'weak' or 'absent' — that's a content judgment, not an audit
+  // failure). 'partial' = audit was interrupted before all steps could be
+  // evaluated. 'failed' = audit errored; see auditError. 'pending' = not
+  // yet started or in-flight.
+  auditStatus: 'complete' | 'partial' | 'failed' | 'pending';
+  auditError?: string;          // Populated only when auditStatus === 'failed'
+  generatedAt: string;
+}
+
+/**
+ * Compact summary derived from NinePointBreakdown.steps on the frontend.
+ * Rendered as the "Psychological Scorecard" inside the Receipt Card.
+ *
+ * Computed, not stored — keeps the booleans honest by recomputing from
+ * underlying evidence on every render. No drift possible.
+ */
+export interface PsychologicalScorecard {
+  problemSold: boolean;        // pain + problem + consequences each present-or-weak
+  processHighlighted: boolean; // signature_method present (not weak, not absent)
+  proofShown: boolean;         // proof present (not absent)
+  visionPainted: boolean;      // vision present
+  giftOffered: boolean;        // action present AND linked to a LeadMagnet
+  hemingwayPassed: boolean;    // HemingwayScore.passed === true
+}
+
+/**
+ * The named process the DomainExpert delivers (e.g., "The Tranquility Blueprint").
+ * Stored as a top-level entity so it can be referenced from every long-form
+ * generation's step 5 without re-asking the user.
+ *
+ * `phases` is a first-class array because the Outcome-Aware Filters spec
+ * requires the model to highlight ONE single phase per case-study post —
+ * the array makes that phase addressable by id.
+ */
+export interface SignatureMethod {
+  id: string;
+  userId: string;
+  processName: string;          // "The Tranquility Blueprint"
+  tagline?: string;
+  phases: Array<{
+    id: string;
+    order: number;
+    name: string;               // "Discovery", "Audit", "Implementation"
+    description: string;
+  }>;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * The "Gift-First" next step offered in step 9 of every long-form piece.
+ * Stored as a top-level entity so the user can maintain a library of
+ * magnets and A/B test them; one is marked isDefault.
+ *
+ * The `format` enum DELIBERATELY excludes 'call' and 'consultation' —
+ * this is structural enforcement of the spec's "Gift, not Pitch" rule.
+ * A model that tries to write "Book a call" cannot typecheck against
+ * this enum, keeping the user in the value-providing phase before any ask.
+ */
+export interface LeadMagnet {
+  id: string;
+  userId: string;
+  title: string;                // "5-Minute Tranquility Audit"
+  format: 'training_segment' | 'checklist' | 'guide' | 'audit' | 'voice_note';
+  url?: string;
+  description: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+/**
+ * Hemingway middleware audit result. Applied to ALL copy:
+ * generated output, user-edited broadcast subjects/bodies in
+ * EmailComposeModal, and profile field edits.
+ *
+ * Lives separately from NinePointBreakdown because its scope is
+ * broader — short-form, broadcast, and profile copy all use it but
+ * never need a 9-point breakdown.
+ */
+export interface HemingwayScore {
+  gradeLevel: number;           // Target: ≤ 6.0
+  passed: boolean;              // gradeLevel ≤ 6.0
+  flaggedSentences: Array<{
+    text: string;
+    gradeLevel: number;
+    suggestion?: string;        // e.g., "Split into two sentences"
+  }>;
+  bulletDensity: number;        // 0–1, ratio of bullet lines (spec wants high)
+  scannedAt: string;
 }
 
 // ============================================

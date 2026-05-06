@@ -9,6 +9,7 @@ import type {
   ApiResponse,
   GenerationRequest,
   GenerationRequestDetail,
+  GenerationRequestDetailWithBreakdown,
   KnowledgeBase,
   SocialIntegration,
   GeneratedImage,
@@ -511,7 +512,7 @@ export const api = {
 
       // Transform snake_case to camelCase
       const rawData = response.data.data;
-      const transformedData: GenerationRequestDetail = {
+      const transformedData: GenerationRequestDetailWithBreakdown = {
         request: rawData.request ? {
           id: rawData.request.id,
           userId: rawData.request.user_id,
@@ -537,6 +538,16 @@ export const api = {
           voiceScore: item.voice_score,
           qualityScore: item.quality_score,
           metadata: item.metadata,
+          // 9-Point + Hemingway pass-through. auditStatus defaults to 'pending'
+          // so a partial backend response never produces an unrenderable shape.
+          breakdown: (item.breakdown ?? item.nine_point_breakdown) ? {
+            ...(item.breakdown ?? item.nine_point_breakdown),
+            auditStatus:
+              (item.breakdown ?? item.nine_point_breakdown).auditStatus ??
+              (item.breakdown ?? item.nine_point_breakdown).audit_status ??
+              'pending',
+          } : undefined,
+          hemingway: item.hemingway ?? item.hemingway_score,
           createdAt: item.created_at,
         })),
         contentKit: rawData.contentKit ? {
@@ -620,12 +631,18 @@ export const api = {
           qualityScore: rawData.carousel.quality_score,
           createdAt: rawData.carousel.created_at,
         } : undefined,
+        // Kit-level psychological aggregation. Null/undefined when audit
+        // hasn't run; Partial when in-progress; full PsychologicalScorecard
+        // when complete. UI renders content kit regardless of state.
+        kitScorecard: rawData.kit_scorecard ?? rawData.kitScorecard ?? null,
+        signatureMethod: rawData.signature_method ?? rawData.signatureMethod,
+        leadMagnet: rawData.lead_magnet ?? rawData.leadMagnet,
       };
 
       return {
         ...response.data,
         data: transformedData,
-      } as ApiResponse<GenerationRequestDetail>;
+      } as ApiResponse<GenerationRequestDetailWithBreakdown>;
     },
 
     listRequests: async (params?: { limit?: number; offset?: number; voice_id?: string }) => {
