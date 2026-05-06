@@ -123,7 +123,6 @@ export interface GenerationRequest {
   platforms: Platform[];
   tone?: ContentTone;
   additionalInstructions?: string;
-  useTllValidator?: boolean;
   voiceId?: string;
   // Carousel design options
   designPreset?: DesignPreset;

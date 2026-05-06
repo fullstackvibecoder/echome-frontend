@@ -486,7 +486,6 @@ export const api = {
         platforms: data.platforms,
         tone: data.tone,
         additional_instructions: data.additionalInstructions,
-        use_tll_validator: data.useTllValidator,
         voice_id: data.voiceId,
         // Carousel design options
         design_preset: data.designPreset,
