@@ -6,6 +6,26 @@ import EmailEditor from "./EmailEditor";
 import EmailPreview from "./preview/EmailPreview";
 import { GLOBAL_TOKENS } from "./tokens";
 import { readDraft, writeDraft, clearDraft } from "./cache/draft-cache";
+import { analyzeText, type HemingwayAnalysis } from "@/lib/hemingway";
+import { HemingwayGradeBadge, HemingwayPanel } from "./HemingwayPanel";
+
+const HEMINGWAY_DEBOUNCE_MS = 500;
+
+/**
+ * Strip HTML to plain text for readability analysis. Uses DOMParser
+ * (no script execution) and inserts newlines after block elements so
+ * the sentence-splitter doesn't fuse paragraphs.
+ */
+function htmlToPlainText(html: string): string {
+  if (!html) return "";
+  if (typeof DOMParser === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+  doc
+    .querySelectorAll("p, div, h1, h2, h3, h4, h5, h6, li")
+    .forEach((el) => el.appendChild(doc.createTextNode("\n")));
+  return (doc.body.textContent || "").replace(/\n{2,}/g, "\n").trim();
+}
 
 type Phase = "compose" | "preview" | "confirm" | "sending" | "sent" | "error";
 
@@ -30,6 +50,14 @@ export default function EmailComposeModal({ segment: initialSegment, adminId, on
   const [error, setError] = useState<string | null>(null);
   const [showSubjectVars, setShowSubjectVars] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [hemingway, setHemingway] = useState<HemingwayAnalysis | null>(null);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setHemingway(analyzeText(htmlToPlainText(bodyHtml)));
+    }, HEMINGWAY_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [bodyHtml]);
 
   useEffect(() => {
     api.adminEmails.listPresets().then(setPresets).catch(() => setPresets([]));
@@ -196,11 +224,13 @@ export default function EmailComposeModal({ segment: initialSegment, adminId, on
                 onChange={(h) => { setBodyHtml(h); setDirty(true); }}
                 onSizeChange={setSizeBytes}
               />
-              <div className="flex justify-between items-center mt-1">
+              <div className="flex justify-between items-center mt-1 gap-3">
                 <span className={`text-xs ${overSize ? "text-destructive" : "text-muted-foreground"}`}>
                   {(sizeBytes / 1024).toFixed(1)}KB {overSize ? "— Gmail may clip emails over 80KB" : ""}
                 </span>
+                <HemingwayGradeBadge analysis={hemingway} />
               </div>
+              <HemingwayPanel analysis={hemingway} />
             </div>
 
             <div className="flex justify-between gap-2 pt-2 border-t border-border">

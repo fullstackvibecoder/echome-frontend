@@ -4,6 +4,11 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { X, Loader2, Check, Copy, RefreshCw, Save } from 'lucide-react';
 import { copyAsPlainText } from '@/lib/clipboard';
 import api from '@/lib/api-client';
+import { analyzeText, type HemingwayAnalysis } from '@/lib/hemingway';
+import { HemingwayPanel, HemingwayGradeBadge } from '@/components/email-editor/HemingwayPanel';
+
+const HEMINGWAY_PLATFORMS = new Set(['linkedin', 'twitter', 'instagram', 'tiktok']);
+const HEMINGWAY_DEBOUNCE_MS = 500;
 
 const PLATFORM_LABELS: Record<string, string> = {
   linkedin: 'LinkedIn',
@@ -72,6 +77,7 @@ export default function WrittenContentModal({
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hemingway, setHemingway] = useState<HemingwayAnalysis | null>(null);
 
   const backdropRef = useRef<HTMLDivElement>(null);
 
@@ -115,6 +121,18 @@ export default function WrittenContentModal({
   const charCount = currentText.length;
   const limit = PLATFORM_LIMITS[activePlatform] ?? null;
   const isOverLimit = limit !== null && charCount > limit;
+  const showHemingway = HEMINGWAY_PLATFORMS.has(activePlatform);
+
+  useEffect(() => {
+    if (!showHemingway) {
+      setHemingway(null);
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      setHemingway(analyzeText(currentText));
+    }, HEMINGWAY_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [currentText, showHemingway]);
 
   const handleTextChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -234,10 +252,14 @@ export default function WrittenContentModal({
             onChange={handleTextChange}
             className="w-full min-h-[200px] rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-interactive/50 resize-y"
           />
-          <p className={`mt-1 text-xs ${isOverLimit ? 'text-red-400' : 'text-muted-foreground'}`}>
-            {charCount} characters
-            {limit !== null && ` / ${limit}`}
-          </p>
+          <div className="mt-1 flex justify-between items-center gap-3">
+            <p className={`text-xs ${isOverLimit ? 'text-red-400' : 'text-muted-foreground'}`}>
+              {charCount} characters
+              {limit !== null && ` / ${limit}`}
+            </p>
+            {showHemingway && <HemingwayGradeBadge analysis={hemingway} />}
+          </div>
+          {showHemingway && <HemingwayPanel analysis={hemingway} />}
         </div>
 
         {/* Error */}
