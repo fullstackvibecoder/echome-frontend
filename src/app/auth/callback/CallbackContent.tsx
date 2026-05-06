@@ -25,26 +25,49 @@ export default function CallbackContent() {
           // Store the access token for API calls
           localStorage.setItem('authToken', data.session.access_token);
 
-          // Check if onboarding is complete (has content)
-          let hasContent = false;
+          // Decide whether to send the user through onboarding. The legacy
+          // gate only checked "does the KB have items?" — but ~30% of users
+          // with a KB end up empty (declined the privacy disclosure, lookup
+          // capped, ingest failed, just never tried). On their next login
+          // the empty-KB check sent them BACK to /onboarding/lookup, and so
+          // on every login forever. The fix: also honor a prior WBTW
+          // outcome marker. If the user has any outcome on record (success,
+          // declined, capped, errored), they've already been through the
+          // funnel once — don't loop them.
+          let alreadyOnboarded = false;
           try {
             const kbResponse = await api.kb.list();
             if (kbResponse.success && kbResponse.data && kbResponse.data.length > 0) {
               const contentResponse = await api.kb.getContent(kbResponse.data[0].id);
               if (contentResponse.success && contentResponse.data) {
-                hasContent = contentResponse.data.items.length > 0;
+                alreadyOnboarded = contentResponse.data.items.length > 0;
               }
             }
           } catch {
-            // If content check fails, skip onboarding - better to land on dashboard
-            // than to loop through onboarding for existing users
-            hasContent = true;
+            // If KB check fails, default to NOT redirecting — better to land
+            // on /app than to loop existing users through onboarding.
+            alreadyOnboarded = true;
           }
 
-          if (!hasContent) {
-            // First-time / empty user: route through the WBTW lookup loading
-            // screen (privacy disclosure → public-data lookup → review → /app).
-            // Falls through silently to /app if the backend flag is off.
+          if (!alreadyOnboarded) {
+            // KB is empty. Before sending the user to onboarding, check
+            // whether they've already been through it (declined, completed,
+            // or hit an error). Any prior outcome means they've seen the
+            // disclosure once — don't show it again.
+            try {
+              const outcomeResponse = await api.wbtw.outcome();
+              if (outcomeResponse?.outcome) {
+                alreadyOnboarded = true;
+              }
+            } catch {
+              // Outcome lookup is best-effort; default behavior continues.
+            }
+          }
+
+          if (!alreadyOnboarded) {
+            // Truly first-time user with no prior outcome — run the
+            // onboarding lookup flow (privacy disclosure → public-data
+            // lookup → review → /app).
             router.push('/onboarding/lookup');
           } else {
             // Check for stored redirect path (from 401 session expiry)
