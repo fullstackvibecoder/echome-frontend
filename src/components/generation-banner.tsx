@@ -156,6 +156,20 @@ export function GenerationBanner({ className = '' }: GenerationBannerProps) {
     return () => clearTimeout(timer);
   }, [activeGeneration, isConnected, progress, clearActive]);
 
+  // Self-heal stale localStorage. If the polling hook gives up because the
+  // requestId 404s (3 strikes — set in useGenerationProgress), the entry in
+  // localStorage is dead and will keep restarting the doomed poll on every
+  // page mount. Clear it so future mounts don't replay the failure.
+  useEffect(() => {
+    if (hasError && activeGeneration) {
+      console.warn('Clearing stale activeGeneration after polling gave up', {
+        requestId: activeGeneration.requestId,
+      });
+      clearActive();
+      setShouldHide(true);
+    }
+  }, [hasError, activeGeneration, clearActive]);
+
   // Track step timestamps for elapsed time display
   useEffect(() => {
     if (!progress) return;

@@ -73,6 +73,15 @@ const POLLING_INTERVAL = 3000; // Poll every 3 seconds
 const SSE_FALLBACK_DELAY = 5000; // Start polling if no SSE event within 5 seconds
 const MAX_CONSECUTIVE_404S = 3; // Stop polling after this many consecutive 404s
 
+// Defense against type confusion (e.g. video_upload_id passed where a
+// generation_request_id is expected — we've seen this leak from
+// localStorage). Reject non-UUID-shaped values up front so we don't
+// burn three doomed requests just to rediscover the obvious.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function looksLikeUuid(s: string | null | undefined): boolean {
+  return typeof s === 'string' && UUID_RE.test(s);
+}
+
 // Map request status to synthetic progress event
 function statusToProgress(requestId: string, status: string, hasCarousel: boolean): ProgressEvent {
   const now = Date.now();
@@ -143,13 +152,22 @@ function statusToProgress(requestId: string, status: string, hasCarousel: boolea
 }
 
 export function useGenerationProgress(
-  requestId: string | null,
+  rawRequestId: string | null,
   options?: UseGenerationProgressOptions
 ): UseGenerationProgressReturn {
+  // Treat anything that isn't UUID-shaped as null. Stops the type-confusion
+  // path where a video_upload_id from localStorage was being polled against
+  // /api/generate/:id (which only knows generation_request_ids), producing
+  // 3 silent 404s per page mount.
+  const requestId = looksLikeUuid(rawRequestId) ? rawRequestId : null;
+  if (rawRequestId && !requestId) {
+    console.warn('[useGenerationProgress] ignoring non-UUID requestId', { rawRequestId });
+  }
+
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState(rawRequestId !== null && requestId === null);
   const [carouselReady, setCarouselReady] = useState(false);
   const [carouselFailed, setCarouselFailed] = useState(false);
 
