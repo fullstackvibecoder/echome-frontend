@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ReceiptCard — visual proposal</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, ui-sans-serif, system-ui, sans-serif;
+    background: #f9fafb;
+    color: #111827;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .stack > * + * { margin-top: 40px; }
+
+  h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .sub { font-size: 14px; color: #6b7280; margin: 4px 0 0; }
+
+  .label {
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin: 0 0 8px;
+  }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    animation: slideUp 220ms ease-out both;
+  }
+  .card.compact { padding: 16px; }
+
+  .row { display: flex; align-items: flex-start; gap: 12px; }
+  .row-center { display: flex; align-items: center; gap: 8px; }
+
+  .check-circle {
+    margin-top: 2px;
+    width: 20px; height: 20px;
+    border-radius: 999px;
+    background: #dcfce7;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .check-circle svg { width: 13px; height: 13px; }
+
+  .summary { font-size: 14px; font-weight: 500; line-height: 1.4; margin: 0; }
+  .why { font-size: 12px; color: #6b7280; margin: 2px 0 0; }
+  .why b { font-weight: 500; }
+
+  .divider {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .section-label { font-size: 12px; font-weight: 500; color: #374151; margin: 0 0 8px; }
+  .section-label .muted { color: #9ca3af; font-weight: 400; }
+
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { font-size: 12px; }
+  li + li { margin-top: 6px; }
+
+  .check-row {
+    display: flex; align-items: center; gap: 8px;
+    animation: checkIn 200ms ease-out both;
+  }
+  .check-row .icon { width: 14px; height: 14px; flex-shrink: 0; }
+  .check-row .body { flex: 1; }
+  .check-row .check-icon { stroke: #16a34a; }
+  .check-row.empty { color: #9ca3af; }
+  .check-row.empty .empty-circle {
+    width: 14px; height: 14px; border-radius: 999px;
+    border: 1.5px solid #d1d5db;
+    flex-shrink: 0;
+  }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px; font-weight: 500;
+    border: 1px solid;
+  }
+  .pill svg { width: 11px; height: 11px; }
+  .pill.youtube { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+  .pill.email   { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+  .pill.voice   { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
+
+  .pending-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: #4b5563;
+  }
+  .pending-row svg { width: 14px; height: 14px; stroke: #6b7280; flex-shrink: 0; }
+
+  .pulse-bar {
+    margin-top: 8px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #e5e7eb 0%, #9ca3af 50%, #e5e7eb 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+  }
+
+  .pulse-dot {
+    width: 14px; height: 14px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    flex-shrink: 0;
+    animation: softPulse 1.4s ease-in-out infinite;
+  }
+
+  .italic-muted { font-size: 10px; font-style: italic; color: #9ca3af; }
+
+  .alert-box {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+  }
+  .alert-box svg { width: 16px; height: 16px; stroke: #b45309; flex-shrink: 0; margin-top: 1px; }
+  .alert-box .text { font-size: 12px; color: #92400e; }
+  .alert-box .text p { margin: 0; }
+  .alert-box .text .title { font-weight: 500; }
+  .alert-box .text .body { margin-top: 2px; }
+
+  .row-subtitle {
+    margin: 2px 0 0 22px;
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+  .row-subtitle .term {
+    font-weight: 500;
+    color: #4b5563;
+  }
+
+  .onboarding-banner {
+    margin-top: 16px;
+    margin-bottom: -4px;
+    padding: 10px 12px;
+    background: #ecfeff;
+    border: 1px solid #cffafe;
+    border-left: 3px solid #00D4FF;
+    border-radius: 8px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .onboarding-banner .copy {
+    flex: 1;
+    font-size: 11px;
+    color: #155e75;
+    line-height: 1.5;
+  }
+  .onboarding-banner .copy strong { font-weight: 600; color: #0e7490; }
+  .onboarding-banner .dismiss {
+    border: none; background: transparent; cursor: pointer;
+    color: #67e8f9;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .onboarding-banner .dismiss:hover { color: #0e7490; }
+  .onboarding-banner .dismiss svg { width: 12px; height: 12px; stroke: currentColor; }
+
+  .first-time-caption {
+    font-size: 10px;
+    font-style: italic;
+    color: #9ca3af;
+    margin: 6px 0 0 0;
+    padding-left: 4px;
+  }
+
+  .pulse-dot-echo {
+    width: 8px; height: 8px;
+    border-radius: 999px;
+    background: #00D4FF;
+    flex-shrink: 0;
+    animation: softPulse 1.4s ease-in-out infinite;
+  }
+
+  .actions {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  button.btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #111827;
+    cursor: pointer;
+  }
+  button.btn:hover { background: #f9fafb; }
+  button.x {
+    border: none; background: transparent;
+    color: #9ca3af; cursor: pointer;
+    flex-shrink: 0;
+  }
+  button.x:hover { color: #374151; }
+  button.x svg { width: 16px; height: 16px; stroke: currentColor; }
+
+  footer {
+    padding-top: 24px;
+    margin-top: 40px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 12px; color: #6b7280;
+  }
+  footer .heading { font-weight: 500; color: #374151; margin: 0 0 4px; }
+  footer ul { list-style: disc inside; padding: 0; margin: 0; }
+  footer li { font-size: 12px; }
+  footer code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes checkIn {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes softPulse {
+    0%, 100% { opacity: 0.5; }
+    50%      { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-bar, .check-row, .card, .pulse-dot { animation: none !important; }
+    .pulse-bar { background: #e5e7eb; }
+  }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute; width:0; height:0;" aria-hidden="true">
+  <defs>
+    <symbol id="echo-mini" viewBox="0 0 32 32">
+      <rect x="8" y="6" width="16" height="20" rx="2.4" fill="#D4C4B0" stroke="#00D4FF" stroke-width="1.6"/>
+      <circle cx="13" cy="12" r="1.6" fill="#00D4FF"/>
+      <circle cx="19" cy="12" r="1.6" fill="#00D4FF"/>
+      <path d="M 12 17 Q 16 19 20 17" stroke="#00D4FF" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <circle cx="16" cy="22" r="2.5" fill="#B8A4D4"/>
+      <path d="M 15.2 22 L 15.8 21 L 15.8 23 Z" fill="#5BADB8"/>
+      <path d="M 16.6 21.2 Q 17.4 22 16.6 22.8" stroke="#5BADB8" stroke-width="0.6" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="echo-mascot" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="90" fill="#00D4FF" opacity="0.05"/>
+      <circle cx="100" cy="100" r="70" fill="#00D4FF" opacity="0.08"/>
+      <circle cx="100" cy="100" r="50" fill="#00D4FF" opacity="0.12"/>
+      <rect x="60" y="50" width="80" height="80" rx="12" fill="#D4C4B0" stroke="#00D4FF" stroke-width="8"/>
+      <rect x="40" y="80" width="20" height="30" rx="6" fill="#D4C4B0" stroke="#00D4FF" stroke-width="6"/>
+      <rect x="140" y="80" width="20" height="30" rx="6" fill="#D4C4B0" stroke="#00D4FF" stroke-width="6"/>
+      <circle cx="82" cy="80" r="8" fill="#00D4FF"/>
+      <circle cx="118" cy="80" r="8" fill="#00D4FF"/>
+      <path d="M 70 67 Q 82 63 90 67" stroke="#00D4FF" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M 110 67 Q 118 63 126 67" stroke="#00D4FF" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M 95 87 L 100 93 L 105 87" stroke="#00D4FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 80 105 Q 100 115 120 105" stroke="#00D4FF" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <circle cx="100" cy="120" r="12.6" fill="#B8A4D4"/>
+      <path d="M 95 120 L 97 116 L 97 124 Z" fill="#5BADB8"/>
+      <path d="M 101 116 Q 104 120 101 124" stroke="#5BADB8" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M 104 114 Q 108 120 104 126" stroke="#5BADB8" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap stack">
+
+  <header>
+    <h1>ReceiptCard — visual proposal</h1>
+    <p class="sub">Five states of the same component. Approve or flag changes before I build the React version.</p>
+  </header>
+
+  <!-- ============================================ -->
+  <!-- STATE 1 — Default (audit complete, with breakdown) -->
+  <!-- ============================================ -->
+  <section>
+    <p class="label">State 1 · audit complete · with breakdown · first-time onboarding visible</p>
+    <div class="card">
+      <div class="row">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div style="flex:1; min-width:0">
+          <p class="summary">Scheduled 5 posts to LinkedIn</p>
+          <p class="why"><b>Why:</b> Based on your last 30 days of activity</p>
+        </div>
+      </div>
+
+      <div class="onboarding-banner">
+        <div class="copy">
+          <strong>Each post should hit four moves:</strong> name a pain, show your method, paint the outcome, and offer a gift. Echo checks each one against what you've shared.
+        </div>
+        <button class="dismiss" aria-label="Dismiss explanation">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="divider">
+        <p class="section-label">Mind-Reader check</p>
+        <ul>
+          <li style="animation-delay:0ms" class="check-row-wrapper">
+            <div class="check-row">
+              <svg class="icon check-icon" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="body">Names a real pain</span>
+              <span class="pill youtube">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98" fill="white"/></svg>
+                YouTube
+              </span>
+            </div>
+            <p class="row-subtitle"><span class="term">Problem sold:</span> anchors on something your reader actually feels</p>
+          </li>
+          <li style="animation-delay:50ms" class="check-row-wrapper">
+            <div class="check-row">
+              <svg class="icon check-icon" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="body">Shows your method</span>
+              <span class="pill email">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Email
+              </span>
+            </div>
+            <p class="row-subtitle"><span class="term">Process highlighted:</span> names your unique approach, not generic advice</p>
+          </li>
+          <li style="animation-delay:100ms" class="check-row-wrapper">
+            <div class="check-row">
+              <svg class="icon check-icon" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="body">Paints the outcome</span>
+              <span class="pill voice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Voice note
+              </span>
+            </div>
+            <p class="row-subtitle"><span class="term">Vision painted:</span> shows the after, not just the before</p>
+          </li>
+          <li style="animation-delay:150ms" class="check-row-wrapper">
+            <div class="check-row empty">
+              <span class="empty-circle"></span>
+              <span class="body">Offers a gift first</span>
+            </div>
+            <p class="row-subtitle"><span class="term">Gift offered:</span> leads with value before any ask</p>
+          </li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn">Undo</button>
+        <button class="btn">Change criteria</button>
+      </div>
+    </div>
+    <p class="first-time-caption">The blue banner appears only on the user's first Receipt Card, then dismissed forever (stored in localStorage).</p>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- STATE 2 — Pending audit -->
+  <!-- ============================================ -->
+  <section>
+    <p class="label">State 2 · audit pending · expert is checking</p>
+    <div class="card">
+      <div class="row">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div style="flex:1; min-width:0">
+          <p class="summary">Scheduled 5 posts to LinkedIn</p>
+          <p class="why"><b>Why:</b> Based on your last 30 days of activity</p>
+        </div>
+      </div>
+
+      <div class="divider">
+        <div class="pending-row">
+          <span class="pulse-dot-echo"></span>
+          <span>Echo is reading your post structure…</span>
+        </div>
+        <div class="pulse-bar"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn">Undo</button>
+        <button class="btn">Change criteria</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- STATE 3 — Partial -->
+  <!-- ============================================ -->
+  <section>
+    <p class="label">State 3 · audit partial · still resolving</p>
+    <div class="card">
+      <div class="row">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div style="flex:1; min-width:0">
+          <p class="summary">Scheduled 5 posts to LinkedIn</p>
+          <p class="why"><b>Why:</b> Based on your last 30 days of activity</p>
+        </div>
+      </div>
+
+      <div class="divider">
+        <p class="section-label">Mind-Reader check <span class="muted">(partial)</span></p>
+        <ul>
+          <li class="check-row-wrapper">
+            <div class="check-row">
+              <svg class="icon check-icon" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="body">Names a real pain</span>
+              <span class="pill youtube">YouTube</span>
+            </div>
+            <p class="row-subtitle"><span class="term">Problem sold:</span> anchors on something your reader actually feels</p>
+          </li>
+          <li class="check-row-wrapper">
+            <div class="check-row empty">
+              <span class="pulse-dot"></span>
+              <span class="body">Shows your method</span>
+              <span class="italic-muted">Echo is still on this…</span>
+            </div>
+            <p class="row-subtitle"><span class="term">Process highlighted:</span> names your unique approach, not generic advice</p>
+          </li>
+          <li class="check-row-wrapper">
+            <div class="check-row">
+              <svg class="icon check-icon" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="body">Paints the outcome</span>
+              <span class="pill voice">Voice note</span>
+            </div>
+            <p class="row-subtitle"><span class="term">Vision painted:</span> shows the after, not just the before</p>
+          </li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn">Undo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- STATE 4 — Failed -->
+  <!-- ============================================ -->
+  <section>
+    <p class="label">State 4 · audit failed · content still shipped</p>
+    <div class="card">
+      <div class="row">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div style="flex:1; min-width:0">
+          <p class="summary">Scheduled 5 posts to LinkedIn</p>
+          <p class="why"><b>Why:</b> Based on your last 30 days of activity</p>
+        </div>
+      </div>
+
+      <div class="divider">
+        <div class="alert-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="text">
+            <p class="title">Echo couldn't run the structure check this time</p>
+            <p class="body">Model timeout. Your content was still posted.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn">Undo</button>
+        <button class="btn">Change criteria</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- STATE 5 — No breakdown -->
+  <!-- ============================================ -->
+  <section>
+    <p class="label">State 5 · no breakdown · simple receipt for non-content actions</p>
+    <div class="card compact">
+      <div class="row">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div style="flex:1; min-width:0">
+          <p class="summary">Test email sent to ara@thespringteam.ca</p>
+          <p class="why"><b>Why:</b> You triggered "Send test to me"</p>
+        </div>
+        <button class="x" aria-label="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="heading">Animations active in this preview:</p>
+    <ul>
+      <li>Card entrance — 220ms slide-up + fade</li>
+      <li>Check stagger — 50ms between rows on State 1</li>
+      <li>Pulse bar — 1.5s shimmer on State 2</li>
+      <li>Pending dot — 1.4s soft pulse on State 3</li>
+      <li>All animations honor <code>prefers-reduced-motion</code></li>
+    </ul>
+  </footer>
+
+</div>
+
+</body>
+</html>
