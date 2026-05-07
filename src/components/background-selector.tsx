@@ -31,7 +31,8 @@ export interface BackgroundSelectorProps {
 type TabType = 'presets' | 'upload' | 'ai';
 
 const DESIGN_PRESET_PREVIEWS: Record<DesignPreset, { gradient: string; label: string; description: string }> = {
-  'auto': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Auto', description: 'Smart template selection' },
+  'auto': { gradient: 'from-[#0E2734] to-[#15202b]', label: 'Auto', description: 'Smart template selection' },
+  'branded-overlay': { gradient: 'from-[#0E2734] to-[#1a1a2e]', label: 'Branded', description: 'Photo background with bold typography' },
   'tweet-style': { gradient: 'from-[#15202b] to-[#1a1a2e]', label: 'Tweet Style', description: 'Twitter/X post card look' },
   'text-box': { gradient: 'from-[#1a1a2e] to-[#0F3460]', label: 'Text Box', description: 'Clean text overlay' },
 };

@@ -1584,8 +1584,8 @@ export const api = {
       additionalInstructions?: string;
       focusOnIdeas?: string[];
       differentiationAngle?: string;
-      /** Carousel template preset */
-      designPreset?: 'auto' | 'tweet-style' | 'text-box';
+      /** Carousel template preset (legacy — backend defaults to 'branded-overlay' when omitted) */
+      designPreset?: 'auto' | 'branded-overlay' | 'tweet-style' | 'text-box';
       /** For custom background image uploads */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
@@ -2058,8 +2058,8 @@ export const api = {
         /** Skip video re-encoding, only normalize audio */
         audioOnly?: boolean;
       };
-      /** Carousel template preset */
-      designPreset?: 'auto' | 'tweet-style' | 'text-box';
+      /** Carousel template preset (legacy — backend defaults to 'branded-overlay' when omitted) */
+      designPreset?: 'auto' | 'branded-overlay' | 'tweet-style' | 'text-box';
       /** For custom background image uploads */
       carouselBackground?: {
         type: 'preset' | 'ai' | 'image';
@@ -2326,7 +2326,7 @@ export const api = {
 
     /** Regenerate carousel with a different design preset or background */
     regenerateCarousel: async (kitId: string, options: {
-      designPreset?: 'tweet-style' | 'text-box' | 'auto';
+      designPreset?: 'tweet-style' | 'text-box' | 'auto' | 'branded-overlay';
       background?: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string };
       slideOverrides?: Array<{
         text?: string;

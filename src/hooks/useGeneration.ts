@@ -107,12 +107,16 @@ export function useGeneration(): UseGenerationReturn {
         setResults(null);
         setRequestId(null);
 
-        // Build API options - send both designPreset and carouselBackground
-        // Backend's resolveCarouselDesign() handles the priority logic
+        // Build API options. Don't pass designPreset by default — backend
+        // resolveCarouselDesign() defaults to branded-overlay (the modern
+        // auto-generated style). Only include if a caller explicitly chose
+        // a non-auto value (rare; pre-gen pickers were removed).
         const apiOptions: Parameters<typeof api.creators.repurpose>[1] = {
           platforms: platforms as string[],
-          designPreset: options?.designPreset || 'auto',
         };
+        if (options?.designPreset && options.designPreset !== 'auto') {
+          apiOptions.designPreset = options.designPreset as typeof apiOptions.designPreset;
+        }
 
         // Always send carouselBackground if present (for image uploads)
         if (options?.carouselBackground) {

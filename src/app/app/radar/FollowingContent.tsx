@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { api, MonitoredCreator, ContentHistoryEntry } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { showErrorToast } from '@/lib/toast';
-import { Platform, DesignPreset } from '@/types';
+import { Platform } from '@/types';
 import { UpgradeBanner } from '@/components/upgrade-banner';
-import { StylePicker, StyleOption } from '@/components/style-picker';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -21,15 +20,6 @@ const ALL_PLATFORMS: { id: Platform; label: string; icon: string }[] = [
   { id: 'video-script', label: 'Video Script', icon: '🎬' },
 ];
 
-// Carousel design preset options
-type CarouselDesignOption = DesignPreset | 'upload' | 'video-snapshot';
-const CAROUSEL_STYLE_OPTIONS: StyleOption[] = [
-  { value: 'auto', label: 'Pick for me', thumbnail: '/style-previews/slides/pick-for-me.svg' },
-  { value: 'tweet-style', label: 'Quote Card', thumbnail: '/style-previews/slides/quote-card.svg' },
-  { value: 'text-box', label: 'Text on Color', thumbnail: '/style-previews/slides/text-on-color.svg' },
-  { value: 'upload', label: 'My Own Image', thumbnail: '/style-previews/slides/my-own-image.svg' },
-  { value: 'video-snapshot', label: 'Video Frame', thumbnail: '/style-previews/slides/video-frame.svg' },
-];
 
 // Extended content with creator info
 interface ContentWithCreator extends ContentHistoryEntry {
@@ -65,10 +55,6 @@ export default function FollowingContent() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
-  const [carouselDesignOption, setCarouselDesignOption] = useState<CarouselDesignOption>('auto');
-  const [carouselBgFile, setCarouselBgFile] = useState<File | null>(null);
-  const carouselBgInputRef = useRef<HTMLInputElement>(null);
-  const [carouselBgDragActive, setCarouselBgDragActive] = useState(false);
   const [repurposing, setRepurposing] = useState(false);
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
@@ -210,8 +196,6 @@ export default function FollowingContent() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
-    setCarouselDesignOption('auto');
-    setCarouselBgFile(null);
   };
 
   const closeRepurposeModal = () => {
@@ -246,21 +230,8 @@ export default function FollowingContent() {
     );
   };
 
-  const handleDesignOptionChange = (value: CarouselDesignOption) => {
-    setCarouselDesignOption(value);
-    if (value !== 'upload') {
-      setCarouselBgFile(null);
-      if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-    }
-  };
-
   const handleRepurpose = async () => {
     if (!selectedVideoForRepurpose || selectedPlatforms.length === 0) return;
-
-    if (selectedPlatforms.includes('instagram') && carouselDesignOption === 'upload' && !carouselBgFile) {
-      setRepurposeError('Please select a background image for the carousel');
-      return;
-    }
 
     try {
       setRepurposing(true);
@@ -279,31 +250,10 @@ export default function FollowingContent() {
         }
       }
 
-      // Build design preset config
-      const designPreset: DesignPreset = (carouselDesignOption === 'upload' || carouselDesignOption === 'video-snapshot')
-        ? 'auto'
-        : carouselDesignOption;
-      let carouselBackground: { type: 'image'; imageUrl: string } | undefined;
-
-      if (carouselDesignOption === 'upload' && carouselBgFile) {
-        try {
-          const uploadResponse = await api.images.uploadBackground(carouselBgFile);
-          if (uploadResponse.success && uploadResponse.data?.background?.publicUrl) {
-            carouselBackground = { type: 'image', imageUrl: uploadResponse.data.background.publicUrl };
-          } else {
-            throw new Error('Failed to upload background image');
-          }
-        } catch {
-          setRepurposeError('Failed to upload background image. Please try again.');
-          setRepurposing(false);
-          return;
-        }
-      }
-
+      // No carousel-style preselect — backend defaults to branded-overlay,
+      // user can restyle from the kit detail page after generation.
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
-        designPreset,
-        carouselBackground,
       });
 
       if (response.success && response.result.requestId) {
@@ -632,74 +582,9 @@ export default function FollowingContent() {
                 </div>
               </div>
 
-              {/* Carousel Look */}
-              {selectedPlatforms.includes('instagram') && (
-                <div>
-                  <StylePicker
-                    label="Carousel Look"
-                    options={CAROUSEL_STYLE_OPTIONS}
-                    value={carouselDesignOption}
-                    onChange={(v) => handleDesignOptionChange(v as CarouselDesignOption)}
-                    columns={5}
-                    aspect="square"
-                  />
-
-                  {carouselDesignOption === 'upload' && (
-                    <div className="mt-3 space-y-2">
-                      <input
-                        ref={carouselBgInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setCarouselBgFile(e.target.files?.[0] || null)}
-                        className="hidden"
-                        id="carousel-bg-upload"
-                      />
-                      <label
-                        htmlFor="carousel-bg-upload"
-                        className={`flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                          carouselBgDragActive
-                            ? 'border-primary-interactive bg-primary-interactive/10 scale-[1.01]'
-                            : 'border-border hover:border-primary-interactive hover:bg-primary-interactive/5'
-                        }`}
-                        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setCarouselBgDragActive(true); }}
-                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget as Node)) setCarouselBgDragActive(false); }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setCarouselBgDragActive(false);
-                          const file = e.dataTransfer.files?.[0];
-                          if (file && file.type.startsWith('image/')) setCarouselBgFile(file);
-                        }}
-                      >
-                        {carouselBgFile ? (
-                          <div className="flex items-center gap-3">
-                            <svg className="w-4 h-4 text-primary-interactive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span className="text-foreground font-medium truncate max-w-[200px]">{carouselBgFile.name}</span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setCarouselBgFile(null);
-                                if (carouselBgInputRef.current) carouselBgInputRef.current.value = '';
-                              }}
-                              className="text-error hover:text-error/80"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">Drag & drop or click to upload background image</span>
-                        )}
-                      </label>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Carousel style is no longer pre-selected. Backend defaults
+                  to branded-overlay; users can restyle from the kit detail
+                  page after generation. */}
 
               {repurposeError && (
                 <div className="p-3 bg-error/10 border border-error/20 rounded-lg text-error text-sm">

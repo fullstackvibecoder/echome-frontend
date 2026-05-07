@@ -1,12 +1,17 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { MessageSquare, Upload, Film, Loader2, Check } from 'lucide-react';
+import { MessageSquare, Upload, Film, Loader2, Check, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { showErrorToast } from '@/lib/toast';
 import { toast } from 'sonner';
 
-type CarouselBackgroundMode = 'tweet-style' | 'text-box' | 'upload' | 'video-snapshot';
+type CarouselBackgroundMode =
+  | 'branded-overlay'
+  | 'tweet-style'
+  | 'text-box'
+  | 'upload'
+  | 'video-snapshot';
 
 interface CarouselStyleEditorProps {
   kitId: string;
@@ -24,6 +29,12 @@ const STYLE_OPTIONS: Array<{
   description: string;
   icon: React.ReactNode;
 }> = [
+  {
+    value: 'branded-overlay',
+    label: 'Branded',
+    description: 'Photo background with bold typography (default)',
+    icon: <Sparkles className="w-5 h-5" />,
+  },
   {
     value: 'tweet-style',
     label: 'Quote Card',
@@ -56,8 +67,11 @@ export function CarouselStyleEditor({
   uploadId,
   onRestyleComplete,
 }: CarouselStyleEditorProps) {
+  // Default reflects the kit's current rendered style. New kits render as
+  // 'branded-overlay' (the modern auto-default), so that's the fallback
+  // when currentDesignPreset isn't provided.
   const [selectedMode, setSelectedMode] = useState<CarouselBackgroundMode>(
-    (currentDesignPreset as CarouselBackgroundMode) || 'tweet-style'
+    (currentDesignPreset as CarouselBackgroundMode) || 'branded-overlay'
   );
   const [restyling, setRestyling] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
@@ -115,7 +129,11 @@ export function CarouselStyleEditor({
     try {
       let options: Parameters<typeof api.contentKits.regenerateCarousel>[1] = {};
 
-      if (selectedMode === 'tweet-style' || selectedMode === 'text-box') {
+      if (
+        selectedMode === 'branded-overlay' ||
+        selectedMode === 'tweet-style' ||
+        selectedMode === 'text-box'
+      ) {
         options = { designPreset: selectedMode };
       } else if (selectedMode === 'upload' && uploadedImageUrl) {
         options = { background: { type: 'image', imageUrl: uploadedImageUrl } };
@@ -146,11 +164,13 @@ export function CarouselStyleEditor({
     }
   };
 
-  const isCurrentStyle = selectedMode === (currentDesignPreset || 'tweet-style') &&
+  const isCurrentStyle = selectedMode === (currentDesignPreset || 'branded-overlay') &&
     selectedMode !== 'upload' && selectedMode !== 'video-snapshot';
 
   const canApply =
-    (selectedMode === 'tweet-style' || selectedMode === 'text-box') ||
+    selectedMode === 'branded-overlay' ||
+    selectedMode === 'tweet-style' ||
+    selectedMode === 'text-box' ||
     (selectedMode === 'upload' && !!uploadedImageUrl) ||
     (selectedMode === 'video-snapshot' && !!snapshotUrl);
 

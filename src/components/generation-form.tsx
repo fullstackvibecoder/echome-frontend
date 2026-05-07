@@ -795,13 +795,10 @@ export function GenerationForm({
       setVideoProcessingStatus('Starting clip extraction...');
       setVideoProcessingProgress(35);
 
-      // Carousel style is selected post-generation; use tweet-style default
-      const designPreset: DesignPreset = 'tweet-style';
-
-      // Step 2: Start processing
+      // No carousel-style preselect at generation. Backend defaults to
+      // branded-overlay; user can restyle from the kit detail page.
       const processResponse = await api.clips.process(upload.id, {
         generateContent: true, // Generate content kit as part of processing
-        designPreset, // New design preset system
         captionStyle, // Pass selected caption style
         // Reel configuration
         reelTemplate: reelTemplate === 'auto' ? undefined : reelTemplate,

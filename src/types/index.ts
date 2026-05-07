@@ -253,10 +253,12 @@ export type TemplateType =
   | 'photo-overlay'; // Photo with text overlay
 
 export type DesignPreset =
-  | 'auto'           // Auto-select (defaults to tweet-style)
-  | 'tweet-style'    // Twitter/X style card for all slides
-  | 'text-box';      // Text box overlay for all slides
+  | 'auto'             // Auto-select; backend resolves to 'branded-overlay'
+  | 'branded-overlay'  // TLL-aligned default: photo background + bold typography + red keyword spans
+  | 'tweet-style'      // Twitter/X style card for all slides
+  | 'text-box';        // Text box overlay for all slides
   // Note: 'photo-overlay' is selected automatically when user uploads an image
+  // alongside a non-branded preset; branded-overlay renders photos natively.
 
 export interface GeneratedCarouselSlide {
   slideNumber: number;
