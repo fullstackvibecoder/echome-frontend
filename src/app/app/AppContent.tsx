@@ -14,6 +14,7 @@ import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/n
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
+import { DraftedForYou } from '@/components/dashboard/DraftedForYou';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -427,6 +428,9 @@ export default function AppContent() {
               </div>
             );
           })()}
+
+          {/* Drafted For You — Echo-proposed kits the user can review/schedule/kill */}
+          <DraftedForYou />
 
           {/* Outcome Chips — intent-driven suggestions keyed off real data state */}
           <div className="mb-6">

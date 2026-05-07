@@ -33,6 +33,9 @@ import type {
   CreateReelProjectInput,
   UpdateReelProjectInput,
   UpdateReelClipInput,
+  // Drafted For You
+  DraftProposal,
+  DraftAction,
 } from '../types';
 
 // Re-export reel types for convenience
@@ -2476,6 +2479,37 @@ export const api = {
           trendingAudioName?: string;
         };
       };
+    },
+  },
+
+  // -------- DRAFTED FOR YOU --------
+  // V1: manual "Draft for me" trigger. V2 (cron) and V3 (refinement loop)
+  // will reuse the same surfaces. See docs/2026-05-07-drafted-for-you-roadmap.md.
+  drafts: {
+    /** Trigger Echo to surface 2-3 angles and generate platform-ready kits. */
+    generate: async (count?: number): Promise<{ kit_ids: string[]; remaining_angles: string[]; echo_preamble: string }> => {
+      const response = await apiClient.post<ApiResponse<{ kit_ids: string[]; remaining_angles: string[]; echo_preamble: string }>>(
+        '/drafts/generate',
+        count ? { count } : {},
+        { timeout: GENERATION_TIMEOUT },
+      );
+      return response.data.data!;
+    },
+    /** Active drafts in the inbox, most recent first. */
+    list: async (limit?: number): Promise<DraftProposal[]> => {
+      const response = await apiClient.get<ApiResponse<{ drafts: DraftProposal[] }>>(
+        '/drafts',
+        { params: limit ? { limit } : undefined },
+      );
+      return response.data.data?.drafts ?? [];
+    },
+    /** Soft-dismiss: drops out of inbox, kit stays in /library, kill outcome logged. */
+    dismiss: async (id: string): Promise<void> => {
+      await apiClient.post(`/drafts/${id}/dismiss`);
+    },
+    /** Telemetry recorder for reviewed/scheduled/edited/posted (NOT killed — use dismiss). */
+    recordAction: async (id: string, action: DraftAction, metadata?: Record<string, unknown>): Promise<void> => {
+      await apiClient.post(`/drafts/${id}/action`, { action, metadata });
     },
   },
 

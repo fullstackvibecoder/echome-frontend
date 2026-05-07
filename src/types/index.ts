@@ -1591,3 +1591,18 @@ export interface CuratedAssetInput {
   minTier?: 'free' | 'starter' | 'creator' | 'studio';
   sortOrder?: number;
 }
+
+// Drafted For You inbox row. Shape mirrors GET /api/drafts response.
+// Platform bodies are returned for preview only; full kit payload comes
+// from /api/content-kits/:id when the user clicks Review.
+export interface DraftProposal {
+  id: string;
+  title: string | null;
+  created_at: string;
+  origin: 'user' | 'autonomous';
+  content_linkedin: string | null;
+  content_instagram: string | null;
+  content_twitter: string | null;
+}
+
+export type DraftAction = 'reviewed' | 'scheduled' | 'edited' | 'posted';
