@@ -24,6 +24,7 @@ function pickPreview(draft: DraftProposal): string {
 
 export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardProps) {
   const [busy, setBusy] = useState<"none" | "dismissing">("none");
+  const [dismissError, setDismissError] = useState<string | null>(null);
 
   const handleReview = () => {
     // Fire-and-forget telemetry; never block navigation if it fails.
@@ -39,11 +40,15 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
   const handleDismiss = async () => {
     if (busy !== "none") return;
     setBusy("dismissing");
+    setDismissError(null);
     try {
       await api.drafts.dismiss(draft.id);
       onDismissed(draft.id);
     } catch {
+      // 401/402/403 are toasted by api-client interceptors; for everything
+      // else surface inline so the user knows their click was acknowledged.
       setBusy("none");
+      setDismissError("Couldn't dismiss. Try again.");
     }
   };
 
@@ -93,6 +98,12 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
           {busy === "dismissing" ? "Dismissing…" : "Kill"}
         </button>
       </div>
+
+      {dismissError && (
+        <p role="alert" className="relative text-[11px] text-destructive">
+          {dismissError}
+        </p>
+      )}
     </article>
   );
 }
