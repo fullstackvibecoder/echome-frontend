@@ -80,12 +80,6 @@ export default function ContentKitDetailContent() {
   const [exportingClip, setExportingClip] = useState(false);
   // ID of the clip currently being exported — opens the progress modal when set
   const [exportingClipId, setExportingClipId] = useState<string | null>(null);
-  const [resizing, setResizing] = useState(false);
-  const [resizedCarousel, setResizedCarousel] = useState<{
-    aspectRatio: '1:1' | '9:16';
-    slides: Array<{ slideNumber: number; publicUrl: string; text: string; template: string }>;
-  } | null>(null);
-  const squareFetchedRef = useRef(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [suggestedScheduleOpen, setSuggestedScheduleOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
@@ -158,16 +152,14 @@ export default function ContentKitDetailContent() {
     }
   }, [carouselReady, refresh]);
 
-  // Auto-fetch square (1:1) carousel when portrait carousel is available
-  // The backend generates both sizes concurrently, so the square version
-  // should be ready by the time the page loads (or shortly after)
+  // (removed) Auto-fetch of 1:1 resize on kit-page mount.
+  // The state it set (`resizedCarousel`) was never rendered, so the call
+  // was dead work — a full backend round-trip + storage writes per page
+  // load with the result thrown away. For branded-overlay carousels (the
+  // new default) it also tripped the alt-aspect stomping bug fixed in
+  // 1bfc0ce. Removed entirely; if a 1:1 surface is needed in the future,
+  // bring it back gated on actual UI consumption.
   const contentKitId = detail?.contentKit?.id;
-  useEffect(() => {
-    if (hasCarouselCheck && contentKitId && !resizedCarousel && !resizing && !squareFetchedRef.current) {
-      squareFetchedRef.current = true;
-      handleResizeCarousel('1:1');
-    }
-  }, [hasCarouselCheck, contentKitId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reel/B-Roll handlers moved to useVideoReel hook
 
@@ -232,34 +224,6 @@ export default function ContentKitDetailContent() {
     // Show success message
     setScheduleSuccess('Content scheduled successfully!');
     setTimeout(() => setScheduleSuccess(null), 3000);
-  };
-
-  const handleResizeCarousel = async (targetAspectRatio: '1:1' | '9:16') => {
-    if (resizing) return;
-    const kitId = detail?.contentKit?.id;
-    if (!kitId) return;
-    setResizing(true);
-    try {
-      const response = await api.contentKits.resizeCarousel(kitId, targetAspectRatio);
-      if (response.success && response.data?.carousel) {
-        // Map API response to use 'template' (supports both old slideType and new template)
-        const mappedSlides = response.data.carousel.slides.map((slide: any) => ({
-          slideNumber: slide.slideNumber,
-          publicUrl: slide.publicUrl,
-          text: slide.text,
-          template: slide.template || slide.slideType || 'content',
-        }));
-        setResizedCarousel({
-          aspectRatio: response.data.carousel.aspectRatio,
-          slides: mappedSlides,
-        });
-      }
-    } catch (err) {
-      console.error('Failed to resize carousel:', err);
-      showErrorToast(err, 'resizing carousel');
-    } finally {
-      setResizing(false);
-    }
   };
 
   /**
