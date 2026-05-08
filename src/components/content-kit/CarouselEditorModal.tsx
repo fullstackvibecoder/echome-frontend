@@ -14,6 +14,7 @@ import { downloadImage } from '@/lib/download';
 import { showErrorToast } from '@/lib/toast';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
+import { PhotoPicker } from './PhotoPicker';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
 import { api } from '@/lib/api-client';
@@ -23,6 +24,9 @@ interface CarouselSlide {
   slideNumber: number;
   publicUrl: string;
   backgroundUrl?: string;
+  /** Source photo URL — the photo used as the slide background (distinct
+   *  from `backgroundUrl` which is the bg-PNG for two-phase templates). */
+  backgroundImageUrl?: string;
   text: string;
   template?: string;
 }
@@ -30,6 +34,8 @@ interface CarouselSlide {
 interface SlideEdit {
   text: string;
   position: { x: number; y: number };
+  /** Per-slide photo override from the photo picker. Undefined = leave as-is. */
+  backgroundImageUrl?: string;
 }
 
 interface CarouselEditorModalProps {
@@ -117,6 +123,7 @@ export default function CarouselEditorModal({
     setEdits(initialSlides.map((s) => ({
       text: s.text,
       position: { x: 0.5, y: 0.5 },
+      backgroundImageUrl: s.backgroundImageUrl,
     })));
   }, [initialSlides]);
 
@@ -144,6 +151,55 @@ export default function CarouselEditorModal({
   const updateEdit = (index: number, patch: Partial<SlideEdit>) => {
     setEdits((prev) => prev.map((e, i) => (i === index ? { ...e, ...patch } : e)));
   };
+
+  /**
+   * User picked a different photo from the rail. Update local state, then
+   * trigger compose-only regenerate so the preview reflects the swap. The
+   * branded-overlay branch of the backend's compose-only path renders the
+   * single slide with the new photo (no LLM call, no full regenerate).
+   */
+  const handlePhotoSelect = useCallback(
+    async (slideIndex: number, photoUrl: string) => {
+      // Optimistic state update so the picker shows the new selection
+      // immediately, even before the compose round-trip completes.
+      setEdits((prev) =>
+        prev.map((e, i) => (i === slideIndex ? { ...e, backgroundImageUrl: photoUrl } : e)),
+      );
+      try {
+        setRefreshingPreview(true);
+        const overrides = edits.map((e, i) => ({
+          text: e.text,
+          textPosition: e.position,
+          backgroundImageUrl: i === slideIndex ? photoUrl : e.backgroundImageUrl,
+        }));
+        const response = await api.contentKits.regenerateCarousel(contentKitId, {
+          designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay') || 'auto',
+          composeOnly: true,
+          slideOverrides: overrides,
+        });
+        if (response.success && response.data?.carousel?.slides) {
+          const composed = response.data.carousel.slides;
+          setSlides(
+            composed.map((s) => ({
+              slideNumber: s.slideNumber,
+              publicUrl: s.publicUrl,
+              backgroundUrl: (s as { backgroundUrl?: string; background_url?: string }).backgroundUrl
+                ?? (s as { background_url?: string }).background_url,
+              backgroundImageUrl: (s as { backgroundImageUrl?: string }).backgroundImageUrl,
+              text: s.text,
+              template: (s as { template?: string }).template,
+            })),
+          );
+          onCarouselUpdate();
+        }
+      } catch (err) {
+        showErrorToast(err, 'swapping photo');
+      } finally {
+        setRefreshingPreview(false);
+      }
+    },
+    [edits, contentKitId, currentPreset, onCarouselUpdate],
+  );
 
   // Prepare backgrounds for drag editing (only for non-tweet templates)
   const handlePrepareEditing = useCallback(async () => {
@@ -404,6 +460,32 @@ export default function CarouselEditorModal({
                 className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-interactive/40 bg-primary-interactive/5 px-4 py-3 text-sm font-medium text-primary-interactive hover:bg-primary-interactive/10 transition-colors disabled:opacity-50">
                 {preparing ? (<><Loader2 className="h-4 w-4 animate-spin" />Preparing...</>) : (<><Pencil className="h-4 w-4" />Enable drag positioning</>)}
               </button>
+            )}
+
+            {/* Photo picker — branded-overlay slides support photo swap via the
+                compose-only fast path. Legacy templates (tweet-style, text-box,
+                photo-overlay) don't render the photo themselves, so the picker
+                is hidden for those. */}
+            {(activeSlide.template?.startsWith('branded-overlay')) && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-foreground">Background photo</h4>
+                  {refreshingPreview && (
+                    <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+                <p className="text-xs text-text-tertiary">
+                  Click a photo to swap it on slide {activeSlide.slideNumber}.
+                </p>
+                <PhotoPicker
+                  kitId={contentKitId}
+                  uploadId={uploadId}
+                  currentPhotoUrl={
+                    edits[activeIndex]?.backgroundImageUrl ?? activeSlide.backgroundImageUrl
+                  }
+                  onSelect={(url) => handlePhotoSelect(activeIndex, url)}
+                />
+              </div>
             )}
 
             {/* Style editor */}

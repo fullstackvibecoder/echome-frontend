@@ -2331,6 +2331,10 @@ export const api = {
       slideOverrides?: Array<{
         text?: string;
         textPosition?: { x: number; y: number };
+        /** Per-slide source photo override (post-gen editor photo picker).
+         *  Only applies to branded-overlay templates today; legacy templates
+         *  ignore this field. */
+        backgroundImageUrl?: string;
       }>;
       composeOnly?: boolean;
     }) => {
