@@ -125,6 +125,16 @@ export default function CarouselEditorModal({
       position: { x: 0.5, y: 0.5 },
       backgroundImageUrl: s.backgroundImageUrl,
     })));
+    // Clamp activeIndex when slides shrink (e.g., post-restyle: original 10
+    // branded-overlay → user picks Tweet Card → regenerate returns 5 slides
+    // via text-parsing fallback). Without this, activeIndex stays out of
+    // bounds, slides[activeIndex] becomes undefined, the modal early-returns
+    // null, and the parent's open state stays stuck → carousel card looks
+    // dead because clicking re-sets an already-true state. Bug 4 from the
+    // 2026-05-07 test surface.
+    if (initialSlides.length > 0) {
+      setActiveIndex((prev) => Math.min(prev, initialSlides.length - 1));
+    }
   }, [initialSlides]);
 
   useEffect(() => {
@@ -329,15 +339,25 @@ export default function CarouselEditorModal({
   };
 
   const handleRestyleComplete = (carousel: {
-    slides: Array<{ slideNumber: number; text: string; publicUrl: string; template?: string; backgroundUrl?: string }>;
+    slides: Array<{ slideNumber: number; text: string; publicUrl: string; template?: string; backgroundUrl?: string; backgroundImageUrl?: string }>;
     designPreset?: string;
   }) => {
     const newSlides = carousel.slides.map((s) => ({
       slideNumber: s.slideNumber, publicUrl: s.publicUrl,
-      backgroundUrl: s.backgroundUrl, text: s.text, template: s.template,
+      backgroundUrl: s.backgroundUrl,
+      backgroundImageUrl: s.backgroundImageUrl,
+      text: s.text, template: s.template,
     }));
     setSlides(newSlides);
-    setEdits(newSlides.map((s) => ({ text: s.text, position: { x: 0.5, y: 0.5 } })));
+    setEdits(newSlides.map((s) => ({
+      text: s.text, position: { x: 0.5, y: 0.5 }, backgroundImageUrl: s.backgroundImageUrl,
+    })));
+    // Clamp activeIndex so we don't end up out of bounds when the new
+    // carousel has fewer slides than the old one (Tweet Card text-parsing
+    // gives ~5 slides; original branded-overlay was 10).
+    if (newSlides.length > 0) {
+      setActiveIndex((prev) => Math.min(prev, newSlides.length - 1));
+    }
     if (carousel.designPreset) {
       setCurrentPreset(carousel.designPreset);
     }
@@ -346,6 +366,16 @@ export default function CarouselEditorModal({
 
   const activeSlide = slides[activeIndex];
   const activeEdit = edits[activeIndex];
+  // Defensive: if `open` says we should be visible but state is invalid (no
+  // slides, or activeIndex out of bounds), fire onClose so the parent's
+  // open state syncs with reality. Without this, the parent thinks the
+  // modal is open but it's rendering null — clicking the carousel card
+  // becomes a no-op (re-setting an already-true state). Bug 4 second-layer
+  // safety net; the activeIndex clamp above is the primary fix.
+  if (open && (slides.length === 0 || !activeSlide || !activeEdit)) {
+    queueMicrotask(() => onClose());
+    return null;
+  }
   if (!open || slides.length === 0 || !activeSlide || !activeEdit) return null;
 
   const previewImageUrl = (activeSlide.backgroundUrl && hasBackground) ? activeSlide.backgroundUrl : activeSlide.publicUrl;
