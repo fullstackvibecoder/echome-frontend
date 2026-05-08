@@ -15,6 +15,7 @@ import { showErrorToast } from '@/lib/toast';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
 import { PhotoPicker } from './PhotoPicker';
+import { RedWordPicker } from './RedWordPicker';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
 import { api } from '@/lib/api-client';
@@ -36,6 +37,9 @@ interface SlideEdit {
   position: { x: number; y: number };
   /** Per-slide photo override from the photo picker. Undefined = leave as-is. */
   backgroundImageUrl?: string;
+  /** Per-slide red-emphasis word override (cover/last only). The compose-only
+   *  backend strips any prior `**` markers and wraps this word with `**`. */
+  redKeyword?: string;
 }
 
 interface CarouselEditorModalProps {
@@ -171,7 +175,7 @@ export default function CarouselEditorModal({
    * via renderSlideToBuffer (~2-3s for 10 slides).
    */
   const runComposeOnlyRefresh = useCallback(
-    async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; backgroundImageUrl?: string }>) => {
+    async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; backgroundImageUrl?: string; redKeyword?: string }>) => {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
         designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay') || 'auto',
         composeOnly: true,
@@ -213,6 +217,7 @@ export default function CarouselEditorModal({
           text: e.text,
           textPosition: e.position,
           backgroundImageUrl: i === slideIndex ? photoUrl : e.backgroundImageUrl,
+          redKeyword: e.redKeyword,
         }));
         await runComposeOnlyRefresh(overrides);
       } catch (err) {
@@ -237,7 +242,7 @@ export default function CarouselEditorModal({
   const lastAutoRefreshSnapshot = useRef<string>('');
   useEffect(() => {
     if (!open) return;
-    const editsSnapshot = edits.map((e) => `${e.text}@${e.position.x},${e.position.y}|${e.backgroundImageUrl ?? ''}`).join('||');
+    const editsSnapshot = edits.map((e) => `${e.text}@${e.position.x},${e.position.y}|${e.backgroundImageUrl ?? ''}|${e.redKeyword ?? ''}`).join('||');
     const slidesSnapshot = slides.map((s) => s.text).join('||');
     // Skip when nothing has changed since the last snapshot.
     if (editsSnapshot === lastAutoRefreshSnapshot.current) return;
@@ -261,6 +266,7 @@ export default function CarouselEditorModal({
           text: e.text,
           textPosition: e.position,
           backgroundImageUrl: e.backgroundImageUrl,
+          redKeyword: e.redKeyword,
         }));
         await runComposeOnlyRefresh(overrides);
         lastAutoRefreshSnapshot.current = editsSnapshot;
@@ -579,6 +585,19 @@ export default function CarouselEditorModal({
                   onSelect={(url) => handlePhotoSelect(activeIndex, url)}
                 />
               </div>
+            )}
+
+            {/* Red-word picker — cover (slide 1) and last slide only. Body
+                slides forbid emphasis per the design rules so the picker is
+                hidden for them. The auto-debounced compose-only effect
+                picks up the new redKeyword and re-renders the slide. */}
+            {(activeSlide.template === 'branded-overlay-cover' ||
+              activeSlide.template === 'branded-overlay-last') && (
+              <RedWordPicker
+                text={edits[activeIndex]?.text ?? activeSlide.text ?? ''}
+                selectedWord={edits[activeIndex]?.redKeyword}
+                onChange={(word) => updateEdit(activeIndex, { redKeyword: word })}
+              />
             )}
 
             {/* Style editor */}

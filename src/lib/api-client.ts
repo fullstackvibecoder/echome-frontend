@@ -2335,6 +2335,10 @@ export const api = {
          *  Only applies to branded-overlay templates today; legacy templates
          *  ignore this field. */
         backgroundImageUrl?: string;
+        /** Per-slide red-emphasis word override (post-gen editor word picker).
+         *  Cover and last branded-overlay slides only. Backend strips any
+         *  prior `**` markers and wraps this word with `**` before rendering. */
+        redKeyword?: string;
       }>;
       composeOnly?: boolean;
     }) => {
