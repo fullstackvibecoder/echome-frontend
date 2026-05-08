@@ -163,10 +163,42 @@ export default function CarouselEditorModal({
   };
 
   /**
+   * Run a compose-only regenerate using the given overrides and swap the
+   * resulting slide URLs into local state. Shared by handlePhotoSelect
+   * (immediate, photo swap) and the auto-debounced text-edit watcher
+   * below. composeOnly:true skips the LLM and the full canvas pipeline
+   * for two-phase templates; for branded-overlay it re-renders single-pass
+   * via renderSlideToBuffer (~2-3s for 10 slides).
+   */
+  const runComposeOnlyRefresh = useCallback(
+    async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; backgroundImageUrl?: string }>) => {
+      const response = await api.contentKits.regenerateCarousel(contentKitId, {
+        designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay') || 'auto',
+        composeOnly: true,
+        slideOverrides: overrides,
+      });
+      if (response.success && response.data?.carousel?.slides) {
+        const composed = response.data.carousel.slides;
+        setSlides(
+          composed.map((s) => ({
+            slideNumber: s.slideNumber,
+            publicUrl: s.publicUrl,
+            backgroundUrl: (s as { backgroundUrl?: string; background_url?: string }).backgroundUrl
+              ?? (s as { background_url?: string }).background_url,
+            backgroundImageUrl: (s as { backgroundImageUrl?: string }).backgroundImageUrl,
+            text: s.text,
+            template: (s as { template?: string }).template,
+          })),
+        );
+        onCarouselUpdate();
+      }
+    },
+    [contentKitId, currentPreset, onCarouselUpdate],
+  );
+
+  /**
    * User picked a different photo from the rail. Update local state, then
-   * trigger compose-only regenerate so the preview reflects the swap. The
-   * branded-overlay branch of the backend's compose-only path renders the
-   * single slide with the new photo (no LLM call, no full regenerate).
+   * trigger compose-only regenerate so the preview reflects the swap.
    */
   const handlePhotoSelect = useCallback(
     async (slideIndex: number, photoUrl: string) => {
@@ -182,34 +214,65 @@ export default function CarouselEditorModal({
           textPosition: e.position,
           backgroundImageUrl: i === slideIndex ? photoUrl : e.backgroundImageUrl,
         }));
-        const response = await api.contentKits.regenerateCarousel(contentKitId, {
-          designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay') || 'auto',
-          composeOnly: true,
-          slideOverrides: overrides,
-        });
-        if (response.success && response.data?.carousel?.slides) {
-          const composed = response.data.carousel.slides;
-          setSlides(
-            composed.map((s) => ({
-              slideNumber: s.slideNumber,
-              publicUrl: s.publicUrl,
-              backgroundUrl: (s as { backgroundUrl?: string; background_url?: string }).backgroundUrl
-                ?? (s as { background_url?: string }).background_url,
-              backgroundImageUrl: (s as { backgroundImageUrl?: string }).backgroundImageUrl,
-              text: s.text,
-              template: (s as { template?: string }).template,
-            })),
-          );
-          onCarouselUpdate();
-        }
+        await runComposeOnlyRefresh(overrides);
       } catch (err) {
         showErrorToast(err, 'swapping photo');
       } finally {
         setRefreshingPreview(false);
       }
     },
-    [edits, contentKitId, currentPreset, onCarouselUpdate],
+    [edits, runComposeOnlyRefresh],
   );
+
+  /**
+   * Auto-debounced live preview: when the user pauses typing for 1.5s, run
+   * a compose-only refresh so the preview reflects their text edits without
+   * requiring them to click the manual "Refresh preview" button. Only
+   * triggers when compose-only is actually supported for the active
+   * carousel — branded-overlay slides re-render single-pass; legacy
+   * two-phase templates need cached backgrounds (hasBackground=true).
+   * For tweet-style without backgrounds, the manual button still works
+   * via the full regenerate path.
+   */
+  const lastAutoRefreshSnapshot = useRef<string>('');
+  useEffect(() => {
+    if (!open) return;
+    const editsSnapshot = edits.map((e) => `${e.text}@${e.position.x},${e.position.y}|${e.backgroundImageUrl ?? ''}`).join('||');
+    const slidesSnapshot = slides.map((s) => s.text).join('||');
+    // Skip when nothing has changed since the last snapshot.
+    if (editsSnapshot === lastAutoRefreshSnapshot.current) return;
+    // Skip when edits match the slides (no user changes yet, just initial sync).
+    if (editsSnapshot.split('||').map((s) => s.split('@')[0]).join('||') === slidesSnapshot) {
+      lastAutoRefreshSnapshot.current = editsSnapshot;
+      return;
+    }
+    // Compose-only requires either branded-overlay (single-pass) or a
+    // cached background per slide (two-phase). Skip auto-refresh otherwise.
+    const supportsComposeOnly =
+      hasBackground ||
+      slides.some((s) => s.template?.startsWith('branded-overlay'));
+    if (!supportsComposeOnly) return;
+    if (refreshingPreview) return;
+
+    const handle = setTimeout(async () => {
+      try {
+        setRefreshingPreview(true);
+        const overrides = edits.map((e) => ({
+          text: e.text,
+          textPosition: e.position,
+          backgroundImageUrl: e.backgroundImageUrl,
+        }));
+        await runComposeOnlyRefresh(overrides);
+        lastAutoRefreshSnapshot.current = editsSnapshot;
+      } catch {
+        // Silent — manual refresh button is still available as the fallback.
+      } finally {
+        setRefreshingPreview(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(handle);
+  }, [edits, slides, open, hasBackground, refreshingPreview, runComposeOnlyRefresh]);
 
   // Prepare backgrounds for drag editing (only for non-tweet templates)
   const handlePrepareEditing = useCallback(async () => {
