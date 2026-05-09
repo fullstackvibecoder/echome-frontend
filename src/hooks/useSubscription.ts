@@ -38,6 +38,14 @@ interface UseSubscriptionReturn {
   canGenerate: boolean;
   /** Whether user is on the free tier (not subscribed, not trialing) */
   isFreeUser: boolean;
+  /**
+   * True when this user was grandfathered into Studio-equivalent feature
+   * access regardless of their actual tier. Set for everyone who existed
+   * before 2026-05-10. Use this when you want to show a special UI badge
+   * or messaging; for actual gating use canAutoPost / hasTierAccess which
+   * already honor it.
+   */
+  isLegacyGrandfathered: boolean;
   /** Refresh subscription status from server. Pass true to force sync from Stripe. */
   refresh: (forceSync?: boolean) => Promise<void>;
   /** Check if user has access to a tier-gated feature */
@@ -168,8 +176,19 @@ export function useSubscription(): UseSubscriptionReturn {
   const isFreeUser = !isSubscribed && !isTrial;
   const canGenerate = isSubscribed || isTrial || freeGenerationsRemaining > 0;
 
+  // Legacy grandfather flag — set on every user who existed before
+  // 2026-05-10. These users get Studio-equivalent feature access regardless
+  // of their actual tier or quota. Mirrors backend behavior in
+  // src/middleware/subscription.ts:effectiveTierLevel.
+  const isLegacyGrandfathered = subscription?.isLegacyGrandfathered === true;
+
   // Check tier access — free users with remaining generations get pro-level access
   const hasTierAccess = useCallback((requiredTier: SubscriptionTier): boolean => {
+    // Grandfathered users always read at Studio level for tier-feature gates.
+    if (isLegacyGrandfathered) {
+      const requiredLevel = TIER_LEVELS[requiredTier] || 0;
+      return TIER_LEVELS.studio >= requiredLevel;
+    }
     if (isSubscribed || isTrial) {
       const userLevel = TIER_LEVELS[tier] || 0;
       const requiredLevel = TIER_LEVELS[requiredTier] || 0;
@@ -180,12 +199,14 @@ export function useSubscription(): UseSubscriptionReturn {
       return true;
     }
     return false;
-  }, [tier, isSubscribed, isTrial, freeGenerationsRemaining]);
+  }, [tier, isSubscribed, isTrial, freeGenerationsRemaining, isLegacyGrandfathered]);
 
-  // Auto-post access — Studio+ OR free-with-quota. See the interface comment
-  // for the full rule table. Echo ($29 / 'pro') is explicitly excluded so that
-  // Echo users fall into the reminders path instead.
+  // Auto-post access — Studio+ OR free-with-quota OR grandfathered. See the
+  // interface comment for the full rule table. Echo ($29 / 'pro') is
+  // explicitly excluded so that Echo users (non-grandfathered) fall into the
+  // reminders path instead.
   const canAutoPost: boolean = (() => {
+    if (isLegacyGrandfathered) return true;
     if (isSubscribed || isTrial) {
       return (TIER_LEVELS[tier] || 0) >= TIER_LEVELS.studio;
     }
@@ -228,6 +249,7 @@ export function useSubscription(): UseSubscriptionReturn {
     freeGenerationsRemaining,
     canGenerate,
     isFreeUser,
+    isLegacyGrandfathered,
     refresh,
     hasTierAccess,
     canAutoPost,

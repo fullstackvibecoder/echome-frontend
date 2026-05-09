@@ -4699,6 +4699,10 @@ export interface StripeSubscriptionStatus {
   isAdminAssigned?: boolean;
   freeGenerationsUsed?: number;
   freeGenerationsLimit?: number;
+  /** True when this user was grandfathered into Studio-equivalent feature
+   *  access regardless of their subscription tier. Set for all users who
+   *  existed before 2026-05-10. UI should treat as if user has Studio. */
+  isLegacyGrandfathered?: boolean;
 }
 
 export interface StripeSubscriptionResponse {
