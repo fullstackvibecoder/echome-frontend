@@ -2282,6 +2282,9 @@ export const api = {
       contentEmail?: string;
       contentTiktok?: string;
       contentYoutube?: string;
+      /** Per-carousel Instagram post caption (override). Empty string clears
+       *  the override and falls back to contentInstagram at post time. */
+      carouselSuggestedCaption?: string | null;
     }) => {
       const response = await apiClient.patch(`/content-kits/${kitId}`, data);
       return response.data as {

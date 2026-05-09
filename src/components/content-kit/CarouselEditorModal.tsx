@@ -115,6 +115,11 @@ export default function CarouselEditorModal({
   const [preparing, setPreparing] = useState(false);
   const [refreshingPreview, setRefreshingPreview] = useState(false);
   const [currentPreset, setCurrentPreset] = useState(designPreset || 'auto');
+  // Editable per-carousel post caption. Null/empty falls through to the
+  // kit-level Instagram caption (fallbackCaption) at post time. The local
+  // mirror lets typing feel instant; we PATCH on a 600ms debounce.
+  const [postCaptionDraft, setPostCaptionDraft] = useState<string>(suggestedCaption ?? '');
+  const [savingCaption, setSavingCaption] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -165,6 +170,31 @@ export default function CarouselEditorModal({
   const updateEdit = (index: number, patch: Partial<SlideEdit>) => {
     setEdits((prev) => prev.map((e, i) => (i === index ? { ...e, ...patch } : e)));
   };
+
+  // Debounced PATCH for the per-carousel post caption. Mirrors the clip
+  // editor's pattern (ClipEditorModal:195-208). 600ms cadence lets a fast
+  // typist edit without firing a save per keystroke. The local
+  // postCaptionDraft is the source of truth for what the user sees while
+  // they type; the PATCH catches up after they pause.
+  const captionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handlePostCaptionChange = useCallback(
+    (next: string) => {
+      setPostCaptionDraft(next);
+      if (captionSaveTimerRef.current) clearTimeout(captionSaveTimerRef.current);
+      captionSaveTimerRef.current = setTimeout(async () => {
+        setSavingCaption(true);
+        try {
+          await api.contentKits.update(contentKitId, { carouselSuggestedCaption: next });
+        } catch (err) {
+          console.error('Failed to save carousel caption', err);
+          showErrorToast('Could not save caption changes. Please try again.');
+        } finally {
+          setSavingCaption(false);
+        }
+      }, 600);
+    },
+    [contentKitId],
+  );
 
   /**
    * Run a compose-only regenerate using the given overrides and swap the
@@ -604,9 +634,16 @@ export default function CarouselEditorModal({
             <CarouselStyleEditor kitId={contentKitId} currentDesignPreset={currentPreset} uploadId={uploadId} onRestyleComplete={handleRestyleComplete} />
 
             {/* Post caption — the text to paste into Instagram when uploading.
-                Falls back to the kit-level Instagram caption if a per-carousel
-                caption hasn't been generated yet. */}
-            <PostCaptionBlock caption={suggestedCaption} fallback={fallbackCaption} />
+                Editable: typing persists to generated_carousels.suggested_caption
+                via the kit PATCH endpoint (debounced 600ms). Falls back to the
+                kit-level Instagram caption when the per-carousel value is empty,
+                so unedited carousels still inherit the kit default. */}
+            <PostCaptionBlock
+              caption={postCaptionDraft}
+              fallback={fallbackCaption}
+              onChange={handlePostCaptionChange}
+              saving={savingCaption}
+            />
 
             {/* Download */}
             <div className="flex gap-3 pt-2">
@@ -630,7 +667,7 @@ export default function CarouselEditorModal({
             <VisualPostActions
               contentKitId={contentKitId}
               sourceOutputId={`carousel:${contentKitId}`}
-              caption={suggestedCaption || fallbackCaption || ''}
+              caption={postCaptionDraft || fallbackCaption || ''}
               mediaUrls={slides.map((s) => s.publicUrl).filter(Boolean)}
               outputKind="carousel"
               finalizationRecipe={{
