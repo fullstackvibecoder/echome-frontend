@@ -67,8 +67,32 @@ export default function ReelEditorModal({
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | undefined>(reelProjectId);
+  // Editable per-reel post caption. Mirrors the carousel editor pattern:
+  // local mirror feeds the textarea instantly, debounced PATCH persists to
+  // content_kits.content_reels.post_caption (JSONB nested).
+  const [postCaptionDraft, setPostCaptionDraft] = useState<string>(postCaption ?? '');
+  const [savingCaption, setSavingCaption] = useState(false);
 
   const backdropRef = useRef<HTMLDivElement>(null);
+  const captionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePostCaptionChange = useCallback(
+    (next: string) => {
+      setPostCaptionDraft(next);
+      if (captionSaveTimerRef.current) clearTimeout(captionSaveTimerRef.current);
+      captionSaveTimerRef.current = setTimeout(async () => {
+        setSavingCaption(true);
+        try {
+          await api.contentKits.update(contentKitId, { reelPostCaption: next });
+        } catch (err) {
+          console.error('Failed to save reel caption', err);
+        } finally {
+          setSavingCaption(false);
+        }
+      }, 600);
+    },
+    [contentKitId],
+  );
 
   // ---- Data fetching ----
   const fetchData = useCallback(async () => {
@@ -353,7 +377,12 @@ export default function ReelEditorModal({
                 {/* Post caption — the text to paste into Instagram when uploading.
                     Falls back to the kit-level IG caption if a per-reel caption
                     hasn't been generated yet. */}
-                <PostCaptionBlock caption={postCaption} fallback={instagramCaption} />
+                <PostCaptionBlock
+                  caption={postCaptionDraft}
+                  fallback={instagramCaption}
+                  onChange={handlePostCaptionChange}
+                  saving={savingCaption}
+                />
 
                 {/* Action button */}
                 <div className="pt-2">

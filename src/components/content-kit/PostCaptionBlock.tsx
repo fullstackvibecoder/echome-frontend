@@ -20,7 +20,7 @@
  * been generated yet, with a small note so the user knows it's shared.
  */
 import { useState, useEffect, useRef } from 'react';
-import { Copy, Check, ExternalLink } from 'lucide-react';
+import { Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
 
 interface PostCaptionBlockProps {
   /** Preferred caption (per-output). If null/empty, fallback is used. */
@@ -62,6 +62,21 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
   const text = editable ? draft : (caption?.trim() || fallback?.trim() || '');
   const isFallback = !editable && !caption?.trim() && !!fallback?.trim();
 
+  // Brief "Saved" confirmation after a save completes. Watching `saving`
+  // transition from true → false lights this up for 1.5s, which gives the
+  // user a quiet acknowledgment that their typing actually persisted —
+  // a "saving…" indicator that just disappears can read as a glitch.
+  const [justSaved, setJustSaved] = useState(false);
+  const wasSavingRef = useRef(!!saving);
+  useEffect(() => {
+    if (wasSavingRef.current && !saving) {
+      setJustSaved(true);
+      const t = setTimeout(() => setJustSaved(false), 1500);
+      return () => clearTimeout(t);
+    }
+    wasSavingRef.current = !!saving;
+  }, [saving]);
+
   // Hide the block entirely in display mode when there's nothing to show.
   // In edit mode, always render — the user needs the textarea to ADD a caption.
   if (!text && !editable) return null;
@@ -93,14 +108,21 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
               (from kit default)
             </span>
           )}
-          {editable && (
+          {editable && !saving && !justSaved && (
             <span className="text-[11px] text-muted-foreground/70 font-normal ml-1.5">
-              (click to edit)
+              (auto-saves while you type)
             </span>
           )}
           {saving && (
-            <span className="text-[11px] text-muted-foreground/80 font-normal ml-1.5 animate-pulse">
-              saving…
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/80 font-normal ml-1.5">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Saving…
+            </span>
+          )}
+          {justSaved && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-normal ml-1.5 transition-opacity">
+              <Check className="w-3 h-3" />
+              Saved
             </span>
           )}
         </label>
