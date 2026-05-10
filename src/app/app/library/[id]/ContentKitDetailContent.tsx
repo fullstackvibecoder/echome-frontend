@@ -853,6 +853,11 @@ export default function ContentKitDetailContent() {
             slideNumber: s.slideNumber,
             publicUrl: s.publicUrl,
             backgroundUrl: s.backgroundUrl || s.background_url,
+            // backgroundImageUrl is the SOURCE photo URL (separate from
+            // backgroundUrl which is the cached two-phase legacy background).
+            // Required by the client-side canvas renderer for branded-overlay
+            // templates — without it, the preview falls back to solid fill.
+            backgroundImageUrl: s.backgroundImageUrl,
             text: s.text || '',
             template: s.template || s.slideType,
           }))}
