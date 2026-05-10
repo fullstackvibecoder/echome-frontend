@@ -14,19 +14,27 @@ import {
   Linkedin,
   Facebook,
   AtSign,
+  Youtube,
+  Cloud,
   ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
 
 // Platforms verified working with Outstand managed keys.
-// Facebook and Threads use Outstand's 3-leg flow (verified 2026-04-23).
-// LinkedIn supports both Company Pages and personal profiles.
-// X, TikTok, YouTube, Pinterest, Bluesky, Google Business are pending Managed Keys support.
+// IG/LI/FB/Threads went live in the original 2026-04-19 rollout (3-leg flow
+// for FB/Threads, verified 2026-04-23). YouTube/Bluesky managed keys went
+// live 2026-05-09 — verified end-to-end via /v1/social-networks/{platform}/auth-url
+// returning valid OAuth URLs for both. Pinterest is also managed but held
+// from this UI until we wire the post-side (pins need media + destination URL,
+// which doesn't slot into the kit content shape yet). X, TikTok, Google Business
+// remain BYOK-only and aren't expected to land soon.
 const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon; hint?: string }> = [
   { id: 'instagram', name: 'Instagram', Icon: Instagram, hint: 'Requires a Business or Creator account' },
   { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin, hint: 'Personal profile or Company Page both work' },
   { id: 'facebook', name: 'Facebook', Icon: Facebook, hint: 'Requires a Facebook Page (Meta does not allow API posting to personal profiles)' },
   { id: 'threads', name: 'Threads', Icon: AtSign, hint: 'Requires an Instagram Business/Creator account linked to Threads' },
+  { id: 'youtube', name: 'YouTube', Icon: Youtube, hint: 'Posts to your channel\'s Community tab. Requires ≥500 subscribers (YouTube\'s own eligibility floor).' },
+  { id: 'bluesky', name: 'Bluesky', Icon: Cloud, hint: 'Short-form posts up to 300 characters' },
 ];
 
 interface ConnectedAccount {
@@ -225,7 +233,7 @@ export function ConnectedAccounts() {
           Connect your social accounts to schedule and auto-post content directly from EchoMe.
         </p>
         <p className="text-[11px] text-muted-foreground/60 mt-2">
-          Available now: Instagram, LinkedIn, Facebook, Threads. More platforms coming as Outstand adds Managed Keys support.
+          Available now: Instagram, LinkedIn, Facebook, Threads, YouTube, Bluesky.
         </p>
       </div>
 
