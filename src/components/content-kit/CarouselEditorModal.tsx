@@ -20,6 +20,13 @@ import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
+import {
+  renderSlide,
+  supportsClientRender,
+  BRANDED_OVERLAY_PRESET,
+  type SlideConfig,
+  type TemplateType,
+} from '@/lib/carousel-renderer';
 
 interface CarouselSlide {
   slideNumber: number;
@@ -129,11 +136,21 @@ export default function CarouselEditorModal({
 
   useEffect(() => {
     setSlides(initialSlides);
-    setEdits(initialSlides.map((s) => ({
-      text: s.text,
-      position: { x: 0.5, y: 0.5 },
-      backgroundImageUrl: s.backgroundImageUrl,
-    })));
+    setEdits(initialSlides.map((s) => {
+      // Seed redKeyword from any existing **word** marker in the slide text
+      // so AI-chosen emphasis doesn't silently disappear the moment a user
+      // edits anything else. Only applies to cover and last templates per
+      // the design rule. Body slides ignore red emphasis.
+      const isCoverOrLast =
+        s.template === 'branded-overlay-cover' || s.template === 'branded-overlay-last';
+      const markerMatch = isCoverOrLast ? s.text.match(/\*\*(.+?)\*\*/) : null;
+      return {
+        text: s.text,
+        position: { x: 0.5, y: 0.5 },
+        backgroundImageUrl: s.backgroundImageUrl,
+        redKeyword: markerMatch?.[1],
+      };
+    }));
     // Clamp activeIndex when slides shrink (e.g., post-restyle: original 10
     // branded-overlay → user picks Tweet Card → regenerate returns 5 slides
     // via text-parsing fallback). Without this, activeIndex stays out of
@@ -231,84 +248,62 @@ export default function CarouselEditorModal({
   );
 
   /**
-   * User picked a different photo from the rail. Update local state, then
-   * trigger compose-only regenerate so the preview reflects the swap.
+   * User picked a different photo from the rail. Update local state — the
+   * preview canvas re-renders automatically via the renderSlide effect.
+   * No server round-trip; the new photo is baked into the export at
+   * Download / Post / Schedule time.
    */
   const handlePhotoSelect = useCallback(
-    async (slideIndex: number, photoUrl: string) => {
-      // Optimistic state update so the picker shows the new selection
-      // immediately, even before the compose round-trip completes.
+    (slideIndex: number, photoUrl: string) => {
       setEdits((prev) =>
         prev.map((e, i) => (i === slideIndex ? { ...e, backgroundImageUrl: photoUrl } : e)),
       );
-      try {
-        setRefreshingPreview(true);
-        const overrides = edits.map((e, i) => ({
-          text: e.text,
-          textPosition: e.position,
-          backgroundImageUrl: i === slideIndex ? photoUrl : e.backgroundImageUrl,
-          redKeyword: e.redKeyword,
-        }));
-        await runComposeOnlyRefresh(overrides);
-      } catch (err) {
-        showErrorToast(err, 'swapping photo');
-      } finally {
-        setRefreshingPreview(false);
-      }
     },
-    [edits, runComposeOnlyRefresh],
+    [],
   );
 
   /**
-   * Auto-debounced live preview: when the user pauses typing for 1.5s, run
-   * a compose-only refresh so the preview reflects their text edits without
-   * requiring them to click the manual "Refresh preview" button. Only
-   * triggers when compose-only is actually supported for the active
-   * carousel — branded-overlay slides re-render single-pass; legacy
-   * two-phase templates need cached backgrounds (hasBackground=true).
-   * For tweet-style without backgrounds, the manual button still works
-   * via the full regenerate path.
+   * Client-side preview render. Mirrors the backend canvas pipeline so
+   * what shows in the editor IS what gets exported. Replaced the old
+   * 1.5s auto-debounced server compose — we no longer round-trip on
+   * every keystroke.
+   *
+   * Only branded-overlay templates render client-side (the legacy
+   * single-pass templates bake text into the cached background PNG and
+   * can't be recomposed without the full server pipeline). For those,
+   * the preview falls back to the server's publicUrl + DraggableTextOverlay.
+   *
+   * Server-side compose still runs at terminal moments: Download (handleDownload)
+   * and the VisualPostActions Post-now / Schedule paths. Those send the
+   * current edits as overrides so the final asset matches the editor preview.
    */
-  const lastAutoRefreshSnapshot = useRef<string>('');
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (!open) return;
-    const editsSnapshot = edits.map((e) => `${e.text}@${e.position.x},${e.position.y}|${e.backgroundImageUrl ?? ''}|${e.redKeyword ?? ''}`).join('||');
-    const slidesSnapshot = slides.map((s) => s.text).join('||');
-    // Skip when nothing has changed since the last snapshot.
-    if (editsSnapshot === lastAutoRefreshSnapshot.current) return;
-    // Skip when edits match the slides (no user changes yet, just initial sync).
-    if (editsSnapshot.split('||').map((s) => s.split('@')[0]).join('||') === slidesSnapshot) {
-      lastAutoRefreshSnapshot.current = editsSnapshot;
-      return;
-    }
-    // Compose-only requires either branded-overlay (single-pass) or a
-    // cached background per slide (two-phase). Skip auto-refresh otherwise.
-    const supportsComposeOnly =
-      hasBackground ||
-      slides.some((s) => s.template?.startsWith('branded-overlay'));
-    if (!supportsComposeOnly) return;
-    if (refreshingPreview) return;
+    const canvas = previewCanvasRef.current;
+    const slide = slides[activeIndex];
+    const edit = edits[activeIndex];
+    if (!canvas || !slide || !edit) return;
+    if (!supportsClientRender(slide.template)) return;
 
-    const handle = setTimeout(async () => {
-      try {
-        setRefreshingPreview(true);
-        const overrides = edits.map((e) => ({
-          text: e.text,
-          textPosition: e.position,
-          backgroundImageUrl: e.backgroundImageUrl,
-          redKeyword: e.redKeyword,
-        }));
-        await runComposeOnlyRefresh(overrides);
-        lastAutoRefreshSnapshot.current = editsSnapshot;
-      } catch {
-        // Silent — manual refresh button is still available as the fallback.
-      } finally {
-        setRefreshingPreview(false);
-      }
-    }, 1500);
-
-    return () => clearTimeout(handle);
-  }, [edits, slides, open, hasBackground, refreshingPreview, runComposeOnlyRefresh]);
+    const config: SlideConfig = {
+      templateType: slide.template as TemplateType,
+      text: edit.text,
+      slideNumber: slide.slideNumber,
+      totalSlides: slides.length,
+      aspectRatio: '4:5',
+      backgroundImageUrl: edit.backgroundImageUrl ?? slide.backgroundImageUrl,
+      designSystem: BRANDED_OVERLAY_PRESET,
+      redKeyword: edit.redKeyword,
+    };
+    let cancelled = false;
+    renderSlide(canvas, config).catch((err) => {
+      if (!cancelled) console.warn('Carousel preview render failed', err);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, activeIndex, slides, edits]);
 
   // Prepare backgrounds for drag editing (only for non-tweet templates)
   const handlePrepareEditing = useCallback(async () => {
@@ -480,6 +475,12 @@ export default function CarouselEditorModal({
   const previewImageUrl = (activeSlide.backgroundUrl && hasBackground) ? activeSlide.backgroundUrl : activeSlide.publicUrl;
   const templateStyle = TEMPLATE_TEXT_STYLES[activeSlide.template || 'text-box'] || TEMPLATE_TEXT_STYLES['text-box'];
   const supportsDrag = hasBackground && !!activeSlide.backgroundUrl;
+  // Branded-overlay templates render fully client-side (canvas pixel-parity
+  // with the backend). Legacy single-pass templates (tweet-style, text-box,
+  // photo-overlay) bake text into the cached PNG and can't be recomposed
+  // without the server pipeline, so they fall back to the publicUrl <img>
+  // + DraggableTextOverlay for repositioning hints.
+  const useClientCanvas = supportsClientRender(activeSlide.template);
 
   return (
     <div
@@ -493,15 +494,25 @@ export default function CarouselEditorModal({
           <div className="flex flex-col items-center justify-center p-6 lg:w-[45%] shrink-0 bg-background/50">
             <div className="relative w-full max-w-[300px]" ref={previewContainerRef}>
               <div className="relative rounded-xl overflow-hidden border border-border">
-                <img src={previewImageUrl} alt={`Slide ${activeSlide.slideNumber}`} className="w-full" draggable={false} />
-                {supportsDrag && (
-                  <DraggableTextOverlay
-                    text={activeEdit.text}
-                    position={activeEdit.position}
-                    onPositionChange={(pos) => updateEdit(activeIndex, { position: pos })}
-                    containerRef={previewContainerRef}
-                    style={templateStyle}
+                {useClientCanvas ? (
+                  <canvas
+                    ref={previewCanvasRef}
+                    className="w-full block"
+                    aria-label={`Slide ${activeSlide.slideNumber}`}
                   />
+                ) : (
+                  <>
+                    <img src={previewImageUrl} alt={`Slide ${activeSlide.slideNumber}`} className="w-full" draggable={false} />
+                    {supportsDrag && (
+                      <DraggableTextOverlay
+                        text={activeEdit.text}
+                        position={activeEdit.position}
+                        onPositionChange={(pos) => updateEdit(activeIndex, { position: pos })}
+                        containerRef={previewContainerRef}
+                        style={templateStyle}
+                      />
+                    )}
+                  </>
                 )}
               </div>
               {slides.length > 1 && (
