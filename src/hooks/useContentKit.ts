@@ -178,7 +178,59 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
       setLoading(true);
       setError(null);
 
-      // Try generation endpoint first (most common)
+      // Try kit endpoint first. The /app/library/{id} URL is keyed by
+      // content_kit_id (e.g., autonomous Drafted-For-You proposals from
+      // DraftCard, kit list items, etc.), so this is the natural lookup.
+      // Older link sources may pass a generation_request_id or upload_id;
+      // those fall through to the legacy branches below.
+      if (sourceType === 'auto') {
+        try {
+          const kitResponse = await api.contentKits.get(id);
+          if (kitResponse.success && kitResponse.data) {
+            const data = kitResponse.data as any;
+            const kit = data.kit;
+            const upload = data.upload;
+            const clips = data.clips || [];
+            const carousel = data.carousel || null;
+
+            const unifiedItem: UnifiedContentItem = {
+              id: kit.id,
+              type: clips.length > 0 ? 'mixed' : carousel ? 'carousel' : 'text',
+              title: kit.title || 'Generated Content',
+              sourceType: 'generation',
+              generationRequestId: kit.generation_request_id,
+              videoUploadId: kit.video_upload_id,
+              clipCount: clips.length,
+              platformCount: 0,
+              carouselSlideCount: carousel?.slides?.length || 0,
+              chunkCount: 0,
+              thumbnailUrl: clips[0]?.thumbnailUrl || upload?.thumbnailUrl,
+              platforms: [],
+              status: 'completed',
+              createdAt: kit.created_at || kit.createdAt,
+              updatedAt: kit.updated_at || kit.updatedAt || kit.created_at,
+              // Autonomous draft kits and most kit-keyed entries don't carry
+              // an explicit input_type; default to 'text' since they were
+              // generated from an angle string. Video-backed kits that pass
+              // through the legacy generation/clips branches set this directly.
+              inputType: kit.input_type || 'text',
+            };
+
+            setItem(unifiedItem);
+            setDetail({
+              clips,
+              contentKit: kit,
+              carousel,
+              content: [],
+            });
+            return;
+          }
+        } catch {
+          // Fall through. The id may be a generation_request_id or upload_id.
+        }
+      }
+
+      // Try generation endpoint
       if (sourceType === 'auto' || sourceType === 'generation') {
         try {
           const response = await api.generation.getRequest(id);
@@ -232,35 +284,41 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
         }
       }
 
-      // Try clip finder endpoint
+      // Try clip finder endpoint. Wrapped in try/catch so a 404/500 here
+      // (e.g., id is actually a kit_id with no upload) falls through to the
+      // generic not-found error rather than surfacing the raw status.
       if (sourceType === 'auto' || sourceType === 'clip-finder') {
-        const response = await api.clips.get(id);
-        if (response.success && response.data) {
-          const { upload, clips, contentKit } = response.data;
+        try {
+          const response = await api.clips.get(id);
+          if (response.success && response.data) {
+            const { upload, clips, contentKit } = response.data;
 
-          const unifiedItem = transformVideoUpload(upload, contentKit, clips?.length || 0);
-          setItem(unifiedItem);
+            const unifiedItem = transformVideoUpload(upload, contentKit, clips?.length || 0);
+            setItem(unifiedItem);
 
-          // Fetch carousel data separately — clips endpoint doesn't return it
-          let carousel = null;
-          if (contentKit?.id) {
-            try {
-              const kitResponse = await api.contentKits.get(contentKit.id);
-              if (kitResponse.success && kitResponse.data) {
-                carousel = (kitResponse.data as any).carousel || null;
+            // Fetch carousel data separately — clips endpoint doesn't return it
+            let carousel = null;
+            if (contentKit?.id) {
+              try {
+                const kitResponse = await api.contentKits.get(contentKit.id);
+                if (kitResponse.success && kitResponse.data) {
+                  carousel = (kitResponse.data as any).carousel || null;
+                }
+              } catch {
+                // Carousel fetch failed — not critical, continue without it
               }
-            } catch {
-              // Carousel fetch failed — not critical, continue without it
             }
-          }
 
-          setDetail({
-            clips: clips || [],
-            contentKit: contentKit || null,
-            carousel,
-            content: [],
-          });
-          return;
+            setDetail({
+              clips: clips || [],
+              contentKit: contentKit || null,
+              carousel,
+              content: [],
+            });
+            return;
+          }
+        } catch {
+          // Fall through to the not-found below
         }
       }
 
