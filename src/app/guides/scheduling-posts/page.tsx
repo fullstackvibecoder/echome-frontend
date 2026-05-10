@@ -62,7 +62,10 @@ export default function SchedulingPostsGuidePage() {
           each post, and let EchoMe auto-publish at the exact time you choose &mdash; all from inside your
           Content Kits.
         </p>
-        <p className="text-sm text-text-secondary/70 mb-8">4 min read &middot; Video walkthrough below</p>
+        <p className="text-sm text-text-secondary/70 mb-2">4 min read &middot; Video walkthrough below</p>
+        <p className="text-xs text-text-secondary/70 mb-8">
+          Auto-posting to Instagram, LinkedIn &amp; Facebook unlocks at <strong>Echo Studio</strong> ($87/mo). On Free and Echo plans you can still schedule posts and get email reminders at the scheduled time.
+        </p>
 
         {/* Loom walkthrough — 2-minute SOP covering the full flow. Aspect-ratio
             padding-bottom trick lets the iframe stay responsive without a

@@ -74,7 +74,7 @@ export default function ContentCalendarGuidePage() {
           </Step>
 
           <Step number={5} title="Connect your social accounts and auto-post">
-            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, and Facebook directly. Free tier includes auto-post during your trial generations &mdash; same access as Studio. Threads piggybacks on Instagram&rsquo;s cross-post setting; X/TikTok use copy-and-open links.</p>
+            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, and Facebook directly. Auto-posting unlocks at Echo Studio ($87/mo); on Free and Echo you can still schedule posts and get email reminders at the scheduled time. Threads piggybacks on Instagram&rsquo;s cross-post setting; X/TikTok use copy-and-open links.</p>
             <Tip>Use the AI Schedule button on any content kit to roll out a full week of staggered posts with one click.</Tip>
           </Step>
         </section>

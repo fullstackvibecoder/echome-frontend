@@ -30,9 +30,8 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Your voice profile, learning continuously',
       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
       'Creator Radar — track what your audience watches',
-      'Auto-post to Instagram, LinkedIn & Facebook',
       'Built-in teleprompter for talking-head video',
-      'Content calendar with email reminders',
+      'Content calendar with email reminders (auto-posting unlocks at Studio)',
     ],
     limits: {
       videoMinutesPerMonth: 120,
@@ -535,7 +534,7 @@ function BillingContentInner() {
               <h3 className="text-lg font-bold">Free Plan</h3>
               <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current</span>
             </div>
-            <p className="text-sm text-muted-foreground">5 free content kits with full auto-posting and voice matching</p>
+            <p className="text-sm text-muted-foreground">5 free content kits with voice matching and scheduled email reminders</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-foreground">$0</p>

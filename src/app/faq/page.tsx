@@ -23,7 +23,7 @@ const faqCategories = [
       },
       {
         q: 'Is EchoMe free to use?',
-        a: 'Yes. EchoMe includes a free plan with 5 free content kits, voice matching, and full auto-posting to Instagram, LinkedIn, and Facebook during your trial. No credit card is required to get started. Paid plans start at $37/month for unlimited content kits and deeper features.',
+        a: 'Yes. EchoMe includes a free plan with 5 free content kits, voice matching, and a content calendar with email reminders. No credit card is required to get started. Paid plans start at $37/month for unlimited content kits, deeper voice matching, and the teleprompter. Auto-posting to Instagram, LinkedIn, and Facebook unlocks at Echo Studio ($87/mo).',
       },
     ],
   },

@@ -187,7 +187,6 @@ export default function HomeContent() {
                     {[
                       '5 free content kits to try it out',
                       'Your voice, learning from what you publish',
-                      'Auto-post to Instagram, LinkedIn & Facebook',
                       'Clips, captions, carousels, and posts',
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
@@ -232,9 +231,8 @@ export default function HomeContent() {
                       'Your voice profile, learning continuously',
                       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
                       'Creator Radar — track what your audience watches',
-                      'Auto-post to Instagram, LinkedIn & Facebook',
                       'Built-in teleprompter for talking-head video',
-                      'Content calendar with email reminders'
+                      'Content calendar with email reminders (auto-posting unlocks at Studio)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 mt-0.5">
