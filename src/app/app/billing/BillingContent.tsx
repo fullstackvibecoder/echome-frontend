@@ -358,7 +358,12 @@ function BillingContentInner() {
     if (autoCheckoutDone || loading || plans.length === 0) return;
     const planParam = searchParams.get('plan');
     if (!planParam) return;
-    const validPlans: string[] = ['echo', 'echo-studio', 'echo-pro', 'echo-teams-2', 'echo-teams-5', 'echo-teams-10'];
+    // Currently sold plans only. Echo Pro ($99/mo) was retired; legacy
+    // EchoTeams Duo/Pro/Agency (teams_2/5/10) retired for new signups
+    // (1 grandfathered customer on teams_2 stays via Stripe portal, not
+    // this checkout path). A hand-crafted ?plan=echo-pro URL would
+    // otherwise route to the live $99 price product, which we don't sell.
+    const validPlans: string[] = ['echo', 'echo-studio', 'echo-teams'];
     if (validPlans.includes(planParam)) {
       setAutoCheckoutDone(true);
       window.history.replaceState({}, '', '/app/billing');
