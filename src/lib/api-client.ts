@@ -2950,8 +2950,48 @@ export const api = {
       const response = await apiClient.get(`/admin/campaigns/${id}`);
       return response.data;
     },
+    create: async (input: {
+      name: string;
+      description?: string;
+      trigger_on: 'signup' | 'payment' | 'manual';
+      steps?: Array<Record<string, unknown>>;
+    }) => {
+      const response = await apiClient.post('/admin/campaigns', input);
+      return response.data;
+    },
+    update: async (
+      id: string,
+      patch: Partial<{ name: string; description: string; trigger_on: 'signup' | 'payment' | 'manual'; status: 'draft' | 'active' | 'paused' }>,
+    ) => {
+      const response = await apiClient.patch(`/admin/campaigns/${id}`, patch);
+      return response.data;
+    },
+    delete: async (id: string) => {
+      const response = await apiClient.delete(`/admin/campaigns/${id}`);
+      return response.data;
+    },
     previewStep: async (id: string, stepNumber: number) => {
       const response = await apiClient.get(`/admin/campaigns/${id}/preview/${stepNumber}`);
+      return response.data;
+    },
+    addStep: async (id: string, step: Record<string, unknown>) => {
+      const response = await apiClient.post(`/admin/campaigns/${id}/steps`, step);
+      return response.data;
+    },
+    updateStep: async (id: string, stepNumber: number, patch: Record<string, unknown>) => {
+      const response = await apiClient.patch(`/admin/campaigns/${id}/steps/${stepNumber}`, patch);
+      return response.data;
+    },
+    deleteStep: async (id: string, stepNumber: number) => {
+      const response = await apiClient.delete(`/admin/campaigns/${id}/steps/${stepNumber}`);
+      return response.data;
+    },
+    replaceSteps: async (id: string, steps: Array<Record<string, unknown>>) => {
+      const response = await apiClient.put(`/admin/campaigns/${id}/steps`, { steps });
+      return response.data;
+    },
+    sendStepTest: async (id: string, stepNumber: number) => {
+      const response = await apiClient.post(`/admin/campaigns/${id}/steps/${stepNumber}/send-test`);
       return response.data;
     },
     enroll: async (id: string, segmentName: string, dryRun = true) => {

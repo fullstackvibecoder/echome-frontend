@@ -163,10 +163,120 @@ function EnrollModal({ campaign, onClose }: EnrollModalProps) {
   );
 }
 
+interface NewCampaignModalProps {
+  onClose: () => void;
+  onCreated: (campaign: Campaign) => void;
+}
+
+function NewCampaignModal({ onClose, onCreated }: NewCampaignModalProps) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [triggerOn, setTriggerOn] = useState<'signup' | 'payment' | 'manual'>('manual');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreate = async () => {
+    if (!name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await api.adminCampaigns.create({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        trigger_on: triggerOn,
+        steps: [],
+      });
+      if (!res.success) {
+        setError(res.error || 'Failed to create');
+        return;
+      }
+      onCreated(res.data);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to create');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-card rounded-xl border border-border p-6 w-full max-w-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-foreground">New Campaign</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg leading-none">&times;</button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g., trial_onboarding"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            autoFocus
+          />
+          <p className="text-xs text-muted-foreground">Used internally to identify the campaign. Lowercase, no spaces.</p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Description (optional)</label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="What this campaign does"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Trigger</label>
+          <select
+            value={triggerOn}
+            onChange={(e) => setTriggerOn(e.target.value as any)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="manual">Manual — enroll segments by hand</option>
+            <option value="signup">Signup — auto-enroll on new account</option>
+            <option value="payment">Payment — auto-enroll on first paid subscription</option>
+          </select>
+        </div>
+
+        {error && <p className="text-sm text-red-500">{error}</p>}
+
+        <div className="flex items-center gap-2 pt-2">
+          <button
+            onClick={handleCreate}
+            disabled={saving}
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent/90 disabled:opacity-50 transition-colors"
+          >
+            {saving ? 'Creating…' : 'Create campaign'}
+          </button>
+          <button
+            onClick={onClose}
+            className="ml-auto text-sm text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Campaign starts as a draft. Add steps in the editor, then activate.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCampaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrollTarget, setEnrollTarget] = useState<Campaign | null>(null);
+  const [creating, setCreating] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -206,10 +316,28 @@ export default function AdminCampaigns() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-foreground">Drip Campaigns</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Drip Campaigns</h2>
+        <button
+          onClick={() => setCreating(true)}
+          className="px-3 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors"
+        >
+          + New Campaign
+        </button>
+      </div>
 
       {enrollTarget && (
         <EnrollModal campaign={enrollTarget} onClose={() => setEnrollTarget(null)} />
+      )}
+
+      {creating && (
+        <NewCampaignModal
+          onClose={() => setCreating(false)}
+          onCreated={(c) => {
+            setCreating(false);
+            router.push(`/app/admin/campaigns/${c.id}`);
+          }}
+        />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

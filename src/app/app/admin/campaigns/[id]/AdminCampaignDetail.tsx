@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
+import StepEditor from './StepEditor';
 
 const EXEC_STATUS_STYLES: Record<string, string> = {
   pending: 'bg-gray-500/10 text-gray-500',
@@ -114,6 +115,97 @@ function ExecutionLogRow({ campaignId, enrollmentId }: { campaignId: string; enr
   );
 }
 
+function AddStepInline({
+  campaignId,
+  suggestedDayOffset,
+  suggestedStepNumber,
+  onAdded,
+  onCancel,
+}: {
+  campaignId: string;
+  suggestedDayOffset: number;
+  suggestedStepNumber: number;
+  onAdded: (steps: any[]) => void;
+  onCancel: () => void;
+}) {
+  const [subject, setSubject] = useState('');
+  const [dayOffset, setDayOffset] = useState(suggestedDayOffset);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAdd = async () => {
+    if (!subject.trim()) {
+      setError('Subject is required');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await api.adminCampaigns.addStep(campaignId, {
+        day_offset: dayOffset,
+        subject: subject.trim(),
+        segment_filter: 'all',
+        body_html: '<p>Write the email body here.</p>',
+      });
+      if (!res.success) {
+        setError(res.error || 'Failed to add step');
+        return;
+      }
+      onAdded(res.data.steps);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to add step');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="ml-[42px] mr-3 mt-2 mb-4 p-4 border border-border rounded-lg bg-muted/20 space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Step {suggestedStepNumber}. You'll write the body in the next step after this is added.
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="md:col-span-2">
+          <label className="text-xs text-muted-foreground block mb-1">Subject</label>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="e.g., Your first generation is ready"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Day offset</label>
+          <input
+            type="number"
+            min={0}
+            value={dayOffset}
+            onChange={(e) => setDayOffset(parseInt(e.target.value) || 0)}
+            className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+        </div>
+      </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleAdd}
+          disabled={saving}
+          className="px-3 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent/90 disabled:opacity-50"
+        >
+          {saving ? 'Adding…' : 'Add step'}
+        </button>
+        <button
+          onClick={onCancel}
+          className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCampaignDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -123,8 +215,49 @@ export default function AdminCampaignDetail() {
   const [loading, setLoading] = useState(true);
   const [expandedEnrollment, setExpandedEnrollment] = useState<string | null>(null);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
-  const [stepPreview, setStepPreview] = useState<Record<number, string>>({});
+  const [editingStep, setEditingStep] = useState<number | null>(null);
+  const [addingStep, setAddingStep] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [activateError, setActivateError] = useState<string | null>(null);
+  const [stepPreview, setStepPreview] = useState<Record<number, { html?: string; body?: string }>>({});
   const [stepPreviewLoading, setStepPreviewLoading] = useState<number | null>(null);
+
+  const refreshSteps = (updatedSteps: any[]) => {
+    setCampaign((c: any) => ({ ...c, steps: updatedSteps }));
+    setStepPreview({}); // bust cached previews so they re-fetch with new body
+  };
+
+  const handleActivate = async () => {
+    if (!campaign) return;
+    setActivating(true);
+    setActivateError(null);
+    try {
+      const res = await api.adminCampaigns.update(campaign.id, { status: 'active' });
+      if (!res.success) {
+        setActivateError(res.error || 'Failed to activate');
+        return;
+      }
+      setCampaign(res.data);
+    } catch (e: any) {
+      setActivateError(e?.message || 'Failed to activate');
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  const fetchStepPreview = (stepNumber: number) => {
+    setStepPreviewLoading(stepNumber);
+    api.adminCampaigns.previewStep(id, stepNumber)
+      .then((res: any) => {
+        if (res.success) {
+          setStepPreview(prev => ({ ...prev, [stepNumber]: { html: res.data.bodyHtml, body: res.data.body } }));
+        }
+      })
+      .catch(() => {
+        setStepPreview(prev => ({ ...prev, [stepNumber]: { body: '(Failed to load preview)' } }));
+      })
+      .finally(() => setStepPreviewLoading(null));
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -157,7 +290,7 @@ export default function AdminCampaignDetail() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button onClick={() => router.push('/app/admin/campaigns')} className="text-muted-foreground hover:text-foreground">
           &larr; Back
         </button>
@@ -167,6 +300,19 @@ export default function AdminCampaignDetail() {
           campaign.status === 'paused' ? 'bg-amber-500/10 text-amber-600' :
           'bg-gray-500/10 text-gray-500'
         }`}>{campaign.status}</span>
+        {campaign.status === 'draft' && (
+          <button
+            onClick={handleActivate}
+            disabled={activating || !campaign.steps || campaign.steps.length === 0}
+            className="ml-auto px-3 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent/90 disabled:opacity-50 transition-colors"
+            title={campaign.steps?.length === 0 ? 'Add at least one step before activating' : 'Activate this campaign so the trigger starts auto-enrolling users'}
+          >
+            {activating ? 'Activating…' : 'Activate Campaign'}
+          </button>
+        )}
+        {activateError && (
+          <p className="w-full text-sm text-red-500">{activateError}</p>
+        )}
       </div>
 
       {/* Stats */}
@@ -182,134 +328,169 @@ export default function AdminCampaignDetail() {
       )}
 
       {/* Email Steps Timeline */}
-      {campaign.steps?.length > 0 && (
-        <div className="bg-card rounded-xl border border-border p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">
-            Email Sequence ({campaign.steps.length} emails)
+      <div className="bg-card rounded-xl border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-foreground">
+            Email Sequence ({campaign.steps?.length || 0} emails)
           </h3>
-          <div className="space-y-0">
-            {campaign.steps.map((step: any, i: number) => {
-              const stepStats = stats?.executionsByStep?.find((s: any) => s.step_number === step.step_number);
-              const total = stepStats ? stepStats.sent + stepStats.pending + stepStats.failed + stepStats.skipped : 0;
-              const isExpanded = expandedStep === step.step_number;
+          {!addingStep && (
+            <button
+              onClick={() => setAddingStep(true)}
+              className="px-2.5 py-1 text-xs font-medium rounded-lg bg-muted text-foreground hover:bg-muted/80 transition-colors"
+            >
+              + Add step
+            </button>
+          )}
+        </div>
 
-              return (
-                <div key={step.step_number} className="relative">
-                  {/* Timeline connector */}
-                  {i < campaign.steps.length - 1 && (
-                    <div className="absolute left-[15px] top-[32px] bottom-0 w-[2px] bg-border" />
-                  )}
+        <div className="space-y-0">
+          {campaign.steps?.map((step: any, i: number) => {
+            const stepStats = stats?.executionsByStep?.find((s: any) => s.step_number === step.step_number);
+            const total = stepStats ? stepStats.sent + stepStats.pending + stepStats.failed + stepStats.skipped : 0;
+            const isExpanded = expandedStep === step.step_number;
+            const isEditing = editingStep === step.step_number;
 
-                  {/* Step row */}
+            return (
+              <div key={step.step_number} className="relative">
+                {/* Timeline connector */}
+                {i < campaign.steps.length - 1 && (
+                  <div className="absolute left-[15px] top-[32px] bottom-0 w-[2px] bg-border" />
+                )}
+
+                {/* Step row */}
+                <div className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                  {/* Step number circle */}
+                  <div className={`flex-shrink-0 w-[30px] h-[30px] rounded-full flex items-center justify-center text-xs font-bold ${
+                    stepStats?.sent > 0 ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {step.step_number}
+                  </div>
+
+                  {/* Content — clickable to expand preview */}
                   <button
                     onClick={() => {
                       const newStep = isExpanded ? null : step.step_number;
                       setExpandedStep(newStep);
-                      // Fetch email body on first expand
-                      if (newStep && !stepPreview[newStep]) {
-                        setStepPreviewLoading(newStep);
-                        api.adminCampaigns.previewStep(id, newStep)
-                          .then((res: any) => {
-                            if (res.success) {
-                              setStepPreview(prev => ({ ...prev, [newStep]: res.data.body }));
-                            }
-                          })
-                          .catch(() => {
-                            setStepPreview(prev => ({ ...prev, [newStep]: '(Failed to load preview)' }));
-                          })
-                          .finally(() => setStepPreviewLoading(null));
-                      }
+                      if (newStep && !stepPreview[newStep]) fetchStepPreview(newStep);
                     }}
-                    className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors text-left"
+                    className="flex-1 min-w-0 text-left"
                   >
-                    {/* Step number circle */}
-                    <div className={`flex-shrink-0 w-[30px] h-[30px] rounded-full flex items-center justify-center text-xs font-bold ${
-                      stepStats?.sent > 0
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {step.step_number}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-foreground truncate">{step.subject}</span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          Day {step.day_offset}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {step.preview_text}
-                      </p>
-                    </div>
-
-                    {/* Stats pill */}
-                    {total > 0 && (
-                      <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                        {stepStats?.sent}/{total} sent
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground truncate">{step.subject}</span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        Day {step.day_offset}
                       </span>
-                    )}
-
-                    {/* Expand indicator */}
-                    <svg
-                      className={`w-4 h-4 text-muted-foreground transition-transform flex-shrink-0 mt-1 ${isExpanded ? 'rotate-180' : ''}`}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {step.preview_text}
+                    </p>
                   </button>
 
-                  {/* Expanded content — email preview */}
-                  {isExpanded && (
-                    <div className="ml-[42px] mr-3 mb-4 mt-1">
-                      <div className="bg-muted/30 rounded-lg border border-border overflow-hidden">
-                        {/* Email header */}
-                        <div className="px-4 py-3 border-b border-border space-y-1">
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="text-muted-foreground w-16">Subject:</span>
-                            <span className="text-foreground font-medium">{step.subject}</span>
-                          </div>
-                          {step.subject_alt && (
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-muted-foreground w-16">A/B Alt:</span>
-                              <span className="text-muted-foreground">{step.subject_alt}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="text-muted-foreground w-16">Preview:</span>
-                            <span className="text-muted-foreground">{step.preview_text}</span>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs pt-1">
-                            <span className="text-muted-foreground">
-                              Sends on <span className="text-foreground font-medium">Day {step.day_offset}</span>
-                            </span>
-                            {step.segment_filter !== 'all' && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">
-                                Filter: {step.segment_filter}
-                              </span>
-                            )}
-                          </div>
+                  {/* Stats pill */}
+                  {total > 0 && (
+                    <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                      {stepStats?.sent}/{total} sent
+                    </span>
+                  )}
+
+                  {/* Edit button */}
+                  <button
+                    onClick={() => {
+                      setEditingStep(isEditing ? null : step.step_number);
+                      setExpandedStep(null);
+                    }}
+                    className={`flex-shrink-0 px-2 py-1 text-xs rounded-md ${
+                      isEditing ? 'bg-accent text-white' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {isEditing ? 'Editing' : 'Edit'}
+                  </button>
+                </div>
+
+                {/* Editing form */}
+                {isEditing && (
+                  <div className="ml-[42px] mr-3 mb-4 mt-1">
+                    <StepEditor
+                      campaignId={id}
+                      step={step}
+                      onSaved={(steps) => { refreshSteps(steps); }}
+                      onDeleted={(steps) => { refreshSteps(steps); setEditingStep(null); }}
+                      onCancel={() => setEditingStep(null)}
+                    />
+                  </div>
+                )}
+
+                {/* Expanded preview (when not editing) */}
+                {isExpanded && !isEditing && (
+                  <div className="ml-[42px] mr-3 mb-4 mt-1">
+                    <div className="bg-muted/30 rounded-lg border border-border overflow-hidden">
+                      {/* Email header */}
+                      <div className="px-4 py-3 border-b border-border space-y-1">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-muted-foreground w-16">Subject:</span>
+                          <span className="text-foreground font-medium">{step.subject}</span>
                         </div>
-                        {/* Email body */}
-                        <div className="px-4 py-3">
-                          {stepPreviewLoading === step.step_number ? (
-                            <div className="h-32 bg-muted/40 animate-pulse rounded" />
-                          ) : (
-                            <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed max-h-[400px] overflow-y-auto">
-                              {stepPreview[step.step_number] || step.body_text || '(Loading...)'}
-                            </pre>
+                        {step.subject_alt && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground w-16">A/B Alt:</span>
+                            <span className="text-muted-foreground">{step.subject_alt}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-muted-foreground w-16">Preview:</span>
+                          <span className="text-muted-foreground">{step.preview_text}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs pt-1">
+                          <span className="text-muted-foreground">
+                            Sends on <span className="text-foreground font-medium">Day {step.day_offset}</span>
+                          </span>
+                          {step.segment_filter !== 'all' && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">
+                              Filter: {step.segment_filter}
+                            </span>
                           )}
                         </div>
                       </div>
+                      {/* Email body — prefer rendered HTML in iframe; fall back to plain text */}
+                      <div className="px-4 py-3">
+                        {stepPreviewLoading === step.step_number ? (
+                          <div className="h-32 bg-muted/40 animate-pulse rounded" />
+                        ) : stepPreview[step.step_number]?.html ? (
+                          <iframe
+                            srcDoc={stepPreview[step.step_number].html}
+                            sandbox=""
+                            className="w-full h-[500px] rounded border border-border bg-white"
+                            title={`Step ${step.step_number} preview`}
+                          />
+                        ) : (
+                          <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed max-h-[400px] overflow-y-auto">
+                            {stepPreview[step.step_number]?.body || '(Loading...)'}
+                          </pre>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Add Step form */}
+          {addingStep && (
+            <AddStepInline
+              campaignId={id}
+              suggestedDayOffset={
+                campaign.steps?.length > 0
+                  ? Math.max(...campaign.steps.map((s: any) => s.day_offset)) + 7
+                  : 0
+              }
+              suggestedStepNumber={(campaign.steps?.length || 0) + 1}
+              onAdded={(steps) => { refreshSteps(steps); setAddingStep(false); }}
+              onCancel={() => setAddingStep(false)}
+            />
+          )}
         </div>
-      )}
+      </div>
 
       {/* Step Progress Bars */}
       {stats?.executionsByStep?.length > 0 && (
