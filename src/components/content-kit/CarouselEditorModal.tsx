@@ -792,12 +792,14 @@ export default function CarouselEditorModal({
             </div>
 
             {/* Enable drag editing — only for templates that support it and don't have backgrounds yet.
-                Branded-overlay templates bake text into the composed PNG (no separate bg layer to drag
-                text over), so this button is a no-op for them. The proper fix (universal edit pipeline)
-                is in progress; this exclusion keeps the affordance from misleading users until it lands. */}
+                Branded-overlay AND quote-card templates bake text into the composed PNG (no separate bg
+                layer to drag text over), so this button is a no-op for them. The proper fix (universal
+                edit pipeline) is in progress; this exclusion keeps the affordance from misleading users
+                until it lands. */}
             {!hasBackground
               && !['tweet-style'].includes(activeSlide.template || '')
-              && !(activeSlide.template || '').startsWith('branded-overlay') && (
+              && !(activeSlide.template || '').startsWith('branded-overlay')
+              && !(activeSlide.template || '').startsWith('quote-card') && (
               <button type="button" onClick={handlePrepareEditing} disabled={preparing}
                 className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-interactive/40 bg-primary-interactive/5 px-4 py-3 text-sm font-medium text-primary-interactive hover:bg-primary-interactive/10 transition-colors disabled:opacity-50">
                 {preparing ? (<><Loader2 className="h-4 w-4 animate-spin" />Preparing...</>) : (<><Pencil className="h-4 w-4" />Enable drag positioning</>)}
