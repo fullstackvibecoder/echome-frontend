@@ -2373,6 +2373,64 @@ export const api = {
       };
     },
 
+    /**
+     * Patch one carousel slide's editable fields. The post-gen editor calls
+     * this on save (or debounced while editing). Foundation of the universal
+     * carousel edit pipeline — the slides jsonb stays the source of truth.
+     *
+     * The composed publicUrl is NOT re-rendered server-side on patch — the
+     * frontend's shared canvas renderer handles live preview from these
+     * fields. Use renderCarousel() (when added) to re-bake publicUrls for
+     * download/share once edits stabilize.
+     */
+    updateSlide: async (
+      kitId: string,
+      slideNumber: number,
+      patch: {
+        text?: string;
+        structured?: {
+          headline?: string;
+          body?: string;
+          subtitle?: string;
+          details?: string;
+          cta?: string;
+          redKeywords?: string[];
+        };
+        textPosition?: { x: number; y: number };
+        redKeyword?: string | null;
+        backgroundImageUrl?: string | null;
+      },
+    ) => {
+      const response = await apiClient.patch(
+        `/content-kits/${kitId}/carousel/slides/${slideNumber}`,
+        patch,
+      );
+      return response.data as {
+        success: boolean;
+        error?: string;
+        data?: {
+          slide: {
+            slideNumber: number;
+            text: string;
+            publicUrl: string;
+            template?: string;
+            backgroundImageUrl?: string;
+            backgroundUrl?: string;
+            structured?: {
+              headline?: string;
+              body?: string;
+              subtitle?: string;
+              details?: string;
+              cta?: string;
+              redKeywords?: string[];
+            };
+            textPosition?: { x: number; y: number };
+            redKeyword?: string | null;
+          };
+        };
+      };
+    },
+
     /** Resize carousel to different aspect ratio */
     resizeCarousel: async (kitId: string, aspectRatio: '1:1' | '9:16') => {
       const response = await apiClient.post(

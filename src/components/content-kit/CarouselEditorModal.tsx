@@ -26,6 +26,7 @@ import {
   BRANDED_OVERLAY_PRESET,
   type SlideConfig,
   type TemplateType,
+  type StructuredFields,
 } from '@/lib/carousel-renderer';
 
 interface CarouselSlide {
@@ -37,6 +38,11 @@ interface CarouselSlide {
   backgroundImageUrl?: string;
   text: string;
   template?: string;
+  /** LLM-parsed structured fields (headline/body/subtitle/cta/details).
+   *  When present, the post-gen editor shows per-field inputs instead of
+   *  a single textarea, and the live renderer uses these as the source of
+   *  truth. Branded-overlay slides have these; legacy templates don't. */
+  structured?: StructuredFields;
 }
 
 interface SlideEdit {
@@ -47,6 +53,9 @@ interface SlideEdit {
   /** Per-slide red-emphasis word override (cover/last only). The compose-only
    *  backend strips any prior `**` markers and wraps this word with `**`. */
   redKeyword?: string;
+  /** Editable structured fields. When the source slide has these, the editor
+   *  prefers them over the plain text field and saves via PATCH. */
+  structured?: StructuredFields;
 }
 
 interface CarouselEditorModalProps {
@@ -149,6 +158,7 @@ export default function CarouselEditorModal({
         position: { x: 0.5, y: 0.5 },
         backgroundImageUrl: s.backgroundImageUrl,
         redKeyword: markerMatch?.[1],
+        structured: s.structured,
       };
     }));
     // Clamp activeIndex when slides shrink (e.g., post-restyle: original 10
@@ -187,6 +197,54 @@ export default function CarouselEditorModal({
   const updateEdit = (index: number, patch: Partial<SlideEdit>) => {
     setEdits((prev) => prev.map((e, i) => (i === index ? { ...e, ...patch } : e)));
   };
+
+  // Debounced PATCH for per-slide structured field edits. 600ms cadence
+  // matches the post-caption pattern; long enough for a fast typist to
+  // finish a thought, short enough that "Saving…" feedback feels real.
+  // Slides keyed by slideNumber since timers are per-slide.
+  const slideSaveTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const [savingSlide, setSavingSlide] = useState<number | null>(null);
+  const [slideSaveError, setSlideSaveError] = useState<string | null>(null);
+
+  const handleStructuredFieldChange = useCallback(
+    (slideIndex: number, field: keyof StructuredFields, value: string) => {
+      const slide = slides[slideIndex];
+      if (!slide) return;
+
+      const merged: StructuredFields = {
+        ...(edits[slideIndex]?.structured || {}),
+        [field]: value,
+      };
+      updateEdit(slideIndex, { structured: merged });
+
+      const existing = slideSaveTimersRef.current[slide.slideNumber];
+      if (existing) clearTimeout(existing);
+      slideSaveTimersRef.current[slide.slideNumber] = setTimeout(async () => {
+        setSavingSlide(slide.slideNumber);
+        setSlideSaveError(null);
+        try {
+          await api.contentKits.updateSlide(contentKitId, slide.slideNumber, {
+            structured: merged,
+          });
+        } catch (err) {
+          console.error('Failed to save slide edit', err);
+          setSlideSaveError('Could not save edits. Try again.');
+        } finally {
+          setSavingSlide((curr) => (curr === slide.slideNumber ? null : curr));
+        }
+      }, 600);
+    },
+    [slides, edits, contentKitId],
+  );
+
+  // Flush + clear all slide save timers on unmount so a slow last edit
+  // doesn't leak the network call after the modal closes.
+  useEffect(() => {
+    const timers = slideSaveTimersRef.current;
+    return () => {
+      for (const t of Object.values(timers)) clearTimeout(t);
+    };
+  }, []);
 
   // Debounced PATCH for the per-carousel post caption. Mirrors the clip
   // editor's pattern (ClipEditorModal:195-208). 600ms cadence lets a fast
@@ -295,6 +353,10 @@ export default function CarouselEditorModal({
       backgroundImageUrl: edit.backgroundImageUrl ?? slide.backgroundImageUrl,
       designSystem: BRANDED_OVERLAY_PRESET,
       redKeyword: edit.redKeyword,
+      // Pass structured edits through so the renderer uses headline/body/subtitle
+      // as the source of truth instead of falling back to plain text parsing.
+      // Branded-overlay templates only — legacy templates ignore `structured`.
+      structured: edit.structured,
     };
     let cancelled = false;
     renderSlide(canvas, config).catch((err) => {
@@ -551,16 +613,122 @@ export default function CarouselEditorModal({
               </button>
             </div>
 
-            {/* Text editor — always visible */}
+            {/* Text editor.
+                When slide.structured exists (branded-overlay templates with
+                LLM-parsed grammar), show per-field inputs that map 1:1 to the
+                renderer's drawing logic. Otherwise fall back to a single
+                textarea for legacy templates. The structured path saves via
+                PATCH on a 600ms debounce; the legacy textarea is local-only
+                until the user triggers a regenerate. */}
+            {activeEdit.structured ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-foreground">
+                    Slide {activeSlide.slideNumber} content
+                  </label>
+                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                    {savingSlide === activeSlide.slideNumber
+                      ? 'Saving…'
+                      : slideSaveError
+                      ? <span className="text-red-500">{slideSaveError}</span>
+                      : 'Saved'}
+                  </span>
+                </div>
+
+                {/* Headline — always present on branded-overlay slides */}
+                <div className="space-y-1">
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Headline</label>
+                  <textarea
+                    value={activeEdit.structured.headline ?? ''}
+                    onChange={(e) =>
+                      handleStructuredFieldChange(activeIndex, 'headline', e.target.value)
+                    }
+                    rows={2}
+                    placeholder="Main headline"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
+                  />
+                </div>
+
+                {/* Body — branded-overlay-body */}
+                {(activeEdit.structured.body !== undefined ||
+                  activeSlide.template === 'branded-overlay-body') && (
+                  <div className="space-y-1">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Body</label>
+                    <textarea
+                      value={activeEdit.structured.body ?? ''}
+                      onChange={(e) =>
+                        handleStructuredFieldChange(activeIndex, 'body', e.target.value)
+                      }
+                      rows={4}
+                      placeholder="Supporting paragraph"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
+                    />
+                  </div>
+                )}
+
+                {/* Subtitle — branded-overlay-cover */}
+                {(activeEdit.structured.subtitle !== undefined ||
+                  activeSlide.template === 'branded-overlay-cover') && (
+                  <div className="space-y-1">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Subtitle</label>
+                    <input
+                      type="text"
+                      value={activeEdit.structured.subtitle ?? ''}
+                      onChange={(e) =>
+                        handleStructuredFieldChange(activeIndex, 'subtitle', e.target.value)
+                      }
+                      placeholder="Optional subtitle"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50"
+                    />
+                  </div>
+                )}
+
+                {/* CTA — branded-overlay-last */}
+                {(activeEdit.structured.cta !== undefined ||
+                  activeSlide.template === 'branded-overlay-last') && (
+                  <div className="space-y-1">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Call to action</label>
+                    <input
+                      type="text"
+                      value={activeEdit.structured.cta ?? ''}
+                      onChange={(e) =>
+                        handleStructuredFieldChange(activeIndex, 'cta', e.target.value)
+                      }
+                      placeholder="e.g., Save this for later"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50"
+                    />
+                  </div>
+                )}
+
+                {/* Details — optional, only render if already populated */}
+                {activeEdit.structured.details !== undefined && (
+                  <div className="space-y-1">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Details</label>
+                    <textarea
+                      value={activeEdit.structured.details ?? ''}
+                      onChange={(e) =>
+                        handleStructuredFieldChange(activeIndex, 'details', e.target.value)
+                      }
+                      rows={2}
+                      placeholder="Additional details"
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Slide {activeSlide.slideNumber} Text</label>
+                <textarea
+                  value={activeEdit.text}
+                  onChange={(e) => updateEdit(activeIndex, { text: e.target.value })}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
+                  rows={3}
+                  placeholder="Slide text..."
+                />
+              </div>
+            )}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Slide {activeSlide.slideNumber} Text</label>
-              <textarea
-                value={activeEdit.text}
-                onChange={(e) => updateEdit(activeIndex, { text: e.target.value })}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-interactive/50 resize-none"
-                rows={3}
-                placeholder="Slide text..."
-              />
               {supportsDrag && (
                 <p className="text-[11px] text-muted-foreground/60">Drag the text on the preview to reposition</p>
               )}
@@ -594,8 +762,13 @@ export default function CarouselEditorModal({
               )}
             </div>
 
-            {/* Enable drag editing — only for templates that support it and don't have backgrounds yet */}
-            {!hasBackground && !['tweet-style'].includes(activeSlide.template || '') && (
+            {/* Enable drag editing — only for templates that support it and don't have backgrounds yet.
+                Branded-overlay templates bake text into the composed PNG (no separate bg layer to drag
+                text over), so this button is a no-op for them. The proper fix (universal edit pipeline)
+                is in progress; this exclusion keeps the affordance from misleading users until it lands. */}
+            {!hasBackground
+              && !['tweet-style'].includes(activeSlide.template || '')
+              && !(activeSlide.template || '').startsWith('branded-overlay') && (
               <button type="button" onClick={handlePrepareEditing} disabled={preparing}
                 className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-interactive/40 bg-primary-interactive/5 px-4 py-3 text-sm font-medium text-primary-interactive hover:bg-primary-interactive/10 transition-colors disabled:opacity-50">
                 {preparing ? (<><Loader2 className="h-4 w-4 animate-spin" />Preparing...</>) : (<><Pencil className="h-4 w-4" />Enable drag positioning</>)}
