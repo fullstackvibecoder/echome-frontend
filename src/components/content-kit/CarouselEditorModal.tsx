@@ -899,9 +899,16 @@ export default function CarouselEditorModal({
                 kind: 'carousel',
                 kit_id: contentKitId,
                 design_preset: (currentPreset === 'photo-overlay' ? 'auto' : currentPreset) as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card',
+                // Flush every editable field. Backend finalizer prefers
+                // override-wins precedence so a click between editing and
+                // posting still ships the right pixels even before the
+                // debounced updateSlide PATCH lands.
                 slide_overrides: edits.map((e) => ({
                   text: e.text,
                   text_position: e.position,
+                  structured: e.structured,
+                  backgroundImageUrl: e.backgroundImageUrl,
+                  redKeyword: e.redKeyword,
                 })),
               }}
             />

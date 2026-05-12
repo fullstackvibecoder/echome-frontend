@@ -45,8 +45,21 @@ export type FinalizationRecipe =
       kind: 'carousel';
       kit_id: string;
       design_preset?: 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card';
-      aspect_ratio?: '9:16' | '1:1';
-      slide_overrides?: Array<{ text?: string; text_position?: { x: number; y: number } }>;
+      aspect_ratio?: '9:16' | '1:1' | '4:5';
+      slide_overrides?: Array<{
+        text?: string;
+        text_position?: { x: number; y: number };
+        structured?: {
+          headline?: string;
+          body?: string;
+          subtitle?: string;
+          details?: string;
+          cta?: string;
+          redKeywords?: string[];
+        };
+        backgroundImageUrl?: string;
+        redKeyword?: string;
+      }>;
       background?: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string };
     };
 
