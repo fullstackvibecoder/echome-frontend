@@ -581,8 +581,13 @@ export default function CarouselEditorModal({
     >
       <div className="relative flex w-full max-w-[920px] max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex flex-col lg:flex-row w-full overflow-y-auto">
-          {/* Left: Preview */}
-          <div className="flex flex-col items-center justify-center p-6 lg:w-[45%] shrink-0 bg-background/50">
+          {/* Left: Preview.
+              min-w-0 is required so flex children (specifically the thumbnail
+              strip below) can't push the column past its declared 45% by
+              their intrinsic content width. Without it, 10 thumbnails at
+              ~64px each (incl. gap) drag the column to ~640px and overflow
+              into the right edit pane. */}
+          <div className="flex flex-col items-center justify-center p-6 lg:w-[45%] shrink-0 min-w-0 bg-background/50">
             <div className="relative w-full max-w-[300px]" ref={previewContainerRef}>
               <div className="relative rounded-xl overflow-hidden border border-border">
                 {useClientCanvas ? (
@@ -619,7 +624,12 @@ export default function CarouselEditorModal({
                 </>
               )}
             </div>
-            <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-hide">
+            {/* Thumbnail strip. w-full + max-w matches the preview's container
+                width so the strip is column-aligned. min-w-0 + overflow-x-auto
+                let the 10-slide row scroll horizontally inside the strip
+                instead of pushing the column past 45% and bleeding into the
+                right edit pane. */}
+            <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-hide w-full max-w-[300px] min-w-0">
               {slides.map((slide, i) => (
                 <button key={slide.slideNumber} type="button" onClick={() => setActiveIndex(i)}
                   className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
