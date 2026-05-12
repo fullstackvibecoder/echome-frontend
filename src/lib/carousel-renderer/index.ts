@@ -25,11 +25,16 @@ import {
   renderBrandedOverlayBody,
   renderBrandedOverlayLast,
 } from './branded-overlay';
-import { registerInterFonts } from './fonts';
+import {
+  renderQuoteCardCover,
+  renderQuoteCardBody,
+  renderQuoteCardLast,
+} from './quote-card';
+import { registerCarouselFonts } from './fonts';
 import { SlideConfig, getDimensions } from './types';
 
 export type { SlideConfig, DesignSystem, AspectRatio, TemplateType, StructuredFields } from './types';
-export { BRANDED_OVERLAY_PRESET, getDimensions } from './types';
+export { BRANDED_OVERLAY_PRESET, QUOTE_CARD_PRESET, getDimensions } from './types';
 
 /**
  * Whether a template can be rendered client-side. The legacy single-pass
@@ -42,7 +47,10 @@ export function supportsClientRender(templateType: string | undefined): boolean 
   return (
     templateType === 'branded-overlay-cover' ||
     templateType === 'branded-overlay-body' ||
-    templateType === 'branded-overlay-last'
+    templateType === 'branded-overlay-last' ||
+    templateType === 'quote-card-cover' ||
+    templateType === 'quote-card-body' ||
+    templateType === 'quote-card-last'
   );
 }
 
@@ -64,7 +72,7 @@ async function loadImage(url: string): Promise<HTMLImageElement | null> {
 }
 
 export async function renderSlide(canvas: HTMLCanvasElement, config: SlideConfig): Promise<void> {
-  await registerInterFonts();
+  await registerCarouselFonts();
 
   const { width, height } = getDimensions(config.aspectRatio || '4:5');
   // Set both the bitmap dimensions and CSS dimensions. The CSS will be
@@ -88,6 +96,15 @@ export async function renderSlide(canvas: HTMLCanvasElement, config: SlideConfig
       return;
     case 'branded-overlay-last':
       renderBrandedOverlayLast(ctx, config, image);
+      return;
+    case 'quote-card-cover':
+      renderQuoteCardCover(ctx, config);
+      return;
+    case 'quote-card-body':
+      renderQuoteCardBody(ctx, config);
+      return;
+    case 'quote-card-last':
+      renderQuoteCardLast(ctx, config);
       return;
     default:
       // Non-branded templates aren't supported yet. Caller should fall

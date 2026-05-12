@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { MessageSquare, Upload, Film, Loader2, Check, Sparkles } from 'lucide-react';
+import { MessageSquare, Upload, Film, Loader2, Check, Sparkles, Quote } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { showErrorToast } from '@/lib/toast';
 import { toast } from 'sonner';
 
 type CarouselBackgroundMode =
   | 'branded-overlay'
+  | 'quote-card'
   | 'tweet-style'
   | 'text-box'
   | 'upload'
@@ -36,9 +37,15 @@ const STYLE_OPTIONS: Array<{
     icon: <Sparkles className="w-5 h-5" />,
   },
   {
-    value: 'tweet-style',
+    value: 'quote-card',
     label: 'Quote Card',
-    description: 'Clean text card layout',
+    description: 'Serif quote on cream — Pinterest-pin energy',
+    icon: <Quote className="w-5 h-5" />,
+  },
+  {
+    value: 'tweet-style',
+    label: 'Tweet Card',
+    description: 'Twitter-style card with dark background',
     icon: <MessageSquare className="w-5 h-5" />,
   },
   {
@@ -131,6 +138,7 @@ export function CarouselStyleEditor({
 
       if (
         selectedMode === 'branded-overlay' ||
+        selectedMode === 'quote-card' ||
         selectedMode === 'tweet-style' ||
         selectedMode === 'text-box'
       ) {

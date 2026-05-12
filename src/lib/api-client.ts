@@ -2332,7 +2332,7 @@ export const api = {
 
     /** Regenerate carousel with a different design preset or background */
     regenerateCarousel: async (kitId: string, options: {
-      designPreset?: 'tweet-style' | 'text-box' | 'auto' | 'branded-overlay';
+      designPreset?: 'tweet-style' | 'text-box' | 'auto' | 'branded-overlay' | 'quote-card';
       background?: { type: 'preset' | 'image'; presetId?: string; imageUrl?: string };
       slideOverrides?: Array<{
         text?: string;
@@ -4123,7 +4123,7 @@ export const api = {
         | {
             kind: 'carousel';
             kit_id: string;
-            design_preset?: 'auto' | 'tweet-style' | 'text-box';
+            design_preset?: 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card';
             aspect_ratio?: '9:16' | '1:1';
             slide_overrides?: Array<{ text?: string; text_position?: { x: number; y: number } }>;
             background?: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string };

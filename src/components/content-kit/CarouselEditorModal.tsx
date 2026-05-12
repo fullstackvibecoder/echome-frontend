@@ -298,7 +298,7 @@ export default function CarouselEditorModal({
   const runComposeOnlyRefresh = useCallback(
     async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; backgroundImageUrl?: string; redKeyword?: string }>) => {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
-        designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay') || 'auto',
+        designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card') || 'auto',
         composeOnly: true,
         slideOverrides: overrides,
       });
@@ -886,7 +886,7 @@ export default function CarouselEditorModal({
               finalizationRecipe={{
                 kind: 'carousel',
                 kit_id: contentKitId,
-                design_preset: (currentPreset === 'photo-overlay' ? 'auto' : currentPreset) as 'auto' | 'tweet-style' | 'text-box',
+                design_preset: (currentPreset === 'photo-overlay' ? 'auto' : currentPreset) as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card',
                 slide_overrides: edits.map((e) => ({
                   text: e.text,
                   text_position: e.position,

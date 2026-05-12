@@ -22,7 +22,10 @@ export type TemplateType =
   | 'photo-overlay'
   | 'branded-overlay-cover'
   | 'branded-overlay-body'
-  | 'branded-overlay-last';
+  | 'branded-overlay-last'
+  | 'quote-card-cover'
+  | 'quote-card-body'
+  | 'quote-card-last';
 
 /**
  * Subset of the backend's CarouselDesignSystem — only the fields the
@@ -75,6 +78,18 @@ export const BRANDED_OVERLAY_PRESET: DesignSystem = {
   accentColor: '#E63946',
   textColor: '#FFFFFF',
   padding: 80,
+};
+
+/**
+ * Quote-card palette — Pinterest-pin energy. Mirrors backend canvas-renderer.ts
+ * 'quote-card' preset. primaryColor is the slate body text; accentColor is the
+ * terra-cotta used for the decorative quotation mark, ornament, and CTA.
+ */
+export const QUOTE_CARD_PRESET: DesignSystem = {
+  primaryColor: '#2C3E50',
+  accentColor: '#C9745A',
+  textColor: '#2C3E50',
+  padding: 96,
 };
 
 export function getDimensions(aspectRatio: AspectRatio = '4:5'): {

@@ -44,7 +44,7 @@ export type FinalizationRecipe =
   | {
       kind: 'carousel';
       kit_id: string;
-      design_preset?: 'auto' | 'tweet-style' | 'text-box';
+      design_preset?: 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card';
       aspect_ratio?: '9:16' | '1:1';
       slide_overrides?: Array<{ text?: string; text_position?: { x: number; y: number } }>;
       background?: { type: 'preset' | 'ai' | 'image'; presetId?: string; imageUrl?: string };
