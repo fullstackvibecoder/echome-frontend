@@ -2345,6 +2345,19 @@ export const api = {
          *  Cover and last branded-overlay slides only. Backend strips any
          *  prior `**` markers and wraps this word with `**` before rendering. */
         redKeyword?: string;
+        /** Per-slide structured grammar override (headline/body/subtitle/cta/
+         *  details). Lets the editor flush in-flight edits to the render path
+         *  before the debounced updateSlide PATCH lands — guarantees that
+         *  Download / Post-now / Schedule use the same pixels as the live
+         *  preview. Branded-overlay only. */
+        structured?: {
+          headline?: string;
+          body?: string;
+          subtitle?: string;
+          details?: string;
+          cta?: string;
+          redKeywords?: string[];
+        };
       }>;
       composeOnly?: boolean;
     }) => {

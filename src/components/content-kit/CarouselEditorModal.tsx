@@ -141,7 +141,23 @@ export default function CarouselEditorModal({
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const hasBackground = slides.some(s => !!s.backgroundUrl);
-  const hasEdits = edits.some((e, i) => e.text !== slides[i]?.text);
+  // hasEdits drives whether the download flow flushes overrides to the
+  // backend re-render path. Must detect ANY editable change — text,
+  // structured fields, position, photo, redKeyword — otherwise stale
+  // cached publicUrls get served when the user edits only a structured
+  // field (e.g., just the headline) and clicks Download.
+  const hasEdits = edits.some((e, i) => {
+    const s = slides[i];
+    if (!s) return false;
+    if (e.text !== s.text) return true;
+    if (e.backgroundImageUrl && e.backgroundImageUrl !== s.backgroundImageUrl) return true;
+    if (e.redKeyword) return true;
+    if (e.position && (e.position.x !== 0.5 || e.position.y !== 0.5)) return true;
+    if (e.structured && JSON.stringify(e.structured) !== JSON.stringify(s.structured ?? {})) {
+      return true;
+    }
+    return false;
+  });
 
   useEffect(() => {
     setSlides(initialSlides);
@@ -436,7 +452,11 @@ export default function CarouselEditorModal({
     }
   };
 
-  // Download: composeOnly if backgrounds exist, full regenerate with overrides otherwise
+  // Download: composeOnly if backgrounds exist, full regenerate with overrides otherwise.
+  // We always flush the current edits.structured into the slideOverrides so that
+  // download/share renders match the live editor preview — even if the debounced
+  // updateSlide PATCH hasn't landed yet. Backend prefers override.structured over
+  // the persisted slide.structured at render time.
   const handleDownload = async (slideIndex?: number) => {
     setDownloading(true);
     try {
@@ -445,7 +465,13 @@ export default function CarouselEditorModal({
         const response = await api.contentKits.regenerateCarousel(contentKitId, {
           designPreset: (currentPreset as any) || 'auto',
           composeOnly: true,
-          slideOverrides: edits.map((e) => ({ text: e.text, textPosition: e.position })),
+          slideOverrides: edits.map((e) => ({
+            text: e.text,
+            textPosition: e.position,
+            structured: e.structured,
+            backgroundImageUrl: e.backgroundImageUrl,
+            redKeyword: e.redKeyword,
+          })),
         });
         if (response.success && response.data?.carousel?.slides) {
           const composed = response.data.carousel.slides;
@@ -457,10 +483,13 @@ export default function CarouselEditorModal({
           }
         }
       } else if (hasEdits) {
-        // Single-pass (tweet-style): full regenerate with text overrides
+        // Single-pass (tweet-style): full regenerate with text + structured overrides
         const response = await api.contentKits.regenerateCarousel(contentKitId, {
           designPreset: (currentPreset as any) || 'auto',
-          slideOverrides: edits.map((e) => ({ text: e.text })),
+          slideOverrides: edits.map((e) => ({
+            text: e.text,
+            structured: e.structured,
+          })),
         });
         if (response.success && response.data?.carousel?.slides) {
           const composed = response.data.carousel.slides;
