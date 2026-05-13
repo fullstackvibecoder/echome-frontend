@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { MessageSquare, Upload, Film, Loader2, Check, Sparkles, Quote } from 'lucide-react';
+import { MessageSquare, Upload, Film, Loader2, Check, Sparkles, Quote, BarChart3 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { showErrorToast } from '@/lib/toast';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ type CarouselBackgroundMode =
   | 'branded-overlay'
   | 'quote-card'
   | 'tweet-style'
-  | 'text-box'
+  | 'stats-card'
   | 'upload'
   | 'video-snapshot';
 
@@ -49,10 +49,10 @@ const STYLE_OPTIONS: Array<{
     icon: <MessageSquare className="w-5 h-5" />,
   },
   {
-    value: 'text-box',
-    label: 'Text on Color',
-    description: 'Bold text with color background',
-    icon: <div className="w-5 h-5 rounded bg-gradient-to-br from-pink-500 to-purple-500" />,
+    value: 'stats-card',
+    label: 'Stats Card',
+    description: 'Big stat on warm white — data-forward for results posts',
+    icon: <BarChart3 className="w-5 h-5" />,
   },
   {
     value: 'upload',
@@ -140,7 +140,7 @@ export function CarouselStyleEditor({
         selectedMode === 'branded-overlay' ||
         selectedMode === 'quote-card' ||
         selectedMode === 'tweet-style' ||
-        selectedMode === 'text-box'
+        selectedMode === 'stats-card'
       ) {
         options = { designPreset: selectedMode };
       } else if (selectedMode === 'upload' && uploadedImageUrl) {
@@ -177,8 +177,9 @@ export function CarouselStyleEditor({
 
   const canApply =
     selectedMode === 'branded-overlay' ||
+    selectedMode === 'quote-card' ||
     selectedMode === 'tweet-style' ||
-    selectedMode === 'text-box' ||
+    selectedMode === 'stats-card' ||
     (selectedMode === 'upload' && !!uploadedImageUrl) ||
     (selectedMode === 'video-snapshot' && !!snapshotUrl);
 

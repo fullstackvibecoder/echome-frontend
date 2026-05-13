@@ -30,11 +30,16 @@ import {
   renderQuoteCardBody,
   renderQuoteCardLast,
 } from './quote-card';
+import {
+  renderStatsCardCover,
+  renderStatsCardBody,
+  renderStatsCardLast,
+} from './stats-card';
 import { registerCarouselFonts } from './fonts';
 import { SlideConfig, getDimensions } from './types';
 
 export type { SlideConfig, DesignSystem, AspectRatio, TemplateType, StructuredFields } from './types';
-export { BRANDED_OVERLAY_PRESET, QUOTE_CARD_PRESET, getDimensions } from './types';
+export { BRANDED_OVERLAY_PRESET, QUOTE_CARD_PRESET, STATS_CARD_PRESET, getDimensions } from './types';
 
 /**
  * Whether a template can be rendered client-side. The legacy single-pass
@@ -50,7 +55,10 @@ export function supportsClientRender(templateType: string | undefined): boolean 
     templateType === 'branded-overlay-last' ||
     templateType === 'quote-card-cover' ||
     templateType === 'quote-card-body' ||
-    templateType === 'quote-card-last'
+    templateType === 'quote-card-last' ||
+    templateType === 'stats-card-cover' ||
+    templateType === 'stats-card-body' ||
+    templateType === 'stats-card-last'
   );
 }
 
@@ -105,6 +113,15 @@ export async function renderSlide(canvas: HTMLCanvasElement, config: SlideConfig
       return;
     case 'quote-card-last':
       renderQuoteCardLast(ctx, config);
+      return;
+    case 'stats-card-cover':
+      renderStatsCardCover(ctx, config);
+      return;
+    case 'stats-card-body':
+      renderStatsCardBody(ctx, config);
+      return;
+    case 'stats-card-last':
+      renderStatsCardLast(ctx, config);
       return;
     default:
       // Non-branded templates aren't supported yet. Caller should fall

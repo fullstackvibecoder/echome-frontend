@@ -298,7 +298,7 @@ export default function CarouselEditorModal({
   const runComposeOnlyRefresh = useCallback(
     async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; backgroundImageUrl?: string; redKeyword?: string }>) => {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
-        designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card') || 'auto',
+        designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card' | 'stats-card') || 'auto',
         composeOnly: true,
         slideOverrides: overrides,
       });
@@ -809,7 +809,8 @@ export default function CarouselEditorModal({
             {!hasBackground
               && !['tweet-style'].includes(activeSlide.template || '')
               && !(activeSlide.template || '').startsWith('branded-overlay')
-              && !(activeSlide.template || '').startsWith('quote-card') && (
+              && !(activeSlide.template || '').startsWith('quote-card')
+              && !(activeSlide.template || '').startsWith('stats-card') && (
               <button type="button" onClick={handlePrepareEditing} disabled={preparing}
                 className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-interactive/40 bg-primary-interactive/5 px-4 py-3 text-sm font-medium text-primary-interactive hover:bg-primary-interactive/10 transition-colors disabled:opacity-50">
                 {preparing ? (<><Loader2 className="h-4 w-4 animate-spin" />Preparing...</>) : (<><Pencil className="h-4 w-4" />Enable drag positioning</>)}
@@ -898,7 +899,7 @@ export default function CarouselEditorModal({
               finalizationRecipe={{
                 kind: 'carousel',
                 kit_id: contentKitId,
-                design_preset: (currentPreset === 'photo-overlay' ? 'auto' : currentPreset) as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card',
+                design_preset: (currentPreset === 'photo-overlay' ? 'auto' : currentPreset) as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card' | 'stats-card',
                 // Flush every editable field. Backend finalizer prefers
                 // override-wins precedence so a click between editing and
                 // posting still ships the right pixels even before the

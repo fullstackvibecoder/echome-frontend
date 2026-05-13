@@ -25,7 +25,10 @@ export type TemplateType =
   | 'branded-overlay-last'
   | 'quote-card-cover'
   | 'quote-card-body'
-  | 'quote-card-last';
+  | 'quote-card-last'
+  | 'stats-card-cover'
+  | 'stats-card-body'
+  | 'stats-card-last';
 
 /**
  * Subset of the backend's CarouselDesignSystem — only the fields the
@@ -89,6 +92,18 @@ export const QUOTE_CARD_PRESET: DesignSystem = {
   primaryColor: '#2C3E50',
   accentColor: '#C9745A',
   textColor: '#2C3E50',
+  padding: 96,
+};
+
+/**
+ * Stats-card palette — clean-infographic energy. Mirrors backend canvas-renderer.ts
+ * 'stats-card' preset. primaryColor is the deep teal used for the big stat;
+ * accentColor is the warm orange used for the accent line + CTA.
+ */
+export const STATS_CARD_PRESET: DesignSystem = {
+  primaryColor: '#0B4F5C',
+  accentColor: '#E8763B',
+  textColor: '#0B4F5C',
   padding: 96,
 };
 
