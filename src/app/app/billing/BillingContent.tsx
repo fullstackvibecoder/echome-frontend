@@ -158,8 +158,23 @@ function BillingContentInner() {
                             syncResult.data.tier === 'teams_5' ? 'EchoTeams Pro' :
                             syncResult.data.tier === 'teams_10' ? 'EchoTeams Agency' : 'your plan';
             setSuccessMessage(`Your ${tierName} subscription is now active! Welcome aboard.`);
-            // Track subscription for Meta Pixel (ad conversion optimization)
-            const priceMap: Record<string, number> = { pro: 29, studio: 49, enterprise: 99, teams_2: 129, teams_5: 179, teams_10: 249 };
+            // Track subscription for Meta Pixel (ad conversion optimization).
+            // Prices updated 2026-04-30: Echo $29→$37, Studio $49→$87, Echo
+            // Teams launched at $47/voice. enterprise/teams_2/5/10 retained
+            // for grandfathered customers at their original prices.
+            // For echo_teams (per-voice), we don't know the exact voice count
+            // at this callback layer, so we report the 2-voice minimum spend
+            // ($94) — close enough for ad attribution; underestimates for
+            // multi-voice agency customers.
+            const priceMap: Record<string, number> = {
+              pro: 37,
+              studio: 87,
+              enterprise: 99,
+              teams_2: 129,
+              teams_5: 179,
+              teams_10: 249,
+              echo_teams: 47 * 2, // per-voice, 2-voice minimum spend
+            };
             trackSubscribe(tierName, priceMap[syncResult.data.tier || ''] || 0);
             // Reload subscription status
             const subResult = await api.stripe.getSubscription();
@@ -301,11 +316,27 @@ function BillingContentInner() {
     loadData();
   }, []);
 
-  // Separate individual and teams plans
+  // Separate individual and teams plans.
   // Multi-voice tiers: legacy teams_* and the new echo_teams.
   const isMultiVoiceTier = (t: string) => t.startsWith('teams_') || t === 'echo_teams';
-  const individualPlans = plans.filter(p => !isMultiVoiceTier(p.tier));
-  const teamsPlans = plans.filter(p => isMultiVoiceTier(p.tier));
+
+  // Retired tiers — kept in the backend's getPricingPlans() for entitlement
+  // lookups on grandfathered customers, but should not appear as buyable
+  // cards on the billing page for everyone else. Currently-sold individual
+  // plan is Echo + Echo Studio; currently-sold team plan is the new per-voice
+  // Echo Teams. enterprise (Echo Pro $99) and teams_2/5/10 (EchoTeams
+  // Duo/Pro/Agency) are retired. If the user is currently on a retired tier
+  // we still show that one card so they can see/manage it; otherwise filter it out.
+  const RETIRED_TIERS = new Set(['enterprise', 'teams_2', 'teams_5', 'teams_10']);
+  const userTier = subscription?.tier || '';
+  const isRetiredAndNotMine = (t: string) => RETIRED_TIERS.has(t) && t !== userTier;
+
+  const individualPlans = plans
+    .filter(p => !isMultiVoiceTier(p.tier))
+    .filter(p => !isRetiredAndNotMine(p.tier));
+  const teamsPlans = plans
+    .filter(p => isMultiVoiceTier(p.tier))
+    .filter(p => !isRetiredAndNotMine(p.tier));
 
   // Handle plan selection - either checkout for new users or switch for existing subscribers
   const handlePlanSelect = async (planId: string) => {
@@ -414,6 +445,7 @@ function BillingContentInner() {
       teams_2: 'EchoTeams Duo',
       teams_5: 'EchoTeams Pro',
       teams_10: 'EchoTeams Agency',
+      echo_teams: 'Echo Teams',
     };
     return names[tier] || tier;
   };
