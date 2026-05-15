@@ -171,15 +171,22 @@ apiClient.interceptors.response.use(
       console.error('Network error:', error.message);
     }
 
-    // Report 5xx and network errors to Sentry (not 4xx which are expected)
+    // Report 5xx to Sentry. Skip 4xx (expected) and client-environment noise:
+    //   ERR_NETWORK    — status 0 (user offline, DNS, CORS preflight fail)
+    //   ECONNABORTED   — axios timeout (slow user network or backend lag)
+    //   ERR_CANCELED   — request aborted, typically on route change
     const status = error.response?.status;
-    if (!status || status >= 500) {
+    const code = error.code;
+    const isClientNoise =
+      code === 'ERR_NETWORK' || code === 'ECONNABORTED' || code === 'ERR_CANCELED';
+    if (!isClientNoise && (!status || status >= 500)) {
       import('@sentry/nextjs').then((Sentry) => {
         Sentry.captureException(error, {
           extra: {
             url: error.config?.url,
             method: error.config?.method,
             status,
+            code,
             context: 'api_client',
           },
         });
