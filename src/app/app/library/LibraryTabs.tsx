@@ -13,20 +13,26 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useCallback } from 'react';
 import { Package, Film } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import ContentKitContent from './ContentKitContent';
 import ReelsContent from './ReelsContent';
 
 type Tab = 'kits' | 'reels';
 
-const TABS: Array<{ id: Tab; label: string; icon: typeof Package }> = [
+const ALL_TABS: Array<{ id: Tab; label: string; icon: typeof Package; adminOnly?: boolean }> = [
   { id: 'kits', label: 'Kits', icon: Package },
-  { id: 'reels', label: 'Reels', icon: Film },
+  { id: 'reels', label: 'Reels', icon: Film, adminOnly: true },
 ];
 
 function LibraryTabsInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const tab: Tab = searchParams.get('tab') === 'reels' ? 'reels' : 'kits';
+  const { user } = useAuth();
+  const isAdmin = !!user?.isAdmin;
+  const tabs = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
+  // ?tab=reels honored only for admins. Non-admins always see Kits even if they paste the URL.
+  const tab: Tab =
+    searchParams.get('tab') === 'reels' && isAdmin ? 'reels' : 'kits';
 
   const setTab = useCallback(
     (next: Tab) => {
@@ -48,7 +54,7 @@ function LibraryTabsInner() {
       {/* Tab nav */}
       <div className="container mx-auto px-6 pt-6 max-w-7xl">
         <div className="flex items-center gap-1 border-b border-border" role="tablist" aria-label="Library sections">
-          {TABS.map(({ id, label, icon: Icon }) => {
+          {tabs.map(({ id, label, icon: Icon }) => {
             const isActive = tab === id;
             return (
               <button
