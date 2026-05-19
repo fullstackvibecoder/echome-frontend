@@ -1,53 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useBackendHealth } from '@/hooks/useBackendHealth';
 
 /**
- * Surfaces a banner across every page when the backend is unreachable.
- *
- * Polls `/health` on mount and every 30 seconds. The banner appears after
- * a failed check and disappears as soon as the backend returns 200 — so
- * we don't have to hand-remove it when the upstream provider recovers.
+ * Sticky page-top banner shown when the backend is unreachable. Auto-hides
+ * the moment /health comes back. See useBackendHealth for the polling
+ * implementation.
  *
  * Added 2026-05-19 during a Railway Edge Network outage that left the
- * Vercel frontend up but the Railway backend unreachable; users were
- * clicking "Sign in" and seeing nothing happen.
+ * Vercel frontend up but the Railway backend unreachable.
  */
 export function OutageBanner() {
-  const [isDown, setIsDown] = useState(false);
-
-  useEffect(() => {
-    const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/?$/, '');
-    const healthUrl = `${apiBase}/health`;
-
-    let cancelled = false;
-
-    async function check() {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        const res = await fetch(healthUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
-        if (cancelled) return;
-        setIsDown(!res.ok);
-      } catch {
-        if (cancelled) return;
-        setIsDown(true);
-      }
-    }
-
-    check();
-    const interval = setInterval(check, 30_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
-
+  const { isDown } = useBackendHealth();
   if (!isDown) return null;
 
   return (

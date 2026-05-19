@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, loginSchema } from '@/hooks/useAuthForm';
+import { useBackendHealth } from '@/hooks/useBackendHealth';
 import { OAuthButtons } from '@/components/oauth-buttons';
 
 export default function LoginContent() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const { isDown } = useBackendHealth();
 
   const { errors, isLoading, generalError, handleSubmit } = useAuthForm({
     schema: loginSchema,
@@ -27,6 +29,31 @@ export default function LoginContent() {
           Sign in to pick up where you left off
         </p>
       </div>
+
+      {/* Backend-down notice — shown when /health is unreachable so users
+          aren't left wondering why "Sign in" does nothing during a hosting
+          outage. Auto-hides when the backend recovers. */}
+      {isDown && (
+        <div
+          role="alert"
+          className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm"
+        >
+          <p className="font-medium text-amber-700 dark:text-amber-400 mb-1">
+            Sign-in is temporarily down
+          </p>
+          <p className="text-muted-foreground">
+            Our hosting provider is having a service disruption. This page will recover automatically once they&apos;re back.{' '}
+            <a
+              href="https://status.railway.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:no-underline"
+            >
+              Status
+            </a>
+          </p>
+        </div>
+      )}
 
       {/* Form */}
       <form action={handleSubmit} className="space-y-4">
