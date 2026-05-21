@@ -74,7 +74,7 @@ export default function ReelEditorContent() {
   const [selectedMusic, setSelectedMusic] = useState<MusicTrack | null>(null);
   const [title, setTitle] = useState('');
   const [reelContext, setReelContext] = useState(''); // Context/description for AI text overlay generation
-  const [addCaptions, setAddCaptions] = useState(false);
+  const [addCaptions, setAddCaptions] = useState(true);
   const [captionPreset, setCaptionPreset] = useState<'modern' | 'classic' | 'bold' | 'minimal' | 'highlight' | 'karaoke' | 'underline' | 'word_by_word'>('modern');
   const [musicVolume, setMusicVolume] = useState(0.3);
   const [beatSyncEnabled, setBeatSyncEnabled] = useState(true);
