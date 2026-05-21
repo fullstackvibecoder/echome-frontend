@@ -102,7 +102,7 @@ export function ContentKitCard({ item, scheduleCounts }: ContentKitCardProps) {
                 </span>
               )}
               {scheduleCounts.failed > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-red-500 ml-1" title={`${scheduleCounts.failed} failed`}>
+                <span className="inline-flex items-center gap-0.5 text-red-500 ml-1" title={`${scheduleCounts.failed} scheduled post${scheduleCounts.failed === 1 ? '' : 's'} failed to publish — open the kit to retry`}>
                   <AlertTriangle className="w-3 h-3" />{scheduleCounts.failed}
                 </span>
               )}
