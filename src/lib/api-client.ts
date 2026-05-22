@@ -2451,6 +2451,42 @@ export const api = {
       };
     },
 
+    /**
+     * Replace the whole carousel slide array (reorder / add / delete).
+     * Server renumbers slideNumber and re-derives role/template by position.
+     */
+    updateCarouselSlides: async (
+      kitId: string,
+      slides: Array<{
+        slideNumber: number;
+        text: string;
+        imageUrl: string;
+        publicUrl: string;
+        template: string;
+        backgroundUrl: string;
+        backgroundImageUrl?: string;
+        textPosition?: { x: number; y: number };
+        structured?: {
+          headline?: string;
+          body?: string;
+          subtitle?: string;
+          details?: string;
+          cta?: string;
+          redKeywords?: string[];
+        };
+      }>,
+    ) => {
+      const response = await apiClient.patch(
+        `/content-kits/${kitId}/carousel/slides`,
+        { slides },
+      );
+      return response.data as {
+        success: boolean;
+        error?: string;
+        data?: { slides: typeof slides };
+      };
+    },
+
     /** Resize carousel to different aspect ratio */
     resizeCarousel: async (kitId: string, aspectRatio: '1:1' | '9:16') => {
       const response = await apiClient.post(
