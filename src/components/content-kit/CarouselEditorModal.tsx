@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { downloadImage } from '@/lib/download';
 import { showErrorToast } from '@/lib/toast';
+import CarouselFilmstrip from './CarouselFilmstrip';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
 import { PhotoPicker } from './PhotoPicker';
@@ -624,6 +625,14 @@ export default function CarouselEditorModal({
                 </>
               )}
             </div>
+            <CarouselFilmstrip
+              slides={slides}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              onReorder={() => {}}
+              onInsert={() => {}}
+              onDelete={() => {}}
+            />
             {/* Thumbnail strip. w-full + max-w matches the preview's container
                 width so the strip is column-aligned. min-w-0 + overflow-x-auto
                 let the 10-slide row scroll horizontally inside the strip
