@@ -177,6 +177,18 @@ export default function CarouselEditorModal({
     persistSlides(next);
   }
 
+  function handleDelete(index: number) {
+    const target = slides[index];
+    if (!isBlankSlide(target)) {
+      const ok = window.confirm('Delete this slide? Its text will be lost.');
+      if (!ok) return;
+    }
+    const next = deleteSlide(slides, index, currentPreset) as CarouselSlide[];
+    setSlides(next);
+    setActiveIndex(Math.min(index, next.length - 1));
+    persistSlides(next);
+  }
+
   const hasBackground = slides.some(s => !!s.backgroundUrl);
   // hasEdits drives whether the download flow flushes overrides to the
   // backend re-render path. Must detect ANY editable change — text,
@@ -667,7 +679,7 @@ export default function CarouselEditorModal({
               onSelect={setActiveIndex}
               onReorder={handleReorder}
               onInsert={handleInsert}
-              onDelete={() => {}}
+              onDelete={handleDelete}
             />
             <p className="text-[11px] text-muted-foreground mt-2">{activeIndex + 1} / {slides.length}</p>
           </div>
