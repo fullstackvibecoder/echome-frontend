@@ -29,6 +29,7 @@ import {
   type TemplateType,
   type StructuredFields,
 } from '@/lib/carousel-renderer';
+import { reorderSlides, insertBlankSlide, deleteSlide, isBlankSlide } from '@/lib/carousel-slide-ops';
 
 interface CarouselSlide {
   slideNumber: number;
@@ -140,6 +141,25 @@ export default function CarouselEditorModal({
   const abortRef = useRef<AbortController | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function persistSlides(next: CarouselSlide[]) {
+    if (persistTimer.current) clearTimeout(persistTimer.current);
+    persistTimer.current = setTimeout(() => {
+      api.contentKits
+        .updateCarouselSlides(contentKitId, next as Parameters<typeof api.contentKits.updateCarouselSlides>[1])
+        .catch((err) => console.error('[carousel] failed to persist slide order', err));
+    }, 600);
+  }
+
+  function handleReorder(from: number, to: number) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const next = reorderSlides(slides as any[], from, to, currentPreset) as CarouselSlide[];
+    setSlides(next);
+    setActiveIndex(to);
+    persistSlides(next);
+  }
 
   const hasBackground = slides.some(s => !!s.backgroundUrl);
   // hasEdits drives whether the download flow flushes overrides to the
@@ -629,7 +649,7 @@ export default function CarouselEditorModal({
               slides={slides}
               activeIndex={activeIndex}
               onSelect={setActiveIndex}
-              onReorder={() => {}}
+              onReorder={handleReorder}
               onInsert={() => {}}
               onDelete={() => {}}
             />
