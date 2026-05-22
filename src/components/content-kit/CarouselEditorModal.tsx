@@ -600,6 +600,9 @@ export default function CarouselEditorModal({
 
   const activeSlide = slides[activeIndex];
   const activeEdit = edits[activeIndex];
+  const coverNeedsEmphasis =
+    activeIndex === 0 &&
+    !(activeEdit?.redKeyword);
   // Defensive: if `open` says we should be visible but state is invalid (no
   // slides, or activeIndex out of bounds), fire onClose so the parent's
   // open state syncs with reality. Without this, the parent thinks the
@@ -714,6 +717,12 @@ export default function CarouselEditorModal({
                       : 'Saved'}
                   </span>
                 </div>
+
+                {coverNeedsEmphasis && (
+                  <p className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 mb-2 border border-border">
+                    Cover slides shine with one emphasized word — pick one below.
+                  </p>
+                )}
 
                 {/* Headline — always present on branded-overlay slides */}
                 <div className="space-y-1">
