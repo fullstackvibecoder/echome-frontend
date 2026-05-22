@@ -13,8 +13,7 @@ interface MinimalSlide {
   text: string;
   template?: string;
   publicUrl?: string;
-  structured?: { headline?: string; body?: string; [k: string]: unknown };
-  [k: string]: unknown;
+  structured?: { headline?: string; body?: string };
 }
 
 /** Template-variant for a slide at `index` of `total`, given the design family. */

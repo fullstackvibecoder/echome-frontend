@@ -154,8 +154,7 @@ export default function CarouselEditorModal({
   }
 
   function handleReorder(from: number, to: number) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const next = reorderSlides(slides as any[], from, to, currentPreset) as CarouselSlide[];
+    const next = reorderSlides(slides, from, to, currentPreset) as CarouselSlide[];
     setSlides(next);
     setActiveIndex(to);
     persistSlides(next);
