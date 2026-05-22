@@ -156,6 +156,12 @@ export default function CarouselEditorModal({
   function handleReorder(from: number, to: number) {
     const next = reorderSlides(slides, from, to, currentPreset) as CarouselSlide[];
     setSlides(next);
+    setEdits((prev) => {
+      const copy = [...prev];
+      const [moved] = copy.splice(from, 1);
+      copy.splice(to, 0, moved);
+      return copy;
+    });
     setActiveIndex(to);
     persistSlides(next);
   }
@@ -173,6 +179,18 @@ export default function CarouselEditorModal({
       } as unknown as CarouselSlide);
     const next = insertBlankSlide(slides, index, makeBlank, currentPreset) as CarouselSlide[];
     setSlides(next);
+    setEdits((prev) => {
+      const blankEdit: SlideEdit = {
+        text: '',
+        position: { x: 0.5, y: 0.5 },
+        backgroundImageUrl: undefined,
+        redKeyword: undefined,
+        structured: { headline: '', body: '' },
+      };
+      const copy = [...prev];
+      copy.splice(index, 0, blankEdit);
+      return copy;
+    });
     setActiveIndex(index);
     persistSlides(next);
   }
@@ -185,6 +203,11 @@ export default function CarouselEditorModal({
     }
     const next = deleteSlide(slides, index, currentPreset) as CarouselSlide[];
     setSlides(next);
+    setEdits((prev) => {
+      const copy = [...prev];
+      copy.splice(index, 1);
+      return copy;
+    });
     setActiveIndex(Math.min(index, next.length - 1));
     persistSlides(next);
   }
@@ -302,12 +325,13 @@ export default function CarouselEditorModal({
     [slides, edits, contentKitId],
   );
 
-  // Flush + clear all slide save timers on unmount so a slow last edit
-  // doesn't leak the network call after the modal closes.
+  // Flush + clear all slide save timers and the persist debounce on unmount
+  // so slow last edits don't leak network calls after the modal closes.
   useEffect(() => {
     const timers = slideSaveTimersRef.current;
     return () => {
       for (const t of Object.values(timers)) clearTimeout(t);
+      if (persistTimer.current) clearTimeout(persistTimer.current);
     };
   }, []);
 
@@ -602,7 +626,8 @@ export default function CarouselEditorModal({
   const activeEdit = edits[activeIndex];
   const coverNeedsEmphasis =
     activeIndex === 0 &&
-    !(activeEdit?.redKeyword);
+    activeSlide?.template === 'branded-overlay-cover' &&
+    !activeEdit?.redKeyword;
   // Defensive: if `open` says we should be visible but state is invalid (no
   // slides, or activeIndex out of bounds), fire onClose so the parent's
   // open state syncs with reality. Without this, the parent thinks the
