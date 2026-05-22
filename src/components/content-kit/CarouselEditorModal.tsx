@@ -633,22 +633,6 @@ export default function CarouselEditorModal({
               onInsert={() => {}}
               onDelete={() => {}}
             />
-            {/* Thumbnail strip. w-full + max-w matches the preview's container
-                width so the strip is column-aligned. min-w-0 + overflow-x-auto
-                let the 10-slide row scroll horizontally inside the strip
-                instead of pushing the column past 45% and bleeding into the
-                right edit pane. */}
-            <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-hide w-full max-w-[300px] min-w-0">
-              {slides.map((slide, i) => (
-                <button key={slide.slideNumber} type="button" onClick={() => setActiveIndex(i)}
-                  className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                    i === activeIndex ? 'border-primary-interactive ring-1 ring-primary-interactive/30' : 'border-border hover:border-muted-foreground/30'
-                  }`}>
-                  <img src={slide.publicUrl} alt={`Slide ${slide.slideNumber}`} className="w-full h-full object-cover" />
-                  <span className="absolute bottom-0.5 right-1 text-[9px] font-bold text-white drop-shadow-md">{slide.slideNumber}</span>
-                </button>
-              ))}
-            </div>
             <p className="text-[11px] text-muted-foreground mt-2">{activeIndex + 1} / {slides.length}</p>
           </div>
 
