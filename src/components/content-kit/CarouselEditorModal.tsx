@@ -160,6 +160,23 @@ export default function CarouselEditorModal({
     persistSlides(next);
   }
 
+  function handleInsert(index: number) {
+    const makeBlank = (): CarouselSlide =>
+      ({
+        slideNumber: 0,
+        text: '',
+        imageUrl: '',
+        publicUrl: '',
+        template: 'tweet-style',
+        backgroundUrl: '',
+        structured: { headline: '', body: '' },
+      } as unknown as CarouselSlide);
+    const next = insertBlankSlide(slides, index, makeBlank, currentPreset) as CarouselSlide[];
+    setSlides(next);
+    setActiveIndex(index);
+    persistSlides(next);
+  }
+
   const hasBackground = slides.some(s => !!s.backgroundUrl);
   // hasEdits drives whether the download flow flushes overrides to the
   // backend re-render path. Must detect ANY editable change — text,
@@ -649,7 +666,7 @@ export default function CarouselEditorModal({
               activeIndex={activeIndex}
               onSelect={setActiveIndex}
               onReorder={handleReorder}
-              onInsert={() => {}}
+              onInsert={handleInsert}
               onDelete={() => {}}
             />
             <p className="text-[11px] text-muted-foreground mt-2">{activeIndex + 1} / {slides.length}</p>
