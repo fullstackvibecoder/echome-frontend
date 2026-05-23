@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { downloadImage } from '@/lib/download';
 import { showErrorToast } from '@/lib/toast';
+import CarouselFilmstrip from './CarouselFilmstrip';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
 import { PhotoPicker } from './PhotoPicker';
@@ -28,6 +29,7 @@ import {
   type TemplateType,
   type StructuredFields,
 } from '@/lib/carousel-renderer';
+import { reorderSlides, insertBlankSlide, deleteSlide, isBlankSlide } from '@/lib/carousel-slide-ops';
 
 interface CarouselSlide {
   slideNumber: number;
@@ -139,6 +141,76 @@ export default function CarouselEditorModal({
   const abortRef = useRef<AbortController | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function persistSlides(next: CarouselSlide[]) {
+    if (persistTimer.current) clearTimeout(persistTimer.current);
+    persistTimer.current = setTimeout(() => {
+      api.contentKits
+        .updateCarouselSlides(contentKitId, next as Parameters<typeof api.contentKits.updateCarouselSlides>[1])
+        .catch((err) => console.error('[carousel] failed to persist slide order', err));
+    }, 600);
+  }
+
+  function handleReorder(from: number, to: number) {
+    const next = reorderSlides(slides, from, to, currentPreset) as CarouselSlide[];
+    setSlides(next);
+    setEdits((prev) => {
+      const copy = [...prev];
+      const [moved] = copy.splice(from, 1);
+      copy.splice(to, 0, moved);
+      return copy;
+    });
+    setActiveIndex(to);
+    persistSlides(next);
+  }
+
+  function handleInsert(index: number) {
+    const makeBlank = (): CarouselSlide =>
+      ({
+        slideNumber: 0,
+        text: '',
+        imageUrl: '',
+        publicUrl: '',
+        template: 'tweet-style',
+        backgroundUrl: '',
+        structured: { headline: '', body: '' },
+      } as unknown as CarouselSlide);
+    const next = insertBlankSlide(slides, index, makeBlank, currentPreset) as CarouselSlide[];
+    setSlides(next);
+    setEdits((prev) => {
+      const blankEdit: SlideEdit = {
+        text: '',
+        position: { x: 0.5, y: 0.5 },
+        backgroundImageUrl: undefined,
+        redKeyword: undefined,
+        structured: { headline: '', body: '' },
+      };
+      const copy = [...prev];
+      copy.splice(index, 0, blankEdit);
+      return copy;
+    });
+    setActiveIndex(index);
+    persistSlides(next);
+  }
+
+  function handleDelete(index: number) {
+    const target = slides[index];
+    if (!isBlankSlide(target)) {
+      const ok = window.confirm('Delete this slide? Its text will be lost.');
+      if (!ok) return;
+    }
+    const next = deleteSlide(slides, index, currentPreset) as CarouselSlide[];
+    setSlides(next);
+    setEdits((prev) => {
+      const copy = [...prev];
+      copy.splice(index, 1);
+      return copy;
+    });
+    setActiveIndex(Math.min(index, next.length - 1));
+    persistSlides(next);
+  }
 
   const hasBackground = slides.some(s => !!s.backgroundUrl);
   // hasEdits drives whether the download flow flushes overrides to the
@@ -253,12 +325,13 @@ export default function CarouselEditorModal({
     [slides, edits, contentKitId],
   );
 
-  // Flush + clear all slide save timers on unmount so a slow last edit
-  // doesn't leak the network call after the modal closes.
+  // Flush + clear all slide save timers and the persist debounce on unmount
+  // so slow last edits don't leak network calls after the modal closes.
   useEffect(() => {
     const timers = slideSaveTimersRef.current;
     return () => {
       for (const t of Object.values(timers)) clearTimeout(t);
+      if (persistTimer.current) clearTimeout(persistTimer.current);
     };
   }, []);
 
@@ -551,6 +624,10 @@ export default function CarouselEditorModal({
 
   const activeSlide = slides[activeIndex];
   const activeEdit = edits[activeIndex];
+  const coverNeedsEmphasis =
+    activeIndex === 0 &&
+    activeSlide?.template === 'branded-overlay-cover' &&
+    !activeEdit?.redKeyword;
   // Defensive: if `open` says we should be visible but state is invalid (no
   // slides, or activeIndex out of bounds), fire onClose so the parent's
   // open state syncs with reality. Without this, the parent thinks the
@@ -624,22 +701,14 @@ export default function CarouselEditorModal({
                 </>
               )}
             </div>
-            {/* Thumbnail strip. w-full + max-w matches the preview's container
-                width so the strip is column-aligned. min-w-0 + overflow-x-auto
-                let the 10-slide row scroll horizontally inside the strip
-                instead of pushing the column past 45% and bleeding into the
-                right edit pane. */}
-            <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-hide w-full max-w-[300px] min-w-0">
-              {slides.map((slide, i) => (
-                <button key={slide.slideNumber} type="button" onClick={() => setActiveIndex(i)}
-                  className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                    i === activeIndex ? 'border-primary-interactive ring-1 ring-primary-interactive/30' : 'border-border hover:border-muted-foreground/30'
-                  }`}>
-                  <img src={slide.publicUrl} alt={`Slide ${slide.slideNumber}`} className="w-full h-full object-cover" />
-                  <span className="absolute bottom-0.5 right-1 text-[9px] font-bold text-white drop-shadow-md">{slide.slideNumber}</span>
-                </button>
-              ))}
-            </div>
+            <CarouselFilmstrip
+              slides={slides}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              onReorder={handleReorder}
+              onInsert={handleInsert}
+              onDelete={handleDelete}
+            />
             <p className="text-[11px] text-muted-foreground mt-2">{activeIndex + 1} / {slides.length}</p>
           </div>
 
@@ -673,6 +742,12 @@ export default function CarouselEditorModal({
                       : 'Saved'}
                   </span>
                 </div>
+
+                {coverNeedsEmphasis && (
+                  <p className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 mb-2 border border-border">
+                    Cover slides shine with one emphasized word — pick one below.
+                  </p>
+                )}
 
                 {/* Headline — always present on branded-overlay slides */}
                 <div className="space-y-1">
