@@ -7,6 +7,15 @@
 // USER TYPES
 // ============================================
 
+export interface UserPreferences {
+  /** Tour IDs the user has already seen (e.g., "clip-editor-v1"). */
+  toursSeen?: string[];
+  /** True once the user has dismissed the Get Started checklist. */
+  setupChecklistDismissed?: boolean;
+  /** Forward-compat: unknown keys are allowed. */
+  [key: string]: unknown;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -17,6 +26,7 @@ export interface User {
   isAdmin?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  preferences?: UserPreferences;
 }
 
 /**
