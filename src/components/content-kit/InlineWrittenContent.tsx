@@ -59,11 +59,15 @@ const TELEPROMPTER_PLATFORMS = new Set(['video-script', 'youtube', 'tiktok']);
 
 // Platform-key map: InlineWrittenContent uses 'twitter', WrittenPostActions
 // uses 'x' (Outstand's API key for the same platform). Map the keys we hand
-// to WrittenPostActions. Missing entries (email, video-script) are platforms
-// without API/link posting — they show a calendar Schedule button instead.
+// to WrittenPostActions. Missing entries (email, video-script, instagram)
+// fall through to a calendar Schedule button.
+//
+// Instagram is intentionally omitted: IG never accepts text-only posts via
+// the API, so the "Post to IG" button under a written caption would always
+// fail with Outstand's "At least one media file required" error. Users post
+// IG content via the carousel/clip path instead, which carries media.
 const POST_ACTION_PLATFORM_MAP: Record<string, string> = {
   linkedin: 'linkedin',
-  instagram: 'instagram',
   twitter: 'x',
   tiktok: 'tiktok',
   youtube: 'youtube',
