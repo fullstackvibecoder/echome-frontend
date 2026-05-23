@@ -1553,6 +1553,22 @@ export const api = {
       };
     },
 
+    /**
+     * Recent content across ALL followed creators in one request.
+     * Replaces the per-creator getContent() fan-out the radar feed used to
+     * do — Sentry flagged that as N+1 (ECHO-ME-FRONTEND-3C).
+     */
+    getFeed: async (limit?: number) => {
+      const response = await apiClient.get('/creators/content/feed', {
+        params: { limit },
+      });
+      return response.data as {
+        success: boolean;
+        content: ContentHistoryEntry[];
+        count: number;
+      };
+    },
+
     /** Get new content across all followed creators */
     getNewContent: async (limit?: number) => {
       const response = await apiClient.get('/creators/content/new', {

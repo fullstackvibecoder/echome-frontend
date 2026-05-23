@@ -85,18 +85,19 @@ export default function FollowingContent() {
   const loadAllContent = async (creatorsList: MonitoredCreator[]) => {
     try {
       setLoadingContent(true);
-      const contentPromises = creatorsList.map(async (creator) => {
-        const response = await api.creators.getContent(creator.id, 10);
-        if (response.success) {
-          return response.content.map((c: ContentHistoryEntry) => ({ ...c, creator }));
-        }
-        return [];
-      });
-
-      const results = await Promise.all(contentPromises);
-      const flatContent = results.flat();
-      flatContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setAllContent(flatContent);
+      // One query for the whole feed instead of N parallel per-creator calls.
+      // Backend orders by created_at DESC, so no client-side sort needed.
+      const response = await api.creators.getFeed(50);
+      if (!response.success) {
+        setAllContent([]);
+        return;
+      }
+      const byId = new Map(creatorsList.map((c) => [c.id, c]));
+      const withCreator: ContentWithCreator[] = response.content.map((c) => ({
+        ...c,
+        creator: byId.get(c.creator_id),
+      }));
+      setAllContent(withCreator);
     } catch (err) {
       console.error('Failed to load content:', err);
       showErrorToast(err, 'loading creator content');
