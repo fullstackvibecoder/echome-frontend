@@ -17,6 +17,7 @@ import type { CaptionStylePreset } from '@/lib/caption-parser';
 import type { CaptionSegment } from '@/lib/caption-parser';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
+import { ClipEditorTour } from '@/components/tour/tours/clip-editor';
 
 interface ClipEditorModalProps {
   open: boolean;
@@ -302,6 +303,7 @@ export default function ClipEditorModal({
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
       onClick={handleBackdropClick}
     >
+      <ClipEditorTour />
       <div className="relative flex w-full max-w-[800px] max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex flex-col lg:flex-row w-full overflow-y-auto">
           {/* Left: Video Player (45%) */}
@@ -470,7 +472,7 @@ export default function ClipEditorModal({
                     </span>
                   )}
                 </h3>
-                <div className="max-h-[200px] overflow-y-auto rounded-lg bg-background/50 border border-border p-3 space-y-1.5">
+                <div data-tour="clip-editor-transcript" className="max-h-[200px] overflow-y-auto rounded-lg bg-background/50 border border-border p-3 space-y-1.5">
                   {captionSegments.map((seg, i) => {
                     const isEdited = segmentEdits.has(i);
                     const original = baseSegments[i]?.text ?? '';

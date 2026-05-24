@@ -351,6 +351,7 @@ export function CaptionOverlay({
 
   return (
     <div
+      data-tour="clip-editor-caption"
       className={wrapperClasses}
       style={positionStyle}
       onPointerDown={draggable ? handlePointerDown : undefined}
@@ -402,6 +403,7 @@ export function CaptionOverlay({
           // never triggers the body's drag handler. Visible only in editor
           // mode; pointer-events isolated from the rest of the block.
           <div
+            data-tour="clip-editor-resize"
             onPointerDown={handleResizePointerDown}
             onPointerMove={handleResizePointerMove}
             onPointerUp={handleResizePointerUp}

@@ -19,6 +19,7 @@ import { PhotoPicker } from './PhotoPicker';
 import { RedWordPicker } from './RedWordPicker';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
+import { CarouselEditorTour } from '@/components/tour/tours/carousel-editor';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 import {
@@ -656,6 +657,7 @@ export default function CarouselEditorModal({
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
       onClick={handleBackdropClick}
     >
+      <CarouselEditorTour />
       <div className="relative flex w-full max-w-[920px] max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex flex-col lg:flex-row w-full overflow-y-auto">
           {/* Left: Preview.
@@ -729,7 +731,7 @@ export default function CarouselEditorModal({
                 PATCH on a 600ms debounce; the legacy textarea is local-only
                 until the user triggers a regenerate. */}
             {activeEdit.structured ? (
-              <div className="space-y-3">
+              <div data-tour="carousel-editor-text" className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-foreground">
                     Slide {activeSlide.slideNumber} content
@@ -897,7 +899,7 @@ export default function CarouselEditorModal({
                 photo-overlay) don't render the photo themselves, so the picker
                 is hidden for those. */}
             {(activeSlide.template?.startsWith('branded-overlay')) && (
-              <div className="space-y-2">
+              <div data-tour="carousel-editor-photo" className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">Background photo</h4>
                   {refreshingPreview && (
