@@ -997,6 +997,21 @@ export const api = {
     },
   },
 
+  me: {
+    getSetupProgress: async () => {
+      const response = await apiClient.get('/me/setup-progress');
+      return response.data as {
+        success: boolean;
+        data?: {
+          generatedFirstKit: boolean;
+          connectedSocial: boolean;
+          scheduledFirstPost: boolean;
+          recordedTeleprompter: boolean;
+        };
+      };
+    },
+  },
+
   // -------- VOICE STATUS --------
   voice: {
     getStatus: async () => {
