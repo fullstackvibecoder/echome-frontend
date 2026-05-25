@@ -1,0 +1,55 @@
+/* EchoMe overrides for driver.js popover.
+ * Loaded by FeatureTour right after driver's own CSS so these take precedence.
+ */
+.echome-tour-popover {
+  background: var(--surface-low, #16181c) !important;
+  color: var(--text, #f5f5f5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 18px !important;
+}
+
+.echome-tour-popover .driver-popover-title {
+  color: var(--text, #f5f5f5) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+.echome-tour-popover .driver-popover-description {
+  color: var(--text, #f5f5f5) !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+.echome-tour-popover .driver-popover-progress-text {
+  color: var(--text-muted, #888) !important;
+  font-size: 12px !important;
+}
+
+.echome-tour-popover .driver-popover-next-btn,
+.echome-tour-popover .driver-popover-prev-btn {
+  background: var(--accent, #FFB800) !important;
+  color: var(--accent-foreground, #000) !important;
+  border: none !important;
+  text-shadow: none !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.echome-tour-popover .driver-popover-close-btn {
+  color: var(--text-muted, #888) !important;
+}
+
+.echome-tour-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: var(--surface-low, #16181c) !important;
+}
+.echome-tour-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: var(--surface-low, #16181c) !important;
+}
+.echome-tour-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: var(--surface-low, #16181c) !important;
+}
+.echome-tour-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: var(--surface-low, #16181c) !important;
+}

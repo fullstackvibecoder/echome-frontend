@@ -15,6 +15,7 @@ import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } fr
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
 import { DraftedForYou } from '@/components/dashboard/DraftedForYou';
+import { GetStartedChecklist } from '@/components/dashboard/GetStartedChecklist';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -428,6 +429,9 @@ export default function AppContent() {
               </div>
             );
           })()}
+
+          {/* Get Started checklist — auto-hides when complete or dismissed */}
+          <GetStartedChecklist />
 
           {/* Drafted For You — Echo-proposed kits the user can review/schedule/kill */}
           <DraftedForYou />

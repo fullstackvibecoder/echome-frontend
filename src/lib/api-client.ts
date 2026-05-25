@@ -987,6 +987,29 @@ export const api = {
       const response = await apiClient.patch('/profile', data);
       return response.data;
     },
+
+    updatePreferences: async (partial: Partial<import('@/types').UserPreferences>) => {
+      const response = await apiClient.patch('/me/preferences', partial);
+      return response.data as {
+        success: boolean;
+        data?: { preferences: import('@/types').UserPreferences };
+      };
+    },
+  },
+
+  me: {
+    getSetupProgress: async () => {
+      const response = await apiClient.get('/me/setup-progress');
+      return response.data as {
+        success: boolean;
+        data?: {
+          generatedFirstKit: boolean;
+          connectedSocial: boolean;
+          scheduledFirstPost: boolean;
+          recordedTeleprompter: boolean;
+        };
+      };
+    },
   },
 
   // -------- VOICE STATUS --------

@@ -29,6 +29,7 @@ import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
 import WrittenContentModal from '@/components/content-kit/WrittenContentModal';
 import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
 import CarouselEditorModal from '@/components/content-kit/CarouselEditorModal';
+import { EmptyStateCards } from '@/components/content-kit/EmptyStateCards';
 
 // Progress step component
 function ProgressStep({
@@ -689,18 +690,7 @@ export default function ContentKitDetailContent() {
 
           {/* Empty State */}
           {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && item?.status !== 'failed' && !progressError && (
-            <div className="text-center py-16 bg-bg-secondary rounded-xl border border-border">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
-                <CalendarPlus className="w-7 h-7 text-accent" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No content available</h3>
-              <p className="text-text-secondary mb-6">
-                This content kit doesn&apos;t have any content yet.
-              </p>
-              <Link href="/app" className="btn-primary">
-                Create New Content
-              </Link>
-            </div>
+            <EmptyStateCards fallbackKitId={null} />
           )}
 
           {/* Quick Navigation */}
