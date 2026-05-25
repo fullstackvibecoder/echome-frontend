@@ -894,11 +894,14 @@ export default function CarouselEditorModal({
               </button>
             )}
 
-            {/* Photo picker — branded-overlay slides support photo swap via the
-                compose-only fast path. Legacy templates (tweet-style, text-box,
-                photo-overlay) don't render the photo themselves, so the picker
-                is hidden for those. */}
-            {(activeSlide.template?.startsWith('branded-overlay')) && (
+            {/* Photo picker — branded-overlay cover/last slides support photo
+                swap via the compose-only fast path. Body slides are gated out
+                so the deck stays cohesive (matches the red-word picker rule
+                below and the tour copy in tours/carousel-editor.tsx). Legacy
+                templates (tweet-style, text-box, photo-overlay) don't render
+                the photo themselves, so the picker is hidden for those too. */}
+            {(activeSlide.template === 'branded-overlay-cover' ||
+              activeSlide.template === 'branded-overlay-last') && (
               <div data-tour="carousel-editor-photo" className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">Background photo</h4>

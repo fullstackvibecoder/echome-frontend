@@ -225,7 +225,10 @@ export function PhotoPicker({ kitId, uploadId, currentPhotoUrl, onSelect }: Phot
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        // Narrow to match backend filter (multer fileFilter in
+        // echome-platform-v2/src/routes/images.ts:38–47). Picking a GIF/SVG
+        // with image/* would round-trip to the server only to get a 400.
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={handleFileChange}
       />
