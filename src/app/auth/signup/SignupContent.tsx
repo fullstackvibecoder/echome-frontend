@@ -63,9 +63,15 @@ function SignupForm() {
       </ul>
 
       {/* Form */}
+      {/* translate="no" is the W3C-standard signal that prevents browser
+          translate engines from mutating the form's subtree — protects React
+          reconciliation from the DOM swaps that produced ECHO-ME-FRONTEND-30
+          on Edge Mobile / Chrome Mobile. Belt-and-suspenders with the
+          notranslate meta in page.tsx. */}
       <form
         action={handleSubmit}
         className="space-y-4"
+        translate="no"
       >
         {/* General Error */}
         {generalError && (
