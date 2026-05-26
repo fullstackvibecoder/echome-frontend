@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import { toast } from 'sonner';
 import { api, TeamVoice } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -158,12 +159,25 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // All attempts exhausted - set empty state
+        // All attempts exhausted - set empty state and tell the user.
+        // Without this toast, AppContent.tsx:296 falls back to
+        // `voiceId: undefined` and the user silently generates with their
+        // default voice instead of their team voice. They'd never know.
+        console.error('Team voice fetch + fallback chain exhausted');
+        toast.error("Couldn't load your team voice", {
+          description: 'Generation will fall back to your default voice. Refresh to try again.',
+          duration: 8000,
+        });
         setVoices([]);
         setActiveVoice(null);
       }
     } catch (error) {
+      // Outer throw — also surface so the user has the same chance to retry.
       console.error('Failed to fetch team voices:', error);
+      toast.error("Couldn't load your team voice", {
+        description: 'Generation will fall back to your default voice. Refresh to try again.',
+        duration: 8000,
+      });
     } finally {
       setLoading(false);
     }
