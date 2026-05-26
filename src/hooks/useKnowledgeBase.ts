@@ -35,8 +35,13 @@ interface UseKnowledgeBaseReturn {
 
 // Polling interval for processing items (3 seconds)
 const POLLING_INTERVAL = 3000;
-// Max polling duration (2 minutes)
-const MAX_POLLING_DURATION = 120000;
+// Max polling duration (10 minutes). Previously 2 min, which was below the
+// time a typical large-video upload takes to transcribe + chunk + embed. At
+// 2 min the polling silently stopped while the backend was still working,
+// so the UI froze items at "processing" until the user manually refreshed.
+// Paired with the visibilitychange listener below, this self-heals when the
+// user tabs back in.
+const MAX_POLLING_DURATION = 600000;
 
 const DEFAULT_STATS: KBContentStats = {
   totalItems: 0,
@@ -218,6 +223,27 @@ export function useKnowledgeBase(initialKbId?: string | null): UseKnowledgeBaseR
       }
     };
   }, []);
+
+  // Re-fetch content when the tab regains focus. Two problems this solves:
+  //  1. User uploads a video, switches tabs while it transcribes for several
+  //     minutes, comes back — without this listener, they'd see stale state
+  //     until they manually clicked somewhere.
+  //  2. If the 10-minute polling cap actually fires (rare, but possible for
+  //     huge files), tabbing away and back forces a fresh fetch and — if any
+  //     items are still processing — the polling useEffect above restarts
+  //     the timer.
+  // Self-healing without any new UI surface.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && selectedKb) {
+        fetchContent(selectedKb);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [selectedKb, fetchContent]);
 
   const selectKb = useCallback((kbId: string) => {
     setSelectedKb(kbId);
