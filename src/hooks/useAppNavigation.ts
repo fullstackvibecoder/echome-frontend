@@ -88,6 +88,7 @@ export const ADMIN_NAV_GROUP: NavGroup = {
   items: [
     { id: 'admin', label: 'Dashboard', icon: BarChart3, path: '/app/admin/dashboard' },
     { id: 'admin-campaigns', label: 'Campaigns', icon: Mail, path: '/app/admin/campaigns', adminOnly: true },
+    { id: 'admin-drafts', label: 'Drafts Analytics', icon: BarChart3, path: '/app/admin/drafts', adminOnly: true },
     { id: 'descript', label: 'Descript Studio', icon: Clapperboard, path: '/app/descript', adminOnly: true },
   ],
 };
