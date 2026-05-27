@@ -18,6 +18,10 @@ interface CarouselStyleEditorProps {
   kitId: string;
   currentDesignPreset?: string;
   uploadId?: string; // Used for loading snapshots
+  /** Number of slides in the current carousel. Used to gate "My Image" and
+   *  "Video Frame" backgrounds to the cover (first) and last slide only —
+   *  body slides keep the template look. */
+  slideCount: number;
   onRestyleComplete: (carousel: {
     slides: Array<{ slideNumber: number; text: string; publicUrl: string; template?: string }>;
     designPreset?: string;
@@ -57,13 +61,13 @@ const STYLE_OPTIONS: Array<{
   {
     value: 'upload',
     label: 'My Image',
-    description: 'Your own background image',
+    description: 'Applies to cover + last slides. Body slides keep the template look.',
     icon: <Upload className="w-5 h-5" />,
   },
   {
     value: 'video-snapshot',
     label: 'Video Frame',
-    description: 'Use a frame from your video',
+    description: 'Applies to cover + last slides. Body slides keep the template look.',
     icon: <Film className="w-5 h-5" />,
   },
 ];
@@ -72,6 +76,7 @@ export function CarouselStyleEditor({
   kitId,
   currentDesignPreset,
   uploadId,
+  slideCount,
   onRestyleComplete,
 }: CarouselStyleEditorProps) {
   // Default reflects the kit's current rendered style. New kits render as
@@ -87,6 +92,12 @@ export function CarouselStyleEditor({
   const [snapshots, setSnapshots] = useState<Array<{ thumbnailUrl: string }>>([]);
   const [loadingSnapshots, setLoadingSnapshots] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // In-flight guard. Without this, rapid clicks on Apply Style (especially
+  // for "My Image" mode where isCurrentStyle is always false so the button
+  // stays clickable) fan out N parallel regenerate-carousel requests before
+  // React's next render disables the button. Surfaced 2026-05-27 via
+  // jess@jesslenouvel.com — 20 calls in 4 seconds.
+  const applyInFlightRef = useRef(false);
 
   // Load video snapshots when video-snapshot mode is selected
   const loadSnapshots = async () => {
@@ -132,6 +143,12 @@ export function CarouselStyleEditor({
   };
 
   const handleApplyStyle = async () => {
+    // Synchronous in-flight guard. setRestyling(true) below ALSO disables
+    // the button, but React state updates are batched — rapid clicks before
+    // the first render flush would all pass the disabled check. The ref is
+    // synchronous and short-circuits the race.
+    if (applyInFlightRef.current) return;
+    applyInFlightRef.current = true;
     setRestyling(true);
     try {
       let options: Parameters<typeof api.contentKits.regenerateCarousel>[1] = {};
@@ -143,18 +160,35 @@ export function CarouselStyleEditor({
         selectedMode === 'stats-card'
       ) {
         options = { designPreset: selectedMode };
-      } else if (selectedMode === 'upload' && uploadedImageUrl) {
-        options = { background: { type: 'image', imageUrl: uploadedImageUrl } };
-      } else if (selectedMode === 'video-snapshot' && snapshotUrl) {
-        options = { background: { type: 'image', imageUrl: snapshotUrl } };
       } else if (selectedMode === 'upload' && !uploadedImageUrl) {
         toast.error('Please upload a background image first');
-        setRestyling(false);
         return;
       } else if (selectedMode === 'video-snapshot' && !snapshotUrl) {
         toast.error('Please select a video frame first');
-        setRestyling(false);
         return;
+      } else if (
+        (selectedMode === 'upload' && uploadedImageUrl) ||
+        (selectedMode === 'video-snapshot' && snapshotUrl)
+      ) {
+        // Apply the chosen photo ONLY to the cover (slide 0) and last slide.
+        // Body slides keep the branded-overlay template look — the photo is a
+        // brand anchor, not wallpaper. Matches the PhotoPicker per-slide
+        // gating shipped 2026-05-25 (PR #35). Surfaced 2026-05-27 via Jess
+        // Lenouvel: applying one image to all 10 slides looked wrong.
+        const imageUrl = (selectedMode === 'upload' ? uploadedImageUrl : snapshotUrl)!;
+        if (slideCount < 2) {
+          toast.error('Carousel needs at least 2 slides to apply a cover photo.');
+          return;
+        }
+        const lastIndex = slideCount - 1;
+        const slideOverrides = Array.from({ length: slideCount }, (_, i) =>
+          i === 0 || i === lastIndex ? { backgroundImageUrl: imageUrl } : {},
+        );
+        options = {
+          designPreset: 'branded-overlay',
+          composeOnly: true,
+          slideOverrides,
+        };
       }
 
       const response = await api.contentKits.regenerateCarousel(kitId, options);
@@ -168,6 +202,7 @@ export function CarouselStyleEditor({
     } catch (err) {
       showErrorToast(err, 'restyling carousel');
     } finally {
+      applyInFlightRef.current = false;
       setRestyling(false);
     }
   };

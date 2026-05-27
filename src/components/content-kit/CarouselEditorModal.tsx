@@ -937,7 +937,7 @@ export default function CarouselEditorModal({
             )}
 
             {/* Style editor */}
-            <CarouselStyleEditor kitId={contentKitId} currentDesignPreset={currentPreset} uploadId={uploadId} onRestyleComplete={handleRestyleComplete} />
+            <CarouselStyleEditor kitId={contentKitId} currentDesignPreset={currentPreset} uploadId={uploadId} slideCount={slides.length} onRestyleComplete={handleRestyleComplete} />
 
             {/* Post caption — the text to paste into Instagram when uploading.
                 Editable: typing persists to generated_carousels.suggested_caption
