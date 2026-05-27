@@ -3034,6 +3034,33 @@ export const api = {
     },
   },
 
+  // -------- ADMIN DRAFTS ANALYTICS (D4 Shape C) --------
+  adminDraftsAnalytics: {
+    get: async (days: number = 30) => {
+      const res = await apiClient.get('/admin/drafts/analytics', { params: { days } });
+      return res.data as {
+        success: boolean;
+        window: { days: number; since: string };
+        totals: { outcomes: number; distinct_users: number; distinct_kits: number };
+        byAction: Record<string, number>;
+        byOrigin: Record<string, Record<string, number>>;
+        daily: Array<{ date: string; total: number; [action: string]: number | string }>;
+        topUsers: Array<{
+          user_id: string;
+          email: string;
+          full_name: string | null;
+          total: number;
+          reviewed: number;
+          scheduled: number;
+          edited: number;
+          posted: number;
+          killed: number;
+        }>;
+        funnel: { drafts_created: number; reviewed: number; scheduled: number; edited: number; posted: number; killed: number };
+      };
+    },
+  },
+
   // -------- ADMIN VOICE LAB --------
   adminVoiceLab: {
     /** Get aggregated voice similarity report (distribution + correlation) */
