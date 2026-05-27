@@ -1566,15 +1566,6 @@ export const api = {
       };
     },
 
-    /** Poll all followed creators at once */
-    pollAll: async () => {
-      const response = await apiClient.post('/creators/poll-all', undefined, { timeout: 120000 });
-      return response.data as {
-        success: boolean;
-        results: { creatorId: string; creatorName: string; newContentCount: number; error?: string }[];
-        totalNew: number;
-      };
-    },
 
     /**
      * Recent content across ALL followed creators in one request.
