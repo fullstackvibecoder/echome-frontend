@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Calendar, Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { DraftProposal } from "@/types";
@@ -14,6 +15,21 @@ interface DraftCardProps {
 
 const PREVIEW_LENGTH = 220;
 
+// Telemetry races against this timeout. If the API hangs (slow network, cold
+// container, etc.), we give up after 2s and navigate anyway — never block
+// the user on a side-effect call. Pre-fix this was pure fire-and-forget
+// which lost most outcomes in prod (43 draft_outcomes / 7d vs 275 opted-in
+// users — too low to be real engagement; mostly racing against Next.js
+// client-side navigation cancelling the in-flight fetch).
+const TELEMETRY_TIMEOUT_MS = 2000;
+
+async function recordWithTimeout(p: Promise<unknown>): Promise<void> {
+  await Promise.race([
+    p.catch(() => undefined),
+    new Promise((resolve) => setTimeout(resolve, TELEMETRY_TIMEOUT_MS)),
+  ]);
+}
+
 function pickPreview(draft: DraftProposal): string {
   // LinkedIn first because it's typically the longest, most-shareable copy
   // for the audience this product targets (real-estate creators).
@@ -23,18 +39,22 @@ function pickPreview(draft: DraftProposal): string {
 }
 
 export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardProps) {
+  const router = useRouter();
   const [busy, setBusy] = useState<"none" | "dismissing">("none");
   const [dismissError, setDismissError] = useState<string | null>(null);
 
-  const handleReview = () => {
-    // Fire-and-forget telemetry; never block navigation if it fails.
-    api.drafts.recordAction(draft.id, "reviewed").catch(() => {});
+  const handleReview = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
     onActionRecorded?.(draft.id, "reviewed");
+    await recordWithTimeout(api.drafts.recordAction(draft.id, "reviewed"));
+    router.push(`/app/library/${draft.id}`);
   };
 
-  const handleSchedule = () => {
-    api.drafts.recordAction(draft.id, "scheduled").catch(() => {});
+  const handleSchedule = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
     onActionRecorded?.(draft.id, "scheduled");
+    await recordWithTimeout(api.drafts.recordAction(draft.id, "scheduled"));
+    router.push(`/app/scheduling?kit=${draft.id}`);
   };
 
   const handleDismiss = async () => {
