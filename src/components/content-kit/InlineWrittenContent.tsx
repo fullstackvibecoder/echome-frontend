@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Linkedin,
-  Instagram,
   Twitter,
   Mail,
   Music2,
@@ -33,9 +32,12 @@ interface PlatformConfig {
   charLimit: number | null;
 }
 
+// Instagram is intentionally absent. IG posts require media (carousel or
+// reel), so the caption is edited next to the asset that carries it — see
+// PostCaptionBlock inside CarouselEditorModal. A "written" tab for IG with
+// no Post button was confusing users into thinking the platform was broken.
 const PLATFORMS: PlatformConfig[] = [
   { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin', icon: Linkedin, accent: '#0A66C2', charLimit: 3000 },
-  { key: 'instagram', label: 'Instagram', field: 'contentInstagram', icon: Instagram, accent: '#E4405F', charLimit: 2200 },
   { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter', icon: Twitter, accent: '#1DA1F2', charLimit: 280 },
   { key: 'email', label: 'Email', field: 'contentEmail', icon: Mail, accent: '#0077AA', charLimit: null },
   { key: 'tiktok', label: 'TikTok', field: 'contentTiktok', icon: Music2, accent: '#000000', charLimit: 2200 },
@@ -46,7 +48,6 @@ const PLATFORMS: PlatformConfig[] = [
 const FIELD_MAP: Record<string, string> = {
   linkedin: 'contentLinkedin',
   twitter: 'contentTwitter',
-  instagram: 'contentInstagram',
   email: 'contentEmail',
   tiktok: 'contentTiktok',
   youtube: 'contentYoutube',
@@ -58,14 +59,8 @@ const FIELD_MAP: Record<string, string> = {
 const TELEPROMPTER_PLATFORMS = new Set(['video-script', 'youtube', 'tiktok']);
 
 // Platform-key map: InlineWrittenContent uses 'twitter', WrittenPostActions
-// uses 'x' (Outstand's API key for the same platform). Map the keys we hand
-// to WrittenPostActions. Missing entries (email, video-script, instagram)
-// fall through to a calendar Schedule button.
-//
-// Instagram is intentionally omitted: IG never accepts text-only posts via
-// the API, so the "Post to IG" button under a written caption would always
-// fail with Outstand's "At least one media file required" error. Users post
-// IG content via the carousel/clip path instead, which carries media.
+// uses 'x' (Outstand's API key for the same platform). Missing entries
+// (email, video-script) fall through to a calendar Schedule button.
 const POST_ACTION_PLATFORM_MAP: Record<string, string> = {
   linkedin: 'linkedin',
   twitter: 'x',
