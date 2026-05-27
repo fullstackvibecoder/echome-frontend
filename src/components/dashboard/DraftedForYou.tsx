@@ -79,7 +79,11 @@ export function DraftedForYou() {
   }
 
   return (
-    <section aria-label="Drafted for you" className="mb-6">
+    // id="drafts" + scroll-mt-20 → the "Your drafts are ready" email's CTA
+    // links to /app#drafts and the browser scrolls this section into view
+    // natively. Loading-skeleton state above intentionally lacks the id so
+    // the brief flash doesn't pull the page partially-rendered.
+    <section id="drafts" aria-label="Drafted for you" className="mb-6 scroll-mt-20">
       <header className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-primary/10">
