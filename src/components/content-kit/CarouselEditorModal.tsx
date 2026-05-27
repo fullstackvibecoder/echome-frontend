@@ -260,7 +260,13 @@ export default function CarouselEditorModal({
     if (initialSlides.length > 0) {
       setActiveIndex((prev) => Math.min(prev, initialSlides.length - 1));
     }
-  }, [initialSlides]);
+    // Re-init only when the modal opens, the kit changes, or the slide count
+    // changes (e.g. post-regen). NOT on every initialSlides reference change —
+    // the parent rebuilds that array on every render, so depending on it would
+    // wipe local edits any time React re-rendered the parent (e.g. subscription
+    // poll between typing and clicking Post Now). The local add/delete/reorder
+    // ops update setEdits directly, so they're unaffected.
+  }, [open, contentKitId, initialSlides.length]);
 
   useEffect(() => {
     return () => { abortRef.current?.abort(); };
