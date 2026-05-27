@@ -6,6 +6,7 @@ import { Calendar, Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { DraftProposal } from "@/types";
 import { api } from "@/lib/api-client";
+import { showInfoToast } from "@/lib/toast";
 
 interface DraftCardProps {
   draft: DraftProposal;
@@ -23,10 +24,24 @@ const PREVIEW_LENGTH = 220;
 // client-side navigation cancelling the in-flight fetch).
 const TELEMETRY_TIMEOUT_MS = 2000;
 
-async function recordWithTimeout(p: Promise<unknown>): Promise<void> {
-  await Promise.race([
-    p.catch(() => undefined),
-    new Promise((resolve) => setTimeout(resolve, TELEMETRY_TIMEOUT_MS)),
+type TelemetryResult = "ok" | "gone" | "error" | "timeout";
+
+// D6: also inspect the result so we can branch on 404. A 404 from the action
+// endpoint means the kit is no longer is_draft_proposal=true (dismissed in
+// another tab, auto-cleaned by cron, etc.) — navigating to it would land the
+// user on a stale or empty kit-detail page. Better to acknowledge and remove
+// the card.
+async function recordWithTimeout(p: Promise<unknown>): Promise<TelemetryResult> {
+  return Promise.race<TelemetryResult>([
+    p
+      .then<TelemetryResult>(() => "ok")
+      .catch((err): TelemetryResult => {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        return status === 404 ? "gone" : "error";
+      }),
+    new Promise<TelemetryResult>((resolve) =>
+      setTimeout(() => resolve("timeout"), TELEMETRY_TIMEOUT_MS),
+    ),
   ]);
 }
 
@@ -46,14 +61,26 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
   const handleReview = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     onActionRecorded?.(draft.id, "reviewed");
-    await recordWithTimeout(api.drafts.recordAction(draft.id, "reviewed"));
+    const result = await recordWithTimeout(api.drafts.recordAction(draft.id, "reviewed"));
+    if (result === "gone") {
+      // D6: the draft is no longer in the inbox (dismissed in another tab,
+      // or auto-cleaned). Don't navigate the user into a stale kit-detail.
+      showInfoToast("That draft was already removed", "Refreshing your inbox.");
+      onDismissed(draft.id);
+      return;
+    }
     router.push(`/app/library/${draft.id}`);
   };
 
   const handleSchedule = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     onActionRecorded?.(draft.id, "scheduled");
-    await recordWithTimeout(api.drafts.recordAction(draft.id, "scheduled"));
+    const result = await recordWithTimeout(api.drafts.recordAction(draft.id, "scheduled"));
+    if (result === "gone") {
+      showInfoToast("That draft was already removed", "Refreshing your inbox.");
+      onDismissed(draft.id);
+      return;
+    }
     router.push(`/app/scheduling?kit=${draft.id}`);
   };
 
