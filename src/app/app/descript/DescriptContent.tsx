@@ -118,12 +118,34 @@ export default function DescriptContent() {
   const [runningEdit, setRunningEdit] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Redirect non-admins
+  // Redirect non-admins. The useEffect handles the async navigation; the
+  // synchronous render guard below prevents the brief flash of page content
+  // during that window. Belt-and-suspenders with the adminOnly: true filter
+  // in useAppNavigation.ts — non-admins never see "Descript Studio" in the
+  // sidebar AND can't reach the page if they paste the URL manually.
+  // Decision 2026-05-27: Descript integration is incomplete (no export
+  // endpoint on Descript's side) so we hide the entire surface from regular
+  // users; admins keep access for evaluation.
   useEffect(() => {
     if (!authLoading && user && !user.isAdmin) {
       router.replace('/app');
     }
   }, [authLoading, user, router]);
+
+  if (authLoading) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-zinc-400">Loading…</p>
+      </div>
+    );
+  }
+  if (!user?.isAdmin) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-zinc-400">Admin access required.</p>
+      </div>
+    );
+  }
 
   // Fetch projects on list view
   const fetchProjects = useCallback(async () => {
