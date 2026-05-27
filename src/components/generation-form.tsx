@@ -1181,7 +1181,17 @@ export function GenerationForm({
 
     if (looksLikeUrl) {
       if (!isValidUrl(trimmed)) {
-        setUrlError('Please enter a valid video URL');
+        // URL that's not a video source — most often an article/blog link.
+        // setUrlError() is INVISIBLE from the hero text-input mode (the
+        // <p>{urlError}</p> only renders inside the dedicated URL-input UI
+        // at line ~1646), so the user sees nothing happen. Toast guarantees
+        // a visible signal regardless of which input mode they're in.
+        // Surfaced 2026-05-27 via john@johnwrightrealestate.com — multiple
+        // WSJ article URL attempts silently dropped from the hero.
+        showErrorToast(
+          'That looks like an article link, not a video. Paste the article text here directly to turn it into content, or add the link to Your Voice (left sidebar) to train your voice profile from it.',
+        );
+        setUrlError('Not a supported video URL. Articles should be pasted as text, or imported via Your Voice.');
         return;
       }
       const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
