@@ -20,7 +20,7 @@ import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { useSubscription } from '@/hooks/useSubscription';
-import { showErrorToast } from '@/lib/toast';
+import { showErrorToast, showInfoToast } from '@/lib/toast';
 import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
@@ -297,9 +297,13 @@ export default function AppContent() {
     });
 
     // Redirect to content kit detail page for proper progress UI
-    // This matches the behavior of handleRepurpose and handleVideoProcessing
+    // This matches the behavior of handleRepurpose and handleVideoProcessing.
+    // The toast confirms the click registered — without it the Create page
+    // unmounts instantly and the detail page shows a generic spinner, so
+    // users perceive their prompt as "disappearing" (seen on Alicia demo).
     if (reqId) {
       clearActiveGeneration();
+      showInfoToast('Generating your content kit', 'Opening it now — should be ready in a moment.');
       router.push(`/app/library/${reqId}`);
     }
   };
