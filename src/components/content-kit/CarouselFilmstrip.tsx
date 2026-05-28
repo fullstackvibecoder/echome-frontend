@@ -133,7 +133,7 @@ export default function CarouselFilmstrip({
   }
 
   return (
-    <div data-tour="carousel-editor-filmstrip" className="flex items-center gap-1 overflow-x-auto py-2">
+    <div data-tour="carousel-editor-filmstrip" className="flex items-center gap-1 overflow-x-auto py-2 w-full max-w-[300px] min-w-0">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
           items={slides.map((s) => s.slideNumber)}
