@@ -27,6 +27,9 @@ interface SuggestedRow {
   output_kind: 'written_post' | 'carousel' | 'clip' | 'reel' | 'other';
   content_preview: string;
   reason_text: string;
+  /** Media URLs for carousel/clip rows. Forwarded on schedule so IG
+   *  doesn't reject with 400 (assertMediaForPlatform). */
+  media_urls?: string[];
 }
 
 interface Props {
@@ -91,12 +94,26 @@ export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onSched
     setSubmitting(true);
     try {
       if (canAutoPost) {
-        // Fanout-schedule each row via the API
+        // Fanout-schedule each row via the API. For carousel rows we send
+        // both media_urls AND an explicit finalization_recipe so the
+        // schedule call (a) clears assertMediaForPlatform on IG and
+        // (b) routes through the finalizer (matches the working
+        // CarouselEditorModal path) rather than the eager fallback.
         for (const row of rows) {
+          const isCarousel = row.output_kind === 'carousel' && (row.media_urls?.length ?? 0) > 0;
           await api.socialPosting.scheduleFanout({
             content_kit_id: kitId,
             source_output_id: row.output_id,
-            rows: [{ platform: row.platform, scheduled_at: row.suggested_at, text: row.content_preview }],
+            media_urls: row.media_urls,
+            finalization_recipe: isCarousel
+              ? { kind: 'carousel', kit_id: kitId }
+              : undefined,
+            rows: [{
+              platform: row.platform,
+              scheduled_at: row.suggested_at,
+              text: row.content_preview,
+              media_urls: row.media_urls,
+            }],
             created_via: 'ai_suggest',
             is_ai_suggested: true,
           });
