@@ -175,6 +175,39 @@ export default function ReelEditorModal({
       if (!selectedClipId && allClips.length > 0) {
         setSelectedClipId(initialClipId);
       }
+
+      // Restore localStorage draft for this kit's current project, if any.
+      // Drafts represent unsaved edits from a previous modal session — when
+      // present, they overwrite the project defaults set above so the user's
+      // work survives modal close + reopen. The render-staleness guard then
+      // shows the "render new version" notice because drafts diverge from
+      // the rendered baseline (captured in renderedSettingsKey above).
+      // Reported by Giovanna 2026-05-28: "If I change the words. It's
+      // supposed to auto save?"
+      if (reelProject) {
+        const draftKey = `reel-editor-draft:${contentKitId}`;
+        try {
+          const raw = localStorage.getItem(draftKey);
+          if (raw) {
+            const draft = JSON.parse(raw);
+            if (draft.projectId === reelProject.id) {
+              if (typeof draft.selectedClipId === 'string') setSelectedClipId(draft.selectedClipId);
+              if (Array.isArray(draft.segments) && draft.segments.length >= 2) setSegments(draft.segments);
+              if (typeof draft.singleBlockText === 'string') setSingleBlockText(draft.singleBlockText);
+              if (draft.mode === 'segments' || draft.mode === 'single') setMode(draft.mode);
+              if (typeof draft.selectedStyle === 'string') setSelectedStyle(draft.selectedStyle as TextOverlayStyleId);
+              if (typeof draft.textScale === 'number') setTextScale(draft.textScale);
+            } else {
+              // Project changed since draft was saved (e.g., a render created a
+              // new project). Clear the stale draft.
+              localStorage.removeItem(draftKey);
+            }
+          }
+        } catch {
+          // Corrupt JSON or storage unavailable — clear and move on.
+          try { localStorage.removeItem(draftKey); } catch { /* noop */ }
+        }
+      }
     } catch (err) {
       console.error('Failed to load reel editor data', err);
       setError('Failed to load data. Please try again.');
@@ -318,6 +351,41 @@ export default function ReelEditorModal({
     !!outputUrl &&
     renderedSettingsKey !== null &&
     renderedSettingsKey !== currentSettingsKey;
+
+  // Persist current draft state to localStorage on every tracked change
+  // so unsaved edits survive a modal close. Writes only when current
+  // settings differ from the last rendered baseline; clears when they
+  // match (clean state). Guarded against pre-loaded state to avoid
+  // saving transient bogus drafts before fetchData stabilizes.
+  // Closes the second half of Giovanna's 2026-05-28 complaint: "If I
+  // change the words. It's supposed to auto save?"
+  useEffect(() => {
+    if (loading || !open || !projectId) return;
+    const draftKey = `reel-editor-draft:${contentKitId}`;
+    if (renderedSettingsKey === null || renderedSettingsKey === currentSettingsKey) {
+      try { localStorage.removeItem(draftKey); } catch { /* noop */ }
+      return;
+    }
+    try {
+      localStorage.setItem(draftKey, JSON.stringify({
+        projectId,
+        selectedClipId,
+        segments,
+        singleBlockText,
+        mode,
+        selectedStyle,
+        textScale,
+        savedAt: Date.now(),
+      }));
+    } catch {
+      // Quota exceeded / private browsing — fail silently. Worst case
+      // matches pre-fix behavior (drafts don't survive close).
+    }
+  }, [
+    loading, open, projectId, contentKitId,
+    renderedSettingsKey, currentSettingsKey,
+    selectedClipId, segments, singleBlockText, mode, selectedStyle, textScale,
+  ]);
 
   if (!open) return null;
 
