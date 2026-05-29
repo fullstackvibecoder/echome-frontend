@@ -73,6 +73,14 @@ export default function ReelEditorModal({
   const [postCaptionDraft, setPostCaptionDraft] = useState<string>(postCaption ?? '');
   const [savingCaption, setSavingCaption] = useState(false);
 
+  // Hash of the settings used in the most recent successful render. The
+  // Download button is only safe to expose when the current state matches
+  // this — otherwise it serves an mp4 that doesn't reflect the user's
+  // pending edits. Reported by Giovanna 2026-05-28: "When I download the
+  // changes aren't there." Only the post-caption field auto-saves; clip,
+  // segments, style, and size all require Render to take effect.
+  const [renderedSettingsKey, setRenderedSettingsKey] = useState<string | null>(null);
+
   const backdropRef = useRef<HTMLDivElement>(null);
   const captionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -118,24 +126,54 @@ export default function ReelEditorModal({
       setClips(allClips);
       setCategories(allCategories);
 
+      // Resolve the clip we'll show on first paint. Computed before the
+      // project block so we can both setSelectedClipId AND snapshot the
+      // rendered-settings baseline below with the same value.
+      const initialClipId = selectedClipId
+        ?? allClips.find((c: BRollClip) => c.category === 'realestate')?.id
+        ?? allClips[0]?.id
+        ?? null;
+
       // Project defaults
+      let loadedMode: 'segments' | 'single' = 'segments';
+      let loadedSegmentTexts: string[] = ['', '', ''];
+      let loadedHookText = '';
       if (reelProject) {
         setProjectId(reelProject.id);
         const overlays = reelProject.generatedContent?.segmentOverlays;
         if (overlays && overlays.length >= 2) {
+          loadedMode = 'segments';
+          const next = overlays.map((o: any) => ({ text: o.text || '', duration: o.duration || 3 }));
           setMode('segments');
-          setSegments(overlays.map((o: any) => ({ text: o.text || '', duration: o.duration || 3 })));
+          setSegments(next);
+          loadedSegmentTexts = next.map(s => s.text);
         } else if (reelProject.generatedContent?.hookText) {
+          loadedMode = 'single';
+          loadedHookText = reelProject.generatedContent.hookText;
           setMode('single');
-          setSingleBlockText(reelProject.generatedContent.hookText);
+          setSingleBlockText(loadedHookText);
         }
-        if (reelProject.outputUrl) setOutputUrl(reelProject.outputUrl);
+        if (reelProject.outputUrl) {
+          setOutputUrl(reelProject.outputUrl);
+          // Capture the loaded state as the baseline so the Download button
+          // is only safe to show until the user changes any tracked field.
+          // Style/scale aren't returned by the BE project shape today, so we
+          // snapshot the defaults the modal renders with; any user change
+          // diverges and triggers the staleness guard.
+          setRenderedSettingsKey(JSON.stringify({
+            selectedClipId: initialClipId,
+            segments: loadedMode === 'segments' ? loadedSegmentTexts : null,
+            singleBlockText: loadedMode === 'single' ? loadedHookText : null,
+            mode: loadedMode,
+            selectedStyle: 'bold_impact',
+            textScale: 0.5,
+          }));
+        }
       }
 
       // Select first realestate clip if nothing selected, else first clip
       if (!selectedClipId && allClips.length > 0) {
-        const realEstateClip = allClips.find((c: BRollClip) => c.category === 'realestate');
-        setSelectedClipId(realEstateClip?.id || allClips[0].id);
+        setSelectedClipId(initialClipId);
       }
     } catch (err) {
       console.error('Failed to load reel editor data', err);
@@ -242,6 +280,17 @@ export default function ReelEditorModal({
 
       const url = await poll();
       setOutputUrl(url);
+      // Mark this exact configuration as "what the download represents."
+      // Any subsequent edit diverges from this key and hides the Download
+      // button, forcing a re-render before stale content can ship.
+      setRenderedSettingsKey(JSON.stringify({
+        selectedClipId,
+        segments: mode === 'segments' ? segments.map(s => s.text) : null,
+        singleBlockText: mode === 'single' ? singleBlockText : null,
+        mode,
+        selectedStyle,
+        textScale,
+      }));
     } catch (err: any) {
       console.error('Render failed', err);
       setError(err?.message ?? 'Render failed. Please try again.');
@@ -252,6 +301,23 @@ export default function ReelEditorModal({
 
   // ---- Derived ----
   const selectedClip = clips.find((c) => c.id === selectedClipId);
+
+  // Has the user changed any tracked setting since the last successful
+  // render? If yes, the Download button would serve an mp4 missing those
+  // edits — hide it and force a re-render. The post caption auto-saves
+  // independently and is excluded from this check.
+  const currentSettingsKey = JSON.stringify({
+    selectedClipId,
+    segments: mode === 'segments' ? segments.map(s => s.text) : null,
+    singleBlockText: mode === 'single' ? singleBlockText : null,
+    mode,
+    selectedStyle,
+    textScale,
+  });
+  const renderIsStale =
+    !!outputUrl &&
+    renderedSettingsKey !== null &&
+    renderedSettingsKey !== currentSettingsKey;
 
   if (!open) return null;
 
@@ -385,36 +451,42 @@ export default function ReelEditorModal({
                 />
 
                 {/* Action button */}
-                <div className="pt-2">
-                  {outputUrl ? (
-                    <>
-                      <div className="flex gap-3">
-                        <a
-                          href={outputUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-                        >
-                          <Download className="h-4 w-4" />
-                          Download Reel
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOutputUrl(null);
-                            handleGenerate();
-                          }}
-                          className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                          Re-generate
-                        </button>
-                      </div>
-                    </>
+                <div className="pt-2 space-y-2">
+                  {outputUrl && renderIsStale && (
+                    <p className="text-[12px] text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                      Your changes haven't been rendered yet — click <strong>Render new version</strong> below to update your download.
+                    </p>
+                  )}
+                  {outputUrl && !renderIsStale ? (
+                    <div className="flex gap-3">
+                      <a
+                        href={outputUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Reel
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOutputUrl(null);
+                          handleGenerate();
+                        }}
+                        className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Re-generate
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
-                      onClick={handleGenerate}
+                      onClick={() => {
+                        setOutputUrl(null);
+                        handleGenerate();
+                      }}
                       disabled={rendering || !selectedClipId}
                       className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -423,6 +495,8 @@ export default function ReelEditorModal({
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Rendering...
                         </>
+                      ) : outputUrl && renderIsStale ? (
+                        'Render new version'
                       ) : (
                         'Generate Reel'
                       )}
