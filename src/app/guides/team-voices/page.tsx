@@ -3,8 +3,8 @@ import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
   title: 'Team Voices — Multiple Voice Profiles | EchoMe Guide',
-  description: 'Create separate voice profiles for each team member or client. Each voice builds its own waveform and knowledge base. Available on EchoTeams plans.',
-  keywords: ['echome teams', 'multiple voices', 'agency content', 'team voice profiles', 'echoteams'],
+  description: 'Create separate voice profiles for each team member or client. Each voice builds its own waveform and knowledge base. Available on the Echo Teams plan.',
+  keywords: ['echome teams', 'multiple voices', 'agency content', 'team voice profiles', 'echo teams'],
   alternates: { canonical: 'https://tryechome.com/guides/team-voices' },
 };
 
@@ -13,7 +13,7 @@ export default function TeamVoicesGuidePage() {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: 'Team Voices — Multiple Voice Profiles',
-    description: 'Create separate voice profiles for each team member or client. Each voice builds its own waveform and knowledge base. Available on EchoTeams plans.',
+    description: 'Create separate voice profiles for each team member or client. Each voice builds its own waveform and knowledge base. Available on the Echo Teams plan.',
     url: 'https://tryechome.com/guides/team-voices',
     datePublished: '2026-04-15',
     dateModified: '2026-04-15',
@@ -42,7 +42,7 @@ export default function TeamVoicesGuidePage() {
           Team Voices &mdash; Multiple Voice Profiles
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          EchoTeams lets you create separate voice profiles for every team member, brand, or client. Each voice builds its own unique waveform and knowledge base &mdash; so content always sounds like the right person.
+          Echo Teams lets you create separate voice profiles for every team member, brand, or client. Each voice builds its own unique waveform and knowledge base &mdash; so content always sounds like the right person.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read
@@ -50,17 +50,17 @@ export default function TeamVoicesGuidePage() {
 
         {/* Callout box */}
         <div className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
-          <p className="text-sm text-text-secondary">Team Voices requires an EchoTeams plan. <strong>Duo:</strong> 2 voices. <strong>Pro:</strong> 5 voices. <strong>Agency:</strong> 10 voices.</p>
+          <p className="text-sm text-text-secondary">Team Voices requires the <strong>Echo Teams</strong> plan. $47/voice/month with a 2-voice minimum. Add as many voices as you need &mdash; no upper cap.</p>
         </div>
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Upgrade to an EchoTeams plan">
-            <p>Choose the plan that fits your team. Duo supports 2 voice profiles, Pro supports 5, and Agency supports 10. Upgrade from your account settings or the pricing page.</p>
+          <Step number={1} title="Upgrade to Echo Teams">
+            <p>The Echo Teams plan is $47 per voice per month with a 2-voice minimum and no upper cap. Add voices any time as your team grows. Upgrade from your account settings or the pricing page.</p>
           </Step>
 
           <Step number={2} title="Go to Team Voices in the sidebar">
-            <p>Once on an EchoTeams plan, the Team Voices section appears in your sidebar. This is where you manage all voice profiles for your team.</p>
+            <p>Once you&apos;re on Echo Teams, the Team Voices section appears in your sidebar. This is where you manage all voice profiles for your team.</p>
           </Step>
 
           <Step number={3} title="Create a new voice profile">
@@ -76,8 +76,8 @@ export default function TeamVoicesGuidePage() {
             <p>When creating content, choose which voice profile to use. The generated content will match that voice&rsquo;s style, tone, and knowledge base &mdash; not a generic average of all voices.</p>
           </Step>
 
-          <Step number={6} title="Filter Content Kits by voice">
-            <p>See what each voice has produced. Filter your Content Library by voice profile to review, compare, and manage content across your entire team.</p>
+          <Step number={6} title="Filter Your Library by voice">
+            <p>See what each voice has produced. Filter Your Library by voice profile to review, compare, and manage content across your entire team.</p>
             <Tip>Great for agencies managing multiple clients &mdash; each client gets their own voice without cross-contamination.</Tip>
           </Step>
         </section>

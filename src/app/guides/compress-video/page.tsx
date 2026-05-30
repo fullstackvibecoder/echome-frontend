@@ -49,7 +49,7 @@ export default function CompressVideoGuidePage() {
           How to Reduce Video File Sizes for EchoMe
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Uploading a 2GB+ video file will be slow, may time out, and won&apos;t produce better results. Here&apos;s how to compress your videos to under 500MB without losing quality &mdash; for free.
+          EchoMe accepts files up to 2GB, but uploads under 500MB are noticeably faster and more reliable. Here&apos;s how to get there without losing quality &mdash; for free.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read &middot; Video walkthrough included

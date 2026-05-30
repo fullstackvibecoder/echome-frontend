@@ -3,8 +3,8 @@ import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
   title: 'Understanding EchoMe Plans | EchoMe Guide',
-  description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, Echo Pro, and EchoTeams plans — pricing, features, and what each tier includes.',
-  keywords: ['echome pricing', 'echome plans', 'echo pro', 'echo studio', 'echoteams', 'ai content pricing'],
+  description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans — pricing, features, and what each tier includes.',
+  keywords: ['echome pricing', 'echome plans', 'echo studio', 'echo teams', 'ai content pricing'],
   alternates: { canonical: 'https://tryechome.com/guides/plans' },
 };
 
@@ -13,7 +13,7 @@ export default function PlansGuidePage() {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: 'Understanding EchoMe Plans',
-    description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, Echo Pro, and EchoTeams plans — pricing, features, and what each tier includes.',
+    description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans — pricing, features, and what each tier includes.',
     url: 'https://tryechome.com/guides/plans',
     datePublished: '2026-04-15',
     dateModified: '2026-04-15',

@@ -4,12 +4,14 @@ import { JsonLd } from '@/components/json-ld';
 export const metadata: Metadata = {
   title: 'Editing Carousels — Text, Style, Layout, Download | EchoMe Guide',
   description:
-    'Edit carousel slides in EchoMe: change slide text, drag to reposition, restyle with four design presets (Quote Card, Text on Color, your image, video frame), and download single slides or a full zip.',
+    'Edit carousel slides in EchoMe: change slide text, drag to reposition, restyle with six design presets (Branded, Quote Card, Tweet Card, Stats Card, your image, video frame), and download single slides or a full zip.',
   keywords: [
     'echome carousel editor',
     'edit carousel slides',
     'carousel design presets',
     'quote card',
+    'tweet card',
+    'stats card',
     'video snapshot background',
     'instagram carousel',
     'linkedin carousel',
@@ -23,7 +25,7 @@ export default function CarouselsGuidePage() {
     '@type': 'Article',
     headline: 'Editing Carousels — Text, Style, Layout, Download',
     description:
-      'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with four design presets, and download single slides or a full zip.',
+      'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with six design presets, and download single slides or a full zip.',
     url: 'https://tryechome.com/guides/carousels',
     datePublished: '2026-04-23',
     dateModified: '2026-04-23',
@@ -93,12 +95,14 @@ export default function CarouselsGuidePage() {
           </Step>
 
           <Step number={5} title="Restyle with a design preset">
-            <p>Under <strong className="text-text-primary">Carousel Style</strong>, pick one of four presets and EchoMe re-renders every slide in that style in a few seconds:</p>
+            <p>Under <strong className="text-text-primary">Carousel Style</strong>, pick one of six presets and EchoMe re-renders every slide in that style in a few seconds:</p>
             <ul className="list-disc pl-5 space-y-2 mt-2">
-              <li><strong className="text-text-primary">Quote Card</strong> &mdash; clean tweet-style text card. Best for thought-leadership quotes.</li>
-              <li><strong className="text-text-primary">Text on Color</strong> &mdash; bold text over a color-gradient background. Best for attention-grabbing hooks.</li>
-              <li><strong className="text-text-primary">My Image</strong> &mdash; upload your own background image. EchoMe places the slide text over it with a dark overlay for readability.</li>
-              <li><strong className="text-text-primary">Video Frame</strong> &mdash; use a still frame from your original video as the slide background. EchoMe auto-extracts several candidate frames; pick one.</li>
+              <li><strong className="text-text-primary">Branded</strong> &mdash; photo background with bold typography. The default look for personal-brand carousels.</li>
+              <li><strong className="text-text-primary">Quote Card</strong> &mdash; clean serif text on cream. Best for thought-leadership quotes.</li>
+              <li><strong className="text-text-primary">Tweet Card</strong> &mdash; Twitter-style dark card. Best for hot takes and short hooks.</li>
+              <li><strong className="text-text-primary">Stats Card</strong> &mdash; big stat on warm white. Best for data-led carousels.</li>
+              <li><strong className="text-text-primary">My Image</strong> &mdash; upload your own background image. Applied to the cover and last slides only; body slides keep the template look.</li>
+              <li><strong className="text-text-primary">Video Frame</strong> &mdash; use a still frame from your original video as the slide background. Applied to the cover and last slides only; body slides keep the template look. EchoMe auto-extracts several candidate frames; pick one.</li>
             </ul>
             <p className="mt-3">The <strong className="text-text-primary">Current Style</strong> button below the presets indicates which one is active. Click any other preset to restyle.</p>
             <Tip>Restyling replaces the backgrounds on all slides at once. Text edits you&apos;ve made are preserved &mdash; only the design changes.</Tip>
@@ -113,7 +117,7 @@ export default function CarouselsGuidePage() {
 
           <Step number={7} title="Download single slide or full set">
             <p>
-              <strong className="text-text-primary">Download Slide</strong> exports the currently visible slide as a PNG. <strong className="text-text-primary">All (10)</strong> &mdash; or however many slides your carousel has &mdash; exports every slide as a zip file, ready to upload to Instagram or LinkedIn in order.
+              <strong className="text-text-primary">Download Slide</strong> exports the currently visible slide as a PNG. <strong className="text-text-primary">All (N)</strong> &mdash; where N is your carousel&apos;s slide count, between 4 and 10 &mdash; exports every slide as a zip file, ready to upload to Instagram or LinkedIn in order.
             </p>
             <Tip>Both Instagram and LinkedIn preserve slide order when you upload multiple images at once. Drag them into the uploader in slide-number order.</Tip>
           </Step>
@@ -134,7 +138,7 @@ export default function CarouselsGuidePage() {
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to edit a carousel?</p>
           <a href="/app/library" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">
-            Open Content Kits
+            Open Your Library
           </a>
           <p className="text-xs text-text-secondary/70 mt-3">Log in to view your generated content.</p>
         </section>
