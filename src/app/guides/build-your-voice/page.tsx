@@ -63,23 +63,32 @@ export default function BuildYourVoiceGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="What is Your Voice?">
-            <p>Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across dimensions like phrases, style, naturalness, and voice match. Think of it as teaching an AI how you think and communicate.</p>
+            <p>Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across five dimensions: signature phrases, avoid phrases, writing style, AI-phrase cleanliness, and semantic similarity to your past content. Think of it as teaching an AI how you think and communicate.</p>
           </Step>
 
           <Step number={2} title="Use the unified input to add content">
-            <p>The Your Voice page has a single unified input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
+            <p>The Your Voice page has a single chat-style input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
           </Step>
 
           <Step number={3} title="Import your writing">
-            <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL &mdash; EchoMe auto-discovers RSS feeds. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
+            <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL &mdash; EchoMe auto-discovers RSS feeds, with a sitemap fallback for static blogs (Hugo, Astro) that don&apos;t expose an RSS feed. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
+            <Tip>Email import requires Echo Studio or higher. The Free and Echo plans don&apos;t include .mbox uploads &mdash; you&apos;ll hit an upgrade prompt when you attach one.</Tip>
           </Step>
 
           <Step number={4} title="Record a voice note">
-            <p>Use the mic button in the toolbar and speak naturally about any topic for 2+ minutes. EchoMe transcribes and analyzes your speaking patterns. This captures cadence, rhythm, and word choice that written content sometimes misses.</p>
+            <p>Click the <strong>mic button</strong> inside the chat-style input (next to the paperclip attach button) and speak naturally about any topic for 2+ minutes. EchoMe transcribes and analyzes your speaking patterns. This captures cadence, rhythm, and word choice that written content sometimes misses.</p>
           </Step>
 
           <Step number={5} title="How voice matching works">
-            <p>EchoMe analyzes your content across 5 dimensions: phrases you use, writing style, cleanliness, naturalness, and voice match. Your voice strength score (0&ndash;100) shows how well Echo can replicate your voice. Each source you add strengthens the profile.</p>
+            <p>EchoMe scores your content across five dimensions:</p>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li><strong>Signature phrases</strong> &mdash; the words and phrases you reach for naturally</li>
+              <li><strong>Avoid phrases</strong> &mdash; words and phrases you&apos;ve explicitly told Echo to skip</li>
+              <li><strong>Writing style</strong> &mdash; sentence length, rhythm, formality, contractions</li>
+              <li><strong>AI-phrase cleanliness</strong> &mdash; how clear the output is of generic AI giveaways</li>
+              <li><strong>Semantic similarity</strong> &mdash; how close the output is to your past content in meaning</li>
+            </ul>
+            <p className="mt-2">Your voice strength score (0&ndash;100) shows how well Echo can replicate your voice. Each source you add strengthens the profile.</p>
           </Step>
 
           <Step number={6} title="Train it as you use it (thumbs up/down)">
@@ -97,13 +106,7 @@ export default function BuildYourVoiceGuidePage() {
           </Step>
 
           <Step number={8} title="Checking your voice strength">
-            <p>Go to Your Voice in the sidebar. Your voice strength shows as a score with a visual waveform. Ask Echo about your voice:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>&quot;How close is the match?&quot;</li>
-              <li>&quot;Describe my style&quot;</li>
-              <li>&quot;What am I missing?&quot;</li>
-            </ul>
-            <p className="mt-2">Use these prompts to identify gaps in your training data.</p>
+            <p>Open <strong>Your Voice</strong> in the sidebar. The page shows your voice strength as a 0&ndash;100 score with a visual waveform across the five dimensions above. Use the chat input at the top to ask Echo about your voice &mdash; questions like &quot;how close is the match?&quot;, &quot;describe my style&quot;, or &quot;what am I missing?&quot; work well to identify gaps in your training data.</p>
           </Step>
         </section>
 

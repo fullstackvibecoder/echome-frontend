@@ -55,10 +55,15 @@ export default function ReelsAndCaptionsGuidePage() {
           className="w-full rounded-xl border border-border mb-8"
         />
 
+        {/* Beta callout */}
+        <div className="mb-10 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Beta access:</strong> The Reel Maker is currently in admin-only beta. The Reels tab in the sidebar and the <code>?tab=reels</code> URL are gated to admin accounts. Request access via the chat widget if you want to try it.</p>
+        </div>
+
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Open the Reel Maker">
-            <p>Open the <strong className="text-text-primary">Reels</strong> tab inside <strong className="text-text-primary">Library</strong> (<code>/app/library?tab=reels</code>). Your reels are organized in a status-grouped grid &mdash; Rendering, Drafts, Ready, and Earlier &mdash; so you can quickly find what you need.</p>
+            <p>Once you have beta access, open the <strong className="text-text-primary">Reels</strong> tab inside <strong className="text-text-primary">Your Library</strong> (<code>/app/library?tab=reels</code>). Your reels are organized in a status-grouped grid &mdash; Rendering, Drafts, Ready, and Earlier &mdash; so you can quickly find what you need.</p>
           </Step>
 
           <Step number={2} title="Create new reels from the create bar">
@@ -69,30 +74,19 @@ export default function ReelsAndCaptionsGuidePage() {
             <p>EchoMe offers 8 caption styles, each designed for different content types:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li><strong>Modern</strong> &mdash; Clean sans-serif text</li>
-              <li><strong>Classic</strong> &mdash; Traditional subtitle styling</li>
-              <li><strong>Bold</strong> &mdash; Large impact text</li>
-              <li><strong>Minimal</strong> &mdash; Small lower-third placement</li>
-              <li><strong>Highlight</strong> &mdash; Word-by-word highlight effect</li>
+              <li><strong>Big &amp; Bold</strong> &mdash; Large impact text</li>
+              <li><strong>Color Pop</strong> &mdash; Word-by-word highlight effect</li>
               <li><strong>Karaoke</strong> &mdash; Color-fill animation</li>
               <li><strong>Underline</strong> &mdash; Active word underlined</li>
-              <li><strong>Word by Word</strong> &mdash; One word at a time</li>
-            </ul>
-            <p className="mt-2">Style previews are available at:</p>
-            <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
-              <li>modern.svg</li>
-              <li>big-bold.svg</li>
-              <li>clean-simple.svg</li>
-              <li>color-pop.svg</li>
-              <li>karaoke.svg</li>
-              <li>one-at-a-time.svg</li>
-              <li>subtitle-bar.svg</li>
-              <li>underline.svg</li>
+              <li><strong>One at a Time</strong> &mdash; One word at a time</li>
+              <li><strong>Subtitle Bar</strong> &mdash; Traditional subtitle styling</li>
+              <li><strong>Clean &amp; Simple</strong> &mdash; Small lower-third placement</li>
             </ul>
           </Step>
 
           <Step number={4} title="Change caption style per clip">
             <p>Click the style selector on any clip card to switch between caption styles. Each clip can use a different style &mdash; mix and match to suit your content.</p>
-            <Tip>Modern and Bold work best for fast-paced content. Karaoke is great for music or spoken word. Minimal keeps the focus on the visuals.</Tip>
+            <Tip>Modern and Big &amp; Bold work best for fast-paced content. Karaoke is great for music or spoken word. Clean &amp; Simple keeps the focus on the visuals.</Tip>
           </Step>
 
           <Step number={5} title="Drag to position. Drag a corner to resize.">

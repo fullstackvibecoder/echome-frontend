@@ -62,7 +62,7 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={2} title="Go to the Create page">
-            <p>From the sidebar, click Create. You&apos;ll see a single unified conversational input where you can do everything: paste a link (YouTube, Zoom, or any public video URL), type a topic to generate content from scratch, drag and drop a video file, or record a voice note using the mic button in the toolbar.</p>
+            <p>From the sidebar, click Create. You&apos;ll see a single unified conversational input where you can do everything: paste a link (YouTube, Zoom, or any public video URL), type a topic to generate content from scratch, drag and drop a video file, or record a voice note using the mic button inside the input bar.</p>
             <Tip>Zoom recordings work too &mdash; if your recording requires a passcode, a field appears automatically when you paste a Zoom link.</Tip>
           </Step>
 
@@ -94,7 +94,7 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={5} title="Edit, export, and publish">
-            <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style. Copy text to clipboard. Everything is saved in your Content Kits page for later.</p>
+            <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style. Copy text to clipboard. Everything is saved in <strong>Your Library</strong> for later.</p>
           </Step>
         </section>
 
