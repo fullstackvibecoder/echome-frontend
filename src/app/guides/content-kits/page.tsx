@@ -57,8 +57,8 @@ export default function ContentKitsGuidePage() {
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
-          <Step number={1} title="Find your kit in the Content Kits page">
-            <p>Open Content Kits from the sidebar. Your kits are organized by status: Ready to Publish, Processing, and Earlier. The most recent kits appear at the top.</p>
+          <Step number={1} title="Find your kit in Your Library">
+            <p>Open <strong>Your Library</strong> from the sidebar. Your kits are organized by status: Ready to Publish, Processing, and Earlier. The most recent kits appear at the top.</p>
           </Step>
 
           <Step number={2} title="Open a kit">
@@ -84,15 +84,15 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={7} title="Share or copy">
-            <p>Copy any text to clipboard with one click. Download video clips directly. Share content to your platforms or save it in your Content Kits for later publishing.</p>
+            <p>Copy any text to clipboard with one click. Download video clips directly. Share content to your platforms or save it in Your Library for later publishing.</p>
             <Tip>Use the carousel slides for LinkedIn carousels and Instagram posts &mdash; they&apos;re generated automatically from your content.</Tip>
           </Step>
         </section>
 
         {/* CTA */}
         <section className="text-center py-8">
-          <p className="text-text-secondary mb-4">Ready to explore your Content Kits?</p>
-          <a href="/app/library" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Go to Content Kits</a>
+          <p className="text-text-secondary mb-4">Ready to explore your kits?</p>
+          <a href="/app/library" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Open Your Library</a>
           <p className="text-xs text-text-secondary/70 mt-3">Log in to view your generated content.</p>
         </section>
 

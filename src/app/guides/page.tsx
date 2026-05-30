@@ -191,9 +191,9 @@ const guides = [
   {
     slug: 'creator-radar',
     icon: <Heart className="w-6 h-6" />,
-    title: "Following: Repurpose Creators' Videos",
+    title: "Creator Radar: Repurpose Creators' Videos",
     description:
-      'Follow creators in your niche and repurpose their videos into original posts written in your voice. Stay active without filming new videos.',
+      'Follow creators in your niche from Creator Radar and repurpose their videos into original posts written in your voice. Stay active without filming new videos.',
     category: 'Features',
     readTime: '3 min',
     hasVideo: false,
@@ -201,9 +201,9 @@ const guides = [
   {
     slug: 'scheduling-posts',
     icon: <CalendarDays className="w-6 h-6" />,
-    title: 'Scheduling & Auto-Posting to IG, LinkedIn & Facebook',
+    title: 'Scheduling & Auto-Posting',
     description:
-      'Connect Instagram, LinkedIn, and Facebook and auto-publish your content at the time you choose. Manage everything from the Content Calendar.',
+      'Connect Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky and auto-publish your content at the time you choose. Manage everything from the Content Calendar.',
     category: 'Features',
     readTime: '4 min',
     hasVideo: true,
@@ -234,7 +234,7 @@ const guides = [
     icon: <CreditCard className="w-6 h-6" />,
     title: 'Understanding EchoMe Plans',
     description:
-      'Compare Free, Echo, Echo Studio, and Echo Pro plans. See what is included in each tier and how to upgrade or downgrade.',
+      'Compare Free, Echo, Echo Studio, and Echo Teams plans. See what is included in each tier and how to upgrade or downgrade.',
     category: 'Account',
     readTime: '3 min',
     hasVideo: false,

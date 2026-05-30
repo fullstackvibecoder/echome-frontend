@@ -79,13 +79,13 @@ export default function VideoContentGuidePage() {
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign in and navigate to Create">
             <p>
-              New users will follow the onboarding flow after signing up. Returning users go straight to the Create page. You&apos;ll see a single input where you can paste a link (YouTube, Zoom, Loom, Vimeo), type a topic, drop a video file, or record a voice note using the mic button in the toolbar.
+              New users will follow the onboarding flow after signing up. Returning users go straight to the Create page. You&apos;ll see a single unified input where you can paste a link (YouTube, Zoom, Loom, Vimeo), type a topic, drop a video file, or record a voice note using the mic button inside the input bar.
             </p>
           </Step>
 
           <Step number={2} title="Uploading videos">
             <p>
-              Drag and drop your video file directly onto the input area, or use the attachment button in the toolbar. Keep files under 500MB. Avoid 4K footage &mdash; 1080p or 720p works great and uploads much faster. Larger files (30&ndash;40 minutes) may take longer to process.
+              Drag and drop your video file directly onto the input area, or use the paperclip attach button inside the input bar. The hard cap is 2GB per upload, but anything under 500MB is noticeably faster and more reliable. Avoid 4K footage &mdash; 1080p or 720p works great and uploads much faster.
             </p>
             <p className="mt-2">
               If your file is too large, see our <a href="/guides/compress-video" className="text-accent hover:underline">compression guide</a> for free tools to shrink it.
@@ -95,16 +95,16 @@ export default function VideoContentGuidePage() {
 
           <Step number={3} title="Using video links">
             <p>
-              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Vimeo, Loom, Zoom, TikTok, or Riverside</strong> URL into the link field and click Go. No file upload needed &mdash; EchoMe pulls the content directly.
+              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Vimeo, Loom, Zoom, or TikTok</strong> URL into the unified input and hit Submit. No file upload needed &mdash; EchoMe pulls the content directly.
             </p>
             <p className="mt-2">
               <strong className="text-text-primary">Note:</strong> YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video first and uploading the file.
             </p>
           </Step>
 
-          <Step number={4} title="Processing and Content Library">
+          <Step number={4} title="Processing and Your Library">
             <p>
-              After upload, EchoMe processes your video: transcribing, finding key moments, extracting clips, adding captions, and generating written content. Monitor progress in the <strong className="text-text-primary">Content Kit</strong> section. Once complete, your content appears in the <strong className="text-text-primary">Content Library</strong>.
+              After upload, EchoMe processes your video: transcribing, finding key moments, extracting clips, adding captions, and generating written content. Monitor progress on the kit detail page. Once complete, your content appears in <strong className="text-text-primary">Your Library</strong>.
             </p>
           </Step>
 
@@ -122,7 +122,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={7} title="Written content and scheduling">
             <p>
-              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Facebook, Instagram, X/Twitter, Newsletter,</strong> and <strong className="text-text-primary">Blog</strong>. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, post directly via the X Post button, or add to your calendar.
+              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Facebook, Instagram, X/Twitter, Newsletter,</strong> and <strong className="text-text-primary">Blog</strong>. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform, or add to your calendar.
             </p>
           </Step>
 
@@ -139,7 +139,7 @@ export default function VideoContentGuidePage() {
           <ul className="space-y-2 text-sm text-text-secondary">
             <li><strong className="text-text-primary">Uploading 4K raw footage:</strong> Compress your video first. EchoMe analyzes speech, not pixels. A 720p file gives the same results and uploads in a fraction of the time.</li>
             <li><strong className="text-text-primary">Retrying a failed upload without compressing:</strong> If a large file fails, don&apos;t upload the same file again. Compress it first using a <a href="/guides/compress-video" className="text-accent hover:underline">free tool</a>, then retry.</li>
-            <li><strong className="text-text-primary">Forgetting you can paste a link instead of uploading:</strong> If your video is already on YouTube, Vimeo, Loom, or another platform, just paste the URL. No file upload needed at all.</li>
+            <li><strong className="text-text-primary">Forgetting you can paste a link instead of uploading:</strong> If your video is already on YouTube, Vimeo, Loom, Zoom, or TikTok, just paste the URL. No file upload needed at all.</li>
           </ul>
         </section>
 

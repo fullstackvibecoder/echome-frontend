@@ -76,7 +76,7 @@ export default function YouTubeToContentGuidePage() {
           </Step>
 
           <Step number={4} title="8 caption styles">
-            <p>Every clip gets captions. Choose from 8 styles: Modern, Bold, Color Pop, Karaoke, Underline, One at a Time, Subtitle Bar, and Clean. Position captions at the top, center, or bottom. Download single or split-screen versions.</p>
+            <p>Every clip gets captions. Choose from 8 styles: Modern, Big &amp; Bold, Color Pop, Karaoke, Underline, One at a Time, Subtitle Bar, and Clean &amp; Simple. Position captions at the top, center, or bottom. Download single or split-screen versions.</p>
           </Step>
 
           <Step number={5} title="Full written content kit">
@@ -93,7 +93,7 @@ export default function YouTubeToContentGuidePage() {
           </Step>
 
           <Step number={6} title="Download and share">
-            <p>Copy any post to clipboard. Download video clips. Schedule content to your calendar. Everything is saved in your Content Library for later.</p>
+            <p>Copy any post to clipboard. Download video clips. Schedule content to your calendar. Everything is saved in Your Library for later.</p>
           </Step>
         </section>
 

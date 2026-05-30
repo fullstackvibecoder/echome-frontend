@@ -138,7 +138,7 @@ function Step({ number, title, children }: { number: number; title: string; chil
 function Tip({ children }: { children: React.ReactNode }) {
   return (
     <p className="mt-2 text-sm text-accent bg-accent/5 border border-accent/20 rounded-md px-3 py-2">
-      💡 {children}
+      <strong>Tip:</strong> {children}
     </p>
   );
 }

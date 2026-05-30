@@ -3,13 +3,13 @@ import Image from 'next/image';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Scheduling & Auto-Posting to Instagram, LinkedIn & Facebook | EchoMe Guide',
+  title: 'Scheduling & Auto-Posting | EchoMe Guide',
   description:
-    'Schedule your posts once, publish everywhere. Connect Instagram, LinkedIn, and Facebook, pick platforms per clip or carousel, post now or schedule ahead, and manage everything from the Content Calendar.',
+    'Schedule your posts once, publish everywhere. Connect Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky, pick platforms per clip or carousel, post now or schedule ahead, and manage everything from the Content Calendar.',
   keywords: [
     'echome scheduling',
     'auto-post to social media',
-    'schedule instagram linkedin facebook',
+    'schedule instagram linkedin facebook threads',
     'social media scheduler',
     'content calendar',
   ],
@@ -20,9 +20,9 @@ export default function SchedulingPostsGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Scheduling & Auto-Posting to Instagram, LinkedIn & Facebook',
+    headline: 'Scheduling & Auto-Posting',
     description:
-      'How to connect your social accounts and schedule posts to Instagram, LinkedIn, and Facebook directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
+      'How to connect your social accounts and schedule posts to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
     url: 'https://tryechome.com/guides/scheduling-posts',
     datePublished: '2026-04-24',
     dateModified: '2026-05-01',
@@ -55,7 +55,7 @@ export default function SchedulingPostsGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Scheduling &amp; Auto-Posting to Instagram, LinkedIn &amp; Facebook
+          Scheduling &amp; Auto-Posting
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           Schedule your content once, publish everywhere. Connect your accounts, pick the platforms for
@@ -64,7 +64,7 @@ export default function SchedulingPostsGuidePage() {
         </p>
         <p className="text-sm text-text-secondary/70 mb-2">4 min read &middot; Video walkthrough below</p>
         <p className="text-xs text-text-secondary/70 mb-8">
-          Auto-posting to Instagram, LinkedIn &amp; Facebook unlocks at <strong>Echo Studio</strong> ($87/mo). On Free and Echo plans you can still schedule posts and get email reminders at the scheduled time.
+          Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky unlocks at <strong>Echo Studio</strong> ($87/mo). On Free and Echo plans you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business stay copy-and-open (we pre-fill the caption and open the native composer).
         </p>
 
         {/* Loom walkthrough — 2-minute SOP covering the full flow. Aspect-ratio
@@ -103,11 +103,22 @@ export default function SchedulingPostsGuidePage() {
                 <strong>Facebook</strong> &mdash; Facebook Page (Meta requires business Pages for API posting;
                 personal profiles aren&rsquo;t supported by the platform).
               </li>
+              <li>
+                <strong>Threads</strong> &mdash; connect directly. Requires a Threads account linked to an
+                Instagram Business or Creator account.
+              </li>
+              <li>
+                <strong>YouTube</strong> &mdash; community posts. YouTube requires at least 500 subscribers
+                on the channel before community posts are enabled.
+              </li>
+              <li>
+                <strong>Bluesky</strong> &mdash; connect with an app password from your Bluesky settings.
+              </li>
             </ul>
             <Tip>
-              Threads isn&rsquo;t in this list on purpose &mdash; most people have Instagram auto-publish to
-              Threads in their Meta account settings, and that&rsquo;s a cleaner path than a separate
-              connection.
+              X, TikTok, Pinterest, and Google Business don&rsquo;t support API auto-post the way the platforms
+              above do, so EchoMe handles those via copy-and-open: we pre-fill the caption and open the native
+              composer in a new tab. You confirm and post.
             </Tip>
           </Step>
 
@@ -156,8 +167,8 @@ export default function SchedulingPostsGuidePage() {
                 within a minute or so.
               </li>
               <li>
-                <strong>Schedule</strong> &mdash; opens a date/time picker. Pick any future time in the next
-                30 days, hit <strong>Confirm schedule</strong>, and EchoMe takes it from there.
+                <strong>Schedule</strong> &mdash; opens a date/time picker. Pick any future time, hit
+                <strong> Confirm schedule</strong>, and EchoMe takes it from there.
               </li>
             </ul>
             <div className="my-4 rounded-lg overflow-hidden border border-border">

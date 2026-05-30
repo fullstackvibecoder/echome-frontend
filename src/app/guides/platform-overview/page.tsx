@@ -80,16 +80,16 @@ export default function PlatformOverviewGuidePage() {
           <Step number={1} title="One input, every format">
             <p className="mb-2">The Create page has a single unified input. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Paste a link</strong> &mdash; YouTube, Zoom, Loom, Vimeo, TikTok, or Riverside. EchoMe auto-detects the platform.</li>
+              <li><strong className="text-text-primary">Paste a link</strong> &mdash; YouTube, Zoom, Loom, Vimeo, or TikTok. EchoMe auto-detects the platform.</li>
               <li><strong className="text-text-primary">Type a topic</strong> &mdash; Describe an idea, paste an article, or write a prompt.</li>
               <li><strong className="text-text-primary">Drop a video file</strong> &mdash; Drag and drop directly onto the input.</li>
-              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button in the toolbar to speak your idea.</li>
+              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button inside the input bar to speak your idea.</li>
             </ul>
             <Tip>All input methods produce the same quality output. Pick whichever fits your workflow.</Tip>
           </Step>
 
           <Step number={2} title="Video upload guidelines">
-            <p className="mb-2">Keep your video files under 500MB for the fastest processing. Avoid 4K recordings &mdash; 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality.</p>
+            <p className="mb-2">The hard cap on uploads is 2GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings &mdash; 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality.</p>
             <p>Use <strong className="text-text-primary">HandBrake</strong> (free desktop app) or <strong className="text-text-primary">FreeConvert.com</strong> (browser-based) to compress before uploading.</p>
             <Tip>See the full compression guide at <a href="/guides/compress-video" className="text-accent hover:underline">How to Compress Videos for EchoMe</a>.</Tip>
           </Step>
@@ -102,7 +102,6 @@ export default function PlatformOverviewGuidePage() {
               <li>Loom</li>
               <li>Zoom</li>
               <li>TikTok</li>
-              <li>Riverside</li>
             </ul>
             <p className="mt-2">Just paste the URL into the Create input and hit submit. No separate upload step needed. If your Zoom recording requires a passcode, a field will appear below the input when you paste a Zoom link.</p>
             <Tip>YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video and uploading the file directly.</Tip>
@@ -145,8 +144,8 @@ export default function PlatformOverviewGuidePage() {
             <p className="mb-2">Add sources via the unified input on the Your Voice page so Echo can match your style. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong className="text-text-primary">Paste social links</strong> &mdash; Import content from YouTube or Instagram.</li>
-              <li><strong className="text-text-primary">Drop files or paste URLs</strong> &mdash; Upload PDFs, articles, blog posts, or emails.</li>
-              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button in the toolbar. Just talk. Echo figures out the rest.</li>
+              <li><strong className="text-text-primary">Drop files or paste URLs</strong> &mdash; Upload PDFs, articles, blog posts, or emails (Echo Studio+ for email).</li>
+              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button inside the input bar. Just talk. Echo figures out the rest.</li>
             </ul>
             <p className="mt-2">The more content you add, the better the voice matching becomes. EchoMe learns your tone, vocabulary, sentence structure, and perspective over time.</p>
           </Step>
@@ -162,7 +161,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={9} title="Follow other creators">
-            <p className="mb-2">The <strong className="text-text-primary">Following</strong> feature in the sidebar lets you follow other creators on EchoMe. When they post new videos, you can repurpose their content through your voice and context.</p>
+            <p className="mb-2">The <strong className="text-text-primary">Creator Radar</strong> entry in the sidebar lets you follow other creators. When they post new videos, you can repurpose their content through your voice and context.</p>
             <p>The output sounds like you, not them. EchoMe applies your voice profile to transform their ideas into your style and perspective.</p>
           </Step>
 

@@ -55,6 +55,11 @@ export default function EmailUploadGuidePage() {
           3 min read &middot; Video walkthrough included
         </p>
 
+        {/* Tier-gate callout */}
+        <div className="mb-10 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Plan required:</strong> Email import is available on Echo Studio and higher. Free and Echo plans will hit an upgrade prompt when uploading the .mbox file. <a href="/guides/plans" className="underline">Compare plans</a>.</p>
+        </div>
+
         {/* Video embed */}
         <div className="mb-10 rounded-xl overflow-hidden border border-border">
           <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
@@ -116,7 +121,7 @@ export default function EmailUploadGuidePage() {
 
           <Step number={7} title="Download and unzip">
             <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong> &mdash; that&apos;s what you&apos;ll upload to EchoMe.</p>
-            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;).</Tip>
+            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work &mdash; the file may be named just <code>mbox</code> with no extension. EchoMe accepts both. Max file size: 500MB &mdash; if your export is larger, filter the label to a shorter date range.</Tip>
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
@@ -129,7 +134,7 @@ export default function EmailUploadGuidePage() {
           </Step>
 
           <Step number={10} title="Confirm your upload">
-            <p>Once done, you&apos;ll see your email batches in the Recent Activity section. Check your voice strength &mdash; it should have jumped up with all that new content.</p>
+            <p>Once done, your emails appear as a new source in the <strong>Sources</strong> drawer on the Your Voice page. Open it to confirm the batch landed. Check your voice strength score in the header &mdash; it should have jumped up with all that new content.</p>
           </Step>
         </section>
 
