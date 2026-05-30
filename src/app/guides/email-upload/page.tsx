@@ -120,7 +120,8 @@ export default function EmailUploadGuidePage() {
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
-            <p>Go to <strong>Your Voice</strong> in EchoMe, click <strong>Email</strong>, and select the <strong>.mbox file</strong> you extracted. EchoMe will parse your emails and start processing them.</p>
+            <p>Go to <strong>Your Voice</strong> in EchoMe. Near the top of the page there&apos;s a chat-style input where you&apos;d type or paste content. Click the <strong>paperclip icon</strong> at the bottom of that input and pick the <strong>.mbox file</strong> you extracted &mdash; or just <strong>drag and drop the file onto the input</strong>. EchoMe will parse your emails and start processing them.</p>
+            <Tip>You won&apos;t see a separate &quot;Email&quot; button or an &quot;Import my Writing&quot; card &mdash; that older UI was replaced by the single chat input. The paperclip / drag-drop is the way in for everything: PDFs, Word docs, voice recordings, and .mbox exports.</Tip>
           </Step>
 
           <Step number={9} title="Wait for processing">
