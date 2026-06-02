@@ -80,9 +80,8 @@ prevent. The pull approach has no persisted flag to get stuck.
 ### 3. `OutageBanner` — `src/components/outage-banner.tsx` (modified)
 
 - `status === 'ok'` → render nothing.
-- `status === 'updating'` → neutral variant (e.g. slate/blue, calm copy, **no** Railway
-  status link). Copy TBD-at-review; default: *"EchoMe is updating — the app will be back
-  in a moment."*
+- `status === 'updating'` → neutral variant (slate/blue, calm copy, **no** Railway
+  status link). Copy (exact): *"EchoMe is updating — the app will be back in a moment."*
 - `status === 'outage'` → the **existing** amber message + `status.railway.com` link,
   unchanged.
 
@@ -140,8 +139,10 @@ There is no code path where a real outage renders the calm "Updating" message.
   (force a backend deploy and confirm "Updating" shows; simulate token-missing and
   confirm "Service disruption" shows) before promoting to `main`/production.
 
-## Open questions (resolve at spec review)
+## Resolved decisions (spec review, 2026-06-02)
 
-1. Exact "Updating" copy.
-2. Does the Updating variant keep any link (e.g. a neutral "status" link), or none?
-3. Confirm the login inline notice should switch to the new status (default: yes).
+1. **Updating copy (exact):** `EchoMe is updating — the app will be back in a moment.`
+2. **Updating variant has no link.** The `status.railway.com` link appears only on the
+   outage variant.
+3. **Login inline notice switches to the new status** — calm during a deploy, disruption
+   during an outage — so its wording matches the banner.
