@@ -11,7 +11,7 @@ import { OAuthButtons } from '@/components/oauth-buttons';
 export default function LoginContent() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const { isDown } = useBackendHealth();
+  const { status: backendStatus } = useBackendHealth();
 
   const { errors, isLoading, generalError, handleSubmit } = useAuthForm({
     schema: loginSchema,
@@ -30,10 +30,19 @@ export default function LoginContent() {
         </p>
       </div>
 
-      {/* Backend-down notice — shown when /health is unreachable so users
-          aren't left wondering why "Sign in" does nothing during a hosting
-          outage. Auto-hides when the backend recovers. */}
-      {isDown && (
+      {/* Backend-down notice — calm "updating" during a deploy, amber disruption
+          during a real outage. Decided by useBackendHealth + /api/backend-status.
+          Auto-hides when the backend recovers. */}
+      {backendStatus === 'updating' && (
+        <div
+          role="status"
+          className="mb-6 p-4 bg-slate-500/10 border border-slate-500/30 rounded-lg text-sm"
+        >
+          <p className="font-medium text-foreground mb-1">EchoMe is updating</p>
+          <p className="text-muted-foreground">Sign-in will be back in a moment.</p>
+        </div>
+      )}
+      {backendStatus === 'outage' && (
         <div
           role="alert"
           className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm"
