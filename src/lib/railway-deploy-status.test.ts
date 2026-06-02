@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { mapDeploymentStatusToState } from './railway-deploy-status';
+import {
+  mapDeploymentStatusToState,
+  readRailwayConfig,
+  fetchLatestDeploymentState,
+} from './railway-deploy-status';
 
 describe('mapDeploymentStatusToState', () => {
   it('maps in-progress statuses to deploying', () => {
@@ -23,5 +27,42 @@ describe('mapDeploymentStatusToState', () => {
   });
   it('is case-insensitive', () => {
     expect(mapDeploymentStatusToState('building')).toBe('deploying');
+  });
+});
+
+describe('readRailwayConfig', () => {
+  const full = {
+    RAILWAY_API_TOKEN: 't', RAILWAY_PROJECT_ID: 'p',
+    RAILWAY_SERVICE_ID: 's', RAILWAY_ENVIRONMENT_ID: 'e',
+  };
+  it('returns config when all vars present', () => {
+    expect(readRailwayConfig(full)).toEqual({ token: 't', projectId: 'p', serviceId: 's', environmentId: 'e' });
+  });
+  it('returns null if any var missing', () => {
+    expect(readRailwayConfig({ ...full, RAILWAY_API_TOKEN: undefined })).toBeNull();
+    expect(readRailwayConfig({})).toBeNull();
+  });
+});
+
+describe('fetchLatestDeploymentState', () => {
+  const cfg = { token: 't', projectId: 'p', serviceId: 's', environmentId: 'e' };
+  it('returns the mapped state from the latest deployment', async () => {
+    const fakeFetch = (async () => ({
+      ok: true,
+      json: async () => ({ data: { deployments: { edges: [{ node: { status: 'DEPLOYING' } }] } } }),
+    })) as unknown as typeof fetch;
+    expect(await fetchLatestDeploymentState(cfg, fakeFetch)).toBe('deploying');
+  });
+  it('returns unknown on non-ok response', async () => {
+    const fakeFetch = (async () => ({ ok: false, json: async () => ({}) })) as unknown as typeof fetch;
+    expect(await fetchLatestDeploymentState(cfg, fakeFetch)).toBe('unknown');
+  });
+  it('returns unknown when the fetch throws (network/abort)', async () => {
+    const fakeFetch = (async () => { throw new Error('boom'); }) as unknown as typeof fetch;
+    expect(await fetchLatestDeploymentState(cfg, fakeFetch)).toBe('unknown');
+  });
+  it('returns unknown when there are no deployments', async () => {
+    const fakeFetch = (async () => ({ ok: true, json: async () => ({ data: { deployments: { edges: [] } } }) })) as unknown as typeof fetch;
+    expect(await fetchLatestDeploymentState(cfg, fakeFetch)).toBe('unknown');
   });
 });
