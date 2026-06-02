@@ -1,69 +1,87 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { computeBackendStatus, DOWN_THRESHOLD, type BackendStatus } from '@/lib/backend-health-state';
+import type { DeployState } from '@/lib/railway-deploy-status';
 
 /**
- * Polls the backend `/health` endpoint and reports whether it's reachable.
+ * Polls the backend `/health` endpoint. When it goes down (>= DOWN_THRESHOLD
+ * consecutive failures), asks the Vercel-side `/api/backend-status` route whether
+ * Railway is mid-deploy, then maps the combined signal to a banner status.
  *
- * Asymmetric thresholds (post-2026-05-27 — paid user Ressie was seeing the
- * amber OutageBanner persistently because the prior fail-once-show-immediately
- * pattern fired on every Railway deploy window, cold-ish response, or
- * transient 5xx blip):
- *   - SHOW the banner only after TWO consecutive failed checks (so a single
- *     transient flake doesn't flag the backend as down).
- *   - CLEAR the banner on the FIRST successful check (recovery is fast and
- *     we don't want users staring at false-positive doom).
+ *   ok       — backend reachable
+ *   updating — backend down AND a deploy is in progress
+ *   outage   — backend down AND not a deploy (or we couldn't tell — safe default)
  *
- * Returns `true` once two checks in a row fail; flips back to `false` on
- * any successful subsequent check. Used by:
- *   - OutageBanner (global sticky notice)
- *   - LoginContent inline notice (so users see why "Sign in" is dead)
- *
- * The check fires immediately on mount and every 30 seconds after. Timeout
- * widened from 5s to 8s — Railway sometimes responds in 5-7s on cold paths.
+ * `/health` poll is unchanged from the prior version: fires on mount and every 30s,
+ * 8s timeout, show-after-two-failures, clear-on-first-success. See
+ * backend-health-state.ts for the pure mapping and its tests.
  */
-export function useBackendHealth(): { isDown: boolean } {
-  const [isDown, setIsDown] = useState(false);
-  // Tracks consecutive failures. Synchronous ref (not state) so two adjacent
-  // failed checks always see the latest counter without waiting for a render.
-  const consecutiveFailuresRef = useRef(0);
+export function useBackendHealth(): { status: BackendStatus } {
+  const [status, setStatus] = useState<BackendStatus>('ok');
+  const failuresRef = useRef(0);
+  const deployStateRef = useRef<DeployState | 'pending'>('up');
 
   useEffect(() => {
     const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/?$/, '');
     const healthUrl = `${apiBase}/health`;
-
     let cancelled = false;
+
+    function recompute() {
+      if (cancelled) return;
+      setStatus(
+        computeBackendStatus({
+          healthOk: false,
+          consecutiveFailures: failuresRef.current,
+          deployState: deployStateRef.current,
+        }),
+      );
+    }
+
+    async function fetchDeployState(): Promise<DeployState> {
+      try {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch('/api/backend-status', { cache: 'no-store', signal: controller.signal });
+        clearTimeout(t);
+        if (!res.ok) return 'unknown';
+        const json = await res.json();
+        return json?.state === 'deploying' || json?.state === 'up' ? json.state : 'unknown';
+      } catch {
+        return 'unknown';
+      }
+    }
 
     async function check() {
       let ok = false;
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
-        const res = await fetch(healthUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
+        const t = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch(healthUrl, { method: 'GET', cache: 'no-store', signal: controller.signal });
+        clearTimeout(t);
         ok = res.ok;
       } catch {
         ok = false;
       }
-
       if (cancelled) return;
 
       if (ok) {
-        consecutiveFailuresRef.current = 0;
-        setIsDown(false);
-      } else {
-        consecutiveFailuresRef.current += 1;
-        // Only show the banner after the SECOND consecutive failure. Single
-        // flakes (deploy windows, transient 5xx, cold-ish responses) don't
-        // surface to users.
-        if (consecutiveFailuresRef.current >= 2) {
-          setIsDown(true);
-        }
+        failuresRef.current = 0;
+        deployStateRef.current = 'up';
+        setStatus('ok');
+        return;
       }
+
+      failuresRef.current += 1;
+      if (failuresRef.current < DOWN_THRESHOLD) return; // single flake — stay silent
+
+      // Down. Probe why; show nothing while pending, then resolve to updating/outage.
+      deployStateRef.current = 'pending';
+      recompute();
+      const state = await fetchDeployState();
+      if (cancelled) return;
+      deployStateRef.current = state;
+      recompute();
     }
 
     check();
@@ -74,5 +92,5 @@ export function useBackendHealth(): { isDown: boolean } {
     };
   }, []);
 
-  return { isDown };
+  return { status };
 }
