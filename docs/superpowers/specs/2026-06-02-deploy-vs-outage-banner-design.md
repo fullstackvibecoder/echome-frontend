@@ -57,7 +57,8 @@ prevent. The pull approach has no persisted flag to get stuck.
 - Server-side cache ~10s (avoid hammering Railway when many clients poll). The browser
   fetches with `cache: 'no-store'`; the route applies its own short cache.
 - Secrets (server-only Vercel env vars, never `NEXT_PUBLIC_`):
-  `RAILWAY_API_TOKEN`, `RAILWAY_SERVICE_ID`, `RAILWAY_ENVIRONMENT_ID`.
+  `RAILWAY_API_TOKEN`, `RAILWAY_PROJECT_ID`, `RAILWAY_SERVICE_ID`, `RAILWAY_ENVIRONMENT_ID`
+  (Railway's `DeploymentListInput` requires the project ID alongside service + env).
 - Has a short fetch timeout (~3s) to Railway so a hung control plane can't hang the route.
 
 ### 2. Hook — `src/hooks/useBackendHealth.ts` (modified)
@@ -128,10 +129,10 @@ There is no code path where a real outage renders the calm "Updating" message.
 ## Prerequisites (one-time, provided by Ara)
 
 - A Railway **read-only API token**.
-- Backend **service ID** and **prod environment ID**.
-- Set `RAILWAY_API_TOKEN`, `RAILWAY_SERVICE_ID`, `RAILWAY_ENVIRONMENT_ID` as server-side
-  env vars in Vercel (Production + Preview). Verify the GraphQL query/IDs against a real
-  deploy before promoting.
+- Backend **project ID**, **service ID**, and **prod environment ID**.
+- Set `RAILWAY_API_TOKEN`, `RAILWAY_PROJECT_ID`, `RAILWAY_SERVICE_ID`,
+  `RAILWAY_ENVIRONMENT_ID` as server-side env vars in Vercel (Production + Preview).
+  Verify the GraphQL query/IDs against a real deploy before promoting.
 
 ## Rollout
 
