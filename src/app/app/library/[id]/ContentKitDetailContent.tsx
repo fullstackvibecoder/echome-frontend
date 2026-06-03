@@ -579,7 +579,7 @@ export default function ContentKitDetailContent() {
                 {/* Carousel card */}
                 {hasCarousel && (
                   <OutputCard
-                    title="Carousel"
+                    title="Instagram Carousel"
                     subtitle={`${detail.carousel.slides.length} slides`}
                     thumbnailUrl={detail.carousel.slides?.[0]?.publicUrl || detail.carousel.slides?.[0]?.thumbnailUrl}
                     platform="carousel"
@@ -593,7 +593,7 @@ export default function ContentKitDetailContent() {
                 {/* Carousel loading */}
                 {carouselExpected && (
                   <OutputCard
-                    title="Carousel"
+                    title="Instagram Carousel"
                     subtitle="Generating..."
                     platform="carousel"
                     variant="visual"
