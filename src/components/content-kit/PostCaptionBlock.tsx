@@ -46,11 +46,15 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
   // PATCH round-trip before showing the user their character. Sync to props
   // when the underlying value changes (e.g., editing a different clip).
   const editable = !!onChange;
-  const initialValue = caption?.trim() || (editable ? '' : fallback?.trim() || '');
+  // Pre-fill the kit-default caption as the editable value (not just a gray
+  // placeholder) so the user can actually SEE, edit, and copy it. The first
+  // keystroke promotes it to a per-output caption via onChange — until then
+  // nothing is persisted, so showing the default here is display-only.
+  const initialValue = caption?.trim() || fallback?.trim() || '';
   const [draft, setDraft] = useState(initialValue);
   const lastExternalRef = useRef(initialValue);
   useEffect(() => {
-    const external = caption?.trim() || (editable ? '' : fallback?.trim() || '');
+    const external = caption?.trim() || fallback?.trim() || '';
     if (external !== lastExternalRef.current) {
       lastExternalRef.current = external;
       setDraft(external);
@@ -60,7 +64,7 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
   // Display text: in edit mode show the draft (mirrors live typing); otherwise
   // prefer per-output caption then kit fallback.
   const text = editable ? draft : (caption?.trim() || fallback?.trim() || '');
-  const isFallback = !editable && !caption?.trim() && !!fallback?.trim();
+  const isFallback = !caption?.trim() && !!fallback?.trim();
 
   // Brief "Saved" confirmation after a save completes. Watching `saving`
   // transition from true → false lights this up for 1.5s, which gives the
@@ -105,10 +109,10 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
           {label}
           {isFallback && (
             <span className="text-[11px] text-muted-foreground/70 font-normal ml-1.5">
-              (from kit default)
+              {editable ? '(from kit default — edit to customize)' : '(from kit default)'}
             </span>
           )}
-          {editable && !saving && !justSaved && (
+          {editable && !isFallback && !saving && !justSaved && (
             <span className="text-[11px] text-muted-foreground/70 font-normal ml-1.5">
               (auto-saves while you type)
             </span>

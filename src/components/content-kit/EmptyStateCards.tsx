@@ -6,7 +6,7 @@
  * Replaces the generic "No content available" empty state on kit detail with
  * four labeled cards explaining what each section produces. The teleprompter
  * card is the discoverability lever — links to the Video Script tab of the
- * user's most recent kit, or /app/create if they have none.
+ * user's most recent kit, or /app (the create/upload page) if they have none.
  *
  * See docs/superpowers/specs/2026-05-23-guided-tour-system-design.md §7.
  */
@@ -31,7 +31,7 @@ interface CardSpec {
 export function EmptyStateCards({ fallbackKitId }: Props) {
   const teleprompterHref = fallbackKitId
     ? `/app/library/${fallbackKitId}?tab=video-script`
-    : '/app/create';
+    : '/app';
 
   const cards: CardSpec[] = [
     {
