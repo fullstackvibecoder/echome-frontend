@@ -41,7 +41,7 @@ export interface NormalizedContent {
   description?: string;
   status: DisplayStatus;
   platforms: Platform[];
-  score?: number; // voiceScore, viralityScore, or qualityScore
+  score?: number; // voiceScore, clip strength (engagementPotential), or qualityScore
   thumbnailUrl?: string;
   createdAt: Date;
 
@@ -91,7 +91,7 @@ export function normalizeClip(clip: VideoClipDetail | VideoClip): NormalizedCont
     description: clip.transcriptText?.slice(0, 150),
     status: mapClipStatus(clip.status),
     platforms: [], // Clips can be used for any platform
-    score: clip.viralityScore || clip.qualityScore,
+    score: clip.engagementPotential || clip.qualityScore,
     thumbnailUrl: clip.thumbnailUrl,
     createdAt: new Date(clip.createdAt),
     sourceId: clip.id,

@@ -32,7 +32,7 @@ interface VideoPlayerProps {
   muted?: boolean;
   loop?: boolean;
   showControls?: boolean;
-  viralityScore?: number;
+  strengthScore?: number;
   duration?: number;
   title?: string;
   onPlay?: () => void;
@@ -64,7 +64,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
   muted: initialMuted = false, // Default to unmuted so audio plays
   loop = false,
   showControls = true,
-  viralityScore,
+  strengthScore,
   duration,
   title,
   onPlay,
@@ -268,10 +268,10 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(funct
         />
       )}
 
-      {/* Virality Score Badge */}
-      {viralityScore !== undefined && viralityScore > 0 && (
+      {/* Strength Score Badge — comparative clip strength */}
+      {strengthScore !== undefined && strengthScore > 0 && (
         <div className="absolute top-3 left-3 bg-gradient-to-r from-accent to-accent/80 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg z-10">
-          🔥 {viralityScore}% viral
+          🔥 {strengthScore}% strength
         </div>
       )}
 

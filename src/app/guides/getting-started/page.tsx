@@ -70,7 +70,7 @@ export default function GettingStartedGuidePage() {
             <p>Once you submit, EchoMe gets to work. Here&apos;s what happens behind the scenes:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Audio is transcribed with speaker detection</li>
-              <li>The best clips are extracted and scored for virality</li>
+              <li>The best clips are extracted and scored by strength</li>
               <li>Written content is generated across every platform &mdash; LinkedIn, Instagram, X, email, blog, and carousel</li>
             </ul>
             <p className="mt-2">You&apos;ll get a notification when your Content Kit is ready.</p>

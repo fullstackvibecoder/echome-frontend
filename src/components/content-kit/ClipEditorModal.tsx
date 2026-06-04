@@ -352,10 +352,10 @@ export default function ClipEditorModal({
                   <span>{formatDuration(clip.duration)}</span>
                   <span className="text-border">|</span>
                   <span>{FORMAT_LABELS[clip.format] || clip.format}</span>
-                  {clip.viralityScore != null && clip.viralityScore > 0 && (
+                  {clip.engagementPotential != null && clip.engagementPotential > 0 && (
                     <>
                       <span className="text-border">|</span>
-                      <span className="text-accent">{clip.viralityScore}% viral</span>
+                      <span className="text-accent">{clip.engagementPotential}% strength</span>
                     </>
                   )}
                 </div>

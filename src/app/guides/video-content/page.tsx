@@ -110,7 +110,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={5} title="Editing video clips">
             <p>
-              View your extracted clips along with virality scores. <strong className="text-text-primary">Single speaker view</strong> shows one frame. <strong className="text-text-primary">Split-screen view</strong> is auto-generated when multiple speakers are detected, such as in interviews or podcasts. Download the Single or Split version of each clip.
+              View your extracted clips along with strength scores. <strong className="text-text-primary">Single speaker view</strong> shows one frame. <strong className="text-text-primary">Split-screen view</strong> is auto-generated when multiple speakers are detected, such as in interviews or podcasts. Download the Single or Split version of each clip.
             </p>
           </Step>
 

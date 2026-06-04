@@ -108,7 +108,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={4} title="Video clip dashboard">
-            <p className="mb-2">After processing, EchoMe automatically extracts the best clips from your video. Each clip receives a virality score so you can prioritize the strongest moments.</p>
+            <p className="mb-2">After processing, EchoMe automatically extracts the best clips from your video. Each clip receives a strength score so you can prioritize the strongest moments.</p>
             <p>When multiple speakers are detected, EchoMe generates both single-speaker and split-screen views so you can choose the best format for each platform.</p>
           </Step>
 
