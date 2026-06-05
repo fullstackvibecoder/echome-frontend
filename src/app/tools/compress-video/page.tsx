@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Upload, Download, Zap, Shield, Clock, FileVideo, Check, ArrowRight, ChevronDown, Loader2 } from 'lucide-react';
 import { JsonLd } from '@/components/json-ld';
+import { uploadFileInParts } from '@/lib/r2-multipart-upload';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.tryechome.com/api';
 const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
@@ -65,6 +66,38 @@ export default function CompressVideoToolPage() {
     if (droppedFile) handleFileSelect(droppedFile);
   }, [handleFileSelect]);
 
+  const pollStatus = async (jobId: string) => {
+    const timer = setInterval(() => setProgress((p) => (p >= 50 && p < 90 ? p + 2 : p)), 1000);
+    try {
+      for (let i = 0; i < 600; i++) { // ~30 min @ 3s
+        await new Promise((r) => setTimeout(r, 3000));
+        const res = await fetch(`${API_BASE}/tools/compress-video/status/${jobId}`);
+        if (!res.ok) continue;
+        const s = await res.json();
+        if (s.state === 'done') {
+          setResult({
+            originalSize: s.originalSize || file?.size || 0,
+            compressedSize: s.compressedSize || 0,
+            reductionPercent: s.reductionPercent || 0,
+            downloadUrl: s.downloadUrl,
+          });
+          setProgress(100);
+          setState('done');
+          return;
+        }
+        if (s.state === 'error') {
+          setError(s.error || 'Compression failed. Please try again.');
+          setState('error');
+          return;
+        }
+      }
+      setError('Compression is taking longer than expected. Please try again.');
+      setState('error');
+    } finally {
+      clearInterval(timer);
+    }
+  };
+
   const handleCompress = async () => {
     if (!file) return;
     setState('uploading');
@@ -73,87 +106,62 @@ export default function CompressVideoToolPage() {
     setResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('video', file);
-      formData.append('quality', quality);
+      // 1. init — get presigned R2 multipart part URLs
+      const initRes = await fetch(`${API_BASE}/tools/compress-video/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, size: file.size, contentType: file.type || 'video/mp4', quality }),
+      });
+      if (initRes.status === 429) {
+        setError("You've reached the compression limit. Try again in an hour, or sign up for unlimited access.");
+        setState('error');
+        return;
+      }
+      if (!initRes.ok) {
+        const e = await initRes.json().catch(() => ({}));
+        setError(e?.error?.message || 'Could not start upload. Please try again.');
+        setState('error');
+        return;
+      }
+      const { jobId, key, uploadId, partUrls, partSize } = await initRes.json();
 
-      const xhr = new XMLHttpRequest();
-
-      const downloadPromise = new Promise<void>((resolve, reject) => {
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const uploadPercent = Math.round((e.loaded / e.total) * 50);
-            setProgress(uploadPercent);
-            if (uploadPercent >= 50) setState('compressing');
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            const originalSize = parseInt(xhr.getResponseHeader('X-Original-Size') || '0', 10);
-            const compressedSize = parseInt(xhr.getResponseHeader('X-Compressed-Size') || '0', 10);
-            const reductionPercent = parseFloat(xhr.getResponseHeader('X-Reduction-Percent') || '0');
-
-            const blob = new Blob([xhr.response], { type: 'video/mp4' });
-            const downloadUrl = URL.createObjectURL(blob);
-
-            setResult({
-              originalSize: originalSize || file.size,
-              compressedSize: compressedSize || blob.size,
-              reductionPercent: reductionPercent || Math.round((1 - blob.size / file.size) * 100),
-              downloadUrl,
-            });
-            setProgress(100);
-            setState('done');
-            resolve();
-          } else if (xhr.status === 429) {
-            setError("You've reached the compression limit. Try again in an hour, or sign up for unlimited access.");
-            setState('error');
-            reject(new Error('Rate limited'));
-          } else {
-            let errorMsg = 'Compression failed. Please try again.';
-            try {
-              const errorData = JSON.parse(xhr.responseText);
-              if (errorData.error?.message) errorMsg = errorData.error.message;
-            } catch { /* ignore parse errors */ }
-            setError(errorMsg);
-            setState('error');
-            reject(new Error(errorMsg));
-          }
-        };
-
-        xhr.onerror = () => {
-          setError('Network error. Please check your connection and try again.');
-          setState('error');
-          reject(new Error('Network error'));
-        };
+      // 2. upload parts directly to R2 (0-50% of the bar)
+      const parts = await uploadFileInParts(file, partUrls, partSize, {
+        concurrency: 4,
+        onProgress: (uploaded) => setProgress(Math.min(50, Math.round((uploaded / file.size) * 50))),
       });
 
-      xhr.open('POST', `${API_BASE}/tools/compress-video`);
-      xhr.responseType = 'arraybuffer';
-      xhr.send(formData);
+      // 3. finalize the multipart upload + queue compression
+      setProgress(50);
+      setState('compressing');
+      const completeRes = await fetch(`${API_BASE}/tools/compress-video/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId, uploadId, key, parts }),
+      });
+      if (!completeRes.ok) {
+        const e = await completeRes.json().catch(() => ({}));
+        setError(e?.error?.message || 'Could not finalize upload. Please try again.');
+        setState('error');
+        return;
+      }
 
-      // Simulate compression progress after upload completes
-      const progressTimer = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 50 && prev < 90) return prev + 2;
-          return prev;
-        });
-      }, 500);
-
-      await downloadPromise;
-      clearInterval(progressTimer);
-    } catch {
-      // Error already handled in xhr callbacks
+      // 4. poll for compression result (50-100%)
+      await pollStatus(jobId);
+    } catch (err) {
+      setError(
+        err instanceof Error && /etag/i.test(err.message)
+          ? 'Upload failed — your browser could not confirm the upload. Please try again.'
+          : 'Upload failed. Please check your connection and try again.',
+      );
+      setState('error');
     }
   };
 
   const handleDownload = () => {
-    if (!result?.downloadUrl || !file) return;
+    if (!result?.downloadUrl) return;
     const a = document.createElement('a');
     a.href = result.downloadUrl;
-    const ext = file.name.split('.').pop() || 'mp4';
-    a.download = file.name.replace(`.${ext}`, `-compressed.mp4`);
     a.click();
   };
 
