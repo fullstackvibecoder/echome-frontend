@@ -40,9 +40,9 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   threads:         { id: 'threads',         name: 'Threads',         Icon: AtSign,    postingMode: 'api',  hint: 'Via linked Instagram' },
   x:               { id: 'x',               name: 'X',               Icon: Twitter,   postingMode: 'link', hint: 'Copy-and-open flow for now' },
   tiktok:          { id: 'tiktok',          name: 'TikTok',          Icon: Music2,    postingMode: 'link' },
-  youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'link' },
+  youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'api',  hint: 'Posts to your Community tab · needs ≥500 subscribers' },
   pinterest:       { id: 'pinterest',       name: 'Pinterest',       Icon: Pin,       postingMode: 'link' },
-  bluesky:         { id: 'bluesky',         name: 'Bluesky',         Icon: CloudSun,  postingMode: 'link' },
+  bluesky:         { id: 'bluesky',         name: 'Bluesky',         Icon: CloudSun,  postingMode: 'api',  hint: 'Up to 300 characters' },
   google_business: { id: 'google_business', name: 'Google Business', Icon: MapPin,    postingMode: 'link' },
 };
 
