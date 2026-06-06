@@ -19,7 +19,7 @@ export async function uploadFileInParts(
   opts: UploadOptions = {},
 ): Promise<CompletedPart[]> {
   const concurrency = opts.concurrency ?? 4;
-  const maxRetries = opts.maxRetriesPerPart ?? 3;
+  const maxRetries = opts.maxRetriesPerPart ?? 5;
   const results: CompletedPart[] = new Array(partUrls.length);
   const perPartLoaded: number[] = new Array(partUrls.length).fill(0);
 
@@ -54,7 +54,15 @@ export async function uploadFileInParts(
         xhr.onerror = () => reject(new Error(`Part ${partNumber} network error`));
         xhr.send(chunk);
       }).catch((err) => {
-        if (tryNum < maxRetries) { perPartLoaded[idx] = 0; return attempt(tryNum + 1); }
+        if (tryNum < maxRetries) {
+          // Exponential backoff (capped at 8s) before retrying — lets a
+          // transient blip or brief congestion clear instead of burning all
+          // retries instantly. Helps flaky / slow connections recover a part
+          // rather than aborting the whole multi-part upload.
+          perPartLoaded[idx] = 0;
+          const backoffMs = Math.min(500 * 2 ** (tryNum - 1), 8000);
+          return new Promise<void>((r) => setTimeout(r, backoffMs)).then(() => attempt(tryNum + 1));
+        }
         throw err;
       });
 
