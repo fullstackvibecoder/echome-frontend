@@ -65,7 +65,6 @@ const POST_ACTION_PLATFORM_MAP: Record<string, string> = {
   linkedin: 'linkedin',
   twitter: 'x',
   tiktok: 'tiktok',
-  youtube: 'youtube',
 };
 
 interface InlineWrittenContentProps {
@@ -273,11 +272,12 @@ export function InlineWrittenContent({
             {/* Post Now + Schedule for postable platforms. WrittenPostActions
                 handles the api/link mode split internally (auto-post for
                 connected IG/LI/FB/Threads; copy-and-open compose for X/
-                TikTok/YouTube). Tier fallback: when canAutoPost is false,
+                TikTok). Tier fallback: when canAutoPost is false,
                 the Schedule button becomes a calendar reminder.
-                For platforms not in the map (email, video-script), fall
-                back to a plain Schedule button that opens the kit-level
-                calendar reminder flow. */}
+                For platforms not in the map (email, video-script, youtube),
+                fall back to a plain Schedule button that opens the kit-level
+                calendar reminder flow. (YouTube is video-only via Outstand —
+                clips post as Shorts — so its written tab just sets a reminder.) */}
             {POST_ACTION_PLATFORM_MAP[activePlatform] ? (
               <WrittenPostActions
                 platform={POST_ACTION_PLATFORM_MAP[activePlatform]}

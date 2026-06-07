@@ -33,7 +33,7 @@ const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon; hint?: stri
   { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin, hint: 'Personal profile or Company Page both work' },
   { id: 'facebook', name: 'Facebook', Icon: Facebook, hint: 'Requires a Facebook Page (Meta does not allow API posting to personal profiles)' },
   { id: 'threads', name: 'Threads', Icon: AtSign, hint: 'Requires an Instagram Business/Creator account linked to Threads' },
-  { id: 'youtube', name: 'YouTube', Icon: Youtube, hint: 'Posts to your channel\'s Community tab. Requires ≥500 subscribers (YouTube\'s own eligibility floor).' },
+  { id: 'youtube', name: 'YouTube', Icon: Youtube, hint: 'Publishes vertical clips as YouTube Shorts' },
   { id: 'bluesky', name: 'Bluesky', Icon: Cloud, hint: 'Short-form posts up to 300 characters' },
 ];
 

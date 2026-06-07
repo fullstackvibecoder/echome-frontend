@@ -108,8 +108,8 @@ export default function SchedulingPostsGuidePage() {
                 Instagram Business or Creator account.
               </li>
               <li>
-                <strong>YouTube</strong> &mdash; community posts. YouTube requires at least 500 subscribers
-                on the channel before community posts are enabled.
+                <strong>YouTube</strong> &mdash; EchoMe publishes your edited clips as YouTube Shorts (vertical
+                video, up to 3 minutes). No subscriber requirement.
               </li>
               <li>
                 <strong>Bluesky</strong> &mdash; connect with an app password from your Bluesky settings.
