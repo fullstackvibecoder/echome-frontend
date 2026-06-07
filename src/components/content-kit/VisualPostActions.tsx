@@ -81,9 +81,11 @@ interface Props {
    * user edits (captions, overlays) actually land on the published post.
    */
   finalizationRecipe?: FinalizationRecipe;
+  /** Per-platform disable reasons forwarded to the picker (e.g. YouTube Short ineligibility). */
+  disabledReasons?: Partial<Record<PlatformId, string>>;
 }
 
-export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe }: Props) {
+export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe, disabledReasons }: Props) {
   const { canAutoPost } = useSubscription();
 
   const [connectedAccounts, setConnectedAccounts] = useState<PlatformId[]>([]);
@@ -256,6 +258,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         onChange={setSelected}
         connectedPlatforms={connectedAccounts}
         disabled={submitting}
+        disabledReasons={disabledReasons}
       />
 
       {!showSchedule ? (

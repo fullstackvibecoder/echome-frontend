@@ -40,7 +40,7 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   threads:         { id: 'threads',         name: 'Threads',         Icon: AtSign,    postingMode: 'api',  hint: 'Via linked Instagram' },
   x:               { id: 'x',               name: 'X',               Icon: Twitter,   postingMode: 'link', hint: 'Copy-and-open flow for now' },
   tiktok:          { id: 'tiktok',          name: 'TikTok',          Icon: Music2,    postingMode: 'link' },
-  youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'api',  hint: 'Posts to your Community tab · needs ≥500 subscribers' },
+  youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'api',  hint: 'Posts as a YouTube Short (vertical, ≤3 min)' },
   pinterest:       { id: 'pinterest',       name: 'Pinterest',       Icon: Pin,       postingMode: 'link' },
   bluesky:         { id: 'bluesky',         name: 'Bluesky',         Icon: CloudSun,  postingMode: 'api',  hint: 'Up to 300 characters' },
   google_business: { id: 'google_business', name: 'Google Business', Icon: MapPin,    postingMode: 'link' },
@@ -56,6 +56,9 @@ interface Props {
   availablePlatforms?: PlatformId[];
   /** Disable entirely (e.g., while submitting) */
   disabled?: boolean;
+  /** Per-platform disable reasons (e.g. a clip too long for a YouTube Short).
+   *  A platform present here renders disabled with the reason as its tooltip. */
+  disabledReasons?: Partial<Record<PlatformId, string>>;
 }
 
 export function PlatformMultiPicker({
@@ -64,6 +67,7 @@ export function PlatformMultiPicker({
   connectedPlatforms,
   availablePlatforms,
   disabled,
+  disabledReasons,
 }: Props) {
   const connected = useMemo(() => new Set(connectedPlatforms), [connectedPlatforms]);
   const platforms = (availablePlatforms || (Object.keys(PLATFORM_META) as PlatformId[]))
@@ -81,7 +85,8 @@ export function PlatformMultiPicker({
         {platforms.map((p) => {
           const isSelected = value.includes(p.id);
           const isConnected = connected.has(p.id);
-          const isDisabled = disabled || !isConnected;
+          const reason = disabledReasons?.[p.id];
+          const isDisabled = disabled || !isConnected || Boolean(reason);
           const Icon = p.Icon;
 
           const chipClass = [
@@ -92,11 +97,13 @@ export function PlatformMultiPicker({
             isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
           ].join(' ');
 
-          const tooltipText = !isConnected
-            ? `${p.name} isn't connected yet — connect it in Settings to post here`
-            : p.postingMode === 'link'
-              ? `${p.name} uses Copy & Open for now — we'll paste content into the app for you`
-              : p.hint || '';
+          const tooltipText = reason
+            ? reason
+            : !isConnected
+              ? `${p.name} isn't connected yet — connect it in Settings to post here`
+              : p.postingMode === 'link'
+                ? `${p.name} uses Copy & Open for now — we'll paste content into the app for you`
+                : p.hint || '';
 
           return (
             <button
