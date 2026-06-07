@@ -158,6 +158,10 @@ export default function ClipEditorModal({
     ? (clip as any).splitScreenUrl
     : clip.exports?.[0]?.url || '';
   const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
+  const youtubeDisabledReasons = (() => {
+    const reason = youtubeShortBlockReason(clip.duration, aspectRatio);
+    return reason ? { youtube: reason } : undefined;
+  })();
   const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
 
   // Debounced save for transcript edits, drag positions, and box resize.
@@ -559,10 +563,7 @@ export default function ClipEditorModal({
                 caption={postCaption.trim() || instagramCaption || ''}
                 mediaUrls={videoSrc ? [videoSrc] : []}
                 outputKind="clip"
-                disabledReasons={(() => {
-                  const reason = youtubeShortBlockReason(clip.duration, aspectRatio);
-                  return reason ? { youtube: reason } : undefined;
-                })()}
+                disabledReasons={youtubeDisabledReasons}
                 finalizationRecipe={{
                   kind: 'clip',
                   upload_id: uploadId,
