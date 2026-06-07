@@ -982,6 +982,7 @@ export default function CarouselEditorModal({
               caption={postCaptionDraft || fallbackCaption || ''}
               mediaUrls={slides.map((s) => s.publicUrl).filter(Boolean)}
               outputKind="carousel"
+              disabledReasons={{ youtube: 'YouTube posting supports vertical video clips, not carousels.' }}
               finalizationRecipe={{
                 kind: 'carousel',
                 kit_id: contentKitId,

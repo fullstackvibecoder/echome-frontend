@@ -17,6 +17,7 @@ import type { CaptionStylePreset } from '@/lib/caption-parser';
 import type { CaptionSegment } from '@/lib/caption-parser';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
+import { youtubeShortBlockReason } from '@/components/scheduling/youtube-short-eligibility';
 import { ClipEditorTour } from '@/components/tour/tours/clip-editor';
 
 interface ClipEditorModalProps {
@@ -558,6 +559,10 @@ export default function ClipEditorModal({
                 caption={postCaption.trim() || instagramCaption || ''}
                 mediaUrls={videoSrc ? [videoSrc] : []}
                 outputKind="clip"
+                disabledReasons={(() => {
+                  const reason = youtubeShortBlockReason(clip.duration, aspectRatio);
+                  return reason ? { youtube: reason } : undefined;
+                })()}
                 finalizationRecipe={{
                   kind: 'clip',
                   upload_id: uploadId,
