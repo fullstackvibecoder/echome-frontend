@@ -83,6 +83,9 @@ interface Props {
   finalizationRecipe?: FinalizationRecipe;
   /** Per-platform disable reasons forwarded to the picker (e.g. YouTube Short ineligibility). */
   disabledReasons?: Partial<Record<PlatformId, string>>;
+  /** When posting a reel to YouTube, the video title + duration for the Short override. */
+  youtubeTitle?: string;
+  youtubeDurationSeconds?: number;
 }
 
 // Platforms EchoMe can auto-post to via the API/recipe fanout (vs. copy-and-open
@@ -95,7 +98,7 @@ const API_AUTOPOST_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads', 
 // eligibility-gated (vertical, ≤3 min), so we don't auto-select it.
 const DEFAULT_SELECTED_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads'];
 
-export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe, disabledReasons }: Props) {
+export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe, disabledReasons, youtubeTitle, youtubeDurationSeconds }: Props) {
   const { canAutoPost } = useSubscription();
 
   const [connectedAccounts, setConnectedAccounts] = useState<PlatformId[]>([]);
@@ -172,6 +175,8 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         text: caption,
         media_urls: mediaUrls,
         finalization_recipe: finalizationRecipe,
+        youtube_title: youtubeTitle,
+        youtube_duration_seconds: youtubeDurationSeconds,
         rows: apiRows,
         created_via: 'manual_inline',
       });
@@ -218,6 +223,8 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
           text: caption,
           media_urls: mediaUrls,
           finalization_recipe: finalizationRecipe,
+          youtube_title: youtubeTitle,
+          youtube_duration_seconds: youtubeDurationSeconds,
           rows: apiRows,
           created_via: 'manual_inline',
         });
