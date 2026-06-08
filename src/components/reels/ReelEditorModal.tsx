@@ -7,6 +7,8 @@ import { BRollStrip } from './BRollStrip';
 import SegmentPreview from './SegmentPreview';
 import SegmentEditor from './SegmentEditor';
 import { PostCaptionBlock } from '@/components/content-kit/PostCaptionBlock';
+import { VisualPostActions } from '@/components/content-kit/VisualPostActions';
+import { youtubeShortBlockReason } from '@/components/scheduling/youtube-short-eligibility';
 import type { TextOverlayStyleId } from '@/types';
 
 interface BRollClip {
@@ -26,6 +28,10 @@ interface ReelEditorModalProps {
   instagramCaption?: string;
   /** Per-reel post caption (preferred for the post-caption display) */
   postCaption?: string | null;
+  /** Reel title — used as the YouTube Short title when scheduling */
+  reelTitle?: string | null;
+  /** Rendered reel duration in ms — gates YouTube Short eligibility */
+  reelDurationMs?: number | null;
 }
 
 const STYLE_OPTIONS: Array<{
@@ -47,6 +53,8 @@ export default function ReelEditorModal({
   reelProjectId,
   instagramCaption,
   postCaption,
+  reelTitle,
+  reelDurationMs,
 }: ReelEditorModalProps) {
   // ---- State ----
   const [clips, setClips] = useState<BRollClip[]>([]);
@@ -548,7 +556,23 @@ export default function ReelEditorModal({
                         Re-generate
                       </button>
                     </div>
-                  ) : (
+                  ) : null}
+                  {outputUrl && !renderIsStale && (
+                    <VisualPostActions
+                      contentKitId={contentKitId}
+                      caption={postCaptionDraft}
+                      mediaUrls={outputUrl ? [outputUrl] : []}
+                      outputKind="reel"
+                      youtubeTitle={reelTitle ?? undefined}
+                      youtubeDurationSeconds={reelDurationMs ? reelDurationMs / 1000 : undefined}
+                      disabledReasons={(() => {
+                        const secs = reelDurationMs ? reelDurationMs / 1000 : 0;
+                        const reason = youtubeShortBlockReason(secs, '9:16');
+                        return reason ? { youtube: reason } : undefined;
+                      })()}
+                    />
+                  )}
+                  {!(outputUrl && !renderIsStale) && (
                     <button
                       type="button"
                       onClick={() => {

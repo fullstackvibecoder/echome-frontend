@@ -869,6 +869,8 @@ export default function ContentKitDetailContent() {
           reelProjectId={(detail as any)?.reel?.id}
           instagramCaption={detail?.contentKit?.contentInstagram}
           postCaption={(detail as any)?.reelContent?.postCaption}
+          reelTitle={(detail as any)?.reel?.title}
+          reelDurationMs={(detail as any)?.reel?.outputDurationMs}
         />
       )}
     </div>
