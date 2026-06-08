@@ -397,6 +397,11 @@ export default function ReelEditorModal({
 
   if (!open) return null;
 
+  const reelIsReady = !!outputUrl && !renderIsStale;
+  const reelDurationSeconds = reelDurationMs ? reelDurationMs / 1000 : undefined;
+  const youtubeBlockReason = youtubeShortBlockReason(reelDurationSeconds ?? 0, '9:16');
+  const reelDisabledReasons = youtubeBlockReason ? { youtube: youtubeBlockReason } : undefined;
+
   return (
     <div
       ref={backdropRef}
@@ -533,7 +538,7 @@ export default function ReelEditorModal({
                       Your changes haven't been rendered yet — click <strong>Render new version</strong> below to update your download.
                     </p>
                   )}
-                  {outputUrl && !renderIsStale ? (
+                  {reelIsReady ? (
                     <div className="flex gap-3">
                       <a
                         href={outputUrl}
@@ -557,22 +562,18 @@ export default function ReelEditorModal({
                       </button>
                     </div>
                   ) : null}
-                  {outputUrl && !renderIsStale && (
+                  {reelIsReady && (
                     <VisualPostActions
                       contentKitId={contentKitId}
                       caption={postCaptionDraft}
                       mediaUrls={outputUrl ? [outputUrl] : []}
                       outputKind="reel"
                       youtubeTitle={reelTitle ?? undefined}
-                      youtubeDurationSeconds={reelDurationMs ? reelDurationMs / 1000 : undefined}
-                      disabledReasons={(() => {
-                        const secs = reelDurationMs ? reelDurationMs / 1000 : 0;
-                        const reason = youtubeShortBlockReason(secs, '9:16');
-                        return reason ? { youtube: reason } : undefined;
-                      })()}
+                      youtubeDurationSeconds={reelDurationSeconds}
+                      disabledReasons={reelDisabledReasons}
                     />
                   )}
-                  {!(outputUrl && !renderIsStale) && (
+                  {!reelIsReady && (
                     <button
                       type="button"
                       onClick={() => {
