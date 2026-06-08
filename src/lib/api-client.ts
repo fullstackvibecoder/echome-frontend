@@ -4203,6 +4203,9 @@ export const api = {
       source_output_id?: string;
       text?: string;
       media_urls?: string[];
+      /** YouTube Short override for eager video posts (reels). title → the YT video title. */
+      youtube_title?: string;
+      youtube_duration_seconds?: number;
       /**
        * Optional recipe describing how to produce post-ready media. When set,
        * the backend defers post creation to a worker that burns captions on
