@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import {
   Loader2, Calendar, CheckCircle, Clock, AlertTriangle, RefreshCw, Sparkles,
   Instagram, Linkedin, Facebook, AtSign,
@@ -107,7 +108,7 @@ export function FanoutCalendar() {
       toast.success('Retrying post');
       load();
     } catch (e: any) {
-      toast.error(e?.message || 'Retry failed');
+      toast.error(extractErrorMessage(e, 'Failed to retry post. Please try again.'));
     } finally {
       setActingOnPost(null);
     }
@@ -120,7 +121,7 @@ export function FanoutCalendar() {
       toast.success('Cancelled');
       load();
     } catch (e: any) {
-      toast.error(e?.message || 'Cancel failed');
+      toast.error(extractErrorMessage(e, 'Failed to cancel post. Please try again.'));
     } finally {
       setActingOnPost(null);
     }

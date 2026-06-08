@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { validateFile, isMboxFile } from '@/lib/file-utils';
 import { parseMboxFile } from '@/lib/mbox-parser';
@@ -148,7 +149,7 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
     } catch (err) {
       setUrlImporting(false);
       setUrlStatus('');
-      toast.error(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(extractErrorMessage(err, 'Import failed. Please try again.'));
     }
   };
 
@@ -198,7 +199,7 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
 
       onImportComplete();
     } catch (err) {
-      toast.error(`Failed to import emails: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(extractErrorMessage(err, 'Failed to import emails. Please try again.'));
     } finally {
       setMboxUploading(false);
       setMboxStatus('');
@@ -327,7 +328,7 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
       setPlaceholder('Paste your best writing, a YouTube link, or drop a file — Echo learns your voice from it');
       onImportComplete();
     } catch (err) {
-      toast.error(`Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(extractErrorMessage(err, 'Failed to save content. Please try again.'));
     } finally {
       setSubmitting(false);
     }
