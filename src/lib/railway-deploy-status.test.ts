@@ -65,4 +65,22 @@ describe('fetchLatestDeploymentState', () => {
     const fakeFetch = (async () => ({ ok: true, json: async () => ({ data: { deployments: { edges: [] } } }) })) as unknown as typeof fetch;
     expect(await fetchLatestDeploymentState(cfg, fakeFetch)).toBe('unknown');
   });
+  it('treats a RECENT SUCCESS as deploying (new container still booting)', async () => {
+    const now = 1_000_000_000_000;
+    const createdAt = new Date(now - 60_000).toISOString(); // 1 min ago
+    const fakeFetch = (async () => ({
+      ok: true,
+      json: async () => ({ data: { deployments: { edges: [{ node: { status: 'SUCCESS', createdAt } }] } } }),
+    })) as unknown as typeof fetch;
+    expect(await fetchLatestDeploymentState(cfg, fakeFetch, 3000, now)).toBe('deploying');
+  });
+  it('treats an OLD SUCCESS as up (genuine outage if backend down)', async () => {
+    const now = 1_000_000_000_000;
+    const createdAt = new Date(now - 60 * 60_000).toISOString(); // 1 hour ago
+    const fakeFetch = (async () => ({
+      ok: true,
+      json: async () => ({ data: { deployments: { edges: [{ node: { status: 'SUCCESS', createdAt } }] } } }),
+    })) as unknown as typeof fetch;
+    expect(await fetchLatestDeploymentState(cfg, fakeFetch, 3000, now)).toBe('up');
+  });
 });
