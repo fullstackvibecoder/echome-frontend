@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { toast } from 'sonner';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
@@ -141,8 +142,8 @@ export function ConnectedAccounts() {
         toast.error('Could not get authorization URL. Please try again.');
         setConnecting(null);
       }
-    } catch {
-      toast.error('Failed to start connection. Please try again.');
+    } catch (err) {
+      toast.error(extractErrorMessage(err, 'Failed to start connection. Please try again.'));
       setConnecting(null);
     }
   };
@@ -154,8 +155,8 @@ export function ConnectedAccounts() {
       setAccounts((prev) => prev.filter((a) => a.id !== account.id));
       const name = PLATFORMS.find(p => p.id === account.platform)?.name || account.platform;
       toast.success(`${name} disconnected`);
-    } catch {
-      toast.error('Failed to disconnect');
+    } catch (err) {
+      toast.error(extractErrorMessage(err, 'Failed to disconnect your account. Please try again.'));
     } finally {
       setDisconnecting(null);
     }
