@@ -28,10 +28,6 @@ interface ReelEditorModalProps {
   instagramCaption?: string;
   /** Per-reel post caption (preferred for the post-caption display) */
   postCaption?: string | null;
-  /** Reel title — used as the YouTube Short title when scheduling */
-  reelTitle?: string | null;
-  /** Rendered reel duration in ms — gates YouTube Short eligibility */
-  reelDurationMs?: number | null;
 }
 
 const STYLE_OPTIONS: Array<{
@@ -53,8 +49,6 @@ export default function ReelEditorModal({
   reelProjectId,
   instagramCaption,
   postCaption,
-  reelTitle,
-  reelDurationMs,
 }: ReelEditorModalProps) {
   // ---- State ----
   const [clips, setClips] = useState<BRollClip[]>([]);
@@ -75,6 +69,11 @@ export default function ReelEditorModal({
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | undefined>(reelProjectId);
+  // Sourced from the reelProject fetch (see fetchData). The YouTube Short
+  // title override and the >180s eligibility gate read from these — they
+  // were previously dead props threaded from an unpopulated detail.reel.
+  const [reelTitle, setReelTitle] = useState<string | null>(null);
+  const [reelDurationMs, setReelDurationMs] = useState<number | null>(null);
   // Editable per-reel post caption. Mirrors the carousel editor pattern:
   // local mirror feeds the textarea instantly, debounced PATCH persists to
   // content_kits.content_reels.post_caption (JSONB nested).
@@ -148,6 +147,8 @@ export default function ReelEditorModal({
       let loadedHookText = '';
       if (reelProject) {
         setProjectId(reelProject.id);
+        setReelTitle(reelProject.title ?? null);
+        setReelDurationMs(reelProject.outputDurationMs ?? null);
         const overlays = reelProject.generatedContent?.segmentOverlays;
         if (overlays && overlays.length >= 2) {
           loadedMode = 'segments';
