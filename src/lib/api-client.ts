@@ -4203,6 +4203,9 @@ export const api = {
       source_output_id?: string;
       text?: string;
       media_urls?: string[];
+      /** YouTube Short override for eager video posts (reels). title → the YT video title. */
+      youtube_title?: string;
+      youtube_duration_seconds?: number;
       /**
        * Optional recipe describing how to produce post-ready media. When set,
        * the backend defers post creation to a worker that burns captions on
@@ -4390,6 +4393,10 @@ export const api = {
         source_trace: Record<string, string>;
         ready: boolean;
         expires_at: string;
+        voice_sources?: { youtube: string[]; blog: string[]; social?: string[] };
+        coverage?: Record<string, { covered: boolean; confidence: number }>;
+        needs_confirmation?: boolean;
+        ambiguous_candidates?: Array<{ url: string; name: string }>;
       };
     },
 
@@ -4425,6 +4432,10 @@ export const api = {
         source_trace: Record<string, string>;
         ready: boolean;
         expires_at: string;
+        voice_sources?: { youtube: string[]; blog: string[]; social?: string[] };
+        coverage?: Record<string, { covered: boolean; confidence: number }>;
+        needs_confirmation?: boolean;
+        ambiguous_candidates?: Array<{ url: string; name: string }>;
       };
     },
 
@@ -4435,6 +4446,8 @@ export const api = {
     confirm: async (body: {
       fields_to_accept: string[];
       fields_to_override: Record<string, string>;
+      voice_sources_to_ingest?: { youtube?: string[]; blog?: string[]; social?: string[] };
+      identity_confirmed?: boolean;
     }) => {
       const response = await apiClient.post('/wbtw/profile/confirm', body);
       return response.data.data as {

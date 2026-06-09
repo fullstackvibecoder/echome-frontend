@@ -7,6 +7,8 @@ import { BRollStrip } from './BRollStrip';
 import SegmentPreview from './SegmentPreview';
 import SegmentEditor from './SegmentEditor';
 import { PostCaptionBlock } from '@/components/content-kit/PostCaptionBlock';
+import { VisualPostActions } from '@/components/content-kit/VisualPostActions';
+import { youtubeShortBlockReason } from '@/components/scheduling/youtube-short-eligibility';
 import type { TextOverlayStyleId } from '@/types';
 
 interface BRollClip {
@@ -67,6 +69,11 @@ export default function ReelEditorModal({
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | undefined>(reelProjectId);
+  // Sourced from the reelProject fetch (see fetchData). The YouTube Short
+  // title override and the >180s eligibility gate read from these — they
+  // were previously dead props threaded from an unpopulated detail.reel.
+  const [reelTitle, setReelTitle] = useState<string | null>(null);
+  const [reelDurationMs, setReelDurationMs] = useState<number | null>(null);
   // Editable per-reel post caption. Mirrors the carousel editor pattern:
   // local mirror feeds the textarea instantly, debounced PATCH persists to
   // content_kits.content_reels.post_caption (JSONB nested).
@@ -140,6 +147,8 @@ export default function ReelEditorModal({
       let loadedHookText = '';
       if (reelProject) {
         setProjectId(reelProject.id);
+        setReelTitle(reelProject.title ?? null);
+        setReelDurationMs(reelProject.outputDurationMs ?? null);
         const overlays = reelProject.generatedContent?.segmentOverlays;
         if (overlays && overlays.length >= 2) {
           loadedMode = 'segments';
@@ -389,6 +398,11 @@ export default function ReelEditorModal({
 
   if (!open) return null;
 
+  const reelIsReady = !!outputUrl && !renderIsStale;
+  const reelDurationSeconds = reelDurationMs ? reelDurationMs / 1000 : undefined;
+  const youtubeBlockReason = youtubeShortBlockReason(reelDurationSeconds ?? 0, '9:16');
+  const reelDisabledReasons = youtubeBlockReason ? { youtube: youtubeBlockReason } : undefined;
+
   return (
     <div
       ref={backdropRef}
@@ -525,7 +539,7 @@ export default function ReelEditorModal({
                       Your changes haven't been rendered yet — click <strong>Render new version</strong> below to update your download.
                     </p>
                   )}
-                  {outputUrl && !renderIsStale ? (
+                  {reelIsReady ? (
                     <div className="flex gap-3">
                       <a
                         href={outputUrl}
@@ -548,7 +562,19 @@ export default function ReelEditorModal({
                         Re-generate
                       </button>
                     </div>
-                  ) : (
+                  ) : null}
+                  {reelIsReady && (
+                    <VisualPostActions
+                      contentKitId={contentKitId}
+                      caption={postCaptionDraft}
+                      mediaUrls={outputUrl ? [outputUrl] : []}
+                      outputKind="reel"
+                      youtubeTitle={reelTitle ?? undefined}
+                      youtubeDurationSeconds={reelDurationSeconds}
+                      disabledReasons={reelDisabledReasons}
+                    />
+                  )}
+                  {!reelIsReady && (
                     <button
                       type="button"
                       onClick={() => {

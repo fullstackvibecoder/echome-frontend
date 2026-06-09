@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { toast } from 'sonner';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
@@ -33,7 +34,7 @@ const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon; hint?: stri
   { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin, hint: 'Personal profile or Company Page both work' },
   { id: 'facebook', name: 'Facebook', Icon: Facebook, hint: 'Requires a Facebook Page (Meta does not allow API posting to personal profiles)' },
   { id: 'threads', name: 'Threads', Icon: AtSign, hint: 'Requires an Instagram Business/Creator account linked to Threads' },
-  { id: 'youtube', name: 'YouTube', Icon: Youtube, hint: 'Posts to your channel\'s Community tab. Requires ≥500 subscribers (YouTube\'s own eligibility floor).' },
+  { id: 'youtube', name: 'YouTube', Icon: Youtube, hint: 'Publishes vertical clips as YouTube Shorts' },
   { id: 'bluesky', name: 'Bluesky', Icon: Cloud, hint: 'Short-form posts up to 300 characters' },
 ];
 
@@ -141,8 +142,8 @@ export function ConnectedAccounts() {
         toast.error('Could not get authorization URL. Please try again.');
         setConnecting(null);
       }
-    } catch {
-      toast.error('Failed to start connection. Please try again.');
+    } catch (err) {
+      toast.error(extractErrorMessage(err, 'Failed to start connection. Please try again.'));
       setConnecting(null);
     }
   };
@@ -154,8 +155,8 @@ export function ConnectedAccounts() {
       setAccounts((prev) => prev.filter((a) => a.id !== account.id));
       const name = PLATFORMS.find(p => p.id === account.platform)?.name || account.platform;
       toast.success(`${name} disconnected`);
-    } catch {
-      toast.error('Failed to disconnect');
+    } catch (err) {
+      toast.error(extractErrorMessage(err, 'Failed to disconnect your account. Please try again.'));
     } finally {
       setDisconnecting(null);
     }

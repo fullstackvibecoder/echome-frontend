@@ -653,7 +653,11 @@ export default function SettingsContent() {
                     try {
                       const res = await api.account.getDataSummary();
                       if (res.success && res.data) setDataSummary(res.data);
-                    } catch { /* ignore */ }
+                    } catch (err) {
+                      // Supplementary pre-fetch for the delete modal — don't block or
+                      // toast-spam the flow if it fails, but don't swallow it silently.
+                      console.error('Failed to load account data summary', err);
+                    }
                   }}
                   className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
                 >
@@ -1081,9 +1085,12 @@ export default function SettingsContent() {
                     const response = await api.stripe.getPortalUrl();
                     if (response.success && response.data?.url) {
                       window.location.href = response.data.url;
+                    } else {
+                      toast.error('Could not open the billing portal. Please try again.');
                     }
                   } catch (error) {
                     console.error('Failed to open billing portal:', error);
+                    toast.error(extractErrorMessage(error, 'Could not open the billing portal. Please try again.'));
                   }
                 }}
                 className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"

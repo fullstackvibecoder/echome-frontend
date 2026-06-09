@@ -42,7 +42,7 @@ const ITEMS: Item[] = [
   {
     key: 'generatedFirstKit',
     title: 'Generate your first content kit',
-    cta: { label: 'Create →', href: '/app/create' },
+    cta: { label: 'Create →', href: '/app' },
   },
   {
     key: 'connectedSocial',

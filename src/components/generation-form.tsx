@@ -1229,7 +1229,7 @@ export function GenerationForm({
       /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//, // Instagram
       /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+/, // Vimeo
       /^(https?:\/\/)?(www\.)?loom\.com\/share\//, // Loom
-      /^(https?:\/\/)?(www\.)?zoom\.us\/rec\//, // Zoom cloud recordings
+      /^(https?:\/\/)?([a-z0-9-]+\.)?zoom\.us\/rec\//i, // Zoom cloud recordings (incl. regional subdomains, e.g. us06web.zoom.us)
       /^(https?:\/\/)?(www\.)?streamyard\.com\//, // StreamYard
       /^(https?:\/\/)?(www\.)?riverside\.fm\//, // Riverside
       /^(https?:\/\/)?(www\.)?(twitch\.tv|clips\.twitch\.tv)\//, // Twitch
