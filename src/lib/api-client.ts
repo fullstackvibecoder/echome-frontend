@@ -4393,6 +4393,10 @@ export const api = {
         source_trace: Record<string, string>;
         ready: boolean;
         expires_at: string;
+        voice_sources?: { youtube: string[]; blog: string[]; social?: string[] };
+        coverage?: Record<string, { covered: boolean; confidence: number }>;
+        needs_confirmation?: boolean;
+        ambiguous_candidates?: Array<{ url: string; name: string }>;
       };
     },
 
@@ -4428,6 +4432,10 @@ export const api = {
         source_trace: Record<string, string>;
         ready: boolean;
         expires_at: string;
+        voice_sources?: { youtube: string[]; blog: string[]; social?: string[] };
+        coverage?: Record<string, { covered: boolean; confidence: number }>;
+        needs_confirmation?: boolean;
+        ambiguous_candidates?: Array<{ url: string; name: string }>;
       };
     },
 
@@ -4438,6 +4446,8 @@ export const api = {
     confirm: async (body: {
       fields_to_accept: string[];
       fields_to_override: Record<string, string>;
+      voice_sources_to_ingest?: { youtube?: string[]; blog?: string[]; social?: string[] };
+      identity_confirmed?: boolean;
     }) => {
       const response = await apiClient.post('/wbtw/profile/confirm', body);
       return response.data.data as {
