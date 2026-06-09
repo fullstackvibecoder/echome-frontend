@@ -14,6 +14,7 @@ import {
 import { api } from '@/lib/api-client';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { showErrorToast } from '@/lib/toast';
+import IsThisYouModal from './IsThisYouModal';
 
 // ============================================
 // CONFIG
@@ -35,6 +36,9 @@ const FIELD_DEFS: FieldDef[] = [
   { key: 'topics', label: 'Topics', type: 'list' },
   { key: 'bio', label: 'Bio', type: 'paragraph' },
   { key: 'voice_samples', label: 'Voice samples', type: 'list' },
+  { key: 'interests', label: 'Interests', type: 'list' },
+  { key: 'values', label: 'What you stand for', type: 'list' },
+  { key: 'narrative', label: 'Your story', type: 'paragraph' },
   { key: 'headshot_url', label: 'Headshot', type: 'image' },
 ];
 
@@ -73,10 +77,19 @@ export default function ReviewContent() {
     fields: Record<string, unknown>;
     field_confidence: Record<string, number>;
     source_trace: Record<string, string>;
+    voice_sources?: { youtube: string[]; blog: string[]; social?: string[] };
+    needs_confirmation?: boolean;
+    ambiguous_candidates?: Array<{ url: string; name: string }>;
   } | null>(null);
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<string>('');
+  // Voice-source toggles — Set of URLs the user wants ingested (defaults to all).
+  const [includedVoiceSources, setIncludedVoiceSources] = useState<Set<string>>(
+    new Set()
+  );
+  // Identity disambiguation ("Is this you?") — gates the review body until resolved.
+  const [identityConfirmed, setIdentityConfirmed] = useState(false);
 
   // Load the profile (cached on backend after lookup) on mount.
   useEffect(() => {
@@ -89,7 +102,20 @@ export default function ReviewContent() {
           fields: result.fields ?? {},
           field_confidence: result.field_confidence ?? {},
           source_trace: result.source_trace ?? {},
+          voice_sources: result.voice_sources,
+          needs_confirmation: result.needs_confirmation,
+          ambiguous_candidates: result.ambiguous_candidates,
         });
+        // Default every discovered voice source to "include".
+        const vs = result.voice_sources;
+        if (vs) {
+          const allUrls = [
+            ...(vs.youtube ?? []),
+            ...(vs.blog ?? []),
+            ...(vs.social ?? []),
+          ];
+          setIncludedVoiceSources(new Set(allUrls));
+        }
       } catch (err: unknown) {
         // 404 (flag off / no profile) → graceful fallthrough to /app.
         const status =
@@ -158,6 +184,42 @@ export default function ReviewContent() {
     });
   }, []);
 
+  const toggleVoiceSource = useCallback((url: string) => {
+    setIncludedVoiceSources(prev => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url);
+      else next.add(url);
+      return next;
+    });
+  }, []);
+
+  // Resolve the "Is this you?" modal: record that identity was confirmed and
+  // unblock the review body. (We pass identity_confirmed on confirm; per the
+  // plan, dropping fields whose sole provenance is a rejected candidate is
+  // left to the backend — confirmedUrls are intentionally not filtered here.)
+  const handleResolveIdentity = useCallback(() => {
+    setIdentityConfirmed(true);
+  }, []);
+
+  // Flat, bucketed view of discovered voice sources for rendering + confirm.
+  const voiceSourceBuckets = useMemo(() => {
+    const vs = profile?.voice_sources;
+    return {
+      youtube: vs?.youtube ?? [],
+      blog: vs?.blog ?? [],
+      social: vs?.social ?? [],
+    };
+  }, [profile]);
+
+  const allVoiceSourceUrls = useMemo(
+    () => [
+      ...voiceSourceBuckets.youtube,
+      ...voiceSourceBuckets.blog,
+      ...voiceSourceBuckets.social,
+    ],
+    [voiceSourceBuckets]
+  );
+
   const handleConfirm = useCallback(async () => {
     if (!profile || confirming) return;
     setConfirming(true);
@@ -168,16 +230,37 @@ export default function ReviewContent() {
       const overriddenKeys = Object.keys(overrides);
       const acceptedKeys = allKeys.filter(k => !overriddenKeys.includes(k));
 
+      // Re-bucket the toggled-ON voice sources into youtube/blog/social.
+      const filterIncluded = (urls: string[]) =>
+        urls.filter(u => includedVoiceSources.has(u));
+      const voice_sources_to_ingest = profile.voice_sources
+        ? {
+            youtube: filterIncluded(voiceSourceBuckets.youtube),
+            blog: filterIncluded(voiceSourceBuckets.blog),
+            social: filterIncluded(voiceSourceBuckets.social),
+          }
+        : undefined;
+
       await api.wbtw.confirm({
         fields_to_accept: acceptedKeys,
         fields_to_override: overrides,
+        ...(voice_sources_to_ingest ? { voice_sources_to_ingest } : {}),
+        ...(identityConfirmed ? { identity_confirmed: true } : {}),
       });
       router.push('/app');
     } catch (err) {
       showErrorToast(err, 'saving your profile');
       setConfirming(false);
     }
-  }, [profile, overrides, confirming, router]);
+  }, [
+    profile,
+    overrides,
+    confirming,
+    router,
+    includedVoiceSources,
+    voiceSourceBuckets,
+    identityConfirmed,
+  ]);
 
   // Loading state
   if (loading) {
@@ -194,6 +277,24 @@ export default function ReviewContent() {
     return null;
   }
 
+  // "Is this you?" gate — when the lookup was ambiguous, confirm identity
+  // before showing the review body.
+  const showIdentityModal =
+    !!profile.needs_confirmation &&
+    !identityConfirmed &&
+    (profile.ambiguous_candidates?.length ?? 0) > 0;
+
+  if (showIdentityModal) {
+    return (
+      <div className="min-h-screen bg-background">
+        <IsThisYouModal
+          candidates={profile.ambiguous_candidates ?? []}
+          onResolve={handleResolveIdentity}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -208,9 +309,10 @@ export default function ReviewContent() {
           <div className="flex gap-3 items-start">
             <EchoAvatar />
             <div className="max-w-[85%] bg-white/[0.03] backdrop-blur-xl text-text-primary px-5 py-3.5 rounded-2xl rounded-tl-none border border-white/[0.06] text-sm leading-relaxed">
-              Here&apos;s what I have. Tap any line to fix something.
-              When it looks right, hit <span className="font-semibold">Looks good</span>{' '}
-              and we&apos;ll start.
+              <span className="font-semibold">Here&apos;s what we found about you.</span>{' '}
+              Confirm what&apos;s right — your content will start sounding like you.
+              Tap any line to fix something, then hit{' '}
+              <span className="font-semibold">Looks good</span>.
             </div>
           </div>
 
@@ -234,6 +336,50 @@ export default function ReviewContent() {
               />
             ))}
           </div>
+
+          {/* Voice sources — opt-in content to ingest so posts sound like them */}
+          {allVoiceSourceUrls.length > 0 && (
+            <div className="pl-2 sm:pl-[52px]">
+              <div className="rounded-xl border border-border bg-card px-4 py-3.5">
+                <p className="text-sm font-semibold text-text-primary mb-0.5">
+                  We found content in your voice
+                </p>
+                <p className="text-xs text-text-tertiary mb-3">
+                  Include it so your posts sound like you.
+                </p>
+                <div className="space-y-2">
+                  {allVoiceSourceUrls.map(url => {
+                    const included = includedVoiceSources.has(url);
+                    return (
+                      <label
+                        key={url}
+                        className="flex items-center gap-3 cursor-pointer rounded-lg border border-border bg-bg-secondary px-3 py-2 hover:bg-card transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={included}
+                          onChange={() => toggleVoiceSource(url)}
+                          className="w-4 h-4 rounded accent-accent flex-shrink-0"
+                        />
+                        <span className="text-sm text-text-primary truncate flex-1 min-w-0">
+                          {prettySource(url)}
+                        </span>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="text-[11px] text-text-tertiary hover:underline flex-shrink-0"
+                        >
+                          View
+                        </a>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Voice strength + summary */}
           {voiceStrength && (
