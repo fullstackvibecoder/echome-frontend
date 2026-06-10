@@ -54,7 +54,7 @@ export function CaptionPositionControl({ value, onChange, disabled }: CaptionPos
             title={pos.label}
             className={`flex items-center justify-center w-7 h-7 transition-colors ${
               isSelected
-                ? 'bg-surface-container-high text-[#00D4FF]'
+                ? 'bg-surface-container-high text-primary'
                 : 'text-white/40 hover:text-white hover:bg-white/10'
             } disabled:opacity-50`}
           >

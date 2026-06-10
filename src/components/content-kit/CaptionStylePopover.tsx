@@ -51,7 +51,7 @@ export function CaptionStylePopover({ value, onChange, disabled }: CaptionStyleP
                   }}
                   className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all ${
                     isSelected
-                      ? 'bg-[#00D4FF]/15 ring-2 ring-[#00D4FF]'
+                      ? 'bg-primary/15 ring-2 ring-primary'
                       : 'hover:bg-white/10'
                   }`}
                 >
@@ -62,7 +62,7 @@ export function CaptionStylePopover({ value, onChange, disabled }: CaptionStyleP
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className={`text-[10px] leading-tight ${isSelected ? 'text-[#00D4FF] font-semibold' : 'text-white/60'}`}>
+                  <span className={`text-[10px] leading-tight ${isSelected ? 'text-primary font-semibold' : 'text-white/60'}`}>
                     {style.label}
                   </span>
                 </button>
