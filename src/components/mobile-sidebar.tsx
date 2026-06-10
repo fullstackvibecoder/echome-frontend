@@ -114,15 +114,15 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       disabled={disabled}
                       aria-current={activeItem === item.id ? 'page' : undefined}
                       className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg border
-                        text-sm font-medium transition-all duration-200
+                        w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border
+                        text-sm font-semibold font-headline tracking-tight transition-all duration-200
                         focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
                         ${
                           disabled
-                            ? 'border-transparent text-muted-foreground/40 cursor-not-allowed opacity-40'
+                            ? 'border-transparent text-muted-foreground/60 cursor-not-allowed'
                             : activeItem === item.id
                               ? 'bg-surface-container-low text-foreground border-border shadow-sm'
-                              : 'border-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-foreground hover:translate-x-0.5'
+                              : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-surface-container-low hover:text-foreground hover:translate-x-0.5'
                         }
                       `}
                     >
