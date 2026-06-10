@@ -1116,7 +1116,7 @@ export default function SettingsContent() {
           {/* Quick Share Card */}
           <div className="card">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl flex items-center justify-center text-2xl">
+              <div className="w-12 h-12 bg-surface-container-low border border-border rounded-xl flex items-center justify-center text-2xl">
                 🔗
               </div>
               <div className="flex-1">
