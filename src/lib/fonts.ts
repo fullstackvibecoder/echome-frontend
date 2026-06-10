@@ -33,7 +33,7 @@ export const bebasNeue = Bebas_Neue({
 // Machine voice — receipts, stats, statuses, kickers (design spec 2026-06-10)
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-jetbrains-mono",
   display: "swap",
 });

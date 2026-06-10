@@ -224,7 +224,7 @@
   --color-social-facebook: var(--social-facebook);
   --font-sans: var(--font-satoshi);
   --font-headline: var(--font-manrope);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 body {
