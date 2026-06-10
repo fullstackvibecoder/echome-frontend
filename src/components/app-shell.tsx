@@ -24,7 +24,7 @@ export function AppShell({ children }: AppShellProps) {
     && !subscription?.cancelAtPeriodEnd;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface">
+    <div className="app-canvas flex h-screen overflow-hidden bg-surface">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:p-4 focus:bg-background focus:text-primary focus:rounded-xl focus:shadow-lg">
         Skip to main content
       </a>
