@@ -1062,6 +1062,19 @@ body {
   color: var(--accent);
 }
 
+/* Waveform breathing — the only ambient animation in the app */
+@keyframes waveform-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.35); }
+}
+.animate-waveform-breathe {
+  animation: waveform-breathe 1.8s var(--ease-standard, ease-in-out) infinite;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-waveform-breathe { animation: none !important; }
+}
+
 /* Kill-list overrides, scoped to the app */
 .app-canvas .btn-primary:hover {
   transform: translateY(-1px);
