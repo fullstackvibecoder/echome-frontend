@@ -1066,5 +1066,4 @@ body {
 .app-canvas .btn-primary:hover {
   transform: translateY(-1px);
   background: var(--primary-dark);
-  box-shadow: 0 8px 20px -4px rgba(0, 119, 170, 0.3);
 }

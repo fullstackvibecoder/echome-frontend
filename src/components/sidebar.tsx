@@ -33,7 +33,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="h-screen w-64 bg-white dark:bg-[#1c1c1e] border-r border-outline-variant/40 flex flex-col">
+    <aside className="h-screen w-64 bg-surface-container-lowest dark:bg-surface border-r border-outline-variant/40 flex flex-col">
       {/* Brand */}
       <div className="px-6 py-6">
         <button onClick={() => navigate('/app')} className="flex items-center gap-2.5 group" aria-label="Go to dashboard">
