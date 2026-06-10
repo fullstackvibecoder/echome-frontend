@@ -154,7 +154,11 @@ export default function SettingsContent() {
         twitter_handle: twitterHandle || null,
         instagram_handle: instagramHandle || null,
         bio: bio || null,
-        website_url: websiteUrl || null,
+        // FUL-25: users type "www.example.com" — prepend https:// so the
+        // backend's URL validation doesn't fail the whole save.
+        website_url: websiteUrl.trim()
+          ? (/^https?:\/\//i.test(websiteUrl.trim()) ? websiteUrl.trim() : `https://${websiteUrl.trim()}`)
+          : null,
         // Profile context
         profile_role: profileRole || null,
         profile_topics: profileTopics || null,
