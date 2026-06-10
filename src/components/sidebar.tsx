@@ -55,7 +55,7 @@ export function Sidebar() {
         {visibleGroups.map((group, groupIndex) => (
           <div key={group.label}>
             {/* Section label */}
-            <p className="px-3 mb-1.5 text-machine text-[10px]">
+            <p className="px-3 mb-1.5 text-machine">
               {group.label}
             </p>
             {/* Items */}
@@ -133,15 +133,15 @@ function SidebarItem({
       disabled={disabled}
       aria-current={isActive ? 'page' : undefined}
       className={`
-        w-full flex items-center gap-3 px-4 py-2.5 rounded-xl
+        w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border
         text-sm font-semibold font-headline tracking-tight transition-all duration-200
         focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
         ${
           disabled
-            ? 'text-muted-foreground/60 cursor-not-allowed'
+            ? 'border-transparent text-muted-foreground/60 cursor-not-allowed'
             : isActive
-              ? 'bg-surface-container-low text-foreground border border-border shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
+              ? 'bg-surface-container-low text-foreground border-border shadow-sm'
+              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
         }
       `}
     >
