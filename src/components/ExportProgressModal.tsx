@@ -92,7 +92,7 @@ export function ExportProgressModal({ clipId, onClose }: ExportProgressModalProp
           <div className="mb-4">
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${Math.max(2, progress.percent)}%` }}
               />
             </div>

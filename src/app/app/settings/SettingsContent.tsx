@@ -1139,7 +1139,7 @@ export default function SettingsContent() {
                   navigator.clipboard.writeText(`https://tryechome.com/?via=${user?.email?.split('@')[0] || 'you'}`);
                   toast.success('Referral link copied!');
                 }}
-                className="px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
+                className="px-4 py-3 bg-primary-interactive text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
               >
                 Copy Link
               </button>

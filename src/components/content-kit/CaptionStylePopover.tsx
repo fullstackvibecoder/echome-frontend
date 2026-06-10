@@ -38,7 +38,7 @@ export function CaptionStylePopover({ value, onChange, disabled }: CaptionStyleP
 
       {open && (
         <div className="absolute top-full left-0 mt-1.5 z-50 bg-popover border border-border rounded-xl shadow-2xl p-2 w-[280px]">
-          <p className="text-[10px] uppercase tracking-wider text-[#9B8BAF] font-bold px-1 mb-1.5">Caption Style</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-1 mb-1.5">Caption Style</p>
           <div className="grid grid-cols-4 gap-1.5">
             {CAPTION_STYLE_GRID.map((style) => {
               const isSelected = style.value === value;

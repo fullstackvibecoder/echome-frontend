@@ -553,7 +553,7 @@ export default function FollowingContent() {
 
               {/* AI Summary */}
               {selectedVideoForRepurpose.summary && (
-                <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
+                <div className="p-4 bg-surface-container-low rounded-lg border border-border">
                   <p className="text-sm text-foreground">{selectedVideoForRepurpose.summary}</p>
                 </div>
               )}
