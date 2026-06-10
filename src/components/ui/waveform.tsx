@@ -31,7 +31,7 @@ export function Waveform({ bars = 5, height = 14, animated = false, className = 
           className={`w-[2.5px] rounded-full bg-accent ${animated ? 'animate-waveform-breathe' : ''}`}
           style={{
             height: Math.max(3, Math.round(h * height)),
-            animationDelay: animated ? `${i * 120}ms` : undefined,
+            animationDelay: animated ? `${i * -120}ms` : undefined,
           }}
         />
       ))}
