@@ -7,6 +7,7 @@ import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { VoiceSwitcher } from '@/components/voice-switcher';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { LogOut } from 'lucide-react';
+import { Waveform } from '@/components/ui/waveform';
 
 const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
 
@@ -54,7 +55,7 @@ export function Sidebar() {
         {visibleGroups.map((group, groupIndex) => (
           <div key={group.label}>
             {/* Section label */}
-            <p className="px-3 mb-1.5 text-[10px] uppercase tracking-[0.15em] font-bold text-gray-500 dark:text-gray-400">
+            <p className="px-3 mb-1.5 text-machine text-[10px]">
               {group.label}
             </p>
             {/* Items */}
@@ -139,13 +140,14 @@ function SidebarItem({
           disabled
             ? 'text-muted-foreground/60 cursor-not-allowed'
             : isActive
-              ? 'bg-primary text-white shadow-md shadow-primary/20 active-glow'
-              : 'text-gray-500 dark:text-gray-200 hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
+              ? 'bg-surface-container-low text-foreground border border-border shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-foreground hover:bg-surface-container-low hover:translate-x-0.5'
         }
       `}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
       <span className="flex-1 text-left truncate">{item.label}</span>
+      {item.id === 'voice' && <Waveform bars={4} height={10} />}
       {showHint && (
         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
       )}
