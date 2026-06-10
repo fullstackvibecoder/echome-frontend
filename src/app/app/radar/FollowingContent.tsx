@@ -274,7 +274,7 @@ export default function FollowingContent() {
     <div className="container mx-auto px-6 py-8 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold text-foreground">
           Creator Radar
         </h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-xl">
