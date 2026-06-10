@@ -2,7 +2,10 @@ interface AppPageHeaderProps {
   title: string;
   description?: string;
   icon?: React.ReactNode;
+  /** Deprecated (design elevation 2026-06-10): gradient text removed; prop kept for compatibility */
   gradient?: boolean;
+  /** Machine-voice line rendered above the title, e.g. "LIBRARY · 23 KITS" */
+  kicker?: string;
   actions?: React.ReactNode;
   stats?: React.ReactNode;
 }
@@ -11,7 +14,7 @@ export function AppPageHeader({
   title,
   description,
   icon,
-  gradient = true,
+  kicker,
   actions,
   stats,
 }: AppPageHeaderProps) {
@@ -19,19 +22,14 @@ export function AppPageHeader({
     <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="p-2 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl shadow-sm">
+          <div className="p-2 bg-surface-container-low border border-border rounded-xl">
             {icon}
           </div>
         )}
         <div>
+          {kicker && <p className="text-machine mb-1">{kicker}</p>}
           <div className="flex items-center gap-3">
-            <h1
-              className={`text-2xl font-bold ${
-                gradient
-                  ? 'bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent'
-                  : 'text-foreground'
-              }`}
-            >
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               {title}
             </h1>
             {stats}
