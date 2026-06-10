@@ -1,5 +1,5 @@
 import localFont from "next/font/local";
-import { Manrope, Montserrat, Inter, Bebas_Neue } from "next/font/google";
+import { Manrope, Montserrat, Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
 
 export const manrope = Manrope({
   subsets: ["latin"],
@@ -27,6 +27,14 @@ export const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
   weight: ["400"],
   variable: "--font-bebas-neue",
+  display: "swap",
+});
+
+// Machine voice — receipts, stats, statuses, kickers (design spec 2026-06-10)
+export const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
