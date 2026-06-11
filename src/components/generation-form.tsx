@@ -16,6 +16,7 @@ import { track } from '@/lib/telemetry';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
 import UnifiedCreateInput from './UnifiedCreateInput';
+import { takeEchoHandoff } from '@/components/echo/file-handoff';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -446,20 +447,47 @@ export function GenerationForm({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Seed from echoPrompt: Echo pill hands off to this form via ?echoPrompt=...
-  // Switch to text mode, populate the input, then strip the param so refresh
-  // does not re-seed. Depends on searchParams (not mount-only) because the
+  // Seed from echoPrompt / echoFile: Echo pill hands off to this form via
+  // query params. Depends on searchParams (not mount-only) because the
   // handoff can happen while the user is already on /app — same-route
   // navigation updates the query without remounting this form.
   useEffect(() => {
-    const echoPrompt = searchParams.get('echoPrompt');
-    if (!echoPrompt) return;
-    setInputType('text');
-    setInput(echoPrompt);
     const next = new URLSearchParams(searchParams.toString());
-    next.delete('echoPrompt');
-    const qs = next.toString();
-    router.replace(`/app${qs ? `?${qs}` : ''}`);
+
+    // echoPrompt — text handoff: switch to text mode and populate the input.
+    const echoPrompt = searchParams.get('echoPrompt');
+    if (echoPrompt) {
+      setInputType('text');
+      setInput(echoPrompt);
+      next.delete('echoPrompt');
+      const qs = next.toString();
+      router.replace(`/app${qs ? `?${qs}` : ''}`);
+      return;
+    }
+
+    // echoFile — file handoff: consume the in-memory store and inject the
+    // File via the same path as a manual pick (validateVideoFile + setSelectedFile).
+    // Both video/* and audio/* files enter via the video mode because the
+    // form's audio mode is mic-only (VoiceInputPanel) with no file-inject path.
+    // The note is not seeded because video mode has no accompanying text input.
+    if (searchParams.get('echoFile') === '1') {
+      next.delete('echoFile');
+      const qs = next.toString();
+      router.replace(`/app${qs ? `?${qs}` : ''}`);
+      const item = takeEchoHandoff();
+      if (item) {
+        if (item.kind === 'video-file') {
+          // Defense-in-depth: only enter video pipeline for actual video files
+          if (item.file.type.startsWith('video/') && validateVideoFile(item.file)) {
+            setInputType('video');
+            setSelectedFile(item.file);
+          }
+        } else if (item.kind === 'text') {
+          setInputType('text');
+          setInput(item.text);
+        }
+      }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -1274,6 +1302,15 @@ export function GenerationForm({
     return (
       <div ref={formCardRef} className="flex flex-col items-center justify-center min-h-[60vh]">
         <UnifiedCreateInput
+          // Remount when `input` changes so the hero's text state re-initializes
+          // from it. The Echo pill hands off text-based create intents (typed
+          // prompt or transcribed audio) by setting `input`; the hero's
+          // useState initializer is mount-only, so a seed landing after first
+          // render needs a remount to surface. `input` only changes at seed or
+          // submit (never on the hero's own typing, which is internal), so this
+          // does not remount mid-keystroke. Keying on the value (not a boolean)
+          // also catches a second, different seed in the same session.
+          key={input || 'empty'}
           onSubmit={handleUnifiedSubmit}
           onMicClick={() => {
             setInputType('audio' as ExtendedInputType);
@@ -1290,7 +1327,7 @@ export function GenerationForm({
           disabled={generating || videoProcessing}
           zoomPasswordValue={zoomPasswordUpfront}
           onZoomPasswordChange={setZoomPasswordUpfront}
-          initialText={initialInput}
+          initialText={input}
         />
         {uploadError && (
           <p className="text-destructive text-sm mt-4 text-center max-w-md">{uploadError}</p>

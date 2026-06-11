@@ -40,7 +40,7 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (phase === 'open' && inputText.trim()) {
+      if (phase === 'open' && (inputText.trim() || state.attachment)) {
         submit();
       }
     }
@@ -214,7 +214,7 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
       )}
 
       {/* Hint: Shift+Enter for newline, Enter to submit */}
-      {phase === 'open' && inputText.trim() && (
+      {phase === 'open' && (inputText.trim() || state.attachment) && (
         <p className="text-machine" style={{ fontSize: '0.5625rem' }}>
           ENTER TO SUBMIT, SHIFT+ENTER FOR NEWLINE
         </p>

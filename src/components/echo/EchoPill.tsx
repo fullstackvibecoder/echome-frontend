@@ -6,26 +6,64 @@
  * Cmd+K / Ctrl+K summon; Escape + outside-click collapse.
  * role="dialog" when expanded; focus trapped while open.
  * Cyan glow only on focus / expanded state.
+ * v2: drop target + paperclip attach + removable attachment chip.
+ * v3: mic input - tap-to-talk, transcribe, classify.
  */
 
 import {
   useRef,
   useEffect,
   useCallback,
+  useState,
 } from 'react';
+import { Paperclip, X, Mic, Square } from 'lucide-react';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useEcho } from './useEcho';
+import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
+
+/** Format bytes to a human-readable string (e.g. "4.2 MB") */
+function humanSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Format elapsed seconds as M:SS */
+function formatElapsed(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export function EchoPill() {
   const { navigate } = useAppNavigation();
-  const { state, open, close, setInputText, submit, selectIntent, confirm, reset } = useEcho(navigate);
+  const { state, open, close, setInputText, setAttachment, submit, selectIntent, confirm, reset } = useEcho(navigate);
 
   const pillRef = useRef<HTMLDivElement>(null);
   const exchangeRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const pillButtonRef = useRef<HTMLButtonElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // ---- Mic ----
+  const handleTranscript = useCallback(
+    (text: string) => {
+      setInputText(text);
+      // Ensure the pill is open so the textarea is visible
+      if (state.phase === 'idle') open();
+      // Focus the textarea after React flushes
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 60);
+    },
+    [setInputText, state.phase, open],
+  );
+
+  const { micState, elapsed, micError, start: startMic, stop: stopMic } = useEchoMic(handleTranscript);
 
   const isOpen = state.phase !== 'idle';
 
@@ -61,11 +99,12 @@ export function EchoPill() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, open, close]);
 
-  // Outside-click collapse (not during executing phase)
+  // Outside-click collapse (not during executing phase or while mic is active)
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if (!isOpen) return;
       if (state.phase === 'executing') return;
+      if (micState === 'recording' || micState === 'transcribing') return;
       const target = e.target as Node;
       if (
         pillRef.current && !pillRef.current.contains(target)
@@ -73,7 +112,7 @@ export function EchoPill() {
         close();
       }
     },
-    [isOpen, state.phase, close],
+    [isOpen, state.phase, micState, close],
   );
 
   useEffect(() => {
@@ -106,12 +145,60 @@ export function EchoPill() {
     [isOpen],
   );
 
+  // ---- Drag-and-drop handlers ----
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Only clear if leaving the pill container entirely
+    if (pillRef.current && !pillRef.current.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      const file = e.dataTransfer.files?.[0];
+      if (!file) return;
+      // Auto-expand on drop
+      if (!isOpen) open();
+      setAttachment(file);
+    },
+    [isOpen, open, setAttachment],
+  );
+
+  // ---- File input (paperclip button) ----
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (!isOpen) open();
+      setAttachment(file);
+      // Reset so re-selecting same file fires again
+      e.target.value = '';
+    },
+    [isOpen, open, setAttachment],
+  );
+
+  const { attachment, attachmentError } = state;
+
+  const glowStyle = isDragOver
+    ? { boxShadow: 'var(--shadow-glow-cyan)' }
+    : undefined;
+
   return (
     <div
       ref={pillRef}
       className="fixed bottom-6 left-1/2 z-40"
       style={{ transform: 'translateX(-50%)', width: 'min(calc(100% - 2rem), 36rem)' }}
       onKeyDown={handleKeyDownTrap}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       {/* Expanded exchange panel — opens upward */}
       {isOpen && (
@@ -130,9 +217,82 @@ export function EchoPill() {
             maxHeight: '50vh',
             transition: `opacity var(--dur-base, 180ms) var(--ease-standard, cubic-bezier(0.2,0,0,1)),
                          transform var(--dur-base, 180ms) var(--ease-standard, cubic-bezier(0.2,0,0,1))`,
-            boxShadow: 'var(--shadow-glow-cyan)',
+            boxShadow: isDragOver ? 'var(--shadow-glow-cyan)' : 'var(--shadow-glow-cyan)',
           }}
         >
+          {/* Attachment chip — shown in exchange panel */}
+          {attachment && (
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <span className="text-machine truncate flex-1" style={{ fontSize: '0.625rem' }}>
+                {attachment.name}
+              </span>
+              <span className="text-machine shrink-0" style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}>
+                {humanSize(attachment.size)}
+              </span>
+              <button
+                type="button"
+                aria-label={`Remove ${attachment.name}`}
+                onClick={() => setAttachment(null)}
+                className="shrink-0 text-[var(--muted-foreground)] hover:text-foreground transition-colors"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          )}
+
+          {/* Attachment inline error */}
+          {attachmentError && (
+            <p className="text-xs text-destructive leading-snug mb-2 px-1" role="alert">
+              {attachmentError}
+            </p>
+          )}
+
+          {/* Mic error */}
+          {micError && (
+            <p className="text-xs text-destructive leading-snug mb-2 px-1" role="alert">
+              {micError}
+            </p>
+          )}
+
+          {/* Recording state UI */}
+          {micState === 'recording' && (
+            <div className="flex items-center gap-3 mb-2 px-1">
+              <Waveform bars={5} height={14} animated />
+              <span
+                className="text-machine tabular-nums"
+                style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}
+              >
+                {formatElapsed(elapsed)}
+              </span>
+              <button
+                type="button"
+                aria-label="Stop recording"
+                onClick={stopMic}
+                className="shrink-0 text-[var(--muted-foreground)] hover:text-foreground transition-colors"
+              >
+                <Square size={11} />
+              </button>
+            </div>
+          )}
+
+          {/* Transcribing indicator */}
+          {micState === 'transcribing' && (
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <span className="text-machine animate-pulse" style={{ fontSize: '0.625rem' }}>
+                TRANSCRIBING
+              </span>
+            </div>
+          )}
+
+          {/* a11y: recording state announced to screen readers */}
+          <div aria-live="polite" className="sr-only">
+            {micState === 'recording'
+              ? `Recording. ${formatElapsed(elapsed)} elapsed.`
+              : micState === 'transcribing'
+              ? 'Transcribing audio.'
+              : ''}
+          </div>
+
           <EchoExchange
             state={state}
             handlers={{ setInputText, submit, selectIntent, confirm, reset }}
@@ -142,37 +302,88 @@ export function EchoPill() {
       )}
 
       {/* Docked pill */}
-      <button
-        ref={pillButtonRef}
-        type="button"
-        aria-label="Open Echo"
-        aria-expanded={isOpen}
-        aria-haspopup="dialog"
-        onClick={() => (isOpen ? close() : open())}
+      <div
         className={[
-          'w-full flex items-center gap-3 px-4 py-2.5',
+          'w-full flex items-center gap-2 px-4 py-2.5',
           'rounded-full border border-[var(--border)]',
           'bg-[var(--surface-container-low)]',
           'transition-shadow',
-          'focus:outline-none',
-          isOpen
-            ? 'shadow-[var(--shadow-glow-cyan)]'
-            : 'hover:shadow-[var(--shadow-glow-cyan)]',
         ].join(' ')}
         style={{
+          boxShadow: isDragOver
+            ? 'var(--shadow-glow-cyan)'
+            : isOpen
+            ? 'var(--shadow-glow-cyan)'
+            : undefined,
           transition: `box-shadow var(--dur-base, 180ms) var(--ease-standard, cubic-bezier(0.2,0,0,1))`,
+          ...(glowStyle && !isOpen ? glowStyle : {}),
         }}
       >
-        {/* Waveform motif (static in pill; Echo listening) */}
-        <Waveform bars={5} height={14} animated={false} />
-
-        {/* Placeholder text */}
-        <span
-          className="flex-1 text-left text-sm text-[var(--muted-foreground)] truncate"
-          aria-hidden="true"
+        {/* Pill click target (expand/collapse) */}
+        <button
+          ref={pillButtonRef}
+          type="button"
+          aria-label="Open Echo"
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
+          onClick={() => (isOpen ? close() : open())}
+          className="flex items-center gap-3 flex-1 min-w-0 focus:outline-none"
         >
-          Tell Echo anything...
-        </span>
+          {/* Waveform motif (static in pill; Echo listening) */}
+          <Waveform bars={5} height={14} animated={false} />
+
+          {/* Placeholder text or attachment chip summary */}
+          <span
+            className="flex-1 text-left text-sm text-[var(--muted-foreground)] truncate"
+            aria-hidden="true"
+          >
+            {attachment && !isOpen ? attachment.name : 'Tell Echo anything...'}
+          </span>
+        </button>
+
+        {/* Paperclip attach button */}
+        <label
+          htmlFor="echo-file-input"
+          className="shrink-0 cursor-pointer text-[var(--muted-foreground)] hover:text-foreground transition-colors p-0.5"
+          aria-label="Attach a file"
+          title="Attach a file (video, audio, or text)"
+        >
+          <Paperclip size={14} />
+        </label>
+        <input
+          ref={fileInputRef}
+          id="echo-file-input"
+          type="file"
+          accept="video/*,audio/*,.txt,.md"
+          className="sr-only"
+          onChange={handleFileInputChange}
+          tabIndex={-1}
+        />
+
+        {/* Mic button */}
+        <button
+          type="button"
+          aria-label="Talk to Echo"
+          title="Talk to Echo"
+          onClick={() => {
+            if (micState === 'recording') {
+              stopMic();
+            } else if (micState === 'idle' || micState === 'error') {
+              if (!isOpen) open();
+              void startMic();
+            }
+          }}
+          disabled={micState === 'transcribing'}
+          className={[
+            'shrink-0 transition-colors p-0.5',
+            micState === 'recording'
+              ? 'text-[rgba(0,212,255,0.9)]'
+              : 'text-[var(--muted-foreground)] hover:text-foreground',
+            micState === 'transcribing' ? 'opacity-50 cursor-not-allowed' : '',
+          ].join(' ')}
+        >
+          {micState === 'recording' ? <Square size={14} /> : <Mic size={14} />}
+        </button>
 
         {/* Keyboard hint chip */}
         <span
@@ -181,7 +392,7 @@ export function EchoPill() {
         >
           &#8984;K
         </span>
-      </button>
+      </div>
     </div>
   );
 }
