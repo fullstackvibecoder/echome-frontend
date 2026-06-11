@@ -16,6 +16,7 @@ import {
   useCallback,
   useState,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import { Paperclip, X, Mic, Square } from 'lucide-react';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
@@ -40,6 +41,7 @@ function formatElapsed(seconds: number): string {
 export function EchoPill() {
   const { navigate } = useAppNavigation();
   const { state, open, close, setInputText, setAttachment, submit, selectIntent, confirm, reset } = useEcho(navigate);
+  const pathname = usePathname();
 
   const pillRef = useRef<HTMLDivElement>(null);
   const exchangeRef = useRef<HTMLDivElement>(null);
@@ -183,6 +185,9 @@ export function EchoPill() {
     },
     [isOpen, open, setAttachment],
   );
+
+  // Suppress the docked pill on Home — the hero input owns that page.
+  if (pathname === '/app') return null;
 
   const { attachment, attachmentError } = state;
 
