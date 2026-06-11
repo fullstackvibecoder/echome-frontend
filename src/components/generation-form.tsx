@@ -16,7 +16,7 @@ import { track } from '@/lib/telemetry';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
 import UnifiedCreateInput from './UnifiedCreateInput';
-import { takeEchoFile } from '@/components/echo/file-handoff';
+import { takeEchoHandoff } from '@/components/echo/file-handoff';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -474,12 +474,17 @@ export function GenerationForm({
       next.delete('echoFile');
       const qs = next.toString();
       router.replace(`/app${qs ? `?${qs}` : ''}`);
-      const handoff = takeEchoFile();
-      if (handoff) {
-        const { file } = handoff;
-        if (validateVideoFile(file)) {
-          setInputType('video');
-          setSelectedFile(file);
+      const item = takeEchoHandoff();
+      if (item) {
+        if (item.kind === 'video-file') {
+          // Defense-in-depth: only enter video pipeline for actual video files
+          if (item.file.type.startsWith('video/') && validateVideoFile(item.file)) {
+            setInputType('video');
+            setSelectedFile(item.file);
+          }
+        } else if (item.kind === 'text') {
+          setInputType('text');
+          setInput(item.text);
         }
       }
     }

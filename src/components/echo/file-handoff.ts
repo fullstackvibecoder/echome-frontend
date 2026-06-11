@@ -1,17 +1,22 @@
 /**
- * In-memory handoff for files Echo passes to the Create form.
- * Same idea as the ?echoPrompt= seed but for File objects, which
+ * In-memory handoff for Echo's create/text payloads passed to the Create form.
+ * Same idea as the ?echoPrompt= seed but for File objects and large text, which
  * cannot survive a URL. Single-slot, consumed-on-read, SPA-session only.
  */
-let pending: { file: File; note?: string } | null = null;
 
-export function stashEchoFile(file: File, note?: string): void {
-  pending = { file, note };
+export type EchoHandoff =
+  | { kind: 'video-file'; file: File; note?: string }
+  | { kind: 'text'; text: string };
+
+let pending: EchoHandoff | null = null;
+
+export function stashEchoHandoff(h: EchoHandoff): void {
+  pending = h;
 }
 
-/** Returns and clears the pending file (consume-once). */
-export function takeEchoFile(): { file: File; note?: string } | null {
-  const f = pending;
+/** Returns and clears the pending handoff (consume-once). */
+export function takeEchoHandoff(): EchoHandoff | null {
+  const h = pending;
   pending = null;
-  return f;
+  return h;
 }

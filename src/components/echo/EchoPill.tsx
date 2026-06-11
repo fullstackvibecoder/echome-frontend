@@ -99,11 +99,12 @@ export function EchoPill() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, open, close]);
 
-  // Outside-click collapse (not during executing phase)
+  // Outside-click collapse (not during executing phase or while mic is active)
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if (!isOpen) return;
       if (state.phase === 'executing') return;
+      if (micState === 'recording' || micState === 'transcribing') return;
       const target = e.target as Node;
       if (
         pillRef.current && !pillRef.current.contains(target)
@@ -111,7 +112,7 @@ export function EchoPill() {
         close();
       }
     },
-    [isOpen, state.phase, close],
+    [isOpen, state.phase, micState, close],
   );
 
   useEffect(() => {

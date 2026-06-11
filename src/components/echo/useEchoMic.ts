@@ -38,8 +38,8 @@ export function useEchoMic(
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const capTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Track whether stop was triggered intentionally vs auto-cap
-  const stoppingRef = useRef(false);
+  // Guard against double-click race on start()
+  const startingRef = useRef(false);
 
   /** Stop tracks and clear all timers */
   const cleanup = useCallback(() => {
@@ -75,12 +75,18 @@ export function useEchoMic(
   );
 
   const start = useCallback(async () => {
+    // Guard: double-click race
+    if (startingRef.current) return;
+    startingRef.current = true;
+
     // Guard: already in flight
-    if (micState === 'recording' || micState === 'transcribing') return;
+    if (micState === 'recording' || micState === 'transcribing') {
+      startingRef.current = false;
+      return;
+    }
 
     setMicError(null);
     audioChunksRef.current = [];
-    stoppingRef.current = false;
 
     let stream: MediaStream;
     try {
@@ -94,6 +100,7 @@ export function useEchoMic(
           ? 'Microphone access is blocked. Allow it in your browser settings to talk to Echo.'
           : 'Could not access your microphone. Please try again.',
       );
+      startingRef.current = false;
       return;
     }
 
@@ -129,6 +136,8 @@ export function useEchoMic(
         }
       } catch {
         setInlineError('Transcription failed. Please try again.');
+      } finally {
+        startingRef.current = false;
       }
     };
 
@@ -144,7 +153,6 @@ export function useEchoMic(
     // Hard cap: auto-stop at 120s
     capTimerRef.current = setTimeout(() => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        stoppingRef.current = true;
         mediaRecorderRef.current.stop();
       }
     }, MAX_RECORDING_SECONDS * 1000);
@@ -152,7 +160,6 @@ export function useEchoMic(
 
   const stop = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      stoppingRef.current = true;
       mediaRecorderRef.current.stop();
     }
   }, []);

@@ -11,7 +11,7 @@ import { classifyEchoInput, type EchoClassification, type EchoIntent } from '@/l
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES } from './intent-meta';
-import { stashEchoFile } from './file-handoff';
+import { stashEchoHandoff } from './file-handoff';
 
 // ---- State machine phases ----
 export type EchoPhase =
@@ -279,23 +279,56 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
         const kind = classifyFile(attachment);
 
         if (intent === 'create') {
-          // Video or audio handed off to Create form via in-memory store
-          stashEchoFile(attachment, text || undefined);
-          navigate('/app?echoFile=1');
-          addReceipt(formatReceipt(`${INTENT_META.create.receiptVerb} · ${attachment.name}`));
-          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
-          setTimeout(() => {
-            setState((prev) => ({ ...prev, phase: 'idle' }));
-          }, 1200);
-          // Fire-and-forget execution telemetry
-          api.telemetry.event({
-            event_name: 'echo_executed',
-            event_data: {
-              intent,
-              corrected: selectedIntent !== null && selectedIntent !== classification.intent,
-            },
-          }).catch(() => {});
-          return;
+          if (kind === 'video') {
+            // Video handed off directly to Create form via in-memory store
+            stashEchoHandoff({ kind: 'video-file', file: attachment, note: text || undefined });
+            navigate('/app?echoFile=1');
+            addReceipt(formatReceipt(`${INTENT_META.create.receiptVerb} · ${attachment.name}`));
+            setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+            setTimeout(() => {
+              setState((prev) => ({ ...prev, phase: 'idle' }));
+            }, 1200);
+            api.telemetry.event({
+              event_name: 'echo_executed',
+              event_data: {
+                intent,
+                corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+              },
+            }).catch(() => {});
+            return;
+          }
+
+          if (kind === 'audio') {
+            // Audio must be transcribed first — the backend clip upload only accepts video MIME types
+            try {
+              const result = await api.kbContent.transcribeVoice(attachment);
+              if (result.success && result.text) {
+                stashEchoHandoff({ kind: 'text', text: result.text });
+                navigate('/app?echoFile=1');
+                addReceipt(formatReceipt('TRANSCRIBED AND HANDED TO CREATE'));
+                setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+                setTimeout(() => {
+                  setState((prev) => ({ ...prev, phase: 'idle' }));
+                }, 1200);
+                api.telemetry.event({
+                  event_name: 'echo_executed',
+                  event_data: {
+                    intent,
+                    corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+                  },
+                }).catch(() => {});
+              } else {
+                throw new Error('No transcript returned');
+              }
+            } catch {
+              setState((prev) => ({
+                ...prev,
+                phase: 'confirming',
+                error: 'Could not transcribe that audio. Try again or use a smaller file.',
+              }));
+            }
+            return;
+          }
         }
 
         if (intent === 'ingest' && kind === 'audio') {
