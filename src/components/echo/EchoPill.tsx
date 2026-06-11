@@ -7,6 +7,7 @@
  * role="dialog" when expanded; focus trapped while open.
  * Cyan glow only on focus / expanded state.
  * v2: drop target + paperclip attach + removable attachment chip.
+ * v3: mic input - tap-to-talk, transcribe, classify.
  */
 
 import {
@@ -15,10 +16,11 @@ import {
   useCallback,
   useState,
 } from 'react';
-import { Paperclip, X } from 'lucide-react';
+import { Paperclip, X, Mic, Square } from 'lucide-react';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useEcho } from './useEcho';
+import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 
 /** Format bytes to a human-readable string (e.g. "4.2 MB") */
@@ -26,6 +28,13 @@ function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Format elapsed seconds as M:SS */
+function formatElapsed(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 export function EchoPill() {
@@ -39,6 +48,22 @@ export function EchoPill() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // ---- Mic ----
+  const handleTranscript = useCallback(
+    (text: string) => {
+      setInputText(text);
+      // Ensure the pill is open so the textarea is visible
+      if (state.phase === 'idle') open();
+      // Focus the textarea after React flushes
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 60);
+    },
+    [setInputText, state.phase, open],
+  );
+
+  const { micState, elapsed, micError, start: startMic, stop: stopMic } = useEchoMic(handleTranscript);
 
   const isOpen = state.phase !== 'idle';
 
@@ -221,6 +246,52 @@ export function EchoPill() {
             </p>
           )}
 
+          {/* Mic error */}
+          {micError && (
+            <p className="text-xs text-destructive leading-snug mb-2 px-1" role="alert">
+              {micError}
+            </p>
+          )}
+
+          {/* Recording state UI */}
+          {micState === 'recording' && (
+            <div className="flex items-center gap-3 mb-2 px-1">
+              <Waveform bars={5} height={14} animated />
+              <span
+                className="text-machine tabular-nums"
+                style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}
+              >
+                {formatElapsed(elapsed)}
+              </span>
+              <button
+                type="button"
+                aria-label="Stop recording"
+                onClick={stopMic}
+                className="shrink-0 text-[var(--muted-foreground)] hover:text-foreground transition-colors"
+              >
+                <Square size={11} />
+              </button>
+            </div>
+          )}
+
+          {/* Transcribing indicator */}
+          {micState === 'transcribing' && (
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <span className="text-machine animate-pulse" style={{ fontSize: '0.625rem' }}>
+                TRANSCRIBING
+              </span>
+            </div>
+          )}
+
+          {/* a11y: recording state announced to screen readers */}
+          <div aria-live="polite" className="sr-only">
+            {micState === 'recording'
+              ? `Recording. ${formatElapsed(elapsed)} elapsed.`
+              : micState === 'transcribing'
+              ? 'Transcribing audio.'
+              : ''}
+          </div>
+
           <EchoExchange
             state={state}
             handlers={{ setInputText, submit, selectIntent, confirm, reset }}
@@ -287,6 +358,31 @@ export function EchoPill() {
           onChange={handleFileInputChange}
           tabIndex={-1}
         />
+
+        {/* Mic button */}
+        <button
+          type="button"
+          aria-label="Talk to Echo"
+          title="Talk to Echo"
+          onClick={() => {
+            if (micState === 'recording') {
+              stopMic();
+            } else if (micState === 'idle' || micState === 'error') {
+              if (!isOpen) open();
+              void startMic();
+            }
+          }}
+          disabled={micState === 'transcribing'}
+          className={[
+            'shrink-0 transition-colors p-0.5',
+            micState === 'recording'
+              ? 'text-[rgba(0,212,255,0.9)]'
+              : 'text-[var(--muted-foreground)] hover:text-foreground',
+            micState === 'transcribing' ? 'opacity-50 cursor-not-allowed' : '',
+          ].join(' ')}
+        >
+          {micState === 'recording' ? <Square size={14} /> : <Mic size={14} />}
+        </button>
 
         {/* Keyboard hint chip */}
         <span
