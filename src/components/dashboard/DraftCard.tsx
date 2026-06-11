@@ -81,7 +81,7 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
       onDismissed(draft.id);
       return;
     }
-    router.push(`/app/scheduling?kit=${draft.id}`);
+    router.push(`/app/library/${draft.id}`);
   };
 
   const handleDismiss = async () => {
@@ -127,7 +127,7 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
           Review
         </Link>
         <Link
-          href={`/app/scheduling?kit=${draft.id}`}
+          href={`/app/library/${draft.id}`}
           onClick={handleSchedule}
           className="flex items-center gap-1.5 text-xs font-medium text-foreground hover:text-primary"
         >

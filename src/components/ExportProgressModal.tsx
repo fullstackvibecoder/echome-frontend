@@ -55,7 +55,7 @@ export function ExportProgressModal({ clipId, onClose }: ExportProgressModalProp
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-[#1C1C1E] border border-white/10 p-8 shadow-2xl">
+      <div className="w-full max-w-md rounded-2xl bg-surface border border-white/10 p-8 shadow-2xl">
         {/* Status icon */}
         <div className="flex justify-center mb-6">
           {progress.hasError ? (
@@ -92,7 +92,7 @@ export function ExportProgressModal({ clipId, onClose }: ExportProgressModalProp
           <div className="mb-4">
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${Math.max(2, progress.percent)}%` }}
               />
             </div>

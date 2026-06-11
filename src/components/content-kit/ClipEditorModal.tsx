@@ -17,6 +17,7 @@ import type { CaptionStylePreset } from '@/lib/caption-parser';
 import type { CaptionSegment } from '@/lib/caption-parser';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
+import { youtubeShortBlockReason } from '@/components/scheduling/youtube-short-eligibility';
 import { ClipEditorTour } from '@/components/tour/tours/clip-editor';
 
 interface ClipEditorModalProps {
@@ -157,6 +158,10 @@ export default function ClipEditorModal({
     ? (clip as any).splitScreenUrl
     : clip.exports?.[0]?.url || '';
   const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
+  const youtubeDisabledReasons = (() => {
+    const reason = youtubeShortBlockReason(clip.duration, aspectRatio);
+    return reason ? { youtube: reason } : undefined;
+  })();
   const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
 
   // Debounced save for transcript edits, drag positions, and box resize.
@@ -558,6 +563,7 @@ export default function ClipEditorModal({
                 caption={postCaption.trim() || instagramCaption || ''}
                 mediaUrls={videoSrc ? [videoSrc] : []}
                 outputKind="clip"
+                disabledReasons={youtubeDisabledReasons}
                 finalizationRecipe={{
                   kind: 'clip',
                   upload_id: uploadId,

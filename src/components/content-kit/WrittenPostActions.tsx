@@ -34,9 +34,8 @@ const PLATFORM_CONFIG: Record<string, { label: string; mode: PostingMode; compos
   threads:         { label: 'Threads',   mode: 'api',  composeUrl: 'https://www.threads.net' },
   x:               { label: 'X',         mode: 'link', composeUrl: 'https://x.com/intent/tweet' },
   tiktok:          { label: 'TikTok',    mode: 'link', composeUrl: 'https://www.tiktok.com/upload' },
-  youtube:         { label: 'YouTube',   mode: 'link', composeUrl: 'https://studio.youtube.com' },
   pinterest:       { label: 'Pinterest', mode: 'link', composeUrl: 'https://www.pinterest.com/pin-creation-tool/' },
-  bluesky:         { label: 'Bluesky',   mode: 'link', composeUrl: 'https://bsky.app' },
+  bluesky:         { label: 'Bluesky',   mode: 'api',  composeUrl: 'https://bsky.app' },
   google_business: { label: 'Google Business', mode: 'link', composeUrl: 'https://business.google.com' },
 };
 

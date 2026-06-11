@@ -81,9 +81,24 @@ interface Props {
    * user edits (captions, overlays) actually land on the published post.
    */
   finalizationRecipe?: FinalizationRecipe;
+  /** Per-platform disable reasons forwarded to the picker (e.g. YouTube Short ineligibility). */
+  disabledReasons?: Partial<Record<PlatformId, string>>;
+  /** When posting a reel to YouTube, the video title + duration for the Short override. */
+  youtubeTitle?: string;
+  youtubeDurationSeconds?: number;
 }
 
-export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe }: Props) {
+// Platforms EchoMe can auto-post to via the API/recipe fanout (vs. copy-and-open
+// link platforms). YouTube is here because clips publish as Shorts through the
+// finalizer (networkOverrideConfiguration.isShort) — without it, selecting YouTube
+// fell through to a copy-and-open redirect and no post was ever made.
+const API_AUTOPOST_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads', 'youtube'];
+
+// Platforms pre-selected on load. Intentionally excludes YouTube: it's opt-in and
+// eligibility-gated (vertical, ≤3 min), so we don't auto-select it.
+const DEFAULT_SELECTED_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads'];
+
+export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe, disabledReasons, youtubeTitle, youtubeDurationSeconds }: Props) {
   const { canAutoPost } = useSubscription();
 
   const [connectedAccounts, setConnectedAccounts] = useState<PlatformId[]>([]);
@@ -103,7 +118,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
           // Default-select every api-mode platform the user has connected. Saves clicks for
           // the common case of "post this visual to all my managed platforms."
           const apiPlatforms = platforms.filter((p) =>
-            (['instagram', 'linkedin', 'facebook', 'threads'] as PlatformId[]).includes(p),
+            (DEFAULT_SELECTED_PLATFORMS as PlatformId[]).includes(p),
           );
           if (apiPlatforms.length > 0) setSelected(apiPlatforms);
         }
@@ -115,8 +130,8 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
     })();
   }, []);
 
-  const hasApiSelection = selected.some((p) => ['instagram', 'linkedin', 'facebook', 'threads'].includes(p));
-  const hasLinkSelection = selected.some((p) => !['instagram', 'linkedin', 'facebook', 'threads'].includes(p));
+  const hasApiSelection = selected.some((p) => API_AUTOPOST_PLATFORMS.includes(p));
+  const hasLinkSelection = selected.some((p) => !API_AUTOPOST_PLATFORMS.includes(p));
 
   const handlePostNow = async () => {
     if (selected.length === 0) {
@@ -139,11 +154,11 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
 
     // Mixed or api-only: fanout-schedule with now-time
     if (!canAutoPost) {
-      toast.error('Auto-post to Instagram / LinkedIn / Facebook / Threads requires Studio');
+      toast.error('Auto-post to Instagram / LinkedIn / Facebook / Threads / YouTube requires Studio');
       return;
     }
     const apiRows = selected
-      .filter((p) => ['instagram', 'linkedin', 'facebook', 'threads'].includes(p))
+      .filter((p) => API_AUTOPOST_PLATFORMS.includes(p))
       .filter((p) => connectedAccounts.includes(p))
       .map((platform) => ({ platform, scheduled_at: new Date().toISOString() }));
 
@@ -160,6 +175,8 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         text: caption,
         media_urls: mediaUrls,
         finalization_recipe: finalizationRecipe,
+        youtube_title: youtubeTitle,
+        youtube_duration_seconds: youtubeDurationSeconds,
         rows: apiRows,
         created_via: 'manual_inline',
       });
@@ -170,7 +187,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
       );
 
       // Also open any link-mode selections for the user to complete manually
-      const linkSelections = selected.filter((p) => !['instagram', 'linkedin', 'facebook', 'threads'].includes(p));
+      const linkSelections = selected.filter((p) => !API_AUTOPOST_PLATFORMS.includes(p));
       if (linkSelections.length > 0) {
         try { await navigator.clipboard.writeText(caption); } catch { /* ignore */ }
         for (const platform of linkSelections) {
@@ -195,7 +212,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
     setSubmitting(true);
     try {
       const apiRows = selected
-        .filter((p) => ['instagram', 'linkedin', 'facebook', 'threads'].includes(p))
+        .filter((p) => API_AUTOPOST_PLATFORMS.includes(p))
         .filter((p) => connectedAccounts.includes(p))
         .map((platform) => ({ platform, scheduled_at: iso }));
 
@@ -206,6 +223,8 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
           text: caption,
           media_urls: mediaUrls,
           finalization_recipe: finalizationRecipe,
+          youtube_title: youtubeTitle,
+          youtube_duration_seconds: youtubeDurationSeconds,
           rows: apiRows,
           created_via: 'manual_inline',
         });
@@ -256,6 +275,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         onChange={setSelected}
         connectedPlatforms={connectedAccounts}
         disabled={submitting}
+        disabledReasons={disabledReasons}
       />
 
       {!showSchedule ? (
@@ -316,7 +336,6 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
 function linkComposeUrlFor(platform: string): string {
   const map: Record<string, string> = {
     tiktok: 'https://www.tiktok.com/upload',
-    youtube: 'https://studio.youtube.com',
     pinterest: 'https://www.pinterest.com/pin-creation-tool/',
     bluesky: 'https://bsky.app',
     google_business: 'https://business.google.com',

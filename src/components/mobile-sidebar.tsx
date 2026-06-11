@@ -8,6 +8,7 @@ import type { NavItem, NavGroup } from '@/hooks/useAppNavigation';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { VoiceSwitcher } from '@/components/voice-switcher';
 import { useVoiceContext } from '@/contexts/voice-context';
+import { Waveform } from '@/components/ui/waveform';
 
 const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
 
@@ -70,7 +71,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar border-r border-border/50 shadow-sm flex flex-col z-50 lg:hidden animate-fade-in" role="dialog" aria-modal="true" aria-label="Navigation menu">
         {/* Logo */}
         <div className="p-6 border-b border-border/50 flex items-center justify-between">
-          <button onClick={() => navigate('/app')} className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+          <button onClick={() => navigate('/app')} className="text-2xl font-bold text-foreground hover:text-primary transition-colors">
             EchoMe
           </button>
           <button
@@ -93,7 +94,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               {groupIndex > 0 && (
                 <div className="mx-2 my-2 border-t border-border/40" />
               )}
-              <p className="px-3 mb-1 text-[11px] uppercase tracking-wider font-medium text-muted-foreground/50">
+              <p className="px-3 mb-1.5 text-machine">
                 {group.label}
               </p>
               <div className="space-y-0.5">
@@ -113,29 +114,31 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       disabled={disabled}
                       aria-current={activeItem === item.id ? 'page' : undefined}
                       className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg
-                        text-sm font-medium transition-all duration-200
+                        w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border
+                        text-sm font-semibold font-headline tracking-tight transition-all duration-200
+                        focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
                         ${
                           disabled
-                            ? 'text-muted-foreground/40 cursor-not-allowed opacity-40'
+                            ? 'border-transparent text-muted-foreground/60 cursor-not-allowed'
                             : activeItem === item.id
-                              ? 'bg-gradient-to-r from-primary to-primary-dark text-primary-foreground shadow-sm'
-                              : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground hover:translate-x-0.5'
+                              ? 'bg-surface-container-low text-foreground border-border shadow-sm'
+                              : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-surface-container-low hover:text-foreground hover:translate-x-0.5'
                         }
                       `}
                     >
                       <Icon className="w-4 h-4 flex-shrink-0" />
                       <span className="flex-1 text-left truncate">{item.label}</span>
+                      {item.id === 'voice' && <Waveform bars={4} height={10} />}
                       {showHint && (
                         <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                       )}
                       {item.badge && (
-                        <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
                           {item.badge}
                         </span>
                       )}
                       {item.comingSoon && !isAdmin && (
-                        <span className="text-[10px] font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-surface-container-high text-slate-lavender px-2 py-0.5 rounded-full">
                           Soon
                         </span>
                       )}

@@ -154,7 +154,11 @@ export default function SettingsContent() {
         twitter_handle: twitterHandle || null,
         instagram_handle: instagramHandle || null,
         bio: bio || null,
-        website_url: websiteUrl || null,
+        // FUL-25: users type "www.example.com" — prepend https:// so the
+        // backend's URL validation doesn't fail the whole save.
+        website_url: websiteUrl.trim()
+          ? (/^https?:\/\//i.test(websiteUrl.trim()) ? websiteUrl.trim() : `https://${websiteUrl.trim()}`)
+          : null,
         // Profile context
         profile_role: profileRole || null,
         profile_topics: profileTopics || null,
@@ -653,7 +657,11 @@ export default function SettingsContent() {
                     try {
                       const res = await api.account.getDataSummary();
                       if (res.success && res.data) setDataSummary(res.data);
-                    } catch { /* ignore */ }
+                    } catch (err) {
+                      // Supplementary pre-fetch for the delete modal — don't block or
+                      // toast-spam the flow if it fails, but don't swallow it silently.
+                      console.error('Failed to load account data summary', err);
+                    }
                   }}
                   className="px-4 py-2 bg-error text-white rounded-lg hover:bg-error/90 transition-colors"
                 >
@@ -1081,9 +1089,12 @@ export default function SettingsContent() {
                     const response = await api.stripe.getPortalUrl();
                     if (response.success && response.data?.url) {
                       window.location.href = response.data.url;
+                    } else {
+                      toast.error('Could not open the billing portal. Please try again.');
                     }
                   } catch (error) {
                     console.error('Failed to open billing portal:', error);
+                    toast.error(extractErrorMessage(error, 'Could not open the billing portal. Please try again.'));
                   }
                 }}
                 className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors"
@@ -1109,7 +1120,7 @@ export default function SettingsContent() {
           {/* Quick Share Card */}
           <div className="card">
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl flex items-center justify-center text-2xl">
+              <div className="w-12 h-12 bg-surface-container-low border border-border rounded-xl flex items-center justify-center text-2xl">
                 🔗
               </div>
               <div className="flex-1">
@@ -1132,7 +1143,7 @@ export default function SettingsContent() {
                   navigator.clipboard.writeText(`https://tryechome.com/?via=${user?.email?.split('@')[0] || 'you'}`);
                   toast.success('Referral link copied!');
                 }}
-                className="px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
+                className="px-4 py-3 bg-primary-interactive text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
               >
                 Copy Link
               </button>

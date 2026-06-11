@@ -417,6 +417,19 @@ export default function CarouselEditorModal({
   );
 
   /**
+   * Apply the active slide's photo to every slide. Body slides render the
+   * photo with a heavier dark overlay (renderBrandedOverlayBody), so text
+   * stays readable. Same local-state-only mechanics as handlePhotoSelect:
+   * the per-slide overrides are baked in at Download / Post / Schedule.
+   */
+  const handleApplyPhotoToAll = useCallback(() => {
+    const photoUrl =
+      edits[activeIndex]?.backgroundImageUrl ?? slides[activeIndex]?.backgroundImageUrl;
+    if (!photoUrl) return;
+    setEdits((prev) => prev.map((e) => ({ ...e, backgroundImageUrl: photoUrl })));
+  }, [activeIndex, edits, slides]);
+
+  /**
    * Client-side preview render. Mirrors the backend canvas pipeline so
    * what shows in the editor IS what gets exported. Replaced the old
    * 1.5s auto-debounced server compose — we no longer round-trip on
@@ -901,11 +914,13 @@ export default function CarouselEditorModal({
             )}
 
             {/* Photo picker — branded-overlay cover/last slides support photo
-                swap via the compose-only fast path. Body slides are gated out
-                so the deck stays cohesive (matches the red-word picker rule
-                below and the tour copy in tours/carousel-editor.tsx). Legacy
-                templates (tweet-style, text-box, photo-overlay) don't render
-                the photo themselves, so the picker is hidden for those too. */}
+                swap via the compose-only fast path. Body slides don't get
+                their own picker (matches the red-word picker rule below and
+                the tour copy in tours/carousel-editor.tsx), but they CAN
+                receive the photo via "Apply to all slides" — the body
+                renderer draws it with a heavier overlay. Legacy templates
+                (tweet-style, text-box, photo-overlay) don't render the
+                photo themselves, so the picker is hidden for those too. */}
             {(activeSlide.template === 'branded-overlay-cover' ||
               activeSlide.template === 'branded-overlay-last') && (
               <div data-tour="carousel-editor-photo" className="space-y-2">
@@ -926,6 +941,16 @@ export default function CarouselEditorModal({
                   }
                   onSelect={(url) => handlePhotoSelect(activeIndex, url)}
                 />
+                {(edits[activeIndex]?.backgroundImageUrl ?? activeSlide.backgroundImageUrl) &&
+                  slides.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={handleApplyPhotoToAll}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:bg-card transition-colors"
+                    >
+                      Apply this photo to all {slides.length} slides
+                    </button>
+                  )}
               </div>
             )}
 
@@ -982,6 +1007,7 @@ export default function CarouselEditorModal({
               caption={postCaptionDraft || fallbackCaption || ''}
               mediaUrls={slides.map((s) => s.publicUrl).filter(Boolean)}
               outputKind="carousel"
+              disabledReasons={{ youtube: 'YouTube posting supports vertical video clips, not carousels.' }}
               finalizationRecipe={{
                 kind: 'carousel',
                 kit_id: contentKitId,

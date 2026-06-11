@@ -67,8 +67,8 @@ export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onSched
           setTimezone(resp.data.timezone);
           if (resp.data.kit_title) setResolvedTitle(resp.data.kit_title);
         }
-      } catch {
-        if (!cancelled) toast.error('Could not load suggestions. Try again.');
+      } catch (err) {
+        if (!cancelled) toast.error(extractErrorMessage(err, 'Could not load schedule suggestions. Please try again.'));
       } finally {
         if (!cancelled) setLoading(false);
       }

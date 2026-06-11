@@ -5,18 +5,35 @@ export const ACCEPTED_FILE_TYPES = {
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
   'application/msword': ['.doc'],
   'text/plain': ['.txt'],
-  'image/jpeg': ['.jpg', '.jpeg'],
-  'image/png': ['.png'],
+  // Audio routes to the dedicated Whisper voice-ingest endpoint (FUL-26) —
+  // see isAudioFile(). Images removed: there is no OCR pipeline; the backend
+  // now rejects them instead of silently dead-ending them.
   'audio/wav': ['.wav'],
+  'audio/x-wav': ['.wav'],
   'audio/mpeg': ['.mp3'],
   'audio/webm': ['.webm'],
   'audio/mp4': ['.m4a'],
+  'audio/x-m4a': ['.m4a'],
+  'audio/ogg': ['.ogg'],
+  'audio/flac': ['.flac'],
   // MBOX files can have various MIME types depending on OS/browser
   'application/mbox': ['.mbox'],
   'application/octet-stream': ['.mbox'],
 } as const;
 
 export const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+export const MAX_AUDIO_FILE_SIZE = 250 * 1024 * 1024; // 250MB — matches the voice-ingest endpoint's multer cap (Deepgram-backed)
+
+/**
+ * Audio files route to the dedicated voice-ingest (Whisper) endpoint rather
+ * than the document uploader (which can't process them). Extension-first so
+ * odd browser MIME types (e.g. iPhone m4a variants) still route correctly.
+ */
+export function isAudioFile(file: File): boolean {
+  const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+  if (['.mp3', '.m4a', '.wav', '.ogg', '.flac'].includes(ext)) return true;
+  return file.type.startsWith('audio/');
+}
 
 export interface FileWithProgress {
   id: string;
@@ -68,6 +85,14 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
     return {
       valid: false,
       error: `File type not supported: ${file.type || 'unknown'}`,
+    };
+  }
+
+  // Audio has a tighter cap (the voice-ingest endpoint's limit)
+  if (isAudioFile(file) && file.size > MAX_AUDIO_FILE_SIZE) {
+    return {
+      valid: false,
+      error: `Audio files must be under ${formatFileSize(MAX_AUDIO_FILE_SIZE)}`,
     };
   }
 

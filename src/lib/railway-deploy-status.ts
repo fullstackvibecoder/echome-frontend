@@ -7,6 +7,12 @@ const DEPLOYING_STATUSES = new Set([
 ]);
 const UP_STATUSES = new Set(['SUCCESS', 'SLEEPING']);
 
+// A deployment can flip to SUCCESS on Railway while the new container is still
+// booting (Node not yet accepting requests) — ~10-40s where /health fails but it
+// is NOT an outage. If the latest deploy is this recent, treat backend-down as
+// 'deploying' so the banner shows "updating" instead of the outage error sign.
+export const RECENT_DEPLOY_WINDOW_MS = 10 * 60 * 1000;
+
 export function mapDeploymentStatusToState(status: string | null | undefined): DeployState {
   if (!status) return 'unknown';
   const s = status.toUpperCase();
@@ -43,6 +49,7 @@ export async function fetchLatestDeploymentState(
   cfg: RailwayConfig,
   fetchImpl: typeof fetch = fetch,
   timeoutMs = 3000,
+  now: number = Date.now(),
 ): Promise<DeployState> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -59,8 +66,15 @@ export async function fetchLatestDeploymentState(
     });
     if (!res.ok) return 'unknown';
     const json = await res.json();
-    const status = json?.data?.deployments?.edges?.[0]?.node?.status;
-    return mapDeploymentStatusToState(status);
+    const node = json?.data?.deployments?.edges?.[0]?.node;
+    const state = mapDeploymentStatusToState(node?.status);
+    // SUCCESS but very recent → new container likely still booting; report
+    // 'deploying' so a transient post-deploy /health failure shows "updating".
+    if (state === 'up' && node?.createdAt) {
+      const age = now - new Date(node.createdAt).getTime();
+      if (age >= 0 && age < RECENT_DEPLOY_WINDOW_MS) return 'deploying';
+    }
+    return state;
   } catch {
     return 'unknown';
   } finally {
