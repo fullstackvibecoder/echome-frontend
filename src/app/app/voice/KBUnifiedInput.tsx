@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import { validateFile, isMboxFile } from '@/lib/file-utils';
+import { validateFile, isMboxFile, isAudioFile } from '@/lib/file-utils';
 import { parseMboxFile } from '@/lib/mbox-parser';
 import { FileList } from '@/components/file-list';
 import { VoiceRecorder } from '@/components/voice-recorder';
@@ -15,7 +15,7 @@ interface KBUnifiedInputProps {
   onImportComplete: () => void;
 }
 
-const ACCEPTED_EXTENSIONS = '.pdf,.docx,.txt,.mp3,.m4a,.wav,.mbox';
+const ACCEPTED_EXTENSIONS = '.pdf,.docx,.doc,.txt,.mp3,.m4a,.wav,.ogg,.flac,.mbox';
 const MBOX_ACCEPT = '.mbox,application/mbox,application/octet-stream,text/plain';
 
 type PlatformHint = 'youtube' | 'instagram' | 'blog' | null;
@@ -207,8 +207,34 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
   };
 
   // --- File handling ---
+  // Audio files go to the dedicated Whisper voice-ingest endpoint — the
+  // document uploader can't process them (FUL-26: audio sent there was stored
+  // but never transcribed). Sequential: transcription is the bottleneck anyway.
+  const processAudioFiles = useCallback(async (audioFiles: File[]) => {
+    for (const file of audioFiles) {
+      const toastId = toast.loading(`Transcribing ${file.name}…`);
+      try {
+        const result = await api.kbContent.ingestVoice({
+          audioBlob: file,
+          title: file.name,
+          knowledgeBaseId: knowledgeBaseId || undefined,
+          fileName: file.name,
+        });
+        toast.success(
+          `${file.name} transcribed — ${result.chunksCreated} voice pattern${result.chunksCreated === 1 ? '' : 's'} added`,
+          { id: toastId }
+        );
+      } catch (err) {
+        toast.error(extractErrorMessage(err, `Failed to transcribe ${file.name}`), { id: toastId });
+      }
+    }
+    onImportComplete();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knowledgeBaseId, onImportComplete]);
+
   const handleFiles = useCallback((fileList: File[]) => {
     const mboxFiles: File[] = [];
+    const audioFiles: File[] = [];
     const regularFiles: File[] = [];
 
     for (const file of fileList) {
@@ -220,6 +246,8 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
 
       if (isMboxFile(file)) {
         mboxFiles.push(file);
+      } else if (isAudioFile(file)) {
+        audioFiles.push(file);
       } else {
         regularFiles.push(file);
       }
@@ -228,6 +256,11 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
     // Process MBOX files (take first one)
     if (mboxFiles.length > 0) {
       processMboxFile(mboxFiles[0]);
+    }
+
+    // Audio → transcription flow (not the document uploader)
+    if (audioFiles.length > 0) {
+      processAudioFiles(audioFiles);
     }
 
     // Queue regular files for upload
@@ -241,7 +274,7 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [knowledgeBaseId, addFiles, doUpload]);
+  }, [knowledgeBaseId, addFiles, doUpload, processAudioFiles]);
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

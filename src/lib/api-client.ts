@@ -1120,15 +1120,20 @@ export const api = {
       audioBlob: Blob;
       title?: string;
       knowledgeBaseId?: string;
+      /** Preserve the real filename for uploaded audio files — the backend
+       *  falls back to extension matching when the MIME type is odd (FUL-26). */
+      fileName?: string;
     }) => {
       const formData = new FormData();
-      formData.append('audio', data.audioBlob, 'recording.webm');
+      formData.append('audio', data.audioBlob, data.fileName || 'recording.webm');
       if (data.title) formData.append('title', data.title);
       if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
 
       const response = await apiClient.post('/kb/content/voice', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 120000, // 2 minutes for transcription + ingestion
+        // 10 min: covers uploading a 100MB file on slow connections + Whisper
+        // transcription of long recordings (was 2 min, sized for short mic clips).
+        timeout: 600000,
       });
       return response.data as {
         success: boolean;
