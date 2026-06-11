@@ -17,6 +17,8 @@ import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Spark
 import { ZoomPasswordModal } from './ZoomPasswordModal';
 import UnifiedCreateInput from './UnifiedCreateInput';
 import { takeEchoHandoff } from '@/components/echo/file-handoff';
+import { useEchoExperience } from '@/hooks/useEchoExperience';
+import { EchoHero } from '@/components/echo/EchoHero';
 
 /**
  * Extract error message from various error types (axios, standard Error, etc.)
@@ -444,6 +446,7 @@ export function GenerationForm({
   // Subscription & free generation state
   const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate, refresh: refreshSubscription } = useSubscription();
   const { user } = useAuth();
+  const echoExperience = useEchoExperience();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -454,14 +457,24 @@ export function GenerationForm({
   useEffect(() => {
     const next = new URLSearchParams(searchParams.toString());
 
-    // echoPrompt — text handoff: switch to text mode and populate the input.
+    // echoPrompt — text handoff. In echo-experience mode the resting view IS
+    // EchoHero, which does not consume `input`, so merely seeding state would
+    // strand the prompt on the hero (no textarea, nothing generates). Instead
+    // fire the generation pipeline directly via handleUnifiedSubmit, which
+    // exits the resting branch into the active pipeline. In legacy mode the
+    // resting view is UnifiedCreateInput (keyed on `input`), so seeding state
+    // is correct there.
     const echoPrompt = searchParams.get('echoPrompt');
     if (echoPrompt) {
-      setInputType('text');
-      setInput(echoPrompt);
       next.delete('echoPrompt');
       const qs = next.toString();
       router.replace(`/app${qs ? `?${qs}` : ''}`);
+      if (echoExperience) {
+        handleUnifiedSubmit(echoPrompt);
+      } else {
+        setInputType('text');
+        setInput(echoPrompt);
+      }
       return;
     }
 
@@ -483,8 +496,15 @@ export function GenerationForm({
             setSelectedFile(item.file);
           }
         } else if (item.kind === 'text') {
-          setInputType('text');
-          setInput(item.text);
+          // Transcribed-audio text: same seam as echoPrompt above. In echo mode
+          // the resting view is EchoHero (ignores `input`), so route the
+          // transcript straight into generation; legacy mode seeds state.
+          if (echoExperience) {
+            handleUnifiedSubmit(item.text);
+          } else {
+            setInputType('text');
+            setInput(item.text);
+          }
         }
       }
     }
@@ -1301,34 +1321,38 @@ export function GenerationForm({
   if (!videoProcessing && !generating && !uploading && !selectedFile && inputType !== 'audio') {
     return (
       <div ref={formCardRef} className="flex flex-col items-center justify-center min-h-[60vh]">
-        <UnifiedCreateInput
-          // Remount when `input` changes so the hero's text state re-initializes
-          // from it. The Echo pill hands off text-based create intents (typed
-          // prompt or transcribed audio) by setting `input`; the hero's
-          // useState initializer is mount-only, so a seed landing after first
-          // render needs a remount to surface. `input` only changes at seed or
-          // submit (never on the hero's own typing, which is internal), so this
-          // does not remount mid-keystroke. Keying on the value (not a boolean)
-          // also catches a second, different seed in the same session.
-          key={input || 'empty'}
-          onSubmit={handleUnifiedSubmit}
-          onMicClick={() => {
-            setInputType('audio' as ExtendedInputType);
-          }}
-          onFileSelect={(file) => {
-            const MAX_SIZE = 2 * 1024 * 1024 * 1024;
-            if (file.size > MAX_SIZE) {
-              setUploadError(`File is too large (${Math.round(file.size / (1024 * 1024))}MB). Maximum is 2GB.`);
-              return;
-            }
-            setSelectedFile(file);
-            processVideoWithClipFinder(file, 'upload');
-          }}
-          disabled={generating || videoProcessing}
-          zoomPasswordValue={zoomPasswordUpfront}
-          onZoomPasswordChange={setZoomPasswordUpfront}
-          initialText={input}
-        />
+        {echoExperience ? (
+          <EchoHero />
+        ) : (
+          <UnifiedCreateInput
+            // Remount when `input` changes so the hero's text state re-initializes
+            // from it. The Echo pill hands off text-based create intents (typed
+            // prompt or transcribed audio) by setting `input`; the hero's
+            // useState initializer is mount-only, so a seed landing after first
+            // render needs a remount to surface. `input` only changes at seed or
+            // submit (never on the hero's own typing, which is internal), so this
+            // does not remount mid-keystroke. Keying on the value (not a boolean)
+            // also catches a second, different seed in the same session.
+            key={input || 'empty'}
+            onSubmit={handleUnifiedSubmit}
+            onMicClick={() => {
+              setInputType('audio' as ExtendedInputType);
+            }}
+            onFileSelect={(file) => {
+              const MAX_SIZE = 2 * 1024 * 1024 * 1024;
+              if (file.size > MAX_SIZE) {
+                setUploadError(`File is too large (${Math.round(file.size / (1024 * 1024))}MB). Maximum is 2GB.`);
+                return;
+              }
+              setSelectedFile(file);
+              processVideoWithClipFinder(file, 'upload');
+            }}
+            disabled={generating || videoProcessing}
+            zoomPasswordValue={zoomPasswordUpfront}
+            onZoomPasswordChange={setZoomPasswordUpfront}
+            initialText={input}
+          />
+        )}
         {uploadError && (
           <p className="text-destructive text-sm mt-4 text-center max-w-md">{uploadError}</p>
         )}
