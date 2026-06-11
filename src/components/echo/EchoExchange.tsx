@@ -53,6 +53,20 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
 
   const resolvedIntent: EchoIntent | null = selectedIntent ?? classification?.intent ?? null;
 
+  // What will actually be handed off when the user confirms — shown under the
+  // chips so confirming feels like an action, not a dead end. Falls back to
+  // the raw input when the classifier returned no extracted arg (or when the
+  // user corrected the intent, since args belong to the detected one).
+  const argKeyByIntent: Record<EchoIntent, string> = {
+    create: 'prompt',
+    ingest: 'note',
+    question: 'query',
+    command: 'detail',
+  };
+  const handoffPreview: string | null = resolvedIntent
+    ? classification?.args?.[argKeyByIntent[resolvedIntent]] || inputText.trim() || null
+    : null;
+
   return (
     <div
       className="flex flex-col gap-3"
@@ -109,6 +123,16 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
               );
             })}
           </div>
+
+          {/* Handoff preview: what confirming will actually do */}
+          {!isAnswered && handoffPreview && (
+            <p
+              className="text-xs text-[var(--muted-foreground)] border-l-2 border-[var(--border)] pl-2 leading-snug line-clamp-2"
+              aria-label="What Echo will do"
+            >
+              {handoffPreview}
+            </p>
+          )}
 
           {/* Confirm button (only in confirming/executing phases) */}
           {!isAnswered && (
