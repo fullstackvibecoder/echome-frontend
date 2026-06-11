@@ -448,7 +448,9 @@ export function GenerationForm({
 
   // Seed from echoPrompt: Echo pill hands off to this form via ?echoPrompt=...
   // Switch to text mode, populate the input, then strip the param so refresh
-  // does not re-seed.
+  // does not re-seed. Depends on searchParams (not mount-only) because the
+  // handoff can happen while the user is already on /app — same-route
+  // navigation updates the query without remounting this form.
   useEffect(() => {
     const echoPrompt = searchParams.get('echoPrompt');
     if (!echoPrompt) return;
@@ -459,7 +461,7 @@ export function GenerationForm({
     const qs = next.toString();
     router.replace(`/app${qs ? `?${qs}` : ''}`);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   // One-click paywall checkout. Tracks per-plan loading so the right
   // button shows a spinner while we hit the API + redirect to Stripe.
