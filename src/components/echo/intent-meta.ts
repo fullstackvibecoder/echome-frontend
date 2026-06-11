@@ -6,6 +6,25 @@
 
 import type { EchoIntent } from '@/lib/echo-client';
 
+// ---- File-kind routing ----
+
+export type EchoFileKind = 'video' | 'audio' | 'text' | 'unsupported';
+
+export function classifyFile(file: File): EchoFileKind {
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('audio/')) return 'audio';
+  if (
+    file.type === 'text/plain' ||
+    file.type === 'text/markdown' ||
+    /\.(txt|md)$/i.test(file.name)
+  )
+    return 'text';
+  return 'unsupported';
+}
+
+export const MAX_ECHO_AUDIO_BYTES = 250 * 1024 * 1024; // backend KB ingest cap
+export const MAX_ECHO_TEXT_BYTES = 1 * 1024 * 1024;
+
 export interface IntentMeta {
   /** Short uppercase label shown on the intent chip */
   chipLabel: string;
