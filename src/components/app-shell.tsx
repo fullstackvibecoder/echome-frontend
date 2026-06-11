@@ -7,8 +7,10 @@ import { MobileSidebar } from './mobile-sidebar';
 import { AppHeader } from './app-header';
 // import { GenerationBanner } from './generation-banner'; // Temporarily disabled — see JSX below
 import { HelpWidget } from './help-widget';
+import { EchoPill } from '@/components/echo/EchoPill';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AppShellProps {
   children: ReactNode;
@@ -17,6 +19,8 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { isMobileMenuOpen, closeMobileMenu } = useAppNavigation();
   const { subscription, loading: subLoading } = useSubscription();
+  const { user } = useAuth();
+  const showPill = !!user?.isAdmin;
 
   // Show banner if subscription is canceled (not pending cancellation, actually ended)
   const showExpiredBanner = !subLoading
@@ -59,9 +63,11 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         )}
 
-        <main id="main-content" className="relative z-10 flex-1 overflow-y-auto bg-transparent">
+        <main id="main-content" className={`relative z-10 flex-1 overflow-y-auto bg-transparent${showPill ? ' pb-24' : ''}`}>
           {children}
         </main>
+
+        {showPill && <EchoPill />}
       </div>
 
       {/* Floating Generation Progress Banner — temporarily hidden.
