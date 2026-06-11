@@ -133,6 +133,17 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     try {
       const page = typeof window !== 'undefined' ? window.location.pathname : undefined;
       const classification = await classifyEchoInput(text, { page });
+      // Fire-and-forget telemetry — never throw, never block UX
+      api.telemetry.event({
+        event_name: 'echo_classified',
+        event_data: {
+          intent: classification.intent,
+          confidence: classification.confidence,
+          source: classification.source,
+          text_length: text.length,
+          has_attachment: false,
+        },
+      }).catch(() => {});
       setState((prev) => ({
         ...prev,
         phase: 'confirming',
@@ -151,6 +162,19 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
 
   // Step 2a: user may correct the intent
   const selectIntent = useCallback((intent: EchoIntent) => {
+    const { classification } = stateRef.current;
+    // Emit correction telemetry only when the user picks a different intent than classified
+    if (classification && intent !== classification.intent) {
+      api.telemetry.event({
+        event_name: 'echo_intent_corrected',
+        event_data: {
+          detected: classification.intent,
+          corrected: intent,
+          confidence: classification.confidence,
+          source: classification.source,
+        },
+      }).catch(() => {});
+    }
     setState((prev) => ({
       ...prev,
       selectedIntent: intent,
@@ -251,6 +275,14 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           break;
         }
       }
+      // Fire-and-forget execution telemetry
+      api.telemetry.event({
+        event_name: 'echo_executed',
+        event_data: {
+          intent,
+          corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+        },
+      }).catch(() => {});
     } catch (err) {
       setState((prev) => ({
         ...prev,
