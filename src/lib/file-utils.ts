@@ -22,7 +22,7 @@ export const ACCEPTED_FILE_TYPES = {
 } as const;
 
 export const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
-export const MAX_AUDIO_FILE_SIZE = 100 * 1024 * 1024; // 100MB — matches the voice-ingest endpoint's multer cap
+export const MAX_AUDIO_FILE_SIZE = 250 * 1024 * 1024; // 250MB — matches the voice-ingest endpoint's multer cap (Deepgram-backed)
 
 /**
  * Audio files route to the dedicated voice-ingest (Whisper) endpoint rather
