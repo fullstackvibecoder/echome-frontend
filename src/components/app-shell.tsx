@@ -10,7 +10,7 @@ import { HelpWidget } from './help-widget';
 import { EchoPill } from '@/components/echo/EchoPill';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useAuth } from '@/hooks/useAuth';
+import { useEchoExperience } from '@/hooks/useEchoExperience';
 
 interface AppShellProps {
   children: ReactNode;
@@ -19,8 +19,7 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { isMobileMenuOpen, closeMobileMenu } = useAppNavigation();
   const { subscription, loading: subLoading } = useSubscription();
-  const { user } = useAuth();
-  const showPill = !!user?.isAdmin;
+  const echoOn = useEchoExperience();
 
   // Show banner if subscription is canceled (not pending cancellation, actually ended)
   const showExpiredBanner = !subLoading
@@ -63,11 +62,11 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         )}
 
-        <main id="main-content" className={`relative z-10 flex-1 overflow-y-auto bg-transparent${showPill ? ' pb-24' : ''}`}>
+        <main id="main-content" className={`relative z-10 flex-1 overflow-y-auto bg-transparent${echoOn ? ' pb-24' : ''}`}>
           {children}
         </main>
 
-        {showPill && <EchoPill />}
+        {echoOn && <EchoPill />}
       </div>
 
       {/* Floating Generation Progress Banner — temporarily hidden.

@@ -6,6 +6,7 @@ import { Mic, ChevronRight, Sprout, TrendingUp, Zap, Star, RefreshCw, AlertCircl
 import { api } from '@/lib/api-client';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
+import { useEchoExperience } from '@/hooks/useEchoExperience';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { VoiceWaveform } from '@/components/voice-waveform';
 import { UpgradeBanner } from '@/components/upgrade-banner';
@@ -55,6 +56,7 @@ export default function KnowledgeContent() {
     contentItems, contentStats, loading, selectedKb, selectKb, deleteContent, refresh,
   } = useKnowledgeBase(isTeamsUser ? activeVoice?.knowledgeBaseId : undefined);
   const { data: voiceStrength, refresh: refreshVoiceStrength } = useVoiceStrength();
+  const echoOn = useEchoExperience();
 
   // KB switching for teams
   useEffect(() => {
@@ -278,16 +280,32 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-          {/* Unified Input */}
-          <div className="mb-8">
-            <KBUnifiedInput
-              knowledgeBaseId={selectedKb}
-              onImportComplete={handleImportComplete}
-            />
-          </div>
+          {/* Unified Input — hidden when the Echo experience is on; the Echo
+              bar owns intake there. Component kept for one release for rollback. */}
+          {!echoOn && (
+            <div className="mb-8">
+              <KBUnifiedInput
+                knowledgeBaseId={selectedKb}
+                onImportComplete={handleImportComplete}
+              />
+            </div>
+          )}
 
-          {/* Chat — only once there's something to ask about */}
-          {hasContent && (
+          {/* Echo-on sign-post — points to the Echo bar instead of an intake.
+              Not a functional input; intake lives in the Echo bar now. */}
+          {echoOn && (
+            <div className="mb-8 rounded-xl border border-border bg-card p-5">
+              <p className="text-machine mb-1.5">Feed your voice</p>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Add writing, paste a post, or ask what Echo knows from the Echo bar.
+              </p>
+            </div>
+          )}
+
+          {/* Chat — only once there's something to ask about. Hidden when the
+              Echo experience is on; ask Echo from the Echo bar instead.
+              Component kept for one release for rollback. */}
+          {!echoOn && hasContent && (
             <div className="mb-8">
               <KBChat
                 kbId={selectedKb}
