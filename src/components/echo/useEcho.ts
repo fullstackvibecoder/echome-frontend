@@ -151,8 +151,11 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
       ...prev,
       attachment: file,
       attachmentError: null,
-      // Auto-expand if pill is idle
-      phase: prev.phase === 'idle' ? 'open' : prev.phase,
+      // Attaching a file means a fresh input is in progress: surface the input
+      // phase from any resting/terminal state (idle, or a finished exchange's
+      // 'done'). Staying in 'done' would hide the textarea and let "Ask another"
+      // silently discard the file the user just attached.
+      phase: prev.phase === 'idle' || prev.phase === 'done' ? 'open' : prev.phase,
     }));
   }, []);
 

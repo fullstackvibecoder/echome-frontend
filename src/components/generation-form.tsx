@@ -1302,6 +1302,15 @@ export function GenerationForm({
     return (
       <div ref={formCardRef} className="flex flex-col items-center justify-center min-h-[60vh]">
         <UnifiedCreateInput
+          // Remount when `input` changes so the hero's text state re-initializes
+          // from it. The Echo pill hands off text-based create intents (typed
+          // prompt or transcribed audio) by setting `input`; the hero's
+          // useState initializer is mount-only, so a seed landing after first
+          // render needs a remount to surface. `input` only changes at seed or
+          // submit (never on the hero's own typing, which is internal), so this
+          // does not remount mid-keystroke. Keying on the value (not a boolean)
+          // also catches a second, different seed in the same session.
+          key={input || 'empty'}
           onSubmit={handleUnifiedSubmit}
           onMicClick={() => {
             setInputType('audio' as ExtendedInputType);
@@ -1318,7 +1327,7 @@ export function GenerationForm({
           disabled={generating || videoProcessing}
           zoomPasswordValue={zoomPasswordUpfront}
           onZoomPasswordChange={setZoomPasswordUpfront}
-          initialText={initialInput}
+          initialText={input}
         />
         {uploadError && (
           <p className="text-destructive text-sm mt-4 text-center max-w-md">{uploadError}</p>
