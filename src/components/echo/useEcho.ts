@@ -10,7 +10,8 @@ import { useState, useCallback, useRef } from 'react';
 import { classifyEchoInput, type EchoClassification, type EchoIntent } from '@/lib/echo-client';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
-import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt } from './intent-meta';
+import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES } from './intent-meta';
+import { stashEchoHandoff } from './file-handoff';
 
 // ---- State machine phases ----
 export type EchoPhase =
@@ -30,6 +31,10 @@ export interface Receipt {
 export interface EchoState {
   phase: EchoPhase;
   inputText: string;
+  /** Attached file (video, audio, or text doc) — null when none */
+  attachment: File | null;
+  /** Inline error specific to the attachment (type or size) */
+  attachmentError: string | null;
   classification: EchoClassification | null;
   /** User-overridden intent (null = use classification.intent) */
   selectedIntent: EchoIntent | null;
@@ -43,6 +48,7 @@ export interface UseEchoReturn {
   open: () => void;
   close: () => void;
   setInputText: (text: string) => void;
+  setAttachment: (file: File | null) => void;
   submit: () => Promise<void>;
   selectIntent: (intent: EchoIntent) => void;
   confirm: () => Promise<void>;
@@ -76,6 +82,8 @@ function makeId(): string {
 const INITIAL_STATE: EchoState = {
   phase: 'idle',
   inputText: '',
+  attachment: null,
+  attachmentError: null,
   classification: null,
   selectedIntent: null,
   answer: null,
@@ -108,6 +116,49 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     setState((prev) => ({ ...prev, inputText: text }));
   }, []);
 
+  const setAttachment = useCallback((file: File | null) => {
+    if (!file) {
+      setState((prev) => ({ ...prev, attachment: null, attachmentError: null }));
+      return;
+    }
+    const kind = classifyFile(file);
+    if (kind === 'unsupported') {
+      setState((prev) => ({
+        ...prev,
+        attachment: null,
+        attachmentError:
+          'That file type isn\'t supported yet. Video, audio, and text files work.',
+      }));
+      return;
+    }
+    if (kind === 'audio' && file.size > MAX_ECHO_AUDIO_BYTES) {
+      setState((prev) => ({
+        ...prev,
+        attachment: null,
+        attachmentError: `Audio files must be under 250 MB. This file is ${(file.size / (1024 * 1024)).toFixed(0)} MB.`,
+      }));
+      return;
+    }
+    if (kind === 'text' && file.size > MAX_ECHO_TEXT_BYTES) {
+      setState((prev) => ({
+        ...prev,
+        attachment: null,
+        attachmentError: `Text files must be under 1 MB. This file is ${(file.size / (1024 * 1024)).toFixed(1)} MB.`,
+      }));
+      return;
+    }
+    setState((prev) => ({
+      ...prev,
+      attachment: file,
+      attachmentError: null,
+      // Attaching a file means a fresh input is in progress: surface the input
+      // phase from any resting/terminal state (idle, or a finished exchange's
+      // 'done'). Staying in 'done' would hide the textarea and let "Ask another"
+      // silently discard the file the user just attached.
+      phase: prev.phase === 'idle' || prev.phase === 'done' ? 'open' : prev.phase,
+    }));
+  }, []);
+
   const reset = useCallback(() => {
     setState((prev) => ({
       ...INITIAL_STATE,
@@ -123,21 +174,62 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     }));
   }, []);
 
-  // Step 1: user submits text -> classify
+  // Step 1: user submits text (or text + attachment) -> classify
   const submit = useCallback(async () => {
-    const text = stateRef.current.inputText.trim();
-    if (!text) return;
+    const { inputText, attachment } = stateRef.current;
+    const text = inputText.trim();
+    if (!text && !attachment) return;
 
     setState((prev) => ({ ...prev, phase: 'classifying', error: null }));
 
     try {
       const page = typeof window !== 'undefined' ? window.location.pathname : undefined;
-      const classification = await classifyEchoInput(text, { page });
+      const hasAttachment = !!attachment;
+      // Use file name as fallback text when there is no typed text
+      const classifyText = text || (attachment ? attachment.name : '');
+      const classification = await classifyEchoInput(classifyText, {
+        page,
+        hasAttachment,
+      });
+
+      // Coerce intent based on file kind (overrides classifier when file present)
+      let coercedIntent: EchoIntent | null = null;
+      if (attachment) {
+        const kind = classifyFile(attachment);
+        if (kind === 'video') {
+          coercedIntent = 'create';
+        } else if (kind === 'text') {
+          coercedIntent = 'ingest';
+        } else if (kind === 'audio') {
+          // Trust classifier for create/ingest; coerce question/command
+          const ci = classification.intent;
+          if (ci === 'create' || ci === 'ingest') {
+            coercedIntent = ci;
+          } else {
+            // No typed text asking for content = default ingest; text present and
+            // classifier called it a question/command = treat as content request = create
+            coercedIntent = text ? 'create' : 'ingest';
+          }
+        }
+      }
+
+      // Fire-and-forget telemetry — never throw, never block UX
+      api.telemetry.event({
+        event_name: 'echo_classified',
+        event_data: {
+          intent: classification.intent,
+          confidence: classification.confidence,
+          source: classification.source,
+          text_length: text.length,
+          has_attachment: hasAttachment,
+        },
+      }).catch(() => {});
+
       setState((prev) => ({
         ...prev,
         phase: 'confirming',
         classification,
-        selectedIntent: null,
+        selectedIntent: coercedIntent,
         answer: null,
       }));
     } catch (err) {
@@ -151,6 +243,19 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
 
   // Step 2a: user may correct the intent
   const selectIntent = useCallback((intent: EchoIntent) => {
+    const { classification } = stateRef.current;
+    // Emit correction telemetry only when the user picks a different intent than classified
+    if (classification && intent !== classification.intent) {
+      api.telemetry.event({
+        event_name: 'echo_intent_corrected',
+        event_data: {
+          detected: classification.intent,
+          corrected: intent,
+          confidence: classification.confidence,
+          source: classification.source,
+        },
+      }).catch(() => {});
+    }
     setState((prev) => ({
       ...prev,
       selectedIntent: intent,
@@ -162,7 +267,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     // Re-entry guard: prevent double-clicks or execution from terminal phases
     if (stateRef.current.phase === 'executing' || stateRef.current.phase === 'answered' || stateRef.current.phase === 'done') return;
 
-    const { classification, selectedIntent, inputText } = stateRef.current;
+    const { classification, selectedIntent, inputText, attachment } = stateRef.current;
     if (!classification) return;
 
     const intent: EchoIntent = selectedIntent ?? classification.intent;
@@ -172,6 +277,102 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
 
     try {
+      // ---- Attachment routing ----
+      if (attachment) {
+        const kind = classifyFile(attachment);
+
+        if (intent === 'create') {
+          if (kind === 'video') {
+            // Video handed off directly to Create form via in-memory store
+            stashEchoHandoff({ kind: 'video-file', file: attachment, note: text || undefined });
+            navigate('/app?echoFile=1');
+            addReceipt(formatReceipt(`${INTENT_META.create.receiptVerb} · ${attachment.name}`));
+            setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+            setTimeout(() => {
+              setState((prev) => ({ ...prev, phase: 'idle' }));
+            }, 1200);
+            api.telemetry.event({
+              event_name: 'echo_executed',
+              event_data: {
+                intent,
+                corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+              },
+            }).catch(() => {});
+            return;
+          }
+
+          if (kind === 'audio') {
+            // Audio must be transcribed first — the backend clip upload only accepts video MIME types
+            try {
+              const result = await api.kbContent.transcribeVoice(attachment);
+              if (result.success && result.text) {
+                stashEchoHandoff({ kind: 'text', text: result.text });
+                navigate('/app?echoFile=1');
+                addReceipt(formatReceipt('TRANSCRIBED AND HANDED TO CREATE'));
+                setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+                setTimeout(() => {
+                  setState((prev) => ({ ...prev, phase: 'idle' }));
+                }, 1200);
+                api.telemetry.event({
+                  event_name: 'echo_executed',
+                  event_data: {
+                    intent,
+                    corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+                  },
+                }).catch(() => {});
+              } else {
+                throw new Error('No transcript returned');
+              }
+            } catch {
+              setState((prev) => ({
+                ...prev,
+                phase: 'confirming',
+                error: 'Could not transcribe that audio. Try again or use a smaller file.',
+              }));
+            }
+            return;
+          }
+        }
+
+        if (intent === 'ingest' && kind === 'audio') {
+          await api.kbContent.ingestVoice({
+            audioBlob: attachment,
+            title: attachment.name,
+            fileName: attachment.name,
+          });
+          addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · AUDIO`));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          api.telemetry.event({
+            event_name: 'echo_executed',
+            event_data: {
+              intent,
+              corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+            },
+          }).catch(() => {});
+          return;
+        }
+
+        if (intent === 'ingest' && kind === 'text') {
+          const fileText = await attachment.text();
+          await api.kbContent.paste({
+            text: fileText,
+            sourceType: 'writing_sample',
+            title: attachment.name,
+          });
+          addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          api.telemetry.event({
+            event_name: 'echo_executed',
+            event_data: {
+              intent,
+              corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+            },
+          }).catch(() => {});
+          return;
+        }
+      }
+
+      // ---- Text-only routing (no attachment) ----
       switch (intent) {
         case 'create': {
           const prompt = args.prompt ?? text;
@@ -251,6 +452,14 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           break;
         }
       }
+      // Fire-and-forget execution telemetry
+      api.telemetry.event({
+        event_name: 'echo_executed',
+        event_data: {
+          intent,
+          corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+        },
+      }).catch(() => {});
     } catch (err) {
       setState((prev) => ({
         ...prev,
@@ -265,6 +474,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     open,
     close,
     setInputText,
+    setAttachment,
     submit,
     selectIntent,
     confirm,
