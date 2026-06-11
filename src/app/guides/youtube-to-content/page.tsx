@@ -72,7 +72,7 @@ export default function YouTubeToContentGuidePage() {
           </Step>
 
           <Step number={3} title="AI extracts the best clips">
-            <p>EchoMe analyzes your transcript and identifies the most engaging moments. Each clip gets a virality score. If the video has multiple speakers (interviews, podcasts), split-screen clips are generated automatically.</p>
+            <p>EchoMe analyzes your transcript and identifies the most engaging moments. Each clip gets a strength score. If the video has multiple speakers (interviews, podcasts), split-screen clips are generated automatically.</p>
           </Step>
 
           <Step number={4} title="8 caption styles">

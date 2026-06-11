@@ -555,12 +555,12 @@ export default function AppContent() {
                           🎬
                         </div>
                       )}
-                      {/* Virality score badge */}
-                      {clip.viralityScore && (
+                      {/* Strength score badge — comparative clip strength */}
+                      {clip.engagementPotential ? (
                         <div className="absolute top-3 left-3 bg-gradient-to-r from-accent to-accent/80 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg">
-                          🔥 {clip.viralityScore}% viral
+                          🔥 {clip.engagementPotential}% strength
                         </div>
-                      )}
+                      ) : null}
                       {/* Duration badge */}
                       <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2.5 py-1 rounded-full font-mono">
                         {Math.floor(clip.duration / 60)}:{String(Math.floor(clip.duration % 60)).padStart(2, '0')}
