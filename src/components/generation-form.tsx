@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
 import { api, ContentHistoryEntry, VideoUpload, VideoClip, ContentKit, ClipJob, MusicTrackSummary, ReelTemplate } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -444,6 +444,22 @@ export function GenerationForm({
   const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate, refresh: refreshSubscription } = useSubscription();
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Seed from echoPrompt: Echo pill hands off to this form via ?echoPrompt=...
+  // Switch to text mode, populate the input, then strip the param so refresh
+  // does not re-seed.
+  useEffect(() => {
+    const echoPrompt = searchParams.get('echoPrompt');
+    if (!echoPrompt) return;
+    setInputType('text');
+    setInput(echoPrompt);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('echoPrompt');
+    const qs = next.toString();
+    router.replace(`/app${qs ? `?${qs}` : ''}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // One-click paywall checkout. Tracks per-plan loading so the right
   // button shows a spinner while we hit the API + redirect to Stripe.
