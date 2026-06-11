@@ -110,20 +110,22 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
             })}
           </div>
 
-          {/* Confirm button */}
-          <button
-            type="button"
-            onClick={confirm}
-            disabled={phase === 'executing'}
-            className={[
-              'self-start px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-              'bg-[var(--surface-container-high)] border border-[var(--border)]',
-              'text-foreground hover:bg-[var(--surface-container-highest,var(--surface-container-high))]',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-            ].join(' ')}
-          >
-            {phase === 'executing' ? 'Working...' : resolvedIntent === 'create' ? 'Open Create' : resolvedIntent === 'ingest' ? 'Add to Voice' : resolvedIntent === 'command' ? 'Navigate' : 'Ask Voice'}
-          </button>
+          {/* Confirm button (only in confirming/executing phases) */}
+          {!isAnswered && (
+            <button
+              type="button"
+              onClick={confirm}
+              disabled={phase === 'executing'}
+              className={[
+                'self-start px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                'bg-[var(--surface-container-high)] border border-[var(--border)]',
+                'text-foreground hover:bg-[var(--surface-container-highest,var(--surface-container-high))]',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+              ].join(' ')}
+            >
+              {phase === 'executing' ? 'Working...' : resolvedIntent === 'create' ? 'Open Create' : resolvedIntent === 'ingest' ? 'Add to Voice' : resolvedIntent === 'command' ? 'Navigate' : 'Ask Voice'}
+            </button>
+          )}
         </div>
       )}
 

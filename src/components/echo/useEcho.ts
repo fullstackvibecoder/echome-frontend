@@ -159,6 +159,9 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
 
   // Step 2b: user confirms (clicks chip or confirm button) -> execute
   const confirm = useCallback(async () => {
+    // Re-entry guard: prevent double-clicks or execution from terminal phases
+    if (stateRef.current.phase === 'executing' || stateRef.current.phase === 'answered' || stateRef.current.phase === 'done') return;
+
     const { classification, selectedIntent, inputText } = stateRef.current;
     if (!classification) return;
 
