@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useDataState, type DataState } from "@/hooks/useDataState";
+import { useEchoExperience } from "@/hooks/useEchoExperience";
 
 interface ChipAction {
   label: string;
@@ -94,6 +95,7 @@ const LEVEL_UP_CHIP: ChipAction = {
 
 export function OutcomeChips() {
   const { dataState, voiceLevelUpReady, loading } = useDataState();
+  const echoOn = useEchoExperience();
 
   if (loading) return <OutcomeChipsSkeleton />;
 
@@ -102,12 +104,20 @@ export function OutcomeChips() {
     chips.unshift(LEVEL_UP_CHIP);
   }
 
+  // In echo-experience mode the Voice-page chat (which the ?ask=mind-reader
+  // deep-link targets) is hidden. Repoint that chip to Home, pre-filling the
+  // Echo hero with a mind-reader ask via ?echoAsk so the affordance survives.
+  const resolveHref = (href: string) =>
+    echoOn && href === "/app/voice?ask=mind-reader"
+      ? `/app?echoAsk=${encodeURIComponent("Pull a personal story from my knowledge base I could post about.")}`
+      : href;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {chips.map((chip, i) => (
         <Link
           key={`${chip.href}-${i}`}
-          href={chip.href}
+          href={resolveHref(chip.href)}
           className="group relative flex items-start gap-3 p-4 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(0,212,255,0.06)] transition-all overflow-hidden"
         >
           {/* ambient cyan glow on hover, matches the brand surface pattern */}

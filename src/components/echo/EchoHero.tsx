@@ -18,6 +18,7 @@ import {
   useState,
 } from 'react';
 import { Paperclip, X, Mic, Square } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useEcho } from './useEcho';
@@ -40,6 +41,8 @@ function formatElapsed(seconds: number): string {
 
 export function EchoHero() {
   const { navigate } = useAppNavigation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     state,
     open,
@@ -59,8 +62,19 @@ export function EchoHero() {
 
   // Ensure the state machine is in the 'open' phase on mount so
   // the textarea is always visible (the hero is always expanded).
+  // Also consume an ?echoAsk= prefill (e.g. the Mind-Reader chip): drop the
+  // text into the input WITHOUT auto-submitting, so the user reviews and sends.
   useEffect(() => {
     open();
+    const ask = searchParams.get('echoAsk');
+    if (ask) {
+      setInputText(ask);
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete('echoAsk');
+      const qs = next.toString();
+      router.replace(`/app${qs ? `?${qs}` : ''}`);
+      setTimeout(() => textareaRef.current?.focus(), 60);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

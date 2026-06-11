@@ -457,14 +457,24 @@ export function GenerationForm({
   useEffect(() => {
     const next = new URLSearchParams(searchParams.toString());
 
-    // echoPrompt — text handoff: switch to text mode and populate the input.
+    // echoPrompt — text handoff. In echo-experience mode the resting view IS
+    // EchoHero, which does not consume `input`, so merely seeding state would
+    // strand the prompt on the hero (no textarea, nothing generates). Instead
+    // fire the generation pipeline directly via handleUnifiedSubmit, which
+    // exits the resting branch into the active pipeline. In legacy mode the
+    // resting view is UnifiedCreateInput (keyed on `input`), so seeding state
+    // is correct there.
     const echoPrompt = searchParams.get('echoPrompt');
     if (echoPrompt) {
-      setInputType('text');
-      setInput(echoPrompt);
       next.delete('echoPrompt');
       const qs = next.toString();
       router.replace(`/app${qs ? `?${qs}` : ''}`);
+      if (echoExperience) {
+        handleUnifiedSubmit(echoPrompt);
+      } else {
+        setInputType('text');
+        setInput(echoPrompt);
+      }
       return;
     }
 
@@ -486,8 +496,15 @@ export function GenerationForm({
             setSelectedFile(item.file);
           }
         } else if (item.kind === 'text') {
-          setInputType('text');
-          setInput(item.text);
+          // Transcribed-audio text: same seam as echoPrompt above. In echo mode
+          // the resting view is EchoHero (ignores `input`), so route the
+          // transcript straight into generation; legacy mode seeds state.
+          if (echoExperience) {
+            handleUnifiedSubmit(item.text);
+          } else {
+            setInputType('text');
+            setInput(item.text);
+          }
         }
       }
     }
