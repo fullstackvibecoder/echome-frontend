@@ -493,7 +493,7 @@ function BillingContentInner() {
           <div>
             <h2 className="text-lg font-semibold mb-1">
               Current Plan
-              <InfoTooltip text="Your subscription controls how many generations, video minutes, and features you can access each month." />
+              <InfoTooltip text="Your subscription controls how many generations and features you can access each month." />
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-primary">

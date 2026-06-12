@@ -1051,27 +1051,6 @@ export default function SettingsContent() {
                   </div>
                 )}
 
-                {/* Video minutes usage */}
-                {usage && usage.videoMinutesLimit > 0 && (
-                  <div className="p-4 bg-bg-secondary rounded-lg mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-small text-text-secondary">Video minutes this month</span>
-                      <span className="text-small font-semibold">
-                        {usage.videoMinutesUsed.toFixed(1)} / {usage.videoMinutesLimit === -1 ? '∞' : usage.videoMinutesLimit} used
-                      </span>
-                    </div>
-                    {usage.videoMinutesLimit !== -1 && (
-                      <div className="h-2 bg-border rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-accent transition-all"
-                          style={{
-                            width: `${Math.min(100, (usage.videoMinutesUsed / usage.videoMinutesLimit) * 100)}%`
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
               </>
             )}
           </div>
