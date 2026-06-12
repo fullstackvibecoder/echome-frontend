@@ -387,8 +387,26 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
         }
 
         case 'ingest': {
+          const note = args.note ?? text;
+          // A pasted link should import the source, not save the raw URL
+          // string as a note. Reuses the Your Voice import pipeline:
+          // YouTube/Instagram have dedicated importers; anything else goes
+          // through the blog importer (RSS/sitemap discovery from the URL).
+          const urlMatch = note.match(/https?:\/\/[^\s<>"']+/i);
+          if (urlMatch) {
+            const url = urlMatch[0].replace(/[.,;:!?)\]}]+$/, '');
+            const platform = /youtube\.com|youtu\.be/i.test(url)
+              ? ('youtube' as const)
+              : /instagram\.com/i.test(url)
+              ? ('instagram' as const)
+              : ('blog' as const);
+            await api.kbContent.startSocialImport({ platform, url });
+            addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${platform.toUpperCase()} IMPORT`));
+            setState((prev) => ({ ...prev, phase: 'done', inputText: '' }));
+            break;
+          }
           await api.kbContent.paste({
-            text: args.note ?? text,
+            text: note,
             sourceType: 'text',
             title: 'Echo note',
           });

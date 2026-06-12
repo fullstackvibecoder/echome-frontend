@@ -1238,16 +1238,34 @@ export function GenerationForm({
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    // Check if it's a URL
-    const isYouTube = /youtube\.com|youtu\.be/.test(trimmed);
-    const isInstagram = /instagram\.com/.test(trimmed);
-    const isLoom = /loom\.com/.test(trimmed);
-    const isZoom = /zoom\.us/.test(trimmed);
-    const looksLikeUrl = /^https?:\/\//i.test(trimmed) || isYouTube || isInstagram || isLoom || isZoom;
+    // Users often type a prompt alongside the link ("make clips from this:
+    // https://youtu.be/..."). Extract the URL and validate IT — isValidUrl's
+    // patterns are ^-anchored, so validating the whole string rejects any
+    // input with prose before the link and misfires the article-link error.
+    const urlMatch = trimmed.match(
+      /https?:\/\/[^\s<>"']+|(?:www\.)?(?:youtube\.com|youtu\.be|instagram\.com|loom\.com|zoom\.us|vimeo\.com|streamyard\.com|riverside\.fm|twitch\.tv|tiktok\.com|facebook\.com)\/[^\s<>"']+/i,
+    );
+    // Strip trailing punctuation that sentence context glues onto the URL.
+    const url = urlMatch ? urlMatch[0].replace(/[.,;:!?)\]}]+$/, '') : null;
 
-    if (looksLikeUrl) {
-      if (!isValidUrl(trimmed)) {
-        // URL that's not a video source — most often an article/blog link.
+    if (url) {
+      if (isValidUrl(url)) {
+        const isYouTube = /youtube\.com|youtu\.be/i.test(url);
+        const isInstagram = /instagram\.com/i.test(url);
+        const isLoom = /loom\.com/i.test(url);
+        const isZoom = /zoom\.us/i.test(url);
+        const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
+        const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
+        setVideoUrl(url);
+        processVideoWithClipFinder(undefined, sourceType as VideoSourceType, url, passcode);
+        return;
+      }
+
+      // Non-video URL. If the input is essentially just the link, show the
+      // article guidance; with a real prompt around it, fall through and
+      // treat the whole input as a text prompt instead of dead-ending.
+      const prose = trimmed.replace(url, ' ').replace(/\s+/g, ' ').trim();
+      if (prose.length < 20) {
         // setUrlError() is INVISIBLE from the hero text-input mode (the
         // <p>{urlError}</p> only renders inside the dedicated URL-input UI
         // at line ~1646), so the user sees nothing happen. Toast guarantees
@@ -1260,11 +1278,6 @@ export function GenerationForm({
         setUrlError('Not a supported video URL. Articles should be pasted as text, or imported via Your Voice.');
         return;
       }
-      const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
-      const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
-      setVideoUrl(trimmed);
-      processVideoWithClipFinder(undefined, sourceType as VideoSourceType, trimmed, passcode);
-      return;
     }
 
     // Plain text — generate content
