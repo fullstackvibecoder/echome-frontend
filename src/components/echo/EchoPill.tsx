@@ -351,7 +351,7 @@ export function EchoPill() {
           htmlFor="echo-file-input"
           className="shrink-0 cursor-pointer text-[var(--muted-foreground)] hover:text-foreground transition-colors p-0.5"
           aria-label="Attach a file"
-          title="Attach a file (video, audio, or text)"
+          title="Attach a file (video, audio, document, text, or .mbox email archive)"
         >
           <Paperclip size={14} />
         </label>
@@ -359,7 +359,7 @@ export function EchoPill() {
           ref={fileInputRef}
           id="echo-file-input"
           type="file"
-          accept="video/*,audio/*,.txt,.md"
+          accept="video/*,audio/*,.txt,.md,.pdf,.docx,.doc,.mbox"
           className="sr-only"
           onChange={handleFileInputChange}
           tabIndex={-1}
