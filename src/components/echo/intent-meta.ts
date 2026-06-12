@@ -68,6 +68,10 @@ export const COMMAND_ROUTE_MAP: Record<string, string> = {
   voice: '/app/voice',
   radar: '/app/radar',
   kit: '/app/library',
+  // 'regenerate' executes in-place when the user is on a kit page (useEcho
+  // special-cases it before this map); this entry is the fallback route
+  // when they aren't.
+  regenerate: '/app/library',
 };
 
 /** Format a receipt line: "VERB . HH:MM" */

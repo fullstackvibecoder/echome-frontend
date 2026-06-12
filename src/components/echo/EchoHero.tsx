@@ -139,7 +139,7 @@ export function EchoHero() {
     >
       {/* Display headline */}
       <h1
-        className="mb-6 text-center font-semibold leading-tight"
+        className="mb-2 text-center font-semibold leading-tight"
         style={{
           fontSize: 'clamp(1.5rem, 1.25rem + 1.25vw, 1.875rem)',
           color: 'var(--foreground)',
@@ -147,6 +147,15 @@ export function EchoHero() {
       >
         What are we making?
       </h1>
+
+      {/* Capability subhead: this is a command centre, not just a chat box */}
+      <p
+        className="mb-6 text-center text-sm leading-snug max-w-xl"
+        style={{ color: 'var(--muted-foreground)' }}
+      >
+        Drop in a video to clip it, paste a YouTube link, type a topic, or
+        just talk. Echo turns it into content in your voice.
+      </p>
 
       {/* Hero input surface */}
       <div
@@ -264,7 +273,7 @@ export function EchoHero() {
             className="flex-1 text-machine"
             style={{ color: 'var(--muted-foreground)', fontSize: '0.5625rem' }}
           >
-            DRAG A FILE OR TYPE BELOW
+            VIDEO · AUDIO · YOUTUBE LINK · TOPIC. TYPE, DROP, OR TALK
           </span>
 
           {/* Paperclip attach */}

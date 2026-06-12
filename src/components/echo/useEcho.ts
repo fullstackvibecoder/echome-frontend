@@ -185,11 +185,16 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     try {
       const page = typeof window !== 'undefined' ? window.location.pathname : undefined;
       const hasAttachment = !!attachment;
+      // When the user is viewing a content kit, tell the classifier — "redo
+      // this, it doesn't sound like me" means regenerate THAT kit, not start
+      // a new create flow.
+      const itemId = page?.match(/^\/app\/library\/([^/?#]+)/)?.[1];
       // Use file name as fallback text when there is no typed text
       const classifyText = text || (attachment ? attachment.name : '');
       const classification = await classifyEchoInput(classifyText, {
         page,
         hasAttachment,
+        itemId,
       });
 
       // Coerce intent based on file kind (overrides classifier when file present)
@@ -387,8 +392,26 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
         }
 
         case 'ingest': {
+          const note = args.note ?? text;
+          // A pasted link should import the source, not save the raw URL
+          // string as a note. Reuses the Your Voice import pipeline:
+          // YouTube/Instagram have dedicated importers; anything else goes
+          // through the blog importer (RSS/sitemap discovery from the URL).
+          const urlMatch = note.match(/https?:\/\/[^\s<>"']+/i);
+          if (urlMatch) {
+            const url = urlMatch[0].replace(/[.,;:!?)\]}]+$/, '');
+            const platform = /youtube\.com|youtu\.be/i.test(url)
+              ? ('youtube' as const)
+              : /instagram\.com/i.test(url)
+              ? ('instagram' as const)
+              : ('blog' as const);
+            await api.kbContent.startSocialImport({ platform, url });
+            addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${platform.toUpperCase()} IMPORT`));
+            setState((prev) => ({ ...prev, phase: 'done', inputText: '' }));
+            break;
+          }
           await api.kbContent.paste({
-            text: args.note ?? text,
+            text: note,
             sourceType: 'text',
             title: 'Echo note',
           });
@@ -436,6 +459,30 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
 
         case 'command': {
           const target = (args.target ?? '').toLowerCase();
+
+          // Regenerate the kit the user is currently viewing, threading their
+          // guidance ("doesn't sound like me") into the generation as
+          // additionalInstructions. Reuses POST /content-kits/:id/regenerate
+          // (same endpoint as the kit page's per-platform regenerate UI).
+          if (target === 'regenerate') {
+            const path = typeof window !== 'undefined' ? window.location.pathname : '';
+            const kitId = path.match(/^\/app\/library\/([^/?#]+)/)?.[1];
+            if (kitId) {
+              await api.contentKits.regenerate(kitId, {
+                additionalInstructions: args.detail || text,
+              });
+              addReceipt(formatReceipt('REGENERATED IN YOUR VOICE'));
+              setState((prev) => ({ ...prev, phase: 'done', inputText: '' }));
+              // Kit content is fetched on mount; reload so the page shows
+              // the regenerated copy.
+              setTimeout(() => {
+                window.location.reload();
+              }, 1200);
+              break;
+            }
+            // Not on a kit page — fall through to library navigation below.
+          }
+
           const route = COMMAND_ROUTE_MAP[target];
           if (route) {
             navigate(route);
