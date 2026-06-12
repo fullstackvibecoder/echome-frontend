@@ -10,7 +10,7 @@ import { useState, useCallback, useRef } from 'react';
 import { classifyEchoInput, type EchoClassification, type EchoIntent } from '@/lib/echo-client';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
-import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES } from './intent-meta';
+import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES } from './intent-meta';
 import { stashEchoHandoff } from './file-handoff';
 
 // ---- State machine phases ----
@@ -127,7 +127,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
         ...prev,
         attachment: null,
         attachmentError:
-          'That file type isn\'t supported yet. Video, audio, and text files work.',
+          'That file type isn\'t supported yet. Video, audio, documents (PDF, Word), text, and .mbox email archives work.',
       }));
       return;
     }
@@ -144,6 +144,14 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
         ...prev,
         attachment: null,
         attachmentError: `Text files must be under 1 MB. This file is ${(file.size / (1024 * 1024)).toFixed(1)} MB.`,
+      }));
+      return;
+    }
+    if (kind === 'document' && file.size > MAX_ECHO_DOCUMENT_BYTES) {
+      setState((prev) => ({
+        ...prev,
+        attachment: null,
+        attachmentError: `Documents must be under 500 MB. This file is ${(file.size / (1024 * 1024)).toFixed(0)} MB.`,
       }));
       return;
     }
@@ -203,7 +211,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
         const kind = classifyFile(attachment);
         if (kind === 'video') {
           coercedIntent = 'create';
-        } else if (kind === 'text') {
+        } else if (kind === 'text' || kind === 'document' || kind === 'mbox') {
           coercedIntent = 'ingest';
         } else if (kind === 'audio') {
           // Trust classifier for create/ingest; coerce question/command
@@ -286,6 +294,18 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
       if (attachment) {
         const kind = classifyFile(attachment);
 
+        // Documents and email archives only have an ingest pipeline — there is
+        // no server-side text extraction feeding /generate. Guard the chip
+        // override instead of silently dropping the file.
+        if (intent === 'create' && (kind === 'document' || kind === 'mbox')) {
+          setState((prev) => ({
+            ...prev,
+            phase: 'confirming',
+            error: 'That file type goes to Your Voice. Pick "Adding to your Voice" to save it.',
+          }));
+          return;
+        }
+
         if (intent === 'create') {
           if (kind === 'video') {
             // Video handed off directly to Create form via in-memory store
@@ -346,6 +366,70 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
             fileName: attachment.name,
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · AUDIO`));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          api.telemetry.event({
+            event_name: 'echo_executed',
+            event_data: {
+              intent,
+              corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+            },
+          }).catch(() => {});
+          return;
+        }
+
+        if (intent === 'ingest' && kind === 'document') {
+          // Same pipeline as the Your Voice document uploader:
+          // POST /files/upload?kbId= (PDF/DOCX/DOC/TXT, server-side extraction).
+          const kbId = await resolveDefaultKbId();
+          if (!kbId) {
+            setState((prev) => ({
+              ...prev,
+              phase: 'confirming',
+              error: 'No Voice KB found. Add content to Your Voice first.',
+            }));
+            return;
+          }
+          await api.files.upload(kbId, attachment);
+          addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          api.telemetry.event({
+            event_name: 'echo_executed',
+            event_data: {
+              intent,
+              corrected: selectedIntent !== null && selectedIntent !== classification.intent,
+            },
+          }).catch(() => {});
+          return;
+        }
+
+        if (intent === 'ingest' && kind === 'mbox') {
+          // Same client-side parse + batch ingest as the Your Voice mbox flow.
+          // Lazy import keeps the 600-line streaming parser out of the pill's
+          // initial bundle (the pill mounts globally in app-shell).
+          const { parseMboxFile } = await import('@/lib/mbox-parser');
+          const parsed = await parseMboxFile(attachment, {
+            maxEmails: 100,
+            minContentLength: 50,
+          });
+          if (parsed.emails.length === 0) {
+            setState((prev) => ({
+              ...prev,
+              phase: 'confirming',
+              error: 'No emails found in that archive. Make sure you exported your "Sent" folder.',
+            }));
+            return;
+          }
+          await api.kbContent.ingestParsedEmails({
+            emails: parsed.emails,
+            fileName: attachment.name,
+            parseStats: {
+              totalEmailsFound: parsed.totalEmailsFound,
+              emailsParsed: parsed.emailsParsed,
+              emailsFiltered: parsed.emailsFiltered,
+              parseErrors: parsed.parseErrors,
+            },
+          });
+          addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${parsed.emails.length} EMAILS`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
           api.telemetry.event({
             event_name: 'echo_executed',

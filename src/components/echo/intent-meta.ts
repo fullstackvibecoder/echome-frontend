@@ -5,25 +5,48 @@
  */
 
 import type { EchoIntent } from '@/lib/echo-client';
+import { isAudioFile, isMboxFile, MAX_FILE_SIZE } from '@/lib/file-utils';
 
 // ---- File-kind routing ----
 
-export type EchoFileKind = 'video' | 'audio' | 'text' | 'unsupported';
+export type EchoFileKind =
+  | 'video'
+  | 'audio'
+  | 'text'
+  | 'document'
+  | 'mbox'
+  | 'unsupported';
+
+// Mirrors the KB document uploader's accepted set (file-utils
+// ACCEPTED_FILE_TYPES, minus audio/mbox which classify separately).
+const DOCUMENT_MIMES = new Set([
+  'application/pdf',
+  'application/x-pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+]);
 
 export function classifyFile(file: File): EchoFileKind {
   if (file.type.startsWith('video/')) return 'video';
-  if (file.type.startsWith('audio/')) return 'audio';
+  // mbox before text: Apple Mail exports can carry text/plain MIME
+  if (isMboxFile(file)) return 'mbox';
+  // extension-first so blank/odd MIME types (iPhone m4a, flac) still route
+  if (isAudioFile(file)) return 'audio';
   if (
     file.type === 'text/plain' ||
     file.type === 'text/markdown' ||
     /\.(txt|md)$/i.test(file.name)
   )
     return 'text';
+  if (DOCUMENT_MIMES.has(file.type) || /\.(pdf|docx|doc)$/i.test(file.name))
+    return 'document';
   return 'unsupported';
 }
 
 export const MAX_ECHO_AUDIO_BYTES = 250 * 1024 * 1024; // backend KB ingest cap
 export const MAX_ECHO_TEXT_BYTES = 1 * 1024 * 1024;
+// KB document route caps PDF/DOCX/DOC at 500 MB (file-service KB_FILE_TYPES)
+export const MAX_ECHO_DOCUMENT_BYTES = MAX_FILE_SIZE;
 
 export interface IntentMeta {
   /** Short uppercase label shown on the intent chip */
@@ -42,7 +65,7 @@ export const INTENT_META: Record<EchoIntent, IntentMeta> = {
   },
   ingest: {
     chipLabel: 'ADDING TO YOUR VOICE',
-    description: 'Save this as a text note in your Voice',
+    description: 'Add this to your Voice',
     receiptVerb: 'ADDED TO YOUR VOICE',
   },
   question: {
