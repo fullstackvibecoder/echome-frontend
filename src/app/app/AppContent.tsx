@@ -441,7 +441,7 @@ export default function AppContent() {
           {/* Adaptive Create Surface — advisor-driven suggestions, capability tiles, video drop */}
           <div className="mb-6">
             <AdaptiveCreateSurface
-              onPrefill={(text) => router.replace(`/app?topic=${encodeURIComponent(text)}`)}
+              onPrefill={(text) => router.replace(text ? `/app?topic=${encodeURIComponent(text)}` : '/app')}
               onStartVoice={() => {
                 // TODO(SP1): open voice capture when voice modal is reachable from /app
               }}
