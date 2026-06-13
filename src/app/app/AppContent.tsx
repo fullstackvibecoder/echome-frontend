@@ -16,6 +16,7 @@ import { WelcomeBanner } from '@/components/welcome-banner';
 import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
 import { DraftedForYou } from '@/components/dashboard/DraftedForYou';
 import { GetStartedChecklist } from '@/components/dashboard/GetStartedChecklist';
+import { AdaptiveCreateSurface } from '@/components/create/AdaptiveCreateSurface';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -436,6 +437,19 @@ export default function AppContent() {
 
           {/* Get Started checklist — auto-hides when complete or dismissed */}
           <GetStartedChecklist />
+
+          {/* Adaptive Create Surface — advisor-driven suggestions, capability tiles, video drop */}
+          <div className="mb-6">
+            <AdaptiveCreateSurface
+              onPrefill={(text) => router.replace(`/app?topic=${encodeURIComponent(text)}`)}
+              onStartVoice={() => {
+                // TODO: open voice capture when voice modal is reachable from /app
+              }}
+              onOpenIngest={() => {
+                // TODO: open ingest flow when ingest drawer is reachable from /app
+              }}
+            />
+          </div>
 
           {/* Drafted For You — Echo-proposed kits the user can review/schedule/kill */}
           <DraftedForYou />
