@@ -443,10 +443,10 @@ export default function AppContent() {
             <AdaptiveCreateSurface
               onPrefill={(text) => router.replace(`/app?topic=${encodeURIComponent(text)}`)}
               onStartVoice={() => {
-                // TODO: open voice capture when voice modal is reachable from /app
+                // TODO(SP1): open voice capture when voice modal is reachable from /app
               }}
               onOpenIngest={() => {
-                // TODO: open ingest flow when ingest drawer is reachable from /app
+                // TODO(SP1): open ingest flow when ingest drawer is reachable from /app
               }}
             />
           </div>
