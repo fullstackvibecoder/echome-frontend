@@ -25,9 +25,6 @@ vi.mock('@/components/generation-form', () => ({
 vi.mock('@/components/dashboard/GetStartedChecklist', () => ({
   GetStartedChecklist: () => <div data-testid="legacy-checklist" />,
 }));
-vi.mock('@/components/create/AdaptiveCreateSurface', () => ({
-  AdaptiveCreateSurface: () => <div data-testid="legacy-adaptive" />,
-}));
 vi.mock('@/components/dashboard/DraftedForYou', () => ({
   DraftedForYou: () => <div data-testid="legacy-drafted" />,
 }));
@@ -165,7 +162,7 @@ describe('AppContent resting state - admin path (isAdmin: true)', () => {
 
   it('renders EchoHero for admin users', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('echo-hero')).toBeTruthy();
+    expect(screen.getByTestId('echo-hero')).toBeInTheDocument();
   });
 
   it('does NOT render GetStartedChecklist for admin users', () => {
@@ -185,16 +182,16 @@ describe('AppContent resting state - admin path (isAdmin: true)', () => {
 
   it('keeps GenerationForm mounted for admin users', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('generation-form')).toBeTruthy();
+    expect(screen.getByTestId('generation-form')).toBeInTheDocument();
   });
 
   it('wraps GenerationForm in a hidden container with aria-hidden for admin users', () => {
     const { container } = render(<AppContent />);
-    const hiddenWrapper = container.querySelector('[aria-hidden]');
-    expect(hiddenWrapper).toBeTruthy();
+    const hiddenWrapper = container.querySelector('[aria-hidden="true"]');
+    expect(hiddenWrapper).not.toBeNull();
     expect(hiddenWrapper?.classList.contains('hidden')).toBe(true);
     const formInsideWrapper = hiddenWrapper?.querySelector('[data-testid="generation-form"]');
-    expect(formInsideWrapper).toBeTruthy();
+    expect(formInsideWrapper).not.toBeNull();
   });
 });
 
@@ -213,31 +210,31 @@ describe('AppContent resting state - non-admin path (isAdmin: false)', () => {
 
   it('renders GetStartedChecklist for non-admin users', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('legacy-checklist')).toBeTruthy();
+    expect(screen.getByTestId('legacy-checklist')).toBeInTheDocument();
   });
 
   it('renders DraftedForYou for non-admin users', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('legacy-drafted')).toBeTruthy();
+    expect(screen.getByTestId('legacy-drafted')).toBeInTheDocument();
   });
 
   it('renders OutcomeChips for non-admin users', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('legacy-outcome')).toBeTruthy();
+    expect(screen.getByTestId('legacy-outcome')).toBeInTheDocument();
   });
 
   it('keeps GenerationForm mounted for non-admin users', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('generation-form')).toBeTruthy();
+    expect(screen.getByTestId('generation-form')).toBeInTheDocument();
   });
 
   it('renders GenerationForm outside the hidden wrapper for non-admin users', () => {
     const { container } = render(<AppContent />);
     // The hidden wrapper must NOT exist on the non-admin path
-    const hiddenWrapper = container.querySelector('[aria-hidden]');
+    const hiddenWrapper = container.querySelector('[aria-hidden="true"]');
     expect(hiddenWrapper).toBeNull();
     // GenerationForm must still be in the DOM
-    expect(screen.getByTestId('generation-form')).toBeTruthy();
+    expect(screen.getByTestId('generation-form')).toBeInTheDocument();
   });
 });
 
@@ -256,13 +253,13 @@ describe('AppContent resting state - non-admin path (isAdmin: undefined)', () =>
 
   it('renders the legacy trio when isAdmin is undefined', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('legacy-checklist')).toBeTruthy();
-    expect(screen.getByTestId('legacy-drafted')).toBeTruthy();
-    expect(screen.getByTestId('legacy-outcome')).toBeTruthy();
+    expect(screen.getByTestId('legacy-checklist')).toBeInTheDocument();
+    expect(screen.getByTestId('legacy-drafted')).toBeInTheDocument();
+    expect(screen.getByTestId('legacy-outcome')).toBeInTheDocument();
   });
 
   it('keeps GenerationForm mounted when isAdmin is undefined', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('generation-form')).toBeTruthy();
+    expect(screen.getByTestId('generation-form')).toBeInTheDocument();
   });
 });
