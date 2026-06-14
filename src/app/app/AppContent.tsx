@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
@@ -12,11 +12,7 @@ import { CarouselPreview } from '@/components/carousel-preview';
 import { setActiveGeneration, clearActiveGeneration } from '@/components/generation-banner';
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
-import { WelcomeBanner } from '@/components/welcome-banner';
-import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
-import { DraftedForYou } from '@/components/dashboard/DraftedForYou';
-import { GetStartedChecklist } from '@/components/dashboard/GetStartedChecklist';
-import { AdaptiveCreateSurface } from '@/components/create/AdaptiveCreateSurface';
+import { EchoHero } from '@/components/echo/EchoHero';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -84,8 +80,6 @@ export default function AppContent() {
   const { user } = useAuth();
   const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
   const { isFreeUser, freeGenerationsRemaining, freeGenerationsLimit } = useSubscription();
-  const formRef = useRef<HTMLDivElement>(null);
-
   // Teams onboarding banner (dismissible via localStorage)
   const [showTeamsOnboarding, setShowTeamsOnboarding] = useState(false);
   useEffect(() => {
@@ -435,32 +429,14 @@ export default function AppContent() {
             );
           })()}
 
-          {/* Get Started checklist — auto-hides when complete or dismissed */}
-          <GetStartedChecklist />
+          {/* EchoHero owns the resting Create page surface. */}
+          <EchoHero />
 
-          {/* Adaptive Create Surface — advisor-driven suggestions, capability tiles, video drop */}
-          <div className="mb-6">
-            <AdaptiveCreateSurface
-              onPrefill={(text) => router.replace(text ? `/app?topic=${encodeURIComponent(text)}` : '/app')}
-              onStartVoice={() => {
-                // TODO(SP1): open voice capture when voice modal is reachable from /app
-              }}
-              onOpenIngest={() => {
-                // TODO(SP1): open ingest flow when ingest drawer is reachable from /app
-              }}
-            />
-          </div>
-
-          {/* Drafted For You — Echo-proposed kits the user can review/schedule/kill */}
-          <DraftedForYou />
-
-          {/* Outcome Chips — intent-driven suggestions keyed off real data state */}
-          <div className="mb-6">
-            <OutcomeChips />
-          </div>
-
-          {/* Input Form */}
-          <div ref={formRef}>
+          {/* GenerationForm: hidden execution engine. Kept mounted so its effects
+              (processVideoWithClipFinder, handleUnifiedSubmit, useSearchParams
+              ?echoPrompt=/?echoFile=1) keep running. display:none does NOT
+              unmount the component or block React effects. */}
+          <div className="hidden" aria-hidden>
             <GenerationForm
               onGenerate={handleGenerate}
               onRepurpose={handleRepurpose}
