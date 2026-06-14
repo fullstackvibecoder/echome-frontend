@@ -54,3 +54,6 @@ next-env.d.ts
 scripts/ui-audit/node_modules/
 scripts/ui-audit/auth.json
 scripts/ui-audit/output/
+
+# stray Playwright screenshots
+/test-*.png
