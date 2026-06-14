@@ -29,6 +29,9 @@ OUT (separate spec cycles, unchanged):
 - SP2 long-form video library deferred-ingestion backend. The Stockpile UI default already waits for it. The chat shows the "save to library, clip later" message but the durable backend is SP2.
 - SP3 autopilot kit engine.
 
+ADJACENT ISSUE, flagged not fixed here:
+- `contentReadyEmail` and `contentAbandonedEmail` (templates.ts:498, :555) link to `{FRONTEND_URL}/app/content-kit/{id}`, a route that does NOT exist in the frontend. Real route is `/app/library/{id}`. These CTAs are already broken in prod, independent of this redesign. templates.ts is a sensitive email path, so this needs founder sign-off before fixing. Not in scope for this spec.
+
 ## Architecture
 
 The Create page resting state (`!hasResults && !generating`) becomes a single column:
@@ -48,11 +51,21 @@ The Create page resting state (`!hasResults && !generating`) becomes a single co
 The current sibling blocks in `AppContent.tsx` resting branch are removed or folded:
 - `GetStartedChecklist` (line ~439): fold its intent into the advisor ladder message. Remove the separate component from this surface.
 - `AdaptiveCreateSurface` (lines ~441-453): its three jobs (coverage, nudge, proposals) move INTO the thread as Echo messages. The standalone card wrapper is retired. Sub-components (`AdvisorNudgeCard`, `AutopilotProposalCard`, `CoverageMeter`, `CapabilityTiles`, `VideoLibraryDrop`) are either re-skinned to render inside a chat bubble or replaced by thread-native message renderers.
-- `DraftedForYou` (lines ~454-456): proposals now come from the advisor in-thread. Remove from resting surface.
+- `DraftedForYou` (lines ~454-456): drafted items move INTO the thread as an Echo message (see Drafts in-thread below). NOT silently removed.
 - `OutcomeChips` (lines ~457-461): replaced by the value-ladder action chips inside the advisor message.
 - `GenerationForm`/`EchoHero` (lines ~462-474): EchoHero stays, becomes the spine of the page.
 
 Net: one column, one type scale, one chip system.
+
+### Drafts in-thread (discoverability + email deep-link)
+
+`DraftedForYou` currently renders into `<section id="drafts">` and is the scroll target of the `draftsReadyEmail` CTA, which links to `{FRONTEND_URL}/app#drafts` and depends on native browser fragment scroll (daily-draft-generator cron, 06:00 UTC). The drafts data comes from `api.drafts.list()` (GET /drafts), and each draft card navigates to `/app/library/{id}`.
+
+Two requirements when moving drafts in-thread:
+1. Fresh-state pointer. When `api.drafts.list()` returns drafts, Echo proactively posts an in-thread message ("I drafted N things for you while you were away") containing the draft cards. The user discovers their drafts without needing the email. Thread is open by default, so the message is visible on load.
+2. Email link must keep working with zero cross-repo coordination. The in-thread drafts container MUST keep `id="drafts"` (with `scroll-mt-20`) and must render in the open DOM by the time drafts load (not behind a collapsed panel or closed modal). This preserves the existing `/app#drafts` native fragment scroll. No change to the email template is required. A `?panel=drafts` param migration is explicitly deferred (would force a coordinated BE+FE ship).
+
+Draft cards keep navigating to `/app/library/{id}` (unchanged).
 
 ## Data Flow
 
@@ -133,6 +146,9 @@ FE (Vitest):
 - `onPrefill` sets input text without a URL round-trip.
 - Copy strings match the locked deck; assert no em/en dashes in rendered copy.
 - Legacy stacked blocks no longer render in the resting branch.
+- Drafts: when `api.drafts.list()` returns drafts, the thread shows the proactive "I drafted N for you" message with draft cards.
+- Drafts: the in-thread drafts container renders with `id="drafts"` and `scroll-mt-20` in the open DOM (preserves `/app#drafts` email deep-link).
+- Drafts: draft cards still navigate to `/app/library/{id}`.
 
 BE (existing advisor test suite):
 - Gap ranking: audio-missing profile surfaces voice gap ahead of a thin non-voice dimension.
