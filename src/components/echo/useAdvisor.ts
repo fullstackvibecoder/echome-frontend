@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import type { AdvisorResponse } from '@/types/advisor';
 
 export interface UseAdvisorResult {
@@ -30,12 +31,12 @@ export function useAdvisor(): UseAdvisorResult {
           setError(null);
         } else {
           setAdvisor(null);
-          setError('Advisor unavailable');
+          setError(res?.error ?? 'Advisor unavailable');
         }
       } catch (e) {
         if (!alive) return;
         setAdvisor(null);
-        setError(e instanceof Error ? e.message : 'Advisor failed');
+        setError(extractErrorMessage(e, 'Advisor failed'));
       } finally {
         if (alive) setLoading(false);
       }

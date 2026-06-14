@@ -29,6 +29,7 @@ describe('useAdvisor', () => {
   it('returns the advisor payload on success', async () => {
     advisorMock.mockResolvedValue({ success: true, data: EMPTY });
     const { result } = renderHook(() => useAdvisor());
+    expect(result.current.loading).toBe(true);
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.advisor?.state).toBe('empty');
     expect(result.current.error).toBeNull();
