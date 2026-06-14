@@ -62,7 +62,14 @@ vi.mock('./useAdvisor', () => ({
 }));
 
 vi.mock('./EchoExchange', () => ({
-  EchoExchange: () => <div data-testid="echo-exchange" />,
+  EchoExchange: ({ onTextareaMount }: { onTextareaMount?: (el: HTMLTextAreaElement | null) => void }) => (
+    <div data-testid="echo-exchange">
+      <textarea
+        data-testid="echo-textarea"
+        ref={(el) => { if (onTextareaMount) onTextareaMount(el); }}
+      />
+    </div>
+  ),
 }));
 
 vi.mock('@/components/create/DraftsThreadMessage', () => ({
@@ -86,6 +93,12 @@ vi.mock('@/components/create/AdvisorThread', () => ({
         data-testid="na-create"
         onClick={() =>
           onNudgeAction({ type: 'create', label: 'x', payload: { prompt: 'hello world' } })
+        }
+      />
+      <button
+        data-testid="na-create-no-payload"
+        onClick={() =>
+          onNudgeAction({ type: 'create', label: 'Make something now' })
         }
       />
       <button
@@ -189,5 +202,20 @@ describe('EchoHero advisor + drafts wiring', () => {
     render(<EchoHero />);
     fireEvent.click(screen.getByTestId('prop-select'));
     expect(setInputText).toHaveBeenCalledWith('My Proposal');
+  });
+
+  it('nudge create with no payload -> focuses composer without setInputText', () => {
+    vi.useFakeTimers();
+    const focusSpy = vi.spyOn(HTMLTextAreaElement.prototype, 'focus').mockImplementation(() => {});
+    try {
+      render(<EchoHero />);
+      fireEvent.click(screen.getByTestId('na-create-no-payload'));
+      vi.runAllTimers();
+      expect(setInputText).not.toHaveBeenCalled();
+      expect(focusSpy).toHaveBeenCalled();
+    } finally {
+      focusSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });

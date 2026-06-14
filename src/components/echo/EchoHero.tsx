@@ -129,10 +129,10 @@ export function EchoHero() {
       fileInputRef.current?.click();
     } else if (action.type === 'create') {
       const prompt = action.payload?.prompt;
-      if (typeof prompt === 'string') {
+      if (typeof prompt === 'string' && prompt.length > 0) {
         setInputText(prompt);
-        focusComposer();
       }
+      focusComposer();
     }
   }, [micState, startMic, setInputText, focusComposer]);
 
