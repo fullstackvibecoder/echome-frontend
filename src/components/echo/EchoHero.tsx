@@ -21,9 +21,14 @@ import { Paperclip, X, Mic, Square } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
+import { AdvisorThread } from '@/components/create/AdvisorThread';
+import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
+import { useAdvisor } from './useAdvisor';
+import type { LadderActionId } from '@/components/create/ValueLadder';
+import type { NudgeAction, Proposal } from '@/types/advisor';
 
 /** Format bytes to human-readable string ("4.2 MB") */
 function humanSize(bytes: number): string {
@@ -93,6 +98,49 @@ export function EchoHero() {
 
   const { micState, elapsed, micError, start: startMic, stop: stopMic } = useEchoMic(handleTranscript);
 
+  // ---- KB Advisor ----
+  const { advisor } = useAdvisor();
+
+  const focusComposer = useCallback(() => {
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  }, []);
+
+  const handleLadderAction = useCallback((id: LadderActionId) => {
+    switch (id) {
+      case 'voice':
+        if (micState === 'idle' || micState === 'error') void startMic();
+        break;
+      case 'video':
+      case 'emails':
+      case 'published':
+        fileInputRef.current?.click();
+        break;
+      case 'paste':
+      case 'topic':
+        focusComposer();
+        break;
+    }
+  }, [micState, startMic, focusComposer]);
+
+  const handleNudgeAction = useCallback((action: NudgeAction) => {
+    if (action.type === 'voice') {
+      if (micState === 'idle' || micState === 'error') void startMic();
+    } else if (action.type === 'ingest') {
+      fileInputRef.current?.click();
+    } else if (action.type === 'create') {
+      const prompt = action.payload?.prompt;
+      if (typeof prompt === 'string' && prompt.length > 0) {
+        setInputText(prompt);
+      }
+      focusComposer();
+    }
+  }, [micState, startMic, setInputText, focusComposer]);
+
+  const handleProposalSelect = useCallback((proposal: Proposal) => {
+    setInputText(proposal.title);
+    focusComposer();
+  }, [setInputText, focusComposer]);
+
   // ---- Drag-and-drop ----
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -156,6 +204,19 @@ export function EchoHero() {
         Drop in a video to clip it, paste a YouTube link, type a topic, or
         just talk. Echo turns it into content in your voice.
       </p>
+
+      {/* Advisor + drafts thread -- renders above composer in the chat thread */}
+      <div className="w-full max-w-2xl">
+        {advisor && (
+          <AdvisorThread
+            advisor={advisor}
+            onLadderAction={handleLadderAction}
+            onNudgeAction={handleNudgeAction}
+            onProposalSelect={handleProposalSelect}
+          />
+        )}
+        <DraftsThreadMessage />
+      </div>
 
       {/* Hero input surface */}
       <div
@@ -280,8 +341,8 @@ export function EchoHero() {
           <label
             htmlFor="echo-hero-file-input"
             className="shrink-0 cursor-pointer text-[var(--muted-foreground)] hover:text-foreground transition-colors p-1"
-            aria-label="Attach a file"
-            title="Attach a file (video, audio, document, text, or .mbox email archive)"
+            aria-label="Attach a video, PDF, or document"
+            title="Attach a video, PDF, or document"
           >
             <Paperclip size={16} />
           </label>
@@ -298,8 +359,8 @@ export function EchoHero() {
           {/* Mic button */}
           <button
             type="button"
-            aria-label="Talk to Echo"
-            title="Talk to Echo"
+            aria-label="Record your voice"
+            title="Record your voice"
             onClick={() => {
               if (micState === 'recording') {
                 stopMic();
@@ -319,6 +380,11 @@ export function EchoHero() {
             {micState === 'recording' ? <Square size={16} /> : <Mic size={16} />}
           </button>
         </div>
+
+        {/* Source helper line */}
+        <p className="mt-2 text-xs text-muted-foreground leading-snug">
+          You can paste a link, upload a file, or record your voice. I work with YouTube, Zoom, Loom, and Vimeo links.
+        </p>
       </div>
 
       {/* Inline exchange region — not a modal */}
