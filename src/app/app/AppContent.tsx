@@ -21,52 +21,6 @@ import { showErrorToast, showInfoToast } from '@/lib/toast';
 import { X } from 'lucide-react';
 import { api, VideoUpload, VideoClip, ContentKit } from '@/lib/api-client';
 
-// Text generation stages with icons, titles, and rotating tips (matching video processing style)
-// Dynamic welcome message generator
-function getWelcomeMessage(userName?: string, generationsUsed?: number): { headline: string; subheadline: string } {
-  const hour = new Date().getHours();
-  const name = userName || 'there';
-  const firstName = name.split(' ')[0];
-
-  // Time-based greetings
-  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-
-  // Activity-based variations
-  if (generationsUsed && generationsUsed >= 10) {
-    return {
-      headline: `${firstName}, you're on fire 🔥`,
-      subheadline: `Your voice profile keeps getting sharper. ${generationsUsed} pieces shipped this month.`
-    };
-  }
-
-  if (generationsUsed && generationsUsed >= 5) {
-    return {
-      headline: `Welcome back, ${firstName}!`,
-      subheadline: `Echo has more to draw from every time you generate. ${generationsUsed} pieces this month.`
-    };
-  }
-
-  // Time-based defaults
-  if (hour < 12) {
-    return {
-      headline: `${timeGreeting}, ${firstName}!`,
-      subheadline: "What's on your mind? Echo already knows your voice. Just give it a topic, link, or video."
-    };
-  }
-
-  if (hour >= 20) {
-    return {
-      headline: `Working late, ${firstName}?`,
-      subheadline: 'Drop a thought, link, or video. Echo already knows your style.'
-    };
-  }
-
-  return {
-    headline: `Welcome back, ${firstName}!`,
-    subheadline: 'What should Echo turn into a kit today?'
-  };
-}
-
 export default function AppContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,43 +44,8 @@ export default function AppContent() {
     }
   }, [isTeamsUser, activeVoice]);
 
-  // Usage stats for dynamic messaging
-  const [usageStats, setUsageStats] = useState<{
-    generationsUsed?: number;
-    generationsLimit?: number;
-    generationsRemaining?: number;
-    videoMinutesUsed?: number;
-    videoMinutesLimit?: number;
-    contentKitsCreated?: number;
-    isUnlimited?: boolean;
-  } | null>(null);
-
   // Check for pending checkout from signup flow
   const { checking: checkingPendingPlan, checkoutLoading } = usePendingCheckout();
-
-  // Load usage stats for dynamic welcome message
-  useEffect(() => {
-    const loadUsageStats = async () => {
-      try {
-        const response = await api.stripe.getUsageLimits();
-        if (response.success && response.data) {
-          setUsageStats({
-            generationsUsed: response.data.generationsUsed || 0,
-            generationsLimit: response.data.generationsLimit,
-            generationsRemaining: response.data.generationsRemaining,
-            videoMinutesUsed: response.data.videoMinutesUsed,
-            videoMinutesLimit: response.data.videoMinutesLimit,
-            contentKitsCreated: response.data.contentKitsCreated,
-            isUnlimited: response.data.isUnlimited,
-          });
-        }
-      } catch (err) {
-        // Silently fail - not critical for UX
-        console.error('Failed to load usage stats:', err);
-      }
-    };
-    loadUsageStats();
-  }, []);
 
   // Real-time progress from SSE (including carousel status)
   const { progress, isComplete: progressComplete, hasError: progressError, carouselReady, carouselFailed } = useGenerationProgress(requestId);
@@ -436,7 +355,7 @@ export default function AppContent() {
               (processVideoWithClipFinder, handleUnifiedSubmit, useSearchParams
               ?echoPrompt=/?echoFile=1) keep running. display:none does NOT
               unmount the component or block React effects. */}
-          <div className="hidden" aria-hidden>
+          <div className="hidden" aria-hidden="true">
             <GenerationForm
               onGenerate={handleGenerate}
               onRepurpose={handleRepurpose}

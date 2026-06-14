@@ -120,7 +120,6 @@ vi.mock('@/lib/toast', () => ({
 // Mock api-client
 vi.mock('@/lib/api-client', () => ({
   api: {
-    stripe: { getUsageLimits: vi.fn().mockResolvedValue({ success: false }) },
     images: { uploadBackground: vi.fn() },
     generation: { getRequest: vi.fn() },
   },
@@ -149,11 +148,6 @@ vi.mock('@/components/content-cards', () => ({
 }));
 vi.mock('@/components/carousel-preview', () => ({
   CarouselPreview: () => <div data-testid="carousel-preview" />,
-}));
-
-// Mock WelcomeBanner
-vi.mock('@/components/welcome-banner', () => ({
-  WelcomeBanner: () => <div data-testid="welcome-banner" />,
 }));
 
 import AppContent from './AppContent';
