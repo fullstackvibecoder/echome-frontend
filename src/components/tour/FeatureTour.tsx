@@ -7,7 +7,7 @@
  * the tour fires exactly once per user per `tourId`. Completing or skipping
  * the tour persists the id into User.preferences.toursSeen via PATCH
  * /api/me/preferences so it never fires again unless the user explicitly
- * reopens via a Help icon (forceShow={true}).
+ * reopens via a Help icon (bump `replayNonce`).
  *
  * Uses driver.js (vanilla DOM library) — chosen over react-joyride because
  * Joyride 2.x is incompatible with React 19 (uses removed unmountComponentAtNode).
@@ -26,12 +26,21 @@ import './tour-theme.css';
 interface Props {
   tourId: string;
   steps: TourStep[];
-  /** Force-show even if previously seen. Used by the replay help button. */
-  forceShow?: boolean;
+  /**
+   * Monotonic replay trigger. Starts at 0 (no replay). Increment it (e.g. via
+   * the replay help button) to re-fire the tour even if previously seen.
+   *
+   * A counter, not a boolean, on purpose: every increment is a fresh value in
+   * the firing effect's dependency array, so each replay click is guaranteed to
+   * re-run the effect. This removes the boolean re-arm bug where a missed reset
+   * (ESC/overlay close, double-destroy, unmount before onClose) left a sticky
+   * `true` and killed all subsequent replays.
+   */
+  replayNonce?: number;
   onClose?: () => void;
 }
 
-export function FeatureTour({ tourId, steps, forceShow = false, onClose }: Props) {
+export function FeatureTour({ tourId, steps, replayNonce = 0, onClose }: Props) {
   const { hasSeen, markSeen } = useTourState();
   const viewport = useTourViewport();
   const [run, setRun] = useState(false);
@@ -41,11 +50,11 @@ export function FeatureTour({ tourId, steps, forceShow = false, onClose }: Props
   useEffect(() => { seenRef.current = hasSeen; }, [hasSeen]);
 
   useEffect(() => {
-    if (forceShow || !seenRef.current(tourId)) {
+    if (replayNonce > 0 || !seenRef.current(tourId)) {
       const t = setTimeout(() => setRun(true), 500);
       return () => clearTimeout(t);
     }
-  }, [tourId, forceShow]);
+  }, [tourId, replayNonce]);
 
   const handleClose = () => {
     setRun(false);

@@ -123,7 +123,7 @@ describe('EchoHero copy-deck-v3', () => {
   it('source helper line is present with correct text', () => {
     render(<EchoHero />);
     const el = screen.getByText(
-      /You can paste a link, upload a file, or record your voice\. I work with YouTube, Zoom, Loom, and Vimeo links\./,
+      /Best way to start: tap the mic and talk for a minute\. You can also paste a link, drop a file, or type a topic\. I work with YouTube, Zoom, Loom, and Vimeo links\./,
     );
     expect(el).toBeTruthy();
   });
