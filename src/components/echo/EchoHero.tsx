@@ -206,7 +206,7 @@ export function EchoHero() {
       </p>
 
       {/* Advisor + drafts thread -- renders above composer in the chat thread */}
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-2xl space-y-4 mb-6">
         {advisor && (
           <AdvisorThread
             advisor={advisor}
