@@ -5,7 +5,7 @@ import { AutopilotProposalCard } from '@/components/create/AutopilotProposalCard
 import { CoverageMeter } from '@/components/create/CoverageMeter';
 import type { AdvisorResponse, NudgeAction, Proposal } from '@/types/advisor';
 
-const PITCH =
+export const PITCH =
   'The fastest way to sound like you is to talk to me. Two minutes of your voice teaches me more than a stack of documents.';
 
 interface AdvisorThreadProps {
@@ -26,9 +26,9 @@ function NudgeBlock({
     <>
       <p>{advisor.nudge.headline}</p>
       <p>{advisor.nudge.subhead}</p>
-      {advisor.nudge.actions.map((action, i) => (
+      {advisor.nudge.actions.map((action) => (
         <button
-          key={i}
+          key={`${action.type}-${action.label}`}
           data-testid="nudge-action"
           onClick={() => onNudgeAction(action)}
         >

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { AdvisorThread } from './AdvisorThread';
+import { AdvisorThread, PITCH } from './AdvisorThread';
 import type { AdvisorResponse, Coverage, Proposal } from '@/types/advisor';
 
 vi.mock('@/components/create/ValueLadder', () => ({
@@ -54,9 +54,6 @@ function makeAdvisor(overrides: Partial<AdvisorResponse>): AdvisorResponse {
     ...overrides,
   };
 }
-
-const PITCH =
-  'The fastest way to sound like you is to talk to me. Two minutes of your voice teaches me more than a stack of documents.';
 
 describe('AdvisorThread', () => {
   describe('empty state', () => {
