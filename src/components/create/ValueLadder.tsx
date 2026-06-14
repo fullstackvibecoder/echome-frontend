@@ -13,7 +13,9 @@ interface Rung {
   dim?: boolean;
 }
 
-// Copy locked per copy-deck-v3 (approved 2026-06-13). No em or en dashes.
+// Copy per copy-deck-v3 (2026-06-13), paste rung reframed 2026-06-14 (founder:
+// every CTA must convey why the user is here, not just what to click). Voice
+// stays the top/guided rung. No em or en dashes.
 const RUNGS: Rung[] = [
   {
     id: 'voice',
@@ -38,7 +40,7 @@ const RUNGS: Rung[] = [
     id: 'paste',
     icon: ClipboardPaste,
     cta: 'Paste something you wrote',
-    why: 'A LinkedIn post, a newsletter, anything in your own words. Paste it in the box below.',
+    why: 'A LinkedIn post, a newsletter, anything in your own words. Paste it below and your posts come out sounding like you, not generic AI. Prefer talking? The mic up top teaches me faster.',
   },
   {
     id: 'published',

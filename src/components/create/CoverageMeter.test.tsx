@@ -27,6 +27,6 @@ describe('CoverageMeter', () => {
 
   it('renders the heading label', () => {
     render(<CoverageMeter coverage={coverage} />);
-    expect(screen.getByText('How well I know you')).toBeInTheDocument();
+    expect(screen.getByText('How well does Echo know you')).toBeInTheDocument();
   });
 });

@@ -47,17 +47,16 @@ const STEPS: TourStep[] = [
 ];
 
 export function CarouselEditorTour() {
-  const [replayKey, setReplayKey] = useState(0);
+  const [replayNonce, setReplayNonce] = useState(0);
   return (
     <>
       <FeatureTour
         tourId="carousel-editor-v2"
         steps={STEPS}
-        forceShow={replayKey > 0}
-        onClose={() => setReplayKey(0)}
+        replayNonce={replayNonce}
       />
       <TourReplayPill
-        onClick={() => setReplayKey((k) => k + 1)}
+        onClick={() => setReplayNonce((k) => k + 1)}
         label="Replay carousel tour"
       />
     </>

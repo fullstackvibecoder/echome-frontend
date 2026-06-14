@@ -336,7 +336,7 @@ export function EchoHero() {
             className="flex-1 text-machine"
             style={{ color: 'var(--muted-foreground)', fontSize: '0.5625rem' }}
           >
-            VIDEO · AUDIO · DOCS · LINKS · TOPIC. TYPE, DROP, OR TALK
+            VIDEO · AUDIO · DOCS · LINKS · TOPIC. TALK, TYPE, OR DROP
           </span>
 
           {/* Paperclip attach */}
@@ -385,9 +385,9 @@ export function EchoHero() {
           </button>
         </div>
 
-        {/* Source helper line */}
+        {/* Source helper line -- voice-first; files accepted, but the guided path is to talk */}
         <p className="mt-2 text-xs text-muted-foreground leading-snug">
-          You can paste a link, upload a file, or record your voice. I work with YouTube, Zoom, Loom, and Vimeo links.
+          Best way to start: tap the mic and talk for a minute. You can also paste a link, drop a file, or type a topic. I work with YouTube, Zoom, Loom, and Vimeo links.
         </p>
       </div>
 
