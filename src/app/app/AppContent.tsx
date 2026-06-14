@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
@@ -13,6 +13,9 @@ import { setActiveGeneration, clearActiveGeneration } from '@/components/generat
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { EchoHero } from '@/components/echo/EchoHero';
+import { GetStartedChecklist } from '@/components/dashboard/GetStartedChecklist';
+import { DraftedForYou } from '@/components/dashboard/DraftedForYou';
+import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
@@ -34,6 +37,7 @@ export default function AppContent() {
   const { user } = useAuth();
   const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
   const { isFreeUser, freeGenerationsRemaining, freeGenerationsLimit } = useSubscription();
+  const formRef = useRef<HTMLDivElement>(null);
   // Teams onboarding banner (dismissible via localStorage)
   const [showTeamsOnboarding, setShowTeamsOnboarding] = useState(false);
   useEffect(() => {
@@ -291,102 +295,148 @@ export default function AppContent() {
     <div className="container mx-auto px-6 py-8 max-w-7xl">
       {!hasResults && !generating && (
         <div className="animate-fade-in">
+          {/*
+           * Admin-gated SP1.5 Create redesign. Flip to `true` to GA for all users (rollback lever).
+           * Admin sees: EchoHero chat surface + hidden GenerationForm engine.
+           * Non-admin sees: production Create page (checklist, drafts, chips, visible form).
+           */}
+          {(() => {
+            const showCreateRedesign = !!user?.isAdmin;
 
-          {/* Teams Onboarding Banner (zero-voice state) */}
-          {showTeamsOnboarding && (
-            <div className="mb-6 p-5 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl relative">
-              <button
-                onClick={() => {
-                  localStorage.setItem('echome_teams_onboarding_dismissed', new Date().toISOString());
-                  setShowTeamsOnboarding(false);
-                }}
-                className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <h3 className="font-bold text-lg mb-1">Welcome to EchoTeams!</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your account supports up to {voiceLimit} voice{voiceLimit !== 1 ? 's' : ''}. Let&apos;s get set up:
-              </p>
-              <a
-                href="/app/voice?tab=team"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm"
-              >
-                Go to Team Voices
-              </a>
-            </div>
-          )}
-
-          {/* Free User Quota Counter — flips to an amber accent on the
-              last generation so users know they're about to hit the wall. */}
-          {isFreeUser && (() => {
-            const isLastOne = freeGenerationsRemaining === 1;
-            const isExhausted = freeGenerationsRemaining <= 0;
-            const containerClass = isLastOne
-              ? 'mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-lg text-sm'
-              : 'mb-4 flex items-center gap-2 px-4 py-2.5 glass border border-accent-yellow/30 rounded-lg text-sm';
-            const label = isExhausted
-              ? 'Free content kits used up'
-              : isLastOne
-                ? '⚠️ Last free content kit — make it count'
-                : `${freeGenerationsRemaining} of ${freeGenerationsLimit} free content kits remaining`;
             return (
-              <div className={containerClass}>
-                <span className="text-lg">{isLastOne ? '⚡' : '⚡'}</span>
-                <span className="font-medium text-foreground">{label}</span>
-                {isExhausted && (
-                  <a href="/app/billing" className="ml-auto text-primary font-semibold hover:underline text-sm">
-                    Upgrade
-                  </a>
+              <>
+                {/* Teams Onboarding Banner (zero-voice state) -- shared across both paths */}
+                {showTeamsOnboarding && (
+                  <div className="mb-6 p-5 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl relative">
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('echome_teams_onboarding_dismissed', new Date().toISOString());
+                        setShowTeamsOnboarding(false);
+                      }}
+                      className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <h3 className="font-bold text-lg mb-1">Welcome to EchoTeams!</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Your account supports up to {voiceLimit} voice{voiceLimit !== 1 ? 's' : ''}. Let&apos;s get set up:
+                    </p>
+                    <a
+                      href="/app/voice?tab=team"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm"
+                    >
+                      Go to Team Voices
+                    </a>
+                  </div>
                 )}
-                {isLastOne && (
-                  <a href="/app/billing" className="ml-auto text-amber-700 dark:text-amber-400 font-bold hover:underline text-sm whitespace-nowrap">
-                    Subscribe →
-                  </a>
+
+                {/* Free User Quota Counter -- shared across both paths. Flips to an
+                    amber accent on the last generation so users know they're about
+                    to hit the wall. */}
+                {isFreeUser && (() => {
+                  const isLastOne = freeGenerationsRemaining === 1;
+                  const isExhausted = freeGenerationsRemaining <= 0;
+                  const containerClass = isLastOne
+                    ? 'mb-4 flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-lg text-sm'
+                    : 'mb-4 flex items-center gap-2 px-4 py-2.5 glass border border-accent-yellow/30 rounded-lg text-sm';
+                  const label = isExhausted
+                    ? 'Free content kits used up'
+                    : isLastOne
+                      ? '⚠️ Last free content kit -- make it count'
+                      : `${freeGenerationsRemaining} of ${freeGenerationsLimit} free content kits remaining`;
+                  return (
+                    <div className={containerClass}>
+                      <span className="text-lg">{isLastOne ? '⚡' : '⚡'}</span>
+                      <span className="font-medium text-foreground">{label}</span>
+                      {isExhausted && (
+                        <a href="/app/billing" className="ml-auto text-primary font-semibold hover:underline text-sm">
+                          Upgrade
+                        </a>
+                      )}
+                      {isLastOne && (
+                        <a href="/app/billing" className="ml-auto text-amber-700 dark:text-amber-400 font-bold hover:underline text-sm whitespace-nowrap">
+                          Subscribe →
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {showCreateRedesign ? (
+                  /* Admin path: SP1.5 EchoHero chat surface */
+                  <>
+                    {/* EchoHero owns the resting Create page surface for admins. */}
+                    <EchoHero />
+
+                    {/* GenerationForm: hidden execution engine. Kept mounted so its
+                        effects (processVideoWithClipFinder, handleUnifiedSubmit,
+                        useSearchParams ?echoPrompt=/?echoFile=1) keep running.
+                        display:none does NOT unmount the component or block React
+                        effects. */}
+                    <div className="hidden" aria-hidden="true">
+                      <GenerationForm
+                        onGenerate={handleGenerate}
+                        onRepurpose={handleRepurpose}
+                        onVideoProcessing={handleVideoProcessing}
+                        generating={false}
+                        isQuotaError={isQuotaError}
+                        activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
+                        initialInput={initialTopic}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  /* Non-admin path: production Create page (main branch parity) */
+                  <>
+                    {/* Get Started checklist -- auto-hides when complete or dismissed */}
+                    <GetStartedChecklist />
+
+                    {/* Drafted For You -- Echo-proposed kits the user can review/schedule/kill */}
+                    <DraftedForYou />
+
+                    {/* Outcome Chips -- intent-driven suggestions keyed off real data state */}
+                    <div className="mb-6">
+                      <OutcomeChips />
+                    </div>
+
+                    {/* Input Form */}
+                    <div ref={formRef}>
+                      <GenerationForm
+                        onGenerate={handleGenerate}
+                        onRepurpose={handleRepurpose}
+                        onVideoProcessing={handleVideoProcessing}
+                        generating={false}
+                        isQuotaError={isQuotaError}
+                        activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
+                        initialInput={initialTopic}
+                      />
+                    </div>
+                  </>
                 )}
-              </div>
+
+                {/* Error -- shared across both paths */}
+                {error && (
+                  isQuotaError ? (
+                    <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center">
+                      <div className="text-3xl mb-2">🔒</div>
+                      <h3 className="text-lg font-bold text-foreground mb-1">Free generations used</h3>
+                      <p className="text-sm text-text-secondary mb-4">Subscribe to keep generating from your knowledge base.</p>
+                      <button
+                        onClick={() => router.push('/app/billing')}
+                        className="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all hover:scale-[1.02]"
+                      >
+                        View Plans →
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-6 p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
+                      {error}
+                    </div>
+                  )
+                )}
+              </>
             );
           })()}
-
-          {/* EchoHero owns the resting Create page surface. */}
-          <EchoHero />
-
-          {/* GenerationForm: hidden execution engine. Kept mounted so its effects
-              (processVideoWithClipFinder, handleUnifiedSubmit, useSearchParams
-              ?echoPrompt=/?echoFile=1) keep running. display:none does NOT
-              unmount the component or block React effects. */}
-          <div className="hidden" aria-hidden="true">
-            <GenerationForm
-              onGenerate={handleGenerate}
-              onRepurpose={handleRepurpose}
-              onVideoProcessing={handleVideoProcessing}
-              generating={false}
-              isQuotaError={isQuotaError}
-              activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
-              initialInput={initialTopic}
-            />
-          </div>
-
-          {/* Error */}
-          {error && (
-            isQuotaError ? (
-              <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-center">
-                <div className="text-3xl mb-2">🔒</div>
-                <h3 className="text-lg font-bold text-foreground mb-1">Free generations used</h3>
-                <p className="text-sm text-text-secondary mb-4">Subscribe to keep generating from your knowledge base.</p>
-                <button
-                  onClick={() => router.push('/app/billing')}
-                  className="bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg transition-all hover:scale-[1.02]"
-                >
-                  View Plans →
-                </button>
-              </div>
-            ) : (
-              <div className="mt-6 p-4 bg-error/10 border border-error/20 rounded-lg text-error text-center">
-                {error}
-              </div>
-            )
-          )}
         </div>
       )}
 
