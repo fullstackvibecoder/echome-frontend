@@ -46,7 +46,7 @@ describe('DraftsThreadMessage', () => {
     expect(screen.queryByText(/I drafted/)).toBeNull();
   });
 
-  it('(a) renders nothing when API returns empty array', async () => {
+  it('(b) renders nothing when API returns empty array', async () => {
     listMock.mockResolvedValue([]);
     const { container } = render(<DraftsThreadMessage />);
 
@@ -56,7 +56,7 @@ describe('DraftsThreadMessage', () => {
     expect(screen.queryByText(/I drafted/)).toBeNull();
   });
 
-  it('(b) shows message + drafts section when 2 drafts resolve', async () => {
+  it('(c) shows message + drafts section when 2 drafts resolve', async () => {
     const drafts = [makeDraft('draft-1'), makeDraft('draft-2')];
     listMock.mockResolvedValue(drafts);
 
@@ -75,7 +75,7 @@ describe('DraftsThreadMessage', () => {
     expect(cards).toHaveLength(2);
   });
 
-  it('(c) uses singular noun when 1 draft resolves', async () => {
+  it('(d) uses singular noun when 1 draft resolves', async () => {
     listMock.mockResolvedValue([makeDraft('draft-1')]);
 
     render(<DraftsThreadMessage />);
@@ -85,7 +85,7 @@ describe('DraftsThreadMessage', () => {
     });
   });
 
-  it('(d) dismissing a card removes it; dismissing the last card hides the section', async () => {
+  it('(e) dismissing a card removes it; dismissing the last card hides the section', async () => {
     const drafts = [makeDraft('draft-1'), makeDraft('draft-2')];
     listMock.mockResolvedValue(drafts);
 

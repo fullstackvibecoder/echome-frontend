@@ -26,14 +26,14 @@ export function DraftsThreadMessage() {
     };
   }, []);
 
+  function handleDismiss(id: string) {
+    setDrafts((prev) => prev.filter((d) => d.id !== id));
+  }
+
   if (!loaded || drafts.length === 0) return null;
 
   const n = drafts.length;
   const noun = n === 1 ? 'thing' : 'things';
-
-  function handleDismiss(id: string) {
-    setDrafts((prev) => prev.filter((d) => d.id !== id));
-  }
 
   return (
     <section id="drafts" aria-label="Drafted for you" className="mb-2 scroll-mt-20">
