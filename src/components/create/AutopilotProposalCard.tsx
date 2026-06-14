@@ -13,14 +13,14 @@ export function AutopilotProposalCard({ proposal, onSelect }: AutopilotProposalC
     <button
       type="button"
       onClick={() => onSelect(proposal)}
-      className="flex w-full flex-col items-start gap-2 rounded-xl border border-border bg-white p-4 text-left transition hover:border-primary/30 hover:bg-primary/5"
+      className="flex h-full w-full flex-col items-start gap-1.5 rounded-xl border border-border bg-card p-3 text-left transition hover:border-primary/30 hover:bg-primary/5"
     >
-      <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
-        <Sparkles className="h-3.5 w-3.5" />
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+        <Sparkles className="h-3 w-3 shrink-0" />
         {proposal.kitType.replace(/_/g, ' ')}
       </span>
-      <span className="text-sm font-semibold text-foreground">{proposal.title}</span>
-      <span className="text-xs text-muted-foreground">{proposal.rationale}</span>
+      <span className="text-sm font-semibold leading-snug text-foreground">{proposal.title}</span>
+      <span className="text-xs leading-relaxed text-muted-foreground">{proposal.rationale}</span>
     </button>
   );
 }

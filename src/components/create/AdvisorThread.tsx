@@ -95,9 +95,13 @@ export function AdvisorThread({
       {hasNudge && (
         <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
       )}
-      {advisor.proposals.map((p) => (
-        <AutopilotProposalCard key={p.id} proposal={p} onSelect={onProposalSelect} />
-      ))}
+      {advisor.proposals.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {advisor.proposals.map((p) => (
+            <AutopilotProposalCard key={p.id} proposal={p} onSelect={onProposalSelect} />
+          ))}
+        </div>
+      )}
       <CoverageMeter coverage={advisor.coverage} />
     </div>
   );
