@@ -185,7 +185,7 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
             value={inputText}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
-            placeholder="Tell Echo anything..."
+            placeholder="Type here. Paste a link, or use the buttons on the left to attach a video or record your voice."
             rows={1}
             disabled={phase === 'classifying'}
             aria-label="Echo input"

@@ -341,8 +341,8 @@ export function EchoHero() {
           <label
             htmlFor="echo-hero-file-input"
             className="shrink-0 cursor-pointer text-[var(--muted-foreground)] hover:text-foreground transition-colors p-1"
-            aria-label="Attach a file"
-            title="Attach a file (video, audio, document, text, or .mbox email archive)"
+            aria-label="Attach a video, PDF, or document"
+            title="Attach a video, PDF, or document"
           >
             <Paperclip size={16} />
           </label>
@@ -359,8 +359,8 @@ export function EchoHero() {
           {/* Mic button */}
           <button
             type="button"
-            aria-label="Talk to Echo"
-            title="Talk to Echo"
+            aria-label="Record your voice"
+            title="Record your voice"
             onClick={() => {
               if (micState === 'recording') {
                 stopMic();
@@ -380,6 +380,11 @@ export function EchoHero() {
             {micState === 'recording' ? <Square size={16} /> : <Mic size={16} />}
           </button>
         </div>
+
+        {/* Source helper line */}
+        <p className="mt-2 text-xs text-muted-foreground leading-snug">
+          You can paste a link, upload a file, or record your voice. I work with YouTube, Zoom, Loom, and Vimeo links.
+        </p>
       </div>
 
       {/* Inline exchange region — not a modal */}
