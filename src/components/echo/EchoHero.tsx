@@ -27,6 +27,8 @@ import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 import { useAdvisor } from './useAdvisor';
+import { VoiceLearningChip } from './VoiceLearningChip';
+import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
 import type { LadderActionId } from '@/components/create/ValueLadder';
 import type { NudgeAction, Proposal } from '@/types/advisor';
 
@@ -193,16 +195,15 @@ export function EchoHero() {
           color: 'var(--foreground)',
         }}
       >
-        What are we making?
+        Clip your videos. Get posts that sound like you.
       </h1>
 
-      {/* Capability subhead: this is a command centre, not just a chat box */}
+      {/* Capability subhead: orient a cold user. What it does, the payoff, the best first move. */}
       <p
         className="mb-6 text-center text-sm leading-snug max-w-xl"
         style={{ color: 'var(--muted-foreground)' }}
       >
-        Drop in a video to clip it, paste a YouTube link, type a topic, or
-        just talk. Echo turns it into content in your voice.
+        Paste a YouTube link or drop a video. Echo cuts the best clips and writes the posts in your voice. No video? Type a topic or just talk.
       </p>
 
       {/* Advisor + drafts thread -- renders above composer in the chat thread */}
@@ -220,6 +221,7 @@ export function EchoHero() {
 
       {/* Hero input surface */}
       <div
+        data-tour="echo-hero-input"
         className={[
           'w-full max-w-2xl rounded-2xl border',
           'bg-[var(--surface-container-low)]',
@@ -340,6 +342,7 @@ export function EchoHero() {
           {/* Paperclip attach */}
           <label
             htmlFor="echo-hero-file-input"
+            data-tour="echo-hero-attach"
             className="shrink-0 cursor-pointer text-[var(--muted-foreground)] hover:text-foreground transition-colors p-1"
             aria-label="Attach a video, PDF, or document"
             title="Attach a video, PDF, or document"
@@ -359,6 +362,7 @@ export function EchoHero() {
           {/* Mic button */}
           <button
             type="button"
+            data-tour="echo-hero-mic"
             aria-label="Record your voice"
             title="Record your voice"
             onClick={() => {
@@ -386,6 +390,12 @@ export function EchoHero() {
           You can paste a link, upload a file, or record your voice. I work with YouTube, Zoom, Loom, and Vimeo links.
         </p>
       </div>
+
+      {/* Voice-profile status chip — links to /app/voice */}
+      <VoiceLearningChip />
+
+      {/* Hero tour + replay pill */}
+      <EchoHeroTour />
 
       {/* Inline exchange region — not a modal */}
       {/* EchoExchange is rendered inside the surface above; this outer
