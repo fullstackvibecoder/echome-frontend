@@ -12,7 +12,7 @@ export function CoverageMeter({ coverage }: CoverageMeterProps) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-foreground">How well I know you</span>
+        <span className="text-sm font-medium text-foreground">How well does Echo know you</span>
         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
           {coveredCount} of {DIMENSION_KEYS.length}
         </span>

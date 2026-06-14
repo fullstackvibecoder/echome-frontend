@@ -47,17 +47,16 @@ const STEPS: TourStep[] = [
 ];
 
 export function ClipEditorTour() {
-  const [replayKey, setReplayKey] = useState(0);
+  const [replayNonce, setReplayNonce] = useState(0);
   return (
     <>
       <FeatureTour
         tourId="clip-editor-v1"
         steps={STEPS}
-        forceShow={replayKey > 0}
-        onClose={() => setReplayKey(0)}
+        replayNonce={replayNonce}
       />
       <TourReplayPill
-        onClick={() => setReplayKey((k) => k + 1)}
+        onClick={() => setReplayNonce((k) => k + 1)}
         label="Replay clip tour"
       />
     </>
