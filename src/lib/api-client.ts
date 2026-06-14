@@ -37,6 +37,7 @@ import type {
   DraftProposal,
   DraftAction,
 } from '../types';
+import type { AdvisorResponse } from '@/types/advisor';
 
 // Re-export reel types for convenience
 export type { ReelTemplate, MusicTrackSummary, MusicTrack, TemplateSegment };
@@ -735,6 +736,11 @@ export const api = {
       const response = await apiClient.get<ApiResponse<KnowledgeBase>>(
         `/kb/${id}`
       );
+      return response.data;
+    },
+
+    advisor: async () => {
+      const response = await apiClient.get<ApiResponse<AdvisorResponse>>('/kb/advisor');
       return response.data;
     },
 
