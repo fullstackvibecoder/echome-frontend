@@ -47,8 +47,10 @@ export function DraftRow({ draft, onDismissed, onActionRecorded }: DraftRowProps
 
       {/* Accessible / touch-operable controls. On hover-capable widths these sit
           inline-collapsed; the always-rendered buttons keep screen readers and
-          touch users fully operable regardless of hover. */}
-      <div className="flex items-center gap-4 px-3 pb-1.5 [@media(hover:hover)]:sr-only">
+          touch users fully operable regardless of hover. focus-within un-clips
+          the strip when a keyboard user tabs in, so the sr-only collapse never
+          leaves invisible-but-focusable ghost tab stops on desktop. */}
+      <div className="flex items-center gap-4 px-3 pb-1.5 [@media(hover:hover)]:sr-only [@media(hover:hover)]:focus-within:not-sr-only">
         <button type="button" onClick={() => void review()} aria-label="Review draft" className="flex items-center gap-1.5 text-xs font-medium text-primary">
           <Eye size={14} /> Review
         </button>
