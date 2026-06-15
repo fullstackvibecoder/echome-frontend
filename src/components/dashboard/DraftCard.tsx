@@ -14,7 +14,7 @@ interface DraftCardProps {
   onActionRecorded?: (id: string, action: "reviewed" | "scheduled") => void;
 }
 
-const PREVIEW_LENGTH = 220;
+const PREVIEW_LENGTH = 120;
 
 // Telemetry races against this timeout. If the API hangs (slow network, cold
 // container, etc.), we give up after 2s and navigate anyway — never block
@@ -115,7 +115,7 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
         )}
       </header>
 
-      <p className="relative text-xs text-muted-foreground leading-relaxed line-clamp-3">{preview}</p>
+      <p className="relative text-xs text-muted-foreground leading-relaxed line-clamp-2">{preview}</p>
 
       <div className="relative flex items-center gap-2 mt-1">
         <Link
