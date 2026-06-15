@@ -1,7 +1,7 @@
 /**
  * EchoHero.advisor.test.tsx
  * Tests that EchoHero correctly wires useAdvisor + AdvisorThread + DraftsThreadMessage
- * and routes ladder/nudge/proposal callbacks to the ingestion mechanics.
+ * and routes nudge/proposal callbacks to the ingestion mechanics.
  */
 
 import React from 'react';
@@ -78,17 +78,21 @@ vi.mock('@/components/create/DraftsThreadMessage', () => ({
 
 vi.mock('@/components/create/AdvisorThread', () => ({
   AdvisorThread: ({
-    onLadderAction,
     onNudgeAction,
     onProposalSelect,
   }: {
-    onLadderAction: (id: string) => void;
     onNudgeAction: (action: { type: string; label: string; payload?: Record<string, unknown> }) => void;
     onProposalSelect: (proposal: { id: string; title: string; rationale: string; kitType: string; sourceRefs: string[] }) => void;
   }) => (
     <div data-testid="advisor-thread">
-      <button data-testid="la-voice" onClick={() => onLadderAction('voice')} />
-      <button data-testid="la-video" onClick={() => onLadderAction('video')} />
+      <button
+        data-testid="na-voice"
+        onClick={() => onNudgeAction({ type: 'voice', label: 'Record now' })}
+      />
+      <button
+        data-testid="na-ingest"
+        onClick={() => onNudgeAction({ type: 'ingest', label: 'Add a file' })}
+      />
       <button
         data-testid="na-create"
         onClick={() =>
@@ -180,15 +184,15 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('clicking la-voice calls startMic', () => {
+  it('nudge voice action calls startMic', () => {
     render(<EchoHero />);
-    fireEvent.click(screen.getByTestId('la-voice'));
+    fireEvent.click(screen.getByTestId('na-voice'));
     expect(startMic).toHaveBeenCalled();
   });
 
-  it('clicking la-video triggers the hidden file input click', () => {
+  it('nudge ingest action triggers the hidden file input click', () => {
     render(<EchoHero />);
-    fireEvent.click(screen.getByTestId('la-video'));
+    fireEvent.click(screen.getByTestId('na-ingest'));
     expect(clickSpy).toHaveBeenCalled();
   });
 

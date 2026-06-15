@@ -4,12 +4,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { AdvisorThread, PITCH } from './AdvisorThread';
 import type { AdvisorResponse, Coverage, Proposal } from '@/types/advisor';
 
-vi.mock('@/components/create/ValueLadder', () => ({
-  ValueLadder: ({ onAction }: { onAction: (id: string) => void }) => (
-    <button data-testid="ladder" onClick={() => onAction('voice')}>ladder</button>
-  ),
-}));
-
 vi.mock('@/components/create/AutopilotProposalCard', () => ({
   AutopilotProposalCard: ({ proposal, onSelect }: { proposal: Proposal; onSelect: (p: Proposal) => void }) => (
     <button data-testid="proposal" onClick={() => onSelect(proposal)}>{proposal.title}</button>
@@ -62,7 +56,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -75,7 +68,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -83,46 +75,17 @@ describe('AdvisorThread', () => {
       expect(screen.getByText(PITCH)).toBeInTheDocument();
     });
 
-    it('renders the value ladder', () => {
-      const advisor = makeAdvisor({ state: 'empty' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onLadderAction={vi.fn()}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-        />,
-      );
-      expect(screen.getByTestId('ladder')).toBeInTheDocument();
-    });
-
     it('does not render coverage or proposals', () => {
       const advisor = makeAdvisor({ state: 'empty' });
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
       );
       expect(screen.queryByTestId('coverage')).not.toBeInTheDocument();
       expect(screen.queryByTestId('proposal')).not.toBeInTheDocument();
-    });
-
-    it('clicking the ladder calls onLadderAction with "voice"', async () => {
-      const onLadderAction = vi.fn();
-      const advisor = makeAdvisor({ state: 'empty' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onLadderAction={onLadderAction}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-        />,
-      );
-      await userEvent.click(screen.getByTestId('ladder'));
-      expect(onLadderAction).toHaveBeenCalledWith('voice');
     });
   });
 
@@ -132,7 +95,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -145,7 +107,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -154,25 +115,11 @@ describe('AdvisorThread', () => {
       expect(screen.getByText(DEFAULT_NUDGE.subhead)).toBeInTheDocument();
     });
 
-    it('renders the value ladder', () => {
-      const advisor = makeAdvisor({ state: 'thin' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onLadderAction={vi.fn()}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-        />,
-      );
-      expect(screen.getByTestId('ladder')).toBeInTheDocument();
-    });
-
     it('renders one nudge-action button per action', () => {
       const advisor = makeAdvisor({ state: 'thin' });
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -189,7 +136,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={onNudgeAction}
           onProposalSelect={vi.fn()}
         />,
@@ -206,7 +152,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -219,7 +164,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -233,25 +177,11 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
       );
       expect(screen.getByTestId('coverage')).toBeInTheDocument();
-    });
-
-    it('does NOT render the value ladder', () => {
-      const advisor = makeAdvisor({ state: 'rich' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onLadderAction={vi.fn()}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-        />,
-      );
-      expect(screen.queryByTestId('ladder')).not.toBeInTheDocument();
     });
 
     it('clicking a proposal calls onProposalSelect with that proposal', async () => {
@@ -260,7 +190,6 @@ describe('AdvisorThread', () => {
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={onProposalSelect}
         />,
@@ -270,12 +199,24 @@ describe('AdvisorThread', () => {
       expect(onProposalSelect).toHaveBeenCalledWith(DEFAULT_PROPOSALS[0]);
     });
 
-    it('shows nudge block when headline is non-empty', () => {
+    it('suppresses the nudge when proposals exist (redundant with the drafts)', () => {
       const advisor = makeAdvisor({ state: 'rich' });
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
+          onNudgeAction={vi.fn()}
+          onProposalSelect={vi.fn()}
+        />,
+      );
+      expect(screen.queryByTestId('nudge-action')).not.toBeInTheDocument();
+      expect(screen.queryByText(DEFAULT_NUDGE.headline)).not.toBeInTheDocument();
+    });
+
+    it('shows the nudge when headline is non-empty and there are no proposals', () => {
+      const advisor = makeAdvisor({ state: 'rich', proposals: [] });
+      render(
+        <AdvisorThread
+          advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
@@ -286,12 +227,12 @@ describe('AdvisorThread', () => {
     it('renders NO nudge block when headline is empty string', () => {
       const advisor = makeAdvisor({
         state: 'rich',
+        proposals: [],
         nudge: { headline: '', subhead: '', actions: [] },
       });
       render(
         <AdvisorThread
           advisor={advisor}
-          onLadderAction={vi.fn()}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
         />,
