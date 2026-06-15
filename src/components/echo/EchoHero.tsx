@@ -30,7 +30,6 @@ import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
-import type { LadderActionId } from '@/components/create/ValueLadder';
 import type { NudgeAction, Proposal } from '@/types/advisor';
 
 /** Format elapsed seconds as M:SS */
@@ -100,23 +99,6 @@ export function EchoHero() {
   const focusComposer = useCallback(() => {
     setTimeout(() => textareaRef.current?.focus(), 0);
   }, []);
-
-  const handleLadderAction = useCallback((id: LadderActionId) => {
-    switch (id) {
-      case 'voice':
-        if (micState === 'idle' || micState === 'error') void startMic();
-        break;
-      case 'video':
-      case 'emails':
-      case 'published':
-        fileInputRef.current?.click();
-        break;
-      case 'paste':
-      case 'topic':
-        focusComposer();
-        break;
-    }
-  }, [micState, startMic, focusComposer]);
 
   const handleNudgeAction = useCallback((action: NudgeAction) => {
     if (action.type === 'voice') {
@@ -211,7 +193,6 @@ export function EchoHero() {
         {advisor && (
           <AdvisorThread
             advisor={advisor}
-            onLadderAction={handleLadderAction}
             onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
           />

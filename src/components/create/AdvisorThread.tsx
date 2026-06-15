@@ -1,7 +1,6 @@
 'use client';
 
 import { Mic, Paperclip, Sparkles } from 'lucide-react';
-import { ValueLadder, type LadderActionId } from '@/components/create/ValueLadder';
 import { AutopilotProposalCard } from '@/components/create/AutopilotProposalCard';
 import { CoverageMeter } from '@/components/create/CoverageMeter';
 import type { AdvisorResponse, NudgeAction, NudgeActionType, Proposal } from '@/types/advisor';
@@ -17,7 +16,6 @@ export const PITCH =
 
 interface AdvisorThreadProps {
   advisor: AdvisorResponse;
-  onLadderAction: (id: LadderActionId) => void;
   onNudgeAction: (action: NudgeAction) => void;
   onProposalSelect: (proposal: Proposal) => void;
 }
@@ -65,7 +63,6 @@ function NudgeBlock({
 
 export function AdvisorThread({
   advisor,
-  onLadderAction,
   onNudgeAction,
   onProposalSelect,
 }: AdvisorThreadProps) {
@@ -73,7 +70,6 @@ export function AdvisorThread({
     return (
       <div data-testid="advisor-empty" className="space-y-4">
         <p className="text-sm leading-relaxed text-muted-foreground">{PITCH}</p>
-        <ValueLadder onAction={onLadderAction} />
       </div>
     );
   }
@@ -82,17 +78,18 @@ export function AdvisorThread({
     return (
       <div data-testid="advisor-thin" className="space-y-4">
         <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
-        <ValueLadder onAction={onLadderAction} />
       </div>
     );
   }
 
-  // rich state
+  // rich state. Suppress the nudge once drafts exist — the proposals below say
+  // the same "Echo can build from what you shared" thing, just concretely.
   const hasNudge = advisor.nudge.headline.length > 0;
+  const showNudge = hasNudge && advisor.proposals.length === 0;
 
   return (
     <div data-testid="advisor-rich" className="space-y-4">
-      {hasNudge && (
+      {showNudge && (
         <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
       )}
       {advisor.proposals.length > 0 && (
