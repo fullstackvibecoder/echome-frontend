@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import type { AdvisorResponse } from '@/types/advisor';
@@ -22,10 +22,14 @@ export function useAdvisor(): UseAdvisorResult {
   const [advisor, setAdvisor] = useState<AdvisorResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const fetchAdvisor = useCallback(async () => {
     try {
       const res = await api.kb.advisor();
+      if (!mountedRef.current) return;
       if (res?.success && res.data) {
         setAdvisor(res.data);
         setError(null);
@@ -34,10 +38,11 @@ export function useAdvisor(): UseAdvisorResult {
         setError(res?.error ?? 'Advisor unavailable');
       }
     } catch (e) {
+      if (!mountedRef.current) return;
       setAdvisor(null);
       setError(extractErrorMessage(e, 'Advisor failed'));
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 

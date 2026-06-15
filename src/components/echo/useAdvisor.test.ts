@@ -34,4 +34,11 @@ describe('useAdvisor', () => {
     });
     expect(api.kb.advisor).toHaveBeenCalledTimes(2);
   });
+
+  it('sets error and null advisor when the fetch rejects', async () => {
+    vi.mocked(api.kb.advisor).mockRejectedValueOnce(new Error('boom'));
+    const { result } = renderHook(() => useAdvisor());
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.advisor).toBeNull();
+  });
 });
