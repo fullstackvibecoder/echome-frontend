@@ -50,7 +50,7 @@ jobs:
 
           # Build the JSON payload using jq to handle escaping
           PAYLOAD=$(jq -n \
-            --arg model "claude-sonnet-4-20250514" \
+            --arg model "claude-sonnet-4-6" \
             --argjson max_tokens 2048 \
             --arg system "You are a senior code reviewer. Review the PR diff and provide concise, actionable feedback. Focus on: bugs, security issues, performance problems, and logic errors. Skip style nitpicks. If the code looks good, say so briefly. Format your review in markdown." \
             --arg prompt "$(printf 'Review this pull request.\n\nTitle: %s\n\nDescription: %s\n\n%s\n\nDiff:\n```\n%s\n```' "$PR_TITLE" "$PR_BODY" "$TRUNCATION_NOTE" "$DIFF_CONTENT")" \
