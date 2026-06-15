@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { KeyRound, Loader2, X } from 'lucide-react';
 
 interface ZoomPasswordModalProps {
@@ -33,6 +34,14 @@ export function ZoomPasswordModal({
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Portal to <body> so the modal escapes any `display:none` ancestor. On the
+  // admin Create page the GenerationForm engine is mounted inside a hidden
+  // container (AppContent), and a `position:fixed` overlay is still removed by
+  // an ancestor's display:none — only a portal lifts it out of that subtree.
+  // Guard on mount: document doesn't exist during SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   // Reset state every time the modal opens fresh, and focus the input.
   useEffect(() => {
     if (!open) return;
@@ -53,7 +62,7 @@ export function ZoomPasswordModal({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, submitting, onCancel]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +81,7 @@ export function ZoomPasswordModal({
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="w-full max-w-md rounded-2xl bg-background border border-white/10 p-6 shadow-2xl relative">
         <button
@@ -148,6 +157,7 @@ export function ZoomPasswordModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
