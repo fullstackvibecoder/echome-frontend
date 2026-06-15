@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { DraftCard } from '@/components/dashboard/DraftCard';
+import { DraftRow } from '@/components/dashboard/DraftRow';
 import type { DraftProposal } from '@/types';
 
 export function DraftsThreadMessage() {
@@ -38,8 +39,9 @@ export function DraftsThreadMessage() {
   return (
     <section id="drafts" aria-label="Drafted for you" className="mb-2 scroll-mt-20">
       <p>I drafted {n} {noun} for you while you were away. Take a look.</p>
-      {drafts.map((d) => (
-        <DraftCard key={d.id} draft={d} onDismissed={handleDismiss} />
+      <DraftCard key={drafts[0].id} draft={drafts[0]} onDismissed={handleDismiss} />
+      {drafts.slice(1).map((d) => (
+        <DraftRow key={d.id} draft={d} onDismissed={handleDismiss} />
       ))}
     </section>
   );
