@@ -195,6 +195,8 @@ export function EchoHero() {
             advisor={advisor}
             onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
+            kbId={null}
+            onImportComplete={() => {}}
           />
         )}
         <DraftsThreadMessage />

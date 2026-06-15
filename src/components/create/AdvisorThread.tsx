@@ -3,6 +3,7 @@
 import { Mic, Paperclip, Sparkles } from 'lucide-react';
 import { AutopilotProposalCard } from '@/components/create/AutopilotProposalCard';
 import { CoverageMeter } from '@/components/create/CoverageMeter';
+import { KBUnifiedInput } from '@/app/app/voice/KBUnifiedInput';
 import type { AdvisorResponse, NudgeAction, NudgeActionType, Proposal } from '@/types/advisor';
 
 const NUDGE_ICONS: Record<NudgeActionType, typeof Mic> = {
@@ -11,13 +12,12 @@ const NUDGE_ICONS: Record<NudgeActionType, typeof Mic> = {
   create: Sparkles,
 };
 
-export const PITCH =
-  'The fastest way to sound like you is to talk to me. Two minutes of your voice teaches me more than a stack of documents.';
-
 interface AdvisorThreadProps {
   advisor: AdvisorResponse;
   onNudgeAction: (action: NudgeAction) => void;
   onProposalSelect: (proposal: Proposal) => void;
+  kbId: string | null;
+  onImportComplete: () => void;
 }
 
 function NudgeBlock({
@@ -65,11 +65,27 @@ export function AdvisorThread({
   advisor,
   onNudgeAction,
   onProposalSelect,
+  kbId,
+  onImportComplete,
 }: AdvisorThreadProps) {
   if (advisor.state === 'empty') {
     return (
-      <div data-testid="advisor-empty" className="space-y-4">
-        <p className="text-sm leading-relaxed text-muted-foreground">{PITCH}</p>
+      <div data-testid="advisor-empty" className="space-y-3">
+        <div>
+          <p className="text-base font-semibold leading-snug text-foreground">
+            Teach Echo your voice
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            Echo learns how you write from what you share. The more you give it, the more every post sounds like you.
+          </p>
+        </div>
+        {kbId ? (
+          <KBUnifiedInput knowledgeBaseId={kbId} onImportComplete={onImportComplete} />
+        ) : (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Setting up your voice...
+          </p>
+        )}
       </div>
     );
   }
