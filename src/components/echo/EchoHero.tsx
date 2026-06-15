@@ -181,24 +181,30 @@ export function EchoHero() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Display headline */}
-      <h1
-        className="mb-2 text-center font-semibold leading-tight"
-        style={{
-          fontSize: 'clamp(1.5rem, 1.25rem + 1.25vw, 1.875rem)',
-          color: 'var(--foreground)',
-        }}
-      >
-        Clip your videos. Get posts that sound like you.
-      </h1>
-
-      {/* Capability subhead: orient a cold user. What it does, the payoff, the best first move. */}
-      <p
-        className="mb-6 text-center text-sm leading-snug max-w-xl"
-        style={{ color: 'var(--muted-foreground)' }}
-      >
-        Paste a YouTube link or drop a video. Echo cuts the best clips and writes the posts in your voice. No video? Type a topic or just talk.
-      </p>
+      {/* Static hero header: orient a cold user (what it does, the payoff, the
+          best first move). Shown ONLY before the user has shared anything. Once
+          Echo has content it renders a personalized nudge ("Echo can build from
+          what you shared") in AdvisorThread below, which makes this generic
+          header redundant — so hide it in the thin/rich states. */}
+      {(!advisor || advisor.state === 'empty') && (
+        <>
+          <h1
+            className="mb-2 text-center font-semibold leading-tight"
+            style={{
+              fontSize: 'clamp(1.5rem, 1.25rem + 1.25vw, 1.875rem)',
+              color: 'var(--foreground)',
+            }}
+          >
+            Clip your videos. Get posts that sound like you.
+          </h1>
+          <p
+            className="mb-6 text-center text-sm leading-snug max-w-xl"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            Paste a YouTube link or drop a video. Echo cuts the best clips and writes the posts in your voice. No video? Type a topic or just talk.
+          </p>
+        </>
+      )}
 
       {/* Advisor + drafts thread -- renders above composer in the chat thread */}
       <div className="w-full max-w-2xl space-y-4 mb-6">
