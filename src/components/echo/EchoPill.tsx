@@ -17,19 +17,13 @@ import {
   useState,
 } from 'react';
 import { usePathname } from 'next/navigation';
-import { Paperclip, X, Mic, Square } from 'lucide-react';
+import { Paperclip, Mic, Square } from 'lucide-react';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
-
-/** Format bytes to a human-readable string (e.g. "4.2 MB") */
-function humanSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+import { AttachmentCard } from './AttachmentCard';
 
 /** Format elapsed seconds as M:SS */
 function formatElapsed(seconds: number): string {
@@ -225,24 +219,9 @@ export function EchoPill() {
             boxShadow: isDragOver ? 'var(--shadow-glow-cyan)' : 'var(--shadow-glow-cyan)',
           }}
         >
-          {/* Attachment chip — shown in exchange panel */}
+          {/* Attachment ready card — shown in exchange panel */}
           {attachment && (
-            <div className="flex items-center gap-2 mb-2 px-1">
-              <span className="text-machine truncate flex-1" style={{ fontSize: '0.625rem' }}>
-                {attachment.name}
-              </span>
-              <span className="text-machine shrink-0" style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}>
-                {humanSize(attachment.size)}
-              </span>
-              <button
-                type="button"
-                aria-label={`Remove ${attachment.name}`}
-                onClick={() => setAttachment(null)}
-                className="shrink-0 text-[var(--muted-foreground)] hover:text-foreground transition-colors"
-              >
-                <X size={12} />
-              </button>
-            </div>
+            <AttachmentCard file={attachment} onRemove={() => setAttachment(null)} />
           )}
 
           {/* Attachment inline error */}

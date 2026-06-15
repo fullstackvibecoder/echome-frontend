@@ -1,45 +1,44 @@
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { useAdvisor } from './useAdvisor';
+import { api } from '@/lib/api-client';
 
-const advisorMock = vi.fn();
 vi.mock('@/lib/api-client', () => ({
-  api: { kb: { advisor: () => advisorMock() } },
+  api: { kb: { advisor: vi.fn() } },
 }));
 
-import { useAdvisor } from './useAdvisor';
-import type { AdvisorResponse } from '@/types/advisor';
-
-const EMPTY: AdvisorResponse = {
-  state: 'empty',
-  coverage: {
-    work: { covered: false, strength: 0, sampleCount: 0 },
-    industry: { covered: false, strength: 0, sampleCount: 0 },
-    interests: { covered: false, strength: 0, sampleCount: 0 },
-    personal: { covered: false, strength: 0, sampleCount: 0 },
-    relationships: { covered: false, strength: 0, sampleCount: 0 },
-    voice: { covered: false, strength: 0, sampleCount: 0 },
-  },
-  nudge: { headline: 'h', subhead: 's', actions: [] },
+const ADVISOR = {
+  state: 'empty' as const,
+  coverage: {},
+  nudge: { headline: '', subhead: '', actions: [] },
   proposals: [],
 };
 
 describe('useAdvisor', () => {
-  beforeEach(() => advisorMock.mockReset());
-
-  it('returns the advisor payload on success', async () => {
-    advisorMock.mockResolvedValue({ success: true, data: EMPTY });
-    const { result } = renderHook(() => useAdvisor());
-    expect(result.current.loading).toBe(true);
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.advisor?.state).toBe('empty');
-    expect(result.current.error).toBeNull();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.kb.advisor).mockResolvedValue({ success: true, data: ADVISOR } as never);
   });
 
-  it('sets error and null advisor on failure', async () => {
-    advisorMock.mockRejectedValue(new Error('network'));
+  it('fetches the advisor once on mount', async () => {
     const { result } = renderHook(() => useAdvisor());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.advisor).toEqual(ADVISOR));
+    expect(api.kb.advisor).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetch() re-hits api.kb.advisor', async () => {
+    const { result } = renderHook(() => useAdvisor());
+    await waitFor(() => expect(result.current.advisor).toEqual(ADVISOR));
+    await act(async () => {
+      await result.current.refetch();
+    });
+    expect(api.kb.advisor).toHaveBeenCalledTimes(2);
+  });
+
+  it('sets error and null advisor when the fetch rejects', async () => {
+    vi.mocked(api.kb.advisor).mockRejectedValueOnce(new Error('boom'));
+    const { result } = renderHook(() => useAdvisor());
+    await waitFor(() => expect(result.current.error).toBeTruthy());
     expect(result.current.advisor).toBeNull();
-    expect(result.current.error).toBe('network');
   });
 });

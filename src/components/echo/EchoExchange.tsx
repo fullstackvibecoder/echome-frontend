@@ -7,6 +7,7 @@
  */
 
 import { useRef, useCallback } from 'react';
+import { Check } from 'lucide-react';
 import type { EchoIntent } from '@/lib/echo-client';
 import { INTENT_META, ALL_INTENTS } from './intent-meta';
 import type { EchoState, UseEchoReturn } from './useEcho';
@@ -19,7 +20,7 @@ interface EchoExchangeProps {
 }
 
 export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
-  const { phase, inputText, classification, selectedIntent, answer, receipts, error } = state;
+  const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation } = state;
   const { setInputText, submit, selectIntent, confirm, reset } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -153,8 +154,34 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
-      {/* Done state: nudge to ask another */}
-      {isDone && (
+      {/* Done state: loud success card for ingests, bare row otherwise */}
+      {isDone && confirmation && (
+        <div className="rounded-xl border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.06)] px-3 py-2.5">
+          <div className="flex items-start gap-2.5">
+            <div
+              className="shrink-0 flex items-center justify-center rounded-full"
+              style={{ width: 22, height: 22, background: 'rgba(0,212,255,0.15)', color: 'rgba(0,212,255,0.95)' }}
+            >
+              <Check size={14} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">{confirmation.title}</p>
+              {confirmation.detail && (
+                <p className="text-xs text-[var(--muted-foreground)] truncate">{confirmation.detail}</p>
+              )}
+              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Echo can use this now.</p>
+            </div>
+            <button
+              type="button"
+              onClick={reset}
+              className="shrink-0 text-xs text-[var(--muted-foreground)] hover:text-foreground underline underline-offset-2 transition-colors"
+            >
+              Add another
+            </button>
+          </div>
+        </div>
+      )}
+      {isDone && !confirmation && (
         <div className="flex items-center justify-between">
           <span className="text-machine">DONE</span>
           <button
@@ -213,11 +240,19 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
-      {/* Hint: Shift+Enter for newline, Enter to submit */}
+      {/* Hint: Shift+Enter for newline, Enter to submit. Louder when a file is
+          attached and no text is typed — that is the case the founder flagged
+          as too quiet. */}
       {phase === 'open' && (inputText.trim() || state.attachment) && (
-        <p className="text-machine" style={{ fontSize: '0.5625rem' }}>
-          ENTER TO SUBMIT, SHIFT+ENTER FOR NEWLINE
-        </p>
+        state.attachment && !inputText.trim() ? (
+          <p className="text-sm font-medium text-[rgba(0,212,255,0.95)]">
+            Press Enter to send this to Echo.
+          </p>
+        ) : (
+          <p className="text-machine" style={{ fontSize: '0.625rem' }}>
+            ENTER TO SUBMIT, SHIFT+ENTER FOR NEWLINE
+          </p>
+        )
       )}
     </div>
   );

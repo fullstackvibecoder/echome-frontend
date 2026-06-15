@@ -65,6 +65,10 @@ vi.mock('./useAdvisor', () => ({
   useAdvisor: vi.fn(),
 }));
 
+vi.mock('@/hooks/useKnowledgeBase', () => ({
+  useKnowledgeBase: () => ({ selectedKb: 'kb1' }),
+}));
+
 // EchoExchange is NOT mocked here; it renders real so we can assert on the textarea.
 
 vi.mock('@/components/create/DraftsThreadMessage', () => ({
@@ -91,7 +95,7 @@ describe('EchoHero copy-deck-v3', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
-    vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null });
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null, refetch: vi.fn() });
   });
 
   afterEach(() => {

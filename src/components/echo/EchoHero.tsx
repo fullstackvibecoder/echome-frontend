@@ -17,7 +17,7 @@ import {
   useCallback,
   useState,
 } from 'react';
-import { Paperclip, X, Mic, Square } from 'lucide-react';
+import { Paperclip, Mic, Square } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
@@ -26,18 +26,12 @@ import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
+import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
-import type { LadderActionId } from '@/components/create/ValueLadder';
 import type { NudgeAction, Proposal } from '@/types/advisor';
-
-/** Format bytes to human-readable string ("4.2 MB") */
-function humanSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 /** Format elapsed seconds as M:SS */
 function formatElapsed(seconds: number): string {
@@ -101,28 +95,12 @@ export function EchoHero() {
   const { micState, elapsed, micError, start: startMic, stop: stopMic } = useEchoMic(handleTranscript);
 
   // ---- KB Advisor ----
-  const { advisor } = useAdvisor();
+  const { advisor, refetch: refetchAdvisor } = useAdvisor();
+  const { selectedKb } = useKnowledgeBase();
 
   const focusComposer = useCallback(() => {
     setTimeout(() => textareaRef.current?.focus(), 0);
   }, []);
-
-  const handleLadderAction = useCallback((id: LadderActionId) => {
-    switch (id) {
-      case 'voice':
-        if (micState === 'idle' || micState === 'error') void startMic();
-        break;
-      case 'video':
-      case 'emails':
-      case 'published':
-        fileInputRef.current?.click();
-        break;
-      case 'paste':
-      case 'topic':
-        focusComposer();
-        break;
-    }
-  }, [micState, startMic, focusComposer]);
 
   const handleNudgeAction = useCallback((action: NudgeAction) => {
     if (action.type === 'voice') {
@@ -187,33 +165,40 @@ export function EchoHero() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Display headline */}
-      <h1
-        className="mb-2 text-center font-semibold leading-tight"
-        style={{
-          fontSize: 'clamp(1.5rem, 1.25rem + 1.25vw, 1.875rem)',
-          color: 'var(--foreground)',
-        }}
-      >
-        Clip your videos. Get posts that sound like you.
-      </h1>
-
-      {/* Capability subhead: orient a cold user. What it does, the payoff, the best first move. */}
-      <p
-        className="mb-6 text-center text-sm leading-snug max-w-xl"
-        style={{ color: 'var(--muted-foreground)' }}
-      >
-        Paste a YouTube link or drop a video. Echo cuts the best clips and writes the posts in your voice. No video? Type a topic or just talk.
-      </p>
+      {/* Static hero header: orient a cold user (what it does, the payoff, the
+          best first move). Shown ONLY before the user has shared anything. Once
+          Echo has content it renders a personalized nudge ("Echo can build from
+          what you shared") in AdvisorThread below, which makes this generic
+          header redundant — so hide it in the thin/rich states. */}
+      {(!advisor || advisor.state === 'empty') && (
+        <>
+          <h1
+            className="mb-2 text-center font-semibold leading-tight"
+            style={{
+              fontSize: 'clamp(1.5rem, 1.25rem + 1.25vw, 1.875rem)',
+              color: 'var(--foreground)',
+            }}
+          >
+            Teach Echo to write in your voice.
+          </h1>
+          <p
+            className="mb-6 text-center text-sm leading-snug max-w-xl"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
+          </p>
+        </>
+      )}
 
       {/* Advisor + drafts thread -- renders above composer in the chat thread */}
       <div className="w-full max-w-2xl space-y-4 mb-6">
         {advisor && (
           <AdvisorThread
             advisor={advisor}
-            onLadderAction={handleLadderAction}
             onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
+            kbId={selectedKb}
+            onImportComplete={refetchAdvisor}
           />
         )}
         <DraftsThreadMessage />
@@ -239,30 +224,9 @@ export function EchoHero() {
                        border-color var(--dur-base, 180ms) var(--ease-standard, cubic-bezier(0.2,0,0,1))`,
         }}
       >
-        {/* Attachment chip */}
+        {/* Attachment ready card */}
         {attachment && (
-          <div className="flex items-center gap-2 mb-3 px-1">
-            <span
-              className="text-machine truncate flex-1"
-              style={{ fontSize: '0.625rem' }}
-            >
-              {attachment.name}
-            </span>
-            <span
-              className="text-machine shrink-0"
-              style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}
-            >
-              {humanSize(attachment.size)}
-            </span>
-            <button
-              type="button"
-              aria-label={`Remove ${attachment.name}`}
-              onClick={() => setAttachment(null)}
-              className="shrink-0 text-[var(--muted-foreground)] hover:text-foreground transition-colors"
-            >
-              <X size={13} />
-            </button>
-          </div>
+          <AttachmentCard file={attachment} onRemove={() => setAttachment(null)} />
         )}
 
         {/* Attachment inline error */}

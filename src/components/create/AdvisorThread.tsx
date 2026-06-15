@@ -1,9 +1,9 @@
 'use client';
 
 import { Mic, Paperclip, Sparkles } from 'lucide-react';
-import { ValueLadder, type LadderActionId } from '@/components/create/ValueLadder';
 import { AutopilotProposalCard } from '@/components/create/AutopilotProposalCard';
 import { CoverageMeter } from '@/components/create/CoverageMeter';
+import { KBUnifiedInput } from '@/app/app/voice/KBUnifiedInput';
 import type { AdvisorResponse, NudgeAction, NudgeActionType, Proposal } from '@/types/advisor';
 
 const NUDGE_ICONS: Record<NudgeActionType, typeof Mic> = {
@@ -12,14 +12,12 @@ const NUDGE_ICONS: Record<NudgeActionType, typeof Mic> = {
   create: Sparkles,
 };
 
-export const PITCH =
-  'The fastest way to sound like you is to talk to me. Two minutes of your voice teaches me more than a stack of documents.';
-
 interface AdvisorThreadProps {
   advisor: AdvisorResponse;
-  onLadderAction: (id: LadderActionId) => void;
   onNudgeAction: (action: NudgeAction) => void;
   onProposalSelect: (proposal: Proposal) => void;
+  kbId: string | null;
+  onImportComplete: () => void;
 }
 
 function NudgeBlock({
@@ -65,15 +63,29 @@ function NudgeBlock({
 
 export function AdvisorThread({
   advisor,
-  onLadderAction,
   onNudgeAction,
   onProposalSelect,
+  kbId,
+  onImportComplete,
 }: AdvisorThreadProps) {
   if (advisor.state === 'empty') {
     return (
-      <div data-testid="advisor-empty" className="space-y-4">
-        <p className="text-sm leading-relaxed text-muted-foreground">{PITCH}</p>
-        <ValueLadder onAction={onLadderAction} />
+      <div data-testid="advisor-empty" className="space-y-3">
+        <div>
+          <p className="text-base font-semibold leading-snug text-foreground">
+            Teach Echo your voice
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            Echo learns how you write from what you share. The more you give it, the more every post sounds like you.
+          </p>
+        </div>
+        {kbId ? (
+          <KBUnifiedInput knowledgeBaseId={kbId} onImportComplete={onImportComplete} />
+        ) : (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Setting up your voice...
+          </p>
+        )}
       </div>
     );
   }
@@ -82,17 +94,18 @@ export function AdvisorThread({
     return (
       <div data-testid="advisor-thin" className="space-y-4">
         <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
-        <ValueLadder onAction={onLadderAction} />
       </div>
     );
   }
 
-  // rich state
+  // rich state. Suppress the nudge once drafts exist — the proposals below say
+  // the same "Echo can build from what you shared" thing, just concretely.
   const hasNudge = advisor.nudge.headline.length > 0;
+  const showNudge = hasNudge && advisor.proposals.length === 0;
 
   return (
     <div data-testid="advisor-rich" className="space-y-4">
-      {hasNudge && (
+      {showNudge && (
         <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
       )}
       {advisor.proposals.length > 0 && (
