@@ -382,6 +382,7 @@ export default function AppContent() {
                         isQuotaError={isQuotaError}
                         activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
                         initialInput={initialTopic}
+                        surfaceProcessingOverlay
                       />
                     </div>
                   </>
