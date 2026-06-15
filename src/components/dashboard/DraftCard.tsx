@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Calendar, Eye, Trash2 } from "lucide-react";
-import { useState } from "react";
 import type { DraftProposal } from "@/types";
-import { api } from "@/lib/api-client";
-import { showInfoToast } from "@/lib/toast";
+import { useDraftActions } from "./useDraftActions";
 
 interface DraftCardProps {
   draft: DraftProposal;
@@ -14,90 +11,22 @@ interface DraftCardProps {
   onActionRecorded?: (id: string, action: "reviewed" | "scheduled") => void;
 }
 
-const PREVIEW_LENGTH = 220;
-
-// Telemetry races against this timeout. If the API hangs (slow network, cold
-// container, etc.), we give up after 2s and navigate anyway — never block
-// the user on a side-effect call. Pre-fix this was pure fire-and-forget
-// which lost most outcomes in prod (43 draft_outcomes / 7d vs 275 opted-in
-// users — too low to be real engagement; mostly racing against Next.js
-// client-side navigation cancelling the in-flight fetch).
-const TELEMETRY_TIMEOUT_MS = 2000;
-
-type TelemetryResult = "ok" | "gone" | "error" | "timeout";
-
-// D6: also inspect the result so we can branch on 404. A 404 from the action
-// endpoint means the kit is no longer is_draft_proposal=true (dismissed in
-// another tab, auto-cleaned by cron, etc.) — navigating to it would land the
-// user on a stale or empty kit-detail page. Better to acknowledge and remove
-// the card.
-async function recordWithTimeout(p: Promise<unknown>): Promise<TelemetryResult> {
-  return Promise.race<TelemetryResult>([
-    p
-      .then<TelemetryResult>(() => "ok")
-      .catch((err): TelemetryResult => {
-        const status = (err as { response?: { status?: number } })?.response?.status;
-        return status === 404 ? "gone" : "error";
-      }),
-    new Promise<TelemetryResult>((resolve) =>
-      setTimeout(() => resolve("timeout"), TELEMETRY_TIMEOUT_MS),
-    ),
-  ]);
-}
+const PREVIEW_LENGTH = 120;
 
 function pickPreview(draft: DraftProposal): string {
-  // LinkedIn first because it's typically the longest, most-shareable copy
-  // for the audience this product targets (real-estate creators).
+  // LinkedIn first: typically the longest, most-shareable copy for the
+  // real-estate creators this product targets.
   const body = draft.content_linkedin || draft.content_instagram || draft.content_twitter || "";
   if (!body) return "Echo couldn't pull a preview. Click Review to see the full kit.";
   return body.length > PREVIEW_LENGTH ? `${body.slice(0, PREVIEW_LENGTH).trim()}…` : body;
 }
 
 export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardProps) {
-  const router = useRouter();
-  const [busy, setBusy] = useState<"none" | "dismissing">("none");
-  const [dismissError, setDismissError] = useState<string | null>(null);
-
-  const handleReview = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    onActionRecorded?.(draft.id, "reviewed");
-    const result = await recordWithTimeout(api.drafts.recordAction(draft.id, "reviewed"));
-    if (result === "gone") {
-      // D6: the draft is no longer in the inbox (dismissed in another tab,
-      // or auto-cleaned). Don't navigate the user into a stale kit-detail.
-      showInfoToast("That draft was already removed", "Refreshing your inbox.");
-      onDismissed(draft.id);
-      return;
-    }
-    router.push(`/app/library/${draft.id}`);
-  };
-
-  const handleSchedule = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    onActionRecorded?.(draft.id, "scheduled");
-    const result = await recordWithTimeout(api.drafts.recordAction(draft.id, "scheduled"));
-    if (result === "gone") {
-      showInfoToast("That draft was already removed", "Refreshing your inbox.");
-      onDismissed(draft.id);
-      return;
-    }
-    router.push(`/app/library/${draft.id}`);
-  };
-
-  const handleDismiss = async () => {
-    if (busy !== "none") return;
-    setBusy("dismissing");
-    setDismissError(null);
-    try {
-      await api.drafts.dismiss(draft.id);
-      onDismissed(draft.id);
-    } catch {
-      // 401/402/403 are toasted by api-client interceptors; for everything
-      // else surface inline so the user knows their click was acknowledged.
-      setBusy("none");
-      setDismissError("Couldn't dismiss. Try again.");
-    }
-  };
+  const { review, schedule, dismiss, busy, dismissError, href } = useDraftActions({
+    draft,
+    onDismissed,
+    onActionRecorded,
+  });
 
   const title = draft.title || "Untitled draft";
   const preview = pickPreview(draft);
@@ -115,20 +44,26 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
         )}
       </header>
 
-      <p className="relative text-xs text-muted-foreground leading-relaxed line-clamp-3">{preview}</p>
+      <p className="relative text-xs text-muted-foreground leading-relaxed line-clamp-2">{preview}</p>
 
       <div className="relative flex items-center gap-2 mt-1">
         <Link
-          href={`/app/library/${draft.id}`}
-          onClick={handleReview}
+          href={href}
+          onClick={(e) => {
+            e.preventDefault();
+            void review();
+          }}
           className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
         >
           <Eye size={14} />
           Review
         </Link>
         <Link
-          href={`/app/library/${draft.id}`}
-          onClick={handleSchedule}
+          href={href}
+          onClick={(e) => {
+            e.preventDefault();
+            void schedule();
+          }}
           className="flex items-center gap-1.5 text-xs font-medium text-foreground hover:text-primary"
         >
           <Calendar size={14} />
@@ -136,7 +71,7 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
         </Link>
         <button
           type="button"
-          onClick={handleDismiss}
+          onClick={() => void dismiss()}
           disabled={busy === "dismissing"}
           className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive disabled:opacity-50"
           aria-label="Dismiss draft"
