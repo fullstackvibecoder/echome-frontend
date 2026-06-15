@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { AxiosError } from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { InputType, Platform, BackgroundConfig, DesignPreset } from '@/types';
@@ -325,6 +326,180 @@ function YouTubeDownloadBanner() {
   );
 }
 
+/**
+ * VideoProcessingTimeline — the in-flight clip-finder progress UI: vertical
+ * step timeline + shimmer progress bar + contextual navigate-away banner.
+ * Extracted from the inline form so the SAME animation can render both inline
+ * (non-admin Create page) and inside a portaled overlay (admin Create page,
+ * where the GenerationForm engine is mounted display:none and inline progress
+ * would otherwise be invisible).
+ */
+function VideoProcessingTimeline({
+  stage,
+  progress,
+  sourceType,
+  elapsedSeconds,
+}: {
+  stage: string;
+  progress: number;
+  sourceType: VideoSourceType;
+  elapsedSeconds: number;
+}) {
+  return (
+    <div className="py-6 px-2 text-left">
+      {/* Vertical Step Timeline */}
+      <div className="space-y-0">
+        {getVideoProcessingStages(sourceType).map((s, idx, stages) => {
+          const activeIdx = stages.findIndex(st => st.key === stage);
+          const isCompleted = activeIdx >= 0 ? idx < activeIdx : stage === 'completed';
+          const isActive = idx === activeIdx;
+          const isLast = idx === stages.length - 1;
+          const StageIcon = s.icon;
+
+          return (
+            <div key={s.key} className="flex gap-3">
+              {/* Icon column with connecting line */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    isCompleted
+                      ? 'bg-accent text-white'
+                      : isActive
+                      ? 'bg-accent/15 border-2 border-accent'
+                      : 'bg-bg-secondary border border-border'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : isActive ? (
+                    <Loader2 className="w-3.5 h-3.5 text-accent animate-spin" />
+                  ) : (
+                    <StageIcon className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300 opacity-40" />
+                  )}
+                </div>
+                {!isLast && (
+                  <div
+                    className={`w-0.5 flex-1 min-h-[16px] transition-all duration-300 ${
+                      isCompleted
+                        ? 'bg-accent'
+                        : isActive
+                        ? 'bg-accent/30'
+                        : 'border-l border-dashed border-border'
+                    }`}
+                  />
+                )}
+              </div>
+
+              {/* Text content */}
+              <div className={`pb-3 ${isActive ? 'pb-4' : ''}`}>
+                {isActive ? (
+                  <div className="bg-accent/5 rounded-lg px-3 py-2 border-l-2 border-accent -ml-1">
+                    <p className="text-sm font-semibold text-accent">{s.title}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{s.description}</p>
+                  </div>
+                ) : (
+                  <p className={`text-sm pt-1 ${
+                    isCompleted ? 'font-medium text-foreground' : 'text-gray-600 dark:text-gray-300 opacity-50'
+                  }`}>
+                    {s.title}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Progress Bar with shimmer */}
+      <div className="mt-5">
+        <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full relative overflow-hidden transition-all duration-700 ease-out"
+            style={{ width: `${Math.max(progress, 2)}%` }}
+          >
+            <div className="absolute inset-0 progress-shimmer" />
+          </div>
+        </div>
+      </div>
+
+      {/* Footer: elapsed + estimate */}
+      <div className="flex justify-between mt-3 text-xs text-gray-600 dark:text-gray-300">
+        <span className="flex items-center gap-1.5 tabular-nums">
+          <span className="w-1 h-1 rounded-full bg-accent" />
+          {formatElapsed(elapsedSeconds)} elapsed
+        </span>
+        <span>
+          {sourceType === 'youtube' && stage === 'uploading'
+            ? 'Usually < 2 min'
+            : 'Usually 5-15 min'}
+        </span>
+      </div>
+
+      {/* Navigate-away banner — contextual based on stage */}
+      {stage === 'uploading' && sourceType === 'youtube' ? (
+        <YouTubeDownloadBanner />
+      ) : stage === 'uploading' ? (
+        <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin" />
+          <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+            <span className="text-amber-500 font-medium">Please stay on this page</span> while your video uploads. You can navigate away once processing begins.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-accent/10 border border-accent/20 rounded-xl">
+          <ShieldCheck className="w-4 h-4 text-accent flex-shrink-0" />
+          <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
+            <span className="text-accent font-medium">Safe to navigate away.</span> We&apos;ll notify you when your content kit is ready.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * VideoProcessingOverlay — portals the progress timeline to <body> as a
+ * centered overlay. Used only on the admin Create surface, where the
+ * GenerationForm engine renders inside a display:none container; a portal is
+ * the only way a descendant escapes that hidden subtree (same reason
+ * ZoomPasswordModal portals). Mount guard keeps SSR safe.
+ */
+function VideoProcessingOverlay({
+  open,
+  stage,
+  progress,
+  sourceType,
+  elapsedSeconds,
+}: {
+  open: boolean;
+  stage: string;
+  progress: number;
+  sourceType: VideoSourceType;
+  elapsedSeconds: number;
+}) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl bg-background border border-white/10 p-6 shadow-2xl">
+        <h2 className="text-center text-lg font-bold text-white mb-1">Building your content</h2>
+        <p className="text-center text-sm text-gray-400">
+          We&apos;re turning your video into clips and a content kit.
+        </p>
+        <VideoProcessingTimeline
+          stage={stage}
+          progress={progress}
+          sourceType={sourceType}
+          elapsedSeconds={elapsedSeconds}
+        />
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 // Carousel design preset options — visual thumbnail grid
 // Carousel style is now selected post-generation in the content kit editor
 
@@ -367,6 +542,13 @@ interface FirstGenerationProps {
   isQuotaError?: boolean;
   /** Pre-seeds the topic input (used by /app?topic=... prefill from Mind-Reader chip). */
   initialInput?: string;
+  /**
+   * When true, in-flight video processing is surfaced as a portaled overlay
+   * (escapes a display:none ancestor). Set by the admin Create surface, where
+   * this form is the hidden execution engine; left false on the visible
+   * non-admin Create page, which shows the inline timeline instead.
+   */
+  surfaceProcessingOverlay?: boolean;
 }
 
 const ALL_PLATFORMS: Platform[] = [
@@ -389,6 +571,7 @@ export function GenerationForm({
   isQuotaError: quotaErrorFromParent,
   activeVoice,
   initialInput,
+  surfaceProcessingOverlay,
 }: FirstGenerationProps) {
   const [input, setInput] = useState(initialInput ?? '');
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
@@ -1558,115 +1741,12 @@ export function GenerationForm({
               className="hidden"
             />
             {videoProcessing ? (
-              <div className="py-6 px-2 text-left">
-                {/* Vertical Step Timeline */}
-                <div className="space-y-0">
-                  {getVideoProcessingStages(videoSourceType).map((stage, idx, stages) => {
-                    const activeIdx = stages.findIndex(s => s.key === videoProcessingStage);
-                    const isCompleted = activeIdx >= 0 ? idx < activeIdx : videoProcessingStage === 'completed';
-                    const isActive = idx === activeIdx;
-                    const isFuture = !isCompleted && !isActive;
-                    const isLast = idx === stages.length - 1;
-                    const StageIcon = stage.icon;
-
-                    return (
-                      <div key={stage.key} className="flex gap-3">
-                        {/* Icon column with connecting line */}
-                        <div className="flex flex-col items-center">
-                          <div
-                            className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                              isCompleted
-                                ? 'bg-accent text-white'
-                                : isActive
-                                ? 'bg-accent/15 border-2 border-accent'
-                                : 'bg-bg-secondary border border-border'
-                            }`}
-                          >
-                            {isCompleted ? (
-                              <CheckCircle className="w-4 h-4" />
-                            ) : isActive ? (
-                              <Loader2 className="w-3.5 h-3.5 text-accent animate-spin" />
-                            ) : (
-                              <StageIcon className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300 opacity-40" />
-                            )}
-                          </div>
-                          {!isLast && (
-                            <div
-                              className={`w-0.5 flex-1 min-h-[16px] transition-all duration-300 ${
-                                isCompleted
-                                  ? 'bg-accent'
-                                  : isActive
-                                  ? 'bg-accent/30'
-                                  : 'border-l border-dashed border-border'
-                              }`}
-                            />
-                          )}
-                        </div>
-
-                        {/* Text content */}
-                        <div className={`pb-3 ${isActive ? 'pb-4' : ''}`}>
-                          {isActive ? (
-                            <div className="bg-accent/5 rounded-lg px-3 py-2 border-l-2 border-accent -ml-1">
-                              <p className="text-sm font-semibold text-accent">{stage.title}</p>
-                              <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{stage.description}</p>
-                            </div>
-                          ) : (
-                            <p className={`text-sm pt-1 ${
-                              isCompleted ? 'font-medium text-foreground' : 'text-gray-600 dark:text-gray-300 opacity-50'
-                            }`}>
-                              {stage.title}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Progress Bar with shimmer */}
-                <div className="mt-5">
-                  <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full relative overflow-hidden transition-all duration-700 ease-out"
-                      style={{ width: `${Math.max(videoProcessingProgress, 2)}%` }}
-                    >
-                      <div className="absolute inset-0 progress-shimmer" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer: elapsed + estimate */}
-                <div className="flex justify-between mt-3 text-xs text-gray-600 dark:text-gray-300">
-                  <span className="flex items-center gap-1.5 tabular-nums">
-                    <span className="w-1 h-1 rounded-full bg-accent" />
-                    {formatElapsed(elapsedSeconds)} elapsed
-                  </span>
-                  <span>
-                    {videoSourceType === 'youtube' && videoProcessingStage === 'uploading'
-                      ? 'Usually < 2 min'
-                      : 'Usually 5-15 min'}
-                  </span>
-                </div>
-
-                {/* Navigate-away banner — contextual based on stage */}
-                {videoProcessingStage === 'uploading' && videoSourceType === 'youtube' ? (
-                  <YouTubeDownloadBanner />
-                ) : videoProcessingStage === 'uploading' ? (
-                  <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                    <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin" />
-                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
-                      <span className="text-amber-500 font-medium">Please stay on this page</span> while your video uploads. You can navigate away once processing begins.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="mt-4 flex items-center gap-2.5 px-4 py-2.5 bg-accent/10 border border-accent/20 rounded-xl">
-                    <ShieldCheck className="w-4 h-4 text-accent flex-shrink-0" />
-                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-tight">
-                      <span className="text-accent font-medium">Safe to navigate away.</span> We&apos;ll notify you when your content kit is ready.
-                    </p>
-                  </div>
-                )}
-              </div>
+              <VideoProcessingTimeline
+                stage={videoProcessingStage}
+                progress={videoProcessingProgress}
+                sourceType={videoSourceType}
+                elapsedSeconds={elapsedSeconds}
+              />
             ) : !selectedFile ? (
               <div className="relative">
                 {videoDragActive ? (
@@ -2184,6 +2264,15 @@ export function GenerationForm({
         onSubmit={handleZoomPasswordSubmit}
         onCancel={handleZoomPasswordCancel}
       />
+      {surfaceProcessingOverlay && (
+        <VideoProcessingOverlay
+          open={videoProcessing}
+          stage={videoProcessingStage}
+          progress={videoProcessingProgress}
+          sourceType={videoSourceType}
+          elapsedSeconds={elapsedSeconds}
+        />
+      )}
     </div>
   );
 }
