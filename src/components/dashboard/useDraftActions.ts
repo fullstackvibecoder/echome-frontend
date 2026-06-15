@@ -15,9 +15,10 @@ type TelemetryResult = 'ok' | 'gone' | 'error' | 'timeout';
 // A 404 from the action endpoint means the kit is no longer a draft proposal
 // (dismissed in another tab, auto-cleaned by cron). Navigating there would
 // land the user on a stale/empty kit-detail page; acknowledge and remove instead.
-async function recordWithTimeout(p: Promise<unknown>): Promise<TelemetryResult> {
+// Promise.resolve(p) guards against non-thenable values (e.g. mocked API in tests).
+async function recordWithTimeout(p: unknown): Promise<TelemetryResult> {
   return Promise.race<TelemetryResult>([
-    p
+    Promise.resolve(p)
       .then<TelemetryResult>(() => 'ok')
       .catch((err): TelemetryResult => {
         const status = (err as { response?: { status?: number } })?.response?.status;
