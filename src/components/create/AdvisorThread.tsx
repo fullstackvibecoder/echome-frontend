@@ -3,7 +3,6 @@
 import { Mic, Paperclip, Sparkles } from 'lucide-react';
 import { AutopilotProposalCard } from '@/components/create/AutopilotProposalCard';
 import { CoverageMeter } from '@/components/create/CoverageMeter';
-import { KBUnifiedInput } from '@/app/app/voice/KBUnifiedInput';
 import type { AdvisorResponse, NudgeAction, NudgeActionType, Proposal } from '@/types/advisor';
 
 const NUDGE_ICONS: Record<NudgeActionType, typeof Mic> = {
@@ -16,8 +15,6 @@ interface AdvisorThreadProps {
   advisor: AdvisorResponse;
   onNudgeAction: (action: NudgeAction) => void;
   onProposalSelect: (proposal: Proposal) => void;
-  kbId: string | null;
-  onImportComplete: () => void;
 }
 
 function NudgeBlock({
@@ -65,29 +62,13 @@ export function AdvisorThread({
   advisor,
   onNudgeAction,
   onProposalSelect,
-  kbId,
-  onImportComplete,
 }: AdvisorThreadProps) {
+  // Empty state renders nothing here: EchoHero already shows the orienting
+  // hero header + subhead and the always-present composer above/below this
+  // thread. Ingest now flows through that composer (useEcho), so the old
+  // embedded KBUnifiedInput pill — and its duplicate heading — are gone.
   if (advisor.state === 'empty') {
-    return (
-      <div data-testid="advisor-empty" className="space-y-3">
-        <div>
-          <p className="text-base font-semibold leading-snug text-foreground">
-            Teach Echo your voice
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Echo learns how you write from what you share. The more you give it, the more every post sounds like you.
-          </p>
-        </div>
-        {kbId ? (
-          <KBUnifiedInput knowledgeBaseId={kbId} onImportComplete={onImportComplete} />
-        ) : (
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Setting up your voice...
-          </p>
-        )}
-      </div>
-    );
+    return null;
   }
 
   if (advisor.state === 'thin') {

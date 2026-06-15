@@ -28,7 +28,6 @@ import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
-import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
 import type { NudgeAction, Proposal } from '@/types/advisor';
@@ -44,6 +43,13 @@ export function EchoHero() {
   const { navigate } = useAppNavigation();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // ---- KB Advisor ----
+  // Declared above useEcho so the ingest path can refetch the advisor when
+  // Echo adds material to Your Voice — the refresh the retired KBUnifiedInput
+  // pill used to trigger via onImportComplete.
+  const { advisor, refetch: refetchAdvisor } = useAdvisor();
+
   const {
     state,
     open,
@@ -53,7 +59,7 @@ export function EchoHero() {
     selectIntent,
     confirm,
     reset,
-  } = useEcho(navigate);
+  } = useEcho(navigate, { onIngestComplete: refetchAdvisor });
 
   const heroRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -93,10 +99,6 @@ export function EchoHero() {
   );
 
   const { micState, elapsed, micError, start: startMic, stop: stopMic } = useEchoMic(handleTranscript);
-
-  // ---- KB Advisor ----
-  const { advisor, refetch: refetchAdvisor } = useAdvisor();
-  const { selectedKb } = useKnowledgeBase();
 
   const focusComposer = useCallback(() => {
     setTimeout(() => textareaRef.current?.focus(), 0);
@@ -197,8 +199,6 @@ export function EchoHero() {
             advisor={advisor}
             onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
-            kbId={selectedKb}
-            onImportComplete={refetchAdvisor}
           />
         )}
         <DraftsThreadMessage />

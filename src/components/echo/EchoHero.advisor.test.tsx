@@ -15,6 +15,12 @@ import type { AdvisorResponse } from '@/types/advisor';
 const startMic = vi.fn();
 const setInputText = vi.fn();
 
+// Capture the options EchoHero passes to useEcho so we can drive its
+// onIngestComplete callback (the advisor-refetch-on-ingest wiring).
+const hoisted = vi.hoisted(() => ({
+  echoOptions: { onIngestComplete: undefined as (() => void) | undefined },
+}));
+
 vi.mock('@/hooks/useAppNavigation', () => ({
   useAppNavigation: () => ({ navigate: vi.fn() }),
 }));
@@ -35,7 +41,9 @@ vi.mock('./useEchoMic', () => ({
 }));
 
 vi.mock('./useEcho', () => ({
-  useEcho: () => ({
+  useEcho: (_navigate: unknown, options?: { onIngestComplete?: () => void }) => {
+    hoisted.echoOptions.onIngestComplete = options?.onIngestComplete;
+    return {
     state: {
       phase: 'open' as const,
       inputText: '',
@@ -54,7 +62,8 @@ vi.mock('./useEcho', () => ({
     selectIntent: vi.fn(),
     confirm: vi.fn(),
     reset: vi.fn(),
-  }),
+    };
+  },
 }));
 
 vi.mock('./useAdvisor', () => ({
@@ -84,15 +93,11 @@ vi.mock('@/components/create/AdvisorThread', () => ({
   AdvisorThread: ({
     onNudgeAction,
     onProposalSelect,
-    kbId,
-    onImportComplete,
   }: {
     onNudgeAction: (action: { type: string; label: string; payload?: Record<string, unknown> }) => void;
     onProposalSelect: (proposal: { id: string; title: string; rationale: string; kitType: string; sourceRefs: string[] }) => void;
-    kbId: string | null;
-    onImportComplete: () => void;
   }) => (
-    <div data-testid="advisor-thread" data-kbid={kbId ?? ''}>
+    <div data-testid="advisor-thread">
       <button
         data-testid="na-voice"
         onClick={() => onNudgeAction({ type: 'voice', label: 'Record now' })}
@@ -125,7 +130,6 @@ vi.mock('@/components/create/AdvisorThread', () => ({
           })
         }
       />
-      <button data-testid="trigger-import" onClick={() => onImportComplete()} />
     </div>
   ),
 }));
@@ -233,16 +237,14 @@ describe('EchoHero advisor + drafts wiring', () => {
     }
   });
 
-  it('passes the selected KB id to AdvisorThread', () => {
-    render(<EchoHero />);
-    expect(screen.getByTestId('advisor-thread').getAttribute('data-kbid')).toBe('kb1');
-  });
-
-  it('onImportComplete triggers an advisor refetch', () => {
+  it('wires useEcho onIngestComplete to the advisor refetch', () => {
     const refetch = vi.fn();
     vi.mocked(useAdvisor).mockReturnValue({ advisor: ADVISOR_FIXTURE, loading: false, error: null, refetch });
     render(<EchoHero />);
-    fireEvent.click(screen.getByTestId('trigger-import'));
+    // EchoHero hands its advisor refetch to useEcho; firing it (as a successful
+    // composer ingest would) must refresh the advisor thread.
+    expect(hoisted.echoOptions.onIngestComplete).toBeTypeOf('function');
+    hoisted.echoOptions.onIngestComplete!();
     expect(refetch).toHaveBeenCalled();
   });
 });

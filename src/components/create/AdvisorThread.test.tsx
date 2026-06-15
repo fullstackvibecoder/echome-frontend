@@ -16,12 +16,6 @@ vi.mock('@/components/create/CoverageMeter', () => ({
   ),
 }));
 
-vi.mock('@/app/app/voice/KBUnifiedInput', () => ({
-  KBUnifiedInput: ({ knowledgeBaseId }: { knowledgeBaseId: string | null }) => (
-    <div data-testid="kb-unified-input" data-kbid={knowledgeBaseId ?? ''} />
-  ),
-}));
-
 const FULL_COVERAGE: Coverage = {
   work: { covered: true, strength: 1, sampleCount: 5 },
   industry: { covered: true, strength: 0.8, sampleCount: 3 },
@@ -57,62 +51,20 @@ function makeAdvisor(overrides: Partial<AdvisorResponse>): AdvisorResponse {
 
 describe('AdvisorThread', () => {
   describe('empty state', () => {
-    it('renders the advisor-empty wrapper', () => {
+    // The empty state now renders nothing: EchoHero owns the orienting header
+    // and the composer (which handles ingest). The old embedded KBUnifiedInput
+    // pill was retired, so AdvisorThread returns null until there's signal.
+    it('renders nothing (no wrapper, heading, coverage, or proposals)', () => {
       const advisor = makeAdvisor({ state: 'empty' });
-      render(
+      const { container } = render(
         <AdvisorThread
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
-      expect(screen.getByTestId('advisor-empty')).toBeInTheDocument();
-    });
-
-    it('renders the heading and mounts KBUnifiedInput with the kbId', () => {
-      const advisor = makeAdvisor({ state: 'empty' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
-        />,
-      );
-      expect(screen.getByText('Teach Echo your voice')).toBeInTheDocument();
-      const kbInput = screen.getByTestId('kb-unified-input');
-      expect(kbInput).toHaveAttribute('data-kbid', 'kb1');
-    });
-
-    it('renders the setup stub and no KBUnifiedInput when kbId is null', () => {
-      const advisor = makeAdvisor({ state: 'empty' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-          kbId={null}
-          onImportComplete={vi.fn()}
-        />,
-      );
-      expect(screen.getByText(/Setting up your voice/)).toBeInTheDocument();
-      expect(screen.queryByTestId('kb-unified-input')).not.toBeInTheDocument();
-    });
-
-    it('does not render coverage or proposals', () => {
-      const advisor = makeAdvisor({ state: 'empty' });
-      render(
-        <AdvisorThread
-          advisor={advisor}
-          onNudgeAction={vi.fn()}
-          onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
-        />,
-      );
+      expect(container).toBeEmptyDOMElement();
+      expect(screen.queryByTestId('advisor-empty')).not.toBeInTheDocument();
       expect(screen.queryByTestId('coverage')).not.toBeInTheDocument();
       expect(screen.queryByTestId('proposal')).not.toBeInTheDocument();
     });
@@ -126,8 +78,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.getByTestId('advisor-thin')).toBeInTheDocument();
@@ -140,8 +90,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.getByText(DEFAULT_NUDGE.headline)).toBeInTheDocument();
@@ -155,8 +103,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       const buttons = screen.getAllByTestId('nudge-action');
@@ -173,8 +119,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={onNudgeAction}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       const buttons = screen.getAllByTestId('nudge-action');
@@ -191,8 +135,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.getByTestId('advisor-rich')).toBeInTheDocument();
@@ -205,8 +147,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       const cards = screen.getAllByTestId('proposal');
@@ -220,8 +160,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.getByTestId('coverage')).toBeInTheDocument();
@@ -235,8 +173,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={onProposalSelect}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       const cards = screen.getAllByTestId('proposal');
@@ -251,8 +187,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.queryByTestId('nudge-action')).not.toBeInTheDocument();
@@ -266,8 +200,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.getByText(DEFAULT_NUDGE.headline)).toBeInTheDocument();
@@ -284,8 +216,6 @@ describe('AdvisorThread', () => {
           advisor={advisor}
           onNudgeAction={vi.fn()}
           onProposalSelect={vi.fn()}
-          kbId="kb1"
-          onImportComplete={vi.fn()}
         />,
       );
       expect(screen.queryByTestId('nudge-action')).not.toBeInTheDocument();

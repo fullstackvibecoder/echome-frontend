@@ -12,6 +12,7 @@ import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES } from './intent-meta';
 import { stashEchoHandoff } from './file-handoff';
+import { extractFirstUrl, detectIngestUrlKind } from '@/lib/url-platform';
 
 // ---- State machine phases ----
 export type EchoPhase =
@@ -98,11 +99,29 @@ const INITIAL_STATE: EchoState = {
   confirmation: null,
 };
 
-export function useEcho(navigate: (path: string) => void): UseEchoReturn {
+export interface UseEchoOptions {
+  /**
+   * Called after any successful KB ingest (voice/doc/mbox/text/URL-import).
+   * EchoHero passes its advisor refetch here so the nudge thread reflects the
+   * just-added material — the job the now-retired KBUnifiedInput pill used to
+   * do via onImportComplete. Stored in a ref so confirm()'s dep list is stable.
+   */
+  onIngestComplete?: () => void;
+}
+
+export function useEcho(
+  navigate: (path: string) => void,
+  options?: UseEchoOptions,
+): UseEchoReturn {
   const [state, setState] = useState<EchoState>(INITIAL_STATE);
   // Keep a ref so callbacks always read fresh state
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Keep onIngestComplete in a ref so confirm()'s useCallback deps stay stable
+  // while always firing the latest callback.
+  const onIngestCompleteRef = useRef(options?.onIngestComplete);
+  onIngestCompleteRef.current = options?.onIngestComplete;
 
   const open = useCallback(() => {
     setState((prev) => ({
@@ -375,6 +394,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · AUDIO`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
+          onIngestCompleteRef.current?.();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -400,6 +420,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           await api.files.upload(kbId, attachment);
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
+          onIngestCompleteRef.current?.();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -439,6 +460,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${parsed.emails.length} EMAILS`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: `${parsed.emails.length} emails` } }));
+          onIngestCompleteRef.current?.();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -458,6 +480,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
+          onIngestCompleteRef.current?.();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -487,19 +510,27 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           const note = args.note ?? text;
           // A pasted link should import the source, not save the raw URL
           // string as a note. Reuses the Your Voice import pipeline:
-          // YouTube/Instagram have dedicated importers; anything else goes
+          // YouTube/Instagram have dedicated importers; a generic page goes
           // through the blog importer (RSS/sitemap discovery from the URL).
-          const urlMatch = note.match(/https?:\/\/[^\s<>"']+/i);
-          if (urlMatch) {
-            const url = urlMatch[0].replace(/[.,;:!?)\]}]+$/, '');
-            const platform = /youtube\.com|youtu\.be/i.test(url)
-              ? ('youtube' as const)
-              : /instagram\.com/i.test(url)
-              ? ('instagram' as const)
-              : ('blog' as const);
-            await api.kbContent.startSocialImport({ platform, url });
-            addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${platform.toUpperCase()} IMPORT`));
-            setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Importing to your Voice', detail: `${platform} link` } }));
+          const url = extractFirstUrl(note);
+          if (url) {
+            const kind = detectIngestUrlKind(url);
+            // Zoom/Loom/Vimeo are personal recordings with NO KB importer.
+            // Before, they fell to 'blog' and silently failed in the scraper.
+            // Point the user at the Create path (clip a video into a kit)
+            // instead of pretending to add the recording to their Voice.
+            if (kind === 'recording') {
+              setState((prev) => ({
+                ...prev,
+                phase: 'confirming',
+                error: 'That looks like a video recording. Pick "Creating a kit" to clip it into content — recordings can’t be added to Your Voice directly.',
+              }));
+              return;
+            }
+            await api.kbContent.startSocialImport({ platform: kind, url });
+            addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${kind.toUpperCase()} IMPORT`));
+            setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Importing to your Voice', detail: `${kind} link` } }));
+            onIngestCompleteRef.current?.();
             break;
           }
           await api.kbContent.paste({
@@ -509,6 +540,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · TEXT NOTE`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Added to your Voice', detail: 'Your note' } }));
+          onIngestCompleteRef.current?.();
           break;
         }
 
