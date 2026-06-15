@@ -41,6 +41,12 @@ export interface EchoState {
   answer: string | null;
   receipts: Receipt[];
   error: string | null;
+  /**
+   * Loud success card shown in the 'done' phase after an ingest. null for
+   * create/question/command, which navigate or render their own result, so
+   * only "added to your Voice" outcomes get the confirmation.
+   */
+  confirmation: { title: string; detail: string | null } | null;
 }
 
 export interface UseEchoReturn {
@@ -89,6 +95,7 @@ const INITIAL_STATE: EchoState = {
   answer: null,
   receipts: [],
   error: null,
+  confirmation: null,
 };
 
 export function useEcho(navigate: (path: string) => void): UseEchoReturn {
@@ -188,7 +195,8 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
     const text = inputText.trim();
     if (!text && !attachment) return;
 
-    setState((prev) => ({ ...prev, phase: 'classifying', error: null }));
+    // Clear any prior success card so a new exchange starts clean.
+    setState((prev) => ({ ...prev, phase: 'classifying', error: null, confirmation: null }));
 
     try {
       const page = typeof window !== 'undefined' ? window.location.pathname : undefined;
@@ -366,7 +374,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
             fileName: attachment.name,
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · AUDIO`));
-          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -391,7 +399,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
           }
           await api.files.upload(kbId, attachment);
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
-          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -430,7 +438,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
             },
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${parsed.emails.length} EMAILS`));
-          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: `${parsed.emails.length} emails` } }));
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -449,7 +457,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
             title: attachment.name,
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
-          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null }));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -491,7 +499,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
               : ('blog' as const);
             await api.kbContent.startSocialImport({ platform, url });
             addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${platform.toUpperCase()} IMPORT`));
-            setState((prev) => ({ ...prev, phase: 'done', inputText: '' }));
+            setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Importing to your Voice', detail: `${platform} link` } }));
             break;
           }
           await api.kbContent.paste({
@@ -500,7 +508,7 @@ export function useEcho(navigate: (path: string) => void): UseEchoReturn {
             title: 'Echo note',
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · TEXT NOTE`));
-          setState((prev) => ({ ...prev, phase: 'done', inputText: '' }));
+          setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Added to your Voice', detail: 'Your note' } }));
           break;
         }
 
