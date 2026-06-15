@@ -47,6 +47,9 @@ export function useAdvisor(): UseAdvisorResult {
   }, []);
 
   useEffect(() => {
+    // fetchAdvisor only setState's after an await + mountedRef guard, so this is
+    // not a synchronous set-state-in-effect. Rule can't see past the callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchAdvisor();
   }, [fetchAdvisor]);
 
