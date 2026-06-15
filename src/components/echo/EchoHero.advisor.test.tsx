@@ -61,6 +61,10 @@ vi.mock('./useAdvisor', () => ({
   useAdvisor: vi.fn(),
 }));
 
+vi.mock('@/hooks/useKnowledgeBase', () => ({
+  useKnowledgeBase: () => ({ selectedKb: 'kb1' }),
+}));
+
 vi.mock('./EchoExchange', () => ({
   EchoExchange: ({ onTextareaMount }: { onTextareaMount?: (el: HTMLTextAreaElement | null) => void }) => (
     <div data-testid="echo-exchange">
@@ -80,11 +84,15 @@ vi.mock('@/components/create/AdvisorThread', () => ({
   AdvisorThread: ({
     onNudgeAction,
     onProposalSelect,
+    kbId,
+    onImportComplete,
   }: {
     onNudgeAction: (action: { type: string; label: string; payload?: Record<string, unknown> }) => void;
     onProposalSelect: (proposal: { id: string; title: string; rationale: string; kitType: string; sourceRefs: string[] }) => void;
+    kbId: string | null;
+    onImportComplete: () => void;
   }) => (
-    <div data-testid="advisor-thread">
+    <div data-testid="advisor-thread" data-kbid={kbId ?? ''}>
       <button
         data-testid="na-voice"
         onClick={() => onNudgeAction({ type: 'voice', label: 'Record now' })}
@@ -117,6 +125,7 @@ vi.mock('@/components/create/AdvisorThread', () => ({
           })
         }
       />
+      <button data-testid="trigger-import" onClick={() => onImportComplete()} />
     </div>
   ),
 }));
@@ -164,6 +173,7 @@ describe('EchoHero advisor + drafts wiring', () => {
       advisor: ADVISOR_FIXTURE,
       loading: false,
       error: null,
+      refetch: vi.fn(),
     });
   });
 
@@ -178,7 +188,7 @@ describe('EchoHero advisor + drafts wiring', () => {
   });
 
   it('hides AdvisorThread but still renders DraftsThreadMessage when advisor is null', () => {
-    vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null });
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
     expect(screen.queryByTestId('advisor-thread')).toBeNull();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
@@ -221,5 +231,18 @@ describe('EchoHero advisor + drafts wiring', () => {
       focusSpy.mockRestore();
       vi.useRealTimers();
     }
+  });
+
+  it('passes the selected KB id to AdvisorThread', () => {
+    render(<EchoHero />);
+    expect(screen.getByTestId('advisor-thread').getAttribute('data-kbid')).toBe('kb1');
+  });
+
+  it('onImportComplete triggers an advisor refetch', () => {
+    const refetch = vi.fn();
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: ADVISOR_FIXTURE, loading: false, error: null, refetch });
+    render(<EchoHero />);
+    fireEvent.click(screen.getByTestId('trigger-import'));
+    expect(refetch).toHaveBeenCalled();
   });
 });

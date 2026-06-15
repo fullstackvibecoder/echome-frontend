@@ -28,6 +28,7 @@ import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
 import type { NudgeAction, Proposal } from '@/types/advisor';
@@ -94,7 +95,8 @@ export function EchoHero() {
   const { micState, elapsed, micError, start: startMic, stop: stopMic } = useEchoMic(handleTranscript);
 
   // ---- KB Advisor ----
-  const { advisor } = useAdvisor();
+  const { advisor, refetch: refetchAdvisor } = useAdvisor();
+  const { selectedKb } = useKnowledgeBase();
 
   const focusComposer = useCallback(() => {
     setTimeout(() => textareaRef.current?.focus(), 0);
@@ -177,13 +179,13 @@ export function EchoHero() {
               color: 'var(--foreground)',
             }}
           >
-            Clip your videos. Get posts that sound like you.
+            Teach Echo to write in your voice.
           </h1>
           <p
             className="mb-6 text-center text-sm leading-snug max-w-xl"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Paste a YouTube link or drop a video. Echo cuts the best clips and writes the posts in your voice. No video? Type a topic or just talk.
+            Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
           </p>
         </>
       )}
@@ -195,6 +197,8 @@ export function EchoHero() {
             advisor={advisor}
             onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
+            kbId={selectedKb}
+            onImportComplete={refetchAdvisor}
           />
         )}
         <DraftsThreadMessage />
