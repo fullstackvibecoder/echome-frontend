@@ -13,10 +13,18 @@ const proposal: Proposal = {
 };
 
 describe('AutopilotProposalCard', () => {
-  it('renders title and rationale', () => {
+  it('always shows the title and kit label', () => {
     render(<AutopilotProposalCard proposal={proposal} onSelect={() => {}} />);
     expect(screen.getByText('A LinkedIn post on hiring')).toBeInTheDocument();
-    expect(screen.getByText(/team building/i)).toBeInTheDocument();
+    expect(screen.getByText('social post')).toBeInTheDocument();
+  });
+
+  it('keeps the rationale in the DOM but collapses it at rest on hover devices', () => {
+    render(<AutopilotProposalCard proposal={proposal} onSelect={() => {}} />);
+    const rationale = screen.getByText(/team building/i);
+    expect(rationale).toBeInTheDocument();
+    expect(rationale.className).toContain('[@media(hover:hover)]:hidden');
+    expect(rationale.className).toContain('[@media(hover:hover)]:group-hover:block');
   });
 
   it('calls onSelect with the proposal on click', async () => {
