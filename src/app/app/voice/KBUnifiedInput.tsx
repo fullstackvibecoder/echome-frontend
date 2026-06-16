@@ -337,12 +337,8 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
       return;
     }
 
-    // Plain text
-    if (trimmed.length < 50) {
-      toast.error('Enter at least 50 characters, or paste a URL');
-      return;
-    }
-
+    // Plain text — no minimum. Links/files ingest with no text at all; short
+    // notes are valid too. `!trimmed` already guards the empty case above.
     if (!knowledgeBaseId) {
       toast.error('No knowledge base selected');
       return;
