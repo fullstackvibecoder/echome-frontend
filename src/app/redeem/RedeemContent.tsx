@@ -227,14 +227,17 @@ export default function RedeemContent() {
                 You&apos;re on {tier}
               </h1>
               <p className="text-muted-foreground mb-6">
-                Your free year is active{expiresAt ? ` through ${formatDate(expiresAt)}` : ''}. Time
-                to turn your voice into content.
+                Your free year is active{expiresAt ? ` through ${formatDate(expiresAt)}` : ''}. Next,
+                let&apos;s teach Echo to write in your voice.
               </p>
+              {/* Fresh members go through WBTW first-run lookup (auto-pulls their
+                  public content and maps their voice) before landing in /app.
+                  Re-claims below skip straight to /app — they've onboarded already. */}
               <Link
-                href="/app"
+                href="/onboarding/lookup"
                 className="inline-block w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold rounded-full py-3.5 shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all"
               >
-                Go to Echo
+                Set up your voice
               </Link>
             </>
           )}
