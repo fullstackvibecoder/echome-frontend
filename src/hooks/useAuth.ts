@@ -95,11 +95,20 @@ export function useAuth(): UseAuthReturn {
         // Track signup for Meta Pixel (ad conversion optimization)
         trackSignup(email);
 
-        // New users go to the WBTW lookup loading screen first.
-        // It surfaces a privacy disclosure, then auto-populates from public sources
-        // and routes onward (review → /app, or silent fallthrough to /app if the
-        // backend feature flag is off / lookup empty).
-        router.push('/onboarding/lookup');
+        // A stashed redirect takes precedence: a cold user who hit a partner
+        // redeem link before having an account gets sent back to finish that
+        // flow (the redeem page auto-claims once they return authenticated).
+        const storedRedirect = localStorage.getItem('redirectAfterLogin');
+        if (storedRedirect && storedRedirect.startsWith('/') && !storedRedirect.startsWith('//')) {
+          localStorage.removeItem('redirectAfterLogin');
+          router.push(storedRedirect);
+        } else {
+          // New users go to the WBTW lookup loading screen first.
+          // It surfaces a privacy disclosure, then auto-populates from public sources
+          // and routes onward (review → /app, or silent fallthrough to /app if the
+          // backend feature flag is off / lookup empty).
+          router.push('/onboarding/lookup');
+        }
       } else {
         throw new Error(response.error || 'Signup failed');
       }
