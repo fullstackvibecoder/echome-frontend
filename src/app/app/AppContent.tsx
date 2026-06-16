@@ -383,6 +383,7 @@ export default function AppContent() {
                         activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
                         initialInput={initialTopic}
                         surfaceProcessingOverlay
+                        echoExperience={showCreateRedesign}
                       />
                     </div>
                   </>
@@ -410,6 +411,7 @@ export default function AppContent() {
                         isQuotaError={isQuotaError}
                         activeVoice={isTeamsUser && activeVoice ? activeVoice : undefined}
                         initialInput={initialTopic}
+                        echoExperience={showCreateRedesign}
                       />
                     </div>
                   </>

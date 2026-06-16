@@ -549,6 +549,17 @@ interface FirstGenerationProps {
    * non-admin Create page, which shows the inline timeline instead.
    */
   surfaceProcessingOverlay?: boolean;
+  /**
+   * Overrides the global `useEchoExperience()` flag for this instance's resting
+   * surface and Echo-pill handoff. The Create redesign (EchoHero + KB advisor +
+   * ingest) is admin-only, but `useEchoExperience()` is hardwired `true` for the
+   * 06-12 GA (Voice rebuild / intake retirement / docked pill), so the hook
+   * alone would render EchoHero for everyone. AppContent passes its
+   * `showCreateRedesign` (= isAdmin) flag here so non-admins fall back to the
+   * classic UnifiedCreateInput while the unrelated 06-12 GA stays intact.
+   * Omitted elsewhere → falls back to the hook.
+   */
+  echoExperience?: boolean;
 }
 
 const ALL_PLATFORMS: Platform[] = [
@@ -572,6 +583,7 @@ export function GenerationForm({
   activeVoice,
   initialInput,
   surfaceProcessingOverlay,
+  echoExperience: echoExperienceProp,
 }: FirstGenerationProps) {
   const [input, setInput] = useState(initialInput ?? '');
   const [inputType, setInputType] = useState<ExtendedInputType>('video');
@@ -629,7 +641,10 @@ export function GenerationForm({
   // Subscription & free generation state
   const { isSubscribed, isTrial, isFreeUser, freeGenerationsUsed, freeGenerationsLimit, freeGenerationsRemaining, canGenerate, refresh: refreshSubscription } = useSubscription();
   const { user } = useAuth();
-  const echoExperience = useEchoExperience();
+  // Hook stays called unconditionally (rules-of-hooks); the prop, when supplied
+  // by AppContent, takes precedence so the redesign surface is admin-gated.
+  const echoExperienceHook = useEchoExperience();
+  const echoExperience = echoExperienceProp ?? echoExperienceHook;
   const router = useRouter();
   const searchParams = useSearchParams();
 
