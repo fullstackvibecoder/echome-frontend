@@ -144,7 +144,15 @@ function SignupForm() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               required
-              value={password}
+              // Uncontrolled (no value=) on purpose: password managers and
+              // browser strong-password autofill set the DOM value WITHOUT
+              // firing React's onChange. A controlled value= would then re-force
+              // the field back to stale state on the next render (e.g. the
+              // setIsLoading re-render at submit), while the uncontrolled
+              // confirmPassword kept the autofilled value — producing a false
+              // "Passwords do not match". onChange stays only to drive the live
+              // strength meter when the user types; submission reads the true
+              // DOM value via FormData for both fields.
               onChange={(e) => setPassword(e.target.value)}
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? 'signup-password-error' : 'password-requirements'}
