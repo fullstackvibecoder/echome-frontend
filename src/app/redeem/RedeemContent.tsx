@@ -140,15 +140,23 @@ export default function RedeemContent() {
   const faqs: { q: string; a: string }[] = [
     {
       q: 'What is EchoMe?',
-      a: 'EchoMe is an AI content studio that writes social posts, carousels, and video scripts in your own voice, not generic AI copy. You teach it how you already sound, and it drafts content that reads like you wrote it.',
+      a: 'EchoMe is an AI content engine that learns how you actually sound, then turns one piece of raw material, a market update, a client story, or a quick voice note, into a week of social content in your own voice. It reads what you have already published, your videos, blog, emails, and past posts, to map your phrasing and tone, then drafts captions, carousels, short captioned clips, and teleprompter scripts that read like you wrote them. Built for people who are great at their work but do not have hours to spend on content, real estate agents especially.',
+    },
+    {
+      q: "I'm a real estate agent. How does this help me?",
+      a: 'Talk to camera once, a market update, a negotiating tip, a neighborhood breakdown, and EchoMe turns it into a week of posts in your voice. It pulls the best 30 to 60 second clips from that video with captions burned in, writes the carousels and captions to go with them, and drafts a teleprompter script so your next video is easier than the last. Listing walkthrough footage works great as b-roll. A client win or a rate update becomes content across every platform your clients actually check.',
     },
     {
       q: 'How does it learn my voice?',
-      a: 'Give it samples of how you already communicate. Past posts, a blog, a voice note, or a video. EchoMe maps your signature phrases, tone, and style, then writes from that. The more you feed it, the closer it gets.',
+      a: 'Give it samples of how you already communicate. Past posts, a blog, a sent email, a voice note, or a video. EchoMe maps your signature phrases, tone, and style, then writes from that. The more you feed it, the closer it gets. Nothing sounds like a template, because it is built from your own words.',
     },
     {
       q: 'What can it actually make?',
-      a: 'Ready to post content kits: social captions, multi slide carousels, short form video clips pulled from your long videos, and teleprompter scripts to record from. You can schedule and publish straight to Instagram, LinkedIn, Facebook, and Threads.',
+      a: 'Ready to post content kits: social captions tuned per platform, multi slide carousels, short captioned clips cut from your long form videos, and teleprompter scripts to record from. You can schedule and publish straight to Instagram, LinkedIn, Facebook, and Threads.',
+    },
+    {
+      q: 'Do I have to be good on camera or with editing?',
+      a: 'No. A raw phone recording is perfect. No editing, no design tools, no prompt engineering. EchoMe pulls your ideas and speaking style out of the audio, not your production quality. A two minute talk about your market is plenty to start.',
     },
     {
       q: "What's included in my free year?",
@@ -160,7 +168,7 @@ export default function RedeemContent() {
     },
     {
       q: 'Can I add more voices?',
-      a: 'Yes. Your free year covers one voice. If you run multiple brands or clients, you can add more voices anytime at retail price.',
+      a: 'Yes. Your free year covers one voice. If you run a team or multiple brands, you can add more voices anytime at retail price.',
     },
     {
       q: 'What happens when the year ends?',
@@ -168,7 +176,7 @@ export default function RedeemContent() {
     },
     {
       q: 'How do I get started?',
-      a: 'Claim your access above, then upload a writing sample or paste a link to something you have published. Echo starts mapping your voice right away.',
+      a: 'Claim your access above, then either record yourself reading the script EchoMe drafts for you, or paste a link to a video or post you have already published. Echo starts mapping your voice right away.',
     },
   ];
 
@@ -351,6 +359,13 @@ export default function RedeemContent() {
                 </details>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground/70 mt-4 text-center">
+              Want to look around first?{' '}
+              <Link href="/guides/getting-started" className="text-primary-interactive hover:underline">
+                Browse the EchoMe guides
+              </Link>
+              .
+            </p>
           </div>
         )}
 

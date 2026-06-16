@@ -9,6 +9,48 @@ import { JsonLd } from '@/components/json-ld';
 const LOOM_VIDEO_ID = '136ee8a0709e44eaa5a2ba128d3ab624';
 const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDEO_ID}-3920a96cb0e456fa-full-play.gif#t=0.1`;
 
+// Single source of truth for the FAQ: rendered on-page AND emitted as FAQPage
+// structured data so LLMs and search engines can quote these answers when a
+// realtor asks "what's the best AI content tool for real estate agents."
+const realtorFaqs: { q: string; a: string }[] = [
+  {
+    q: 'What is EchoMe?',
+    a: 'EchoMe is an AI content engine that learns how you actually sound, then turns one piece of raw material — a market update, a client story, a quick voice note — into a week of social content in your own voice. It reads what you have already published — your videos, emails, blog, and past posts — to map your phrasing and tone, then writes Instagram carousels, LinkedIn posts, X threads, email newsletters, and short captioned clips that read like you wrote them. It is built for real estate agents who are great at their work but do not have hours to spend on content.',
+  },
+  {
+    q: "I'm not tech savvy. Can I actually use this?",
+    a: 'Yes. If you can record a video on your phone and upload a file, you can use EchoMe. No editing, no design tools, no prompt engineering. You upload content, EchoMe handles the rest.',
+  },
+  {
+    q: 'How is this different from ChatGPT?',
+    a: "ChatGPT writes from prompts — you have to tell it what to say and how to say it. EchoMe writes from context. It learns from your actual videos, emails, and content, then generates posts grounded in your voice and your ideas. No 'act like a real estate agent' instructions needed.",
+  },
+  {
+    q: 'Do I need to edit my videos before uploading?',
+    a: "No. Raw, unpolished video is perfect. EchoMe extracts your ideas and speaking style from the audio — it doesn't care about production quality. A 3-minute phone recording of you talking about a listing is ideal.",
+  },
+  {
+    q: 'What kind of content does it create?',
+    a: 'From one talking-head video, EchoMe pulls short captioned clips and generates Instagram carousels, LinkedIn posts, X/Twitter threads, email newsletters, blog posts, and teleprompter scripts — all in your voice, across the platforms where your clients spend time. Your listing walkthrough footage works as b-roll behind the clips.',
+  },
+  {
+    q: 'How is this different from template tools like RealEstateContent.ai?',
+    a: 'Template tools give every agent the same pre-written posts with different headshots. EchoMe learns YOUR voice from YOUR content and generates original posts grounded in your ideas, your expertise, and your way of communicating. Your sphere can tell the difference.',
+  },
+  {
+    q: 'How much does it cost?',
+    a: 'EchoMe starts at $37/mo with 5 free content kits to try (no credit card). Compare that to template tools charging $99/mo for fill-in-the-blank posts, or a social media manager charging $1,000+/mo who still won\'t capture your voice.',
+  },
+  {
+    q: 'I already have a social media person. Why would I need this?',
+    a: 'Give them EchoMe. It solves the hardest part of their job — writing in your voice. They handle scheduling and engagement, EchoMe handles making sure every post sounds like you, not like a marketing agency.',
+  },
+  {
+    q: "What if I don't have any content to upload?",
+    a: 'You have more than you think. Your sent emails, listing descriptions, past social posts, even a 2-minute voice recording talking about your market — all of it works. Start small, and your voice profile gets stronger over time.',
+  },
+];
+
 export default function RealtorsPage() {
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -28,9 +70,20 @@ export default function RealtorsPage() {
     },
   };
 
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: realtorFaqs.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <JsonLd data={jsonLd} />
+      <JsonLd data={faqJsonLd} />
 
       {/* Nav */}
       <nav className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-xl border-b border-white/10">
@@ -317,38 +370,9 @@ export default function RealtorsPage() {
           </h2>
 
           <div className="space-y-6">
-            <FAQ
-              q="I'm not tech savvy. Can I actually use this?"
-              a="Yes. If you can record a video on your phone and upload a file, you can use EchoMe. No editing, no design tools, no prompt engineering. You upload content, EchoMe handles the rest."
-            />
-            <FAQ
-              q="How is this different from ChatGPT?"
-              a="ChatGPT writes from prompts — you have to tell it what to say and how to say it. EchoMe writes from context. It learns from your actual videos, emails, and content, then generates posts grounded in your voice and your ideas. No 'act like a real estate agent' instructions needed."
-            />
-            <FAQ
-              q="Do I need to edit my videos before uploading?"
-              a="No. Raw, unpolished video is perfect. EchoMe extracts your ideas and speaking style from the audio — it doesn't care about production quality. A 3-minute phone recording of you talking about a listing is ideal."
-            />
-            <FAQ
-              q="What kind of content does it create?"
-              a="From one video, EchoMe generates Instagram carousels, LinkedIn posts, X/Twitter threads, email newsletters, blog posts, and video scripts — all in your voice, across all the platforms where your clients spend time."
-            />
-            <FAQ
-              q="How is this different from template tools like RealEstateContent.ai?"
-              a="Template tools give every agent the same pre-written posts with different headshots. EchoMe learns YOUR voice from YOUR content and generates original posts grounded in your ideas, your expertise, and your way of communicating. Your sphere can tell the difference."
-            />
-            <FAQ
-              q="How much does it cost?"
-              a="EchoMe starts at $37/mo with 5 free content kits to try (no credit card). Compare that to template tools charging $99/mo for fill-in-the-blank posts, or a social media manager charging $1,000+/mo who still won't capture your voice."
-            />
-            <FAQ
-              q="I already have a social media person. Why would I need this?"
-              a="Give them EchoMe. It solves the hardest part of their job — writing in your voice. They handle scheduling and engagement, EchoMe handles making sure every post sounds like you, not like a marketing agency."
-            />
-            <FAQ
-              q="What if I don't have any content to upload?"
-              a="You have more than you think. Your sent emails, listing descriptions, past social posts, even a 2-minute voice recording talking about your market — all of it works. Start small, and your voice profile gets stronger over time."
-            />
+            {realtorFaqs.map((item) => (
+              <FAQ key={item.q} q={item.q} a={item.a} />
+            ))}
           </div>
         </div>
       </section>
