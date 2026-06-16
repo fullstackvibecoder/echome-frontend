@@ -98,10 +98,16 @@ export function useAuth(): UseAuthReturn {
         // A stashed redirect takes precedence: a cold user who hit a partner
         // redeem link before having an account gets sent back to finish that
         // flow (the redeem page auto-claims once they return authenticated).
+        // Falls back to the ?redirect= URL param so the destination survives a
+        // localStorage wipe between the redeem page and here — mirrors login().
         const storedRedirect = localStorage.getItem('redirectAfterLogin');
-        if (storedRedirect && storedRedirect.startsWith('/') && !storedRedirect.startsWith('//')) {
-          localStorage.removeItem('redirectAfterLogin');
-          router.push(storedRedirect);
+        localStorage.removeItem('redirectAfterLogin');
+        const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
+        const target = [storedRedirect, urlRedirect].find(
+          (r): r is string => !!r && r.startsWith('/') && !r.startsWith('//')
+        );
+        if (target) {
+          router.push(target);
         } else {
           // New users go to the WBTW lookup loading screen first.
           // It surfaces a privacy disclosure, then auto-populates from public sources

@@ -112,9 +112,14 @@ export default function RedeemContent() {
   }, [partner, authLoading, isAuthenticated, code]);
 
   // Stash where to return to, then send the cold visitor through normal auth.
+  // Belt-and-suspenders: the destination rides in BOTH localStorage AND the
+  // ?redirect= URL param. localStorage is the primary (survives Google OAuth's
+  // round-trip); the URL param is the visible, wipe-proof fallback that login()
+  // and signup() both honor if storage was cleared between steps.
   const goToAuth = (path: '/auth/signup' | '/auth/login') => {
-    localStorage.setItem('redirectAfterLogin', `/redeem?code=${encodeURIComponent(code)}`);
-    router.push(path);
+    const dest = `/redeem?code=${encodeURIComponent(code)}`;
+    localStorage.setItem('redirectAfterLogin', dest);
+    router.push(`${path}?redirect=${encodeURIComponent(dest)}`);
   };
 
   const tier = partner ? tierLabel(partner.tier) : 'Echo Studio';
