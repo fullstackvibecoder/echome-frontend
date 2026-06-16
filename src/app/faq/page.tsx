@@ -11,7 +11,7 @@ const faqCategories = [
     questions: [
       {
         q: 'What is EchoMe?',
-        a: 'EchoMe is the context engine that turns what you have already published into a month of posts in your voice. It reads your videos, blog, emails, and social profiles to learn how you sound, then generates social posts, captioned clips, carousel slides, and full content kits — and now also lets you originate video content by recording yourself reading a generated script on the built-in teleprompter.',
+        a: 'EchoMe is an AI content engine that learns how you actually sound, then turns one piece of raw material — a market update, a client story, a quick voice note — into a week of posts in your own voice. It reads what you have already published — your videos, blog, emails, and social profiles — to map your phrasing and tone, then generates social captions, captioned clips cut from your long-form videos, carousel slides, teleprompter scripts, and full content kits. It is built for people who are great at their work but do not have hours to spend on content, real estate agents especially.',
       },
       {
         q: 'How do I create my first content?',
