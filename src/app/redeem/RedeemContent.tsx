@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,6 +27,10 @@ const tierLabel = (tier: string) =>
 
 const termLabel = (days: number) =>
   days >= 365 ? `${Math.round(days / 365)} year${days >= 730 ? 's' : ''}` : `${days} days`;
+
+// Retail value we surface to the member, per tier. Studio annual = $870.
+// Gated so a non-studio partner code never renders the wrong figure.
+const RETAIL_VALUE_USD: Record<string, number> = { studio: 870 };
 
 const formatDate = (iso: string) => {
   try {
@@ -123,41 +128,93 @@ export default function RedeemContent() {
   };
 
   const tier = partner ? tierLabel(partner.tier) : 'Echo Studio';
+  const term = partner ? termLabel(partner.termDays) : '1 year';
+  const retailValue = partner ? RETAIL_VALUE_USD[partner.tier] : undefined;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
+    <div className="relative min-h-screen flex items-center justify-center bg-background px-6 py-12 overflow-hidden">
+      {/* Ambient brand wash — mirrors the marketing pricing section. */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-accent-purple/10 to-transparent rounded-full blur-3xl -z-10 pointer-events-none" />
+
       <div className="max-w-md w-full text-center">
-        <div className="mb-6">
-          <Link href="/" className="text-2xl font-bold text-gray-900">EchoMe</Link>
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <Link href="/" className="flex items-center gap-2 group">
+            <Image
+              src="/media/echome-logo.svg"
+              alt="EchoMe"
+              width={40}
+              height={40}
+              className="object-contain transition-transform group-hover:scale-110"
+            />
+            <span className="text-2xl font-bold tracking-tight text-foreground">EchoMe</span>
+          </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="bg-card rounded-2xl shadow-lift border border-border p-8">
           {status === 'validating' && (
-            <p className="text-gray-500">Checking your access...</p>
+            <p className="text-muted-foreground">Checking your access...</p>
           )}
 
           {status === 'redeeming' && (
-            <p className="text-gray-500">Activating your {tier} access...</p>
+            <p className="text-muted-foreground">Activating your {tier} access...</p>
           )}
 
           {status === 'needsAuth' && partner && (
             <>
-              <h1 className="text-xl font-bold text-gray-900 mb-3">
-                {partner.partnerName} is upgrading you to {tier}
-              </h1>
-              <p className="text-gray-600 mb-6">
-                It's free for {termLabel(partner.termDays)}, with no card required. Create your
-                account to claim it, or sign in if you already have one.
+              <p className="font-mono text-xs uppercase tracking-widest text-primary-interactive mb-3">
+                Invited by {partner.partnerName}
               </p>
+              <h1 className="font-headline text-2xl font-extrabold text-foreground leading-tight mb-2">
+                Welcome to EchoMe
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                {partner.partnerName} has unlocked full {tier} for you, free for {term}. No card
+                required, nothing to pay today.
+              </p>
+
+              {/* Value highlight */}
+              <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/5 to-accent-purple/5 p-4 mb-6">
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="font-headline text-3xl font-extrabold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+                    Free
+                  </span>
+                  {retailValue && (
+                    <span className="text-sm text-muted-foreground line-through">
+                      ${retailValue} value
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {tier}, yours for a full {term}
+                </p>
+              </div>
+
+              {/* Reassurance bullets */}
+              <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+                <li className="flex gap-2">
+                  <span className="text-primary-interactive font-bold">✓</span>
+                  Every {tier} feature, unlocked from day one
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary-interactive font-bold">✓</span>
+                  Add more voices anytime at retail price
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary-interactive font-bold">✓</span>
+                  Switches to free automatically at year end, no surprise charges
+                </li>
+              </ul>
+
               <button
                 onClick={() => goToAuth('/auth/signup')}
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg py-3 transition mb-3"
+                className="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold rounded-full py-3.5 shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all mb-3"
               >
-                Create your account
+                Claim your free year
               </button>
               <button
                 onClick={() => goToAuth('/auth/login')}
-                className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg py-3 transition"
+                className="w-full border border-border hover:bg-background text-foreground font-semibold rounded-full py-3 transition"
               >
                 I already have an account
               </button>
@@ -166,14 +223,16 @@ export default function RedeemContent() {
 
           {status === 'success' && (
             <>
-              <h1 className="text-xl font-bold text-gray-900 mb-3">You're on {tier}</h1>
-              <p className="text-gray-600 mb-6">
-                Your access is active{expiresAt ? ` through ${formatDate(expiresAt)}` : ''}. Time to
-                turn your voice into content.
+              <h1 className="font-headline text-2xl font-extrabold text-foreground mb-3">
+                You&apos;re on {tier}
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                Your free year is active{expiresAt ? ` through ${formatDate(expiresAt)}` : ''}. Time
+                to turn your voice into content.
               </p>
               <Link
                 href="/app"
-                className="inline-block w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg py-3 transition"
+                className="inline-block w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold rounded-full py-3.5 shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all"
               >
                 Go to Echo
               </Link>
@@ -182,14 +241,16 @@ export default function RedeemContent() {
 
           {status === 'already' && (
             <>
-              <h1 className="text-xl font-bold text-gray-900 mb-3">You're all set</h1>
-              <p className="text-gray-600 mb-6">
+              <h1 className="font-headline text-2xl font-extrabold text-foreground mb-3">
+                You&apos;re all set
+              </h1>
+              <p className="text-muted-foreground mb-6">
                 You already have {tier} access{expiresAt ? ` through ${formatDate(expiresAt)}` : ''}.
                 No need to claim it again.
               </p>
               <Link
                 href="/app"
-                className="inline-block w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg py-3 transition"
+                className="inline-block w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold rounded-full py-3.5 shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all"
               >
                 Go to Echo
               </Link>
@@ -198,9 +259,11 @@ export default function RedeemContent() {
 
           {status === 'invalid' && (
             <>
-              <h1 className="text-xl font-bold text-gray-900 mb-3">This link isn't valid</h1>
-              <p className="text-gray-600">{errorMsg}</p>
-              <p className="text-sm text-gray-400 mt-4">
+              <h1 className="font-headline text-2xl font-extrabold text-foreground mb-3">
+                This link isn&apos;t valid
+              </h1>
+              <p className="text-muted-foreground">{errorMsg}</p>
+              <p className="text-sm text-muted-foreground/70 mt-4">
                 Check the link in your welcome email, or reach out to whoever sent it to you.
               </p>
             </>
@@ -208,11 +271,13 @@ export default function RedeemContent() {
 
           {status === 'error' && (
             <>
-              <h1 className="text-xl font-bold text-gray-900 mb-3">Something went wrong</h1>
-              <p className="text-gray-600 mb-4">{errorMsg}</p>
+              <h1 className="font-headline text-2xl font-extrabold text-foreground mb-3">
+                Something went wrong
+              </h1>
+              <p className="text-muted-foreground mb-4">{errorMsg}</p>
               <button
                 onClick={() => { redeemStarted.current = false; router.refresh(); window.location.reload(); }}
-                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg py-3 transition"
+                className="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold rounded-full py-3.5 shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all"
               >
                 Try again
               </button>
@@ -221,7 +286,7 @@ export default function RedeemContent() {
         </div>
 
         <div className="mt-6">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition">
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition">
             Back to EchoMe
           </Link>
         </div>
