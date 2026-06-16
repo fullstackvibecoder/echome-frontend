@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ChevronDown } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -130,6 +131,46 @@ export default function RedeemContent() {
   const tier = partner ? tierLabel(partner.tier) : 'Echo Studio';
   const term = partner ? termLabel(partner.termDays) : '1 year';
   const retailValue = partner ? RETAIL_VALUE_USD[partner.tier] : undefined;
+  const partnerName = partner?.partnerName || 'your partner';
+  const valueStr = retailValue ? `($${retailValue} value) ` : '';
+
+  // Cold-visitor orientation. TLL members often arrive never having heard of
+  // EchoMe, so the pre-claim state carries a plain-language FAQ. Claims are
+  // kept to verified capabilities so the copy never overpromises.
+  const faqs: { q: string; a: string }[] = [
+    {
+      q: 'What is EchoMe?',
+      a: 'EchoMe is an AI content studio that writes social posts, carousels, and video scripts in your own voice, not generic AI copy. You teach it how you already sound, and it drafts content that reads like you wrote it.',
+    },
+    {
+      q: 'How does it learn my voice?',
+      a: 'Give it samples of how you already communicate. Past posts, a blog, a voice note, or a video. EchoMe maps your signature phrases, tone, and style, then writes from that. The more you feed it, the closer it gets.',
+    },
+    {
+      q: 'What can it actually make?',
+      a: 'Ready to post content kits: social captions, multi slide carousels, short form video clips pulled from your long videos, and teleprompter scripts to record from. You can schedule and publish straight to Instagram, LinkedIn, Facebook, and Threads.',
+    },
+    {
+      q: "What's included in my free year?",
+      a: `Full ${tier}, the top plan ${valueStr}unlocked from day one. No feature gates, no trial countdown. It is yours free for a full ${term}, courtesy of ${partnerName}.`,
+    },
+    {
+      q: 'Do I need a credit card?',
+      a: 'No. Nothing to enter, and nothing is charged today or during your free year.',
+    },
+    {
+      q: 'Can I add more voices?',
+      a: 'Yes. Your free year covers one voice. If you run multiple brands or clients, you can add more voices anytime at retail price.',
+    },
+    {
+      q: 'What happens when the year ends?',
+      a: 'Your account automatically switches to the free plan. No surprise charges, and anything you have created stays with you.',
+    },
+    {
+      q: 'How do I get started?',
+      a: 'Claim your access above, then upload a writing sample or paste a link to something you have published. Echo starts mapping your voice right away.',
+    },
+  ];
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-background px-6 py-12 overflow-hidden">
@@ -287,6 +328,31 @@ export default function RedeemContent() {
             </>
           )}
         </div>
+
+        {status === 'needsAuth' && partner && (
+          <div className="mt-10 text-left">
+            <h2 className="font-headline text-lg font-bold text-foreground mb-1 text-center">
+              New to EchoMe?
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4 text-center">
+              Everything worth knowing before you claim.
+            </p>
+            <div className="space-y-2">
+              {faqs.map((f) => (
+                <details
+                  key={f.q}
+                  className="group bg-card border border-border rounded-xl px-4 py-3 transition-colors hover:border-primary/30"
+                >
+                  <summary className="flex items-center justify-between gap-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden text-sm font-semibold text-foreground">
+                    {f.q}
+                    <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground transition-transform [[open]_&]:rotate-180" />
+                  </summary>
+                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-6">
           <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition">
