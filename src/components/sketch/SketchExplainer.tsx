@@ -421,10 +421,14 @@ export function SketchExplainer({
     return () => mq.removeEventListener('change', apply);
   }, []);
 
-  // Play only while scrolled into view.
+  // Play only while scrolled into view. Guard IntersectionObserver: absent in
+  // jsdom/SSR — fall back to "in view" so the static scene still renders.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // No IO (jsdom/SSR): leave paused/static — mounts and renders the scene,
+    // just never starts the loop. Avoids an unbounded timer in test envs.
+    if (typeof IntersectionObserver === 'undefined') return;
     const io = new IntersectionObserver(
       ([entry]) => setInView(entry.isIntersecting),
       { threshold: 0.4 },

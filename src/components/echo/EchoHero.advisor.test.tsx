@@ -91,11 +91,33 @@ vi.mock('@/components/create/DraftsThreadMessage', () => ({
 
 vi.mock('@/components/create/AdvisorThread', () => ({
   AdvisorThread: ({
+    onNudgeAction,
     onProposalSelect,
   }: {
+    onNudgeAction: (action: { type: string; label: string; payload?: Record<string, unknown> }) => void;
     onProposalSelect: (proposal: { id: string; title: string; rationale: string; kitType: string; sourceRefs: string[] }) => void;
   }) => (
     <div data-testid="advisor-thread">
+      <button
+        data-testid="na-voice"
+        onClick={() => onNudgeAction({ type: 'voice', label: 'Record now' })}
+      />
+      <button
+        data-testid="na-ingest"
+        onClick={() => onNudgeAction({ type: 'ingest', label: 'Add a file' })}
+      />
+      <button
+        data-testid="na-create"
+        onClick={() =>
+          onNudgeAction({ type: 'create', label: 'x', payload: { prompt: 'hello world' } })
+        }
+      />
+      <button
+        data-testid="na-create-no-payload"
+        onClick={() =>
+          onNudgeAction({ type: 'create', label: 'Make something now' })
+        }
+      />
       <button
         data-testid="prop-select"
         onClick={() =>
@@ -176,10 +198,43 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
+  it('nudge voice action calls startMic', () => {
+    render(<EchoHero />);
+    fireEvent.click(screen.getByTestId('na-voice'));
+    expect(startMic).toHaveBeenCalled();
+  });
+
+  it('nudge ingest action triggers the hidden file input click', () => {
+    render(<EchoHero />);
+    fireEvent.click(screen.getByTestId('na-ingest'));
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it('clicking na-create calls setInputText with the prompt payload', () => {
+    render(<EchoHero />);
+    fireEvent.click(screen.getByTestId('na-create'));
+    expect(setInputText).toHaveBeenCalledWith('hello world');
+  });
+
   it('clicking prop-select calls setInputText with the proposal title', () => {
     render(<EchoHero />);
     fireEvent.click(screen.getByTestId('prop-select'));
     expect(setInputText).toHaveBeenCalledWith('My Proposal');
+  });
+
+  it('nudge create with no payload -> focuses composer without setInputText', () => {
+    vi.useFakeTimers();
+    const focusSpy = vi.spyOn(HTMLTextAreaElement.prototype, 'focus').mockImplementation(() => {});
+    try {
+      render(<EchoHero />);
+      fireEvent.click(screen.getByTestId('na-create-no-payload'));
+      vi.runAllTimers();
+      expect(setInputText).not.toHaveBeenCalled();
+      expect(focusSpy).toHaveBeenCalled();
+    } finally {
+      focusSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 
   it('wires useEcho onIngestComplete to the advisor refetch', () => {

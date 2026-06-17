@@ -255,6 +255,8 @@ export function PlatformDemo({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // No IO (jsdom/SSR): leave paused/static — mounts but never loops.
+    if (typeof IntersectionObserver === 'undefined') return;
     const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.35 });
     io.observe(el);
     return () => io.disconnect();

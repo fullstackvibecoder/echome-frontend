@@ -14,10 +14,8 @@ import { DraftCard } from "./DraftCard";
  * yet — anti-aggression rule from the TLL Mind-Reader work: never imply
  * we can read minds we haven't yet read.
  *
- * The backend daily-draft cron is LIVE (06:00 UTC, origin='autonomous') —
- * those drafts already arrive here and render with the "Echo drafted" badge.
- * Remaining V2 FE work: hide the manual trigger once autonomous drafts are
- * present. V3 will add a per-draft refinement loop.
+ * V2 will hide the manual trigger when origin='autonomous' drafts arrive
+ * via cron each morning. V3 will add a per-draft refinement loop.
  */
 export function DraftedForYou() {
   const [drafts, setDrafts] = useState<DraftProposal[]>([]);

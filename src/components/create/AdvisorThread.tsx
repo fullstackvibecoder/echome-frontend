@@ -1,20 +1,29 @@
 'use client';
 
+import { Mic, Paperclip, Sparkles } from 'lucide-react';
 import { AutopilotProposalCard } from '@/components/create/AutopilotProposalCard';
 import { CoverageMeter } from '@/components/create/CoverageMeter';
-import type { AdvisorResponse, Proposal } from '@/types/advisor';
+import type { AdvisorResponse, NudgeAction, NudgeActionType, Proposal } from '@/types/advisor';
+
+const NUDGE_ICONS: Record<NudgeActionType, typeof Mic> = {
+  voice: Mic,
+  ingest: Paperclip,
+  create: Sparkles,
+};
 
 interface AdvisorThreadProps {
   advisor: AdvisorResponse;
+  onNudgeAction: (action: NudgeAction) => void;
   onProposalSelect: (proposal: Proposal) => void;
 }
 
-// Nudge action buttons ("Record now" / "Add a file" / "Make something now")
-// were removed: the always-present composer below this thread already exposes
-// mic (voice), paperclip (ingest), and free text (create), so the buttons
-// duplicated affordances the user can reach one box down. The headline/subhead
-// stay as orienting copy.
-function NudgeBlock({ advisor }: { advisor: AdvisorResponse }) {
+function NudgeBlock({
+  advisor,
+  onNudgeAction,
+}: {
+  advisor: AdvisorResponse;
+  onNudgeAction: (action: NudgeAction) => void;
+}) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <p className="text-base font-semibold leading-snug text-foreground">
@@ -23,12 +32,35 @@ function NudgeBlock({ advisor }: { advisor: AdvisorResponse }) {
       <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
         {advisor.nudge.subhead}
       </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {advisor.nudge.actions.map((action, i) => {
+          const Icon = NUDGE_ICONS[action.type];
+          const primary = i === 0;
+          return (
+            <button
+              key={`${action.type}-${action.label}`}
+              type="button"
+              data-testid="nudge-action"
+              onClick={() => onNudgeAction(action)}
+              className={
+                primary
+                  ? 'inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90'
+                  : 'inline-flex items-center gap-2 rounded-lg border border-border bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5'
+              }
+            >
+              <Icon className="h-4 w-4" />
+              {action.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 export function AdvisorThread({
   advisor,
+  onNudgeAction,
   onProposalSelect,
 }: AdvisorThreadProps) {
   // Empty state renders nothing here: EchoHero already shows the orienting
@@ -42,7 +74,7 @@ export function AdvisorThread({
   if (advisor.state === 'thin') {
     return (
       <div data-testid="advisor-thin" className="space-y-4">
-        <NudgeBlock advisor={advisor} />
+        <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
       </div>
     );
   }
@@ -54,7 +86,9 @@ export function AdvisorThread({
 
   return (
     <div data-testid="advisor-rich" className="space-y-4">
-      {showNudge && <NudgeBlock advisor={advisor} />}
+      {showNudge && (
+        <NudgeBlock advisor={advisor} onNudgeAction={onNudgeAction} />
+      )}
       {advisor.proposals.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {advisor.proposals.map((p) => (
