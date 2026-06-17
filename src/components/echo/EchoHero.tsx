@@ -49,7 +49,7 @@ export function EchoHero() {
   // Declared above useEcho so the ingest path can refetch the advisor when
   // Echo adds material to Your Voice — the refresh the retired KBUnifiedInput
   // pill used to trigger via onImportComplete.
-  const { advisor, refetch: refetchAdvisor } = useAdvisor();
+  const { advisor, loading: advisorLoading, refetch: refetchAdvisor } = useAdvisor();
 
   const {
     state,
@@ -159,7 +159,13 @@ export function EchoHero() {
           Echo has content it renders a personalized nudge ("Echo can build from
           what you shared") in AdvisorThread below, which makes this generic
           header redundant — so hide it in the thin/rich states. */}
-      {(!advisor || advisor.state === 'empty') && (
+      {/* Gate on !advisorLoading: `advisor` is null both before the fetch
+          resolves AND when the KB is genuinely empty. Without the loading
+          guard, a content account paints the empty-state explainer for the
+          fetch window, then collapses it once the rich advisor arrives — a
+          flash of the big animation on every Create-page load. Wait for
+          certainty before deciding the state is empty. */}
+      {!advisorLoading && (!advisor || advisor.state === 'empty') && (
         <>
           <h1
             className="mb-2 text-center font-semibold leading-tight"
