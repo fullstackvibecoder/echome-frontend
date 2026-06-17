@@ -16,7 +16,7 @@ interface AdvisorThreadProps {
 // stay as orienting copy.
 function NudgeBlock({ advisor }: { advisor: AdvisorResponse }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="tex-voice rounded-2xl border border-border bg-card p-4">
       <p className="text-base font-semibold leading-snug text-foreground">
         {advisor.nudge.headline}
       </p>
