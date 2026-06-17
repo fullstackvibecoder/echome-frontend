@@ -195,7 +195,10 @@ describe('AppContent resting state - admin path (isAdmin: true)', () => {
   });
 });
 
-describe('AppContent resting state - non-admin path (isAdmin: false)', () => {
+// GA (2026-06-17): showCreateRedesign is hardcoded true, so the Create
+// redesign renders for EVERY user regardless of isAdmin. These suites pin
+// that non-admin users now get the EchoHero path, not the legacy trio.
+describe('AppContent resting state - GA non-admin (isAdmin: false)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -203,42 +206,28 @@ describe('AppContent resting state - non-admin path (isAdmin: false)', () => {
     });
   });
 
-  it('does NOT render EchoHero for non-admin users', () => {
+  it('renders EchoHero for non-admin users (GA)', () => {
     render(<AppContent />);
-    expect(screen.queryByTestId('echo-hero')).toBeNull();
+    expect(screen.getByTestId('echo-hero')).toBeInTheDocument();
   });
 
-  it('renders GetStartedChecklist for non-admin users', () => {
+  it('does NOT render the legacy trio for non-admin users (GA)', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('legacy-checklist')).toBeInTheDocument();
+    expect(screen.queryByTestId('legacy-checklist')).toBeNull();
+    expect(screen.queryByTestId('legacy-drafted')).toBeNull();
+    expect(screen.queryByTestId('legacy-outcome')).toBeNull();
   });
 
-  it('renders DraftedForYou for non-admin users', () => {
-    render(<AppContent />);
-    expect(screen.getByTestId('legacy-drafted')).toBeInTheDocument();
-  });
-
-  it('renders OutcomeChips for non-admin users', () => {
-    render(<AppContent />);
-    expect(screen.getByTestId('legacy-outcome')).toBeInTheDocument();
-  });
-
-  it('keeps GenerationForm mounted for non-admin users', () => {
-    render(<AppContent />);
-    expect(screen.getByTestId('generation-form')).toBeInTheDocument();
-  });
-
-  it('renders GenerationForm outside the hidden wrapper for non-admin users', () => {
+  it('keeps GenerationForm mounted in the hidden wrapper for non-admin users (GA)', () => {
     const { container } = render(<AppContent />);
-    // The hidden wrapper must NOT exist on the non-admin path
     const hiddenWrapper = container.querySelector('[aria-hidden="true"]');
-    expect(hiddenWrapper).toBeNull();
-    // GenerationForm must still be in the DOM
-    expect(screen.getByTestId('generation-form')).toBeInTheDocument();
+    expect(hiddenWrapper).not.toBeNull();
+    expect(hiddenWrapper?.classList.contains('hidden')).toBe(true);
+    expect(hiddenWrapper?.querySelector('[data-testid="generation-form"]')).not.toBeNull();
   });
 });
 
-describe('AppContent resting state - non-admin path (isAdmin: undefined)', () => {
+describe('AppContent resting state - GA non-admin (isAdmin: undefined)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -246,19 +235,19 @@ describe('AppContent resting state - non-admin path (isAdmin: undefined)', () =>
     });
   });
 
-  it('does NOT render EchoHero when isAdmin is undefined', () => {
+  it('renders EchoHero when isAdmin is undefined (GA)', () => {
     render(<AppContent />);
-    expect(screen.queryByTestId('echo-hero')).toBeNull();
+    expect(screen.getByTestId('echo-hero')).toBeInTheDocument();
   });
 
-  it('renders the legacy trio when isAdmin is undefined', () => {
+  it('does NOT render the legacy trio when isAdmin is undefined (GA)', () => {
     render(<AppContent />);
-    expect(screen.getByTestId('legacy-checklist')).toBeInTheDocument();
-    expect(screen.getByTestId('legacy-drafted')).toBeInTheDocument();
-    expect(screen.getByTestId('legacy-outcome')).toBeInTheDocument();
+    expect(screen.queryByTestId('legacy-checklist')).toBeNull();
+    expect(screen.queryByTestId('legacy-drafted')).toBeNull();
+    expect(screen.queryByTestId('legacy-outcome')).toBeNull();
   });
 
-  it('keeps GenerationForm mounted when isAdmin is undefined', () => {
+  it('keeps GenerationForm mounted when isAdmin is undefined (GA)', () => {
     render(<AppContent />);
     expect(screen.getByTestId('generation-form')).toBeInTheDocument();
   });

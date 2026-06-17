@@ -17,7 +17,6 @@ import { GetStartedChecklist } from '@/components/dashboard/GetStartedChecklist'
 import { DraftedForYou } from '@/components/dashboard/DraftedForYou';
 import { OutcomeChips } from '@/components/dashboard/OutcomeChips';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
-import { useAuth } from '@/hooks/useAuth';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { useSubscription } from '@/hooks/useSubscription';
 import { showErrorToast, showInfoToast } from '@/lib/toast';
@@ -34,7 +33,6 @@ export default function AppContent() {
   const { generating, requestId, results, error, isQuotaError, voiceScore, qualityScore, generate, repurpose, reset } = useGeneration();
   const { sendFeedback, copyToClipboard } = useResultsFeedback();
   const { isFirstTime, dismissWelcome } = useFirstTimeUser();
-  const { user } = useAuth();
   const { activeVoice, isTeamsUser, voiceLimit } = useVoiceContext();
   const { isFreeUser, freeGenerationsRemaining, freeGenerationsLimit } = useSubscription();
   const formRef = useRef<HTMLDivElement>(null);
@@ -296,12 +294,15 @@ export default function AppContent() {
       {!hasResults && !generating && (
         <div className="animate-fade-in">
           {/*
-           * Admin-gated SP1.5 Create redesign. Flip to `true` to GA for all users (rollback lever).
-           * Admin sees: EchoHero chat surface + hidden GenerationForm engine.
-           * Non-admin sees: production Create page (checklist, drafts, chips, visible form).
+           * SP1.5 Create redesign — GA for all users as of 2026-06-17.
+           * `showCreateRedesign` is the rollback lever: to re-gate to admins,
+           * re-add `import { useAuth }` + `const { user } = useAuth()` and set
+           * this to `!!user?.isAdmin`. The non-admin JSX branch below is
+           * retained as the rollback target — dead while this is `true`.
+           * All users see: EchoHero chat surface + hidden GenerationForm engine.
            */}
           {(() => {
-            const showCreateRedesign = !!user?.isAdmin;
+            const showCreateRedesign = true;
 
             return (
               <>
