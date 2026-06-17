@@ -1080,3 +1080,80 @@ body {
   transform: translateY(-1px);
   background: var(--primary-dark);
 }
+
+/* ---------------------------------------------------------------------------
+   Create-page surface textures (EXPERIMENTAL — 2026-06-17)
+   Cheap, theme-aware, additive textures that differentiate Create-page cards
+   by ROLE so the stack stops reading as one flat charcoal slab. No image
+   assets — pure CSS gradients layered over the existing bg-card color.
+   Fully reversible: delete this block + the three className additions
+   (.tex-voice on NudgeBlock, .tex-data on CoverageMeter, .tex-action on
+   DraftCard). Proper redesign tracked separately; this is a visualize-now
+   placeholder, not the final language.
+
+   Light-mode defaults below; .dark overrides follow. Alphas kept tiny so the
+   texture reads as material, not pattern.
+--------------------------------------------------------------------------- */
+
+/* Echo's spoken material (advisor nudge) — faint diagonal hairlines */
+.tex-voice {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.022) 0px,
+    rgba(0, 0, 0, 0.022) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+/* Measurement panel (coverage meter) — faint dot grid */
+.tex-data {
+  background-image: radial-gradient(
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1.4px
+  );
+  background-size: 14px 14px;
+}
+
+/* Pressable action object (draft card) — subtle top-lit sheen */
+.tex-action {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    transparent 38%
+  );
+}
+
+.dark .tex-voice {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+.dark .tex-data {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.032) 1px,
+    transparent 1.4px
+  );
+  background-size: 14px 14px;
+}
+
+.dark .tex-action {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.045) 0%,
+    transparent 40%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tex-voice,
+  .tex-data,
+  .tex-action {
+    transition: background-color 0.2s var(--ease-standard, ease);
+  }
+}

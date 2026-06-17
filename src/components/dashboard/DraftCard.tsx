@@ -32,7 +32,7 @@ export function DraftCard({ draft, onDismissed, onActionRecorded }: DraftCardPro
   const preview = pickPreview(draft);
 
   return (
-    <article className="relative flex flex-col gap-3 p-4 rounded-2xl border border-border bg-card hover:border-primary/30 transition-colors overflow-hidden">
+    <article className="tex-action relative flex flex-col gap-3 p-4 rounded-2xl border border-border bg-card hover:border-primary/30 transition-colors overflow-hidden">
       <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/[0.04] blur-2xl rounded-full pointer-events-none" />
 
       <header className="relative flex items-start justify-between gap-2">
