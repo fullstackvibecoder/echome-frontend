@@ -30,6 +30,7 @@ import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
+import { SketchExplainer } from '@/components/sketch/SketchExplainer';
 import type { Proposal } from '@/types/advisor';
 
 /** Format elapsed seconds as M:SS */
@@ -175,6 +176,18 @@ export function EchoHero() {
           >
             Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
           </p>
+          {/* Ambient do->get explainer: teaches one-video -> clips/posts/
+              carousels while the KB is empty. Self-drawing, silent, loops in
+              view, freezes on reduced-motion. Abstract (not a screenshot of
+              this page) so it never recurses against the real composer below.
+              Collapses with this header once Echo has content. */}
+          <div className="w-full max-w-xl mb-6">
+            <SketchExplainer
+              scene="what-is-echome"
+              accent="var(--muted-foreground)"
+              caption="One video in. Clips, posts, and carousels out, in your voice."
+            />
+          </div>
         </>
       )}
 
