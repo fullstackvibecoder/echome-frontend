@@ -30,7 +30,8 @@ import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
-import type { NudgeAction, Proposal } from '@/types/advisor';
+import { SketchExplainer } from '@/components/sketch/SketchExplainer';
+import type { Proposal } from '@/types/advisor';
 
 /** Format elapsed seconds as M:SS */
 function formatElapsed(seconds: number): string {
@@ -104,20 +105,6 @@ export function EchoHero() {
     setTimeout(() => textareaRef.current?.focus(), 0);
   }, []);
 
-  const handleNudgeAction = useCallback((action: NudgeAction) => {
-    if (action.type === 'voice') {
-      if (micState === 'idle' || micState === 'error') void startMic();
-    } else if (action.type === 'ingest') {
-      fileInputRef.current?.click();
-    } else if (action.type === 'create') {
-      const prompt = action.payload?.prompt;
-      if (typeof prompt === 'string' && prompt.length > 0) {
-        setInputText(prompt);
-      }
-      focusComposer();
-    }
-  }, [micState, startMic, setInputText, focusComposer]);
-
   const handleProposalSelect = useCallback((proposal: Proposal) => {
     setInputText(proposal.title);
     focusComposer();
@@ -189,6 +176,18 @@ export function EchoHero() {
           >
             Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
           </p>
+          {/* Ambient do->get explainer: teaches one-video -> clips/posts/
+              carousels while the KB is empty. Self-drawing, silent, loops in
+              view, freezes on reduced-motion. Abstract (not a screenshot of
+              this page) so it never recurses against the real composer below.
+              Collapses with this header once Echo has content. */}
+          <div className="w-full max-w-xl mb-6">
+            <SketchExplainer
+              scene="what-is-echome"
+              accent="var(--muted-foreground)"
+              caption="One video in. Clips, posts, and carousels out, in your voice."
+            />
+          </div>
         </>
       )}
 
@@ -197,7 +196,6 @@ export function EchoHero() {
         {advisor && (
           <AdvisorThread
             advisor={advisor}
-            onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
           />
         )}
