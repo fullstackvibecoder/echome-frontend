@@ -30,7 +30,7 @@ import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
 import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
-import type { NudgeAction, Proposal } from '@/types/advisor';
+import type { Proposal } from '@/types/advisor';
 
 /** Format elapsed seconds as M:SS */
 function formatElapsed(seconds: number): string {
@@ -103,20 +103,6 @@ export function EchoHero() {
   const focusComposer = useCallback(() => {
     setTimeout(() => textareaRef.current?.focus(), 0);
   }, []);
-
-  const handleNudgeAction = useCallback((action: NudgeAction) => {
-    if (action.type === 'voice') {
-      if (micState === 'idle' || micState === 'error') void startMic();
-    } else if (action.type === 'ingest') {
-      fileInputRef.current?.click();
-    } else if (action.type === 'create') {
-      const prompt = action.payload?.prompt;
-      if (typeof prompt === 'string' && prompt.length > 0) {
-        setInputText(prompt);
-      }
-      focusComposer();
-    }
-  }, [micState, startMic, setInputText, focusComposer]);
 
   const handleProposalSelect = useCallback((proposal: Proposal) => {
     setInputText(proposal.title);
@@ -197,7 +183,6 @@ export function EchoHero() {
         {advisor && (
           <AdvisorThread
             advisor={advisor}
-            onNudgeAction={handleNudgeAction}
             onProposalSelect={handleProposalSelect}
           />
         )}
