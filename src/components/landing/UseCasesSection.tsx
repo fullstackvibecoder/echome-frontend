@@ -49,24 +49,24 @@ const useCases = [
 export function UseCasesSection() {
   return (
     <AnimatedSection>
-      <section className="py-32 px-6 bg-white relative overflow-hidden">
+      <section className="py-32 px-6 bg-gray-900 relative overflow-hidden">
         {/* Ambient gradients */}
-        <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] bg-accent-purple/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] bg-accent-purple/10 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary/25 rounded-full mb-6">
               <span className="text-primary font-semibold text-sm">Use Cases</span>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-foreground leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 text-white leading-tight">
               Built Around
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 {' '}What You Already Do
               </span>
             </h2>
-            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/60 font-light max-w-3xl mx-auto leading-relaxed">
               You&apos;re already recording. EchoMe turns that into a full content strategy, in your voice.
             </p>
           </div>
@@ -78,7 +78,7 @@ export function UseCasesSection() {
               return (
                 <div
                   key={index}
-                  className={`group relative bg-gradient-to-br from-gray-50 to-white rounded-2xl border-2 ${useCase.borderColor} p-8 hover:shadow-2xl transition-all hover:-translate-y-1`}
+                  className={`group relative bg-white/[0.04] backdrop-blur rounded-2xl border-2 ${useCase.borderColor} p-8 hover:shadow-2xl transition-all hover:-translate-y-1`}
                 >
                   {/* Icon & Role */}
                   <div className="flex items-center gap-4 mb-6">
@@ -86,30 +86,30 @@ export function UseCasesSection() {
                       <Icon className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900">{useCase.role}</h3>
-                      <p className="text-sm text-gray-500">{useCase.impact}</p>
+                      <h3 className="text-2xl font-bold text-white">{useCase.role}</h3>
+                      <p className="text-sm text-white/50">{useCase.impact}</p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-600 mb-6 leading-relaxed">
+                  <p className="text-white/70 mb-6 leading-relaxed">
                     {useCase.description}
                   </p>
 
-                  {/* Input → Outputs */}
+                  {/* Input -> Outputs */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700">
+                      <div className="px-3 py-2 bg-white/[0.06] border border-white/10 rounded-lg text-sm font-medium text-white/80">
                         {useCase.input}
                       </div>
-                      <span className="text-gray-400">→</span>
+                      <span className="text-white/40">&rarr;</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       {useCase.outputs.map((output, i) => (
                         <div
                           key={i}
-                          className={`px-3 py-2 bg-gradient-to-br ${useCase.color} bg-opacity-10 border ${useCase.borderColor} rounded-lg text-sm font-medium text-gray-800 text-center`}
+                          className={`px-3 py-2 bg-white/[0.04] border ${useCase.borderColor} rounded-lg text-sm font-medium text-white text-center`}
                         >
                           {output}
                         </div>
@@ -123,7 +123,7 @@ export function UseCasesSection() {
 
           {/* Bottom CTA */}
           <div className="text-center mt-16">
-            <p className="text-gray-500 text-lg">
+            <p className="text-white/50 text-lg">
               If you create content in any form, EchoMe already has something to work with.
             </p>
           </div>
