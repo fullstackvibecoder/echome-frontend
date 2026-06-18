@@ -43,7 +43,7 @@ export function KnowledgeBaseSection() {
               </span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              Now drop the next one. Echo writes it in your voice — your phrases, your tone, your framing — because it&apos;s been studying you all along.
+              Your knowledge base is the engine. Feed it everything, your posts, videos, emails, voice notes, how you think and how you work, and Echo writes every new piece in your voice, your phrases, your tone, your framing, because it has been studying you all along.
             </p>
           </div>
 

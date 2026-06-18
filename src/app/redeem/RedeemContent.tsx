@@ -151,6 +151,10 @@ export default function RedeemContent() {
       a: 'Give it samples of how you already communicate. Past posts, a blog, a sent email, a voice note, or a video. EchoMe maps your signature phrases, tone, and style, then writes from that. The more you feed it, the closer it gets. Nothing sounds like a template, because it is built from your own words.',
     },
     {
+      q: 'Do I have to set it all up myself?',
+      a: 'No. The moment you claim, EchoMe searches the public web about you and starts filling your knowledge base, so you begin with a head start instead of a blank page. Add more anytime, the more it knows, the more it sounds like you. After that, EchoMe drafts new content for you every morning to keep or kill.',
+    },
+    {
       q: 'What can it actually make?',
       a: 'Ready to post content kits: social captions tuned per platform, multi slide carousels, short captioned clips cut from your long form videos, and teleprompter scripts to record from. You can schedule and publish straight to Instagram, LinkedIn, Facebook, and Threads.',
     },
