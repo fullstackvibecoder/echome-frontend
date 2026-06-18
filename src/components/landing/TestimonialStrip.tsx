@@ -17,15 +17,7 @@ const testimonials: { quote: string; attribution: string }[] = [
     attribution: 'Real estate agent',
   },
   {
-    quote: 'It’s always weird writing about yourself. That’s the biggest hurdle with content.',
-    attribution: 'Real estate agent',
-  },
-  {
     quote: 'Your content’s been great. You’re covering all the buckets.',
-    attribution: 'Real estate agent',
-  },
-  {
-    quote: 'I just get a lot of engagement.',
     attribution: 'Real estate agent',
   },
 ];

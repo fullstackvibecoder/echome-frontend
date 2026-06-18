@@ -30,10 +30,6 @@ const realtorFaqs: { q: string; a: string }[] = [
     a: "No. Raw, unpolished video is perfect. EchoMe extracts your ideas and speaking style from the audio — it doesn't care about production quality. A 3-minute phone recording of you talking about a listing is ideal.",
   },
   {
-    q: 'I do not have video to upload. Can I still use EchoMe?',
-    a: 'Yes. Video is optional. From a typed topic, a voice note, or a link, EchoMe writes social captions, carousels, and TikTok scripts. Only short captioned clips need a video source.',
-  },
-  {
     q: 'What kind of content does it create?',
     a: 'From one talking-head video, EchoMe pulls short captioned clips and generates Instagram carousels, LinkedIn posts, X/Twitter threads, email newsletters, blog posts, and teleprompter scripts — all in your voice, across the platforms where your clients spend time. Your listing walkthrough footage works as b-roll behind the clips.',
   },
