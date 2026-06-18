@@ -37,7 +37,7 @@ export const individualPlans: PlanData[] = [
     features: [
       '5 free content kits to try it out',
       'Your voice, learning from what you publish',
-      'Auto-post to Instagram, LinkedIn & Facebook',
+      'Auto-post to Instagram, LinkedIn & Facebook (during free kits)',
       'Clips, captions, carousels, and posts',
     ],
   },
@@ -53,9 +53,8 @@ export const individualPlans: PlanData[] = [
       'Your voice profile, learning continuously',
       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
       'Creator Radar, track what your audience watches',
-      'Auto-post to Instagram, LinkedIn & Facebook',
       'Built-in teleprompter for talking-head video',
-      'Content calendar with email reminders',
+      'Content calendar with scheduled email reminders',
     ],
   },
   {
