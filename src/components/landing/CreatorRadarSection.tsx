@@ -12,12 +12,12 @@ const steps = [
   {
     icon: Bell,
     title: 'Get Notified',
-    desc: 'When they post new video content, it shows up in your Creator Radar feed.',
+    desc: 'When they drop something new, or paste any link (YouTube, Zoom, Vimeo, Loom), it lands in your Creator Radar feed.',
   },
   {
     icon: Sparkles,
     title: 'Hit Repurpose',
-    desc: 'Echo generates content from their video, grounded in your context and your perspective.',
+    desc: 'Echo generates content from their video or link, grounded in your context and your perspective.',
   },
   {
     icon: MessageSquare,

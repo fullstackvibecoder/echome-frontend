@@ -1,9 +1,10 @@
 'use client';
 
 /**
- * Homepage hero visual. A self-drawing SVG (SketchExplainer "hero-transform"
- * scene) showing: your video + voice -> Echo reads it -> a finished post in
- * your voice. Wrapped in the same glass chrome + floating cards as the prior
+ * Homepage hero visual. A self-drawing SVG (SketchExplainer "video-to-kit"
+ * scene) showing the full arc: drop a video or link -> Echo watches it ->
+ * captioned clips -> captions for every platform -> a full content kit.
+ * Wrapped in the same glass chrome + floating cards as the prior
  * placeholder so a real product walkthrough video can drop back into this
  * frame later with zero relayout. Keep this component's name so the
  * HeroSection import stays stable.
@@ -22,7 +23,7 @@ export function HeroDemoVideo() {
       {/* Glass Container */}
       <div className="relative z-10 p-4 sm:p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/5 shadow-[0_20px_40px_rgba(0,103,126,0.15)]">
         <div className="rounded-xl overflow-hidden bg-gray-950 relative flex items-center justify-center px-6 py-10 sm:py-12">
-          <SketchExplainer scene="hero-transform" accent={HERO_ACCENT} className="w-full" />
+          <SketchExplainer scene="video-to-kit" accent={HERO_ACCENT} className="w-full" />
         </div>
 
         {/* Floating card: Voice Matched — top right, bouncing */}

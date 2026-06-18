@@ -30,7 +30,7 @@ export function KnowledgeBaseSection() {
 
   return (
     <AnimatedSection>
-      <section className="py-24 px-6 bg-gradient-to-b from-background to-secondary relative overflow-hidden">
+      <section id="how" className="py-24 px-6 bg-gradient-to-b from-background to-secondary relative overflow-hidden">
         <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-7xl mx-auto">

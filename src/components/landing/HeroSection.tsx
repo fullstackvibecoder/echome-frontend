@@ -1,7 +1,8 @@
 'use client';
 
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Crown } from 'lucide-react';
 import { HeroDemoVideo } from './HeroDemoVideo';
+import { trackCtaClick } from '@/lib/analytics';
 
 export function HeroSection() {
   return (
@@ -18,13 +19,19 @@ export function HeroSection() {
           {/* Content Left */}
           <div className="flex flex-col space-y-10">
             <div className="space-y-6">
+              {/* Eyebrow: core brand belief, rescued from the cut HowItWorks section */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                <Crown className="w-3.5 h-3.5 text-primary" />
+                <span className="text-primary font-bold text-xs tracking-widest uppercase">Context is King</span>
+              </div>
+
               {/* Headline */}
               <h1
                 className="font-headline text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight"
               >
-                It Already Knows How{' '}
+                Give It Anything.{' '}
                 <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                  You Think.
+                  Get Everything Back.
                 </span>
               </h1>
 
@@ -33,7 +40,7 @@ export function HeroSection() {
                 className="text-base sm:text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
                 style={{ animationDelay: '300ms' }}
               >
-                It read your videos, posts, emails, voice. Drop the next idea — or record yourself reading the script it writes on the built-in teleprompter.
+                EchoMe learns how you think and sound, then turns one idea, video, or link into a full suite of posts, carousels, and clips in your voice. Then schedules and posts them for you.
               </p>
             </div>
 
@@ -44,6 +51,7 @@ export function HeroSection() {
             >
               <a
                 href="/auth/signup"
+                onClick={() => trackCtaClick('hero_primary')}
                 className="px-10 py-4 bg-gradient-to-r from-primary to-primary-dark text-white
                            rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all
                            shadow-lg shadow-primary/30 flex items-center gap-3 group"

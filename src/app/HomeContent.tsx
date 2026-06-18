@@ -3,17 +3,19 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Check, Mail, Users, ArrowRight } from 'lucide-react';
+import { Menu, X, Check, Mail, ArrowRight } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
-import { HowItWorks } from '@/components/landing/HowItWorks';
 import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
 import { CreatorRadarSection } from '@/components/landing/CreatorRadarSection';
 import { OutputShowcase } from '@/components/landing/OutputShowcase';
 import { TestimonialStrip } from '@/components/landing/TestimonialStrip';
 import { NotChatGPTSection } from '@/components/landing/NotChatGPTSection';
+import { UseCasesSection } from '@/components/landing/UseCasesSection';
+import { TrackedSection } from '@/components/landing/TrackedSection';
 import { SiteFooter } from '@/components/landing/SiteFooter';
 import { CommunitySection } from '@/components/landing/CommunitySection';
+import { trackCtaClick } from '@/lib/analytics';
 
 export default function HomeContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,6 +58,7 @@ export default function HomeContent() {
               </a>
               <a
                 href="/auth/signup"
+                onClick={() => trackCtaClick('nav_signup')}
                 className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
               >
                 Try Free
@@ -85,7 +88,7 @@ export default function HomeContent() {
                 </a>
                 <a
                   href="/auth/signup"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => { setIsMenuOpen(false); trackCtaClick('nav_signup_mobile'); }}
                   className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg transition-all text-center shadow-md"
                 >
                   Try Free
@@ -98,27 +101,42 @@ export default function HomeContent() {
 
       {/* Hero */}
       <main id="main-content">
-      <HeroSection />
+      <TrackedSection name="hero">
+        <HeroSection />
+      </TrackedSection>
 
-      {/* How It Works */}
-      <HowItWorks />
+      {/* Knowledge Base — now owns the #how anchor and the detailed how-it-works */}
+      <TrackedSection name="knowledge_base">
+        <KnowledgeBaseSection />
+      </TrackedSection>
 
-      {/* Knowledge Base */}
-      <KnowledgeBaseSection />
+      {/* Not ChatGPT — core differentiator */}
+      <TrackedSection name="not_chatgpt">
+        <NotChatGPTSection />
+      </TrackedSection>
 
-      {/* Creator Radar */}
-      <CreatorRadarSection />
+      {/* Output Showcase — proof */}
+      <TrackedSection name="output_showcase">
+        <OutputShowcase />
+      </TrackedSection>
 
-      {/* Output Showcase */}
-      <OutputShowcase />
+      {/* Use Cases — persona fit */}
+      <TrackedSection name="use_cases">
+        <UseCasesSection />
+      </TrackedSection>
 
       {/* Testimonials */}
-      <TestimonialStrip />
+      <TrackedSection name="testimonials">
+        <TestimonialStrip />
+      </TrackedSection>
 
-      {/* Not ChatGPT */}
-      <NotChatGPTSection />
+      {/* Creator Radar — bonus differentiator */}
+      <TrackedSection name="creator_radar">
+        <CreatorRadarSection />
+      </TrackedSection>
 
       {/* Pricing */}
+      <TrackedSection name="pricing">
       <section id="pricing" className="py-20 px-6 bg-gradient-to-br from-background to-background relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-primary/5 to-transparent rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-accent-purple/5 to-transparent rounded-full blur-3xl -z-10" />
@@ -390,9 +408,12 @@ export default function HomeContent() {
           </div>
         </div>
       </section>
+      </TrackedSection>
 
       {/* Community */}
-      <CommunitySection />
+      <TrackedSection name="community">
+        <CommunitySection />
+      </TrackedSection>
 
       {/* Affiliate Program */}
       <section className="py-20 px-6 bg-gray-900 text-white relative overflow-hidden">

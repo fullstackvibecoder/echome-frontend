@@ -373,52 +373,69 @@ function SceneSchedule({ accent, scope, paused }: SceneProps) {
 }
 
 // ---- Scene 5: "Hero transform" -------------------------------------------
-// Homepage hero. Three beats on one horizontal spine: your video + voice ->
-// Echo reads it -> a finished post/carousel that sounds like you. Minimal
-// captions (glanceable, not a tutorial). Beat 2 is wordless.
+// Homepage hero. Three inputs converge on one spine: your video + voice note
+// + a link -> Echo reads them -> a finished post/carousel that sounds like
+// you. Kills the "I don't have video" objection visually. Minimal captions
+// (glanceable, not a tutorial). Echo beat is wordless.
 
 function SceneHeroTransform({ accent, scope, paused }: SceneProps) {
   return (
     <svg
-      viewBox="0 0 460 280"
+      viewBox="0 0 480 300"
       width="100%"
       role="img"
-      aria-label="Your video and voice go in. Echo reads them and writes a finished post that sounds like you."
+      aria-label="Your video, your voice, or a link goes in. Echo reads them and writes a finished post that sounds like you."
       className={`${scope} ${paused ? 'paused' : ''}`}
     >
       <style dangerouslySetInnerHTML={{ __html: sceneCss(scope, accent) }} />
 
-      {/* Beat 1: your video (frame + play) */}
+      {/* ===== Input 1: video (frame + play) ===== */}
       <g>
-        <rect x="40" y="110" width="88" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '0s' }} />
-        <path d="M68 128 L68 152 L92 140 Z" pathLength={1} className="stroke" style={{ ['--d' as string]: '0.25s' }} />
+        <rect x="24" y="40" width="80" height="48" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '0s' }} />
+        <path d="M50 56 L50 76 L70 66 Z" pathLength={1} className="stroke" style={{ ['--d' as string]: '0.2s' }} />
       </g>
-      <text x="84" y="206" className="cap" style={{ ['--d' as string]: '0.5s' }}>Your video, your voice</text>
+      <text x="64" y="104" className="cap sub" style={{ ['--d' as string]: '0.4s' }}>Your video</text>
 
-      {/* Arrow: video -> Echo */}
-      <path d="M128 140 H190" pathLength={1} className="stroke" style={{ ['--d' as string]: '0.8s' }} />
-      <path d="M182 133 L192 140 L182 147" pathLength={1} className="stroke" style={{ ['--d' as string]: '0.95s' }} />
-
-      {/* Beat 2: Echo reads it (node + transcript lines + pulse ring) — wordless */}
+      {/* ===== Input 2: voice (waveform) ===== */}
       <g>
-        <circle cx="240" cy="140" r="36" pathLength={1} className="stroke" style={{ ['--d' as string]: '1.1s' }} />
-        <path d="M222 134 H258 M222 142 H250 M222 150 H254" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.35s' }} />
-        <circle cx="240" cy="140" r="46" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.55s' }} />
+        <rect x="24" y="126" width="80" height="48" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '0.5s' }} />
+        <path d="M40 156 V146 M50 156 V138 M60 156 V132 M70 156 V140 M80 156 V148" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '0.7s' }} />
       </g>
+      <text x="64" y="190" className="cap sub" style={{ ['--d' as string]: '0.9s' }}>Your voice</text>
 
-      {/* Arrow: Echo -> output */}
-      <path d="M288 140 H350" pathLength={1} className="stroke" style={{ ['--d' as string]: '1.85s' }} />
-      <path d="M342 133 L352 140 L342 147" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.0s' }} />
-
-      {/* Beat 3: finished post / carousel (stacked cards + lines + check) */}
+      {/* ===== Input 3: link (chain) ===== */}
       <g>
-        <rect x="372" y="94" width="64" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.15s' }} />
-        <rect x="364" y="102" width="64" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.3s' }} />
-        <rect x="356" y="110" width="64" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.45s' }} />
-        <path d="M366 132 H410 M366 144 H402" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '2.65s' }} />
-        <path d="M366 152 L376 162 L398 140" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.9s' }} />
+        <rect x="24" y="212" width="80" height="48" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '1.0s' }} />
+        <path d="M50 232 a8 8 0 0 1 11 -11 l6 6 a8 8 0 0 1 -11 11" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.2s' }} />
+        <path d="M70 240 a8 8 0 0 1 -11 11 l-6 -6 a8 8 0 0 1 11 -11" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.3s' }} />
       </g>
-      <text x="388" y="206" className="cap" style={{ ['--d' as string]: '3.2s' }}>Comes out sounding like you</text>
+      <text x="64" y="276" className="cap sub" style={{ ['--d' as string]: '1.5s' }}>Or a link</text>
+
+      {/* ===== Converging arrows into Echo ===== */}
+      <path d="M104 64 L200 140" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.6s' }} />
+      <path d="M104 150 H200" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.7s' }} />
+      <path d="M104 236 L200 160" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '1.8s' }} />
+
+      {/* ===== Echo reads it (node + transcript + pulse ring) -- wordless ===== */}
+      <g>
+        <circle cx="240" cy="150" r="36" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.0s' }} />
+        <path d="M222 144 H258 M222 152 H250 M222 160 H254" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '2.25s' }} />
+        <circle cx="240" cy="150" r="46" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '2.45s' }} />
+      </g>
+
+      {/* ===== Arrow: Echo -> output ===== */}
+      <path d="M288 150 H352" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.7s' }} />
+      <path d="M344 143 L354 150 L344 157" pathLength={1} className="stroke" style={{ ['--d' as string]: '2.85s' }} />
+
+      {/* ===== Output: finished post / carousel (stacked cards + lines + check) ===== */}
+      <g>
+        <rect x="380" y="104" width="64" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '3.0s' }} />
+        <rect x="372" y="112" width="64" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '3.15s' }} />
+        <rect x="364" y="120" width="64" height="60" rx="8" pathLength={1} className="stroke" style={{ ['--d' as string]: '3.3s' }} />
+        <path d="M374 142 H418 M374 154 H410" pathLength={1} className="stroke thin" style={{ ['--d' as string]: '3.5s' }} />
+        <path d="M374 162 L384 172 L406 150" pathLength={1} className="stroke" style={{ ['--d' as string]: '3.75s' }} />
+      </g>
+      <text x="400" y="206" className="cap" style={{ ['--d' as string]: '4.0s' }}>Comes out sounding like you</text>
     </svg>
   );
 }

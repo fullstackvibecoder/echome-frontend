@@ -32,6 +32,23 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
+// jsdom does not implement IntersectionObserver. Components using AnimatedSection
+// (which calls useScrollAnimation → new IntersectionObserver) crash without this.
+// Stub it with a no-op that never fires the callback, so the component renders
+// without animation but without errors.
+if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+  class IntersectionObserverStub {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    configurable: true,
+    value: IntersectionObserverStub,
+  });
+}
+
 // Tear down mounted React trees before the next test's beforeEach hooks run.
 beforeEach(() => {
   cleanup();

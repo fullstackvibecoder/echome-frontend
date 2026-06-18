@@ -19,4 +19,22 @@ describe('SketchExplainer hero-transform scene', () => {
     const style = container.querySelector('style');
     expect(style?.textContent).toContain('#6FC3EC');
   });
+
+  it('shows three input captions: video, voice, and link', () => {
+    const { container } = render(
+      <SketchExplainer scene="hero-transform" accent="#6FC3EC" />,
+    );
+    const text = container.textContent ?? '';
+    expect(text).toContain('Your video');
+    expect(text).toContain('Your voice');
+    expect(text).toContain('Or a link');
+  });
+
+  it('names all three inputs in the accessible label', () => {
+    render(<SketchExplainer scene="hero-transform" accent="#6FC3EC" />);
+    const label = screen.getByRole('img').getAttribute('aria-label') ?? '';
+    expect(label.toLowerCase()).toContain('link');
+    expect(label.toLowerCase()).toContain('voice');
+    expect(label.toLowerCase()).toContain('video');
+  });
 });
