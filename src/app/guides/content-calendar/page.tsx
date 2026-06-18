@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Content Calendar — Schedule Your Posts | EchoMe Guide',
+  title: 'Content Calendar: Schedule Your Posts | EchoMe Guide',
   description: 'See all your generated content organized by date. Drag posts to reschedule, preview before publishing, and plan a full week from a single video.',
   keywords: ['echome content calendar', 'schedule posts', 'content planning', 'social media calendar'],
   alternates: { canonical: 'https://tryechome.com/guides/content-calendar' },
@@ -12,7 +12,7 @@ export default function ContentCalendarGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Content Calendar — Schedule Your Posts',
+    headline: 'Content Calendar: Schedule Your Posts',
     description: 'See all your generated content organized by date. Drag posts to reschedule, preview before publishing, and plan a full week from a single video.',
     url: 'https://tryechome.com/guides/content-calendar',
     datePublished: '2026-04-15',
@@ -39,7 +39,7 @@ export default function ContentCalendarGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Content Calendar &mdash; Schedule Your Posts
+          Content Calendar: Schedule Your Posts
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           EchoMe organizes all your generated content on a visual calendar. Drag posts to reschedule, preview and edit before publishing, and plan a full week of content from a single video upload.
@@ -55,12 +55,12 @@ export default function ContentCalendarGuidePage() {
           </Step>
 
           <Step number={2} title="See everything organized by date">
-            <p>Every piece of generated content &mdash; clips, carousels, written posts, newsletters &mdash; appears at its scheduled date. Each card has small platform dots so you can see at a glance which platforms are firing on which day.</p>
+            <p>Every piece of generated content (clips, carousels, written posts, newsletters) appears at its scheduled date. Each card has small platform dots so you can see at a glance which platforms are firing on which day.</p>
             <Tip>The calendar populates from your Content Kits the moment you schedule a post or use AI Schedule. New generation = new posts on your calendar.</Tip>
           </Step>
 
           <Step number={3} title="Drag in the week view to reschedule">
-            <p>On the week view you can drag any scheduled card to a different day &mdash; EchoMe re-times every platform in that fanout together. Great for shuffling a plan after the week starts.</p>
+            <p>On the week view you can drag any scheduled card to a different day. EchoMe re-times every platform in that fanout together. Great for shuffling a plan after the week starts.</p>
           </Step>
 
           <Step number={4} title="Click any card to preview, retry, or cancel">
@@ -70,11 +70,11 @@ export default function ContentCalendarGuidePage() {
               <li><strong>Retry</strong> a failed post if a platform-side issue (Meta verification, rate limit) cleared after the first attempt.</li>
               <li><strong>Dismiss</strong> a failed or completed row to clear it from the calendar without losing the audit record.</li>
             </ul>
-            <p className="mt-2">If the calendar header shows a red <strong>N failed</strong> counter, click it &mdash; you&rsquo;ll get a side panel listing every failed post with <strong>Dismiss all</strong> to clear stale issues in one click.</p>
+            <p className="mt-2">If the calendar header shows a red <strong>N failed</strong> counter, click it. You&rsquo;ll get a side panel listing every failed post with <strong>Dismiss all</strong> to clear stale issues in one click.</p>
           </Step>
 
           <Step number={5} title="Connect your social accounts and auto-post">
-            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, Facebook, Threads, YouTube (your edited clips publish as Shorts), and Bluesky directly. Auto-posting unlocks at Echo Studio ($87/mo); on Free and Echo you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business are copy-and-open &mdash; we pre-fill the caption and open the native composer in a new tab.</p>
+            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, Facebook, Threads, YouTube (your edited clips publish as Shorts), and Bluesky directly. Auto-posting unlocks at Echo Studio ($87/mo); on Free and Echo you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business are copy-and-open: we pre-fill the caption and open the native composer in a new tab.</p>
             <Tip>Use the AI Schedule button on any content kit to roll out a full week of staggered posts with one click.</Tip>
           </Step>
         </section>
@@ -82,7 +82,7 @@ export default function ContentCalendarGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to plan your content week?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

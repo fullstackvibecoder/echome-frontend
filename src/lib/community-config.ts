@@ -42,7 +42,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'How do free content kits work?',
     answer:
-      'You get 5 free lifetime content kits — no credit card required. Each kit creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, plus a video script you can record on the built-in teleprompter), so 5 kits = 30+ pieces of content.',
+      'You get 5 free lifetime content kits, no credit card required. Each kit creates content for ALL platforms at once (Instagram, LinkedIn, Blog, Email, TikTok, plus a video script you can record on the built-in teleprompter), so 5 kits = 30+ pieces of content.',
     category: 'getting-started',
   },
   {

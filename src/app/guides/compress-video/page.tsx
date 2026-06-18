@@ -49,7 +49,7 @@ export default function CompressVideoGuidePage() {
           How to Reduce Video File Sizes for EchoMe
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          EchoMe accepts files up to 2GB, but uploads under 500MB are noticeably faster and more reliable. Here&apos;s how to get there without losing quality &mdash; for free.
+          EchoMe accepts files up to 2GB, but uploads under 500MB are noticeably faster and more reliable. Here&apos;s how to get there without losing quality, for free.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read &middot; Video walkthrough included
@@ -72,7 +72,7 @@ export default function CompressVideoGuidePage() {
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-text-primary mb-3">Why file size matters</h2>
           <p className="text-text-secondary mb-3">
-            A 50-minute Zoom recording can be anywhere from 200MB to 10GB depending on how it was recorded. EchoMe doesn&apos;t need that raw quality &mdash; it&apos;s analyzing your <strong className="text-text-primary">speech patterns and ideas</strong>, not pixel-perfect video.
+            A 50-minute Zoom recording can be anywhere from 200MB to 10GB depending on how it was recorded. EchoMe doesn&apos;t need that raw quality. It&apos;s analyzing your <strong className="text-text-primary">speech patterns and ideas</strong>, not pixel-perfect video.
           </p>
           <p className="text-text-secondary">
             Compressing a video from 2GB to 300MB takes a couple of minutes and makes your upload faster, more reliable, and produces the exact same results. <strong className="text-text-primary">Aim for under 500MB.</strong>
@@ -83,7 +83,7 @@ export default function CompressVideoGuidePage() {
         <section className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <h2 className="text-lg font-semibold text-text-primary mb-2">Even better: paste a URL instead</h2>
           <p className="text-sm text-text-secondary">
-            If your video is already on YouTube, Vimeo, Loom, or TikTok, just paste the link into EchoMe. No upload needed &mdash; EchoMe will pull the content directly. This is the fastest and most reliable option.
+            If your video is already on YouTube, Vimeo, Loom, or TikTok, just paste the link into EchoMe. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
           </p>
         </section>
 
@@ -161,7 +161,7 @@ export default function CompressVideoGuidePage() {
         <section className="mb-10 p-5 bg-bg-secondary rounded-xl border border-border">
           <h2 className="text-lg font-semibold text-text-primary mb-3">Common mistakes to avoid</h2>
           <ul className="space-y-2 text-sm text-text-secondary">
-            <li><strong className="text-text-primary">Uploading raw recordings:</strong> Screen recorders and cameras often save in bloated formats. A 30-minute Zoom call shouldn&apos;t be 5GB &mdash; compress it first.</li>
+            <li><strong className="text-text-primary">Uploading raw recordings:</strong> Screen recorders and cameras often save in bloated formats. A 30-minute Zoom call shouldn&apos;t be 5GB. Compress it first.</li>
             <li><strong className="text-text-primary">Retrying failed uploads:</strong> If a large file fails to upload, don&apos;t try again with the same file. Compress it first, then retry.</li>
             <li><strong className="text-text-primary">Thinking bigger = better:</strong> EchoMe extracts your voice patterns from the audio. A 4K video gives the same results as 720p but takes 10x longer to upload.</li>
             <li><strong className="text-text-primary">Forgetting about URLs:</strong> If your video is already on YouTube or Vimeo, just paste the link. No upload needed at all.</li>

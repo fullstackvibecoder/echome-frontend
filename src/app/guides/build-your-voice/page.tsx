@@ -3,7 +3,7 @@ import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
   title: 'How EchoMe Reads Your Voice | Guide',
-  description: 'EchoMe writes in your voice by reading what you have already published. Drop videos, social media, emails, and blog posts into your Knowledge Base — the more it reads, the more it sounds like you.',
+  description: 'EchoMe writes in your voice by reading what you have already published. Drop videos, social media, emails, and blog posts into your Knowledge Base. The more it reads, the more it sounds like you.',
   keywords: ['ai content in my voice', 'train ai writing style', 'personal brand content generator', 'ai that sounds like me', 'voice matching AI', 'knowledge base for AI writing'],
   alternates: { canonical: 'https://tryechome.com/guides/build-your-voice' },
 };
@@ -71,8 +71,8 @@ export default function BuildYourVoiceGuidePage() {
           </Step>
 
           <Step number={3} title="Import your writing">
-            <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL &mdash; EchoMe auto-discovers RSS feeds, with a sitemap fallback for static blogs (Hugo, Astro) that don&apos;t expose an RSS feed. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
-            <Tip>Email import requires Echo Studio or higher. The Free and Echo plans don&apos;t include .mbox uploads &mdash; you&apos;ll hit an upgrade prompt when you attach one.</Tip>
+            <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL. EchoMe auto-discovers RSS feeds, with a sitemap fallback for static blogs (Hugo, Astro) that don&apos;t expose an RSS feed. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
+            <Tip>Email import requires Echo Studio or higher. The Free and Echo plans don&apos;t include .mbox uploads. You&apos;ll hit an upgrade prompt when you attach one.</Tip>
           </Step>
 
           <Step number={4} title="Record a voice note">
@@ -82,22 +82,22 @@ export default function BuildYourVoiceGuidePage() {
           <Step number={5} title="How voice matching works">
             <p>EchoMe scores your content across five dimensions:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
-              <li><strong>Signature phrases</strong> &mdash; the words and phrases you reach for naturally</li>
-              <li><strong>Avoid phrases</strong> &mdash; words and phrases you&apos;ve explicitly told Echo to skip</li>
-              <li><strong>Writing style</strong> &mdash; sentence length, rhythm, formality, contractions</li>
-              <li><strong>AI-phrase cleanliness</strong> &mdash; how clear the output is of generic AI giveaways</li>
-              <li><strong>Semantic similarity</strong> &mdash; how close the output is to your past content in meaning</li>
+              <li><strong>Signature phrases</strong>: the words and phrases you reach for naturally</li>
+              <li><strong>Avoid phrases</strong>: words and phrases you&apos;ve explicitly told Echo to skip</li>
+              <li><strong>Writing style</strong>: sentence length, rhythm, formality, contractions</li>
+              <li><strong>AI-phrase cleanliness</strong>: how clear the output is of generic AI giveaways</li>
+              <li><strong>Semantic similarity</strong>: how close the output is to your past content in meaning</li>
             </ul>
             <p className="mt-2">Your voice strength score (0&ndash;100) shows how well Echo can replicate your voice. Each source you add strengthens the profile.</p>
           </Step>
 
           <Step number={6} title="Train it as you use it (thumbs up/down)">
-            <p>Every generated piece &mdash; LinkedIn post, blog draft, carousel slide &mdash; has a thumbs widget. Thumbs up the outputs that sound like you, thumbs down the ones that don&rsquo;t. The system trains on both: for 30 days, the patterns you flagged as off get excluded from future generations. The voice gets closer to yours every week you use it.</p>
+            <p>Every generated piece (LinkedIn post, blog draft, carousel slide) has a thumbs widget. Thumbs up the outputs that sound like you, thumbs down the ones that don&rsquo;t. The system trains on both: for 30 days, the patterns you flagged as off get excluded from future generations. The voice gets closer to yours every week you use it.</p>
           </Step>
 
           <Step number={7} title="Tips for best results">
             <ul className="list-disc list-inside space-y-1">
-              <li>Add at least 3 different content sources &mdash; variety helps.</li>
+              <li>Add at least 3 different content sources. Variety helps.</li>
               <li>Emails are gold because they show how you really communicate.</li>
               <li>Include both long-form (blog posts, articles) and short-form (social posts, emails).</li>
               <li>Voice recordings capture patterns that text alone misses.</li>
@@ -106,7 +106,7 @@ export default function BuildYourVoiceGuidePage() {
           </Step>
 
           <Step number={8} title="Checking your voice strength">
-            <p>Open <strong>Your Voice</strong> in the sidebar. The page shows your voice strength as a 0&ndash;100 score with a visual waveform across the five dimensions above. Use the chat input at the top to ask Echo about your voice &mdash; questions like &quot;how close is the match?&quot;, &quot;describe my style&quot;, or &quot;what am I missing?&quot; work well to identify gaps in your training data.</p>
+            <p>Open <strong>Your Voice</strong> in the sidebar. The page shows your voice strength as a 0&ndash;100 score with a visual waveform across the five dimensions above. Use the chat input at the top to ask Echo about your voice. Questions like &quot;how close is the match?&quot;, &quot;describe my style&quot;, or &quot;what am I missing?&quot; work well to identify gaps in your training data.</p>
           </Step>
         </section>
 

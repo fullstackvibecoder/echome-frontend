@@ -59,7 +59,7 @@ export default function SchedulingPostsGuidePage() {
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           Schedule your content once, publish everywhere. Connect your accounts, pick the platforms for
-          each post, and let EchoMe auto-publish at the exact time you choose &mdash; all from inside your
+          each post, and let EchoMe auto-publish at the exact time you choose, all from inside your
           Content Kits.
         </p>
         <p className="text-sm text-text-secondary/70 mb-2">4 min read &middot; Video walkthrough below</p>
@@ -74,7 +74,7 @@ export default function SchedulingPostsGuidePage() {
           <div style={{ position: 'relative', paddingBottom: '62.7906976744186%', height: 0 }}>
             <iframe
               src="https://www.loom.com/embed/6425ffcdd0c840228a714efeacd0465e"
-              title="EchoMe — Scheduling & Auto-Posting walkthrough"
+              title="EchoMe: Scheduling &amp; Auto-Posting walkthrough"
               allow="fullscreen"
               allowFullScreen
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
@@ -92,27 +92,27 @@ export default function SchedulingPostsGuidePage() {
             </p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>
-                <strong>Instagram</strong> &mdash; Business or Creator account required (Meta doesn&rsquo;t
+                <strong>Instagram</strong>: Business or Creator account required (Meta doesn&rsquo;t
                 allow API posting to personal profiles).
               </li>
               <li>
-                <strong>LinkedIn</strong> &mdash; Personal profile <em>or</em> Company Pages both work. If
+                <strong>LinkedIn</strong>: Personal profile <em>or</em> Company Pages both work. If
                 you manage multiple pages, you&rsquo;ll get to pick which ones during connect.
               </li>
               <li>
-                <strong>Facebook</strong> &mdash; Facebook Page (Meta requires business Pages for API posting;
+                <strong>Facebook</strong>: Facebook Page (Meta requires business Pages for API posting;
                 personal profiles aren&rsquo;t supported by the platform).
               </li>
               <li>
-                <strong>Threads</strong> &mdash; connect directly. Requires a Threads account linked to an
+                <strong>Threads</strong>: connect directly. Requires a Threads account linked to an
                 Instagram Business or Creator account.
               </li>
               <li>
-                <strong>YouTube</strong> &mdash; EchoMe publishes your edited clips as YouTube Shorts (vertical
+                <strong>YouTube</strong>: EchoMe publishes your edited clips as YouTube Shorts (vertical
                 video, up to 3 minutes). No subscriber requirement.
               </li>
               <li>
-                <strong>Bluesky</strong> &mdash; connect with an app password from your Bluesky settings.
+                <strong>Bluesky</strong>: connect with an app password from your Bluesky settings.
               </li>
             </ul>
             <Tip>
@@ -130,7 +130,7 @@ export default function SchedulingPostsGuidePage() {
             </p>
             <p className="mt-2">
               Each clip gets its own tailored caption and its own position/style settings. If you want to
-              move the caption overlay around or restyle it, do that before posting &mdash; your edits get
+              move the caption overlay around or restyle it, do that before posting. Your edits get
               burned into the final video.
             </p>
           </Step>
@@ -158,16 +158,16 @@ export default function SchedulingPostsGuidePage() {
 
           <Step number={4} title="Post now, or schedule for later">
             <p>
-              Two buttons &mdash; pick one:
+              Two buttons. Pick one:
             </p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>
-                <strong>Post now</strong> &mdash; publishes immediately on each selected platform. You&rsquo;ll
+                <strong>Post now</strong>: publishes immediately on each selected platform. You&rsquo;ll
                 get a confirmation toast once it&rsquo;s queued, and the post will show up on your profile
                 within a minute or so.
               </li>
               <li>
-                <strong>Schedule</strong> &mdash; opens a date/time picker. Pick any future time, hit
+                <strong>Schedule</strong>: opens a date/time picker. Pick any future time, hit
                 <strong> Confirm schedule</strong>, and EchoMe takes it from there.
               </li>
             </ul>
@@ -181,7 +181,7 @@ export default function SchedulingPostsGuidePage() {
               />
             </div>
             <Tip>
-              Posts go out from <em>your</em> account &mdash; not a generic third-party &ldquo;via EchoMe&rdquo;
+              Posts go out from <em>your</em> account, not a generic third-party &ldquo;via EchoMe&rdquo;
               footer. It looks like you posted it, because you did.
             </Tip>
           </Step>
@@ -193,7 +193,7 @@ export default function SchedulingPostsGuidePage() {
               icons that tell you exactly what&rsquo;s happening per platform.
             </p>
             <p className="mt-2">
-              Right after you schedule, the card will show &ldquo;Preparing media&rdquo; &mdash; that&rsquo;s
+              Right after you schedule, the card will show &ldquo;Preparing media.&rdquo; That&rsquo;s
               EchoMe finalizing your captioned video or composited carousel behind the scenes. Usually takes
               under a minute. Once it&rsquo;s ready, the state flips to <em>Scheduled</em>, and at your
               chosen time it publishes and flips to <em>Posted</em>.
@@ -218,7 +218,7 @@ export default function SchedulingPostsGuidePage() {
                 <strong>Cancel</strong> a scheduled or preparing post before it goes out.
               </li>
               <li>
-                <strong>Retry</strong> a failed post &mdash; useful if a platform-side issue (Meta
+                <strong>Retry</strong> a failed post, useful if a platform-side issue (Meta
                 verification, rate limit) cleared after your first attempt.
               </li>
               <li>
@@ -230,8 +230,8 @@ export default function SchedulingPostsGuidePage() {
               </li>
             </ul>
             <p className="mt-2">
-              If your calendar header shows a red <strong>N failed</strong> counter, click it &mdash;
-              you&rsquo;ll get a side panel listing every failed post with <strong>Dismiss</strong> and
+              If your calendar header shows a red <strong>N failed</strong> counter, click it.
+              You&rsquo;ll get a side panel listing every failed post with <strong>Dismiss</strong> and
               <strong> Dismiss all</strong> so you can clear stale issues in one click.
             </p>
           </Step>
@@ -245,7 +245,7 @@ export default function SchedulingPostsGuidePage() {
             <p className="mt-2">
               For bigger rollouts, use the <strong>AI Schedule</strong> button on any Content Kit to
               staggered-post a full week of content from one kit with a single click. (Another layer of
-              this is coming soon &mdash; you&rsquo;ll love it.)
+              this is coming soon, you&rsquo;ll love it.)
             </p>
           </Step>
         </section>
@@ -257,7 +257,7 @@ export default function SchedulingPostsGuidePage() {
             href="/auth/signup"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors"
           >
-            Start Free &mdash; 5 Generations
+            Start Free: 5 Generations
           </a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>

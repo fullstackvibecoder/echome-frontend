@@ -119,7 +119,7 @@ export function CommunitySection() {
             </h3>
             <p className="text-white/70 font-light mb-6 max-w-lg mx-auto leading-relaxed">
               Drop in for live Q&amp;A and real conversations about using EchoMe well.
-              Open to everyone — paid subscribers and free-trial users alike.
+              Open to everyone, paid subscribers and free-trial users alike.
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
               <Video className="w-4 h-4" />

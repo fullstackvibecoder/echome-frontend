@@ -133,7 +133,7 @@ const guides = [
     icon: <Package className="w-6 h-6" />,
     title: 'Working with Content Kits',
     description:
-      'Explore everything inside a Content Kit — Visual Content and Written Content sections with clips, social posts, carousels, and transcripts.',
+      'Explore everything inside a Content Kit: Visual Content and Written Content sections with clips, social posts, carousels, and transcripts.',
     category: 'Content',
     readTime: '4 min',
     hasVideo: false,
@@ -141,7 +141,7 @@ const guides = [
   {
     slug: 'carousels',
     icon: <Images className="w-6 h-6" />,
-    title: 'Editing Carousels — Text, Style, Layout, Download',
+    title: 'Editing Carousels: Text, Style, Layout, Download',
     description:
       'Edit slide text, drag to reposition, restyle the whole set with Quote Card / Text on Color / My Image / Video Frame, and download single slides or a zip.',
     category: 'Content',
@@ -213,7 +213,7 @@ const guides = [
     icon: <CalendarDays className="w-6 h-6" />,
     title: 'Content Calendar: Overview',
     description:
-      'A tour of the Content Calendar view — week and month layouts, filters, drag-to-reschedule, and how events group by Content Kit.',
+      'A tour of the Content Calendar view: week and month layouts, filters, drag-to-reschedule, and how events group by Content Kit.',
     category: 'Features',
     readTime: '2 min',
     hasVideo: false,

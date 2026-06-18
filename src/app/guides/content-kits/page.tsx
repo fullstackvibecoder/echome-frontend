@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Working with Content Kits — Edit, Export, Share | EchoMe Guide',
+  title: 'Working with Content Kits: Edit, Export, Share | EchoMe Guide',
   description: 'Learn how to edit posts, export captioned clips in 8 styles, and share content from your EchoMe Content Kits.',
   keywords: ['echome content kit', 'edit content', 'export clips', 'caption styles', 'carousel'],
   alternates: { canonical: 'https://tryechome.com/guides/content-kits' },
@@ -12,7 +12,7 @@ export default function ContentKitsGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Working with Content Kits — Edit, Export, Share',
+    headline: 'Working with Content Kits: Edit, Export, Share',
     description: 'Learn how to edit posts, export captioned clips in 8 styles, and share content from your EchoMe Content Kits.',
     url: 'https://tryechome.com/guides/content-kits',
     datePublished: '2026-04-15',
@@ -39,7 +39,7 @@ export default function ContentKitsGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Working with Content Kits &mdash; Edit, Export, Share
+          Working with Content Kits: Edit, Export, Share
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           Your Content Kit is a complete set of ready-to-publish content generated from a single input. Here&apos;s how to navigate, edit, export, and share everything inside it.
@@ -71,21 +71,21 @@ export default function ContentKitsGuidePage() {
 
           <Step number={4} title="Browse Written Content">
             <p>The Written Content section contains your LinkedIn posts, Instagram captions, X/Twitter posts, blog drafts, and email newsletters. Each OutputCard shows a preview of the content with options to edit, copy, or export.</p>
-            <Tip>Each piece of content is written in your voice &mdash; trained from your previous uploads and knowledge base.</Tip>
+            <Tip>Each piece of content is written in your voice, trained from your previous uploads and knowledge base.</Tip>
           </Step>
 
           <Step number={5} title="Edit any post">
             <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, Twitter, blog, and email content are all editable inline. Make it yours, then save.</p>
-            <Tip>Thumbs up the outputs that sound like you, thumbs down the ones that don&apos;t. The system trains on both &mdash; for 30 days, the patterns you flagged as off get excluded from future generations.</Tip>
+            <Tip>Thumbs up the outputs that sound like you, thumbs down the ones that don&apos;t. The system trains on both. For 30 days, the patterns you flagged as off get excluded from future generations.</Tip>
           </Step>
 
           <Step number={6} title="Edit captions and clip text in the clip editor">
-            <p>Open any clip and you&rsquo;ll get the full editor. Pick from 8 caption styles, drag the caption block anywhere on the video, drag a corner handle to resize the text, and click any transcript line to fix a mis-transcription &mdash; the preview jumps to that moment so you can see your edit live. The post caption that goes alongside the clip is also editable inline.</p>
+            <p>Open any clip and you&rsquo;ll get the full editor. Pick from 8 caption styles, drag the caption block anywhere on the video, drag a corner handle to resize the text, and click any transcript line to fix a mis-transcription. The preview jumps to that moment so you can see your edit live. The post caption that goes alongside the clip is also editable inline.</p>
           </Step>
 
           <Step number={7} title="Share or copy">
             <p>Copy any text to clipboard with one click. Download video clips directly. Share content to your platforms or save it in Your Library for later publishing.</p>
-            <Tip>Use the carousel slides for LinkedIn carousels and Instagram posts &mdash; they&apos;re generated automatically from your content.</Tip>
+            <Tip>Use the carousel slides for LinkedIn carousels and Instagram posts. They&apos;re generated automatically from your content.</Tip>
           </Step>
         </section>
 
