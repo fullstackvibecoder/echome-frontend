@@ -29,9 +29,9 @@ export function HeroSection() {
               <h1
                 className="font-headline text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight"
               >
-                It Already Knows How{' '}
+                Give It Anything.{' '}
                 <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                  You Think.
+                  Get Everything Back.
                 </span>
               </h1>
 
@@ -40,7 +40,7 @@ export function HeroSection() {
                 className="text-base sm:text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
                 style={{ animationDelay: '300ms' }}
               >
-                It read your videos, posts, emails, voice. Drop the next idea — or record yourself reading the script it writes on the built-in teleprompter.
+                EchoMe learns how you think and sound, then turns one idea, video, or link into a full suite of posts, carousels, and clips in your voice. Then schedules and posts them for you.
               </p>
             </div>
 
