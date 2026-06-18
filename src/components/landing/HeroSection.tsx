@@ -20,8 +20,7 @@ export function HeroSection() {
             <div className="space-y-6">
               {/* Headline */}
               <h1
-                className="font-headline text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight opacity-0 animate-fade-in"
-                style={{ animationDelay: '200ms' }}
+                className="font-headline text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight"
               >
                 It Already Knows How{' '}
                 <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">

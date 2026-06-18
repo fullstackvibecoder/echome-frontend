@@ -1,85 +1,28 @@
 'use client';
 
 /**
- * Placeholder for the homepage hero while a new product walkthrough is being shot.
- * Auto-rotating screenshot carousel — same outer chrome (glass container, floating
- * cards, decorative circle) as the previous YouTube embed so the surrounding hero
- * layout doesn't shift. Swap back to a video element when the new walkthrough is
- * ready; keep this file's component name so HeroSection import stays stable.
+ * Homepage hero visual. A self-drawing SVG (SketchExplainer "hero-transform"
+ * scene) showing: your video + voice -> Echo reads it -> a finished post in
+ * your voice. Wrapped in the same glass chrome + floating cards as the prior
+ * placeholder so a real product walkthrough video can drop back into this
+ * frame later with zero relayout. Keep this component's name so the
+ * HeroSection import stays stable.
  */
 
-import { useState, useEffect } from 'react';
 import { Zap } from 'lucide-react';
+import { SketchExplainer } from '@/components/sketch/SketchExplainer';
 
-const SLIDES = [
-  { src: '/guide-screenshots/create-page.png', alt: 'EchoMe create page', caption: 'Paste a link, a video, anything' },
-  { src: '/guide-screenshots/content-kit-list.png', alt: 'Generated content kits in Your Library', caption: 'Get every platform in one kit' },
-  { src: '/guide-screenshots/build-your-voice.png', alt: 'Voice strength dashboard', caption: 'Matched to your voice' },
-  { src: '/guide-screenshots/carousel-editor.png', alt: 'Carousel slide editor', caption: 'Edit every slide before posting' },
-  { src: '/guide-screenshots/scheduling-clip-post-actions.png', alt: 'Post-now and schedule actions', caption: 'One click to publish' },
-];
-
-const SLIDE_DURATION_MS = 4500;
-const FADE_DURATION_MS = 700;
+// Bright accent so the line-art strokes + captions read on the dark hero bg.
+// Tunable against the live card.
+const HERO_ACCENT = '#6FC3EC';
 
 export function HeroDemoVideo() {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    if (paused) return;
-    // Respect users who've opted out of motion at the OS level.
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = setInterval(() => {
-      setIndex(i => (i + 1) % SLIDES.length);
-    }, SLIDE_DURATION_MS);
-    return () => clearInterval(t);
-  }, [paused]);
-
   return (
     <div className="relative group">
       {/* Glass Container */}
-      <div
-        className="relative z-10 p-4 sm:p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/5 shadow-[0_20px_40px_rgba(0,103,126,0.15)]"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
-        <div className="rounded-xl overflow-hidden bg-gray-950 relative" style={{ paddingBottom: '56.25%' }}>
-          {SLIDES.map((slide, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={slide.src}
-              src={slide.src}
-              alt={slide.alt}
-              fetchPriority={i === 0 ? 'high' : 'low'}
-              loading={i === 0 ? 'eager' : 'lazy'}
-              className="absolute inset-0 w-full h-full object-cover ease-in-out"
-              style={{
-                opacity: i === index ? 1 : 0,
-                transitionProperty: 'opacity',
-                transitionDuration: `${FADE_DURATION_MS}ms`,
-              }}
-            />
-          ))}
-
-          {/* Caption + dot indicators */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex items-end justify-between gap-3">
-            <p className="text-white font-headline font-bold text-sm tracking-tight">
-              {SLIDES[index].caption}
-            </p>
-            <div className="flex gap-1.5 flex-shrink-0">
-              {SLIDES.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setIndex(i)}
-                  aria-label={`Show slide ${i + 1} of ${SLIDES.length}`}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+      <div className="relative z-10 p-4 sm:p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/5 shadow-[0_20px_40px_rgba(0,103,126,0.15)]">
+        <div className="rounded-xl overflow-hidden bg-gray-950 relative flex items-center justify-center px-6 py-10 sm:py-12">
+          <SketchExplainer scene="hero-transform" accent={HERO_ACCENT} className="w-full" />
         </div>
 
         {/* Floating card: Voice Matched — top right, bouncing */}
