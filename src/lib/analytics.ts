@@ -1,3 +1,5 @@
+'use client';
+
 import { track } from '@vercel/analytics';
 
 /** Fired once per landing section when it scrolls into view. */

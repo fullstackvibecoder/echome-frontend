@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Check, Mail, Users, ArrowRight } from 'lucide-react';
+import { Menu, X, Check, Mail, ArrowRight } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
