@@ -6,11 +6,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const outputSlides = [
-  { image: '/showcase/platform/written-content.png', alt: 'Written content for 6 platforms', label: 'Social Posts' },
-  { image: '/showcase/platform/instagram-carousel.png', alt: 'Instagram carousel slides', label: 'Carousels' },
-  { image: '/showcase/platform/reel-maker.png', alt: 'Reel Maker with split-screen clips', label: 'Video Clips' },
-  { image: '/showcase/platform/blog-post.png', alt: 'Blog post with header image', label: 'Blog Posts' },
-  { image: '/showcase/platform/carousel-slide-1.png', alt: 'Tweet-box carousel slide', label: 'Tweet Cards' },
+  { image: '/showcase/platform/v2/content-kit-list.png', alt: 'Content kit library grid', label: 'Content Kits' },
+  { image: '/showcase/platform/v2/content-kit-detail.png', alt: 'Content kit with carousel, B-roll reel, blog, and a post for every platform', label: 'Full Kit' },
+  { image: '/showcase/platform/v2/reels.png', alt: 'Reel Maker with drafted clips ready to publish', label: 'Reels & Clips' },
+  { image: '/showcase/platform/v2/calendar.png', alt: 'Content calendar with scheduled posts across platforms', label: 'Scheduled' },
+  { image: '/showcase/platform/v2/post-to.png', alt: 'Platform selector with post now and schedule buttons', label: 'Auto-Post' },
 ];
 
 const ROTATE_MS = 4000;
@@ -54,10 +54,10 @@ export function KnowledgeBaseSection() {
               <div className="text-sm font-bold text-primary uppercase tracking-widest mb-4">What goes in</div>
               <div className="rounded-2xl overflow-hidden border border-border shadow-xl">
                 <Image
-                  src="/showcase/platform/upload-video.png"
-                  alt="EchoMe create page — paste a link, type a topic, drop a video, or record a voice note"
-                  width={800}
-                  height={500}
+                  src="/showcase/platform/v2/unified-input.png"
+                  alt="EchoMe universal input box — paste a link, type a topic, drop a video, or record a voice note"
+                  width={689}
+                  height={497}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="w-full h-auto"
                 />
@@ -129,7 +129,7 @@ export function KnowledgeBaseSection() {
               </div>
 
               <p className="text-sm text-muted-foreground text-center">
-                Posts, carousels, clips, blog drafts, captions — all in your voice.
+                Posts, carousels, clips, blog drafts, captions — all drafted and ready.
               </p>
             </div>
           </div>

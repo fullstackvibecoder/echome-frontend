@@ -2,14 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Film, LayoutGrid, FileText, Package, Brain, Users, Send } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Film, Package, Brain, Users, Send } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const tabs = [
   { id: 'create', label: 'One Input', icon: Sparkles },
   { id: 'reels', label: 'Reels & Clips', icon: Film },
-  { id: 'carousels', label: 'Carousels', icon: LayoutGrid },
-  { id: 'content', label: 'Written Content', icon: FileText },
   { id: 'kits', label: 'Content Kits', icon: Package },
   { id: 'voice', label: 'Your Voice', icon: Brain },
   { id: 'tools', label: 'Creator Tools', icon: Users },
@@ -35,31 +33,16 @@ const slides: Record<string, Slide[]> = {
   reels: [
     { image: '/showcase/platform/v2/reels.png', alt: 'Reel Maker with drafted clips ready to publish', caption: 'Captioned clips, drafted and ready to post.' },
   ],
-  carousels: [
-    { image: '/showcase/platform/instagram-carousel.png', alt: 'Instagram carousel with tweet-style and photo-overlay slides', caption: 'Square and portrait formats, auto-generated from your video' },
-    { image: '/showcase/platform/carousel-slide-1.png', alt: 'Tweet-box carousel slide', caption: 'Tweet-box style. Your words in a recognizable format.' },
-    { image: '/showcase/platform/carousel-slide-2.png', alt: 'Tweet-box carousel slide 2', caption: 'Each slide pulls a real quote from your video' },
-    { image: '/showcase/platform/carousel-slide-3.png', alt: 'Tweet-box carousel slide 3', caption: 'Auto-formatted for swipe-through engagement' },
-    { image: '/showcase/platform/carousel-slide-4.png', alt: 'Tweet-box carousel slide 4', caption: 'Designed for LinkedIn and Instagram feeds' },
-    { image: '/showcase/platform/carousel-slide-5.png', alt: 'Tweet-box carousel slide 5', caption: 'Download all slides with one click' },
-  ],
-  content: [
-    { image: '/showcase/platform/written-content.png', alt: 'Written content cards for multiple social platforms', caption: 'One video, six platforms. Every post sounds like you wrote it.' },
-    { image: '/showcase/platform/blog-post.png', alt: 'Blog post generator with header image selection', caption: 'Full blog posts with header images, ready to publish' },
-  ],
   kits: [
     { image: '/showcase/platform/v2/content-kit-list.png', alt: 'Content kit library grid', caption: 'Every idea becomes a full kit. Your whole library in one place.' },
     { image: '/showcase/platform/v2/content-kit-detail.png', alt: 'Content kit detail with carousel, B-roll reel, and platform posts', caption: 'One kit: carousel, B-roll reel, blog, and a post for every platform.' },
   ],
   voice: [
     { image: '/showcase/platform/v2/voice.png', alt: 'Build your voice knowledge base with connect, import, and record options', caption: 'Teach Echo how you think and sound.' },
-    { image: '/showcase/platform/record-voice.png', alt: 'Voice recording interface', caption: 'Speak your idea and Echo creates content from it' },
   ],
   tools: [
     { image: '/showcase/platform/v2/creator-radar.png', alt: 'Creator Radar following feed with repurpose buttons', caption: 'Follow creators. Repurpose their videos and links in your voice.' },
     { image: '/showcase/platform/v2/creator-library.png', alt: 'Creator Library with monthly B-roll', caption: 'Monthly B-roll drops, caption templates, and reel scripts' },
-    { image: '/showcase/platform/repurpose-content.png', alt: 'Repurpose content modal', caption: 'Pick a video, choose platforms, generate in your voice' },
-    { image: '/showcase/platform/team-voices.png', alt: 'Team Voices management', caption: 'Manage multiple voice profiles from one account' },
   ],
   schedule: [
     { image: '/showcase/platform/v2/calendar.png', alt: 'Content calendar week view with scheduled posts across platforms', caption: 'Schedule a week of content across every platform.' },
