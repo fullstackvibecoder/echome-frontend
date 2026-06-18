@@ -20,11 +20,17 @@ interface Slide {
   image: string;
   alt: string;
   caption: string;
+  /** Native pixel size of the source. Defaults to the 1200x700 landscape frame. */
+  width?: number;
+  height?: number;
+  /** Cap the rendered width (px) so smaller captures display near 1:1 instead of upscaling. */
+  maxW?: number;
 }
 
 const slides: Record<string, Slide[]> = {
   create: [
-    { image: '/showcase/platform/v2/create.png', alt: 'EchoMe create page with a universal input box and Clips, Carousel, Blog, and Email outputs', caption: 'One input. Paste a link, type a topic, or drop a video. Echo turns it into everything below.' },
+    { image: '/showcase/platform/v2/unified-create.png', width: 684, height: 646, maxW: 684, alt: 'EchoMe unified workspace with draft content cards, a voice-knowledge score panel, and one universal input box', caption: 'Echo learns how well it knows you, then drafts content from what you shared. Pick one and go.' },
+    { image: '/showcase/platform/v2/unified-input.png', width: 689, height: 497, maxW: 689, alt: 'EchoMe universal input box: type, paste a link, drop a file, or record your voice', caption: 'One box. Type, paste a link, drop a video, or talk. It all feeds your voice.' },
   ],
   reels: [
     { image: '/showcase/platform/v2/reels.png', alt: 'Reel Maker with drafted clips ready to publish', caption: 'Captioned clips, drafted and ready to post.' },
@@ -149,14 +155,17 @@ function ImageCarousel({ items }: { items: Slide[] }) {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {items.map((item) => (
-          <div key={item.image} className="w-full flex-shrink-0 snap-center">
-            <div className="rounded-xl overflow-hidden border border-border">
+          <div key={item.image} className="w-full flex-shrink-0 snap-center flex justify-center">
+            <div
+              className="rounded-xl overflow-hidden border border-border w-full"
+              style={item.maxW ? { maxWidth: item.maxW } : undefined}
+            >
               <Image
                 src={item.image}
                 alt={item.alt}
-                width={1200}
-                height={700}
-                sizes="(max-width: 768px) 100vw, 1100px"
+                width={item.width ?? 1200}
+                height={item.height ?? 700}
+                sizes={item.maxW ? `${item.maxW}px` : '(max-width: 768px) 100vw, 1100px'}
                 className="w-full h-auto"
                 priority={items.indexOf(item) === 0}
               />
