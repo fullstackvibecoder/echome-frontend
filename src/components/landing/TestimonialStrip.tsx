@@ -1,28 +1,32 @@
 'use client';
 
+import { User } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 import { SectionCTA } from './SectionCTA';
 
 // Real member quotes from the June 2026 office hours, anonymized (members
-// consented to the call, not to public named attribution). Role-only attribution.
-const testimonials: { quote: string; name: string; role: string; initials: string }[] = [
+// consented to the call, not to public named attribution). Role-only
+// attribution, no name monogram, since these are intentionally anonymous.
+const testimonials: { quote: string; attribution: string }[] = [
   {
     quote: 'I thought I needed to have existing video. Turns out I don’t.',
-    name: 'Real estate agent',
-    role: 'EchoMe member',
-    initials: 'RE',
+    attribution: 'Real estate agent',
   },
   {
     quote: 'I was just driving and talked about why I stopped working with buyers during the pandemic and came back to it. That became content.',
-    name: 'Real estate agent',
-    role: 'EchoMe member',
-    initials: 'RE',
+    attribution: 'Real estate agent',
   },
   {
     quote: 'It’s always weird writing about yourself. That’s the biggest hurdle with content.',
-    name: 'Real estate agent',
-    role: 'EchoMe member',
-    initials: 'RE',
+    attribution: 'Real estate agent',
+  },
+  {
+    quote: 'Your content’s been great. You’re covering all the buckets.',
+    attribution: 'Real estate agent',
+  },
+  {
+    quote: 'I just get a lot of engagement.',
+    attribution: 'Real estate agent',
   },
 ];
 
@@ -56,12 +60,9 @@ export function TestimonialStrip() {
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">{t.initials}</span>
+                    <User className="w-4 h-4 text-white" aria-hidden="true" />
                   </div>
-                  <div>
-                    <p className="text-white font-semibold text-sm">{t.name}</p>
-                    <p className="text-white/50 text-sm">{t.role}</p>
-                  </div>
+                  <p className="text-white/60 text-sm">{t.attribution}</p>
                 </div>
               </div>
             ))}

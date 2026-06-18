@@ -61,6 +61,14 @@ const realtorFaqs: { q: string; a: string }[] = [
     q: 'What kinds of things should I record for my Knowledge Base?',
     a: 'Anything that captures how you think. Client conversations, listing walkthroughs, a quick voice note in the car about why you made a call. EchoMe learns your reasoning, not just your words. The bar is low. An off-the-cuff voice memo is genuinely useful.',
   },
+  {
+    q: 'Does EchoMe write content for me automatically?',
+    a: 'Yes. Once your Knowledge Base has enough to work with, EchoMe can draft content for you and deliver it to your dashboard, marked as drafted by Echo. You review, edit, and schedule what you want, and skip the rest.',
+  },
+  {
+    q: 'How good is voice matching at the start?',
+    a: 'Voice matching learns over time. It will be rough on day one and gets stronger as you add more of your videos, emails, and posts. Stick with it. The more you feed it, the closer the output reads to how you actually write.',
+  },
 ];
 
 export default function RealtorsPage() {
