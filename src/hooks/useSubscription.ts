@@ -56,7 +56,7 @@ interface UseSubscriptionReturn {
    * Access rules (product spec 2026-04-24):
    *   - Studio / Echo Pro (enterprise) / Teams — always true
    *   - Free tier with freeGenerationsRemaining > 0 — true
-   *   - Echo ($29 / 'pro') — false (scheduling via reminders only)
+   *   - Echo ($37 / 'pro') — false (scheduling via reminders only)
    *   - Free with no quota, or no subscription — false
    *
    * Use this instead of hasTierAccess('studio') for any auto-post UX.

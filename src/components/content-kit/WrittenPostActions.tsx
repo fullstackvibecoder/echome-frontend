@@ -83,7 +83,10 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
 
     // API mode
     if (!canAutoPost) {
-      toast.error('Auto-post requires Echo Studio or above.');
+      toast('Auto-post is an Echo Studio feature', {
+        description: 'Upgrade to post directly, or use Schedule to set an email reminder instead.',
+        action: { label: 'Upgrade', onClick: () => { window.location.href = '/app/billing'; } },
+      });
       return;
     }
     if (!connected) {

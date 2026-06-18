@@ -184,8 +184,8 @@ export function ConnectedAccounts() {
       switch (autoPostBlockedReason) {
         case 'echo-tier':
           return [
-            'Available on Echo Studio, Echo Pro, and Teams',
-            'Your Echo plan can still schedule posts on the calendar — we\'ll email you the copy-ready content at the scheduled time.',
+            'Available on Echo Studio and Teams',
+            'Your Echo plan can still schedule posts on the calendar. We\'ll email you the copy-ready content at the scheduled time.',
           ];
         case 'free-exhausted':
           return [

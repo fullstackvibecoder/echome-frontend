@@ -154,7 +154,10 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
 
     // Mixed or api-only: fanout-schedule with now-time
     if (!canAutoPost) {
-      toast.error('Auto-post to Instagram / LinkedIn / Facebook / Threads / YouTube requires Studio');
+      toast('Auto-post is an Echo Studio feature', {
+        description: 'Upgrade to post directly, or use Schedule to set an email reminder instead.',
+        action: { label: 'Upgrade', onClick: () => { window.location.href = '/app/billing'; } },
+      });
       return;
     }
     const apiRows = selected
