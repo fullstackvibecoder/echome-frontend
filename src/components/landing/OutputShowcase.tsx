@@ -2,16 +2,18 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { ArrowRight, ChevronLeft, ChevronRight, Film, LayoutGrid, FileText, Brain, Users, Zap } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Film, LayoutGrid, FileText, Package, Brain, Users, Send } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 
 const tabs = [
+  { id: 'create', label: 'One Input', icon: Sparkles },
   { id: 'reels', label: 'Reels & Clips', icon: Film },
   { id: 'carousels', label: 'Carousels', icon: LayoutGrid },
   { id: 'content', label: 'Written Content', icon: FileText },
+  { id: 'kits', label: 'Content Kits', icon: Package },
   { id: 'voice', label: 'Your Voice', icon: Brain },
   { id: 'tools', label: 'Creator Tools', icon: Users },
-  { id: 'processing', label: 'Live Processing', icon: Zap },
+  { id: 'schedule', label: 'Schedule & Publish', icon: Send },
 ];
 
 interface Slide {
@@ -21,12 +23,15 @@ interface Slide {
 }
 
 const slides: Record<string, Slide[]> = {
+  create: [
+    { image: '/showcase/platform/v2/create.png', alt: 'EchoMe create page with a universal input box and Clips, Carousel, Blog, and Email outputs', caption: 'One input. Paste a link, type a topic, or drop a video. Echo turns it into everything below.' },
+  ],
   reels: [
-    { image: '/showcase/platform/reel-maker.png', alt: 'Reel Maker with split-screen clips and face detection', caption: 'Split-screen clips with face tracking and auto-captions' },
+    { image: '/showcase/platform/v2/reels.png', alt: 'Reel Maker with drafted clips ready to publish', caption: 'Captioned clips, drafted and ready to post.' },
   ],
   carousels: [
     { image: '/showcase/platform/instagram-carousel.png', alt: 'Instagram carousel with tweet-style and photo-overlay slides', caption: 'Square and portrait formats, auto-generated from your video' },
-    { image: '/showcase/platform/carousel-slide-1.png', alt: 'Tweet-box carousel slide', caption: 'Tweet-box style — your words in a recognizable format' },
+    { image: '/showcase/platform/carousel-slide-1.png', alt: 'Tweet-box carousel slide', caption: 'Tweet-box style. Your words in a recognizable format.' },
     { image: '/showcase/platform/carousel-slide-2.png', alt: 'Tweet-box carousel slide 2', caption: 'Each slide pulls a real quote from your video' },
     { image: '/showcase/platform/carousel-slide-3.png', alt: 'Tweet-box carousel slide 3', caption: 'Auto-formatted for swipe-through engagement' },
     { image: '/showcase/platform/carousel-slide-4.png', alt: 'Tweet-box carousel slide 4', caption: 'Designed for LinkedIn and Instagram feeds' },
@@ -36,22 +41,23 @@ const slides: Record<string, Slide[]> = {
     { image: '/showcase/platform/written-content.png', alt: 'Written content cards for multiple social platforms', caption: 'One video, six platforms. Every post sounds like you wrote it.' },
     { image: '/showcase/platform/blog-post.png', alt: 'Blog post generator with header image selection', caption: 'Full blog posts with header images, ready to publish' },
   ],
+  kits: [
+    { image: '/showcase/platform/v2/content-kit-list.png', alt: 'Content kit library grid', caption: 'Every idea becomes a full kit. Your whole library in one place.' },
+    { image: '/showcase/platform/v2/content-kit-detail.png', alt: 'Content kit detail with carousel, B-roll reel, and platform posts', caption: 'One kit: carousel, B-roll reel, blog, and a post for every platform.' },
+  ],
   voice: [
-    { image: '/showcase/platform/build-voice.png', alt: 'Knowledge base with Connect Socials, Import Writing, and Record Voice', caption: 'Three ways to teach Echo your voice' },
-    { image: '/showcase/platform/build-voice-expanded.png', alt: 'Expanded import options', caption: 'Import from YouTube, Instagram, blogs, PDFs, or email exports' },
+    { image: '/showcase/platform/v2/voice.png', alt: 'Build your voice knowledge base with connect, import, and record options', caption: 'Teach Echo how you think and sound.' },
     { image: '/showcase/platform/record-voice.png', alt: 'Voice recording interface', caption: 'Speak your idea and Echo creates content from it' },
   ],
   tools: [
-    { image: '/showcase/platform/creator-radar.png', alt: 'Following page with creator feeds and repurpose button', caption: 'Follow creators in your space. Repurpose their ideas in your voice.' },
+    { image: '/showcase/platform/v2/creator-radar.png', alt: 'Creator Radar following feed with repurpose buttons', caption: 'Follow creators. Repurpose their videos and links in your voice.' },
+    { image: '/showcase/platform/v2/creator-library.png', alt: 'Creator Library with monthly B-roll', caption: 'Monthly B-roll drops, caption templates, and reel scripts' },
     { image: '/showcase/platform/repurpose-content.png', alt: 'Repurpose content modal', caption: 'Pick a video, choose platforms, generate in your voice' },
     { image: '/showcase/platform/team-voices.png', alt: 'Team Voices management', caption: 'Manage multiple voice profiles from one account' },
-    { image: '/showcase/platform/creator-library.png', alt: 'Creator Library with monthly B-roll', caption: 'Monthly B-roll drops, caption templates, and reel scripts' },
   ],
-  processing: [
-    { image: '/showcase/platform/processing-timeline.png', alt: 'Video processing step timeline', caption: 'Watch your video move through each processing stage' },
-    { image: '/showcase/platform/processing-full.png', alt: 'Full processing view with sidebar', caption: 'Full app view during video processing' },
-    { image: '/showcase/platform/processing-full-2.png', alt: 'Processing view at transcription stage', caption: 'Real-time progress with the floating processing widget' },
-    { image: '/showcase/platform/processing-widget.png', alt: 'Floating processing widget', caption: 'Navigate away freely — the widget tracks progress for you' },
+  schedule: [
+    { image: '/showcase/platform/v2/calendar.png', alt: 'Content calendar week view with scheduled posts across platforms', caption: 'Schedule a week of content across every platform.' },
+    { image: '/showcase/platform/v2/post-to.png', alt: 'Platform selector with Post now and Schedule buttons', caption: 'Post now or schedule. Instagram, LinkedIn, Facebook, and more.' },
   ],
 };
 
@@ -206,7 +212,7 @@ function ImageCarousel({ items }: { items: Slide[] }) {
 }
 
 export function OutputShowcase() {
-  const [activeTab, setActiveTab] = useState('reels');
+  const [activeTab, setActiveTab] = useState('create');
 
   return (
     <AnimatedSection>
