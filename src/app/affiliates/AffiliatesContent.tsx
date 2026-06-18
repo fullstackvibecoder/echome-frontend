@@ -34,7 +34,7 @@ export default function AffiliatesContent() {
     },
     {
       q: "What about enterprise referrals?",
-      a: "Enterprise deals (custom integrations starting at $10K) earn 10-15% commission plus 25% on the managed service ($297/mo). Email partnerships@tryechome.com with enterprise leads."
+      a: "Enterprise deals (custom integrations and managed setups) earn custom commission. Email partnerships@tryechome.com with enterprise leads and we'll take it from there."
     },
   ];
 
@@ -132,9 +132,9 @@ export default function AffiliatesContent() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { plan: 'Echo', price: 29, commission: 7.25, features: ['Up to 2 hours video/mo', 'Up to 5 clips per video', '250MB file uploads'] },
-              { plan: 'Echo Studio', price: 49, commission: 12.25, features: ['Up to 5 hours video/mo', 'Up to 10 clips per video', '750MB file uploads'], popular: true },
-              { plan: 'Echo Pro', price: 99, commission: 24.75, features: ['Unlimited video', 'Up to 15 clips per video', '5GB file uploads'] },
+              { plan: 'Echo', price: 37, commission: 9.25, features: ['Voice profile, learning continuously', 'Reads YouTube, IG, blog, email, voice notes, PDFs', 'Creator Radar'] },
+              { plan: 'Echo Studio', price: 87, commission: 21.75, features: ['Deep voice matching with feedback', 'Reads your full email history', 'Priority processing'], popular: true },
+              { plan: 'Echo Teams', price: 47, perVoice: true, commission: 11.75, features: ['Per-voice scaling, 2-voice minimum', 'Per-voice knowledge bases', 'Shared usage pool, priority support'] },
             ].map((tier) => (
               <div
                 key={tier.plan}
@@ -150,10 +150,10 @@ export default function AffiliatesContent() {
                   </div>
                 )}
                 <h3 className="text-xl font-bold mb-2">{tier.plan}</h3>
-                <p className="text-gray-500 text-sm mb-4">${tier.price}/month</p>
+                <p className="text-gray-500 text-sm mb-4">${tier.price}{tier.perVoice ? '/voice/mo' : '/month'}</p>
                 <div className="mb-4">
                   <span className="text-4xl font-extrabold text-accent">${tier.commission}</span>
-                  <span className="text-gray-500">/mo per referral</span>
+                  <span className="text-gray-500">{tier.perVoice ? '/mo per voice' : '/mo per referral'}</span>
                 </div>
                 <ul className="text-sm text-gray-600 space-y-2">
                   {tier.features.map((f, i) => (
@@ -171,7 +171,7 @@ export default function AffiliatesContent() {
               <div>
                 <h3 className="text-xl font-bold mb-1">Enterprise Referrals</h3>
                 <p className="text-gray-600">
-                  Know a company that needs custom integrations? Earn 10-15% on contracts starting at $10K, plus 25% on $297/mo managed service.
+                  Know a company that needs custom integrations or a managed setup? We pay custom commission on enterprise referrals. Send us the lead and we'll handle the rest.
                 </p>
               </div>
               <a
@@ -208,7 +208,7 @@ export default function AffiliatesContent() {
                 icon: "💡"
               },
               {
-                title: "Try 2 Free Generations",
+                title: "Try 5 Free Content Kits",
                 desc: "No credit card required. People can try it risk-free. Most users convert because once they see their voice captured, they don't want to go back.",
                 icon: "🎁"
               },
