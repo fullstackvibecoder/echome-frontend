@@ -43,6 +43,10 @@ const faqCategories = [
         a: 'Yes. EchoMe supports password-protected Zoom cloud recordings. When you paste a Zoom recording link, you will be prompted to enter the recording password. EchoMe downloads and processes the recording the same way as any other video source.',
       },
       {
+        q: 'I do not have video to upload. Can I still use EchoMe?',
+        a: 'Yes. Video is optional. From a typed topic, a voice note, or a link, EchoMe writes social captions, carousels, and TikTok scripts. Only short captioned clips need a video source.',
+      },
+      {
         q: "What's included in a Content Kit?",
         a: 'Every Content Kit includes video clips with auto-generated captions scored by engagement potential, social posts written in your voice for LinkedIn, Twitter, and Instagram, carousel slides in square and portrait formats, and a full transcript of your video. Each clip comes with a thumbnail, transcript, and suggested caption.',
       },
@@ -66,6 +70,14 @@ const faqCategories = [
       {
         q: 'How do I improve my voice match score?',
         a: 'Add at least 5 to 10 content sources to your Knowledge Base for a strong voice match. Use a variety of source types — past blog posts, social media content, emails, and voice recordings. The more varied your sources, the better EchoMe captures your full range. Your Knowledge Base screen shows a voice strength indicator to track your progress.',
+      },
+      {
+        q: 'Does EchoMe set up my Knowledge Base for me?',
+        a: 'When you sign up, EchoMe can search the public web for your profiles and pre-fill your Knowledge Base, with your consent. You can skip it, and re-run it anytime from your Voice page.',
+      },
+      {
+        q: 'What kinds of things should I record for my Knowledge Base?',
+        a: 'Anything that captures how you think. Client conversations, listing walkthroughs, a quick voice note in the car about why you made a call. EchoMe learns your reasoning, not just your words. The bar is low. An off-the-cuff voice memo is genuinely useful.',
       },
     ],
   },

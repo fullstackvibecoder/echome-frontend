@@ -3,15 +3,27 @@
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
 import { SectionCTA } from './SectionCTA';
 
-// TODO: Replace with real testimonials once collected
+// Real member quotes from the June 2026 office hours, anonymized (members
+// consented to the call, not to public named attribution). Role-only attribution.
 const testimonials: { quote: string; name: string; role: string; initials: string }[] = [
-  // Example format:
-  // {
-  //   quote: "Actual user testimonial here.",
-  //   name: 'Full Name',
-  //   role: 'Role / Title',
-  //   initials: 'FN',
-  // },
+  {
+    quote: 'I thought I needed to have existing video. Turns out I don’t.',
+    name: 'Real estate agent',
+    role: 'EchoMe member',
+    initials: 'RE',
+  },
+  {
+    quote: 'I was just driving and talked about why I stopped working with buyers during the pandemic and came back to it. That became content.',
+    name: 'Real estate agent',
+    role: 'EchoMe member',
+    initials: 'RE',
+  },
+  {
+    quote: 'It’s always weird writing about yourself. That’s the biggest hurdle with content.',
+    name: 'Real estate agent',
+    role: 'EchoMe member',
+    initials: 'RE',
+  },
 ];
 
 export function TestimonialStrip() {

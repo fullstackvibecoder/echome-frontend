@@ -30,6 +30,10 @@ const realtorFaqs: { q: string; a: string }[] = [
     a: "No. Raw, unpolished video is perfect. EchoMe extracts your ideas and speaking style from the audio — it doesn't care about production quality. A 3-minute phone recording of you talking about a listing is ideal.",
   },
   {
+    q: 'I do not have video to upload. Can I still use EchoMe?',
+    a: 'Yes. Video is optional. From a typed topic, a voice note, or a link, EchoMe writes social captions, carousels, and TikTok scripts. Only short captioned clips need a video source.',
+  },
+  {
     q: 'What kind of content does it create?',
     a: 'From one talking-head video, EchoMe pulls short captioned clips and generates Instagram carousels, LinkedIn posts, X/Twitter threads, email newsletters, blog posts, and teleprompter scripts — all in your voice, across the platforms where your clients spend time. Your listing walkthrough footage works as b-roll behind the clips.',
   },
@@ -48,6 +52,14 @@ const realtorFaqs: { q: string; a: string }[] = [
   {
     q: "What if I don't have any content to upload?",
     a: 'You have more than you think. Your sent emails, listing descriptions, past social posts, even a 2-minute voice recording talking about your market — all of it works. Start small, and your voice profile gets stronger over time.',
+  },
+  {
+    q: 'Does EchoMe set up my Knowledge Base for me?',
+    a: 'When you sign up, EchoMe can search the public web for your profiles and pre-fill your Knowledge Base, with your consent. You can skip it, and re-run it anytime from your Voice page.',
+  },
+  {
+    q: 'What kinds of things should I record for my Knowledge Base?',
+    a: 'Anything that captures how you think. Client conversations, listing walkthroughs, a quick voice note in the car about why you made a call. EchoMe learns your reasoning, not just your words. The bar is low. An off-the-cuff voice memo is genuinely useful.',
   },
 ];
 
