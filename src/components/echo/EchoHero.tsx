@@ -182,7 +182,7 @@ export function EchoHero() {
           >
             Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
           </p>
-          {/* Ambient do->get explainer: teaches one-video -> clips/posts/
+          {/* Ambient do->get explainer: teaches one-input -> clips/posts/
               carousels while the KB is empty. Self-drawing, silent, loops in
               view, freezes on reduced-motion. Abstract (not a screenshot of
               this page) so it never recurses against the real composer below.
@@ -191,7 +191,7 @@ export function EchoHero() {
             <SketchExplainer
               scene="what-is-echome"
               accent="var(--muted-foreground)"
-              caption="One video in. Clips, posts, and carousels out, in your voice."
+              caption="A video, a link, or a topic in. Clips, posts, and carousels out, in your voice."
             />
           </div>
         </>
