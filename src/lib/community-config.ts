@@ -114,7 +114,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'Do you offer team plans?',
     answer:
-      'Yes! EchoTeams plans let you manage multiple voice profiles from one account. Plans start at $129/mo for 2 voices, $179/mo for 5 voices, and $249/mo for 10 voices.',
+      'Yes! Echo Teams lets you manage multiple voice profiles from one account. It is $47/voice/mo with a 2-voice minimum, so you only pay for the voices you actually use. No upper cap.',
     category: 'billing',
   },
 
