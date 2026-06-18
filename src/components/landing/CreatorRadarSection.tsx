@@ -22,7 +22,7 @@ const steps = [
   {
     icon: MessageSquare,
     title: 'Your Voice, Not Theirs',
-    desc: 'The output uses your voice, your style, your framing. Same ideas, your words.',
+    desc: 'The output uses your voice, your style, your framing.',
   },
 ];
 
@@ -78,7 +78,7 @@ export function CreatorRadarSection() {
               Same ideas, your words. Always.
             </p>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Their ideas, your context, your voice. The output is original because the perspective is yours.
+              The output is original because the perspective is yours.
             </p>
           </div>
         </div>

@@ -7,30 +7,30 @@ import { SectionCTA } from './SectionCTA';
 export function NotChatGPTSection() {
   return (
     <AnimatedSection>
-      <section className="py-24 px-6 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 relative overflow-hidden">
+      <section className="py-16 px-6 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900 relative overflow-hidden">
         {/* Single subtle gradient */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-white">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 text-white">
               Not
               <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
                 {' '}ChatGPT
               </span>
             </h2>
 
-            <p className="text-xl text-gray-300 font-light max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-gray-300 font-light max-w-2xl mx-auto leading-relaxed">
               ChatGPT writes from prompts. Echo writes from context - your history, your voice, your ideas. No prompt engineering. No &ldquo;act like me&rdquo; instructions.
             </p>
           </div>
 
           {/* Comparison Cards */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {/* ChatGPT - muted */}
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-2xl p-8 opacity-80">
-              <div className="w-12 h-12 mb-6 bg-white/5 rounded-xl flex items-center justify-center">
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-2xl p-6 opacity-80">
+              <div className="w-12 h-12 mb-4 bg-white/5 rounded-xl flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-white/40" />
               </div>
               <h3 className="text-xl font-bold text-white/70 mb-4">ChatGPT</h3>
@@ -55,8 +55,8 @@ export function NotChatGPTSection() {
             </div>
 
             {/* EchoMe - highlighted winner */}
-            <div className="relative bg-gradient-to-br from-primary/15 to-accent-purple/15 border-2 border-primary/40 rounded-2xl p-8 shadow-[0_0_40px_-10px_rgba(0,212,255,0.3)]">
-              <div className="w-14 h-14 mb-6 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
+            <div className="relative bg-gradient-to-br from-primary/15 to-accent-purple/15 border-2 border-primary/40 rounded-2xl p-6 shadow-[0_0_40px_-10px_rgba(0,212,255,0.3)]">
+              <div className="w-14 h-14 mb-4 bg-gradient-to-br from-primary to-accent-purple rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
                 <Video className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">EchoMe</h3>
@@ -90,11 +90,11 @@ export function NotChatGPTSection() {
           </div>
 
           {/* Bottom CTA */}
-          <div className="mt-16 text-center">
-            <p className="text-2xl font-bold text-white mb-2">
+          <div className="mt-10 text-center">
+            <p className="text-xl font-bold text-white mb-2">
               The system already knows your voice.
             </p>
-            <p className="text-lg text-white/60 mb-8">
+            <p className="text-base text-white/60 mb-6">
               Upload your work. It handles the rest.
             </p>
             <SectionCTA headline="" buttonText="Start Free" trust="5 free content kits. No credit card." />
