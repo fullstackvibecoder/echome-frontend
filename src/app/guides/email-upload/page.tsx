@@ -49,7 +49,7 @@ export default function EmailUploadGuidePage() {
           How to Upload Emails to EchoMe
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Your sent emails are one of the best sources for training your voice. Here&apos;s exactly how to export them from Gmail and upload them to EchoMe &mdash; in under 3 minutes.
+          Your sent emails are one of the best sources for training your voice. Here&apos;s exactly how to export them from Gmail and upload them to EchoMe, in under 3 minutes.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read &middot; Video walkthrough included
@@ -77,10 +77,10 @@ export default function EmailUploadGuidePage() {
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-text-primary mb-3">Why sent emails?</h2>
           <p className="text-text-secondary mb-3">
-            Your sent emails are full of <strong className="text-text-primary">your actual voice</strong> &mdash; the way you greet people, explain things, follow up, and close conversations. Unlike blog posts or social media, emails are unfiltered. They&apos;re how you actually communicate.
+            Your sent emails are full of <strong className="text-text-primary">your actual voice</strong>: the way you greet people, explain things, follow up, and close conversations. Unlike blog posts or social media, emails are unfiltered. They&apos;re how you actually communicate.
           </p>
           <p className="text-text-secondary">
-            But there&apos;s a catch: <strong className="text-text-primary">don&apos;t just dump your entire inbox</strong>. You want your <em>sent</em> emails from the last 6 months &mdash; that&apos;s the sweet spot for capturing your current voice without overwhelming the system.
+            But there&apos;s a catch: <strong className="text-text-primary">don&apos;t just dump your entire inbox</strong>. You want your <em>sent</em> emails from the last 6 months. That&apos;s the sweet spot for capturing your current voice without overwhelming the system.
           </p>
         </section>
 
@@ -103,16 +103,16 @@ export default function EmailUploadGuidePage() {
           </Step>
 
           <Step number={3} title="Create a label for download">
-            <p>Select all the emails from your search results, then create a new label &mdash; something like <strong>&quot;For Download&quot;</strong>. This label is what Google Takeout will use to export just these emails instead of your entire mailbox.</p>
+            <p>Select all the emails from your search results, then create a new label (something like <strong>&quot;For Download&quot;</strong>). This label is what Google Takeout will use to export just these emails instead of your entire mailbox.</p>
           </Step>
 
           <Step number={4} title="Go to Google Takeout">
-            <p>Head to <strong>takeout.google.com</strong>. This is Google&apos;s official tool for exporting your data. Click <strong>&quot;Deselect all&quot;</strong> first &mdash; you don&apos;t want to download everything.</p>
+            <p>Head to <strong>takeout.google.com</strong>. This is Google&apos;s official tool for exporting your data. Click <strong>&quot;Deselect all&quot;</strong> first. You don&apos;t want to download everything.</p>
           </Step>
 
           <Step number={5} title="Select only your labeled emails">
             <p>Scroll down to <strong>Mail</strong>, check the box, then click <strong>&quot;All Mail data included&quot;</strong> and change it to only include your <strong>&quot;For Download&quot;</strong> label. This keeps the export small and focused.</p>
-            <Tip>This is the step most people miss. If you skip filtering by label, you&apos;ll get a massive file with every email you&apos;ve ever received &mdash; which is not what Echo needs.</Tip>
+            <Tip>This is the step most people miss. If you skip filtering by label, you&apos;ll get a massive file with every email you&apos;ve ever received, which is not what Echo needs.</Tip>
           </Step>
 
           <Step number={6} title="Export and download">
@@ -120,21 +120,21 @@ export default function EmailUploadGuidePage() {
           </Step>
 
           <Step number={7} title="Download and unzip">
-            <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong> &mdash; that&apos;s what you&apos;ll upload to EchoMe.</p>
-            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work &mdash; the file may be named just <code>mbox</code> with no extension. EchoMe accepts both. Max file size: 500MB &mdash; if your export is larger, filter the label to a shorter date range.</Tip>
+            <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong>. That&apos;s what you&apos;ll upload to EchoMe.</p>
+            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. Max file size: 500MB. If your export is larger, filter the label to a shorter date range.</Tip>
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
-            <p>Go to <strong>Your Voice</strong> in EchoMe. Near the top of the page there&apos;s a chat-style input where you&apos;d type or paste content. Click the <strong>paperclip icon</strong> at the bottom of that input and pick the <strong>.mbox file</strong> you extracted &mdash; or just <strong>drag and drop the file onto the input</strong>. EchoMe will parse your emails and start processing them.</p>
-            <Tip>You won&apos;t see a separate &quot;Email&quot; button or an &quot;Import my Writing&quot; card &mdash; that older UI was replaced by the single chat input. The paperclip / drag-drop is the way in for everything: PDFs, Word docs, voice recordings, and .mbox exports.</Tip>
+            <p>Go to <strong>Your Voice</strong> in EchoMe. Near the top of the page there&apos;s a chat-style input where you&apos;d type or paste content. Click the <strong>paperclip icon</strong> at the bottom of that input and pick the <strong>.mbox file</strong> you extracted, or just <strong>drag and drop the file onto the input</strong>. EchoMe will parse your emails and start processing them.</p>
+            <Tip>You won&apos;t see a separate &quot;Email&quot; button or an &quot;Import my Writing&quot; card. That older UI was replaced by the single chat input. The paperclip / drag-drop is the way in for everything: PDFs, Word docs, voice recordings, and .mbox exports.</Tip>
           </Step>
 
           <Step number={9} title="Wait for processing">
-            <p>The upload takes a minute or two depending on how many emails you have. You might see a brief &quot;0 emails imported&quot; message while it&apos;s processing &mdash; <strong>don&apos;t worry</strong>, just wait for it to finish.</p>
+            <p>The upload takes a minute or two depending on how many emails you have. You might see a brief &quot;0 emails imported&quot; message while it&apos;s processing. <strong>Don&apos;t worry</strong>, just wait for it to finish.</p>
           </Step>
 
           <Step number={10} title="Confirm your upload">
-            <p>Once done, your emails appear as a new source in the <strong>Sources</strong> drawer on the Your Voice page. Open it to confirm the batch landed. Check your voice strength score in the header &mdash; it should have jumped up with all that new content.</p>
+            <p>Once done, your emails appear as a new source in the <strong>Sources</strong> drawer on the Your Voice page. Open it to confirm the batch landed. Check your voice strength score in the header. It should have jumped up with all that new content.</p>
           </Step>
         </section>
 
@@ -144,7 +144,7 @@ export default function EmailUploadGuidePage() {
           <ul className="space-y-2 text-sm text-text-secondary">
             <li><strong className="text-text-primary">Uploading your entire mailbox:</strong> Export only your Sent folder, filtered to the last 6 months. Huge files will time out or include other people&apos;s writing.</li>
             <li><strong className="text-text-primary">Forgetting to filter by label in Takeout:</strong> If you don&apos;t select your specific label, Google exports everything. Use the label filter.</li>
-            <li><strong className="text-text-primary">Uploading inbox emails:</strong> Echo learns from <em>your</em> writing. Inbox emails are written by other people &mdash; that&apos;s their voice, not yours.</li>
+            <li><strong className="text-text-primary">Uploading inbox emails:</strong> Echo learns from <em>your</em> writing. Inbox emails are written by other people. That&apos;s their voice, not yours.</li>
             <li><strong className="text-text-primary">Panicking at &quot;0 emails imported&quot;:</strong> This message appears briefly during processing. Give it a minute.</li>
           </ul>
         </section>

@@ -49,7 +49,7 @@ export default function VideoContentGuidePage() {
           Creating and Managing Video Content in EchoMe
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Upload a video or paste a link, and EchoMe will transcribe it, extract clips with captions, and generate a full content kit &mdash; posts, newsletters, and blog drafts tailored to each platform.
+          Upload a video or paste a link, and EchoMe will transcribe it, extract clips with captions, and generate a full content kit: posts, newsletters, and blog drafts tailored to each platform.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           5 min read &middot; Video walkthrough included
@@ -85,7 +85,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={2} title="Uploading videos">
             <p>
-              Drag and drop your video file directly onto the input area, or use the paperclip attach button inside the input bar. The hard cap is 2GB per upload, but anything under 500MB is noticeably faster and more reliable. Avoid 4K footage &mdash; 1080p or 720p works great and uploads much faster.
+              Drag and drop your video file directly onto the input area, or use the paperclip attach button inside the input bar. The hard cap is 2GB per upload, but anything under 500MB is noticeably faster and more reliable. Avoid 4K footage. 1080p or 720p works great and uploads much faster.
             </p>
             <p className="mt-2">
               If your file is too large, see our <a href="/guides/compress-video" className="text-accent hover:underline">compression guide</a> for free tools to shrink it.
@@ -95,7 +95,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={3} title="Using video links">
             <p>
-              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Vimeo, Loom, Zoom, or TikTok</strong> URL into the unified input and hit Submit. No file upload needed &mdash; EchoMe pulls the content directly.
+              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Vimeo, Loom, Zoom, or TikTok</strong> URL into the unified input and hit Submit. No file upload needed. EchoMe pulls the content directly.
             </p>
             <p className="mt-2">
               <strong className="text-text-primary">Note:</strong> YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video first and uploading the file.

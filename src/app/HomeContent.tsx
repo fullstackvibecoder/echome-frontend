@@ -248,7 +248,7 @@ export default function HomeContent() {
                     {[
                       'Your voice profile, learning continuously',
                       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
-                      'Creator Radar — track what your audience watches',
+                      'Creator Radar, track what your audience watches',
                       'Built-in teleprompter for talking-head video',
                       'Content calendar with email reminders (auto-posting unlocks at Studio)'
                     ].map((feature, idx) => (
@@ -370,7 +370,7 @@ export default function HomeContent() {
                 <div className="flex-1">
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
-                      'Per-voice scaling — pay only for what you use',
+                      'Per-voice scaling, pay only for what you use',
                       'Per-voice knowledge bases',
                       'Per-voice profile context',
                       'Shared usage pool across voices',

@@ -63,7 +63,7 @@ export default function YouTubeToContentGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Paste any YouTube link">
-            <p>Go to the Create page and paste your YouTube URL directly into the unified conversational input. EchoMe auto-detects YouTube links &mdash; just hit submit. Works with any public YouTube video: watch pages, share links, and shorts. The unified input accepts YouTube links alongside any other content type.</p>
+            <p>Go to the Create page and paste your YouTube URL directly into the unified conversational input. EchoMe auto-detects YouTube links. Just hit submit. Works with any public YouTube video: watch pages, share links, and shorts. The unified input accepts YouTube links alongside any other content type.</p>
           </Step>
 
           <Step number={2} title="EchoMe downloads and transcribes">
@@ -100,7 +100,7 @@ export default function YouTubeToContentGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Have a YouTube video? Try it now.</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

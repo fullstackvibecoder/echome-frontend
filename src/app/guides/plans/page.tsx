@@ -3,7 +3,7 @@ import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
   title: 'Understanding EchoMe Plans | EchoMe Guide',
-  description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans — pricing, features, and what each tier includes.',
+  description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans: pricing, features, and what each tier includes.',
   keywords: ['echome pricing', 'echome plans', 'echo studio', 'echo teams', 'ai content pricing'],
   alternates: { canonical: 'https://tryechome.com/guides/plans' },
 };
@@ -13,7 +13,7 @@ export default function PlansGuidePage() {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: 'Understanding EchoMe Plans',
-    description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans — pricing, features, and what each tier includes.',
+    description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans: pricing, features, and what each tier includes.',
     url: 'https://tryechome.com/guides/plans',
     datePublished: '2026-04-15',
     dateModified: '2026-04-15',
@@ -42,7 +42,7 @@ export default function PlansGuidePage() {
           Understanding EchoMe Plans
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Start free, upgrade when you need more. Every plan gives you the full EchoMe experience &mdash; the difference is how much you can create.
+          Start free, upgrade when you need more. Every plan gives you the full EchoMe experience. The difference is how much you can create.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read
@@ -51,10 +51,10 @@ export default function PlansGuidePage() {
         {/* Plan sections */}
         <section className="space-y-8 mb-10">
           <PlanSection title="Free Tier">
-            <p>5 lifetime content kits, no credit card required. You get clips, captions, posts, newsletters, blog posts, and voice matching. Auto-posting to Instagram, LinkedIn &amp; Facebook unlocks at Echo Studio &mdash; on Free and Echo, you can still schedule posts and get email reminders at the scheduled time. Try everything else before you commit.</p>
+            <p>5 lifetime content kits, no credit card required. You get clips, captions, posts, newsletters, blog posts, and voice matching. Auto-posting to Instagram, LinkedIn &amp; Facebook unlocks at Echo Studio. On Free and Echo, you can still schedule posts and get email reminders at the scheduled time. Try everything else before you commit.</p>
           </PlanSection>
 
-          <PlanSection title="Echo &mdash; $37/mo">
+          <PlanSection title="Echo: $37/mo">
             <ul className="list-disc list-inside space-y-1">
               <li>2hr video length</li>
               <li>5 clips per video</li>
@@ -65,7 +65,7 @@ export default function PlansGuidePage() {
             </ul>
           </PlanSection>
 
-          <PlanSection title="Echo Studio &mdash; $87/mo">
+          <PlanSection title="Echo Studio: $87/mo">
             <ul className="list-disc list-inside space-y-1">
               <li>5hr video length</li>
               <li>10 clips per video</li>
@@ -76,9 +76,9 @@ export default function PlansGuidePage() {
             </ul>
           </PlanSection>
 
-          <PlanSection title="Echo Teams &mdash; $47/voice/mo (2-voice min)">
+          <PlanSection title="Echo Teams: $47/voice/mo (2-voice min)">
             <ul className="list-disc list-inside space-y-1">
-              <li>Per-voice scaling &mdash; pay only for what you use</li>
+              <li>Per-voice scaling: pay only for what you use</li>
               <li>2-voice minimum, no upper cap</li>
               <li>Per-voice knowledge bases &amp; profile context</li>
               <li>Shared usage pool across voices</li>
@@ -98,14 +98,14 @@ export default function PlansGuidePage() {
 
         {/* Tip */}
         <div className="mb-10">
-          <Tip>Not sure which plan? Start with Echo ($37/mo) &mdash; you can upgrade anytime and your content carries over.</Tip>
+          <Tip>Not sure which plan? Start with Echo ($37/mo). You can upgrade anytime and your content carries over.</Tip>
         </div>
 
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to pick a plan?</p>
           <a href="/app/billing" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">View Plans &amp; Pricing</a>
-          <p className="text-xs text-text-secondary/70 mt-3">Start free &mdash; no credit card required.</p>
+          <p className="text-xs text-text-secondary/70 mt-3">Start free, no credit card required.</p>
         </section>
 
         {/* Footer */}

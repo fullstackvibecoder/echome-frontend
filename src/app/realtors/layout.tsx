@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'EchoMe for Real Estate Agents | Social Media Content That Sounds Like You',
   description:
-    'Stop sounding like every other agent. EchoMe learns your voice from your listing videos, emails, and content — then creates social media posts that sound like you wrote them. Not templates. You.',
+    'Stop sounding like every other agent. EchoMe learns your voice from your listing videos, emails, and content, then creates social media posts that sound like you wrote them. Not templates. You.',
   keywords: [
     'real estate social media',
     'AI content for realtors',

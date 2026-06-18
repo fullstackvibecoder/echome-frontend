@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Creator Radar — Repurpose Other Creators\' Videos | EchoMe Guide',
+  title: 'Creator Radar: Repurpose Other Creators\' Videos | EchoMe Guide',
   description: 'Follow creators in your niche from Creator Radar and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
   keywords: ['echome creator radar', 'repurpose content', 'follow creators', 'content repurposing', 'ai content'],
   alternates: { canonical: 'https://tryechome.com/guides/creator-radar' },
@@ -12,7 +12,7 @@ export default function CreatorRadarGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Creator Radar — Repurpose Other Creators\' Videos',
+    headline: 'Creator Radar: Repurpose Other Creators\' Videos',
     description: 'Follow creators in your niche from Creator Radar and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
     url: 'https://tryechome.com/guides/creator-radar',
     datePublished: '2026-04-15',
@@ -39,10 +39,10 @@ export default function CreatorRadarGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Creator Radar &mdash; Repurpose Other Creators&apos; Videos
+          Creator Radar: Repurpose Other Creators&apos; Videos
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Follow creators in your niche and turn their latest videos into original content &mdash; written in your voice, grounded in your context. Same ideas, your words.
+          Follow creators in your niche and turn their latest videos into original content, written in your voice, grounded in your context. Same ideas, your words.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read
@@ -71,11 +71,11 @@ export default function CreatorRadarGuidePage() {
           </Step>
 
           <Step number={3} title="New videos appear in your feed">
-            <p>When a creator you follow posts new video content, it shows up in your Creator Radar feed. You&apos;ll see the video title, thumbnail, and publish date &mdash; no need to check YouTube manually.</p>
+            <p>When a creator you follow posts new video content, it shows up in your Creator Radar feed. You&apos;ll see the video title, thumbnail, and publish date. No need to check YouTube manually.</p>
           </Step>
 
           <Step number={4} title="Hit Repurpose on any video">
-            <p>Click Repurpose on any video in your feed. EchoMe generates a full Content Kit from their video &mdash; but grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
+            <p>Click Repurpose on any video in your feed. EchoMe generates a full Content Kit from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
           </Step>
 
           <Step number={5} title="Review and edit">
@@ -87,7 +87,7 @@ export default function CreatorRadarGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to turn trending content into your own?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

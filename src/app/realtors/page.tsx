@@ -15,7 +15,7 @@ const LOOM_THUMBNAIL_URL = `https://cdn.loom.com/sessions/thumbnails/${LOOM_VIDE
 const realtorFaqs: { q: string; a: string }[] = [
   {
     q: 'What is EchoMe?',
-    a: 'EchoMe is an AI content engine that learns how you actually sound, then turns one piece of raw material — a market update, a client story, a quick voice note — into a week of social content in your own voice. It reads what you have already published — your videos, emails, blog, and past posts — to map your phrasing and tone, then writes Instagram carousels, LinkedIn posts, X threads, email newsletters, and short captioned clips that read like you wrote them. It is built for real estate agents who are great at their work but do not have hours to spend on content.',
+    a: 'EchoMe is an AI content engine that learns how you actually sound, then turns one piece of raw material (a market update, a client story, a quick voice note) into a week of social content in your own voice. It reads what you have already published (your videos, emails, blog, and past posts) to map your phrasing and tone, then writes Instagram carousels, LinkedIn posts, X threads, email newsletters, and short captioned clips that read like you wrote them. It is built for real estate agents who are great at their work but do not have hours to spend on content.',
   },
   {
     q: "I'm not tech savvy. Can I actually use this?",
@@ -23,15 +23,15 @@ const realtorFaqs: { q: string; a: string }[] = [
   },
   {
     q: 'How is this different from ChatGPT?',
-    a: "ChatGPT writes from prompts — you have to tell it what to say and how to say it. EchoMe writes from context. It learns from your actual videos, emails, and content, then generates posts grounded in your voice and your ideas. No 'act like a real estate agent' instructions needed.",
+    a: "ChatGPT writes from prompts. You have to tell it what to say and how to say it. EchoMe writes from context. It learns from your actual videos, emails, and content, then generates posts grounded in your voice and your ideas. No 'act like a real estate agent' instructions needed.",
   },
   {
     q: 'Do I need to edit my videos before uploading?',
-    a: "No. Raw, unpolished video is perfect. EchoMe extracts your ideas and speaking style from the audio — it doesn't care about production quality. A 3-minute phone recording of you talking about a listing is ideal.",
+    a: "No. Raw, unpolished video is perfect. EchoMe extracts your ideas and speaking style from the audio. It doesn't care about production quality. A 3-minute phone recording of you talking about a listing is ideal.",
   },
   {
     q: 'What kind of content does it create?',
-    a: 'From one talking-head video, EchoMe pulls short captioned clips and generates Instagram carousels, LinkedIn posts, X/Twitter threads, email newsletters, blog posts, and teleprompter scripts — all in your voice, across the platforms where your clients spend time. Your listing walkthrough footage works as b-roll behind the clips.',
+    a: 'From one talking-head video, EchoMe pulls short captioned clips and generates Instagram carousels, LinkedIn posts, X/Twitter threads, email newsletters, blog posts, and teleprompter scripts, all in your voice, across the platforms where your clients spend time. Your listing walkthrough footage works as b-roll behind the clips.',
   },
   {
     q: 'How is this different from template tools like RealEstateContent.ai?',
@@ -43,11 +43,11 @@ const realtorFaqs: { q: string; a: string }[] = [
   },
   {
     q: 'I already have a social media person. Why would I need this?',
-    a: 'Give them EchoMe. It solves the hardest part of their job — writing in your voice. They handle scheduling and engagement, EchoMe handles making sure every post sounds like you, not like a marketing agency.',
+    a: 'Give them EchoMe. It solves the hardest part of their job: writing in your voice. They handle scheduling and engagement, EchoMe handles making sure every post sounds like you, not like a marketing agency.',
   },
   {
     q: "What if I don't have any content to upload?",
-    a: 'You have more than you think. Your sent emails, listing descriptions, past social posts, even a 2-minute voice recording talking about your market — all of it works. Start small, and your voice profile gets stronger over time.',
+    a: 'You have more than you think. Your sent emails, listing descriptions, past social posts, even a 2-minute voice recording talking about your market, all of it works. Start small, and your voice profile gets stronger over time.',
   },
 ];
 
@@ -126,7 +126,7 @@ export default function RealtorsPage() {
 
           <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-4 leading-relaxed">
             Stop using templates that make you sound like every other agent in your market.
-            EchoMe learns your voice from your videos, emails, and content &mdash; then creates
+            EchoMe learns your voice from your videos, emails, and content, then creates
             social media posts that are unmistakably you.
           </p>
 
@@ -136,7 +136,7 @@ export default function RealtorsPage() {
 
           <div className="flex flex-wrap justify-center gap-4">
             <a href="/auth/signup" className="px-8 py-4 bg-gradient-to-r from-primary to-primary-dark text-white rounded-full font-bold text-lg hover:scale-105 transition-all shadow-lg shadow-primary/30 flex items-center gap-3">
-              Try Free &mdash; 5 Content Kits
+              Try Free: 5 Content Kits
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>
@@ -227,7 +227,7 @@ export default function RealtorsPage() {
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
               EchoMe doesn&apos;t give you pre-written posts to fill in. It learns how you talk, how you explain things,
-              how you close &mdash; then writes content that your sphere would believe you sat down and wrote yourself.
+              how you close, then writes content that your sphere would believe you sat down and wrote yourself.
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export default function RealtorsPage() {
               <div className="space-y-3 text-white">
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Learns YOUR voice from YOUR content</p>
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Upload a listing video, get a week of posts</p>
-                <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Context is King &mdash; grounded in your history</p>
+                <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Context is King: grounded in your history</p>
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Your sphere thinks you wrote it</p>
                 <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"><ArrowRight className="w-3 h-3 text-primary" /></span>Starts at $37/mo</p>
               </div>
@@ -293,7 +293,7 @@ export default function RealtorsPage() {
               number={3}
               icon={<FileText className="w-6 h-6 text-primary" />}
               title="Get a Week of Posts"
-              description="EchoMe generates Instagram carousels, LinkedIn posts, X threads, email newsletters, and video scripts — all in your voice, grounded in your ideas."
+              description="EchoMe generates Instagram carousels, LinkedIn posts, X threads, email newsletters, and video scripts, all in your voice, grounded in your ideas."
               detail="15+ content pieces from one video. Copy, paste, post."
             />
           </div>
@@ -347,12 +347,12 @@ export default function RealtorsPage() {
               Social media is how you stay in front of them between transactions.
             </p>
             <p>
-              But here&apos;s the thing &mdash; if your posts sound like they were written by a robot or a template,
+              But here&apos;s the thing: if your posts sound like they were written by a robot or a template,
               you&apos;re not building trust. You&apos;re building noise.
             </p>
             <p>
               The agents winning on social media aren&apos;t the ones with the best graphics.
-              They&apos;re the ones who <strong className="text-white">sound like themselves</strong>. Their posts feel real because they are real &mdash;
+              They&apos;re the ones who <strong className="text-white">sound like themselves</strong>. Their posts feel real because they are real,
               grounded in their actual expertise, their actual personality, their actual way of communicating.
             </p>
             <p>

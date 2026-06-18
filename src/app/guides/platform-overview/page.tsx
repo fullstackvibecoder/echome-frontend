@@ -49,7 +49,7 @@ export default function PlatformOverviewGuidePage() {
           EchoMe Platform Overview
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          A complete walkthrough of everything EchoMe can do &mdash; from uploading your first video to generating platform-ready content in your voice.
+          A complete walkthrough of everything EchoMe can do, from uploading your first video to generating platform-ready content in your voice.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           10 min read &middot; Video walkthrough included
@@ -80,16 +80,16 @@ export default function PlatformOverviewGuidePage() {
           <Step number={1} title="One input, every format">
             <p className="mb-2">The Create page has a single unified input. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Paste a link</strong> &mdash; YouTube, Zoom, Loom, Vimeo, or TikTok. EchoMe auto-detects the platform.</li>
-              <li><strong className="text-text-primary">Type a topic</strong> &mdash; Describe an idea, paste an article, or write a prompt.</li>
-              <li><strong className="text-text-primary">Drop a video file</strong> &mdash; Drag and drop directly onto the input.</li>
-              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button inside the input bar to speak your idea.</li>
+              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Zoom, Loom, Vimeo, or TikTok. EchoMe auto-detects the platform.</li>
+              <li><strong className="text-text-primary">Type a topic</strong>: Describe an idea, paste an article, or write a prompt.</li>
+              <li><strong className="text-text-primary">Drop a video file</strong>: Drag and drop directly onto the input.</li>
+              <li><strong className="text-text-primary">Record a voice note</strong>: Use the mic button inside the input bar to speak your idea.</li>
             </ul>
             <Tip>All input methods produce the same quality output. Pick whichever fits your workflow.</Tip>
           </Step>
 
           <Step number={2} title="Video upload guidelines">
-            <p className="mb-2">The hard cap on uploads is 2GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings &mdash; 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality.</p>
+            <p className="mb-2">The hard cap on uploads is 2GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings. 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality.</p>
             <p>Use <strong className="text-text-primary">HandBrake</strong> (free desktop app) or <strong className="text-text-primary">FreeConvert.com</strong> (browser-based) to compress before uploading.</p>
             <Tip>See the full compression guide at <a href="/guides/compress-video" className="text-accent hover:underline">How to Compress Videos for EchoMe</a>.</Tip>
           </Step>
@@ -143,9 +143,9 @@ export default function PlatformOverviewGuidePage() {
           <Step number={7} title="Your Voice">
             <p className="mb-2">Add sources via the unified input on the Your Voice page so Echo can match your style. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Paste social links</strong> &mdash; Import content from YouTube or Instagram.</li>
-              <li><strong className="text-text-primary">Drop files or paste URLs</strong> &mdash; Upload PDFs, articles, blog posts, or emails (Echo Studio+ for email).</li>
-              <li><strong className="text-text-primary">Record a voice note</strong> &mdash; Use the mic button inside the input bar. Just talk. Echo figures out the rest.</li>
+              <li><strong className="text-text-primary">Paste social links</strong>: Import content from YouTube or Instagram.</li>
+              <li><strong className="text-text-primary">Drop files or paste URLs</strong>: Upload PDFs, articles, blog posts, or emails (Echo Studio+ for email).</li>
+              <li><strong className="text-text-primary">Record a voice note</strong>: Use the mic button inside the input bar. Just talk. Echo figures out the rest.</li>
             </ul>
             <p className="mt-2">The more content you add, the better the voice matching becomes. EchoMe learns your tone, vocabulary, sentence structure, and perspective over time.</p>
           </Step>
@@ -176,19 +176,19 @@ export default function PlatformOverviewGuidePage() {
           <ul className="space-y-2 text-sm">
             <li>
               <a href="/guides/compress-video" className="text-accent hover:underline">How to compress videos</a>
-              <span className="text-text-secondary"> &mdash; Reduce file sizes before uploading for faster processing.</span>
+              <span className="text-text-secondary">: Reduce file sizes before uploading for faster processing.</span>
             </li>
             <li>
               <a href="/guides/email-upload" className="text-accent hover:underline">How to upload emails</a>
-              <span className="text-text-secondary"> &mdash; Import your emails so Echo learns how you communicate.</span>
+              <span className="text-text-secondary">: Import your emails so Echo learns how you communicate.</span>
             </li>
             <li>
               <a href="/guides/video-content" className="text-accent hover:underline">Creating video content</a>
-              <span className="text-text-secondary"> &mdash; Get the most out of your video uploads.</span>
+              <span className="text-text-secondary">: Get the most out of your video uploads.</span>
             </li>
             <li>
               <a href="/guides/build-your-voice" className="text-accent hover:underline">Building your voice profile</a>
-              <span className="text-text-secondary"> &mdash; Train Echo to write in your voice.</span>
+              <span className="text-text-secondary">: Train Echo to write in your voice.</span>
             </li>
           </ul>
         </section>

@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Getting Started — Your First Content Kit | EchoMe Guide',
-  description: 'Sign up for free, paste a link or drop a video, and get your first Content Kit in minutes. Clips, captions, posts, blog drafts, and more — all in your voice.',
+  title: 'Getting Started: Your First Content Kit | EchoMe Guide',
+  description: 'Sign up for free, paste a link or drop a video, and get your first Content Kit in minutes. Clips, captions, posts, blog drafts, and more, all in your voice.',
   keywords: ['echome getting started', 'first content kit', 'ai content creation', 'how to use echome'],
   alternates: { canonical: 'https://tryechome.com/guides/getting-started' },
 };
@@ -12,8 +12,8 @@ export default function GettingStartedGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Getting Started — Your First Content Kit',
-    description: 'Sign up for free, paste a link or drop a video, and get your first Content Kit in minutes. Clips, captions, posts, blog drafts, and more — all in your voice.',
+    headline: 'Getting Started: Your First Content Kit',
+    description: 'Sign up for free, paste a link or drop a video, and get your first Content Kit in minutes. Clips, captions, posts, blog drafts, and more, all in your voice.',
     url: 'https://tryechome.com/guides/getting-started',
     datePublished: '2026-04-15',
     dateModified: '2026-04-15',
@@ -39,7 +39,7 @@ export default function GettingStartedGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Getting Started &mdash; Your First Content Kit
+          Getting Started: Your First Content Kit
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           EchoMe turns one piece of content into a full kit: clips with captions, LinkedIn posts, Instagram captions, blog drafts, emails, and carousels. Here&apos;s how to create your first one.
@@ -58,12 +58,12 @@ export default function GettingStartedGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign up for free">
-            <p>Create your EchoMe account &mdash; it&apos;s free, no credit card required. You get 5 full content generations to try everything out before deciding on a plan.</p>
+            <p>Create your EchoMe account. It&apos;s free, no credit card required. You get 5 full content generations to try everything out before deciding on a plan.</p>
           </Step>
 
           <Step number={2} title="Go to the Create page">
             <p>From the sidebar, click Create. You&apos;ll see a single unified conversational input where you can do everything: paste a link (YouTube, Zoom, or any public video URL), type a topic to generate content from scratch, drag and drop a video file, or record a voice note using the mic button inside the input bar.</p>
-            <Tip>Zoom recordings work too &mdash; if your recording requires a passcode, a field appears automatically when you paste a Zoom link.</Tip>
+            <Tip>Zoom recordings work too. If your recording requires a passcode, a field appears automatically when you paste a Zoom link.</Tip>
           </Step>
 
           <Step number={3} title="Wait 2-5 minutes for processing">
@@ -71,7 +71,7 @@ export default function GettingStartedGuidePage() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Audio is transcribed with speaker detection</li>
               <li>The best clips are extracted and scored by strength</li>
-              <li>Written content is generated across every platform &mdash; LinkedIn, Instagram, X, email, blog, and carousel</li>
+              <li>Written content is generated across every platform: LinkedIn, Instagram, X, email, blog, and carousel</li>
             </ul>
             <p className="mt-2">You&apos;ll get a notification when your Content Kit is ready.</p>
           </Step>
@@ -106,7 +106,7 @@ export default function GettingStartedGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to create your first Content Kit?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free &mdash; 5 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Generations</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

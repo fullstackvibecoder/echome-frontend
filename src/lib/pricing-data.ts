@@ -52,7 +52,7 @@ export const individualPlans: PlanData[] = [
     features: [
       'Your voice profile, learning continuously',
       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
-      'Creator Radar — track what your audience watches',
+      'Creator Radar, track what your audience watches',
       'Auto-post to Instagram, LinkedIn & Facebook',
       'Built-in teleprompter for talking-head video',
       'Content calendar with email reminders',
@@ -95,7 +95,7 @@ export const teamsPlans: PlanData[] = [
     accentColor: 'purple',
     perVoice: true,
     features: [
-      'Per-voice scaling — pay only for what you use',
+      'Per-voice scaling, pay only for what you use',
       '2-voice minimum, no upper cap',
       'Per-voice knowledge bases',
       'Per-voice profile context',
