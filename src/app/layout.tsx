@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 import { CookieConsent } from '@/components/cookie-consent';
 import { OutageBanner } from '@/components/outage-banner';
@@ -120,6 +121,7 @@ export default function RootLayout({
       <body className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <OutageBanner />
         <Providers>{children}</Providers>
+        <Analytics />
         <Toaster position="top-right" richColors closeButton />
         <ReceiptHost />
         <CookieConsent />
