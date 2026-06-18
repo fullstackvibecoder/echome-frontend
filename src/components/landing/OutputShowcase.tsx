@@ -271,7 +271,7 @@ export function OutputShowcase() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
             <p className="text-sm text-muted-foreground font-light mt-3">
-              Upload a video and see the magic - no credit card required
+              Give it a video, a link, or a topic and see the magic - no credit card required
             </p>
           </div>
         </div>

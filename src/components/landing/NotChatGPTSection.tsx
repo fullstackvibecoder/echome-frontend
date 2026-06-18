@@ -95,7 +95,7 @@ export function NotChatGPTSection() {
               The system already knows your voice.
             </p>
             <p className="text-base text-white/60 mb-6">
-              Upload your work. It handles the rest.
+              Give it a video, a link, or your notes. It handles the rest.
             </p>
             <SectionCTA headline="" buttonText="Start Free" trust="5 free content kits. No credit card." />
           </div>
