@@ -51,7 +51,7 @@ const realtorFaqs: { q: string; a: string }[] = [
   },
   {
     q: 'What should I put in EchoMe to get started?',
-    a: 'Everything. Your knowledge base is the engine, so the more it knows, the more the content sounds like you. Add your listing videos, past emails, blog posts, social profiles, and a voice note or two, plus the context that makes you you, your market, your neighborhood, and how you work with clients. The moment you sign up, EchoMe also searches the public web about you and starts filling your knowledge base for a head start, every day on paid plans. Then each morning it drafts three pieces in your voice for you to keep or kill.',
+    a: 'Everything. Your knowledge base is the engine, so the more it knows, the more the content sounds like you. Add your listing videos, past emails, blog posts, social profiles, and a voice note or two, plus the context that makes you you, your market, your neighborhood, and how you work with clients. The moment you sign up, EchoMe also searches the public web about you and starts filling your knowledge base for a head start, refreshed weekly on paid plans. Then each morning it drafts three pieces in your voice for you to keep or kill.',
   },
 ];
 

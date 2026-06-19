@@ -27,7 +27,7 @@ const faqCategories = [
       },
       {
         q: 'What happens after I sign up?',
-        a: 'The moment you sign up, EchoMe searches the public web about you, your profiles, your posts, and your published work, and uses it to start filling your knowledge base, so you begin with something instead of a blank page. Free plans get this once. Paid plans refresh it every day. From there, every morning EchoMe drafts three pieces from your knowledge base in your voice. Keep the ones you like and post or schedule them. Kill the rest.',
+        a: 'The moment you sign up, EchoMe searches the public web about you, your profiles, your posts, and your published work, and uses it to start filling your knowledge base, so you begin with something instead of a blank page. Free plans get this once. Paid plans keep it fresh every week. From there, every morning EchoMe drafts three pieces from your knowledge base in your voice. Keep the ones you like and post or schedule them. Kill the rest.',
       },
     ],
   },
