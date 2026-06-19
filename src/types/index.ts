@@ -49,6 +49,8 @@ export interface UserProfile {
   email_notifications?: boolean;
   weekly_digest?: boolean;
   theme?: 'light' | 'dark' | 'auto';
+  /** Opt-in to auto-removing filler words + long pauses from new clips. */
+  auto_clean_clips?: boolean;
   // Profile context (custom instructions)
   profile_role?: string;
   profile_topics?: string;
@@ -71,6 +73,7 @@ export interface UserProfileUpdate {
   email_notifications?: boolean;
   weekly_digest?: boolean;
   theme?: 'light' | 'dark' | 'auto';
+  auto_clean_clips?: boolean;
   // Profile context (custom instructions)
   profile_role?: string | null;
   profile_topics?: string | null;
