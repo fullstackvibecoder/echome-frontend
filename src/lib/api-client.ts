@@ -1337,6 +1337,28 @@ export const api = {
         } | null;
       };
     },
+
+    /** Stockpile a YouTube channel's videos as saved rows to clip later */
+    startChannelStockpile: async (data: { url: string; knowledgeBaseId?: string }) => {
+      const response = await apiClient.post('/kb/content/channel/stockpile', data, {
+        timeout: 30000, // enumerates the channel, no media download
+      });
+      return response.data as {
+        success: boolean;
+        savedCount: number;
+        skippedCount: number;
+        videos: Array<{ uploadId: string; sourceUrl: string; title: string }>;
+      };
+    },
+
+    /** List the caller's stockpiled (saved) videos */
+    listSavedVideos: async () => {
+      const response = await apiClient.get('/kb/content/videos/saved');
+      return response.data as {
+        success: boolean;
+        videos: Array<{ uploadId: string; sourceUrl: string; title: string; createdAt: string }>;
+      };
+    },
   },
 
   // -------- IMAGE GENERATION --------

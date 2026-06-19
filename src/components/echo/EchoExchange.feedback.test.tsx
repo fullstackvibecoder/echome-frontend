@@ -24,6 +24,9 @@ const BASE_STATE: EchoState = {
   receipts: [],
   error: null,
   confirmation: null,
+  videoUrlTarget: null,
+  savedVideos: null,
+  savedCount: null,
 };
 
 const handlers = {
@@ -32,6 +35,8 @@ const handlers = {
   selectIntent: vi.fn(),
   confirm: vi.fn(),
   reset: vi.fn(),
+  chooseDestination: vi.fn(),
+  clipSavedVideo: vi.fn(),
 };
 
 function renderExchange(overrides: Partial<EchoState>) {
