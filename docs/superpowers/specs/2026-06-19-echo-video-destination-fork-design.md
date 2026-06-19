@@ -114,7 +114,7 @@ Non-video URLs and non-URL input keep the existing intent flow untouched.
 | Choice | Call | Source |
 |---|---|---|
 | single + Voice/KB | `api.kbContent.startSocialImport({ platform, url })` | exists (`api-client.ts:~1320`) |
-| single + create | existing clip submit (the create/ClipFinder entry the create surface already uses for a single URL) | exists |
+| single + create | `api.clips.upload({ sourceType: platform, sourceUrl: url })` then `api.clips.process(uploadId, { generateContent: true })` (the exact two-call flow `generation-form.tsx:processVideoWithClipFinder` uses) | exists |
 | channel + Voice/KB | `api.kbContent.startSocialImport({ platform: 'youtube', url })` | exists |
 | channel + clip-later | `api.kbContent.startChannelStockpile({ url })` (new method, Component 5) | build |
 
@@ -134,9 +134,12 @@ New method (working name `stockpileChannel`):
    SociaVault call (used at `youtube-service.ts:225`). `maxVideos` default
    stays 20 (matches existing channel import).
 3. For each video, insert one `video_uploads` row:
-   - `user_id`, `source_url` = the video URL, `source_type` consistent with
-     the existing URL-source convention,
-   - `title`, thumbnail (whatever `getChannelVideos` returns),
+   - `user_id`, `source_url` = the video URL, `source_type` = `'youtube'`
+     (the `video_source_type` enum value for YouTube),
+   - `metadata` = `{ title }` — `video_uploads` has NO `title`/`thumbnail`
+     column; `metadata` is the JSONB added by `20260416_video_uploads_metadata.sql`.
+     `getChannelVideos` returns only `{ id, url, title }`, so no thumbnail is
+     available (strip degrades to title-only, see Component 7),
    - `status` = `saved` (new state — see Component 6),
    - no media download, no transcription, no chunks.
 4. Idempotency: skip insert if a `video_uploads` row already exists for the same
@@ -201,13 +204,15 @@ After a successful `startChannelStockpile`, the Echo thread renders **one
 result card**, not N cards:
 
 - a headline: "Saved N videos to clip later",
-- a **horizontal scroll strip** of the saved videos (thumbnail + short title),
-  ~5 visible, the rest scroll horizontally. With `maxVideos=20` the strip is
-  bounded at 20 items — a hard ceiling, so a plain horizontal scroll suffices
-  (no pagination, no virtualization).
-- each thumbnail has a "Clip" affordance; picking one runs the **existing**
-  clip pipeline against that video's `video_upload_id` / `source_url` (the same
-  entry a pasted single URL uses). No new clip logic.
+- a **horizontal scroll strip** of the saved videos (**title-only** — no
+  thumbnails exist; `getChannelVideos` returns no thumbnail), ~5 visible, the
+  rest scroll horizontally. With `maxVideos=20` the strip is bounded at 20
+  items — a hard ceiling, so a plain horizontal scroll suffices (no pagination,
+  no virtualization).
+- each item has a "Clip" affordance; picking one calls
+  `api.clips.process(uploadId, { generateContent: true })` **directly** on the
+  stockpiled row's `uploadId` (no re-upload — the `video_uploads` row already
+  exists). No new clip logic.
 
 The strip's source is the `startChannelStockpile` response (it already returns
 the saved rows). `listSavedVideos` (Component 5) backs a re-fetch when the
