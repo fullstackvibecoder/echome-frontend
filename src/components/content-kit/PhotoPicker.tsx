@@ -7,7 +7,8 @@ import { api } from '@/lib/api-client';
 interface PhotoCandidate {
   url: string;
   label: string;
-  source: 'snapshot' | 'profile' | 'upload';
+  source: 'snapshot' | 'profile' | 'upload' | 'library';
+  photoId?: string;
 }
 
 interface PhotoPickerProps {
@@ -32,6 +33,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
  */
 export function PhotoPicker({ kitId, uploadId, currentPhotoUrl, onSelect }: PhotoPickerProps) {
   const [candidates, setCandidates] = useState<PhotoCandidate[]>([]);
+  const [libraryPhotos, setLibraryPhotos] = useState<PhotoCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -91,6 +93,28 @@ export function PhotoPicker({ kitId, uploadId, currentPhotoUrl, onSelect }: Phot
     };
   }, [kitId, uploadId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await api.images.listCarouselPhotos();
+        if (cancelled) return;
+        const mapped = (resp.data?.photos || []).map((p) => ({
+          url: p.url,
+          label: p.original_filename || 'Saved photo',
+          source: 'library' as const,
+          photoId: p.id,
+        }));
+        setLibraryPhotos(mapped);
+      } catch {
+        // Library fetch is best-effort; picker still works with snapshot/profile/upload.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     // Reset input so the same file can be re-selected after an error.
@@ -111,9 +135,9 @@ export function PhotoPicker({ kitId, uploadId, currentPhotoUrl, onSelect }: Phot
     setUploading(true);
 
     try {
-      const resp = await api.images.uploadBackground(file, kitId);
-      if (resp.success && resp.data?.background?.publicUrl) {
-        const publicUrl = resp.data.background.publicUrl;
+      const resp = await api.images.saveCarouselPhoto(file);
+      if (resp.success && resp.data?.photo?.url) {
+        const publicUrl = resp.data.photo.url;
         const newCandidate: PhotoCandidate = {
           url: publicUrl,
           label: 'Your upload',
@@ -188,35 +212,64 @@ export function PhotoPicker({ kitId, uploadId, currentPhotoUrl, onSelect }: Phot
         </button>
 
         {/* Photo candidates */}
-        {candidates.map((c) => {
+        {[...candidates, ...libraryPhotos].map((c) => {
           const isCurrent = currentPhotoUrl === c.url;
           return (
-            <button
-              key={`${c.source}-${c.url}`}
-              type="button"
-              disabled={uploading}
-              onClick={() => onSelect(c.url)}
-              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all disabled:opacity-50 ${
-                isCurrent
-                  ? 'border-primary ring-2 ring-primary/30'
-                  : 'border-border hover:border-primary/50'
-              }`}
-              title={c.label}
-              aria-label={`Use ${c.label} as background`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.url} alt={c.label} className="w-full h-full object-cover" />
-              {isCurrent && (
-                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
-                  <Check size={12} className="text-white" strokeWidth={3} />
+            <div key={`${c.source}-${c.url}`} className="relative">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => onSelect(c.url)}
+                className={`relative w-full aspect-square rounded-lg overflow-hidden border-2 transition-all disabled:opacity-50 ${
+                  isCurrent
+                    ? 'border-primary ring-2 ring-primary/30'
+                    : 'border-border hover:border-primary/50'
+                }`}
+                title={c.label}
+                aria-label={`Use ${c.label} as background`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={c.url} alt={c.label} className="w-full h-full object-cover" />
+                {isCurrent && (
+                  <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+                    <Check size={12} className="text-white" strokeWidth={3} />
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5">
+                  <span className="text-[10px] text-white font-medium truncate block">
+                    {c.label}
+                  </span>
                 </div>
+              </button>
+              {c.source === 'library' && (
+                <button
+                  type="button"
+                  aria-label="Remove saved photo"
+                  className="absolute top-1 right-1 rounded-full bg-black/60 text-white w-5 h-5 flex items-center justify-center text-xs z-10"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!c.photoId) return;
+                    if (!window.confirm('Remove this saved photo? It stays in any kit already using it.')) return;
+                    const removedId = c.photoId;
+                    setLibraryPhotos((prev) => prev.filter((p) => p.photoId !== removedId));
+                    try {
+                      await api.images.hideCarouselPhoto(removedId);
+                    } catch {
+                      // Re-fetch on failure so the list reflects server truth.
+                      const refetch = await api.images.listCarouselPhotos();
+                      setLibraryPhotos((refetch.data?.photos || []).map((p) => ({
+                        url: p.url,
+                        label: p.original_filename || 'Saved photo',
+                        source: 'library' as const,
+                        photoId: p.id,
+                      })));
+                    }
+                  }}
+                >
+                  ✕
+                </button>
               )}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5">
-                <span className="text-[10px] text-white font-medium truncate block">
-                  {c.label}
-                </span>
-              </div>
-            </button>
+            </div>
           );
         })}
       </div>
