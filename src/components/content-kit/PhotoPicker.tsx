@@ -256,13 +256,17 @@ export function PhotoPicker({ kitId, uploadId, currentPhotoUrl, onSelect }: Phot
                       await api.images.hideCarouselPhoto(removedId);
                     } catch {
                       // Re-fetch on failure so the list reflects server truth.
-                      const refetch = await api.images.listCarouselPhotos();
-                      setLibraryPhotos((refetch.data?.photos || []).map((p) => ({
-                        url: p.url,
-                        label: p.original_filename || 'Saved photo',
-                        source: 'library' as const,
-                        photoId: p.id,
-                      })));
+                      try {
+                        const refetch = await api.images.listCarouselPhotos();
+                        setLibraryPhotos((refetch.data?.photos || []).map((p) => ({
+                          url: p.url,
+                          label: p.original_filename || 'Saved photo',
+                          source: 'library' as const,
+                          photoId: p.id,
+                        })));
+                      } catch {
+                        // Rollback fetch is best-effort; silently ignore if it also fails.
+                      }
                     }
                   }}
                 >
