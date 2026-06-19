@@ -68,18 +68,36 @@ CREATE INDEX IF NOT EXISTS idx_user_carousel_photos_storage_path
   ON public.user_carousel_photos (storage_path);
 ```
 
-- [ ] **Step 3: Apply the migration against the dev/prod DB**
+- [ ] **Step 3: Write the one-shot apply script (repo convention)**
 
-Run the project's standard migration apply step (same mechanism used for `20260418_user_broll_uploads.sql` — check `package.json` scripts or the Supabase CLI workflow used in this repo; e.g. `supabase db push` or the project's migration runner). Confirm the table exists:
+This repo has no `supabase db push` / npm migration script. Migrations apply via a one-off TS runner using `pg` `Client` + a local `.env` loader, exactly as in `src/scripts/_apply-preferences-migration.ts` (read it first). Create `echome-platform-v2/src/scripts/_apply-carousel-photos-migration.ts` modeled on it: load `.env`, connect with `ssl: { rejectUnauthorized: false }`, read `supabase/migrations/20260618_user_carousel_photos.sql`, `await c.query(sql)`, then verify via `information_schema.columns` that `user_carousel_photos` has the expected columns. Default = `--staging` only; `--prod` gated.
 
-Run: `psql "$DATABASE_URL" -c '\d user_carousel_photos'`
-Expected: lists the 10 columns and both indexes.
+```typescript
+// Verify block — confirm the table + key columns exist after apply.
+const check = await c.query(`
+  SELECT column_name FROM information_schema.columns
+   WHERE table_schema = 'public' AND table_name = 'user_carousel_photos'
+   ORDER BY ordinal_position
+`);
+if (check.rows.length < 10) {
+  console.error('  ✗ user_carousel_photos missing or incomplete after apply!');
+  process.exit(1);
+}
+console.log('  ✓ user_carousel_photos columns:', check.rows.map((r) => r.column_name).join(', '));
+```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Apply to STAGING and confirm**
+
+Run: `npx tsx src/scripts/_apply-carousel-photos-migration.ts --staging`
+Expected: `✓ user_carousel_photos columns: id, user_id, url, storage_path, original_filename, file_size, width, height, hidden_at, created_at`.
+
+> NOTE: prod apply (`--prod`) is a deliberate, gated operational write — do NOT run it during task execution. The migration uses `CREATE TABLE IF NOT EXISTS` so it is re-run-safe, but prod apply happens only on explicit go-ahead, same as Task 8's `--apply`.
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add supabase/migrations/20260618_user_carousel_photos.sql
-git commit -m "feat(carousel): add user_carousel_photos table"
+git add supabase/migrations/20260618_user_carousel_photos.sql src/scripts/_apply-carousel-photos-migration.ts
+git commit -m "feat(carousel): add user_carousel_photos table + apply script"
 ```
 
 ---
@@ -874,21 +892,21 @@ git commit -m "feat(carousel): PhotoPicker persists uploads, shows saved library
 ### Task 8: One-time backfill script (committed)
 
 **Files:**
-- Create: `echome-platform-v2/src/scripts/backfill-carousel-photos.cjs`
+- Create: `echome-platform-v2/src/scripts/_backfill-carousel-photos.ts`
 
 **Interfaces:**
-- Consumes: `@supabase/supabase-js` service-role client (same env vars the repo's other `.cjs` scripts use — check a sibling script in `src/scripts/` for `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` names), bucket `carousel-backgrounds`, table `content_kits` (join on `id`), table `user_carousel_photos`.
-- Produces: a runnable script with `--dry-run` (default) and `--apply` modes. For each `uploads/{uuid}/` folder whose `{uuid}` matches a `content_kits.id`, inserts a `user_carousel_photos` row per image file with `storage_path` = existing path, `url` = existing public url, `hidden_at = null`. Idempotent on `storage_path`.
+- Consumes: the repo's existing service-role client `import { supabase } from '../utils/supabase';` (has both `.from()` and `.storage` — confirm the import path/name by reading `src/utils/supabase.ts`), bucket `carousel-backgrounds`, table `content_kits` (join on `id`), table `user_carousel_photos`. Follows the `_<name>.ts` one-off-script convention (see siblings like `_backfill-null-clip-thumbs.ts`).
+- Produces: a runnable script with `--dry-run` (default) and `--apply` modes. For each `uploads/{uuid}/` folder whose `{uuid}` matches a `content_kits.id`, inserts a `user_carousel_photos` row per image file with `storage_path` = existing path, `url` = existing public url, `hidden_at = null`. Idempotent on `storage_path`. Run via `npx tsx`.
 
-- [ ] **Step 1: Read a reference script for client construction + run convention**
+- [ ] **Step 1: Read a reference script + the supabase client export**
 
-Read one existing `echome-platform-v2/src/scripts/*.cjs` to copy: how the service-role Supabase client is built, which env var names are used, and how scripts are invoked (e.g. `node src/scripts/<name>.cjs`). Match it exactly.
+Read one existing `echome-platform-v2/src/scripts/_backfill-*.ts` to copy the `_<name>.ts` convention and run style (`npx tsx src/scripts/<name>.ts`). Read `src/utils/supabase.ts` to confirm the exported client name (`supabase`) and that it is a service-role client with `.storage`. Match both exactly.
 
 - [ ] **Step 2: Write the script**
 
-Create `echome-platform-v2/src/scripts/backfill-carousel-photos.cjs`:
+Create `echome-platform-v2/src/scripts/_backfill-carousel-photos.ts`:
 
-```javascript
+```typescript
 /**
  * One-time backfill: seed user_carousel_photos from the 25 attributable
  * uploads/{kitUuid}/ folders in the carousel-backgrounds bucket.
@@ -897,20 +915,14 @@ Create `echome-platform-v2/src/scripts/backfill-carousel-photos.cjs`:
  * No file move. Idempotent on storage_path. Default is dry-run.
  *
  * Usage:
- *   node src/scripts/backfill-carousel-photos.cjs            # dry-run (default)
- *   node src/scripts/backfill-carousel-photos.cjs --apply    # write rows
+ *   npx tsx src/scripts/_backfill-carousel-photos.ts            # dry-run (default)
+ *   npx tsx src/scripts/_backfill-carousel-photos.ts --apply    # write rows
  */
-const { createClient } = require('@supabase/supabase-js');
+import { supabase } from '../utils/supabase';
 
 const BUCKET = 'carousel-backgrounds';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const APPLY = process.argv.includes('--apply');
-
-// Match the env var names used by the repo's other src/scripts/*.cjs.
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
 
 async function main() {
   console.log(`[backfill] mode: ${APPLY ? 'APPLY' : 'DRY-RUN'}`);
@@ -1000,15 +1012,15 @@ main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit
 
 - [ ] **Step 3: Dry-run against prod (read-only — no `--apply`)**
 
-Run: `node src/scripts/backfill-carousel-photos.cjs`
+Run: `npx tsx src/scripts/_backfill-carousel-photos.ts`
 Expected: logs `mode: DRY-RUN`, `attributable folders: 25 / ...` (the audit found 25 across 14 users), and one `[dry-run] would insert` line per image file. Zero writes.
 
 - [ ] **Step 4: Verify idempotency logic via a re-run after apply (manual, deliberate)**
 
 This step runs only when you are ready to seed prod. Run apply once, then run apply again; the second run must insert zero.
 
-Run: `node src/scripts/backfill-carousel-photos.cjs --apply`
-Then: `node src/scripts/backfill-carousel-photos.cjs --apply`
+Run: `npx tsx src/scripts/_backfill-carousel-photos.ts --apply`
+Then: `npx tsx src/scripts/_backfill-carousel-photos.ts --apply`
 Expected: first run `inserted=N skipped(existing)=0`; second run `inserted=0 skipped(existing)=N`.
 
 > NOTE: Step 4's apply is a deliberate prod write — run it only with explicit go-ahead. The committed script and the dry-run (Step 3) are the deliverable; the apply is an operational action, not part of CI.
@@ -1016,7 +1028,7 @@ Expected: first run `inserted=N skipped(existing)=0`; second run `inserted=0 ski
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/scripts/backfill-carousel-photos.cjs
+git add src/scripts/_backfill-carousel-photos.ts
 git commit -m "feat(carousel): one-time backfill script for attributable upload folders"
 ```
 
