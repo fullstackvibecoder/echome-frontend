@@ -4712,6 +4712,13 @@ export interface VideoUpload {
   platforms?: string[]; // Platforms with content from linked content kit
 }
 
+/** Result summary of the auto-clean pass (filler + pause removal) applied at clip creation. */
+export interface CleanReport {
+  fillerRemoved: number;
+  pausesTrimmed: number;
+  secondsSaved: number;
+}
+
 export interface VideoClip {
   id: string;
   userId: string;
@@ -4758,6 +4765,13 @@ export interface VideoClip {
   createdAt: string;
   updatedAt: string;
   exportedAt?: string;
+  // --- Auto-clean (Phase 1): backend removes filler + long pauses at creation ---
+  /** URL of the cleaned render. Present only when autoCleanApplied is true. */
+  cleanedUrl?: string;
+  /** True when the backend applied an auto-clean pass to this clip. */
+  autoCleanApplied?: boolean;
+  /** What the auto-clean pass removed. Present only when autoCleanApplied is true. */
+  cleanReport?: CleanReport;
 }
 
 export interface ClipExport {
