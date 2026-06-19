@@ -45,3 +45,30 @@ export function detectIngestUrlKind(url: string): IngestUrlKind {
   if (INSTAGRAM_RE.test(url)) return 'instagram';
   return 'blog';
 }
+
+export interface VideoUrlTarget {
+  platform: 'youtube' | 'instagram';
+  kind: 'single' | 'channel';
+}
+
+// Mirrors backend parseYouTubeUrl: single = watch/shorts/live/youtu.be;
+// channel = @handle, /channel/, /c/, /user/, playlist, or bare root.
+const YT_SINGLE_RE = /[?&]v=|youtu\.be\/|\/shorts\/|\/live\//i;
+const IG_SINGLE_RE = /\/(p|reel|reels|tv)\//i;
+
+/**
+ * Classify a video URL for the Echo destination fork. Returns null for URLs
+ * that should NOT show the fork (recordings, blogs, anything non-video).
+ * Uncertain YouTube/Instagram URLs resolve to 'channel' — asking is safe, and
+ * the channel fork offers both "Add to Voice/KB" and "Save to clip later".
+ */
+export function detectVideoUrlTarget(url: string): VideoUrlTarget | null {
+  if (RECORDING_RE.test(url)) return null; // loom/zoom/vimeo: not forkable here
+  if (YOUTUBE_RE.test(url)) {
+    return { platform: 'youtube', kind: YT_SINGLE_RE.test(url) ? 'single' : 'channel' };
+  }
+  if (INSTAGRAM_RE.test(url)) {
+    return { platform: 'instagram', kind: IG_SINGLE_RE.test(url) ? 'single' : 'channel' };
+  }
+  return null;
+}
