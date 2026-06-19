@@ -1498,6 +1498,29 @@ export const api = {
       >('/images/health');
       return response.data;
     },
+
+    // Saved carousel photos (persisted, per-user, surfaced in every kit's PhotoPicker).
+    saveCarouselPhoto: async (image: File) => {
+      const formData = new FormData();
+      formData.append('image', image);
+      const response = await apiClient.post<ApiResponse<{ photo: { id: string; url: string } }>>(
+        '/images/carousel-photos',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 },
+      );
+      return response.data;
+    },
+
+    listCarouselPhotos: async () => {
+      const response = await apiClient.get<ApiResponse<{ photos: CarouselPhoto[] }>>(
+        '/images/carousel-photos',
+      );
+      return response.data;
+    },
+
+    hideCarouselPhoto: async (id: string) => {
+      await apiClient.delete(`/images/carousel-photos/${id}`);
+    },
   },
 
   // -------- CREATOR MONITORING & REPURPOSING --------
@@ -4446,6 +4469,15 @@ export const api = {
     },
   },
 };
+
+// -------- CAROUSEL PHOTO TYPES --------
+
+export interface CarouselPhoto {
+  id: string;
+  url: string;
+  original_filename: string | null;
+  created_at: string;
+}
 
 // -------- TEAM VOICE TYPES --------
 
