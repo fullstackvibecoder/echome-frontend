@@ -128,6 +128,12 @@ export default function ClipEditorModal({
   // When auto-clean ran, the player shows the cleaned render by default;
   // this flips it to the original for comparison.
   const [showOriginal, setShowOriginal] = useState(false);
+
+  // Reset the compare-to-original view when switching to a different clip.
+  useEffect(() => {
+    setShowOriginal(false);
+  }, [clip.id]);
+
   // Editable post caption (text accompanying the clip on social platforms).
   // Local mirror of clip.suggestedCaption — empty string means "user cleared
   // the per-clip caption" so the kit-level fallback (instagramCaption prop)
@@ -158,7 +164,7 @@ export default function ClipEditorModal({
   }, [baseSegments, segmentEdits]);
 
   // Determine video source: split view, then cleaned-vs-original (see selectClipVideoSrc).
-  const hasSplitScreen = !!(clip as any).splitScreenUrl;
+  const hasSplitScreen = !!(clip as unknown as Record<string, unknown>).splitScreenUrl;
   const cleanedAvailable = !!clip.autoCleanApplied && !!clip.cleanedUrl;
   const videoSrc = selectClipVideoSrc(clip, viewMode, showOriginal);
   const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
