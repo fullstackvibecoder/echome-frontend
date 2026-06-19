@@ -14,14 +14,14 @@ import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
   state: EchoState;
-  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset'>;
+  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseDestination'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
   const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation } = state;
-  const { setInputText, submit, selectIntent, confirm, reset } = handlers;
+  const { setInputText, submit, selectIntent, confirm, reset, chooseDestination } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -91,8 +91,37 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
+      {/* Destination fork: shown in confirming phase when input contains a video URL */}
+      {isConfirming && state.videoUrlTarget && (
+        <div className="flex flex-col gap-2">
+          <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
+            WHERE SHOULD THIS GO
+          </span>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Choose a destination for this video link.">
+            <button
+              type="button"
+              onClick={() => chooseDestination('voice')}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[var(--border)] bg-[var(--surface-container)] text-[var(--muted-foreground)] hover:bg-[var(--surface-container-high)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              Add to Voice/KB
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseDestination(state.videoUrlTarget!.kind === 'single' ? 'create' : 'stockpile')}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              {state.videoUrlTarget.kind === 'single' ? 'Make content now' : 'Save videos to clip later'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Intent chip row (confirming / executing / answered phase) */}
-      {(isConfirming || isAnswered) && classification && (
+      {(isConfirming || isAnswered) && classification && !state.videoUrlTarget && (
         <div className="flex flex-col gap-2">
           <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
             DETECTED INTENT

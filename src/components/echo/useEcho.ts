@@ -12,7 +12,7 @@ import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES } from './intent-meta';
 import { stashEchoHandoff } from './file-handoff';
-import { extractFirstUrl, detectIngestUrlKind } from '@/lib/url-platform';
+import { extractFirstUrl, detectIngestUrlKind, detectVideoUrlTarget, type VideoUrlTarget } from '@/lib/url-platform';
 
 // ---- State machine phases ----
 export type EchoPhase =
@@ -48,6 +48,12 @@ export interface EchoState {
    * only "added to your Voice" outcomes get the confirmation.
    */
   confirmation: { title: string; detail: string | null } | null;
+  /** Set when the submitted text contains a video URL (YouTube/Instagram single or channel). null otherwise. */
+  videoUrlTarget: VideoUrlTarget | null;
+  /** Videos saved by the stockpile choice (Task 7 reads this). null until a stockpile completes. */
+  savedVideos: Array<{ uploadId: string; sourceUrl: string; title: string }> | null;
+  /** Count of videos saved by the most recent stockpile. null until a stockpile completes. */
+  savedCount: number | null;
 }
 
 export interface UseEchoReturn {
@@ -60,6 +66,7 @@ export interface UseEchoReturn {
   selectIntent: (intent: EchoIntent) => void;
   confirm: () => Promise<void>;
   reset: () => void;
+  chooseDestination: (choice: 'voice' | 'create' | 'stockpile') => Promise<void>;
 }
 
 const MAX_RECEIPTS = 3;
@@ -97,6 +104,9 @@ const INITIAL_STATE: EchoState = {
   receipts: [],
   error: null,
   confirmation: null,
+  videoUrlTarget: null,
+  savedVideos: null,
+  savedCount: null,
 };
 
 export interface UseEchoOptions {
@@ -265,12 +275,16 @@ export function useEcho(
         },
       }).catch(() => {});
 
+      const firstUrl = extractFirstUrl(classifyText);
+      const videoUrlTarget = firstUrl ? detectVideoUrlTarget(firstUrl) : null;
+
       setState((prev) => ({
         ...prev,
         phase: 'confirming',
         classification,
         selectedIntent: coercedIntent,
         answer: null,
+        videoUrlTarget,
       }));
     } catch (err) {
       setState((prev) => ({
@@ -640,6 +654,50 @@ export function useEcho(
     }
   }, [navigate, addReceipt]);
 
+  const chooseDestination = useCallback(async (choice: 'voice' | 'create' | 'stockpile') => {
+    const { inputText, videoUrlTarget } = stateRef.current;
+    const url = extractFirstUrl(inputText);
+    if (!url || !videoUrlTarget) return;
+
+    setState((prev) => ({ ...prev, phase: 'executing', error: null }));
+    try {
+      if (choice === 'voice') {
+        await api.kbContent.startSocialImport({ platform: videoUrlTarget.platform, url });
+        addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${videoUrlTarget.platform.toUpperCase()} IMPORT`));
+        setState((prev) => ({
+          ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
+          confirmation: { title: 'Importing to your Voice', detail: `${videoUrlTarget.platform} link` },
+        }));
+        onIngestCompleteRef.current?.();
+      } else if (choice === 'create') {
+        const uploadResponse = await api.clips.upload({ sourceType: videoUrlTarget.platform, sourceUrl: url });
+        if (!uploadResponse.success || !uploadResponse.data?.upload) {
+          throw new Error('Failed to upload video');
+        }
+        const upload = uploadResponse.data.upload;
+        await api.clips.process(upload.id, { generateContent: true });
+        addReceipt(formatReceipt('CLIP · MAKE CONTENT NOW'));
+        setState((prev) => ({
+          ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
+          confirmation: { title: 'Clipping your video', detail: 'Making content now' },
+        }));
+      } else {
+        const res = await api.kbContent.startChannelStockpile({ url });
+        addReceipt(formatReceipt(`STOCKPILE · SAVED ${res.savedCount} VIDEOS`));
+        setState((prev) => ({
+          ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
+          savedVideos: res.videos, savedCount: res.savedCount,
+          confirmation: { title: `Saved ${res.savedCount} videos to clip later`, detail: '' },
+        }));
+      }
+    } catch (err) {
+      setState((prev) => ({
+        ...prev, phase: 'confirming',
+        error: err instanceof Error ? err.message : 'Something went wrong. Try again.',
+      }));
+    }
+  }, [addReceipt]);
+
   return {
     state,
     open,
@@ -650,5 +708,6 @@ export function useEcho(
     selectIntent,
     confirm,
     reset,
+    chooseDestination,
   };
 }
