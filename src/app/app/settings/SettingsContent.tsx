@@ -78,6 +78,7 @@ export default function SettingsContent() {
 
   // Preferences state
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [autoCleanClips, setAutoCleanClips] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
   const [preferencesSaving, setPreferencesSaving] = useState(false);
@@ -133,6 +134,7 @@ export default function SettingsContent() {
         setEmailNotifications(response.data.email_notifications ?? true);
         setWeeklyDigest(response.data.weekly_digest ?? false);
         setTheme(response.data.theme ?? 'light');
+        setAutoCleanClips(response.data.auto_clean_clips ?? true);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -223,7 +225,7 @@ export default function SettingsContent() {
     if (file) uploadProfileImage(file);
   };
 
-  const handlePreferenceChange = async (key: 'email_notifications' | 'weekly_digest' | 'theme', value: boolean | string) => {
+  const handlePreferenceChange = async (key: 'email_notifications' | 'weekly_digest' | 'theme' | 'auto_clean_clips', value: boolean | string) => {
     try {
       setPreferencesSaving(true);
 
@@ -238,6 +240,8 @@ export default function SettingsContent() {
           setWeeklyDigest(value as boolean);
         } else if (key === 'theme') {
           setTheme(value as 'light' | 'dark' | 'auto');
+        } else if (key === 'auto_clean_clips') {
+          setAutoCleanClips(value as boolean);
         }
         setProfile(response.data);
       }
@@ -947,6 +951,24 @@ export default function SettingsContent() {
                   className="w-5 h-5 accent-accent"
                   checked={emailNotifications}
                   onChange={(e) => handlePreferenceChange('email_notifications', e.target.checked)}
+                />
+              </label>
+            </div>
+
+            {/* Auto-clean clips */}
+            <div>
+              <label className="flex items-center justify-between p-4 border-2 border-border rounded-lg hover:border-accent transition-colors cursor-pointer">
+                <div>
+                  <p className="text-body font-medium">Auto-clean my clips</p>
+                  <p className="text-small text-text-secondary">
+                    Automatically remove filler words and long pauses from new clips
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 accent-accent"
+                  checked={autoCleanClips}
+                  onChange={(e) => handlePreferenceChange('auto_clean_clips', e.target.checked)}
                 />
               </label>
             </div>
