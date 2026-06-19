@@ -4076,39 +4076,6 @@ export const api = {
     },
   },
 
-  // -------- DESCRIPT STUDIO --------
-  descript: {
-    createProject: async (data: { title: string; source: DescriptCreateSource }) => {
-      const response = await apiClient.post('/descript/projects', data);
-      return response.data as { project: DescriptProject; job: DescriptJob };
-    },
-
-    listProjects: async (params?: { limit?: number; offset?: number; status?: string }) => {
-      const response = await apiClient.get('/descript/projects', { params });
-      return response.data as DescriptProject[];
-    },
-
-    getProject: async (id: string) => {
-      const response = await apiClient.get(`/descript/projects/${id}`);
-      return response.data as { project: DescriptProject; jobs: DescriptJob[] };
-    },
-
-    runEdit: async (projectId: string, data: { prompt: string; model?: string }) => {
-      const response = await apiClient.post(`/descript/projects/${projectId}/edit`, data);
-      return response.data as { job: DescriptJob };
-    },
-
-    pollJobStatus: async (jobId: string) => {
-      const response = await apiClient.get(`/descript/jobs/${jobId}/status`);
-      return response.data as DescriptJob;
-    },
-
-    deleteProject: async (id: string) => {
-      const response = await apiClient.delete(`/descript/projects/${id}`);
-      return response.data as { deleted: boolean };
-    },
-  },
-
   // -------- SOCIAL POSTING (Outstand) --------
   socialPosting: {
     /** Get OAuth URL for connecting a social platform */
@@ -5002,47 +4969,5 @@ export interface StripeUsageLimitsResponse {
     contentKitsCreated: number;
   };
 }
-
-// -------- DESCRIPT STUDIO TYPES --------
-
-export type DescriptProjectStatus = 'creating' | 'ready' | 'editing' | 'failed';
-export type DescriptJobType = 'import' | 'agent_edit';
-export type DescriptJobStatusValue = 'running' | 'stopped' | 'cancelled' | 'failed';
-
-export interface DescriptProject {
-  id: string;
-  user_id: string;
-  descript_project_id?: string;
-  title: string;
-  project_url?: string;
-  status: DescriptProjectStatus;
-  source_type: 'clips' | 'urls';
-  source_metadata?: Record<string, unknown>;
-  error_message?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DescriptJob {
-  id: string;
-  project_id: string;
-  user_id: string;
-  descript_job_id: string;
-  job_type: DescriptJobType;
-  status: DescriptJobStatusValue;
-  prompt?: string;
-  model?: string;
-  progress_label?: string;
-  result_data?: Record<string, unknown>;
-  error_message?: string;
-  started_at: string;
-  completed_at?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type DescriptCreateSource =
-  | { type: 'clips'; clipIds: string[] }
-  | { type: 'urls'; urls: string[] };
 
 export default api;
