@@ -67,6 +67,25 @@ describe('useEcho chooseDestination', () => {
   });
 });
 
+describe('useEcho stale savedVideos cleared on re-submit', () => {
+  it('clears savedVideos/savedCount on a new submit after a prior stockpile', async () => {
+    const { result } = renderHook(() => useEcho(vi.fn()));
+    // First flow: stockpile a channel
+    act(() => { result.current.open(); result.current.setInputText('https://youtube.com/@handle'); });
+    await act(async () => { await result.current.submit(); });
+    await waitFor(() => expect(result.current.state.videoUrlTarget).toEqual({ platform: 'youtube', kind: 'channel' }));
+    await act(async () => { await result.current.chooseDestination('stockpile'); });
+    await waitFor(() => expect(result.current.state.savedVideos).toHaveLength(2));
+    // Simulate user pasting a second URL without an explicit reset
+    act(() => { result.current.setInputText('https://youtube.com/watch?v=xyz'); });
+    // Second submit: should clear stale savedVideos during confirming transition
+    await act(async () => { await result.current.submit(); });
+    await waitFor(() => expect(result.current.state.phase).toBe('confirming'));
+    expect(result.current.state.savedVideos).toBeNull();
+    expect(result.current.state.savedCount).toBeNull();
+  });
+});
+
 describe('useEcho clipSavedVideo', () => {
   it('calls api.clips.process and removes the clipped video from savedVideos', async () => {
     const { result } = renderHook(() => useEcho(vi.fn()));

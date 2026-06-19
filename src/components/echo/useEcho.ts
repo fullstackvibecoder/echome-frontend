@@ -286,6 +286,8 @@ export function useEcho(
         selectedIntent: coercedIntent,
         answer: null,
         videoUrlTarget,
+        savedVideos: null,
+        savedCount: null,
       }));
     } catch (err) {
       setState((prev) => ({
@@ -667,6 +669,7 @@ export function useEcho(
         addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${videoUrlTarget.platform.toUpperCase()} IMPORT`));
         setState((prev) => ({
           ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
+          savedVideos: null, savedCount: null,
           confirmation: { title: 'Importing to your Voice', detail: `${videoUrlTarget.platform} link` },
         }));
         onIngestCompleteRef.current?.();
@@ -680,6 +683,7 @@ export function useEcho(
         addReceipt(formatReceipt('CLIP · MAKE CONTENT NOW'));
         setState((prev) => ({
           ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
+          savedVideos: null, savedCount: null,
           confirmation: { title: 'Clipping your video', detail: 'Making content now' },
         }));
       } else {
