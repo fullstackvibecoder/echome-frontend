@@ -168,25 +168,56 @@ better). Additive only; do not touch auth/interceptor/JWT-sync logic.
 
 `video_uploads.status` is the `video_processing_status` enum
 (`20260106_000001_clip_finder.sql:41-67`). Add a `saved` value (a stockpiled
-video that has not entered processing). The plan decides enum-value-add vs a
-separate boolean column; enum-add is preferred for consistency with the
-existing pipeline's status filtering. Confirm no code path treats an unknown
-status as a hard failure before adding.
+video that has not entered processing):
 
-### Component 7 — Frontend: the create-side "Saved videos" picker
+```sql
+ALTER TYPE video_processing_status ADD VALUE IF NOT EXISTS 'saved';
+```
 
-**File:** the create surface (`src/app/app/AppContent.tsx` / EchoHero create
-flow, and/or `src/components/content-generation/`).
+**Decision: enum-add, not a boolean column.** Repo precedent favors enum-add
+(`subscription_tier`, `caption_style_preset`, and the `fix_upload_status_enum`
+migration all use `ALTER TYPE ... ADD VALUE IF NOT EXISTS`), and `saved` fits
+the lifecycle (`saved` -> `pending` -> ... -> `completed` when later clipped) as
+one more status value rather than an orthogonal flag. No consumer does an
+exhaustive `switch`/`default: throw` on this enum (checked: `admin-webhook-health.ts`,
+`reels.ts`, `clips.ts` are equality checks on `completed`/`failed`/`processing`),
+so a new value breaks nothing.
 
-A minimal picker that:
-- calls `api.kbContent.listSavedVideos()` on open,
-- lists each saved video (thumbnail + title),
-- on pick, runs the **existing** clip pipeline against that video's
-  `video_upload_id` / `source_url` (the same entry a pasted single URL uses).
-  No new clip logic.
+**Postgres constraint (the lesson the `fix_upload_status_enum` migration teaches):**
+`ALTER TYPE ... ADD VALUE` cannot be used in the same transaction that then
+references the new value. The `saved` value therefore lands in **its own
+migration**, deployed before any code (Component 4's insert) references it. This
+is why the backend PR's migration and the stockpile insert can ship together
+only if the migration runs first in deploy order, which Railway's
+migrate-then-boot sequence guarantees.
 
-This is the minimum that makes "save to clip later" real. The richer library
-surface is deferred.
+### Component 7 — Frontend: the inline saved-videos result strip
+
+**File:** the Echo thread surface (`src/components/echo/` — the same thread that
+renders the destination fork in Component 2) + a small presentational strip
+component.
+
+After a successful `startChannelStockpile`, the Echo thread renders **one
+result card**, not N cards:
+
+- a headline: "Saved N videos to clip later",
+- a **horizontal scroll strip** of the saved videos (thumbnail + short title),
+  ~5 visible, the rest scroll horizontally. With `maxVideos=20` the strip is
+  bounded at 20 items — a hard ceiling, so a plain horizontal scroll suffices
+  (no pagination, no virtualization).
+- each thumbnail has a "Clip" affordance; picking one runs the **existing**
+  clip pipeline against that video's `video_upload_id` / `source_url` (the same
+  entry a pasted single URL uses). No new clip logic.
+
+The strip's source is the `startChannelStockpile` response (it already returns
+the saved rows). `listSavedVideos` (Component 5) backs a re-fetch when the
+thread card is gone — e.g. the strip's "see all" re-pulls the user's `saved`
+rows. The richer dedicated library surface stays deferred.
+
+**Coupling note for the implementer:** the inline strip is viable *only because*
+`maxVideos` caps the row count at 20. Leave a code comment at the strip tying it
+to the `maxVideos` constant; if that cap ever rises, the inline strip must move
+to pagination or a dedicated surface.
 
 ## Data flow — channel + clip-later (the new path)
 
@@ -195,10 +226,10 @@ Echo: paste channel URL
   → fork: "Save videos to clip later"
   → POST /channel/stockpile { url }
   → stockpileChannel: SociaVault getChannelVideos → N video_uploads rows (status=saved)
-  → Echo thread: "Saved N videos. Find them in <create picker>."
+  → Echo thread renders ONE result card: "Saved N videos to clip later"
+    + horizontal scroll strip of the N saved videos (bounded at 20)
 
-Later, in create:
-  → picker → listSavedVideos → user picks one
+Pick a video from the strip (now or later via "see all" re-fetch):
   → existing clip pipeline runs on that video_uploads row (downloads on demand)
   → video_clips produced, exactly as a pasted single URL would
 ```
@@ -228,8 +259,10 @@ Later, in create:
   routes Button 2 to the clip path; a channel URL renders the channel fork copy
   and routes Button 2 to `startChannelStockpile`. Non-video URL still shows the
   existing intent flow.
-- Picker test: `listSavedVideos` rows render; picking one invokes the clip
-  entry with the right id.
+- Inline strip test: after a stockpile success, the thread renders one result
+  card with a scroll strip of the returned saved videos; picking a thumbnail
+  invokes the clip entry with the right `video_upload_id`/`source_url`. A
+  20-item response renders without overflow breakage (bounded strip).
 
 **Backend (existing test runner):**
 - `stockpileChannel`: a channel URL produces N `video_uploads` rows with
