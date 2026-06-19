@@ -14,14 +14,14 @@ import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
   state: EchoState;
-  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseDestination'>;
+  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseDestination' | 'clipSavedVideo'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
   const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation } = state;
-  const { setInputText, submit, selectIntent, confirm, reset, chooseDestination } = handlers;
+  const { setInputText, submit, selectIntent, confirm, reset, chooseDestination, clipSavedVideo } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -210,6 +210,35 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
           </div>
         </div>
       )}
+      {isDone && state.savedVideos && state.savedVideos.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-foreground">
+            Saved {state.savedCount} videos to clip later
+          </span>
+          {/* Horizontal scroll strip. Bounded at 20 items because stockpileChannel
+              caps getChannelVideos at maxVideos=20. If maxVideos ever rises, this
+              strip must move to pagination or a dedicated surface. */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {state.savedVideos.map((v) => (
+              <div
+                key={v.uploadId}
+                className="flex min-w-[10rem] max-w-[10rem] flex-col gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface-container)] p-2"
+              >
+                <span className="line-clamp-2 text-xs text-foreground">{v.title || v.sourceUrl}</span>
+                <button
+                  type="button"
+                  onClick={() => clipSavedVideo(v.uploadId)}
+                  disabled={state.phase === 'executing'}
+                  className="self-start rounded px-2 py-0.5 text-[0.625rem] tracking-[0.12em] text-machine border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)] disabled:opacity-50"
+                >
+                  Clip
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isDone && !confirmation && (
         <div className="flex items-center justify-between">
           <span className="text-machine">DONE</span>

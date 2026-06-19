@@ -36,6 +36,7 @@ const handlers = {
   confirm: vi.fn(),
   reset: vi.fn(),
   chooseDestination: vi.fn(),
+  clipSavedVideo: vi.fn(),
 };
 
 function renderExchange(overrides: Partial<EchoState>) {

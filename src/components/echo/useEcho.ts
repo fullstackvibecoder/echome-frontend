@@ -67,6 +67,7 @@ export interface UseEchoReturn {
   confirm: () => Promise<void>;
   reset: () => void;
   chooseDestination: (choice: 'voice' | 'create' | 'stockpile') => Promise<void>;
+  clipSavedVideo: (uploadId: string) => Promise<void>;
 }
 
 const MAX_RECEIPTS = 3;
@@ -698,6 +699,25 @@ export function useEcho(
     }
   }, [addReceipt]);
 
+  const clipSavedVideo = useCallback(async (uploadId: string) => {
+    setState((prev) => ({ ...prev, phase: 'executing', error: null }));
+    try {
+      await api.clips.process(uploadId, { generateContent: true });
+      addReceipt(formatReceipt('CLIP · STARTED'));
+      setState((prev) => ({
+        ...prev,
+        phase: 'done',
+        savedVideos: prev.savedVideos ? prev.savedVideos.filter((v) => v.uploadId !== uploadId) : null,
+        confirmation: { title: 'Clipping started', detail: '' },
+      }));
+    } catch (err) {
+      setState((prev) => ({
+        ...prev, phase: 'done',
+        error: err instanceof Error ? err.message : 'Could not start clipping. Try again.',
+      }));
+    }
+  }, [addReceipt]);
+
   return {
     state,
     open,
@@ -709,5 +729,6 @@ export function useEcho(
     confirm,
     reset,
     chooseDestination,
+    clipSavedVideo,
   };
 }

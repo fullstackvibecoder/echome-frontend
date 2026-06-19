@@ -66,3 +66,23 @@ describe('useEcho chooseDestination', () => {
     expect(api.clips.process).toHaveBeenCalledWith('up-1', { generateContent: true });
   });
 });
+
+describe('useEcho clipSavedVideo', () => {
+  it('calls api.clips.process and removes the clipped video from savedVideos', async () => {
+    const { result } = renderHook(() => useEcho(vi.fn()));
+    // Drive through stockpile to seed savedVideos
+    act(() => { result.current.open(); result.current.setInputText('https://youtube.com/@handle'); });
+    await act(async () => { await result.current.submit(); });
+    await waitFor(() => expect(result.current.state.videoUrlTarget).toEqual({ platform: 'youtube', kind: 'channel' }));
+    await act(async () => { await result.current.chooseDestination('stockpile'); });
+    await waitFor(() => expect(result.current.state.savedVideos).toHaveLength(2));
+
+    // Now clip the first saved video
+    await act(async () => { await result.current.clipSavedVideo('u1'); });
+    expect(api.clips.process).toHaveBeenCalledWith('u1', { generateContent: true });
+    // u1 should be removed from savedVideos, u2 should remain
+    expect(result.current.state.savedVideos).toHaveLength(1);
+    expect(result.current.state.savedVideos?.[0].uploadId).toBe('u2');
+    expect(result.current.state.phase).toBe('done');
+  });
+});

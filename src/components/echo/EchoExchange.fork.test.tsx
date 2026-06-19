@@ -64,3 +64,28 @@ describe('EchoExchange destination fork', () => {
     expect(screen.queryByText('Save videos to clip later')).not.toBeInTheDocument();
   });
 });
+
+describe('EchoExchange saved-videos strip', () => {
+  it('renders one result card with a title per saved video and clips on pick', () => {
+    renderExchange({
+      phase: 'done',
+      savedCount: 2,
+      savedVideos: [
+        { uploadId: 'u1', sourceUrl: 'https://youtube.com/watch?v=a', title: 'First clip' },
+        { uploadId: 'u2', sourceUrl: 'https://youtube.com/watch?v=b', title: 'Second clip' },
+      ],
+    });
+    expect(screen.getByText('Saved 2 videos to clip later')).toBeInTheDocument();
+    expect(screen.getByText('First clip')).toBeInTheDocument();
+    expect(screen.getByText('Second clip')).toBeInTheDocument();
+    // Each saved video offers a Clip action.
+    const clipButtons = screen.getAllByRole('button', { name: /clip/i });
+    fireEvent.click(clipButtons[0]);
+    expect(handlers.clipSavedVideo).toHaveBeenCalledWith('u1');
+  });
+
+  it('renders no strip when savedVideos is null', () => {
+    renderExchange({ phase: 'done', savedVideos: null, savedCount: null });
+    expect(screen.queryByText(/Saved .* videos to clip later/)).not.toBeInTheDocument();
+  });
+});
