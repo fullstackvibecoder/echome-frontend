@@ -30,8 +30,11 @@ describe('api.images carousel photos', () => {
     expect(post).toHaveBeenCalledWith(
       '/images/carousel-photos',
       expect.any(FormData),
-      expect.objectContaining({ headers: { 'Content-Type': 'multipart/form-data' } }),
+      expect.objectContaining({ headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }),
     );
+    // Assert FormData field is named 'image' and holds the file.
+    const formData: FormData = post.mock.calls[0][1];
+    expect(formData.get('image')).toBe(file);
     expect(out.data?.photo.id).toBe('p1');
   });
 
