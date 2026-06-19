@@ -10,6 +10,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { X, Download, Film, RotateCcw } from 'lucide-react';
 import { api, type VideoClip } from '@/lib/api-client';
+import { selectClipVideoSrc } from './clip-video-src';
+import { ClipCleanBanner } from './ClipCleanBanner';
 import { formatDuration } from '@/lib/content-kit-utils';
 import { VideoPlayer, type VideoPlayerHandle } from './VideoPlayer';
 import { CaptionStylePopover } from './CaptionStylePopover';
@@ -123,6 +125,9 @@ export default function ClipEditorModal({
   });
   const [viewMode, setViewMode] = useState<'single' | 'split'>('single');
   const [saving, setSaving] = useState(false);
+  // When auto-clean ran, the player shows the cleaned render by default;
+  // this flips it to the original for comparison.
+  const [showOriginal, setShowOriginal] = useState(false);
   // Editable post caption (text accompanying the clip on social platforms).
   // Local mirror of clip.suggestedCaption — empty string means "user cleared
   // the per-clip caption" so the kit-level fallback (instagramCaption prop)
@@ -152,11 +157,10 @@ export default function ClipEditorModal({
     });
   }, [baseSegments, segmentEdits]);
 
-  // Determine video source based on view mode
+  // Determine video source: split view, then cleaned-vs-original (see selectClipVideoSrc).
   const hasSplitScreen = !!(clip as any).splitScreenUrl;
-  const videoSrc = viewMode === 'split' && hasSplitScreen
-    ? (clip as any).splitScreenUrl
-    : clip.exports?.[0]?.url || '';
+  const cleanedAvailable = !!clip.autoCleanApplied && !!clip.cleanedUrl;
+  const videoSrc = selectClipVideoSrc(clip, viewMode, showOriginal);
   const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
   const youtubeDisabledReasons = (() => {
     const reason = youtubeShortBlockReason(clip.duration, aspectRatio);
@@ -404,6 +408,14 @@ export default function ClipEditorModal({
                   </button>
                 </div>
               </div>
+            )}
+
+            {cleanedAvailable && clip.cleanReport && (
+              <ClipCleanBanner
+                report={clip.cleanReport}
+                showingOriginal={showOriginal}
+                onToggleOriginal={setShowOriginal}
+              />
             )}
 
             {/* Caption Controls — only show when captions are not burned in.
