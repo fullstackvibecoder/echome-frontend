@@ -850,6 +850,12 @@ export default function ContentKitDetailContent() {
             backgroundImageUrl: s.backgroundImageUrl,
             text: s.text || '',
             template: s.template || s.slideType,
+            // structured is what makes the modal render the field-based editor
+            // (Headline/Body/Subtitle/CTA) instead of the legacy local-only
+            // textarea. Dropping it here forced branded-overlay carousels onto
+            // the textarea path, where copy edits never PATCH — the root of the
+            // "carousel doesn't save my copy" report.
+            structured: s.structured,
           }))}
           contentKitId={contentKitId || id}
           designPreset={detail.carousel.designPreset}

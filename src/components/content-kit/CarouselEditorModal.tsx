@@ -145,6 +145,22 @@ export default function CarouselEditorModal({
 
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Debounced server re-bake of the displayed/exported PNG (slide.publicUrl).
+  // Client canvas preview updates instantly, but the filmstrip thumbnails and
+  // the asset that Download/Post/Schedule export are the server-composed
+  // publicUrl — which only refreshes via a composeOnly regenerate. Without
+  // this, copy edits and applied photos look like they "didn't save" because
+  // the thumbnails + export stay stale until a terminal action. Regression
+  // from 4acd3c7 (client WYSIWYG) which left runComposeOnlyRefresh dead.
+  // Called via ref so the edit handlers (defined above runComposeOnlyRefresh)
+  // can trigger it without forward-reference ordering issues.
+  const editsRef = useRef<SlideEdit[]>([]);
+  const scheduleRebakeRef = useRef<() => void>(() => {});
+  const rebakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rebakeInFlight = useRef(false);
+  const rebakeDirty = useRef(false);
+  const [rebaking, setRebaking] = useState(false);
+
   function persistSlides(next: CarouselSlide[]) {
     if (persistTimer.current) clearTimeout(persistTimer.current);
     persistTimer.current = setTimeout(() => {
@@ -214,6 +230,15 @@ export default function CarouselEditorModal({
   }
 
   const hasBackground = slides.some(s => !!s.backgroundUrl);
+  // Auto-rebake eligibility. composeOnly re-renders branded-overlay / quote-card
+  // / stats-card server-side (runComposeOnlyRefresh docstring), so ANY composable
+  // (non-single-pass) carousel can refresh its preview on edit — NOT just the
+  // rare legacy "prepare-editing" carousels that carry a split backgroundUrl.
+  // tweet-style is the only true single-pass template; it keeps the manual
+  // "Refresh preview" banner instead. Gating on hasBackground here silently
+  // skipped fresh branded-overlay carousels (the surface in the carousel-edit
+  // bug report), so edits never re-baked the filmstrip/export.
+  const canRebake = slides.some(s => !SINGLE_PASS_TEMPLATES.has(s.template || ''));
   // hasEdits drives whether the download flow flushes overrides to the
   // backend re-render path. Must detect ANY editable change — text,
   // structured fields, position, photo, redKeyword — otherwise stale
@@ -311,6 +336,9 @@ export default function CarouselEditorModal({
         [field]: value,
       };
       updateEdit(slideIndex, { structured: merged });
+      // Re-bake the displayed/exported PNG after the jsonb PATCH settles so
+      // the filmstrip + export reflect the copy edit instead of going stale.
+      scheduleRebakeRef.current();
 
       const existing = slideSaveTimersRef.current[slide.slideNumber];
       if (existing) clearTimeout(existing);
@@ -339,6 +367,7 @@ export default function CarouselEditorModal({
     return () => {
       for (const t of Object.values(timers)) clearTimeout(t);
       if (persistTimer.current) clearTimeout(persistTimer.current);
+      if (rebakeTimer.current) clearTimeout(rebakeTimer.current);
     };
   }, []);
 
@@ -376,7 +405,7 @@ export default function CarouselEditorModal({
    * via renderSlideToBuffer (~2-3s for 10 slides).
    */
   const runComposeOnlyRefresh = useCallback(
-    async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; backgroundImageUrl?: string; redKeyword?: string }>) => {
+    async (overrides: Array<{ text: string; textPosition: { x: number; y: number }; structured?: StructuredFields; backgroundImageUrl?: string; redKeyword?: string }>) => {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
         designPreset: (currentPreset as 'auto' | 'tweet-style' | 'text-box' | 'branded-overlay' | 'quote-card' | 'stats-card') || 'auto',
         composeOnly: true,
@@ -401,6 +430,72 @@ export default function CarouselEditorModal({
     [contentKitId, currentPreset, onCarouselUpdate],
   );
 
+  // Keep a live ref to edits so the debounced re-bake reads the latest
+  // values, not the snapshot captured when the timer was scheduled.
+  useEffect(() => {
+    editsRef.current = edits;
+  }, [edits]);
+
+  // Build the canonical slideOverrides payload from the current edits.
+  // Mirrors the handleDownload override shape so the on-edit re-bake and the
+  // terminal-action bake produce identical PNGs.
+  const buildOverrides = useCallback(
+    () =>
+      editsRef.current.map((e) => ({
+        text: e.text,
+        textPosition: e.position,
+        structured: e.structured,
+        backgroundImageUrl: e.backgroundImageUrl,
+        redKeyword: e.redKeyword,
+      })),
+    [],
+  );
+
+  // Run a re-bake now. Overlap guard: if a bake is already in flight, mark
+  // dirty and let the in-flight one reschedule on completion, so we always
+  // converge on the latest edits without stacking requests.
+  const runRebake = useCallback(async () => {
+    if (rebakeInFlight.current) {
+      rebakeDirty.current = true;
+      return;
+    }
+    rebakeInFlight.current = true;
+    setRebaking(true);
+    try {
+      await runComposeOnlyRefresh(buildOverrides());
+    } catch (err) {
+      console.error('Failed to refresh carousel preview', err);
+    } finally {
+      rebakeInFlight.current = false;
+      setRebaking(false);
+      if (rebakeDirty.current) {
+        rebakeDirty.current = false;
+        scheduleRebakeRef.current();
+      }
+    }
+  }, [buildOverrides, runComposeOnlyRefresh]);
+
+  // Debounced trigger for the server re-bake of slide.publicUrl. Single-pass
+  // templates (tweet-style) bake text into the cached background PNG and can't
+  // be recomposed without the full pipeline, so they keep their manual
+  // "Refresh preview" banner — canRebake gates them out. Composable templates
+  // (branded-overlay / quote-card / stats-card) re-bake here. 1000ms cadence
+  // sits above the 600ms structured PATCH so the jsonb persists first.
+  const scheduleRebake = useCallback(() => {
+    if (!canRebake) return;
+    if (rebakeTimer.current) clearTimeout(rebakeTimer.current);
+    rebakeTimer.current = setTimeout(() => {
+      void runRebake();
+    }, 1000);
+  }, [canRebake, runRebake]);
+
+  // Expose the latest scheduleRebake through a ref so the edit handlers
+  // defined above (handleStructuredFieldChange) can fire it without a
+  // forward reference.
+  useEffect(() => {
+    scheduleRebakeRef.current = scheduleRebake;
+  }, [scheduleRebake]);
+
   /**
    * User picked a different photo from the rail. Update local state — the
    * preview canvas re-renders automatically via the renderSlide effect.
@@ -412,6 +507,8 @@ export default function CarouselEditorModal({
       setEdits((prev) =>
         prev.map((e, i) => (i === slideIndex ? { ...e, backgroundImageUrl: photoUrl } : e)),
       );
+      // Bake the applied photo into the server PNG now, not just at export.
+      scheduleRebakeRef.current();
     },
     [],
   );
@@ -427,6 +524,7 @@ export default function CarouselEditorModal({
       edits[activeIndex]?.backgroundImageUrl ?? slides[activeIndex]?.backgroundImageUrl;
     if (!photoUrl) return;
     setEdits((prev) => prev.map((e) => ({ ...e, backgroundImageUrl: photoUrl })));
+    scheduleRebakeRef.current();
   }, [activeIndex, edits, slides]);
 
   /**
@@ -758,6 +856,8 @@ export default function CarouselEditorModal({
                   <span className="text-[11px] text-muted-foreground tabular-nums">
                     {savingSlide === activeSlide.slideNumber
                       ? 'Saving…'
+                      : rebaking
+                      ? 'Updating preview…'
                       : slideSaveError
                       ? <span className="text-red-500">{slideSaveError}</span>
                       : 'Saved'}
