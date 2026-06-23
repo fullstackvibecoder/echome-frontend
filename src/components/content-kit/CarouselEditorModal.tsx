@@ -230,6 +230,15 @@ export default function CarouselEditorModal({
   }
 
   const hasBackground = slides.some(s => !!s.backgroundUrl);
+  // Auto-rebake eligibility. composeOnly re-renders branded-overlay / quote-card
+  // / stats-card server-side (runComposeOnlyRefresh docstring), so ANY composable
+  // (non-single-pass) carousel can refresh its preview on edit — NOT just the
+  // rare legacy "prepare-editing" carousels that carry a split backgroundUrl.
+  // tweet-style is the only true single-pass template; it keeps the manual
+  // "Refresh preview" banner instead. Gating on hasBackground here silently
+  // skipped fresh branded-overlay carousels (the surface in the carousel-edit
+  // bug report), so edits never re-baked the filmstrip/export.
+  const canRebake = slides.some(s => !SINGLE_PASS_TEMPLATES.has(s.template || ''));
   // hasEdits drives whether the download flow flushes overrides to the
   // backend re-render path. Must detect ANY editable change — text,
   // structured fields, position, photo, redKeyword — otherwise stale
@@ -467,17 +476,18 @@ export default function CarouselEditorModal({
   }, [buildOverrides, runComposeOnlyRefresh]);
 
   // Debounced trigger for the server re-bake of slide.publicUrl. Single-pass
-  // templates (tweet-style etc.) bake text into the cached background PNG and
-  // can't be recomposed without the full pipeline, so they keep their manual
-  // "Refresh preview" banner — hasBackground gates them out. 1000ms cadence
+  // templates (tweet-style) bake text into the cached background PNG and can't
+  // be recomposed without the full pipeline, so they keep their manual
+  // "Refresh preview" banner — canRebake gates them out. Composable templates
+  // (branded-overlay / quote-card / stats-card) re-bake here. 1000ms cadence
   // sits above the 600ms structured PATCH so the jsonb persists first.
   const scheduleRebake = useCallback(() => {
-    if (!hasBackground) return;
+    if (!canRebake) return;
     if (rebakeTimer.current) clearTimeout(rebakeTimer.current);
     rebakeTimer.current = setTimeout(() => {
       void runRebake();
     }, 1000);
-  }, [hasBackground, runRebake]);
+  }, [canRebake, runRebake]);
 
   // Expose the latest scheduleRebake through a ref so the edit handlers
   // defined above (handleStructuredFieldChange) can fire it without a
