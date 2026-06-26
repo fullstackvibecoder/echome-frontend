@@ -88,12 +88,18 @@ export function EchoPill() {
         }
       }
       if (e.key === 'Escape' && isOpen) {
-        close();
+        if (state.phase === 'confirming') {
+          // Back to input without executing; keep receipts intact
+          reset();
+        } else if (state.phase !== 'executing') {
+          // executing is non-abortable; all other open phases collapse normally
+          close();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, open, close]);
+  }, [isOpen, open, close, reset, state.phase]);
 
   // Outside-click collapse (not during executing phase or while mic is active)
   const handleOutsideClick = useCallback(
