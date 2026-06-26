@@ -7,7 +7,6 @@ interface SourceCategoryCardsProps {
   bySourceType: Record<string, number>;
   contentItems: UnifiedContentItem[];
   mboxUploading: boolean;
-  onOpenModal: (modal: string) => void;
   onFilterByCategory: (sourceType: string) => void;
 }
 
@@ -103,7 +102,6 @@ export function SourceCategoryCards({
   bySourceType,
   contentItems,
   mboxUploading,
-  onOpenModal,
   onFilterByCategory,
 }: SourceCategoryCardsProps) {
 
@@ -150,11 +148,9 @@ export function SourceCategoryCards({
                       (st) => (bySourceType[st] || 0) > 0
                     );
                     if (matchingType) onFilterByCategory(matchingType);
-                  } else {
-                    onOpenModal(cat.modal);
                   }
                 }}
-                disabled={isEmailDisabled}
+                disabled={isEmailDisabled || isEmpty}
                 className="w-full p-4 text-left"
               >
                 <div className="flex items-start gap-3">
@@ -167,30 +163,12 @@ export function SourceCategoryCards({
                     <div className="text-sm font-semibold text-text-primary">
                       {cat.label}
                     </div>
-                    {isEmpty ? (
-                      <div className={`text-xs font-medium mt-0.5 ${cat.accent.text}`}>
-                        + Add
-                      </div>
-                    ) : (
-                      <div className="text-xs text-text-secondary mt-0.5">
-                        {itemCount} item{itemCount !== 1 ? 's' : ''}
-                      </div>
-                    )}
+                    <div className="text-xs text-text-secondary mt-0.5">
+                      {itemCount} item{itemCount !== 1 ? 's' : ''}
+                    </div>
                   </div>
                 </div>
               </button>
-
-              {!isEmpty && (
-                <div className="px-4 pb-3 -mt-1">
-                  <button
-                    onClick={() => onOpenModal(cat.modal)}
-                    disabled={isEmailDisabled}
-                    className={`text-xs font-medium transition-colors disabled:opacity-50 ${cat.accent.text} hover:opacity-80`}
-                  >
-                    + Add more
-                  </button>
-                </div>
-              )}
             </div>
           );
         })}

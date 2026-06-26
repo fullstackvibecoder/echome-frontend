@@ -523,7 +523,7 @@ export function useEcho(
               setState((prev) => ({
                 ...prev,
                 phase: 'confirming',
-                error: 'That looks like a video recording. Pick "Creating a kit" to clip it into content — recordings can’t be added to Your Voice directly.',
+                error: 'That looks like a video recording. Pick "Creating a kit" to clip it into content. Recordings can’t be added to Your Voice directly.',
               }));
               return;
             }

@@ -227,7 +227,6 @@ interface SourcesDrawerProps {
   contentItems: UnifiedContentItem[];
   bySourceType: Record<string, number>;
   mboxUploading: boolean;
-  onOpenModal: (modal: string) => void;
   onDeleteContent: (id: string) => Promise<void>;
   onRefresh: () => Promise<void>;
   loading: boolean;
@@ -241,7 +240,6 @@ export function SourcesDrawer({
   contentItems,
   bySourceType,
   mboxUploading,
-  onOpenModal,
   onDeleteContent,
   onRefresh,
   loading,
@@ -396,7 +394,6 @@ export function SourcesDrawer({
               bySourceType={bySourceType}
               contentItems={contentItems}
               mboxUploading={mboxUploading}
-              onOpenModal={onOpenModal}
               onFilterByCategory={handleFilterByCategory}
             />
 
