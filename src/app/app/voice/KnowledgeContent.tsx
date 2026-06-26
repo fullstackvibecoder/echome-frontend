@@ -43,9 +43,6 @@ function getStrengthMessage(score: number): string {
   return 'Echo has a strong read on your voice. Everything you generate will carry your tone, phrasing, and perspective.';
 }
 
-// No-op for SourcesDrawer's onOpenModal (modals now live inside KBUnifiedInput)
-const noop = () => {};
-
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -296,9 +293,15 @@ export default function KnowledgeContent() {
           {echoOn && (
             <div className="mb-8 rounded-xl border border-border bg-card p-5">
               <p className="text-machine mb-1.5">Feed your voice</p>
-              <p className="text-sm text-text-secondary leading-relaxed">
+              <p className="text-sm text-text-secondary leading-relaxed mb-3">
                 Add writing, paste a post, or ask what Echo knows from the Echo bar.
               </p>
+              <Link
+                href="/app"
+                className="inline-flex items-center text-xs font-medium text-primary-interactive hover:underline"
+              >
+                Open Echo →
+              </Link>
             </div>
           )}
 
@@ -338,7 +341,6 @@ export default function KnowledgeContent() {
         contentItems={contentItems}
         bySourceType={bySourceType}
         mboxUploading={false}
-        onOpenModal={noop}
         onDeleteContent={deleteContent}
         onRefresh={refresh}
         loading={loading}

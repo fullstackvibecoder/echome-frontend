@@ -357,7 +357,7 @@ export function EchoHero() {
 
         {/* Source helper line -- voice-first; files accepted, but the guided path is to talk */}
         <p className="mt-2 text-xs text-muted-foreground leading-snug">
-          Best way to start: tap the mic and talk for a minute. You can also paste a link, drop a file, or type a topic. I work with YouTube, Zoom, Loom, and Vimeo links.
+          Best way to start: tap the mic and talk for a minute. You can also paste a link, drop a file, or type a topic. YouTube links and articles teach your voice. Zoom, Loom, and Vimeo recordings become clips.
         </p>
       </div>
 

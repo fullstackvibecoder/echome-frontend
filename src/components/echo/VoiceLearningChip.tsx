@@ -11,8 +11,10 @@
  * States driven by useVoiceStrength + api.wbtw.outcome:
  *   no data / unknown  -> "Teach Echo your voice"
  *   WBTW pending       -> "Learning your voice..."
- *   Seed / Growing     -> "Voice profile: building"
- *   Strong / Signature -> "Voice profile: strong"
+ *   score 0–25         -> "Voice profile: Seed"
+ *   score 26–50        -> "Voice profile: Growing"
+ *   score 51–75        -> "Voice profile: Strong"
+ *   score 76+          -> "Voice profile: Signature"
  */
 
 import { useState, useEffect } from 'react';
@@ -21,18 +23,23 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { api } from '@/lib/api-client';
 
-type ChipState = 'idle' | 'wbtw-pending' | 'building' | 'strong';
+type ChipState = 'idle' | 'wbtw-pending' | 'Seed' | 'Growing' | 'Strong' | 'Signature';
+
+function getTier(score: number): 'Seed' | 'Growing' | 'Strong' | 'Signature' {
+  if (score >= 76) return 'Signature';
+  if (score >= 51) return 'Strong';
+  if (score >= 26) return 'Growing';
+  return 'Seed';
+}
 
 function getLabel(state: ChipState): string {
   switch (state) {
     case 'wbtw-pending':
       return 'Learning your voice...';
-    case 'building':
-      return 'Voice profile: building';
-    case 'strong':
-      return 'Voice profile: strong';
-    default:
+    case 'idle':
       return 'Teach Echo your voice';
+    default:
+      return `Voice profile: ${state}`;
   }
 }
 
@@ -48,7 +55,7 @@ export function VoiceLearningChip() {
       if (voiceStrength !== null && voiceStrength !== undefined) {
         const score = voiceStrength.overallStrength;
         if (!cancelled) {
-          setChipState(score >= 51 ? 'strong' : 'building');
+          setChipState(getTier(score));
         }
         return;
       }

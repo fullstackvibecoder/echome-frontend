@@ -164,21 +164,32 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
             </p>
           )}
 
-          {/* Confirm button (only in confirming/executing phases) */}
+          {/* Confirm / Cancel row (only in confirming/executing phases) */}
           {!isAnswered && (
-            <button
-              type="button"
-              onClick={confirm}
-              disabled={phase === 'executing'}
-              className={[
-                'self-start px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-                'bg-[var(--surface-container-high)] border border-[var(--border)]',
-                'text-foreground hover:bg-[var(--surface-container-highest,var(--surface-container-high))]',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
-              ].join(' ')}
-            >
-              {phase === 'executing' ? 'Working...' : resolvedIntent === 'create' ? 'Open Create' : resolvedIntent === 'ingest' ? 'Add to Voice' : resolvedIntent === 'command' ? 'Navigate' : 'Ask Voice'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={confirm}
+                disabled={phase === 'executing'}
+                className={[
+                  'self-start px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                  'bg-[var(--surface-container-high)] border border-[var(--border)]',
+                  'text-foreground hover:bg-[var(--surface-container-highest,var(--surface-container-high))]',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
+                ].join(' ')}
+              >
+                {phase === 'executing' ? 'Working...' : resolvedIntent === 'create' ? 'Open Create' : resolvedIntent === 'ingest' ? 'Add to Voice' : resolvedIntent === 'command' ? 'Navigate' : 'Ask Voice'}
+              </button>
+              {phase === 'confirming' && (
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="text-xs text-[var(--muted-foreground)] hover:text-foreground underline underline-offset-2 transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
