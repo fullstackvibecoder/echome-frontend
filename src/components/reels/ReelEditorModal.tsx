@@ -39,6 +39,7 @@ const STYLE_OPTIONS: Array<{
   { id: 'brand_gradient', label: 'Brand Gradient' },
   { id: 'story_cards', label: 'Story Cards' },
   { id: 'outlined_stroke', label: 'Outlined' },
+  { id: 'subtitle_bar', label: 'Auto-Caption' },
   { id: 'neon_glow', label: 'Neon' },
 ];
 

@@ -26,7 +26,6 @@ import { ExportProgressModal } from '@/components/ExportProgressModal';
 import { OutputCard } from '@/components/content-kit/OutputCard';
 import { InlineWrittenContent } from '@/components/content-kit/InlineWrittenContent';
 import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
-import WrittenContentModal from '@/components/content-kit/WrittenContentModal';
 import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
 import CarouselEditorModal from '@/components/content-kit/CarouselEditorModal';
 import { EmptyStateCards } from '@/components/content-kit/EmptyStateCards';
@@ -91,10 +90,10 @@ export default function ContentKitDetailContent() {
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
   const [reelEditorOpen, setReelEditorOpen] = useState(false);
   const [substackModalOpen, setSubstackModalOpen] = useState(false);
-  const [writtenContentModalOpen, setWrittenContentModalOpen] = useState(false);
   const [clipEditorOpen, setClipEditorOpen] = useState(false);
   const [carouselEditorOpen, setCarouselEditorOpen] = useState(false);
   const [activeClipForEditor, setActiveClipForEditor] = useState<any>(null);
+  const [carouselError, setCarouselError] = useState<string | null>(null);
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
@@ -148,10 +147,17 @@ export default function ContentKitDetailContent() {
   // Auto-refresh when SSE signals carousel is ready (no more polling needed!)
   useEffect(() => {
     if (carouselReady) {
-      // Refresh to get the carousel data
+      setCarouselError(null);
       refresh();
     }
   }, [carouselReady, refresh]);
+
+  // Surface a specific error when SSE signals carousel generation failed.
+  useEffect(() => {
+    if (carouselFailed) {
+      setCarouselError('Carousel generation failed. Refresh to try again.');
+    }
+  }, [carouselFailed]);
 
   // (removed) Auto-fetch of 1:1 resize on kit-page mount.
   // The state it set (`resizedCarousel`) was never rendered, so the call
@@ -590,8 +596,17 @@ export default function ContentKitDetailContent() {
                   />
                 )}
 
+                {/* Carousel error */}
+                {carouselError && !hasCarousel && (
+                  <div className="col-span-2 p-3 bg-error/10 border border-error/20 rounded-lg text-sm text-error flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>{carouselError}</span>
+                    <button onClick={refresh} className="ml-auto text-xs underline hover:no-underline">Refresh</button>
+                  </div>
+                )}
+
                 {/* Carousel loading */}
-                {carouselExpected && (
+                {carouselExpected && !carouselError && (
                   <OutputCard
                     title="Instagram Carousel"
                     subtitle="Generating..."
@@ -624,7 +639,7 @@ export default function ContentKitDetailContent() {
           )}
 
           {/* Written Content */}
-          {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin) && (
+          {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin || detail?.contentKit?.contentTwitter || detail?.contentKit?.contentInstagram || detail?.contentKit?.contentTiktok || detail?.contentKit?.contentYoutube || detail?.contentKit?.contentEmail || detail?.contentKit?.contentVideoScript) && (
             <section className="mt-8">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-accent-purple/10 flex items-center justify-center">
@@ -649,7 +664,7 @@ export default function ContentKitDetailContent() {
                 )}
 
                 {/* Platform posts — inline tabbed editor */}
-                {detail?.contentKit?.contentLinkedin && (
+                {(detail?.contentKit?.contentLinkedin || detail?.contentKit?.contentTwitter || detail?.contentKit?.contentInstagram || detail?.contentKit?.contentTiktok || detail?.contentKit?.contentYoutube || detail?.contentKit?.contentEmail || detail?.contentKit?.contentVideoScript) && (
                   <InlineWrittenContent
                     contentKitId={detail.contentKit.id}
                     contentKitTitle={detail.contentKit.title}
@@ -776,23 +791,6 @@ export default function ContentKitDetailContent() {
         onContentUpdate={() => refresh()}
       />
 
-      {/* Written Content Modal */}
-      <WrittenContentModal
-        open={writtenContentModalOpen}
-        onClose={() => setWrittenContentModalOpen(false)}
-        contentKitId={detail?.contentKit?.id || id}
-        content={{
-          linkedin: detail?.contentKit?.contentLinkedin,
-          twitter: detail?.contentKit?.contentTwitter,
-          instagram: detail?.contentKit?.contentInstagram,
-          email: detail?.contentKit?.contentEmail,
-          tiktok: detail?.contentKit?.contentTiktok,
-          youtube: detail?.contentKit?.contentYoutube,
-          videoScript: detail?.contentKit?.contentVideoScript,
-        }}
-        onContentUpdate={() => refresh()}
-      />
-
       {/* Clip Editor Modal */}
       {activeClipForEditor && (
         <ClipEditorModal
@@ -860,7 +858,7 @@ export default function ContentKitDetailContent() {
           contentKitId={contentKitId || id}
           designPreset={detail.carousel.designPreset}
           uploadId={detail?.clips?.[0]?.videoUploadId}
-          suggestedCaption={(detail.carousel as any)?.suggestedCaption}
+          suggestedCaption={detail.carousel?.suggestedCaption}
           fallbackCaption={detail?.contentKit?.contentInstagram}
           onCarouselUpdate={() => refresh()}
         />

@@ -4,10 +4,10 @@ import { useState, useMemo, useEffect } from 'react';
 import {
   Linkedin,
   Twitter,
+  Instagram,
   Mail,
   Music2,
   Youtube,
-  FileText,
   Save,
   RefreshCw,
   Copy,
@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { copyAsPlainText } from '@/lib/clipboard';
+import { toast } from 'sonner';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { FeedbackThumbs } from '@/components/feedback-thumbs';
 import { TeleprompterModal } from '@/components/teleprompter/TeleprompterModal';
 import { WrittenPostActions } from './WrittenPostActions';
@@ -32,13 +34,14 @@ interface PlatformConfig {
   charLimit: number | null;
 }
 
-// Instagram is intentionally absent. IG posts require media (carousel or
-// reel), so the caption is edited next to the asset that carries it — see
-// PostCaptionBlock inside CarouselEditorModal. A "written" tab for IG with
-// no Post button was confusing users into thinking the platform was broken.
+// Instagram appears as a read/copy/schedule tab only. IG posts require media
+// (carousel or reel), so the caption is edited next to the asset that carries
+// it — see PostCaptionBlock inside CarouselEditorModal. Instagram is NOT in
+// POST_ACTION_PLATFORM_MAP so it never shows a "Post Now" button here.
 const PLATFORMS: PlatformConfig[] = [
   { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin', icon: Linkedin, accent: '#0A66C2', charLimit: 3000 },
   { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter', icon: Twitter, accent: '#1DA1F2', charLimit: 280 },
+  { key: 'instagram', label: 'Instagram', field: 'contentInstagram', icon: Instagram, accent: '#E1306C', charLimit: 2200 },
   { key: 'email', label: 'Email', field: 'contentEmail', icon: Mail, accent: '#0077AA', charLimit: null },
   { key: 'tiktok', label: 'TikTok', field: 'contentTiktok', icon: Music2, accent: '#000000', charLimit: 2200 },
   { key: 'youtube', label: 'YouTube', field: 'contentYoutube', icon: Youtube, accent: '#FF0000', charLimit: 5000 },
@@ -48,6 +51,7 @@ const PLATFORMS: PlatformConfig[] = [
 const FIELD_MAP: Record<string, string> = {
   linkedin: 'contentLinkedin',
   twitter: 'contentTwitter',
+  instagram: 'contentInstagram',
   email: 'contentEmail',
   tiktok: 'contentTiktok',
   youtube: 'contentYoutube',
@@ -147,6 +151,7 @@ export function InlineWrittenContent({
       }
     } catch (err) {
       console.error('Failed to save', err);
+      toast.error(extractErrorMessage(err, 'Failed to save'));
     } finally {
       setSaving(false);
     }
@@ -167,6 +172,7 @@ export function InlineWrittenContent({
       onContentUpdate();
     } catch (err) {
       console.error('Failed to regenerate', err);
+      toast.error(extractErrorMessage(err, 'Failed to regenerate'));
     } finally {
       setRegenerating(false);
     }
@@ -284,6 +290,7 @@ export function InlineWrittenContent({
                 contentKitId={contentKitId}
                 text={activeText}
                 connected={connectedPlatforms.has(POST_ACTION_PLATFORM_MAP[activePlatform])}
+                fieldName={FIELD_MAP[activePlatform]}
               />
             ) : onSchedule ? (
               <button
