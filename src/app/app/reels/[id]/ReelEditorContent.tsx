@@ -231,6 +231,19 @@ export default function ReelEditorContent() {
     }
   }, [project?.id]);
 
+  // Start polling once project state is populated AND rendering is active.
+  // pollRenderStatus closes over project?.id; calling it inside loadData
+  // before setProject settles means it sees null and returns immediately.
+  // This effect fires once project.id becomes truthy, catching that case.
+  useEffect(() => {
+    if (project?.id && isRendering) {
+      pollRenderStatus();
+    }
+    // Only re-run when project.id changes (null -> uuid once). Do NOT include
+    // isRendering or pollRenderStatus — they change mid-poll and would restart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project?.id]);
+
   // Handle template selection
   const handleTemplateSelect = useCallback((template: ReelTemplate) => {
     setSelectedTemplate(template);

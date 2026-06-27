@@ -37,7 +37,7 @@ export function VideoLibraryDrop() {
         Add videos or links to your library
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        Adding these to your knowledge. They will teach me your voice and what you talk about.
+        Paste a link to add it to your library for future processing.
       </p>
 
       <div className="mt-3 flex gap-2">
@@ -61,21 +61,9 @@ export function VideoLibraryDrop() {
         </button>
       </div>
 
-      {items.length > 0 && (
-        <ul className="mt-3 space-y-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center justify-between rounded-lg border border-border bg-primary/5 px-3 py-2"
-            >
-              <span className="truncate text-xs text-foreground">{item.label}</span>
-              <span className="ml-2 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                {ROUTE_LABEL[item.route]}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* SP2: item list hidden until ingest backend is wired.
+          The addLink() call currently only mutates local state with no API call,
+          so showing the tray would imply ingestion that isn't happening. */}
     </div>
   );
 }

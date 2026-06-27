@@ -133,6 +133,7 @@ export default function CarouselEditorModal({
   const [downloading, setDownloading] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [refreshingPreview, setRefreshingPreview] = useState(false);
+  const [canvasRenderFailed, setCanvasRenderFailed] = useState(false);
   const [currentPreset, setCurrentPreset] = useState(designPreset || 'auto');
   // Editable per-carousel post caption. Null/empty falls through to the
   // kit-level Instagram caption (fallbackCaption) at post time. The local
@@ -414,14 +415,13 @@ export default function CarouselEditorModal({
       if (response.success && response.data?.carousel?.slides) {
         const composed = response.data.carousel.slides;
         setSlides(
-          composed.map((s) => ({
+          composed.map((s: any) => ({
             slideNumber: s.slideNumber,
             publicUrl: s.publicUrl,
-            backgroundUrl: (s as { backgroundUrl?: string; background_url?: string }).backgroundUrl
-              ?? (s as { background_url?: string }).background_url,
-            backgroundImageUrl: (s as { backgroundImageUrl?: string }).backgroundImageUrl,
+            backgroundUrl: s.backgroundUrl ?? s.background_url,
+            backgroundImageUrl: s.backgroundImageUrl,
             text: s.text,
-            template: (s as { template?: string }).template,
+            template: s.template,
           })),
         );
         onCarouselUpdate();
@@ -565,9 +565,13 @@ export default function CarouselEditorModal({
       // Branded-overlay templates only — legacy templates ignore `structured`.
       structured: edit.structured,
     };
+    setCanvasRenderFailed(false);
     let cancelled = false;
     renderSlide(canvas, config).catch((err) => {
-      if (!cancelled) console.warn('Carousel preview render failed', err);
+      if (!cancelled) {
+        console.warn('Carousel preview render failed', err);
+        setCanvasRenderFailed(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -786,12 +790,19 @@ export default function CarouselEditorModal({
           <div className="flex flex-col items-center justify-center p-6 lg:w-[45%] shrink-0 min-w-0 bg-background/50">
             <div className="relative w-full max-w-[300px]" ref={previewContainerRef}>
               <div className="relative rounded-xl overflow-hidden border border-border">
-                {useClientCanvas ? (
+                {useClientCanvas && !canvasRenderFailed ? (
                   <canvas
                     ref={previewCanvasRef}
                     className="w-full block"
                     aria-label={`Slide ${activeSlide.slideNumber}`}
                   />
+                ) : useClientCanvas && canvasRenderFailed ? (
+                  <>
+                    <img src={activeSlide.publicUrl} alt={`Slide ${activeSlide.slideNumber}`} className="w-full" draggable={false} />
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">
+                      preview unavailable
+                    </div>
+                  </>
                 ) : (
                   <>
                     <img src={previewImageUrl} alt={`Slide ${activeSlide.slideNumber}`} className="w-full" draggable={false} />

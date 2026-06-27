@@ -280,6 +280,15 @@ export interface GeneratedCarouselSlide {
   template: TemplateType;
   /** @deprecated Use template instead */
   slideType?: 'hook' | 'content' | 'list' | 'quote' | 'cta';
+  /** Cached two-phase background PNG URL (legacy templates). */
+  backgroundUrl?: string;
+  /** Source photo URL used as the slide background for branded-overlay templates. */
+  backgroundImageUrl?: string;
+  /** LLM-parsed structured fields (headline/body/subtitle/cta). Present on
+   *  branded-overlay slides; enables per-field editing in the carousel editor. */
+  structured?: import('@/lib/carousel-renderer').StructuredFields;
+  /** Per-slide suggested caption override. */
+  suggestedCaption?: string;
 }
 
 export interface GeneratedCarouselDetail {
@@ -294,6 +303,8 @@ export interface GeneratedCarouselDetail {
   slides: GeneratedCarouselSlide[];
   qualityScore?: number;
   createdAt: string;
+  /** Per-carousel Instagram post caption. Falls back to content_instagram at post time. */
+  suggestedCaption?: string;
 }
 
 // ============================================
