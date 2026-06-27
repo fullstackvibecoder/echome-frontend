@@ -6,19 +6,23 @@ interface CoverageMeterProps {
   coverage: Coverage;
 }
 
+// 'relationships' is hardcoded to 0 on the backend (SP2 classifier not yet built).
+// Hide it until it can actually fill so users don't see a permanent empty bar.
+const DISPLAYED_DIMENSION_KEYS = DIMENSION_KEYS.filter((k) => k !== 'relationships');
+
 export function CoverageMeter({ coverage }: CoverageMeterProps) {
-  const coveredCount = DIMENSION_KEYS.filter((k) => coverage[k].covered).length;
+  const coveredCount = DISPLAYED_DIMENSION_KEYS.filter((k) => coverage[k].covered).length;
 
   return (
     <div className="tex-data rounded-2xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">How well does Echo know you</span>
         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-          {coveredCount} of {DIMENSION_KEYS.length}
+          {coveredCount} of {DISPLAYED_DIMENSION_KEYS.length}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-        {DIMENSION_KEYS.map((key) => {
+        {DISPLAYED_DIMENSION_KEYS.map((key) => {
           const d = coverage[key];
           const pct = Math.round(Math.max(0, Math.min(1, d.strength)) * 100);
           return (
