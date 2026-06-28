@@ -46,9 +46,13 @@ interface Props {
   text: string;
   /** Whether this user has connected this platform (for api-mode only) */
   connected: boolean;
+  /** Content-kit field name (e.g. 'contentLinkedin'). When provided, the
+   *  current text is persisted to the kit after a successful post or schedule
+   *  so live edits are not lost. */
+  fieldName?: string;
 }
 
-export function WrittenPostActions({ platform, contentKitId, sourceOutputId, text, connected }: Props) {
+export function WrittenPostActions({ platform, contentKitId, sourceOutputId, text, connected, fieldName }: Props) {
   const { canAutoPost } = useSubscription();
 
   const cfg = PLATFORM_CONFIG[platform];
@@ -103,6 +107,9 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
         scheduledAt: new Date().toISOString(),
       });
       toast.success(`Posted to ${cfg.label}`);
+      if (contentKitId && fieldName) {
+        api.contentKits.update(contentKitId, { [fieldName]: text } as any).catch(() => {/* best-effort */});
+      }
     } catch (err: unknown) {
       console.error('[WrittenPostActions] Post failed', err);
       toast.error(extractErrorMessage(err, `Failed to post to ${cfg.label}`));
@@ -124,6 +131,9 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
           scheduledAt: scheduleIso,
         });
         toast.success(`Scheduled for ${cfg.label}`);
+        if (contentKitId && fieldName) {
+          api.contentKits.update(contentKitId, { [fieldName]: text } as any).catch(() => {/* best-effort */});
+        }
       } else {
         // Fallback: create a reminder (works for all tiers and all platforms)
         await api.socialPosting.createReminder({
@@ -135,6 +145,9 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
           created_via: 'manual_inline',
         });
         toast.success(`Reminder set for ${cfg.label}`);
+        if (contentKitId && fieldName) {
+          api.contentKits.update(contentKitId, { [fieldName]: text } as any).catch(() => {/* best-effort */});
+        }
       }
       setShowSchedule(false);
       setScheduledAt('');
