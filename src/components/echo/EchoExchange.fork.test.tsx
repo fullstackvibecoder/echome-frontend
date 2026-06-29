@@ -25,6 +25,7 @@ const BASE_STATE: EchoState = {
   confirmation: null,
   videoUrlTarget: null,
   videoFileTarget: null,
+  fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
 };

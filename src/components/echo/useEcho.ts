@@ -52,6 +52,8 @@ export interface EchoState {
   videoUrlTarget: VideoUrlTarget | null;
   /** Set immediately when the user attaches a video file, triggering the file fork. null otherwise. */
   videoFileTarget: { file: File } | null;
+  /** 0-100 while a "Save to clip later" upload is in flight; null otherwise. Drives the Store progress bar. */
+  fileUploadProgress: number | null;
   /** Videos saved by the stockpile choice (Task 7 reads this). null until a stockpile completes. */
   savedVideos: Array<{ uploadId: string; sourceUrl: string; title: string }> | null;
   /** Count of videos saved by the most recent stockpile. null until a stockpile completes. */
@@ -110,6 +112,7 @@ const INITIAL_STATE: EchoState = {
   confirmation: null,
   videoUrlTarget: null,
   videoFileTarget: null,
+  fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
 };
@@ -756,8 +759,12 @@ export function useEcho(
           event_data: { intent: 'create', corrected: false },
         }).catch(() => {});
       } else {
-        // Upload the file to R2 and mark it for later clipping.
-        await api.clips.uploadViaR2(file, { saveForLater: true });
+        // Upload the file to R2 and mark it for later clipping. Surface upload
+        // progress so the user sees movement instead of a frozen greyed button.
+        setState((prev) => ({ ...prev, fileUploadProgress: 0 }));
+        await api.clips.uploadViaR2(file, { saveForLater: true }, (p) => {
+          setState((prev) => ({ ...prev, fileUploadProgress: p }));
+        });
         addReceipt(formatReceipt(`SAVED TO LIBRARY · ${file.name}`));
         setState((prev) => ({
           ...prev,
@@ -766,16 +773,18 @@ export function useEcho(
           attachment: null,
           attachmentError: null,
           videoFileTarget: null,
-          confirmation: { title: 'Saved to clip later', detail: file.name },
+          fileUploadProgress: null,
+          confirmation: { title: 'Saved to your library', detail: `${file.name} — transcribing it now` },
         }));
         setTimeout(() => {
           setState((prev) => ({ ...prev, phase: 'idle' }));
-        }, 1200);
+        }, 2500);
       }
     } catch (err) {
       setState((prev) => ({
         ...prev,
         phase: 'confirming',
+        fileUploadProgress: null,
         error: err instanceof Error ? err.message : 'Something went wrong. Try again.',
       }));
     }

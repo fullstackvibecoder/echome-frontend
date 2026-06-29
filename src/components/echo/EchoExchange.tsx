@@ -149,6 +149,26 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
+      {/* Store progress: while a "Save to clip later" upload is in flight */}
+      {phase === 'executing' && state.fileUploadProgress !== null && (
+        <div className="flex flex-col gap-1.5" aria-live="polite">
+          <div className="flex items-center justify-between">
+            <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
+              SAVING TO YOUR LIBRARY
+            </span>
+            <span className="text-machine" style={{ color: 'rgba(0,212,255,0.9)' }}>
+              {state.fileUploadProgress}%
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-[var(--surface-container)] overflow-hidden">
+            <div
+              className="h-full rounded-full transition-[width] duration-300"
+              style={{ width: `${state.fileUploadProgress}%`, background: 'rgba(0,212,255,0.8)' }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Intent chip row (confirming / executing / answered phase) */}
       {(isConfirming || isAnswered) && classification && !state.videoUrlTarget && !state.videoFileTarget && (
         <div className="flex flex-col gap-2">

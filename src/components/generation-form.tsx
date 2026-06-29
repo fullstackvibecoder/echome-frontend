@@ -14,7 +14,7 @@ import { setActiveGeneration, useActiveGeneration } from './generation-banner';
 import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
 import { track } from '@/lib/telemetry';
-import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, type LucideIcon } from 'lucide-react';
+import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, X, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
 import UnifiedCreateInput from './UnifiedCreateInput';
 import { takeEchoHandoff } from '@/components/echo/file-handoff';
@@ -470,20 +470,38 @@ function VideoProcessingOverlay({
   progress,
   sourceType,
   elapsedSeconds,
+  onClose,
 }: {
   open: boolean;
   stage: string;
   progress: number;
   sourceType: VideoSourceType;
   elapsedSeconds: number;
+  onClose: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!open || !mounted) return null;
 
+  // The browser PUTs the file straight to R2 during the upload phase — leaving
+  // the page would abort it. Only expose the dismiss controls once processing
+  // has begun (server-side from here, tracked by the global banner). Mirrors the
+  // "Please stay / Safe to navigate away" copy gate in the timeline.
+  const canLeave = stage !== 'uploading' && stage !== 'downloading' && stage !== 'pending';
+
   return createPortal(
     <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-2xl bg-background border border-white/10 p-6 shadow-2xl">
+      <div className="relative w-full max-w-md rounded-2xl bg-background border border-white/10 p-6 shadow-2xl">
+        {canLeave && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Continue in the background"
+            className="absolute right-4 top-4 text-gray-500 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
         <h2 className="text-center text-lg font-bold text-white mb-1">Building your content</h2>
         <p className="text-center text-sm text-gray-400">
           We&apos;re turning your video into clips and a content kit.
@@ -494,6 +512,15 @@ function VideoProcessingOverlay({
           sourceType={sourceType}
           elapsedSeconds={elapsedSeconds}
         />
+        {canLeave && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-2 w-full rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 py-2.5 text-sm font-medium text-white transition-colors"
+          >
+            Go to dashboard
+          </button>
+        )}
       </div>
     </div>,
     document.body,
@@ -2292,6 +2319,7 @@ export function GenerationForm({
           progress={videoProcessingProgress}
           sourceType={videoSourceType}
           elapsedSeconds={elapsedSeconds}
+          onClose={() => setVideoProcessing(false)}
         />
       )}
     </div>
