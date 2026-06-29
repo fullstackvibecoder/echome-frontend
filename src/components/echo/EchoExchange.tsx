@@ -327,7 +327,26 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
-      {isDone && !confirmation && (
+      {isDone && state.ingestPhase === 'importing' && (
+        <div aria-live="polite">
+          <span className="text-machine animate-pulse">Importing to your voice...</span>
+        </div>
+      )}
+
+      {isDone && state.ingestPhase === 'failed' && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-destructive">Could not add to your voice</p>
+          <button
+            type="button"
+            onClick={() => chooseFileDestination('stockpile')}
+            className="self-start text-xs text-[var(--muted-foreground)] hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {isDone && !confirmation && !state.ingestPhase && (
         <div className="flex items-center justify-between">
           <span className="text-machine">DONE</span>
           <button

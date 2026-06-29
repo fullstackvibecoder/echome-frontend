@@ -30,6 +30,7 @@ const BASE_STATE: EchoState = {
   savedVideos: null,
   savedCount: null,
   videoOwnership: null,
+  ingestPhase: null,
 };
 
 const handlers = {

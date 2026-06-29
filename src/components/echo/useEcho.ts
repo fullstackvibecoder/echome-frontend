@@ -64,6 +64,8 @@ export interface EchoState {
    * Always null when there is no videoUrlTarget (forced null on each new URL submission).
    */
   videoOwnership: 'self' | 'third_party' | null;
+  /** Ingest-polling phase for the Store/stockpile path. null = not in store flow. */
+  ingestPhase: 'importing' | 'success' | 'failed' | null;
 }
 
 export interface UseEchoReturn {
@@ -124,6 +126,7 @@ const INITIAL_STATE: EchoState = {
   savedVideos: null,
   savedCount: null,
   videoOwnership: null,
+  ingestPhase: null,
 };
 
 export interface UseEchoOptions {
@@ -769,24 +772,56 @@ export function useEcho(
       } else {
         // Upload the file to R2 and mark it for later clipping. Surface upload
         // progress so the user sees movement instead of a frozen greyed button.
-        setState((prev) => ({ ...prev, fileUploadProgress: 0 }));
-        await api.clips.uploadViaR2(file, { saveForLater: true, ownership: 'self' }, (p) => {
+        setState((prev) => ({ ...prev, fileUploadProgress: 0, ingestPhase: null }));
+        const result = await api.clips.uploadViaR2(file, { saveForLater: true, ownership: 'self' }, (p) => {
           setState((prev) => ({ ...prev, fileUploadProgress: p }));
         });
+        const uploadId = result.data?.upload?.id;
         addReceipt(formatReceipt(`SAVED TO LIBRARY · ${file.name}`));
+        // Transition to done/importing — keep videoFileTarget so Retry can re-read the file
         setState((prev) => ({
           ...prev,
           phase: 'done',
           inputText: '',
           attachment: null,
           attachmentError: null,
-          videoFileTarget: null,
           fileUploadProgress: null,
-          confirmation: { title: 'Saved to your library', detail: `${file.name} — transcribing it now` },
+          ingestPhase: 'importing',
         }));
-        setTimeout(() => {
-          setState((prev) => ({ ...prev, phase: 'idle' }));
-        }, 2500);
+        // Poll until backend ingest completes (terminal status_message)
+        const MAX_ATTEMPTS = 40;
+        const POLL_INTERVAL_MS = 3000;
+        let settled = false;
+        if (uploadId) {
+          for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            await new Promise<void>((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+            try {
+              const res = await api.clips.get(uploadId);
+              const statusMessage = res.data?.upload?.statusMessage;
+              if (statusMessage === 'Saved to your library.') {
+                setState((prev) => ({
+                  ...prev,
+                  ingestPhase: 'success',
+                  videoFileTarget: null,
+                  confirmation: { title: 'Saved to clip later · added to your voice', detail: null },
+                }));
+                settled = true;
+                break;
+              }
+              if (statusMessage?.startsWith('library-ingest-failed:')) {
+                setState((prev) => ({ ...prev, ingestPhase: 'failed' }));
+                settled = true;
+                break;
+              }
+            } catch {
+              // network error — keep polling
+            }
+          }
+        }
+        if (!settled) {
+          // Timeout or missing upload ID — surface failure so user can retry
+          setState((prev) => ({ ...prev, ingestPhase: 'failed' }));
+        }
       }
     } catch (err) {
       setState((prev) => ({
