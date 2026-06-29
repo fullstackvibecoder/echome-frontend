@@ -153,6 +153,11 @@ export function useEcho(
   const onIngestCompleteRef = useRef(options?.onIngestComplete);
   onIngestCompleteRef.current = options?.onIngestComplete;
 
+  // Run counter for the stockpile poll loop. Increment to abort any in-flight
+  // poll (reset or second call starts a new run, stale loops detect the change
+  // and exit without touching state).
+  const pollRunRef = useRef(0);
+
   const open = useCallback(() => {
     setState((prev) => ({
       ...prev,
@@ -243,6 +248,9 @@ export function useEcho(
   }, []);
 
   const reset = useCallback(() => {
+    // Bump the run counter so any in-flight stockpile poll loop detects it has
+    // been superseded and exits without writing state.
+    pollRunRef.current += 1;
     setState((prev) => ({
       ...INITIAL_STATE,
       phase: 'open',
@@ -770,6 +778,11 @@ export function useEcho(
           event_data: { intent: 'create', corrected: false },
         }).catch(() => {});
       } else {
+        // Capture a run id before any async work so this poll loop can detect
+        // if it has been superseded (by a reset or a second stockpile call).
+        pollRunRef.current += 1;
+        const runId = pollRunRef.current;
+
         // Upload the file to R2 and mark it for later clipping. Surface upload
         // progress so the user sees movement instead of a frozen greyed button.
         setState((prev) => ({ ...prev, fileUploadProgress: 0, ingestPhase: null }));
@@ -778,6 +791,11 @@ export function useEcho(
         });
         const uploadId = result.data?.upload?.id;
         addReceipt(formatReceipt(`SAVED TO LIBRARY · ${file.name}`));
+
+        // If the user reset or kicked off a new stockpile during the upload, bail
+        // without writing state (the new run owns the component now).
+        if (runId !== pollRunRef.current) return;
+
         // Transition to done/importing — keep videoFileTarget so Retry can re-read the file
         setState((prev) => ({
           ...prev,
@@ -795,8 +813,12 @@ export function useEcho(
         if (uploadId) {
           for (let i = 0; i < MAX_ATTEMPTS; i++) {
             await new Promise<void>((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+            // Abort guard — check at the top of every iteration before any setState
+            if (runId !== pollRunRef.current) return;
             try {
               const res = await api.clips.get(uploadId);
+              // Abort guard — check again after the async call
+              if (runId !== pollRunRef.current) return;
               const statusMessage = res.data?.upload?.statusMessage;
               if (statusMessage === 'Saved to your library.') {
                 setState((prev) => ({
@@ -818,6 +840,9 @@ export function useEcho(
             }
           }
         }
+        // Abort guard — check before the timeout setState so a reset does not
+        // clobber a successfully running new flow with a stale 'failed'.
+        if (runId !== pollRunRef.current) return;
         if (!settled) {
           // Timeout or missing upload ID — surface failure so user can retry
           setState((prev) => ({ ...prev, ingestPhase: 'failed' }));
