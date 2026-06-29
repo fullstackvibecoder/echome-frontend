@@ -50,6 +50,8 @@ export interface EchoState {
   confirmation: { title: string; detail: string | null } | null;
   /** Set when the submitted text contains a video URL (YouTube/Instagram single or channel). null otherwise. */
   videoUrlTarget: VideoUrlTarget | null;
+  /** Set immediately when the user attaches a video file, triggering the file fork. null otherwise. */
+  videoFileTarget: { file: File } | null;
   /** Videos saved by the stockpile choice (Task 7 reads this). null until a stockpile completes. */
   savedVideos: Array<{ uploadId: string; sourceUrl: string; title: string }> | null;
   /** Count of videos saved by the most recent stockpile. null until a stockpile completes. */
@@ -67,6 +69,7 @@ export interface UseEchoReturn {
   confirm: () => Promise<void>;
   reset: () => void;
   chooseDestination: (choice: 'voice' | 'create' | 'stockpile') => Promise<void>;
+  chooseFileDestination: (dest: 'create' | 'stockpile') => Promise<void>;
   clipSavedVideo: (uploadId: string) => Promise<void>;
 }
 
@@ -106,6 +109,7 @@ const INITIAL_STATE: EchoState = {
   error: null,
   confirmation: null,
   videoUrlTarget: null,
+  videoFileTarget: null,
   savedVideos: null,
   savedCount: null,
 };
@@ -155,7 +159,14 @@ export function useEcho(
 
   const setAttachment = useCallback((file: File | null) => {
     if (!file) {
-      setState((prev) => ({ ...prev, attachment: null, attachmentError: null }));
+      setState((prev) => ({
+        ...prev,
+        attachment: null,
+        attachmentError: null,
+        videoFileTarget: null,
+        // If we entered confirming phase only because of a video file, go back to input
+        phase: prev.videoFileTarget && prev.phase === 'confirming' ? 'open' : prev.phase,
+      }));
       return;
     }
     const kind = classifyFile(file);
@@ -189,6 +200,18 @@ export function useEcho(
         ...prev,
         attachment: null,
         attachmentError: `Documents must be under 500 MB. This file is ${(file.size / (1024 * 1024)).toFixed(0)} MB.`,
+      }));
+      return;
+    }
+    if (kind === 'video') {
+      // Video files skip the classify round-trip and show the destination fork
+      // immediately. No "press Enter" gate — the fork appears on attach.
+      setState((prev) => ({
+        ...prev,
+        attachment: file,
+        attachmentError: null,
+        videoFileTarget: { file },
+        phase: 'confirming',
       }));
       return;
     }
@@ -703,6 +726,61 @@ export function useEcho(
     }
   }, [addReceipt]);
 
+  const chooseFileDestination = useCallback(async (dest: 'create' | 'stockpile') => {
+    const { videoFileTarget, inputText } = stateRef.current;
+    const file = videoFileTarget?.file;
+    if (!file) return;
+
+    setState((prev) => ({ ...prev, phase: 'executing', error: null }));
+    try {
+      if (dest === 'create') {
+        // Mirror the video-file create branch from confirm() — stash the file
+        // for the Create form to pick up, then navigate.
+        const note = inputText.trim() || undefined;
+        stashEchoHandoff({ kind: 'video-file', file, note });
+        navigate('/app?echoFile=1');
+        addReceipt(formatReceipt(`${INTENT_META.create.receiptVerb} · ${file.name}`));
+        setState((prev) => ({
+          ...prev,
+          phase: 'done',
+          inputText: '',
+          attachment: null,
+          attachmentError: null,
+          videoFileTarget: null,
+        }));
+        setTimeout(() => {
+          setState((prev) => ({ ...prev, phase: 'idle' }));
+        }, 1200);
+        api.telemetry.event({
+          event_name: 'echo_executed',
+          event_data: { intent: 'create', corrected: false },
+        }).catch(() => {});
+      } else {
+        // Upload the file to R2 and mark it for later clipping.
+        await api.clips.uploadViaR2(file, { saveForLater: true });
+        addReceipt(formatReceipt(`SAVED TO LIBRARY · ${file.name}`));
+        setState((prev) => ({
+          ...prev,
+          phase: 'done',
+          inputText: '',
+          attachment: null,
+          attachmentError: null,
+          videoFileTarget: null,
+          confirmation: { title: 'Saved to clip later', detail: file.name },
+        }));
+        setTimeout(() => {
+          setState((prev) => ({ ...prev, phase: 'idle' }));
+        }, 1200);
+      }
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        phase: 'confirming',
+        error: err instanceof Error ? err.message : 'Something went wrong. Try again.',
+      }));
+    }
+  }, [navigate, addReceipt]);
+
   const clipSavedVideo = useCallback(async (uploadId: string) => {
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
@@ -733,6 +811,7 @@ export function useEcho(
     confirm,
     reset,
     chooseDestination,
+    chooseFileDestination,
     clipSavedVideo,
   };
 }
