@@ -271,8 +271,11 @@ export function useEcho(
     const text = inputText.trim();
     if (!text && !attachment) return;
 
-    // Clear any prior success card so a new exchange starts clean.
-    setState((prev) => ({ ...prev, phase: 'classifying', error: null, confirmation: null }));
+    // Invalidate any in-flight stockpile poll so it exits without touching state.
+    pollRunRef.current += 1;
+
+    // Clear any prior success card and poll phase so a new exchange starts clean.
+    setState((prev) => ({ ...prev, phase: 'classifying', error: null, confirmation: null, ingestPhase: null }));
 
     try {
       const page = typeof window !== 'undefined' ? window.location.pathname : undefined;

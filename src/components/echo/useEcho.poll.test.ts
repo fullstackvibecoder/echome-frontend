@@ -15,6 +15,7 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useEcho } from './useEcho';
 import { api } from '@/lib/api-client';
+import { classifyEchoInput } from '@/lib/echo-client';
 
 vi.mock('@/lib/api-client', () => ({
   api: {
@@ -195,5 +196,56 @@ describe('useEcho stockpile poll loop', () => {
 
     // The first loop must NOT have overwritten the second loop's 'success' state
     expect(result.current.state.ingestPhase).toBe('success');
+  });
+
+  it('submit() bumps poll guard so a stale stockpile poll does not overwrite ingestPhase', async () => {
+    // Keep the poll loop alive with non-terminal responses indefinitely
+    vi.mocked(api.clips.get).mockResolvedValue({
+      success: true,
+      data: { upload: { statusMessage: 'Processing...' } },
+    } as any);
+
+    const mockNavigate = vi.fn();
+    const { result } = renderHook(() => useEcho(mockNavigate));
+
+    // Start a stockpile and advance through upload + one poll iteration
+    startStockpile(result);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(UPLOAD_DELAY_MS + POLL_MS);
+    });
+    // Confirm the loop is in-flight
+    expect(result.current.state.ingestPhase).toBe('importing');
+
+    // Arm classifyEchoInput to return immediately for the upcoming submit call
+    vi.mocked(classifyEchoInput).mockResolvedValueOnce({
+      intent: 'create' as const,
+      confidence: 0.95,
+      source: 'classifier',
+      args: {},
+    } as any);
+
+    // Give submit() something to classify
+    act(() => {
+      result.current.setInputText('write a post about leadership');
+    });
+
+    // submit() must bump pollRunRef and clear ingestPhase
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    // After submit the new exchange is in confirming; ingestPhase must be null
+    expect(result.current.state.phase).toBe('confirming');
+    expect(result.current.state.ingestPhase).toBeNull();
+
+    // Advance timers so the stale poll loop fires another iteration
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS * 3);
+    });
+
+    // The stale loop hit the abort guard and must NOT have written ingestPhase
+    expect(result.current.state.ingestPhase).toBeNull();
+    // The new exchange state must be intact
+    expect(result.current.state.phase).toBe('confirming');
   });
 });
