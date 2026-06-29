@@ -1359,6 +1359,17 @@ export const api = {
         videos: Array<{ uploadId: string; sourceUrl: string; title: string; createdAt: string }>;
       };
     },
+
+    /**
+     * Remove a video from both the voice and content KB namespaces.
+     * Calls DELETE /kb/content/video/:uploadId (auth-scoped to the owner).
+     */
+    removeVideoSource: async (uploadId: string): Promise<{ success: boolean }> => {
+      const response = await apiClient.delete(`/kb/content/video/${uploadId}`, {
+        timeout: DELETE_TIMEOUT,
+      });
+      return response.data as { success: boolean };
+    },
   },
 
   // -------- IMAGE GENERATION --------
