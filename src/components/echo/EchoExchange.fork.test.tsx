@@ -24,6 +24,8 @@ const BASE_STATE: EchoState = {
   error: null,
   confirmation: null,
   videoUrlTarget: null,
+  videoFileTarget: null,
+  fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
 };
@@ -35,6 +37,7 @@ const handlers = {
   confirm: vi.fn(),
   reset: vi.fn(),
   chooseDestination: vi.fn(),
+  chooseFileDestination: vi.fn(),
   clipSavedVideo: vi.fn(),
 };
 

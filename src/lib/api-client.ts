@@ -2003,6 +2003,10 @@ export const api = {
         /** Recording duration in seconds. Backend uses this to decide whether
          *  to skip clip-finder (<180s → just one clip, no derived kit). */
         recordingDurationSeconds?: number;
+        /** When true, the upload is stored for later clipping rather than
+         *  immediately starting the generation pipeline. The backend reads
+         *  req.body.saveForLater in POST /clips/upload/:id/r2-complete. */
+        saveForLater?: boolean;
       },
       onProgress?: (progress: number) => void
     ) => {
@@ -2085,6 +2089,7 @@ export const api = {
 
           const completeResponse = await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {
             parts: completedParts.sort((a, b) => a.partNumber - b.partNumber),
+            ...(options?.saveForLater ? { saveForLater: true } : {}),
           });
 
           if (!completeResponse.data.success) {
@@ -2111,7 +2116,9 @@ export const api = {
             xhr.send(file);
           });
 
-          await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {});
+          await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {
+            ...(options?.saveForLater ? { saveForLater: true } : {}),
+          });
         }
 
         if (onProgress) onProgress(100);

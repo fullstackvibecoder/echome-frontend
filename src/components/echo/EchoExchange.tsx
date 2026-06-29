@@ -14,14 +14,14 @@ import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
   state: EchoState;
-  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseDestination' | 'clipSavedVideo'>;
+  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
   const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation } = state;
-  const { setInputText, submit, selectIntent, confirm, reset, chooseDestination, clipSavedVideo } = handlers;
+  const { setInputText, submit, selectIntent, confirm, reset, chooseDestination, chooseFileDestination, clipSavedVideo } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -120,8 +120,57 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
+      {/* Destination fork: shown in confirming phase when a video file is attached */}
+      {isConfirming && state.videoFileTarget && !state.videoUrlTarget && (
+        <div className="flex flex-col gap-2">
+          <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
+            WHERE SHOULD THIS GO
+          </span>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Choose a destination for this video file.">
+            <button
+              type="button"
+              onClick={() => chooseFileDestination('create')}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              Make content now
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseFileDestination('stockpile')}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[var(--border)] bg-[var(--surface-container)] text-[var(--muted-foreground)] hover:bg-[var(--surface-container-high)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              Save to clip later
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Store progress: while a "Save to clip later" upload is in flight */}
+      {phase === 'executing' && state.fileUploadProgress !== null && (
+        <div className="flex flex-col gap-1.5" aria-live="polite">
+          <div className="flex items-center justify-between">
+            <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
+              SAVING TO YOUR LIBRARY
+            </span>
+            <span className="text-machine" style={{ color: 'rgba(0,212,255,0.9)' }}>
+              {state.fileUploadProgress}%
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-[var(--surface-container)] overflow-hidden">
+            <div
+              className="h-full rounded-full transition-[width] duration-300"
+              style={{ width: `${state.fileUploadProgress}%`, background: 'rgba(0,212,255,0.8)' }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Intent chip row (confirming / executing / answered phase) */}
-      {(isConfirming || isAnswered) && classification && !state.videoUrlTarget && (
+      {(isConfirming || isAnswered) && classification && !state.videoUrlTarget && !state.videoFileTarget && (
         <div className="flex flex-col gap-2">
           <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
             DETECTED INTENT
@@ -270,8 +319,9 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </p>
       )}
 
-      {/* Textarea input */}
-      {isInputPhase && (
+      {/* Textarea input — also shown during the video-file fork so the user can
+          add an optional context note before choosing a destination. */}
+      {(isInputPhase || (isConfirming && !!state.videoFileTarget)) && (
         <div className="relative">
           <textarea
             ref={(el) => {
