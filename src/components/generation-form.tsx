@@ -692,6 +692,12 @@ export function GenerationForm({
           if (item.file.type.startsWith('video/') && validateVideoFile(item.file)) {
             setInputType('video');
             setSelectedFile(item.file);
+            // Auto-start the upload+clip pipeline. In echo mode the GenerationForm
+            // is a hidden execution engine with no visible "Generate" button, so a
+            // handed-off video must kick off processing itself (mirrors the manual
+            // pick path and the text branch's handleUnifiedSubmit). Without this the
+            // file only sits staged client-side: no upload, no row, no progress.
+            processVideoWithClipFinder(item.file, 'upload');
           }
         } else if (item.kind === 'text') {
           // Transcribed-audio text: same seam as echoPrompt above. In echo mode
