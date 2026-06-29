@@ -29,6 +29,7 @@ const BASE_STATE: EchoState = {
   fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
+  videoOwnership: null,
 };
 
 const handlers = {
@@ -37,6 +38,7 @@ const handlers = {
   selectIntent: vi.fn(),
   confirm: vi.fn(),
   reset: vi.fn(),
+  chooseOwnership: vi.fn(),
   chooseDestination: vi.fn(),
   chooseFileDestination: vi.fn(),
   clipSavedVideo: vi.fn(),

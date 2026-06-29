@@ -1339,7 +1339,7 @@ export const api = {
     },
 
     /** Stockpile a YouTube channel's videos as saved rows to clip later */
-    startChannelStockpile: async (data: { url: string; knowledgeBaseId?: string }) => {
+    startChannelStockpile: async (data: { url: string; knowledgeBaseId?: string; ownership?: 'self' | 'third_party' }) => {
       const response = await apiClient.post('/kb/content/channel/stockpile', data, {
         timeout: 30000, // enumerates the channel, no media download
       });
@@ -1786,6 +1786,7 @@ export const api = {
         zoomPassword?: string;
         knowledgeBaseId?: string;
         title?: string;
+        ownership?: 'self' | 'third_party';
       },
       onProgress?: (progress: number) => void
     ) => {
@@ -1800,6 +1801,7 @@ export const api = {
         if (data.zoomPassword) formData.append('zoomPassword', data.zoomPassword);
         if (data.knowledgeBaseId) formData.append('knowledgeBaseId', data.knowledgeBaseId);
         if (data.title) formData.append('title', data.title);
+        if (data.ownership) formData.append('ownership', data.ownership);
 
         const response = await apiClient.post('/clips/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -2007,6 +2009,8 @@ export const api = {
          *  immediately starting the generation pipeline. The backend reads
          *  req.body.saveForLater in POST /clips/upload/:id/r2-complete. */
         saveForLater?: boolean;
+        /** Who owns this content. Defaults to 'self'. */
+        ownership?: 'self' | 'third_party';
       },
       onProgress?: (progress: number) => void
     ) => {
@@ -2029,6 +2033,7 @@ export const api = {
         title: options?.title,
         parentContentKitId: options?.parentContentKitId,
         recordingDurationSeconds: options?.recordingDurationSeconds,
+        ownership: options?.ownership,
       });
 
       if (!initResponse.data.success || !initResponse.data.data) {

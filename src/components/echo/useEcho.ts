@@ -58,6 +58,12 @@ export interface EchoState {
   savedVideos: Array<{ uploadId: string; sourceUrl: string; title: string }> | null;
   /** Count of videos saved by the most recent stockpile. null until a stockpile completes. */
   savedCount: number | null;
+  /**
+   * Ownership declaration for a pasted video URL. null until the user picks a chip.
+   * 'self' = user owns this content; 'third_party' = repurposing someone else's.
+   * Always null when there is no videoUrlTarget (forced null on each new URL submission).
+   */
+  videoOwnership: 'self' | 'third_party' | null;
 }
 
 export interface UseEchoReturn {
@@ -70,7 +76,9 @@ export interface UseEchoReturn {
   selectIntent: (intent: EchoIntent) => void;
   confirm: () => Promise<void>;
   reset: () => void;
-  chooseDestination: (choice: 'voice' | 'create' | 'stockpile') => Promise<void>;
+  /** Set the ownership for a pasted video URL before choosing a destination. */
+  chooseOwnership: (o: 'self' | 'third_party') => void;
+  chooseDestination: (choice: 'create' | 'stockpile') => Promise<void>;
   chooseFileDestination: (dest: 'create' | 'stockpile') => Promise<void>;
   clipSavedVideo: (uploadId: string) => Promise<void>;
 }
@@ -115,6 +123,7 @@ const INITIAL_STATE: EchoState = {
   fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
+  videoOwnership: null,
 };
 
 export interface UseEchoOptions {
@@ -314,6 +323,8 @@ export function useEcho(
         videoUrlTarget,
         savedVideos: null,
         savedCount: null,
+        // Force ownership chip to be answered fresh on each new URL submission
+        videoOwnership: null,
       }));
     } catch (err) {
       setState((prev) => ({
@@ -683,24 +694,21 @@ export function useEcho(
     }
   }, [navigate, addReceipt]);
 
-  const chooseDestination = useCallback(async (choice: 'voice' | 'create' | 'stockpile') => {
-    const { inputText, videoUrlTarget } = stateRef.current;
+  const chooseOwnership = useCallback((o: 'self' | 'third_party') => {
+    setState((prev) => ({ ...prev, videoOwnership: o }));
+  }, []);
+
+  const chooseDestination = useCallback(async (choice: 'create' | 'stockpile') => {
+    const { inputText, videoUrlTarget, videoOwnership } = stateRef.current;
     const url = extractFirstUrl(inputText);
     if (!url || !videoUrlTarget) return;
 
+    const ownership = videoOwnership ?? 'self';
+
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
-      if (choice === 'voice') {
-        await api.kbContent.startSocialImport({ platform: videoUrlTarget.platform, url });
-        addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${videoUrlTarget.platform.toUpperCase()} IMPORT`));
-        setState((prev) => ({
-          ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
-          savedVideos: null, savedCount: null,
-          confirmation: { title: 'Importing to your Voice', detail: `${videoUrlTarget.platform} link` },
-        }));
-        onIngestCompleteRef.current?.();
-      } else if (choice === 'create') {
-        const uploadResponse = await api.clips.upload({ sourceType: videoUrlTarget.platform, sourceUrl: url });
+      if (choice === 'create') {
+        const uploadResponse = await api.clips.upload({ sourceType: videoUrlTarget.platform, sourceUrl: url, ownership });
         if (!uploadResponse.success || !uploadResponse.data?.upload) {
           throw new Error('Failed to upload video');
         }
@@ -713,7 +721,7 @@ export function useEcho(
           confirmation: { title: 'Clipping your video', detail: 'Making content now' },
         }));
       } else {
-        const res = await api.kbContent.startChannelStockpile({ url });
+        const res = await api.kbContent.startChannelStockpile({ url, ownership });
         addReceipt(formatReceipt(`STOCKPILE · SAVED ${res.savedCount} VIDEOS`));
         setState((prev) => ({
           ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
@@ -762,7 +770,7 @@ export function useEcho(
         // Upload the file to R2 and mark it for later clipping. Surface upload
         // progress so the user sees movement instead of a frozen greyed button.
         setState((prev) => ({ ...prev, fileUploadProgress: 0 }));
-        await api.clips.uploadViaR2(file, { saveForLater: true }, (p) => {
+        await api.clips.uploadViaR2(file, { saveForLater: true, ownership: 'self' }, (p) => {
           setState((prev) => ({ ...prev, fileUploadProgress: p }));
         });
         addReceipt(formatReceipt(`SAVED TO LIBRARY · ${file.name}`));
@@ -819,6 +827,7 @@ export function useEcho(
     selectIntent,
     confirm,
     reset,
+    chooseOwnership,
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,

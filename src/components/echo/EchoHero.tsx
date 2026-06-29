@@ -60,6 +60,7 @@ export function EchoHero() {
     selectIntent,
     confirm,
     reset,
+    chooseOwnership,
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,
@@ -292,7 +293,7 @@ export function EchoHero() {
         {/* Exchange: textarea, intent chips, receipts, confirm */}
         <EchoExchange
           state={state}
-          handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseDestination, chooseFileDestination, clipSavedVideo }}
+          handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo }}
           onTextareaMount={(el) => {
             textareaRef.current = el;
           }}
