@@ -380,7 +380,13 @@ export default function ContentKitDetailContent() {
   // Show carousel loading when: Instagram content exists, no carousel yet, and item was created recently
   const itemCreatedRecently = item?.createdAt &&
     (Date.now() - new Date(item.createdAt).getTime()) < 5 * 60 * 1000; // 5 minutes
-  const carouselExpected = hasInstagramContent && !hasCarousel && itemCreatedRecently;
+  const carouselStatus = detail?.contentKit?.carouselStatus ?? 'none';
+  const carouselPending = carouselStatus === 'pending';
+  const carouselFailedStatus = carouselStatus === 'failed';
+  // Truthful pending from backend status; fall back to the legacy time-heuristic
+  // only when status is unknown ('none') for older kits generated pre-migration.
+  const carouselExpected =
+    carouselPending || (carouselStatus === 'none' && hasInstagramContent && !hasCarousel && itemCreatedRecently);
 
   // Carousel status is now tracked via SSE (carouselReady/carouselFailed)
   // No polling needed - the useEffect above handles refresh when carousel_complete event arrives
@@ -597,16 +603,16 @@ export default function ContentKitDetailContent() {
                 )}
 
                 {/* Carousel error */}
-                {carouselError && !hasCarousel && (
+                {(carouselError || carouselFailedStatus) && !hasCarousel && (
                   <div className="col-span-2 p-3 bg-error/10 border border-error/20 rounded-lg text-sm text-error flex items-center gap-2">
                     <span>⚠️</span>
-                    <span>{carouselError}</span>
+                    <span>{carouselError || 'Carousel generation failed'}</span>
                     <button onClick={refresh} className="ml-auto text-xs underline hover:no-underline">Refresh</button>
                   </div>
                 )}
 
                 {/* Carousel loading */}
-                {carouselExpected && !carouselError && (
+                {carouselExpected && !carouselError && !carouselFailedStatus && (
                   <OutputCard
                     title="Instagram Carousel"
                     subtitle="Generating..."
