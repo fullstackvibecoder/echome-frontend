@@ -58,6 +58,14 @@ export interface EchoState {
   savedVideos: Array<{ uploadId: string; sourceUrl: string; title: string }> | null;
   /** Count of videos saved by the most recent stockpile. null until a stockpile completes. */
   savedCount: number | null;
+  /**
+   * Ownership declaration for a pasted video URL. null until the user picks a chip.
+   * 'self' = user owns this content; 'third_party' = repurposing someone else's.
+   * Always null when there is no videoUrlTarget (forced null on each new URL submission).
+   */
+  videoOwnership: 'self' | 'third_party' | null;
+  /** Ingest-polling phase for the Store/stockpile path. null = not in store flow. */
+  ingestPhase: 'importing' | 'success' | 'failed' | null;
 }
 
 export interface UseEchoReturn {
@@ -70,7 +78,9 @@ export interface UseEchoReturn {
   selectIntent: (intent: EchoIntent) => void;
   confirm: () => Promise<void>;
   reset: () => void;
-  chooseDestination: (choice: 'voice' | 'create' | 'stockpile') => Promise<void>;
+  /** Set the ownership for a pasted video URL before choosing a destination. */
+  chooseOwnership: (o: 'self' | 'third_party') => void;
+  chooseDestination: (choice: 'create' | 'stockpile') => Promise<void>;
   chooseFileDestination: (dest: 'create' | 'stockpile') => Promise<void>;
   clipSavedVideo: (uploadId: string) => Promise<void>;
 }
@@ -115,6 +125,8 @@ const INITIAL_STATE: EchoState = {
   fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
+  videoOwnership: null,
+  ingestPhase: null,
 };
 
 export interface UseEchoOptions {
@@ -140,6 +152,11 @@ export function useEcho(
   // while always firing the latest callback.
   const onIngestCompleteRef = useRef(options?.onIngestComplete);
   onIngestCompleteRef.current = options?.onIngestComplete;
+
+  // Run counter for the stockpile poll loop. Increment to abort any in-flight
+  // poll (reset or second call starts a new run, stale loops detect the change
+  // and exit without touching state).
+  const pollRunRef = useRef(0);
 
   const open = useCallback(() => {
     setState((prev) => ({
@@ -231,6 +248,9 @@ export function useEcho(
   }, []);
 
   const reset = useCallback(() => {
+    // Bump the run counter so any in-flight stockpile poll loop detects it has
+    // been superseded and exits without writing state.
+    pollRunRef.current += 1;
     setState((prev) => ({
       ...INITIAL_STATE,
       phase: 'open',
@@ -251,8 +271,11 @@ export function useEcho(
     const text = inputText.trim();
     if (!text && !attachment) return;
 
-    // Clear any prior success card so a new exchange starts clean.
-    setState((prev) => ({ ...prev, phase: 'classifying', error: null, confirmation: null }));
+    // Invalidate any in-flight stockpile poll so it exits without touching state.
+    pollRunRef.current += 1;
+
+    // Clear any prior success card and poll phase so a new exchange starts clean.
+    setState((prev) => ({ ...prev, phase: 'classifying', error: null, confirmation: null, ingestPhase: null }));
 
     try {
       const page = typeof window !== 'undefined' ? window.location.pathname : undefined;
@@ -314,6 +337,8 @@ export function useEcho(
         videoUrlTarget,
         savedVideos: null,
         savedCount: null,
+        // Force ownership chip to be answered fresh on each new URL submission
+        videoOwnership: null,
       }));
     } catch (err) {
       setState((prev) => ({
@@ -683,24 +708,21 @@ export function useEcho(
     }
   }, [navigate, addReceipt]);
 
-  const chooseDestination = useCallback(async (choice: 'voice' | 'create' | 'stockpile') => {
-    const { inputText, videoUrlTarget } = stateRef.current;
+  const chooseOwnership = useCallback((o: 'self' | 'third_party') => {
+    setState((prev) => ({ ...prev, videoOwnership: o }));
+  }, []);
+
+  const chooseDestination = useCallback(async (choice: 'create' | 'stockpile') => {
+    const { inputText, videoUrlTarget, videoOwnership } = stateRef.current;
     const url = extractFirstUrl(inputText);
     if (!url || !videoUrlTarget) return;
 
+    const ownership = videoOwnership ?? 'self';
+
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
-      if (choice === 'voice') {
-        await api.kbContent.startSocialImport({ platform: videoUrlTarget.platform, url });
-        addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${videoUrlTarget.platform.toUpperCase()} IMPORT`));
-        setState((prev) => ({
-          ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
-          savedVideos: null, savedCount: null,
-          confirmation: { title: 'Importing to your Voice', detail: `${videoUrlTarget.platform} link` },
-        }));
-        onIngestCompleteRef.current?.();
-      } else if (choice === 'create') {
-        const uploadResponse = await api.clips.upload({ sourceType: videoUrlTarget.platform, sourceUrl: url });
+      if (choice === 'create') {
+        const uploadResponse = await api.clips.upload({ sourceType: videoUrlTarget.platform, sourceUrl: url, ownership });
         if (!uploadResponse.success || !uploadResponse.data?.upload) {
           throw new Error('Failed to upload video');
         }
@@ -713,7 +735,7 @@ export function useEcho(
           confirmation: { title: 'Clipping your video', detail: 'Making content now' },
         }));
       } else {
-        const res = await api.kbContent.startChannelStockpile({ url });
+        const res = await api.kbContent.startChannelStockpile({ url, ownership });
         addReceipt(formatReceipt(`STOCKPILE · SAVED ${res.savedCount} VIDEOS`));
         setState((prev) => ({
           ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
@@ -759,26 +781,75 @@ export function useEcho(
           event_data: { intent: 'create', corrected: false },
         }).catch(() => {});
       } else {
+        // Capture a run id before any async work so this poll loop can detect
+        // if it has been superseded (by a reset or a second stockpile call).
+        pollRunRef.current += 1;
+        const runId = pollRunRef.current;
+
         // Upload the file to R2 and mark it for later clipping. Surface upload
         // progress so the user sees movement instead of a frozen greyed button.
-        setState((prev) => ({ ...prev, fileUploadProgress: 0 }));
-        await api.clips.uploadViaR2(file, { saveForLater: true }, (p) => {
+        setState((prev) => ({ ...prev, fileUploadProgress: 0, ingestPhase: null }));
+        const result = await api.clips.uploadViaR2(file, { saveForLater: true, ownership: 'self' }, (p) => {
           setState((prev) => ({ ...prev, fileUploadProgress: p }));
         });
+        const uploadId = result.data?.upload?.id;
         addReceipt(formatReceipt(`SAVED TO LIBRARY · ${file.name}`));
+
+        // If the user reset or kicked off a new stockpile during the upload, bail
+        // without writing state (the new run owns the component now).
+        if (runId !== pollRunRef.current) return;
+
+        // Transition to done/importing — keep videoFileTarget so Retry can re-read the file
         setState((prev) => ({
           ...prev,
           phase: 'done',
           inputText: '',
           attachment: null,
           attachmentError: null,
-          videoFileTarget: null,
           fileUploadProgress: null,
-          confirmation: { title: 'Saved to your library', detail: `${file.name} — transcribing it now` },
+          ingestPhase: 'importing',
         }));
-        setTimeout(() => {
-          setState((prev) => ({ ...prev, phase: 'idle' }));
-        }, 2500);
+        // Poll until backend ingest completes (terminal status_message)
+        const MAX_ATTEMPTS = 40;
+        const POLL_INTERVAL_MS = 3000;
+        let settled = false;
+        if (uploadId) {
+          for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            await new Promise<void>((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+            // Abort guard — check at the top of every iteration before any setState
+            if (runId !== pollRunRef.current) return;
+            try {
+              const res = await api.clips.get(uploadId);
+              // Abort guard — check again after the async call
+              if (runId !== pollRunRef.current) return;
+              const statusMessage = res.data?.upload?.statusMessage;
+              if (statusMessage === 'Saved to your library.') {
+                setState((prev) => ({
+                  ...prev,
+                  ingestPhase: 'success',
+                  videoFileTarget: null,
+                  confirmation: { title: 'Saved to clip later · added to your voice', detail: null },
+                }));
+                settled = true;
+                break;
+              }
+              if (statusMessage?.startsWith('library-ingest-failed:')) {
+                setState((prev) => ({ ...prev, ingestPhase: 'failed' }));
+                settled = true;
+                break;
+              }
+            } catch {
+              // network error — keep polling
+            }
+          }
+        }
+        // Abort guard — check before the timeout setState so a reset does not
+        // clobber a successfully running new flow with a stale 'failed'.
+        if (runId !== pollRunRef.current) return;
+        if (!settled) {
+          // Timeout or missing upload ID — surface failure so user can retry
+          setState((prev) => ({ ...prev, ingestPhase: 'failed' }));
+        }
       }
     } catch (err) {
       setState((prev) => ({
@@ -819,6 +890,7 @@ export function useEcho(
     selectIntent,
     confirm,
     reset,
+    chooseOwnership,
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,

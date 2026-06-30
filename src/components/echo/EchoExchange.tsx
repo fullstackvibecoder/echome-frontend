@@ -14,14 +14,14 @@ import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
   state: EchoState;
-  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo'>;
+  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseOwnership' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
-  const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation } = state;
-  const { setInputText, submit, selectIntent, confirm, reset, chooseDestination, chooseFileDestination, clipSavedVideo } = handlers;
+  const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation, videoOwnership } = state;
+  const { setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -91,22 +91,42 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
-      {/* Destination fork: shown in confirming phase when input contains a video URL */}
-      {isConfirming && state.videoUrlTarget && (
+      {/* Ownership chips: shown before the destination fork when a video URL is present */}
+      {isConfirming && state.videoUrlTarget && videoOwnership === null && (
+        <div className="flex flex-col gap-2">
+          <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
+            IS THIS YOUR CONTENT
+          </span>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Who owns this video content?">
+            <button
+              type="button"
+              onClick={() => chooseOwnership('self')}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              This is me
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseOwnership('third_party')}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[var(--border)] bg-[var(--surface-container)] text-[var(--muted-foreground)] hover:bg-[var(--surface-container-high)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              Not me - repurpose
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Destination fork: shown in confirming phase when input contains a video URL and ownership is set */}
+      {isConfirming && state.videoUrlTarget && videoOwnership !== null && (
         <div className="flex flex-col gap-2">
           <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
             WHERE SHOULD THIS GO
           </span>
           <div className="flex flex-wrap gap-1.5" role="group" aria-label="Choose a destination for this video link.">
-            <button
-              type="button"
-              onClick={() => chooseDestination('voice')}
-              disabled={phase === 'executing'}
-              className="text-machine rounded px-2.5 py-1 border border-[var(--border)] bg-[var(--surface-container)] text-[var(--muted-foreground)] hover:bg-[var(--surface-container-high)] disabled:opacity-50"
-              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
-            >
-              Add to Voice/KB
-            </button>
             <button
               type="button"
               onClick={() => chooseDestination(state.videoUrlTarget!.kind === 'single' ? 'create' : 'stockpile')}
@@ -118,6 +138,14 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
             </button>
           </div>
         </div>
+      )}
+
+      {/* Consent line: persistent notice whenever a video URL is in scope */}
+      {isConfirming && state.videoUrlTarget && (
+        <p className="text-machine" style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}>
+          Videos you add train your voice.{' '}
+          <a href="#" className="underline hover:opacity-80">Learn more.</a>
+        </p>
       )}
 
       {/* Destination fork: shown in confirming phase when a video file is attached */}
@@ -299,7 +327,26 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
         </div>
       )}
 
-      {isDone && !confirmation && (
+      {isDone && state.ingestPhase === 'importing' && (
+        <div aria-live="polite">
+          <span className="text-machine animate-pulse">Importing to your voice...</span>
+        </div>
+      )}
+
+      {isDone && state.ingestPhase === 'failed' && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-destructive">Could not add to your voice</p>
+          <button
+            type="button"
+            onClick={() => chooseFileDestination('stockpile')}
+            className="self-start text-xs text-[var(--muted-foreground)] hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {isDone && !confirmation && !state.ingestPhase && (
         <div className="flex items-center justify-between">
           <span className="text-machine">DONE</span>
           <button

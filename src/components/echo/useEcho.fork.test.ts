@@ -51,7 +51,7 @@ describe('useEcho chooseDestination', () => {
     await act(async () => { await result.current.submit(); });
     await waitFor(() => expect(result.current.state.videoUrlTarget).toEqual({ platform: 'youtube', kind: 'channel' }));
     await act(async () => { await result.current.chooseDestination('stockpile'); });
-    expect(api.kbContent.startChannelStockpile).toHaveBeenCalledWith({ url: 'https://youtube.com/@handle' });
+    expect(api.kbContent.startChannelStockpile).toHaveBeenCalledWith({ url: 'https://youtube.com/@handle', ownership: 'self' });
     expect(result.current.state.savedCount).toBe(2);
     expect(result.current.state.savedVideos).toHaveLength(2);
   });
@@ -62,7 +62,7 @@ describe('useEcho chooseDestination', () => {
     await act(async () => { await result.current.submit(); });
     await waitFor(() => expect(result.current.state.videoUrlTarget).toEqual({ platform: 'youtube', kind: 'single' }));
     await act(async () => { await result.current.chooseDestination('create'); });
-    expect(api.clips.upload).toHaveBeenCalledWith({ sourceType: 'youtube', sourceUrl: 'https://youtube.com/watch?v=abc' });
+    expect(api.clips.upload).toHaveBeenCalledWith({ sourceType: 'youtube', sourceUrl: 'https://youtube.com/watch?v=abc', ownership: 'self' });
     expect(api.clips.process).toHaveBeenCalledWith('up-1', { generateContent: true });
   });
 });

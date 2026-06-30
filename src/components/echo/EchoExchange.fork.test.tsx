@@ -28,6 +28,8 @@ const BASE_STATE: EchoState = {
   fileUploadProgress: null,
   savedVideos: null,
   savedCount: null,
+  videoOwnership: null,
+  ingestPhase: null,
 };
 
 const handlers = {
@@ -36,6 +38,7 @@ const handlers = {
   selectIntent: vi.fn(),
   confirm: vi.fn(),
   reset: vi.fn(),
+  chooseOwnership: vi.fn(),
   chooseDestination: vi.fn(),
   chooseFileDestination: vi.fn(),
   clipSavedVideo: vi.fn(),
@@ -47,16 +50,17 @@ function renderExchange(overrides: Partial<EchoState>) {
 
 describe('EchoExchange destination fork', () => {
   it('renders single-video fork copy and routes "Make content now" to create', () => {
-    renderExchange({ phase: 'confirming', videoUrlTarget: { platform: 'youtube', kind: 'single' } });
-    expect(screen.getByText('Add to Voice/KB')).toBeInTheDocument();
+    // videoOwnership must be set (non-null) for the fork to render
+    renderExchange({ phase: 'confirming', videoUrlTarget: { platform: 'youtube', kind: 'single' }, videoOwnership: 'self' });
+    expect(screen.queryByText('Add to Voice/KB')).not.toBeInTheDocument();
     const btn = screen.getByText('Make content now');
     fireEvent.click(btn);
     expect(handlers.chooseDestination).toHaveBeenCalledWith('create');
   });
 
   it('renders channel fork copy and routes "Save videos to clip later" to stockpile', () => {
-    renderExchange({ phase: 'confirming', videoUrlTarget: { platform: 'youtube', kind: 'channel' } });
-    expect(screen.getByText('Add to Voice/KB')).toBeInTheDocument();
+    renderExchange({ phase: 'confirming', videoUrlTarget: { platform: 'youtube', kind: 'channel' }, videoOwnership: 'self' });
+    expect(screen.queryByText('Add to Voice/KB')).not.toBeInTheDocument();
     const btn = screen.getByText('Save videos to clip later');
     fireEvent.click(btn);
     expect(handlers.chooseDestination).toHaveBeenCalledWith('stockpile');

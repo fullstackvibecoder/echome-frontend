@@ -15,6 +15,7 @@ import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { KBUnifiedInput } from './KBUnifiedInput';
 import KBChat from './KBChat';
 import { SourcesDrawer } from './components/SourcesDrawer';
+import { VideoSourcesList } from './components/VideoSourcesList';
 
 type WBTWOutcome = 'pending' | 'confirmed' | 'empty' | 'declined' | 'capped' | 'errored' | null;
 
@@ -316,6 +317,9 @@ export default function KnowledgeContent() {
               />
             </div>
           )}
+
+          {/* Video sources — videos ingested into this voice, with per-row Remove */}
+          <VideoSourcesList />
 
           {/* Sources (collapsible) — hidden at zero to avoid a dead link */}
           {totalItems > 0 && (
