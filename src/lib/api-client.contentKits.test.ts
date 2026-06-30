@@ -26,6 +26,11 @@ describe('contentKits.get transform', () => {
     const res = await api.contentKits.get('k1');
     const kit = res.data.kit as any;
     expect(kit.contentLinkedin).toBe('LI');
+    expect(kit.contentTwitter).toBe('TW');
+    expect(kit.contentInstagram).toBe('IG');
+    expect(kit.contentEmail).toBe('EM');
+    expect(kit.contentTiktok).toBe('TT');
+    expect(kit.contentYoutube).toBe('YT');
     expect(kit.contentBlog).toBe('BLOG');
     expect(kit.contentVideoScript).toBe('SCRIPT');
     expect(kit.carouselStatus).toBe('pending');
