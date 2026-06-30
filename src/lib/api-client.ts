@@ -2335,13 +2335,44 @@ export const api = {
     /** Get content kit with full data */
     get: async (kitId: string) => {
       const response = await apiClient.get(`/content-kits/${kitId}`);
-      return response.data as {
-        success: boolean;
+      const raw = response.data?.data ?? {};
+      const k = raw.kit ?? {};
+      const kit: ContentKit = {
+        id: k.id,
+        userId: k.user_id,
+        videoUploadId: k.video_upload_id,
+        title: k.title,
+        contentLinkedin: k.content_linkedin,
+        contentTwitter: k.content_twitter,
+        contentInstagram: k.content_instagram,
+        contentBlog: k.content_blog,
+        contentEmail: k.content_email,
+        contentTiktok: k.content_tiktok,
+        contentYoutube: k.content_youtube,
+        contentVideoScript: k.content_video_script,
+        generationRequestId: k.generation_request_id,
+        knowledgeBaseId: k.knowledge_base_id,
+        contentGenerated: k.content_generated,
+        clipsGenerated: k.clips_generated,
+        carouselStatus: k.carousel_status ?? 'none',
+        clipsStatus: k.clips_status ?? 'none',
+        inputType: k.input_type ?? 'text',
+        thumbnailUrl: k.thumbnail_url ?? undefined,
+        createdAt: k.created_at,
+        updatedAt: k.updated_at ?? k.created_at,
+      };
+      return {
+        success: response.data?.success ?? false,
         data: {
-          kit: ContentKit;
-          upload: VideoUpload;
-          clips: VideoClip[];
-        };
+          kit,
+          upload: raw.upload ?? null,
+          clips: raw.clips ?? [],
+          carousel: raw.carousel ?? null,
+          reelContent: raw.reelContent ?? null,
+        },
+      } as {
+        success: boolean;
+        data: { kit: ContentKit; upload: VideoUpload | null; clips: VideoClip[]; carousel: any; reelContent: any };
       };
     },
 
@@ -4878,6 +4909,10 @@ export interface ContentKit {
   voiceSamplesUsed?: unknown;
   clipsGenerated: number;
   contentGenerated: boolean;
+  carouselStatus?: string;
+  clipsStatus?: string;
+  inputType?: string;
+  thumbnailUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

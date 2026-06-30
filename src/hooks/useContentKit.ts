@@ -198,8 +198,8 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
               type: clips.length > 0 ? 'mixed' : carousel ? 'carousel' : 'text',
               title: kit.title || 'Generated Content',
               sourceType: 'generation',
-              generationRequestId: kit.generation_request_id,
-              videoUploadId: kit.video_upload_id,
+              generationRequestId: kit.generationRequestId,
+              videoUploadId: kit.videoUploadId,
               clipCount: clips.length,
               platformCount: 0,
               carouselSlideCount: carousel?.slides?.length || 0,
@@ -207,13 +207,13 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
               thumbnailUrl: clips[0]?.thumbnailUrl || upload?.thumbnailUrl,
               platforms: [],
               status: 'completed',
-              createdAt: kit.created_at || kit.createdAt,
-              updatedAt: kit.updated_at || kit.updatedAt || kit.created_at,
+              createdAt: kit.createdAt,
+              updatedAt: kit.updatedAt || kit.createdAt,
               // Autonomous draft kits and most kit-keyed entries don't carry
               // an explicit input_type; default to 'text' since they were
               // generated from an angle string. Video-backed kits that pass
               // through the legacy generation/clips branches set this directly.
-              inputType: kit.input_type || 'text',
+              inputType: kit.inputType || 'text',
             };
 
             setItem(unifiedItem);
