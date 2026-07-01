@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { CookieConsent } from '@/components/cookie-consent';
 import { OutageBanner } from '@/components/outage-banner';
 import { ReceiptHost } from '@/components/shared/ReceiptHost';
+import { RecoveryRedirectListener } from '@/components/auth/RecoveryRedirectListener';
 import { satoshi, manrope, montserrat, inter, bebasNeue, jetbrainsMono } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
@@ -120,6 +121,7 @@ export default function RootLayout({
       </head>
       <body className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <OutageBanner />
+        <RecoveryRedirectListener />
         <Providers>{children}</Providers>
         <Analytics />
         <Toaster position="top-right" richColors closeButton />
