@@ -16,7 +16,7 @@ export default function BuildYourVoiceGuidePage() {
     description: 'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base. The more you add, the more it sounds like you.',
     url: 'https://tryechome.com/guides/build-your-voice',
     datePublished: '2026-04-01',
-    dateModified: '2026-05-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -64,10 +64,12 @@ export default function BuildYourVoiceGuidePage() {
         <section className="space-y-8 mb-10">
           <Step number={1} title="What is Your Voice?">
             <p>Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across five dimensions: signature phrases, avoid phrases, writing style, AI-phrase cleanliness, and semantic similarity to your past content. Think of it as teaching an AI how you think and communicate.</p>
+            <Tip>When you sign up, EchoMe runs a "Work Before The Work" pass that automatically builds your starting voice profile and knowledge base from your existing content. Paid users get this refreshed every Monday to keep both current. You can keep adding sources below at any time.</Tip>
           </Step>
 
           <Step number={2} title="Use the unified input to add content">
             <p>The Your Voice page has a single chat-style input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
+            <Tip>Uploading or linking any of your own videos trains both your voice profile and your knowledge base at the same time. You get stronger voice matching and better content recall from a single ingest.</Tip>
           </Step>
 
           <Step number={3} title="Import your writing">

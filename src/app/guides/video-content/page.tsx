@@ -15,7 +15,7 @@ export default function VideoContentGuidePage() {
     description: 'Learn how to upload videos, use external video links, edit clips with captions, and generate a full content kit from a single video in EchoMe.',
     url: 'https://tryechome.com/guides/video-content',
     datePublished: '2026-04-01',
-    dateModified: '2026-04-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
@@ -79,7 +79,7 @@ export default function VideoContentGuidePage() {
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign in and navigate to Create">
             <p>
-              New users will follow the onboarding flow after signing up. Returning users go straight to the Create page. You&apos;ll see a single unified input where you can paste a link (YouTube, Zoom, Loom, Vimeo), type a topic, drop a video file, or record a voice note using the mic button inside the input bar.
+              When you sign up, EchoMe runs an automatic Work Before The Work pass that builds your starting knowledge base. After that, you go straight to the Create page. You&apos;ll see a single unified input where you can paste a link (YouTube, Zoom, Loom, Vimeo), type a topic, drop a video file, or record a voice note using the mic button inside the input bar.
             </p>
           </Step>
 
@@ -122,7 +122,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={7} title="Written content and scheduling">
             <p>
-              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Facebook, Instagram, X/Twitter, Newsletter,</strong> and <strong className="text-text-primary">Blog</strong>. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform, or add to your calendar.
+              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Instagram, X/Twitter, TikTok, Newsletter, Blog, YouTube description,</strong> and <strong className="text-text-primary">Video script</strong>. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform, or add to your calendar.
             </p>
           </Step>
 

@@ -16,7 +16,7 @@ export default function YouTubeToContentGuidePage() {
     description: 'Paste any YouTube link into EchoMe and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
     url: 'https://tryechome.com/guides/youtube-to-content',
     datePublished: '2026-04-01',
-    dateModified: '2026-04-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -85,9 +85,11 @@ export default function YouTubeToContentGuidePage() {
               <li>LinkedIn posts</li>
               <li>Instagram captions</li>
               <li>X/Twitter threads</li>
-              <li>Facebook posts</li>
+              <li>TikTok captions</li>
               <li>Email newsletters</li>
               <li>Blog posts</li>
+              <li>YouTube description</li>
+              <li>Video script</li>
             </ul>
             <p className="mt-2">All written in your voice based on your knowledge base.</p>
           </Step>

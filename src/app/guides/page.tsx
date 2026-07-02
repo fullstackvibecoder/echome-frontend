@@ -72,7 +72,7 @@ const guides = [
     icon: <Monitor className="w-6 h-6" />,
     title: 'EchoMe Platform Overview',
     description:
-      'A complete walkthrough of the platform. Three input methods, video processing, clip editing, captions, content generation, and building your voice.',
+      'A complete walkthrough of the platform. One unified input for links, files, and topics, video processing, clip editing, captions, content generation, and building your voice.',
     category: 'Getting Started',
     readTime: '8 min',
     hasVideo: true,

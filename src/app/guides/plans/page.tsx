@@ -16,7 +16,7 @@ export default function PlansGuidePage() {
     description: 'Start free, upgrade when you need more. Compare Echo, Echo Studio, and Echo Teams plans: pricing, features, and what each tier includes.',
     url: 'https://tryechome.com/guides/plans',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -51,7 +51,7 @@ export default function PlansGuidePage() {
         {/* Plan sections */}
         <section className="space-y-8 mb-10">
           <PlanSection title="Free Tier">
-            <p>5 lifetime content kits, no credit card required. You get clips, captions, posts, newsletters, blog posts, and voice matching. Auto-posting to Instagram, LinkedIn &amp; Facebook unlocks at Echo Studio. On Free and Echo, you can still schedule posts and get email reminders at the scheduled time. Try everything else before you commit.</p>
+            <p>5 lifetime content kits, no credit card required. You get clips, captions, posts, newsletters, blog posts, and voice matching. Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky unlocks at Echo Studio. On Free and Echo, you can still schedule posts and get email reminders at the scheduled time. Try everything else before you commit.</p>
           </PlanSection>
 
           <PlanSection title="Echo: $37/mo">
@@ -72,7 +72,7 @@ export default function PlansGuidePage() {
               <li>Deep voice matching</li>
               <li>10 Creator Radar slots</li>
               <li>Email import (50)</li>
-              <li>Auto-post to Instagram, LinkedIn &amp; Facebook</li>
+              <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
             </ul>
           </PlanSection>
 
@@ -85,7 +85,7 @@ export default function PlansGuidePage() {
               <li>Unlimited video length</li>
               <li>15 clips per video</li>
               <li>Email import (100), priority support</li>
-              <li>Auto-post to Instagram, LinkedIn &amp; Facebook</li>
+              <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
             </ul>
             <p className="mt-2">Total cost = $47 &times; the number of voices on your plan. 2 voices = $94/mo, 5 voices = $235/mo, etc.</p>
           </PlanSection>

@@ -16,7 +16,7 @@ export default function KnowledgeBaseGuidePage() {
     description: 'Your knowledge base is what makes EchoMe sound like you. Learn how to add content sources, train your voice, and improve your voice strength score.',
     url: 'https://tryechome.com/guides/knowledge-base',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -59,10 +59,11 @@ export default function KnowledgeBaseGuidePage() {
         <section className="space-y-8 mb-10">
           <Step number={1} title="Open Your Voice in the sidebar">
             <p>Open the sidebar and click <strong className="text-text-primary">Your Voice</strong>. This is where all your content sources live, everything EchoMe reads to learn how you write and speak.</p>
+            <Tip>When you sign up, EchoMe runs a "Work Before The Work" pass that automatically populates your starting knowledge base. Paid users get this refreshed every Monday. You can keep adding content below at any time.</Tip>
           </Step>
 
           <Step number={2} title="Add content using the unified input">
-            <p>The page features a single unified input where you can paste YouTube links, blog URLs, drop documents, or type text directly. Each source gives EchoMe more context about your voice, style, and ideas.</p>
+            <p>The page features a single unified input where you can paste YouTube links, blog URLs, drop documents, videos, or type text directly. Each source gives EchoMe more context about your voice, style, and ideas. Any video you upload or link trains both your voice profile and your knowledge base at the same time. If you want to remove a video from your knowledge base later, use the Forget action on that item.</p>
           </Step>
 
           <Step number={3} title="Upload emails from Gmail">
