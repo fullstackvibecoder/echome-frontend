@@ -30,6 +30,8 @@ const BASE_STATE: EchoState = {
   savedCount: null,
   videoOwnership: null,
   ingestPhase: null,
+  pendingAction: null,
+  answerUpsell: false,
 };
 
 const handlers = {
@@ -42,6 +44,7 @@ const handlers = {
   chooseDestination: vi.fn(),
   chooseFileDestination: vi.fn(),
   clipSavedVideo: vi.fn(),
+  confirmAction: vi.fn(),
 };
 
 function renderExchange(overrides: Partial<EchoState>) {
