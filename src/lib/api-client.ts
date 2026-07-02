@@ -151,7 +151,11 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden - quota/subscription limit reached
     if (error.response?.status === 403) {
-      const message = error.response?.data?.error || error.response?.data?.message || '';
+      // The backend sends `error` either as a string (e.g. /generate) or as an
+      // AppError object { message, code } (e.g. clips/reels/central gate).
+      // Read the message from either shape so the quota toast fires for both.
+      const raw = error.response?.data?.error;
+      const message = (typeof raw === 'string' ? raw : raw?.message) || error.response?.data?.message || '';
       const isQuotaError = /free generation|generation limit|subscribe|upgrade/i.test(message);
       if (isQuotaError && typeof window !== 'undefined') {
         import('sonner').then(({ toast }) => {

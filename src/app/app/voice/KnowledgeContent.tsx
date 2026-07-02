@@ -255,15 +255,16 @@ export default function KnowledgeContent() {
           {!hasContent && (
             <div className="mb-6 rounded-xl border border-border bg-card p-5">
               <h2 className="text-base font-semibold text-foreground mb-1">
-                What Echo knows about you.
+                What goes in your knowledge base? Everything.
               </h2>
               <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-                Drop a YouTube link, paste some writing, or upload a file.
-                Echo reads what you&apos;ve already made so the next post
-                sounds like you, not like AI.
+                This is the engine behind every draft. The more it knows, the
+                more you sound like you. Drop a YouTube link, paste your
+                writing, upload a file, or record a voice note. Add anything
+                that shows how you think, talk, and work.
               </p>
               <div className="flex flex-wrap gap-1.5 mb-4">
-                {['Blog posts', 'LinkedIn posts', 'Past emails', 'YouTube channel', 'Voice recordings', 'PDFs'].map(tag => (
+                {['Blog posts', 'LinkedIn posts', 'Past emails', 'YouTube channel', 'Voice recordings', 'PDFs', 'Market notes', 'Client stories', 'How you work'].map(tag => (
                   <span key={tag} className="text-xs px-2 py-1 rounded-full bg-bg-secondary text-text-secondary">
                     {tag}
                   </span>
