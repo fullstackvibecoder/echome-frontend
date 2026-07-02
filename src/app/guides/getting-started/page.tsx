@@ -16,7 +16,7 @@ export default function GettingStartedGuidePage() {
     description: 'Sign up for free, paste a link or drop a video, and get your first Content Kit in minutes. Clips, captions, posts, blog drafts, and more, all in your voice.',
     url: 'https://tryechome.com/guides/getting-started',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -58,7 +58,7 @@ export default function GettingStartedGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign up for free">
-            <p>Create your EchoMe account. It&apos;s free, no credit card required. You get 5 full content generations to try everything out before deciding on a plan.</p>
+            <p>Create your EchoMe account. It&apos;s free, no credit card required. You get 5 full content generations to try everything out before deciding on a plan. At signup, EchoMe automatically builds your starting knowledge base so your first kit reflects your context right away.</p>
           </Step>
 
           <Step number={2} title="Go to the Create page">
@@ -71,7 +71,7 @@ export default function GettingStartedGuidePage() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Audio is transcribed with speaker detection</li>
               <li>The best clips are extracted and scored by strength</li>
-              <li>Written content is generated across every platform: LinkedIn, Instagram, X, email, blog, and carousel</li>
+              <li>Written content is generated across 8 formats: LinkedIn, Instagram, X, TikTok, email, YouTube description, blog, and video script</li>
             </ul>
             <p className="mt-2">You&apos;ll get a notification when your Content Kit is ready.</p>
           </Step>
@@ -87,8 +87,12 @@ export default function GettingStartedGuidePage() {
             <ul className="list-disc list-inside mt-1 space-y-1">
               <li>LinkedIn post</li>
               <li>Instagram caption</li>
+              <li>X post</li>
+              <li>TikTok caption</li>
               <li>Blog draft</li>
               <li>Email newsletter</li>
+              <li>YouTube description</li>
+              <li>Video script</li>
             </ul>
             <p className="mt-2">Each piece is written in your voice, grounded in your context.</p>
           </Step>

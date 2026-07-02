@@ -25,7 +25,7 @@ export default function SchedulingPostsGuidePage() {
       'How to connect your social accounts and schedule posts to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
     url: 'https://tryechome.com/guides/scheduling-posts',
     datePublished: '2026-04-24',
-    dateModified: '2026-05-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -151,7 +151,7 @@ export default function SchedulingPostsGuidePage() {
               />
             </div>
             <p className="mt-2">
-              You can send the same piece to one platform, two, or all three at once. Each platform gets
+              You can send the same piece to one platform, two, or all six at once. Each platform gets
               its own row in the calendar so you can act on them individually later.
             </p>
           </Step>
