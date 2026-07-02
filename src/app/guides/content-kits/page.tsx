@@ -16,7 +16,7 @@ export default function ContentKitsGuidePage() {
     description: 'Learn how to edit posts, export captioned clips in 8 styles, and share content from your EchoMe Content Kits.',
     url: 'https://tryechome.com/guides/content-kits',
     datePublished: '2026-04-15',
-    dateModified: '2026-05-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -66,16 +66,16 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={3} title="Browse Visual Content">
-            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is displayed in an OutputCard with a clean preview. Download captioned clips in 1080p, ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
+            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is displayed in an OutputCard with a clean preview. Download captioned clips at up to 1080p (output matches your source resolution, never upscaled), ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
           </Step>
 
           <Step number={4} title="Browse Written Content">
-            <p>The Written Content section contains your LinkedIn posts, Instagram captions, X/Twitter posts, blog drafts, and email newsletters. Each OutputCard shows a preview of the content with options to edit, copy, or export.</p>
+            <p>The Written Content section contains your LinkedIn post, Instagram caption, X post, TikTok caption, blog draft, email newsletter, YouTube description, and video script. Each OutputCard shows a preview of the content with options to edit, copy, or export.</p>
             <Tip>Each piece of content is written in your voice, trained from your previous uploads and knowledge base.</Tip>
           </Step>
 
           <Step number={5} title="Edit any post">
-            <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, Twitter, blog, and email content are all editable inline. Make it yours, then save.</p>
+            <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, X, TikTok, blog, email, YouTube description, and video script are all editable inline. Make it yours, then save.</p>
             <Tip>Thumbs up the outputs that sound like you, thumbs down the ones that don&apos;t. The system trains on both. For 30 days, the patterns you flagged as off get excluded from future generations.</Tip>
           </Step>
 
@@ -86,6 +86,7 @@ export default function ContentKitsGuidePage() {
           <Step number={7} title="Share or copy">
             <p>Copy any text to clipboard with one click. Download video clips directly. Share content to your platforms or save it in Your Library for later publishing.</p>
             <Tip>Use the carousel slides for LinkedIn carousels and Instagram posts. They&apos;re generated automatically from your content.</Tip>
+            <Tip>Daily drafts can be dismissed from the kit header. Dismissing permanently deletes the kit and all its artifacts. This cannot be undone.</Tip>
           </Step>
         </section>
 

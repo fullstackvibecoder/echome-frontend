@@ -15,7 +15,7 @@ export default function PlatformOverviewGuidePage() {
     description: 'A complete walkthrough of the EchoMe platform. Learn about the unified Create input, video processing, clip editing, caption customization, content generation, and building your voice profile.',
     url: 'https://tryechome.com/guides/platform-overview',
     datePublished: '2026-04-01',
-    dateModified: '2026-04-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
@@ -131,11 +131,13 @@ export default function PlatformOverviewGuidePage() {
             <p className="mb-2">EchoMe generates ready-to-post written content for:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>LinkedIn</li>
-              <li>Facebook</li>
+              <li>TikTok</li>
               <li>Instagram</li>
               <li>X / Twitter</li>
               <li>Newsletter</li>
               <li>Blog</li>
+              <li>YouTube description</li>
+              <li>Video script</li>
             </ul>
             <p className="mt-2">Each post is written in your voice based on your voice profile. Copy and post directly, or schedule through your preferred tool.</p>
           </Step>

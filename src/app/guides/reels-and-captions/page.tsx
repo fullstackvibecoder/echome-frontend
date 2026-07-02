@@ -16,7 +16,7 @@ export default function ReelsAndCaptionsGuidePage() {
     description: 'Choose from 8 caption styles for your video clips. Burned-in captions ready for Instagram Reels, TikTok, and YouTube Shorts.',
     url: 'https://tryechome.com/guides/reels-and-captions',
     datePublished: '2026-04-15',
-    dateModified: '2026-05-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -94,8 +94,8 @@ export default function ReelsAndCaptionsGuidePage() {
             <Tip>The post caption (the text that goes alongside the video on Instagram/LinkedIn/etc.) is also editable inline. Click into it, type, save. It&rsquo;s ready when you hit Schedule or Post Now.</Tip>
           </Step>
 
-          <Step number={6} title="Export at 1080p">
-            <p>The captions are burned directly into the video file at 1080p resolution. Single-speaker view follows whoever&rsquo;s talking; split-screen view shows both speakers stacked. Download and post to Instagram Reels, TikTok, or YouTube Shorts. No extra editing needed.</p>
+          <Step number={6} title="Export at source resolution">
+            <p>The captions are burned directly into the video file. Output resolution matches your source, up to 1080p. EchoMe never upscales. Single-speaker view follows whoever&rsquo;s talking; split-screen view shows both speakers stacked. Download and post to Instagram Reels, TikTok, or YouTube Shorts. No extra editing needed.</p>
           </Step>
         </section>
 

@@ -15,7 +15,7 @@ export default function EmailUploadGuidePage() {
     description: 'Step-by-step guide to exporting your sent emails from Gmail and importing them into EchoMe to train your voice profile.',
     url: 'https://tryechome.com/guides/email-upload',
     datePublished: '2026-04-01',
-    dateModified: '2026-04-01',
+    dateModified: '2026-07-02',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
