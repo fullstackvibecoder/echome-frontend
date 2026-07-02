@@ -40,7 +40,7 @@ export function HeroSection() {
                 className="text-base sm:text-xl text-white/70 leading-relaxed max-w-xl opacity-0 animate-fade-in"
                 style={{ animationDelay: '300ms' }}
               >
-                EchoMe learns how you think and sound, then turns one idea, video, or link into a full suite of posts, carousels, and clips in your voice. Then schedules and posts them for you.
+                EchoMe learns how you think and sound, then turns an idea, a video, or a link into a full suite of posts, carousels, and clips in your voice. Fresh drafts land every morning, ready to schedule and post.
               </p>
             </div>
 

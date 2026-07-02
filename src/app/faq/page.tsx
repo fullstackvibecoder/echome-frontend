@@ -25,6 +25,10 @@ const faqCategories = [
         q: 'Is EchoMe free to use?',
         a: 'Yes. EchoMe includes a free plan with 5 free content kits, voice matching, and a content calendar with email reminders. No credit card is required to get started. Paid plans start at $37/month for unlimited content kits, deeper voice matching, and the teleprompter. Auto-posting to Instagram, LinkedIn, and Facebook unlocks at Echo Studio ($87/mo).',
       },
+      {
+        q: 'What happens after I sign up?',
+        a: 'The moment you sign up, EchoMe searches the public web about you, your profiles, your posts, and your published work, and uses it to start filling your knowledge base, so you begin with something instead of a blank page. Free plans get this once. Paid plans keep it fresh every week. From there, every morning EchoMe drafts three pieces from your knowledge base in your voice. Keep the ones you like and post or schedule them. Kill the rest.',
+      },
     ],
   },
   {
@@ -66,6 +70,10 @@ const faqCategories = [
       {
         q: 'How do I improve my voice match score?',
         a: 'Add at least 5 to 10 content sources to your Knowledge Base for a strong voice match. Use a variety of source types — past blog posts, social media content, emails, and voice recordings. The more varied your sources, the better EchoMe captures your full range. Your Knowledge Base screen shows a voice strength indicator to track your progress.',
+      },
+      {
+        q: 'What should I put in my Knowledge Base?',
+        a: 'Everything. Your knowledge base is the engine behind every piece EchoMe writes, so the more it knows, the more you sound like you. Add your videos, blog posts, emails, social profiles, and voice notes, but also the context that makes you you, your market, your neighborhood, how you work, and how you make decisions. The old question was what do I put in. The answer is everything.',
       },
     ],
   },

@@ -43,7 +43,7 @@ export function KnowledgeBaseSection() {
               </span>
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              Now drop the next one. Echo writes it in your voice (your phrases, your tone, your framing) because it&apos;s been studying you all along.
+              Your knowledge base is the engine. Feed it everything, your posts, videos, emails, voice notes, how you think and how you work, and Echo writes every new piece in your voice, your phrases, your tone, your framing, because it has been studying you all along.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export function KnowledgeBaseSection() {
               <div className="rounded-2xl overflow-hidden border border-border shadow-xl">
                 <Image
                   src="/showcase/platform/v2/unified-input.png"
-                  alt="EchoMe universal input box: paste a link, type a topic, drop a video, or record a voice note"
+                  alt="EchoMe universal input box — paste a link, type a topic, drop a video, or record a voice note"
                   width={689}
                   height={497}
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -63,7 +63,7 @@ export function KnowledgeBaseSection() {
                 />
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                A link, a video, a topic, a voice note, whatever you&apos;ve got.
+                A link, a video, a topic, a voice note — whatever you&apos;ve got.
               </p>
             </div>
 
@@ -129,7 +129,7 @@ export function KnowledgeBaseSection() {
               </div>
 
               <p className="text-sm text-muted-foreground text-center">
-                Posts, carousels, clips, blog drafts, captions, all drafted and ready.
+                Posts, carousels, clips, blog drafts, captions — all drafted and ready.
               </p>
             </div>
           </div>

@@ -49,6 +49,10 @@ const realtorFaqs: { q: string; a: string }[] = [
     q: "What if I don't have any content to upload?",
     a: 'You have more than you think. Your sent emails, listing descriptions, past social posts, even a 2-minute voice recording talking about your market, all of it works. Start small, and your voice profile gets stronger over time.',
   },
+  {
+    q: 'What should I put in EchoMe to get started?',
+    a: 'Everything. Your knowledge base is the engine, so the more it knows, the more the content sounds like you. Add your listing videos, past emails, blog posts, social profiles, and a voice note or two, plus the context that makes you you, your market, your neighborhood, and how you work with clients. The moment you sign up, EchoMe also searches the public web about you and starts filling your knowledge base for a head start, refreshed weekly on paid plans. Then each morning it drafts three pieces in your voice for you to keep or kill.',
+  },
 ];
 
 export default function RealtorsPage() {
@@ -307,7 +311,7 @@ export default function RealtorsPage() {
             Feed It What You Already Have
           </h2>
           <p className="text-center text-white/60 max-w-xl mx-auto mb-12">
-            You don&apos;t need to create anything new. EchoMe works with content you&apos;ve already made.
+            The answer to &ldquo;what should I put in?&rdquo; is everything. Your knowledge base is the engine, and you have more to feed it than you think.
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
