@@ -14,14 +14,14 @@ import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
   state: EchoState;
-  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseOwnership' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo'>;
+  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseOwnership' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo' | 'confirmAction'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
 }
 
 export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
   const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation, videoOwnership } = state;
-  const { setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo } = handlers;
+  const { setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -88,6 +88,50 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
       {isAnswered && answer && (
         <div className="rounded-lg bg-[var(--surface-container-high)] border border-[var(--border)] px-3 py-2">
           <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{answer}</p>
+        </div>
+      )}
+
+      {/* Agentic confirm-pause: Echo wants to run a confirm-tier action and
+          the server loop is holding the stream open for this answer. */}
+      {state.pendingAction && (
+        <div className="rounded-lg border border-[rgba(0,212,255,0.4)] bg-[rgba(0,212,255,0.06)] px-3 py-2 flex flex-col gap-2">
+          <span className="text-machine" style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem', letterSpacing: '0.12em' }}>
+            ECHO WANTS TO {state.pendingAction.summary.toUpperCase()}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => confirmAction(true)}
+              className="text-machine rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)]"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              Approve
+            </button>
+            <button
+              type="button"
+              onClick={() => confirmAction(false)}
+              className="text-xs text-[var(--muted-foreground)] hover:text-foreground underline underline-offset-2 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade card: free user asked a question; the agentic Echo (answers
+          that can also act) gated them, the KB answered instead. */}
+      {isAnswered && state.answerUpsell && (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-container-high)] px-3 py-2 flex flex-col gap-1.5">
+          <p className="text-xs text-foreground leading-relaxed">
+            That answer came from your knowledge base. On a paid plan, Echo goes further. It acts: schedules your posts, builds kits, and manages your calendar, right from this box.
+          </p>
+          <a
+            href="/app/billing"
+            className="text-machine self-start rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)]"
+            style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+          >
+            Unlock Echo actions
+          </a>
         </div>
       )}
 

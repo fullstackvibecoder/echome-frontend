@@ -64,6 +64,7 @@ export function EchoHero() {
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,
+    confirmAction,
   } = useEcho(navigate, { onIngestComplete: refetchAdvisor });
 
   const heroRef = useRef<HTMLDivElement>(null);
@@ -293,7 +294,7 @@ export function EchoHero() {
         {/* Exchange: textarea, intent chips, receipts, confirm */}
         <EchoExchange
           state={state}
-          handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo }}
+          handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
           onTextareaMount={(el) => {
             textareaRef.current = el;
           }}

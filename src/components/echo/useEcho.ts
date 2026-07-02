@@ -7,7 +7,14 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { classifyEchoInput, type EchoClassification, type EchoIntent } from '@/lib/echo-client';
+import {
+  classifyEchoInput,
+  streamEchoChat,
+  confirmEchoAction,
+  EchoChatGateError,
+  type EchoClassification,
+  type EchoIntent,
+} from '@/lib/echo-client';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES } from './intent-meta';
@@ -66,6 +73,18 @@ export interface EchoState {
   videoOwnership: 'self' | 'third_party' | null;
   /** Ingest-polling phase for the Store/stockpile path. null = not in store flow. */
   ingestPhase: 'importing' | 'success' | 'failed' | null;
+  /**
+   * Agentic Echo paused on a confirm-tier action (e.g. schedule a post) and is
+   * waiting for the user's approve/cancel. The SSE stream stays open while
+   * this is set; confirmAction() resolves it. null = no pause pending.
+   */
+  pendingAction: { toolCallId: string; tool: string; summary: string } | null;
+  /**
+   * True when a free user's question was answered by the plain KB path after
+   * the agentic endpoint gated them (402). Drives the upgrade card under the
+   * answer — the FOMO seam for the paid-only agentic Echo.
+   */
+  answerUpsell: boolean;
 }
 
 export interface UseEchoReturn {
@@ -83,6 +102,8 @@ export interface UseEchoReturn {
   chooseDestination: (choice: 'create' | 'stockpile') => Promise<void>;
   chooseFileDestination: (dest: 'create' | 'stockpile') => Promise<void>;
   clipSavedVideo: (uploadId: string) => Promise<void>;
+  /** Approve or cancel the pending agentic action (state.pendingAction). */
+  confirmAction: (approved: boolean) => Promise<void>;
 }
 
 const MAX_RECEIPTS = 3;
@@ -127,6 +148,8 @@ const INITIAL_STATE: EchoState = {
   savedCount: null,
   videoOwnership: null,
   ingestPhase: null,
+  pendingAction: null,
+  answerUpsell: false,
 };
 
 export interface UseEchoOptions {
@@ -157,6 +180,10 @@ export function useEcho(
   // poll (reset or second call starts a new run, stale loops detect the change
   // and exit without touching state).
   const pollRunRef = useRef(0);
+
+  // Stable per-mount session id for the agentic Echo chat loop (threads
+  // turns into one server-side session).
+  const echoSessionRef = useRef(`web-${makeId()}${makeId()}`);
 
   const open = useCallback(() => {
     setState((prev) => ({
@@ -256,6 +283,22 @@ export function useEcho(
       phase: 'open',
       receipts: prev.receipts,
     }));
+  }, []);
+
+  /**
+   * Resolve the agentic confirm-pause (state.pendingAction). The SSE stream
+   * is still open in the question case's for-await; approving/cancelling here
+   * lets the server loop resume and the stream continue emitting.
+   */
+  const confirmAction = useCallback(async (approved: boolean) => {
+    const pending = stateRef.current.pendingAction;
+    if (!pending) return;
+    setState((prev) => ({ ...prev, pendingAction: null }));
+    try {
+      await confirmEchoAction(pending.toolCallId, approved);
+    } catch {
+      // Unresolved confirms expire server-side; the loop fails safe.
+    }
   }, []);
 
   const addReceipt = useCallback((text: string) => {
@@ -613,6 +656,60 @@ export function useEcho(
         }
 
         case 'question': {
+          const query = args.query ?? text;
+
+          // Agentic-first: the paid Echo v2 loop answers AND can act
+          // (schedule, build, navigate). The server enforces the paid gate —
+          // free users get a 402 before the stream opens and fall through to
+          // the KB answer below plus the upgrade card. Server as the single
+          // source of truth means no client-side tier plumbing to drift.
+          let gatedFree = false;
+          try {
+            let acc = '';
+            for await (const ev of streamEchoChat(echoSessionRef.current, query, {
+              route: typeof window !== 'undefined' ? window.location.pathname : undefined,
+            })) {
+              if (ev.type === 'text') {
+                acc += ev.content;
+                const answerSoFar = acc;
+                setState((prev) => ({ ...prev, phase: 'answered', answer: answerSoFar }));
+              } else if (ev.type === 'tool_done') {
+                addReceipt(formatReceipt(`${ev.receipt.verb} · ${ev.receipt.label}`));
+              } else if (ev.type === 'confirm_request') {
+                setState((prev) => ({
+                  ...prev,
+                  pendingAction: {
+                    toolCallId: ev.toolCallId,
+                    tool: ev.tool,
+                    summary: ev.tool.replace(/[_-]/g, ' '),
+                  },
+                }));
+              } else if (ev.type === 'error') {
+                throw new Error(ev.message);
+              }
+            }
+            if (acc) {
+              setState((prev) => ({ ...prev, phase: 'answered', pendingAction: null }));
+              break;
+            }
+            // Stream ended without text — fall through to the KB answer.
+            setState((prev) => ({ ...prev, pendingAction: null }));
+          } catch (e) {
+            if (e instanceof EchoChatGateError && e.status === 402) {
+              gatedFree = true; // free user — KB answer + upgrade card below
+            } else if (e instanceof EchoChatGateError && e.status === 429) {
+              setState((prev) => ({
+                ...prev,
+                phase: 'confirming',
+                pendingAction: null,
+                error: "You've hit today's Echo limit. It resets tomorrow.",
+              }));
+              return;
+            }
+            // Any other agentic failure: fall back to the KB answer silently.
+            setState((prev) => ({ ...prev, pendingAction: null }));
+          }
+
           const kbId = await resolveDefaultKbId();
           if (!kbId) {
             setState((prev) => ({
@@ -622,7 +719,7 @@ export function useEcho(
             }));
             return;
           }
-          const raw = await api.kb.chat(kbId, args.query ?? text);
+          const raw = await api.kb.chat(kbId, query);
           // Parse SSE response (same pattern as help-widget.tsx)
           let answer = '';
           const lines = raw.split('\n');
@@ -645,6 +742,7 @@ export function useEcho(
             ...prev,
             phase: 'answered',
             answer,
+            answerUpsell: gatedFree,
           }));
           break;
         }
@@ -894,5 +992,6 @@ export function useEcho(
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,
+    confirmAction,
   };
 }
