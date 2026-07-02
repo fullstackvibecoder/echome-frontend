@@ -11,6 +11,8 @@ import {
   Plus,
   Trash2,
   CheckCircle,
+  AlertTriangle,
+  RefreshCw,
   Instagram,
   Linkedin,
   Facebook,
@@ -52,6 +54,7 @@ export function ConnectedAccounts() {
 
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -61,9 +64,14 @@ export function ConnectedAccounts() {
       const response = await api.socialPosting.listAccounts();
       if (response.success && response.data) {
         setAccounts(response.data.accounts);
+        setLoadError(false);
+      } else {
+        setLoadError(true);
       }
     } catch {
-      // Non-critical — page still works without accounts
+      // A failed load must not look like "no accounts connected" — the user
+      // may reconnect and end up with duplicate Outstand accounts.
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -137,6 +145,11 @@ export function ConnectedAccounts() {
             }
           }, 1000);
           setTimeout(() => clearInterval(pollTimer), 300000);
+        } else {
+          // window.open returns null when the popup is blocked — without this
+          // the button stays disabled on "Connecting..." with no way out.
+          toast.error('Your browser blocked the sign-in window. Allow popups for this site and try again.');
+          setConnecting(null);
         }
       } else {
         toast.error('Could not get authorization URL. Please try again.');
@@ -221,6 +234,28 @@ export function ConnectedAccounts() {
           >
             View Plans
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">Auto-Post to Social</h3>
+        <div className="flex flex-col items-center gap-3 bg-card border border-border rounded-xl px-4 py-6 text-center">
+          <AlertTriangle className="w-5 h-5 text-amber-500" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Couldn&apos;t load your connected accounts</p>
+            <p className="text-xs text-muted-foreground mt-1">Accounts you already connected are still connected. Retry before connecting anything again.</p>
+          </div>
+          <button
+            onClick={() => { setLoading(true); loadAccounts(); }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-interactive text-white rounded-xl text-xs font-medium hover:opacity-90 transition-opacity"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Try Again
+          </button>
         </div>
       </div>
     );

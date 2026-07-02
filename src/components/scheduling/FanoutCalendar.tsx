@@ -69,19 +69,25 @@ export function FanoutCalendar() {
   const [weekStats, setWeekStats] = useState<WeekStats>({ scheduled: 0, posted: 0, failed: 0 });
   const [nextUp, setNextUp] = useState<{ title: string; scheduled_at: string; platforms: string[] } | undefined>();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [actingOnPost, setActingOnPost] = useState<string | null>(null);
 
   const load = async () => {
     try {
       setLoading(true);
+      setLoadError(false);
       const resp = await api.socialPosting.getCalendar();
       if (resp.success && resp.data) {
         setEvents(resp.data.events);
         setWeekStats(resp.data.this_week);
         setNextUp(resp.data.next_up);
+      } else {
+        setLoadError(true);
       }
     } catch {
-      // Empty state ok
+      // A load failure must not render as an empty calendar — the user may
+      // conclude nothing is scheduled and double-book everything.
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -131,6 +137,25 @@ export function FanoutCalendar() {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center gap-3 bg-card border border-border rounded-xl px-4 py-8 text-center">
+        <AlertTriangle className="w-5 h-5 text-amber-500" />
+        <div>
+          <p className="text-sm font-medium text-foreground">Couldn&apos;t load your scheduled posts</p>
+          <p className="text-xs text-muted-foreground mt-1">Your posts are still scheduled. This is a loading problem, not a scheduling one.</p>
+        </div>
+        <button
+          onClick={load}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-interactive text-white rounded-xl text-xs font-medium hover:opacity-90 transition-opacity"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          Try Again
+        </button>
       </div>
     );
   }
