@@ -57,9 +57,18 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 async function echoAuthHeader(): Promise<Record<string, string>> {
-  const { supabase } = await import('./supabase');
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  // Mirror api-client's token source: the app logs in through the backend
+  // (/api/auth/login) and keeps the JWT in localStorage — the Supabase
+  // client session is only a refresh fallback, not the primary store.
+  let token: string | null = null;
+  if (typeof window !== 'undefined') {
+    token = localStorage.getItem('authToken');
+  }
+  if (!token) {
+    const { supabase } = await import('./supabase');
+    const { data } = await supabase.auth.getSession();
+    token = data.session?.access_token ?? null;
+  }
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
