@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useGeneration } from '@/hooks/useGeneration';
 import { useResultsFeedback } from '@/hooks/useResultsFeedback';
-import { useGenerationProgress } from '@/hooks/useGenerationProgress';
+import { useGenerationProgress, GENERATION_STEPS, mapStepToIndex } from '@/hooks/useGenerationProgress';
 import { usePendingCheckout } from '@/hooks/usePendingCheckout';
 import { GenerationForm } from '@/components/generation-form';
 import { ContentCards } from '@/components/content-cards';
@@ -291,6 +291,66 @@ export default function AppContent() {
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-7xl">
+      {/* In-flight generation. POST /api/generate holds the connection until
+          the kit is done, so the redirect-to-detail in handleGenerate only
+          fires at completion — this branch is what the user sees for that
+          whole window. Without it the page rendered NOTHING while
+          `generating` (neither sibling branch matches), a blank pane for
+          60-90s (found in the 2026-06-27 prod E2E, reproduced on staging
+          2026-07-02). requestId is usually null here (it arrives with the
+          POST response), so SSE progress rarely attaches; the steps render
+          in indeterminate mode from GENERATION_STEPS. */}
+      {generating && !hasResults && (
+        <div className="animate-fade-in flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="w-full max-w-md bg-bg-secondary border border-border rounded-2xl p-8">
+            <h2 className="text-xl font-semibold text-text-primary mb-1 text-center">
+              Creating your content kit
+            </h2>
+            <p className="text-sm text-text-secondary mb-6 text-center">
+              {progress?.message || 'This usually takes about a minute. You can leave this page; the kit lands in Your Library.'}
+            </p>
+            <ul className="space-y-3">
+              {GENERATION_STEPS.map((step, idx) => {
+                const currentIdx = progress ? mapStepToIndex(progress.step) : 0;
+                const state = idx < currentIdx ? 'done' : idx === currentIdx ? 'active' : 'pending';
+                return (
+                  <li key={step.id} className="flex items-center gap-3">
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${
+                        state === 'done'
+                          ? 'bg-primary/15 text-primary'
+                          : state === 'active'
+                          ? 'bg-primary/10 text-primary animate-pulse'
+                          : 'bg-bg-primary text-text-secondary/50 border border-border'
+                      }`}
+                    >
+                      {state === 'done' ? '✓' : step.icon}
+                    </span>
+                    <span
+                      className={`text-sm ${
+                        state === 'active'
+                          ? 'text-text-primary font-medium'
+                          : state === 'done'
+                          ? 'text-text-secondary'
+                          : 'text-text-secondary/50'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="mt-6 h-1.5 bg-bg-primary rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full transition-all duration-700 ease-out animate-pulse"
+                style={{ width: `${progress?.percent ?? 12}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {!hasResults && !generating && (
         <div className="animate-fade-in">
           {/*
