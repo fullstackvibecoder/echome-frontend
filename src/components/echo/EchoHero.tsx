@@ -21,9 +21,12 @@ import { Paperclip, Mic, Square } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
-import { AdvisorThread } from '@/components/create/AdvisorThread';
+import { CreateHeroHeader } from '@/components/create/CreateHeroHeader';
+import { ProposalChips } from '@/components/create/ProposalChips';
+import { StarterChips } from '@/components/create/StarterChips';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { QuotaLine } from '@/components/create/QuotaLine';
+import { useAuth } from '@/hooks/useAuth';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
@@ -55,6 +58,12 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
   // Echo adds material to Your Voice — the refresh the retired KBUnifiedInput
   // pill used to trigger via onImportComplete.
   const { advisor, loading: advisorLoading, refetch: refetchAdvisor } = useAdvisor();
+  const { user } = useAuth();
+  // useAuth's User type carries `name` (not `full_name` — that field lives on
+  // the extended UserProfile from /auth/profile/extended). See sidebar.tsx /
+  // mobile-sidebar.tsx / app-header.tsx for the same convention.
+  const firstName = user?.name?.trim().split(/\s+/)[0] || undefined;
+  const advisorState = advisor?.state ?? null;
 
   const {
     state,
@@ -166,9 +175,9 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
     >
       {/* Static hero header: orient a cold user (what it does, the payoff, the
           best first move). Shown ONLY before the user has shared anything. Once
-          Echo has content it renders a personalized nudge ("Echo can build from
-          what you shared") in AdvisorThread below, which makes this generic
-          header redundant — so hide it in the thin/rich states. */}
+          Echo has content, CreateHeroHeader below renders a personalized
+          headline + nudge line, which makes this generic header redundant —
+          so hide it in the thin/rich states. */}
       {/* Gate on !advisorLoading: `advisor` is null both before the fetch
           resolves AND when the KB is genuinely empty. Without the loading
           guard, a content account paints the empty-state explainer for the
@@ -207,14 +216,12 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
         </>
       )}
 
-      {/* Advisor + drafts thread -- renders above composer in the chat thread */}
+      <CreateHeroHeader
+        state={advisorState}
+        nudgeHeadline={advisor?.nudge.headline}
+        firstName={firstName}
+      />
       <div className="w-full max-w-2xl space-y-4 mb-6">
-        {advisor && (
-          <AdvisorThread
-            advisor={advisor}
-            onProposalSelect={handleProposalSelect}
-          />
-        )}
         <DraftsThreadMessage />
       </div>
 
@@ -362,6 +369,17 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
       </div>
 
       {quota && <QuotaLine remaining={quota.remaining} limit={quota.limit} />}
+
+      {(advisorState === 'thin' || advisorState === 'rich') && advisor && (
+        <ProposalChips proposals={advisor.proposals} onSelect={handleProposalSelect} />
+      )}
+      {!advisorLoading && (!advisor || advisor.state === 'empty') && (
+        <StarterChips
+          onTalk={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
+          onAttach={() => fileInputRef.current?.click()}
+          onType={focusComposer}
+        />
+      )}
 
       {/* Voice-profile status chip — links to /app/voice */}
       <VoiceLearningChip />

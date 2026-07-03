@@ -4,9 +4,9 @@
  *
  * Rendering strategy: EchoExchange is rendered REAL (unmocked) because the
  * textarea placeholder lives there and we need to assert on it. Heavy deps
- * (AdvisorThread, DraftsThreadMessage, EchoExchange-adjacent UI) are mocked
- * the same way as EchoHero.advisor.test.tsx. Hooks are mocked so no network
- * or state-machine side effects fire.
+ * (DraftsThreadMessage, EchoExchange-adjacent UI) are mocked the same way as
+ * EchoHero.advisor.test.tsx. Hooks are mocked so no network or state-machine
+ * side effects fire.
  */
 
 import React from 'react';
@@ -88,8 +88,8 @@ vi.mock('@/components/create/DraftsThreadMessage', () => ({
   DraftsThreadMessage: () => <div data-testid="drafts-thread" />,
 }));
 
-vi.mock('@/components/create/AdvisorThread', () => ({
-  AdvisorThread: () => <div data-testid="advisor-thread" />,
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { name: 'Ara Mamourian' } }),
 }));
 
 vi.mock('@/components/ui/waveform', () => ({

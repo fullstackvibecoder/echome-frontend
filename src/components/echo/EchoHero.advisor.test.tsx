@@ -1,7 +1,8 @@
 /**
  * EchoHero.advisor.test.tsx
- * Tests that EchoHero correctly wires useAdvisor + AdvisorThread + DraftsThreadMessage
- * and routes nudge/proposal callbacks to the ingestion mechanics.
+ * Tests that EchoHero correctly wires useAdvisor + CreateHeroHeader +
+ * ProposalChips/StarterChips + DraftsThreadMessage, and routes proposal
+ * selection to the ingestion mechanics.
  */
 
 import React from 'react';
@@ -102,27 +103,8 @@ vi.mock('@/components/create/DraftsThreadMessage', () => ({
   DraftsThreadMessage: () => <div data-testid="drafts-thread" />,
 }));
 
-vi.mock('@/components/create/AdvisorThread', () => ({
-  AdvisorThread: ({
-    onProposalSelect,
-  }: {
-    onProposalSelect: (proposal: { id: string; title: string; rationale: string; kitType: string; sourceRefs: string[] }) => void;
-  }) => (
-    <div data-testid="advisor-thread">
-      <button
-        data-testid="prop-select"
-        onClick={() =>
-          onProposalSelect({
-            id: 'p1',
-            title: 'My Proposal',
-            rationale: '',
-            kitType: '',
-            sourceRefs: [],
-          })
-        }
-      />
-    </div>
-  ),
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { name: 'Ara Mamourian' } }),
 }));
 
 // Also stub heavy UI deps that EchoHero imports
@@ -130,24 +112,39 @@ vi.mock('@/components/ui/waveform', () => ({
   Waveform: () => <svg data-testid="waveform" />,
 }));
 
-// ---- Advisor fixture ----
+// ---- Advisor fixtures ----
 
-const ADVISOR_FIXTURE: AdvisorResponse = {
+const EMPTY_COVERAGE = {
+  work: { covered: false, strength: 0, sampleCount: 0 },
+  industry: { covered: false, strength: 0, sampleCount: 0 },
+  interests: { covered: false, strength: 0, sampleCount: 0 },
+  personal: { covered: false, strength: 0, sampleCount: 0 },
+  relationships: { covered: false, strength: 0, sampleCount: 0 },
+  voice: { covered: false, strength: 0, sampleCount: 0 },
+};
+
+const EMPTY_FIXTURE: AdvisorResponse = {
   state: 'empty',
-  coverage: {
-    work: { covered: false, strength: 0, sampleCount: 0 },
-    industry: { covered: false, strength: 0, sampleCount: 0 },
-    interests: { covered: false, strength: 0, sampleCount: 0 },
-    personal: { covered: false, strength: 0, sampleCount: 0 },
-    relationships: { covered: false, strength: 0, sampleCount: 0 },
-    voice: { covered: false, strength: 0, sampleCount: 0 },
-  },
+  coverage: EMPTY_COVERAGE,
   nudge: {
     headline: 'Get started',
     subhead: 'Tell me about yourself.',
     actions: [],
   },
   proposals: [],
+};
+
+const RICH_FIXTURE: AdvisorResponse = {
+  state: 'rich',
+  coverage: EMPTY_COVERAGE,
+  nudge: {
+    headline: 'Echo can build from what you shared',
+    subhead: '',
+    actions: [],
+  },
+  proposals: [
+    { id: 'p1', title: 'My Proposal', rationale: '', kitType: 'linkedin_post', sourceRefs: [] },
+  ],
 };
 
 // ---- Import component under test (after mocks registered) ----
@@ -163,9 +160,9 @@ describe('EchoHero advisor + drafts wiring', () => {
     vi.clearAllMocks();
     // Spy on HTMLInputElement.click so we can assert fileInputRef.current?.click()
     clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
-    // Default: advisor present
+    // Default: empty KB
     vi.mocked(useAdvisor).mockReturnValue({
-      advisor: ADVISOR_FIXTURE,
+      advisor: EMPTY_FIXTURE,
       loading: false,
       error: null,
       refetch: vi.fn(),
@@ -176,28 +173,42 @@ describe('EchoHero advisor + drafts wiring', () => {
     clickSpy.mockRestore();
   });
 
-  it('renders AdvisorThread and DraftsThreadMessage when advisor is present', () => {
+  it('renders the personalized header and proposal chips when advisor is rich', () => {
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
-    expect(screen.getByTestId('advisor-thread')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /what do you want to create, ara\?/i })).toBeTruthy();
+    expect(screen.getByText('My Proposal')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('hides AdvisorThread but still renders DraftsThreadMessage when advisor is null', () => {
+  it('renders the teach-first header and starter chips when advisor is empty', () => {
+    render(<EchoHero />);
+    expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: /what do you want to create/i })).toBeNull();
+    expect(screen.getByText('Talk for one minute')).toBeTruthy();
+    expect(screen.getByText('Drop a Zoom recording')).toBeTruthy();
+    expect(screen.getByText('Paste a YouTube link')).toBeTruthy();
+    expect(screen.getByTestId('drafts-thread')).toBeTruthy();
+  });
+
+  it('renders the teach-first header and starter chips when advisor is null', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
-    expect(screen.queryByTestId('advisor-thread')).toBeNull();
+    expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
+    expect(screen.getByText('Talk for one minute')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('clicking prop-select calls setInputText with the proposal title', () => {
+  it('clicking a proposal chip calls setInputText with the proposal title', () => {
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
-    fireEvent.click(screen.getByTestId('prop-select'));
+    fireEvent.click(screen.getByText('My Proposal'));
     expect(setInputText).toHaveBeenCalledWith('My Proposal');
   });
 
   it('wires useEcho onIngestComplete to the advisor refetch', () => {
     const refetch = vi.fn();
-    vi.mocked(useAdvisor).mockReturnValue({ advisor: ADVISOR_FIXTURE, loading: false, error: null, refetch });
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: EMPTY_FIXTURE, loading: false, error: null, refetch });
     render(<EchoHero />);
     // EchoHero hands its advisor refetch to useEcho; firing it (as a successful
     // composer ingest would) must refresh the advisor thread.
