@@ -170,10 +170,18 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
 
   const { attachment, attachmentError } = state;
 
+  // Empty state has little content by design; vertically center it so the
+  // whitespace reads as composition, not absence. Thin/rich stay top-anchored
+  // (they have below-the-fold sections).
+  const isEmptyState = !advisorLoading && (!advisor || advisor.state === 'empty');
+
   return (
     <div
       ref={heroRef}
-      className="flex flex-col items-center w-full"
+      className={[
+        'flex flex-col items-center w-full',
+        isEmptyState ? 'justify-center min-h-[calc(100vh-14rem)]' : '',
+      ].join(' ')}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -189,7 +197,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
           fetch window, then collapses it once the rich advisor arrives — a
           flash of the big animation on every Create-page load. Wait for
           certainty before deciding the state is empty. */}
-      {!advisorLoading && (!advisor || advisor.state === 'empty') && (
+      {isEmptyState && (
         <>
           <h1
             className="mb-2 text-center font-semibold leading-tight"
@@ -370,12 +378,22 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
       {(advisorState === 'thin' || advisorState === 'rich') && advisor && (
         <ProposalChips proposals={advisor.proposals} onSelect={handleProposalSelect} />
       )}
-      {!advisorLoading && (!advisor || advisor.state === 'empty') && (
-        <StarterChips
-          onTalk={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
-          onAttach={() => fileInputRef.current?.click()}
-          onType={focusComposer}
-        />
+      {isEmptyState && (
+        <>
+          <StarterChips
+            onTalk={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
+            onAttach={() => fileInputRef.current?.click()}
+            onType={focusComposer}
+          />
+          {/* One-line do->get orientation. Carries the removed animation's
+              message at zero vertical cost. */}
+          <p
+            className="mt-4 text-center text-xs leading-snug max-w-md"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            A video, a link, or a topic in. Clips, posts, and carousels out, in your voice.
+          </p>
+        </>
       )}
 
       {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
