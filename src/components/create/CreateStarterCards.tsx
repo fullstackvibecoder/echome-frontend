@@ -53,19 +53,19 @@ export function CreateStarterCards({ onRecord, onUpload, onPasteLink }: CreateSt
     <div className="mt-8 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <button type="button" className={CARD_CLASS} onClick={onRecord}>
         <CardIcon><Mic size={16} /></CardIcon>
-        <CardBody title="Record" subtitle="Start with your voice" />
+        <CardBody title="Record" subtitle="Echo learns to write like you" />
       </button>
       <button type="button" className={CARD_CLASS} onClick={onUpload}>
         <CardIcon><Upload size={16} /></CardIcon>
-        <CardBody title="Upload" subtitle="Video, audio, or docs" />
+        <CardBody title="Upload" subtitle="Becomes posts, clips, and carousels" />
       </button>
       <button type="button" className={CARD_CLASS} onClick={onPasteLink}>
         <CardIcon><Link2 size={16} /></CardIcon>
-        <CardBody title="Paste a link" subtitle="YouTube or an article" />
+        <CardBody title="Paste a link" subtitle="Turns into content in your voice" />
       </button>
       <button type="button" className={CARD_CLASS} onClick={() => router.push('/app/calendar')}>
         <CardIcon><CalendarDays size={16} /></CardIcon>
-        <CardBody title="Plan your week" subtitle="Lay content across your calendar" />
+        <CardBody title="Plan your week" subtitle="A week of posts, scheduled" />
       </button>
     </div>
   );

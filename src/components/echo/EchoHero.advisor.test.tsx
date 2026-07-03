@@ -193,9 +193,9 @@ describe('EchoHero advisor + drafts wiring', () => {
     render(<EchoHero />);
     expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
     expect(screen.queryByRole('heading', { name: /what do you want to create/i })).toBeNull();
-    expect(screen.getByText('Clips from a video')).toBeTruthy();
-    expect(screen.getByText('Content from a prompt')).toBeTruthy();
-    expect(screen.getByText('Content from my KB')).toBeTruthy();
+    expect(screen.getByText('Turn a video into clips')).toBeTruthy();
+    expect(screen.getByText('Write posts from a topic')).toBeTruthy();
+    expect(screen.getByText('Create from what Echo knows')).toBeTruthy();
     expect(screen.getByText('Record')).toBeTruthy();
     expect(screen.getByText('Upload')).toBeTruthy();
     expect(screen.getByText('Paste a link')).toBeTruthy();
@@ -207,7 +207,7 @@ describe('EchoHero advisor + drafts wiring', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
     expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
-    expect(screen.getByText('Clips from a video')).toBeTruthy();
+    expect(screen.getByText('Turn a video into clips')).toBeTruthy();
     expect(screen.getByText('Record')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
@@ -215,19 +215,19 @@ describe('EchoHero advisor + drafts wiring', () => {
   it('intent buttons and starter cards also render in the rich state', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
-    expect(screen.getByText('Clips from a video')).toBeTruthy();
+    expect(screen.getByText('Turn a video into clips')).toBeTruthy();
     expect(screen.getByText('Record')).toBeTruthy();
   });
 
   it('KB intent button prefills the composer', () => {
     render(<EchoHero />);
-    fireEvent.click(screen.getByText('Content from my KB'));
+    fireEvent.click(screen.getByText('Create from what Echo knows'));
     expect(setInputText).toHaveBeenCalledWith('Make content from my knowledge base');
   });
 
   it('clip intent button opens the file picker', () => {
     render(<EchoHero />);
-    fireEvent.click(screen.getByText('Clips from a video'));
+    fireEvent.click(screen.getByText('Turn a video into clips'));
     expect(clickSpy).toHaveBeenCalled();
   });
 

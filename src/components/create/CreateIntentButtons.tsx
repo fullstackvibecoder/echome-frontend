@@ -33,7 +33,7 @@ export function CreateIntentButtons({ onClipVideo, onPrefill }: CreateIntentButt
     <div className="mt-4 flex w-full max-w-2xl flex-wrap justify-center gap-2.5">
       <button type="button" className={BUTTON_CLASS} onClick={onClipVideo}>
         <Clapperboard size={15} className="text-muted-foreground" aria-hidden="true" />
-        Clips from a video
+        Turn a video into clips
       </button>
       <button
         type="button"
@@ -41,7 +41,7 @@ export function CreateIntentButtons({ onClipVideo, onPrefill }: CreateIntentButt
         onClick={() => onPrefill('Create content about ')}
       >
         <Lightbulb size={15} className="text-muted-foreground" aria-hidden="true" />
-        Content from a prompt
+        Write posts from a topic
       </button>
       <button
         type="button"
@@ -49,7 +49,7 @@ export function CreateIntentButtons({ onClipVideo, onPrefill }: CreateIntentButt
         onClick={() => onPrefill('Make content from my knowledge base')}
       >
         <PenLine size={15} className="text-muted-foreground" aria-hidden="true" />
-        Content from my KB
+        Create from what Echo knows
       </button>
     </div>
   );
