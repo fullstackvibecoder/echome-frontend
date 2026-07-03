@@ -23,9 +23,9 @@ describe('LinkGuidance', () => {
     expect(screen.getByTestId('link-guidance').textContent).toContain('cuts clips and makes content');
   });
 
-  it('names the voice outcome for an article URL', () => {
+  it('names the KB outcome for an article URL', () => {
     render(<LinkGuidance inputText="https://myblog.com/post" hintActive={false} />);
-    expect(screen.getByTestId('link-guidance').textContent).toContain('learns how you write');
+    expect(screen.getByTestId('link-guidance').textContent).toContain('adds it to your knowledge base');
   });
 
   it('detection wins over the hint', () => {
