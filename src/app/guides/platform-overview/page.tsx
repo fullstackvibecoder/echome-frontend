@@ -15,7 +15,7 @@ export default function PlatformOverviewGuidePage() {
     description: 'A complete walkthrough of the EchoMe platform. Learn about the unified Create input, video processing, clip editing, caption customization, content generation, and building your voice profile.',
     url: 'https://tryechome.com/guides/platform-overview',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
@@ -80,7 +80,7 @@ export default function PlatformOverviewGuidePage() {
           <Step number={1} title="One input, every format">
             <p className="mb-2">The Create page has a single unified input. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Zoom, Loom, Vimeo, or TikTok. EchoMe auto-detects the platform.</li>
+              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Instagram, Zoom, Loom, or Vimeo. EchoMe auto-detects the platform and asks what to make from it.</li>
               <li><strong className="text-text-primary">Type a topic</strong>: Describe an idea, paste an article, or write a prompt.</li>
               <li><strong className="text-text-primary">Drop a video file</strong>: Drag and drop directly onto the input.</li>
               <li><strong className="text-text-primary">Record a voice note</strong>: Use the mic button inside the input bar to speak your idea.</li>
@@ -89,7 +89,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={2} title="Video upload guidelines">
-            <p className="mb-2">The hard cap on uploads is 2GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings. 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality.</p>
+            <p className="mb-2">The hard cap on uploads is 5GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings. 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality. Output never upscales past your source resolution, so starting above 1080p buys you nothing.</p>
             <p>Use <strong className="text-text-primary">HandBrake</strong> (free desktop app) or <strong className="text-text-primary">FreeConvert.com</strong> (browser-based) to compress before uploading.</p>
             <Tip>See the full compression guide at <a href="/guides/compress-video" className="text-accent hover:underline">How to Compress Videos for EchoMe</a>.</Tip>
           </Step>
@@ -98,12 +98,12 @@ export default function PlatformOverviewGuidePage() {
             <p className="mb-2">Instead of uploading a file, you can paste a URL from any of these platforms:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>YouTube</li>
+              <li>Instagram</li>
               <li>Vimeo</li>
               <li>Loom</li>
               <li>Zoom</li>
-              <li>TikTok</li>
             </ul>
-            <p className="mt-2">Just paste the URL into the Create input and hit submit. No separate upload step needed. If your Zoom recording requires a passcode, a field will appear below the input when you paste a Zoom link.</p>
+            <p className="mt-2">Just paste the URL into the Create input and hit submit. No separate upload step needed. YouTube and Instagram links can become clips and content, or train Your Voice, your choice. Zoom, Loom, and Vimeo recording links become clips and content only. If your Zoom recording requires a passcode, Echo asks for it during processing.</p>
             <Tip>YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video and uploading the file directly.</Tip>
           </Step>
 

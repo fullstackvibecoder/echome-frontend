@@ -16,7 +16,7 @@ export default function ZoomRecordingsGuidePage() {
     description: 'EchoMe can process Zoom cloud recordings directly, including password-protected ones. Paste your share link and get a full content kit.',
     url: 'https://tryechome.com/guides/zoom-recordings',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -42,7 +42,7 @@ export default function ZoomRecordingsGuidePage() {
           Zoom Recordings: Password-Protected Downloads
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          EchoMe can process Zoom cloud recordings directly, including password-protected ones. Paste your share link, enter the passcode if needed, and get a full content kit.
+          EchoMe can process Zoom cloud recordings directly, including password-protected ones. Paste your share link and get a full content kit. If the recording needs a passcode, EchoMe asks for it before retrying.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           2 min read
@@ -55,15 +55,15 @@ export default function ZoomRecordingsGuidePage() {
           </Step>
 
           <Step number={2} title="Paste the link into the Create page">
-            <p>Go to the Create page and paste your Zoom share link directly into the input. EchoMe auto-detects Zoom recording links.</p>
+            <p>Go to the Create page and paste your Zoom share link directly into the composer. EchoMe auto-detects Zoom recording links and starts downloading it.</p>
           </Step>
 
           <Step number={3} title="Enter the passcode if required">
-            <p>If the recording requires a passcode, a field automatically appears below the input. Enter the passcode from the Zoom invite email.</p>
+            <p>If the recording is password-protected, EchoMe pops up a passcode prompt after the first download attempt fails. Enter the passcode from the Zoom invite email and click <strong>Retry download</strong>.</p>
           </Step>
 
-          <Step number={4} title="Submit and let EchoMe process">
-            <p>Hit submit. EchoMe authenticates with Zoom, downloads the recording, and processes it into a full content kit. Processing time depends on recording length.</p>
+          <Step number={4} title="Let EchoMe process">
+            <p>Once the download succeeds, EchoMe transcribes the recording and processes it into a full content kit. Processing time depends on recording length.</p>
           </Step>
 
           <Step number={5} title="Review your content kit">

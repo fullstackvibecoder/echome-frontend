@@ -16,7 +16,7 @@ export default function YouTubeToContentGuidePage() {
     description: 'Paste any YouTube link into EchoMe and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
     url: 'https://tryechome.com/guides/youtube-to-content',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -63,7 +63,7 @@ export default function YouTubeToContentGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Paste any YouTube link">
-            <p>Go to the Create page and paste your YouTube URL directly into the unified conversational input. EchoMe auto-detects YouTube links. Just hit submit. Works with any public YouTube video: watch pages, share links, and shorts. The unified input accepts YouTube links alongside any other content type.</p>
+            <p>Go to the Create page and paste your YouTube URL into the composer. EchoMe auto-detects YouTube links and asks if the video is yours, then whether to make content now or, for a channel link, save the videos to clip later. Works with any public YouTube video: watch pages, share links, and shorts.</p>
           </Step>
 
           <Step number={2} title="EchoMe downloads and transcribes">
@@ -83,7 +83,7 @@ export default function YouTubeToContentGuidePage() {
             <p>From one YouTube video, EchoMe generates:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>LinkedIn posts</li>
-              <li>Instagram captions</li>
+              <li>Instagram captions and carousels</li>
               <li>X/Twitter threads</li>
               <li>TikTok captions</li>
               <li>Email newsletters</li>

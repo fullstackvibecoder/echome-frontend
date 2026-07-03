@@ -15,7 +15,7 @@ export default function EmailUploadGuidePage() {
     description: 'Step-by-step guide to exporting your sent emails from Gmail and importing them into EchoMe to train your voice profile.',
     url: 'https://tryechome.com/guides/email-upload',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
@@ -121,7 +121,7 @@ export default function EmailUploadGuidePage() {
 
           <Step number={7} title="Download and unzip">
             <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong>. That&apos;s what you&apos;ll upload to EchoMe.</p>
-            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. Max file size: 500MB. If your export is larger, filter the label to a shorter date range.</Tip>
+            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. EchoMe imports up to 100 emails per upload, so keep your label filtered to a focused date range rather than exporting everything at once.</Tip>
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
@@ -130,7 +130,7 @@ export default function EmailUploadGuidePage() {
           </Step>
 
           <Step number={9} title="Wait for processing">
-            <p>The upload takes a minute or two depending on how many emails you have. You might see a brief &quot;0 emails imported&quot; message while it&apos;s processing. <strong>Don&apos;t worry</strong>, just wait for it to finish.</p>
+            <p>You&apos;ll see a short progress bar while EchoMe reads the file and uploads the emails it finds. The upload takes a minute or two depending on how many emails you have.</p>
           </Step>
 
           <Step number={10} title="Confirm your upload">
@@ -145,7 +145,7 @@ export default function EmailUploadGuidePage() {
             <li><strong className="text-text-primary">Uploading your entire mailbox:</strong> Export only your Sent folder, filtered to the last 6 months. Huge files will time out or include other people&apos;s writing.</li>
             <li><strong className="text-text-primary">Forgetting to filter by label in Takeout:</strong> If you don&apos;t select your specific label, Google exports everything. Use the label filter.</li>
             <li><strong className="text-text-primary">Uploading inbox emails:</strong> Echo learns from <em>your</em> writing. Inbox emails are written by other people. That&apos;s their voice, not yours.</li>
-            <li><strong className="text-text-primary">Panicking at &quot;0 emails imported&quot;:</strong> This message appears briefly during processing. Give it a minute.</li>
+            <li><strong className="text-text-primary">Expecting every email to import:</strong> EchoMe imports up to 100 emails per upload. If your label has more, narrow the date range in Gmail before you export so the most relevant emails make the cut.</li>
           </ul>
         </section>
 

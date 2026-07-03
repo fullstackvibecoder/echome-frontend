@@ -25,7 +25,7 @@ export default function SchedulingPostsGuidePage() {
       'How to connect your social accounts and schedule posts to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
     url: 'https://tryechome.com/guides/scheduling-posts',
     datePublished: '2026-04-24',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -112,7 +112,7 @@ export default function SchedulingPostsGuidePage() {
                 video, up to 3 minutes). No subscriber requirement.
               </li>
               <li>
-                <strong>Bluesky</strong>: connect with an app password from your Bluesky settings.
+                <strong>Bluesky</strong>: connect through the same popup authorization flow as the platforms above. Short-form posts, up to 300 characters.
               </li>
             </ul>
             <Tip>
@@ -174,7 +174,7 @@ export default function SchedulingPostsGuidePage() {
             <div className="my-4 rounded-lg overflow-hidden border border-border">
               <Image
                 src="/guide-screenshots/scheduling-clip-post-actions.png"
-                alt="Clip editor showing the video on the left with burned-in captions and the post caption, platform picker, and Post now / Schedule buttons on the right"
+                alt="Content Kit editor showing generated visuals and a written post draft with platform tabs, Save, Regenerate, and Copy actions"
                 width={1600}
                 height={1200}
                 className="w-full h-auto"
@@ -201,7 +201,7 @@ export default function SchedulingPostsGuidePage() {
             <div className="my-4 rounded-lg overflow-hidden border border-border">
               <Image
                 src="/guide-screenshots/scheduling-preparing-media.png"
-                alt="Event preview modal showing a reel scheduled for Sat Apr 25 9:12 AM with LinkedIn, Facebook, and Instagram all in Preparing media state"
+                alt="Content Calendar week view with Week, Month, and List toggle and scheduled posts by day"
                 width={1600}
                 height={1500}
                 className="w-full h-auto"
