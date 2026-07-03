@@ -26,6 +26,7 @@ import { ProposalChips } from '@/components/create/ProposalChips';
 import { StarterChips } from '@/components/create/StarterChips';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { QuotaLine } from '@/components/create/QuotaLine';
+import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
 import { useAuth } from '@/hooks/useAuth';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
@@ -380,6 +381,8 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
           onType={focusComposer}
         />
       )}
+
+      {(advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
 
       {/* Voice-profile status chip — links to /app/voice */}
       <VoiceLearningChip />
