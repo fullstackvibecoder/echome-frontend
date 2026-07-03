@@ -214,13 +214,13 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
               color: 'var(--foreground)',
             }}
           >
-            Teach Echo to write in your voice.
+            Talk for a minute. Post for a week.
           </h1>
           <p
             className="mb-6 text-center text-sm leading-snug max-w-xl"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
+            Share a video, a link, or a minute of talking. Echo learns your voice, then writes the posts, cuts the clips, and builds the carousels. You approve, it posts.
           </p>
           {/* SketchExplainer animation removed 2026-07-03 (founder call): it
               dominated the empty-state viewport and pushed the composer, the
