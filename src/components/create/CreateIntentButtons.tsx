@@ -18,6 +18,10 @@ interface CreateIntentButtonsProps {
   onClipVideo: () => void;
   /** Prefill the composer and focus it. */
   onPrefill: (text: string) => void;
+  /** KB intent: reveals Echo's proposals when there are any, else prefills. */
+  onKnowledgeBase: () => void;
+  /** True while the proposal chips are revealed (aria-expanded on the KB button). */
+  kbExpanded?: boolean;
 }
 
 const BUTTON_CLASS = [
@@ -28,7 +32,7 @@ const BUTTON_CLASS = [
   'transition-colors hover:border-[var(--muted-foreground)]',
 ].join(' ');
 
-export function CreateIntentButtons({ onClipVideo, onPrefill }: CreateIntentButtonsProps) {
+export function CreateIntentButtons({ onClipVideo, onPrefill, onKnowledgeBase, kbExpanded = false }: CreateIntentButtonsProps) {
   return (
     <div className="mt-4 flex w-full max-w-2xl flex-wrap justify-center gap-2.5">
       <button type="button" className={BUTTON_CLASS} onClick={onClipVideo}>
@@ -46,7 +50,8 @@ export function CreateIntentButtons({ onClipVideo, onPrefill }: CreateIntentButt
       <button
         type="button"
         className={BUTTON_CLASS}
-        onClick={() => onPrefill('Make content from my knowledge base')}
+        onClick={onKnowledgeBase}
+        aria-expanded={kbExpanded}
       >
         <PenLine size={15} className="text-muted-foreground" aria-hidden="true" />
         Create from what Echo knows
