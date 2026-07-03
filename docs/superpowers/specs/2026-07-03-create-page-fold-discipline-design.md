@@ -25,7 +25,7 @@ This aligns with founder tenets: Low UI, Chat First, No Onboarding. It is a reor
 
 ### 1. Personalized H1, all states
 
-- **Empty state:** unchanged. "Teach Echo to write in your voice." + subhead + SketchExplainer.
+- **Empty state:** "Teach Echo to write in your voice." + subhead. SketchExplainer animation REMOVED (founder call 2026-07-03, post-staging review): it dominated the viewport and pushed the composer below the fold. Component survives for the public homepage (HeroDemoVideo) and /sketch-preview.
 - **Thin + rich states:** new H1 "What do you want to create, {firstName}?" where `firstName = user.full_name?.split(' ')[0]`. When `full_name` is absent: "What do you want to create?" (no comma, no dangling name).
 - Same type treatment as the existing empty-state H1 (`clamp(1.5rem, 1.25rem + 1.25vw, 1.875rem)`, weight 600, centered, balanced).
 
