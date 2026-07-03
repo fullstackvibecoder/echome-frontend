@@ -47,6 +47,7 @@ interface ConnectedAccount {
   platformUsername: string;
   platformAvatarUrl: string | null;
   connectedAt: string;
+  status?: 'connected' | 'needs_reauth';
 }
 
 export function ConnectedAccounts() {
@@ -175,7 +176,9 @@ export function ConnectedAccounts() {
     }
   };
 
-  const connectedIds = new Set(accounts.map((a) => a.platform));
+  const connectedIds = new Set(
+    accounts.filter((a) => a.status !== 'needs_reauth').map((a) => a.platform),
+  );
   const availablePlatforms = PLATFORMS.filter((p) => !connectedIds.has(p.id));
 
   if (loading) {
@@ -288,19 +291,37 @@ export function ConnectedAccounts() {
                       <span className="text-xs text-muted-foreground ml-2">@{account.platformUsername}</span>
                     )}
                   </div>
-                  <span className="flex items-center gap-1 text-[10px] text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full">
-                    <CheckCircle className="w-3 h-3" />
-                    Connected
-                  </span>
+                  {account.status === 'needs_reauth' ? (
+                    <span className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                      <AlertTriangle className="w-3 h-3" />
+                      Reconnect needed
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[10px] text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full">
+                      <CheckCircle className="w-3 h-3" />
+                      Connected
+                    </span>
+                  )}
                 </div>
-                <button
-                  onClick={() => handleDisconnect(account)}
-                  disabled={disconnecting === account.id}
-                  className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
-                  aria-label={`Disconnect ${config?.name || account.platform}`}
-                >
-                  {disconnecting === account.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                </button>
+                <div className="flex items-center gap-2">
+                  {account.status === 'needs_reauth' && (
+                    <button
+                      onClick={() => handleConnect(account.platform)}
+                      disabled={!!connecting}
+                      className="px-3 py-1.5 text-xs font-medium text-white bg-primary-interactive rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {connecting === account.platform ? 'Connecting...' : 'Reconnect'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDisconnect(account)}
+                    disabled={disconnecting === account.id}
+                    className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
+                    aria-label={`Disconnect ${config?.name || account.platform}`}
+                  >
+                    {disconnecting === account.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             );
           })}
