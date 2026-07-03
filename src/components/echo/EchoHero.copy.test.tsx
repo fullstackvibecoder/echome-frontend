@@ -4,9 +4,9 @@
  *
  * Rendering strategy: EchoExchange is rendered REAL (unmocked) because the
  * textarea placeholder lives there and we need to assert on it. Heavy deps
- * (AdvisorThread, DraftsThreadMessage, EchoExchange-adjacent UI) are mocked
- * the same way as EchoHero.advisor.test.tsx. Hooks are mocked so no network
- * or state-machine side effects fire.
+ * (DraftsThreadMessage, EchoExchange-adjacent UI) are mocked the same way as
+ * EchoHero.advisor.test.tsx. Hooks are mocked so no network or state-machine
+ * side effects fire.
  */
 
 import React from 'react';
@@ -88,8 +88,8 @@ vi.mock('@/components/create/DraftsThreadMessage', () => ({
   DraftsThreadMessage: () => <div data-testid="drafts-thread" />,
 }));
 
-vi.mock('@/components/create/AdvisorThread', () => ({
-  AdvisorThread: () => <div data-testid="advisor-thread" />,
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { name: 'Ara Mamourian' } }),
 }));
 
 vi.mock('@/components/ui/waveform', () => ({
@@ -132,17 +132,27 @@ describe('EchoHero copy-deck-v3', () => {
   it('textarea has correct placeholder', () => {
     render(<EchoHero />);
     const el = screen.getByPlaceholderText(
-      'Type here. Paste a link, or use the buttons on the left to attach a video or record your voice.',
+      'Talk, type, or drop a file. A video, a link, or just a topic.',
     );
     expect(el).toBeTruthy();
   });
 
-  it('source helper line is present with correct text', () => {
+  it('helper paragraph and machine caption are gone; placeholder carries affordances', () => {
     render(<EchoHero />);
-    const el = screen.getByText(
-      /Best way to start: tap the mic and talk for a minute\. You can also paste a link, drop a file, or type a topic\. YouTube links and articles teach your voice\. Zoom, Loom, and Vimeo recordings become clips\./,
-    );
-    expect(el).toBeTruthy();
+    // Old helper paragraph must not render
+    expect(
+      screen.queryByText(/Best way to start: tap the mic/),
+    ).not.toBeInTheDocument();
+    // Old machine caption must not render
+    expect(
+      screen.queryByText(/VIDEO · AUDIO · DOCS · LINKS · TOPIC/),
+    ).not.toBeInTheDocument();
+    // New placeholder on the hero textarea
+    expect(
+      screen.getByPlaceholderText(
+        'Talk, type, or drop a file. A video, a link, or just a topic.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('no em dash or en dash in rendered output', () => {

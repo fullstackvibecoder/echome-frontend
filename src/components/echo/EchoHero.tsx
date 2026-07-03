@@ -21,16 +21,22 @@ import { Paperclip, Mic, Square } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
-import { AdvisorThread } from '@/components/create/AdvisorThread';
+import { CreateHeroHeader } from '@/components/create/CreateHeroHeader';
+import { ProposalChips } from '@/components/create/ProposalChips';
+import { CreateIntentButtons } from '@/components/create/CreateIntentButtons';
+import { CreateStarterCards } from '@/components/create/CreateStarterCards';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
+import { QuotaLine } from '@/components/create/QuotaLine';
+import { LinkGuidance } from '@/components/create/LinkGuidance';
+import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
+import { VoiceStrengthStrip } from '@/components/create/VoiceStrengthStrip';
+import { useAuth } from '@/hooks/useAuth';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
-import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
-import { SketchExplainer } from '@/components/sketch/SketchExplainer';
 import type { Proposal } from '@/types/advisor';
 
 /** Format elapsed seconds as M:SS */
@@ -40,7 +46,16 @@ function formatElapsed(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export function EchoHero() {
+interface EchoHeroProps {
+  quota?: { remaining: number; limit: number } | null;
+  // The hidden GenerationForm resting-state mount (kept alive off-screen so
+  // its effects keep running) sets this false to skip the below-fold strips'
+  // self-fetching mounts (RecentKitsStrip, VoiceStrengthStrip), which would
+  // otherwise double-fire their network calls alongside the visible hero.
+  belowFold?: boolean;
+}
+
+export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
   const { navigate } = useAppNavigation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,6 +65,12 @@ export function EchoHero() {
   // Echo adds material to Your Voice — the refresh the retired KBUnifiedInput
   // pill used to trigger via onImportComplete.
   const { advisor, loading: advisorLoading, refetch: refetchAdvisor } = useAdvisor();
+  const { user } = useAuth();
+  // useAuth's User type carries `name` (not `full_name` — that field lives on
+  // the extended UserProfile from /auth/profile/extended). See sidebar.tsx /
+  // mobile-sidebar.tsx / app-header.tsx for the same convention.
+  const firstName = user?.name?.trim().split(/\s+/)[0] || undefined;
+  const advisorState = advisor?.state ?? null;
 
   const {
     state,
@@ -72,6 +93,9 @@ export function EchoHero() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
+  // Armed by the Paste-a-link starter card; shows source guidance until a
+  // URL is pasted (detection takes over) or the message is sent.
+  const [linkHintActive, setLinkHintActive] = useState(false);
 
   // Ensure the state machine is in the 'open' phase on mount so
   // the textarea is always visible (the hero is always expanded).
@@ -115,6 +139,13 @@ export function EchoHero() {
     focusComposer();
   }, [setInputText, focusComposer]);
 
+  // Intent buttons + starter cards route through the same prefill mechanism
+  // as proposal chips: drop text in, focus, user reviews and sends.
+  const prefillComposer = useCallback((text: string) => {
+    setInputText(text);
+    focusComposer();
+  }, [setInputText, focusComposer]);
+
   // ---- Drag-and-drop ----
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -151,26 +182,34 @@ export function EchoHero() {
 
   const { attachment, attachmentError } = state;
 
+  // Empty state has little content by design; vertically center it so the
+  // whitespace reads as composition, not absence. Thin/rich stay top-anchored
+  // (they have below-the-fold sections).
+  const isEmptyState = !advisorLoading && (!advisor || advisor.state === 'empty');
+
   return (
     <div
       ref={heroRef}
-      className="flex flex-col items-center w-full"
+      className={[
+        'flex flex-col items-center w-full',
+        isEmptyState ? 'justify-center min-h-[calc(100vh-14rem)]' : '',
+      ].join(' ')}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Static hero header: orient a cold user (what it does, the payoff, the
           best first move). Shown ONLY before the user has shared anything. Once
-          Echo has content it renders a personalized nudge ("Echo can build from
-          what you shared") in AdvisorThread below, which makes this generic
-          header redundant — so hide it in the thin/rich states. */}
+          Echo has content, CreateHeroHeader below renders a personalized
+          headline + nudge line, which makes this generic header redundant —
+          so hide it in the thin/rich states. */}
       {/* Gate on !advisorLoading: `advisor` is null both before the fetch
           resolves AND when the KB is genuinely empty. Without the loading
           guard, a content account paints the empty-state explainer for the
           fetch window, then collapses it once the rich advisor arrives — a
           flash of the big animation on every Create-page load. Wait for
           certainty before deciding the state is empty. */}
-      {!advisorLoading && (!advisor || advisor.state === 'empty') && (
+      {isEmptyState && (
         <>
           <h1
             className="mb-2 text-center font-semibold leading-tight"
@@ -179,37 +218,27 @@ export function EchoHero() {
               color: 'var(--foreground)',
             }}
           >
-            Teach Echo to write in your voice.
+            Talk for a minute. Post for a week.
           </h1>
           <p
             className="mb-6 text-center text-sm leading-snug max-w-xl"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Share how you already communicate. Echo learns your voice from it. Then it writes posts that sound like you.
+            Share a video, a link, or a minute of talking. Echo learns your voice, then writes the posts, cuts the clips, and builds the carousels. You approve, it posts.
           </p>
-          {/* Ambient do->get explainer: teaches one-input -> clips/posts/
-              carousels while the KB is empty. Self-drawing, silent, loops in
-              view, freezes on reduced-motion. Abstract (not a screenshot of
-              this page) so it never recurses against the real composer below.
-              Collapses with this header once Echo has content. */}
-          <div className="w-full max-w-xl mb-6">
-            <SketchExplainer
-              scene="what-is-echome"
-              accent="var(--muted-foreground)"
-              caption="A video, a link, or a topic in. Clips, posts, and carousels out, in your voice."
-            />
-          </div>
+          {/* SketchExplainer animation removed 2026-07-03 (founder call): it
+              dominated the empty-state viewport and pushed the composer, the
+              single ingestion front door, below the fold. Fold discipline
+              applies to the empty state too. */}
         </>
       )}
 
-      {/* Advisor + drafts thread -- renders above composer in the chat thread */}
+      <CreateHeroHeader
+        state={advisorState}
+        nudgeHeadline={advisor?.nudge.headline}
+        firstName={firstName}
+      />
       <div className="w-full max-w-2xl space-y-4 mb-6">
-        {advisor && (
-          <AdvisorThread
-            advisor={advisor}
-            onProposalSelect={handleProposalSelect}
-          />
-        )}
         <DraftsThreadMessage />
       </div>
 
@@ -294,7 +323,8 @@ export function EchoHero() {
         {/* Exchange: textarea, intent chips, receipts, confirm */}
         <EchoExchange
           state={state}
-          handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
+          handlers={{ setInputText, submit: (...a) => { setLinkHintActive(false); return submit(...a); }, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
+          placeholder="Talk, type, or drop a file. A video, a link, or just a topic."
           onTextareaMount={(el) => {
             textareaRef.current = el;
           }}
@@ -305,12 +335,7 @@ export function EchoHero() {
           {/* Static waveform motif (Echo identity) */}
           <Waveform bars={5} height={14} animated={false} />
 
-          <span
-            className="flex-1 text-machine"
-            style={{ color: 'var(--muted-foreground)', fontSize: '0.5625rem' }}
-          >
-            VIDEO · AUDIO · DOCS · LINKS · TOPIC. TALK, TYPE, OR DROP
-          </span>
+          <div className="flex-1" />
 
           {/* Paperclip attach */}
           <label
@@ -358,14 +383,39 @@ export function EchoHero() {
           </button>
         </div>
 
-        {/* Source helper line -- voice-first; files accepted, but the guided path is to talk */}
-        <p className="mt-2 text-xs text-muted-foreground leading-snug">
-          Best way to start: tap the mic and talk for a minute. You can also paste a link, drop a file, or type a topic. YouTube links and articles teach your voice. Zoom, Loom, and Vimeo recordings become clips.
-        </p>
       </div>
 
-      {/* Voice-profile status chip — links to /app/voice */}
-      <VoiceLearningChip />
+      {/* What links work here + what this pasted link becomes. Hint mode
+          arms on the Paste-a-link card click; detection mode takes over the
+          moment a URL is in the composer. */}
+      <LinkGuidance inputText={state.inputText} hintActive={linkHintActive} />
+
+      {quota && <QuotaLine remaining={quota.remaining} limit={quota.limit} />}
+
+      {/* Output intents — all states. "What do you want to make." */}
+      <CreateIntentButtons
+        onClipVideo={() => fileInputRef.current?.click()}
+        onPrefill={prefillComposer}
+      />
+
+      {/* Personalized proposals from the KB — quieter ghost chips, rich/thin only */}
+      {(advisorState === 'thin' || advisorState === 'rich') && advisor && (
+        <ProposalChips proposals={advisor.proposals} onSelect={handleProposalSelect} />
+      )}
+
+      {/* Source entries — all states. "What are you starting with." */}
+      <CreateStarterCards
+        onRecord={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
+        onUpload={() => fileInputRef.current?.click()}
+        onPasteLink={() => { setLinkHintActive(true); focusComposer(); }}
+      />
+
+      {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
+
+      {/* Voice-profile strip — tier, coverage subline, Teach Echo more CTA */}
+      {belowFold && (advisorState === 'thin' || advisorState === 'rich') && (
+        <VoiceStrengthStrip coverage={advisor?.coverage ?? null} onTeachMore={focusComposer} />
+      )}
 
       {/* Hero tour + replay pill */}
       <EchoHeroTour />

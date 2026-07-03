@@ -366,8 +366,10 @@ export default function AppContent() {
 
             return (
               <>
-                {/* Teams Onboarding Banner (zero-voice state) -- shared across both paths */}
-                {showTeamsOnboarding && (
+                {/* Teams Onboarding Banner (zero-voice state) -- rollback path only.
+                    Redesign path shows a demoted quiet note below EchoHero instead
+                    (see the showCreateRedesign branch further down). */}
+                {showTeamsOnboarding && !showCreateRedesign && (
                   <div className="mb-6 p-5 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl relative">
                     <button
                       onClick={() => {
@@ -394,7 +396,7 @@ export default function AppContent() {
                 {/* Free User Quota Counter -- shared across both paths. Flips to an
                     amber accent on the last generation so users know they're about
                     to hit the wall. */}
-                {isFreeUser && (() => {
+                {isFreeUser && !showCreateRedesign && (() => {
                   const isLastOne = freeGenerationsRemaining === 1;
                   const isExhausted = freeGenerationsRemaining <= 0;
                   const containerClass = isLastOne
@@ -427,7 +429,7 @@ export default function AppContent() {
                   /* Admin path: SP1.5 EchoHero chat surface */
                   <>
                     {/* EchoHero owns the resting Create page surface for admins. */}
-                    <EchoHero />
+                    <EchoHero quota={isFreeUser ? { remaining: freeGenerationsRemaining, limit: freeGenerationsLimit } : null} />
 
                     {/* GenerationForm: hidden execution engine. Kept mounted so its
                         effects (processVideoWithClipFinder, handleUnifiedSubmit,
@@ -447,6 +449,32 @@ export default function AppContent() {
                         echoExperience={showCreateRedesign}
                       />
                     </div>
+
+                    {/* Teams onboarding note -- demoted below the fold on the redesign
+                        path. Same dismiss key/gating as the rollback banner above;
+                        only position and visual weight change. */}
+                    {showTeamsOnboarding && (
+                      <div className="mt-10 flex items-center gap-3 rounded-xl border border-dashed border-border px-4 py-3 text-[0.8125rem] text-muted-foreground">
+                        <span aria-hidden="true">👥</span>
+                        <span>
+                          <span className="font-semibold text-foreground">EchoTeams:</span>{' '}
+                          your account supports up to {voiceLimit} voice{voiceLimit !== 1 ? 's' : ''}.
+                        </span>
+                        <a href="/app/voice?tab=team" className="ml-auto whitespace-nowrap underline underline-offset-2 hover:text-foreground">
+                          Set up team voices →
+                        </a>
+                        <button
+                          onClick={() => {
+                            localStorage.setItem('echome_teams_onboarding_dismissed', new Date().toISOString());
+                            setShowTeamsOnboarding(false);
+                          }}
+                          aria-label="Dismiss"
+                          className="p-1 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   /* Non-admin path: production Create page (main branch parity) */
