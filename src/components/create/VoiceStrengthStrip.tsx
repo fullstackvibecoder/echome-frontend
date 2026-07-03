@@ -2,9 +2,9 @@
 
 /**
  * VoiceStrengthStrip.tsx
- * Below-the-fold voice area on the Create page. Absorbs VoiceLearningChip
- * (tier + /app/voice link + WBTW pending state + tour anchor) and adds a
- * coverage subline plus a "Teach Echo more" CTA that focuses the composer.
+ * Below-the-fold voice area on the Create page. Absorbs the old voice-profile
+ * status chip (tier + /app/voice link + WBTW pending state + tour anchor) and
+ * adds a coverage subline plus a "Teach Echo more" CTA that focuses the composer.
  *
  * Voice-scope rule: voice = written posts only. Never say clips "sound
  * like you". The clip IS the user on camera.
@@ -79,6 +79,7 @@ export function VoiceStrengthStrip({ coverage, onTeachMore }: VoiceStrengthStrip
   const isPending = stripState === 'wbtw-pending';
   const score = voiceStrength?.overallStrength ?? 0;
   const subline = coverage ? coverageSubline(coverage) : null;
+  const clampedScore = Math.max(0, Math.min(100, score));
 
   return (
     <div className="mt-4 flex w-full max-w-4xl items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-container-low)] px-4 py-3">
@@ -86,12 +87,12 @@ export function VoiceStrengthStrip({ coverage, onTeachMore }: VoiceStrengthStrip
         href="/app/voice"
         data-tour="echo-hero-voice"
         className="flex min-w-0 flex-1 items-center gap-3 group"
-        aria-label={getLabel(stripState)}
+        aria-label={subline ? `${getLabel(stripState)}. ${subline}` : getLabel(stripState)}
       >
         <span
           aria-hidden="true"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-          style={{ background: `conic-gradient(var(--primary) 0 ${Math.max(0, Math.min(100, score))}%, var(--border) ${Math.max(0, Math.min(100, score))}% 100%)` }}
+          style={{ background: `conic-gradient(var(--primary) 0 ${clampedScore}%, var(--border) ${clampedScore}% 100%)` }}
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface-container-low)]">
             {isPending

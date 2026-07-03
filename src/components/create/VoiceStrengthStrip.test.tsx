@@ -56,6 +56,13 @@ describe('VoiceStrengthStrip', () => {
     expect(screen.queryByText(/Strongest:/)).not.toBeInTheDocument();
   });
 
+  it('includes the coverage subline in the link accessible name', () => {
+    strengthMock.mockReturnValue({ data: { overallStrength: 40 } });
+    render(<VoiceStrengthStrip coverage={COVERAGE} onTeachMore={vi.fn()} />);
+    const link = screen.getByRole('link', { name: /Strongest: Work, Voice/ });
+    expect(link).toHaveAccessibleName('Voice profile: Growing. Strongest: Work, Voice. Thinnest: Personal.');
+  });
+
   it('Teach Echo more calls onTeachMore', async () => {
     strengthMock.mockReturnValue({ data: { overallStrength: 40 } });
     const onTeachMore = vi.fn();
