@@ -394,7 +394,7 @@ export default function AppContent() {
                 {/* Free User Quota Counter -- shared across both paths. Flips to an
                     amber accent on the last generation so users know they're about
                     to hit the wall. */}
-                {isFreeUser && (() => {
+                {isFreeUser && !showCreateRedesign && (() => {
                   const isLastOne = freeGenerationsRemaining === 1;
                   const isExhausted = freeGenerationsRemaining <= 0;
                   const containerClass = isLastOne
@@ -427,7 +427,7 @@ export default function AppContent() {
                   /* Admin path: SP1.5 EchoHero chat surface */
                   <>
                     {/* EchoHero owns the resting Create page surface for admins. */}
-                    <EchoHero />
+                    <EchoHero quota={isFreeUser ? { remaining: freeGenerationsRemaining, limit: freeGenerationsLimit } : null} />
 
                     {/* GenerationForm: hidden execution engine. Kept mounted so its
                         effects (processVideoWithClipFinder, handleUnifiedSubmit,

@@ -23,6 +23,7 @@ import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { AdvisorThread } from '@/components/create/AdvisorThread';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
+import { QuotaLine } from '@/components/create/QuotaLine';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
@@ -40,7 +41,11 @@ function formatElapsed(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export function EchoHero() {
+interface EchoHeroProps {
+  quota?: { remaining: number; limit: number } | null;
+}
+
+export function EchoHero({ quota }: EchoHeroProps = {}) {
   const { navigate } = useAppNavigation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -355,6 +360,8 @@ export function EchoHero() {
         </div>
 
       </div>
+
+      {quota && <QuotaLine remaining={quota.remaining} limit={quota.limit} />}
 
       {/* Voice-profile status chip — links to /app/voice */}
       <VoiceLearningChip />
