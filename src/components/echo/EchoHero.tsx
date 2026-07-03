@@ -27,6 +27,7 @@ import { CreateIntentButtons } from '@/components/create/CreateIntentButtons';
 import { CreateStarterCards } from '@/components/create/CreateStarterCards';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { QuotaLine } from '@/components/create/QuotaLine';
+import { LinkGuidance } from '@/components/create/LinkGuidance';
 import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
 import { VoiceStrengthStrip } from '@/components/create/VoiceStrengthStrip';
 import { useAuth } from '@/hooks/useAuth';
@@ -92,6 +93,9 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
+  // Armed by the Paste-a-link starter card; shows source guidance until a
+  // URL is pasted (detection takes over) or the message is sent.
+  const [linkHintActive, setLinkHintActive] = useState(false);
 
   // Ensure the state machine is in the 'open' phase on mount so
   // the textarea is always visible (the hero is always expanded).
@@ -319,7 +323,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
         {/* Exchange: textarea, intent chips, receipts, confirm */}
         <EchoExchange
           state={state}
-          handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
+          handlers={{ setInputText, submit: (...a) => { setLinkHintActive(false); return submit(...a); }, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
           placeholder="Talk, type, or drop a file. A video, a link, or just a topic."
           onTextareaMount={(el) => {
             textareaRef.current = el;
@@ -381,6 +385,11 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
 
       </div>
 
+      {/* What links work here + what this pasted link becomes. Hint mode
+          arms on the Paste-a-link card click; detection mode takes over the
+          moment a URL is in the composer. */}
+      <LinkGuidance inputText={state.inputText} hintActive={linkHintActive} />
+
       {quota && <QuotaLine remaining={quota.remaining} limit={quota.limit} />}
 
       {/* Output intents — all states. "What do you want to make." */}
@@ -398,7 +407,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
       <CreateStarterCards
         onRecord={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
         onUpload={() => fileInputRef.current?.click()}
-        onPasteLink={focusComposer}
+        onPasteLink={() => { setLinkHintActive(true); focusComposer(); }}
       />
 
       {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
