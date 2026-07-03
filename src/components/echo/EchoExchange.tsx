@@ -17,9 +17,11 @@ interface EchoExchangeProps {
   handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseOwnership' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo' | 'confirmAction'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
+  /** Textarea placeholder override. Defaults to the standard EchoExchange copy. */
+  placeholder?: string;
 }
 
-export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeProps) {
+export function EchoExchange({ state, handlers, onTextareaMount, placeholder }: EchoExchangeProps) {
   const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation, videoOwnership } = state;
   const { setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction } = handlers;
 
@@ -422,7 +424,7 @@ export function EchoExchange({ state, handlers, onTextareaMount }: EchoExchangeP
             value={inputText}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type here. Paste a link, or use the buttons on the left to attach a video or record your voice."
+            placeholder={placeholder ?? 'Type here. Paste a link, or use the buttons on the left to attach a video or record your voice.'}
             rows={1}
             disabled={phase === 'classifying'}
             aria-label="Echo input"

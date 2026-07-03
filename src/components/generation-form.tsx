@@ -1566,7 +1566,10 @@ export function GenerationForm({
     return (
       <div ref={formCardRef} className="flex flex-col items-center justify-center min-h-[60vh]">
         {echoExperience ? (
-          <EchoHero />
+          // Hidden resting-state mount (see AppContent's display:none wrapper):
+          // skip below-fold self-fetching strips so their network calls don't
+          // fire twice alongside the visible EchoHero in AppContent.
+          <EchoHero belowFold={false} />
         ) : (
           <UnifiedCreateInput
             // Remount when `input` changes so the hero's text state re-initializes
