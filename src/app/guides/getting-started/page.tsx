@@ -16,7 +16,7 @@ export default function GettingStartedGuidePage() {
     description: 'Sign up for free, paste a link or drop a video, and get your first Content Kit in minutes. Clips, captions, posts, blog drafts, and more, all in your voice.',
     url: 'https://tryechome.com/guides/getting-started',
     datePublished: '2026-04-15',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -62,8 +62,8 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={2} title="Go to the Create page">
-            <p>From the sidebar, click Create. You&apos;ll see a single unified conversational input where you can do everything: paste a link (YouTube, Zoom, or any public video URL), type a topic to generate content from scratch, drag and drop a video file, or record a voice note using the mic button inside the input bar.</p>
-            <Tip>Zoom recordings work too. If your recording requires a passcode, a field appears automatically when you paste a Zoom link.</Tip>
+            <p>From the sidebar, click Create. You&apos;ll land on one composer: type a topic, paste a link, drop a file with the paperclip icon (or drag it anywhere on the page), or tap the mic and talk. Paste a YouTube or Instagram link and Echo asks what to do with it: cut clips and write content now, save it to clip later, or add it to Your Voice. Paste a Zoom, Loom, or Vimeo recording link and Echo cuts clips and writes content right away.</p>
+            <Tip>If a Zoom recording needs a passcode, Echo asks for it during processing, not when you paste the link.</Tip>
           </Step>
 
           <Step number={3} title="Wait 2-5 minutes for processing">

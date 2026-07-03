@@ -28,7 +28,7 @@ export default function CarouselsGuidePage() {
       'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with six design presets, and download single slides or a full zip.',
     url: 'https://tryechome.com/guides/carousels',
     datePublished: '2026-04-23',
-    dateModified: '2026-04-23',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -117,7 +117,7 @@ export default function CarouselsGuidePage() {
 
           <Step number={7} title="Download single slide or full set">
             <p>
-              <strong className="text-text-primary">Download Slide</strong> exports the currently visible slide as a PNG. <strong className="text-text-primary">All (N)</strong> (where N is your carousel&apos;s slide count, between 4 and 10) exports every slide as a zip file, ready to upload to Instagram or LinkedIn in order.
+              <strong className="text-text-primary">Download Slide</strong> exports the currently visible slide as a PNG. <strong className="text-text-primary">All (N)</strong> (where N is your carousel&apos;s slide count) exports every slide as a zip file, ready to upload to Instagram or LinkedIn in order. You can trim a carousel down to 3 slides or build it up to 20 from the slide strip.
             </p>
             <Tip>Both Instagram and LinkedIn preserve slide order when you upload multiple images at once. Drag them into the uploader in slide-number order.</Tip>
           </Step>
@@ -129,7 +129,7 @@ export default function CarouselsGuidePage() {
           <ul className="list-disc pl-5 space-y-2 text-sm text-text-secondary">
             <li><strong className="text-text-primary">Slide 1 is the hook.</strong> Most of your audience decides whether to swipe based on the first slide alone. Edit it last, after the rest of the carousel is settled, so you know what you&apos;re hooking them into.</li>
             <li><strong className="text-text-primary">Read the carousel on a phone.</strong> The editor preview is desktop-sized. Slides that look fine on a laptop can feel cramped on mobile. Download a slide and open it on your phone before publishing.</li>
-            <li><strong className="text-text-primary">Match the background to the mood.</strong> Video Frame works for personal/behind-the-scenes content. Quote Card works for business advice. Text on Color works for strong opinions and hot takes.</li>
+            <li><strong className="text-text-primary">Match the background to the mood.</strong> Video Frame works for personal/behind-the-scenes content. Quote Card works for business advice. Tweet Card works for strong opinions and hot takes.</li>
             <li><strong className="text-text-primary">Caption and carousel should complement, not duplicate.</strong> The caption is where you expand on what the slides can&apos;t fit: context, story, and the call to action.</li>
           </ul>
         </section>
