@@ -103,6 +103,14 @@ vi.mock('@/components/create/DraftsThreadMessage', () => ({
   DraftsThreadMessage: () => <div data-testid="drafts-thread" />,
 }));
 
+vi.mock('@/components/create/RecentKitsStrip', () => ({
+  RecentKitsStrip: () => <div data-testid="recent-kits-strip" />,
+}));
+
+vi.mock('@/components/create/VoiceStrengthStrip', () => ({
+  VoiceStrengthStrip: () => <div data-testid="voice-strength-strip" />,
+}));
+
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { name: 'Ara Mamourian' } }),
 }));
@@ -204,6 +212,20 @@ describe('EchoHero advisor + drafts wiring', () => {
     render(<EchoHero />);
     fireEvent.click(screen.getByText('My Proposal'));
     expect(setInputText).toHaveBeenCalledWith('My Proposal');
+  });
+
+  it('belowFold={false} skips RecentKitsStrip and VoiceStrengthStrip (hidden GenerationForm mount)', () => {
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
+    render(<EchoHero belowFold={false} />);
+    expect(screen.queryByTestId('recent-kits-strip')).toBeNull();
+    expect(screen.queryByTestId('voice-strength-strip')).toBeNull();
+  });
+
+  it('default belowFold renders RecentKitsStrip and VoiceStrengthStrip when advisor is rich', () => {
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
+    render(<EchoHero />);
+    expect(screen.getByTestId('recent-kits-strip')).toBeTruthy();
+    expect(screen.getByTestId('voice-strength-strip')).toBeTruthy();
   });
 
   it('wires useEcho onIngestComplete to the advisor refetch', () => {

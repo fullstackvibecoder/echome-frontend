@@ -47,9 +47,14 @@ function formatElapsed(seconds: number): string {
 
 interface EchoHeroProps {
   quota?: { remaining: number; limit: number } | null;
+  // The hidden GenerationForm resting-state mount (kept alive off-screen so
+  // its effects keep running) sets this false to skip the below-fold strips'
+  // self-fetching mounts (RecentKitsStrip, VoiceStrengthStrip), which would
+  // otherwise double-fire their network calls alongside the visible hero.
+  belowFold?: boolean;
 }
 
-export function EchoHero({ quota }: EchoHeroProps = {}) {
+export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
   const { navigate } = useAppNavigation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -382,10 +387,10 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
         />
       )}
 
-      {(advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
+      {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
 
       {/* Voice-profile strip — tier, coverage subline, Teach Echo more CTA */}
-      {(advisorState === 'thin' || advisorState === 'rich') && (
+      {belowFold && (advisorState === 'thin' || advisorState === 'rich') && (
         <VoiceStrengthStrip coverage={advisor?.coverage ?? null} onTeachMore={focusComposer} />
       )}
 
