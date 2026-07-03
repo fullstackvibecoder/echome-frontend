@@ -14,13 +14,13 @@
 import { extractFirstUrl, detectIngestUrlKind } from '@/lib/url-platform';
 
 const HINT_COPY =
-  'Works with YouTube, Instagram, Zoom, Loom, and Vimeo links, or any article. Videos become clips and content. Articles teach Echo your voice.';
+  'Works with YouTube, Instagram, Zoom, Loom, and Vimeo links, plus blogs and articles. Videos become clips and content. Articles fill your knowledge base, for Echo to learn from and create with.';
 
 const DETECTED_COPY: Record<string, string> = {
   youtube: 'YouTube link. Echo can cut clips, make content, or learn your voice from it.',
   instagram: 'Instagram link. Echo can cut clips, make content, or learn your voice from it.',
   recording: 'Recording link. Echo cuts clips and makes content from it.',
-  blog: 'Article link. Echo learns how you write from it.',
+  blog: 'Article link. Echo adds it to your knowledge base, learns your voice, and can create from it.',
 };
 
 interface LinkGuidanceProps {
