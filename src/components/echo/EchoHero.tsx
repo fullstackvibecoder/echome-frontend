@@ -295,6 +295,7 @@ export function EchoHero() {
         <EchoExchange
           state={state}
           handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
+          placeholder="Talk, type, or drop a file. A video, a link, or just a topic."
           onTextareaMount={(el) => {
             textareaRef.current = el;
           }}
@@ -305,12 +306,7 @@ export function EchoHero() {
           {/* Static waveform motif (Echo identity) */}
           <Waveform bars={5} height={14} animated={false} />
 
-          <span
-            className="flex-1 text-machine"
-            style={{ color: 'var(--muted-foreground)', fontSize: '0.5625rem' }}
-          >
-            VIDEO · AUDIO · DOCS · LINKS · TOPIC. TALK, TYPE, OR DROP
-          </span>
+          <div className="flex-1" />
 
           {/* Paperclip attach */}
           <label
@@ -358,10 +354,6 @@ export function EchoHero() {
           </button>
         </div>
 
-        {/* Source helper line -- voice-first; files accepted, but the guided path is to talk */}
-        <p className="mt-2 text-xs text-muted-foreground leading-snug">
-          Best way to start: tap the mic and talk for a minute. You can also paste a link, drop a file, or type a topic. YouTube links and articles teach your voice. Zoom, Loom, and Vimeo recordings become clips.
-        </p>
       </div>
 
       {/* Voice-profile status chip — links to /app/voice */}
