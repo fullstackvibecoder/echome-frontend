@@ -96,6 +96,9 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
   // Armed by the Paste-a-link starter card; shows source guidance until a
   // URL is pasted (detection takes over) or the message is sent.
   const [linkHintActive, setLinkHintActive] = useState(false);
+  // Proposal chips are the KB intent button's payload, not standing chrome:
+  // hidden until "Create from what Echo knows" is clicked.
+  const [proposalsVisible, setProposalsVisible] = useState(false);
 
   // Ensure the state machine is in the 'open' phase on mount so
   // the textarea is always visible (the hero is always expanded).
@@ -396,11 +399,24 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
       <CreateIntentButtons
         onClipVideo={() => fileInputRef.current?.click()}
         onPrefill={prefillComposer}
+        onKnowledgeBase={() => {
+          // With proposals: the button's payload IS the chips — toggle them.
+          // Without (empty/thin KB with no suggestions): fall back to prefill.
+          if (advisor && advisor.proposals.length > 0) {
+            setProposalsVisible((v) => !v);
+          } else {
+            prefillComposer('Make content from my knowledge base');
+          }
+        }}
+        kbExpanded={proposalsVisible}
       />
 
-      {/* Personalized proposals from the KB — quieter ghost chips, rich/thin only */}
-      {(advisorState === 'thin' || advisorState === 'rich') && advisor && (
-        <ProposalChips proposals={advisor.proposals} onSelect={handleProposalSelect} />
+      {/* Personalized proposals — revealed by the KB intent button */}
+      {proposalsVisible && advisor && advisor.proposals.length > 0 && (
+        <ProposalChips
+          proposals={advisor.proposals}
+          onSelect={(p) => { setProposalsVisible(false); handleProposalSelect(p); }}
+        />
       )}
 
       {/* Source entries — all states. "What are you starting with." */}

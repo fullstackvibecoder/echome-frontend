@@ -181,10 +181,12 @@ describe('EchoHero advisor + drafts wiring', () => {
     clickSpy.mockRestore();
   });
 
-  it('renders the personalized header and proposal chips when advisor is rich', () => {
+  it('renders the personalized header when advisor is rich; proposals hidden until KB click', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
     expect(screen.getByRole('heading', { name: /what do you want to create, ara\?/i })).toBeTruthy();
+    expect(screen.queryByText('My Proposal')).toBeNull();
+    fireEvent.click(screen.getByText('Create from what Echo knows'));
     expect(screen.getByText('My Proposal')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
@@ -219,23 +221,25 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByText('Record')).toBeTruthy();
   });
 
-  it('KB intent button prefills the composer', () => {
-    render(<EchoHero />);
-    fireEvent.click(screen.getByText('Create from what Echo knows'));
-    expect(setInputText).toHaveBeenCalledWith('Make content from my knowledge base');
-  });
-
   it('clip intent button opens the file picker', () => {
     render(<EchoHero />);
     fireEvent.click(screen.getByText('Turn a video into clips'));
     expect(clickSpy).toHaveBeenCalled();
   });
 
-  it('clicking a proposal chip calls setInputText with the proposal title', () => {
+  it('clicking a revealed proposal chip prefills and collapses the chips', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
+    fireEvent.click(screen.getByText('Create from what Echo knows'));
     fireEvent.click(screen.getByText('My Proposal'));
     expect(setInputText).toHaveBeenCalledWith('My Proposal');
+    expect(screen.queryByText('My Proposal')).toBeNull();
+  });
+
+  it('KB button prefills when there are no proposals to reveal', () => {
+    render(<EchoHero />); // default EMPTY_FIXTURE: proposals []
+    fireEvent.click(screen.getByText('Create from what Echo knows'));
+    expect(setInputText).toHaveBeenCalledWith('Make content from my knowledge base');
   });
 
   it('belowFold={false} skips RecentKitsStrip and VoiceStrengthStrip (hidden GenerationForm mount)', () => {
