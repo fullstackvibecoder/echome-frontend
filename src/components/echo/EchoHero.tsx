@@ -238,9 +238,6 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
         nudgeHeadline={advisor?.nudge.headline}
         firstName={firstName}
       />
-      <div className="w-full max-w-2xl space-y-4 mb-6">
-        <DraftsThreadMessage />
-      </div>
 
       {/* Hero input surface */}
       <div
@@ -391,6 +388,9 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
       <LinkGuidance inputText={state.inputText} hintActive={linkHintActive} />
 
       {quota && <QuotaLine remaining={quota.remaining} limit={quota.limit} />}
+
+      {/* Echo's overnight drafts — one collapsed line, expands to compact rows */}
+      <DraftsThreadMessage />
 
       {/* Output intents — all states. "What do you want to make." */}
       <CreateIntentButtons
