@@ -68,11 +68,16 @@ Rendered inside EchoHero (or a sibling section in AppContent) below the hero blo
 - Header row: "Recent" + "View all in Library →" (links `/app/library`).
 - `api.contentKits.list(4)` on mount. Grid of up to 4 kit cards: thumbnail (`thumbnailUrl`, fallback to a neutral waveform placeholder), title (1-line clamp), detail line built from available fields (`{clipsGenerated} clips · {platformCount} platforms · {relative time}`), status pill (Ready when `contentGenerated` is true, Processing otherwise; `contentGenerated` is already on the list item).
 - Section renders nothing when the list is empty or the fetch fails (silent, non-blocking; no skeleton taller than 1 card row).
-- Card click navigates to the kit (`/app/library/{id}` route pattern already used by Library).
+- Card click navigates into the content kit at `/app/library/{kitId}` (existing kit detail route, `src/app/app/library/[id]/`). Founder-confirmed 2026-07-03.
 
-**Coverage strip:**
-- Replaces `CoverageMeter`'s current placement inside the thread. One horizontal strip: small conic-gradient ring with the coverage percent, one line "Your voice profile is {n}% covered", one muted subline from existing coverage data (strong/thin areas if the API provides them; otherwise omit the subline), one CTA button "Teach Echo more" that focuses the composer.
-- `VoiceLearningChip` is retired; the coverage strip's CTA covers its job. (Open question 1 below.)
+**Voice strength strip (absorbs both CoverageMeter and VoiceLearningChip — merged down, not retired):**
+- One horizontal strip combining the two existing voice surfaces:
+  - **Ring + tier** from `useVoiceStrength().overallStrength` (VoiceLearningChip's data source): conic-gradient ring with the score, label "Voice profile: {Seed|Growing|Strong|Signature}" using the chip's existing tier thresholds (0-25/26-50/51-75/76+). WBTW-pending state shows "Learning your voice..." with the spinner, same as the chip today.
+  - **Subline** from `advisor.coverage` (CoverageMeter's data source): strong/thin topic areas when available, omitted otherwise.
+  - **CTA** "Teach Echo more" focuses the composer.
+- The ring + label area links to `/app/voice` (preserving the chip's navigation) and carries the chip's `data-tour="echo-hero-voice"` anchor so EchoHeroTour keeps working.
+- Voice-scope rule preserved from the chip: voice = written posts only; never say clips "sound like you".
+- `VoiceLearningChip.tsx` and `CoverageMeter.tsx` are deleted once the strip replaces their only usages, same PR.
 - Rendered in thin/rich states only.
 
 **Teams onboarding note:**
@@ -80,7 +85,7 @@ Rendered inside EchoHero (or a sibling section in AppContent) below the hero blo
 
 ## Layout Order (final)
 
-Rich/thin: H1 → nudge line → DraftsThreadMessage (when present) → composer → quota line (free users) → proposal chips + caption → [fold] → Recents → coverage strip → Teams note.
+Rich/thin: H1 → nudge line → DraftsThreadMessage (when present) → composer → quota line (free users) → proposal chips + caption → [fold] → Recents → voice strength strip → Teams note.
 
 Empty: H1 (teach-first) → subhead → SketchExplainer → composer → quota line → starter chips → nothing below the fold.
 
@@ -103,8 +108,8 @@ Empty: H1 (teach-first) → subhead → SketchExplainer → composer → quota l
 - Existing suites touched: `AdvisorThread.test.tsx` (retired with component), `AppContent.resting.test.tsx`, EchoHero-related tests.
 - Staging smoke before main promote, per release policy.
 
-## Open Questions (founder)
+## Resolved Questions (founder, 2026-07-03)
 
-1. **VoiceLearningChip retire** — coverage strip CTA replaces it. Confirm, or keep both?
-2. **Recents card click target** — Library kit detail, or open the kit review flow directly?
-3. **Nudge line copy source** — backend `nudge.headline` is written for a card. If the copy reads badly as a single line, do we adjust backend copy (small BE PR) or truncate FE-side? Default: ship as-is, review live copy on staging.
+1. **VoiceLearningChip** — merged into the voice strength strip below the fold (moved down, not retired). Tier data, /app/voice link, WBTW pending state, and tour anchor all carry over. See "Voice strength strip" above.
+2. **Recents card click** — navigates into the content kit (`/app/library/{kitId}`).
+3. **Nudge line copy** — ship `nudge.headline` as-is, review on staging; adjust FE-side (single-line clamp) if it reads badly. Founder delegated.
