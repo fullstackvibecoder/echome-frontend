@@ -77,7 +77,8 @@ Rendered inside EchoHero (or a sibling section in AppContent) below the hero blo
   - **CTA** "Teach Echo more" focuses the composer.
 - The ring + label area links to `/app/voice` (preserving the chip's navigation) and carries the chip's `data-tour="echo-hero-voice"` anchor so EchoHeroTour keeps working.
 - Voice-scope rule preserved from the chip: voice = written posts only; never say clips "sound like you".
-- `VoiceLearningChip.tsx` and `CoverageMeter.tsx` are deleted once the strip replaces their only usages, same PR.
+- `VoiceLearningChip.tsx` is deleted. `CoverageMeter.tsx` is NOT deleted: `AdaptiveCreateSurface.tsx` still imports it. Only its EchoHero-path usage goes away. (Amended during implementation planning.)
+- The strength ring uses brand cyan (conic-gradient on --primary), per the founder-approved mockup. This is an approved addition to the cyan allow-list (focus glow, waveform, top-pick chip, strength ring). (Amended during implementation.)
 - Rendered in thin/rich states only.
 
 **Teams onboarding note:**

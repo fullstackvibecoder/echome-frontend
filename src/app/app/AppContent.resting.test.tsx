@@ -93,13 +93,14 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-// Mock useVoiceContext
+// Mock useVoiceContext - overridable per test, following the mockUseAuth pattern.
+const mockUseVoiceContext = vi.fn(() => ({
+  activeVoice: null,
+  isTeamsUser: false,
+  voiceLimit: 1,
+}));
 vi.mock('@/contexts/voice-context', () => ({
-  useVoiceContext: () => ({
-    activeVoice: null,
-    isTeamsUser: false,
-    voiceLimit: 1,
-  }),
+  useVoiceContext: () => mockUseVoiceContext(),
 }));
 
 // Mock useSubscription
@@ -158,6 +159,7 @@ describe('AppContent resting state - admin path (isAdmin: true)', () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'admin-user', email: 'admin@example.com', full_name: 'Admin User', isAdmin: true },
     });
+    mockUseVoiceContext.mockReturnValue({ activeVoice: null, isTeamsUser: false, voiceLimit: 1 });
   });
 
   it('renders EchoHero for admin users', () => {
@@ -204,6 +206,7 @@ describe('AppContent resting state - GA non-admin (isAdmin: false)', () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'regular-user', email: 'user@example.com', full_name: 'Regular User', isAdmin: false },
     });
+    mockUseVoiceContext.mockReturnValue({ activeVoice: null, isTeamsUser: false, voiceLimit: 1 });
   });
 
   it('renders EchoHero for non-admin users (GA)', () => {
@@ -233,6 +236,7 @@ describe('AppContent resting state - GA non-admin (isAdmin: undefined)', () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'regular-user', email: 'user@example.com', full_name: 'Regular User' },
     });
+    mockUseVoiceContext.mockReturnValue({ activeVoice: null, isTeamsUser: false, voiceLimit: 1 });
   });
 
   it('renders EchoHero when isAdmin is undefined (GA)', () => {
@@ -250,5 +254,44 @@ describe('AppContent resting state - GA non-admin (isAdmin: undefined)', () => {
   it('keeps GenerationForm mounted when isAdmin is undefined (GA)', () => {
     render(<AppContent />);
     expect(screen.getByTestId('generation-form')).toBeInTheDocument();
+  });
+});
+
+// Teams onboarding: on the redesign path (showCreateRedesign hardcoded true,
+// so this covers ALL users) the old gradient banner never renders -- it's
+// demoted to a quiet dashed note that renders after EchoHero instead.
+describe('AppContent resting state - Teams onboarding note (redesign path)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    mockUseAuth.mockReturnValue({
+      user: { id: 'teams-user', email: 'teams@example.com', full_name: 'Teams User' },
+    });
+    mockUseVoiceContext.mockReturnValue({ activeVoice: null, isTeamsUser: true, voiceLimit: 3 });
+  });
+
+  it('does NOT render the legacy gradient Teams banner', () => {
+    render(<AppContent />);
+    expect(screen.queryByText('Welcome to EchoTeams!')).toBeNull();
+    expect(screen.queryByText('Go to Team Voices')).toBeNull();
+  });
+
+  it('renders the demoted Teams note after EchoHero when showTeamsOnboarding is true', () => {
+    const { container } = render(<AppContent />);
+    const note = screen.getByRole('link', { name: /set up team voices/i });
+    expect(note).toBeInTheDocument();
+    expect(screen.getByText(/your account supports up to 3 voices/i)).toBeInTheDocument();
+
+    const html = container.innerHTML;
+    const heroIndex = html.indexOf('data-testid="echo-hero"');
+    const noteIndex = html.indexOf('Set up team voices');
+    expect(heroIndex).toBeGreaterThan(-1);
+    expect(noteIndex).toBeGreaterThan(heroIndex);
+  });
+
+  it('does NOT render the Teams note when previously dismissed', () => {
+    localStorage.setItem('echome_teams_onboarding_dismissed', new Date().toISOString());
+    render(<AppContent />);
+    expect(screen.queryByRole('link', { name: /set up team voices/i })).toBeNull();
   });
 });
