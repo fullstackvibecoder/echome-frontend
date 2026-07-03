@@ -99,27 +99,42 @@ export function SuggestedScheduleModal({ open, onClose, kitId, kitTitle, onSched
         // schedule call (a) clears assertMediaForPlatform on IG and
         // (b) routes through the finalizer (matches the working
         // CarouselEditorModal path) rather than the eager fallback.
+        // Per-row isolation: one platform failing must not abort the rest of
+        // the rollout. Collect failures (thrown OR reported in the response's
+        // failures[]) and reflect them in the receipt.
+        const failed: string[] = [];
         for (const row of rows) {
           const isCarousel = row.output_kind === 'carousel' && (row.media_urls?.length ?? 0) > 0;
-          await api.socialPosting.scheduleFanout({
-            content_kit_id: kitId,
-            source_output_id: row.output_id,
-            media_urls: row.media_urls,
-            finalization_recipe: isCarousel
-              ? { kind: 'carousel', kit_id: kitId }
-              : undefined,
-            rows: [{
-              platform: row.platform,
-              scheduled_at: row.suggested_at,
-              text: row.content_preview,
+          try {
+            const resp = await api.socialPosting.scheduleFanout({
+              content_kit_id: kitId,
+              source_output_id: row.output_id,
               media_urls: row.media_urls,
-            }],
-            created_via: 'ai_suggest',
-            is_ai_suggested: true,
-          });
+              finalization_recipe: isCarousel
+                ? { kind: 'carousel', kit_id: kitId }
+                : undefined,
+              rows: [{
+                platform: row.platform,
+                scheduled_at: row.suggested_at,
+                text: row.content_preview,
+                media_urls: row.media_urls,
+              }],
+              created_via: 'ai_suggest',
+              is_ai_suggested: true,
+            });
+            if ((resp.data?.failures ?? []).length > 0) failed.push(row.platform);
+          } catch (rowErr) {
+            console.error('[SuggestedScheduleModal] Row failed:', row.platform, rowErr);
+            failed.push(row.platform);
+          }
+        }
+        if (failed.length === rows.length) {
+          throw new Error(`Failed to schedule. Platforms: ${failed.join(', ')}. Please try again.`);
         }
         receipt.show({
-          summary: `Scheduled ${rows.length} ${rows.length === 1 ? 'post' : 'posts'}`,
+          summary: failed.length > 0
+            ? `Scheduled ${rows.length - failed.length} of ${rows.length} posts. Failed: ${failed.join(', ')}.`
+            : `Scheduled ${rows.length} ${rows.length === 1 ? 'post' : 'posts'}`,
           why: `Echo timed each one based on your weekly content mix and platform.`,
           autoDismissMs: 8000,
         });
