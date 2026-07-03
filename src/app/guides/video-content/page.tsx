@@ -15,7 +15,7 @@ export default function VideoContentGuidePage() {
     description: 'Learn how to upload videos, use external video links, edit clips with captions, and generate a full content kit from a single video in EchoMe.',
     url: 'https://tryechome.com/guides/video-content',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
@@ -85,7 +85,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={2} title="Uploading videos">
             <p>
-              Drag and drop your video file directly onto the input area, or use the paperclip attach button inside the input bar. The hard cap is 2GB per upload, but anything under 500MB is noticeably faster and more reliable. Avoid 4K footage. 1080p or 720p works great and uploads much faster.
+              Drag and drop your video file directly onto the input area, or use the paperclip attach button inside the input bar. The hard cap is 5GB per upload, but anything under 500MB is noticeably faster and more reliable. Avoid 4K footage. 1080p or 720p works great and uploads much faster.
             </p>
             <p className="mt-2">
               If your file is too large, see our <a href="/guides/compress-video" className="text-accent hover:underline">compression guide</a> for free tools to shrink it.
@@ -95,7 +95,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={3} title="Using video links">
             <p>
-              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Vimeo, Loom, Zoom, or TikTok</strong> URL into the unified input and hit Submit. No file upload needed. EchoMe pulls the content directly.
+              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Instagram, Zoom, Loom, or Vimeo</strong> URL into the composer. No file upload needed. EchoMe pulls the content directly. For YouTube and Instagram links, EchoMe asks whether the video is yours and where to send it before it starts.
             </p>
             <p className="mt-2">
               <strong className="text-text-primary">Note:</strong> YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video first and uploading the file.
@@ -122,7 +122,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={7} title="Written content and scheduling">
             <p>
-              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Instagram, X/Twitter, TikTok, Newsletter, Blog, YouTube description,</strong> and <strong className="text-text-primary">Video script</strong>. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform, or add to your calendar.
+              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Instagram, X/Twitter, TikTok, Newsletter, Blog, YouTube description,</strong> and <strong className="text-text-primary">Video script</strong>, plus an Instagram carousel. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform, or add to your calendar.
             </p>
           </Step>
 
@@ -139,7 +139,7 @@ export default function VideoContentGuidePage() {
           <ul className="space-y-2 text-sm text-text-secondary">
             <li><strong className="text-text-primary">Uploading 4K raw footage:</strong> Compress your video first. EchoMe analyzes speech, not pixels. A 720p file gives the same results and uploads in a fraction of the time.</li>
             <li><strong className="text-text-primary">Retrying a failed upload without compressing:</strong> If a large file fails, don&apos;t upload the same file again. Compress it first using a <a href="/guides/compress-video" className="text-accent hover:underline">free tool</a>, then retry.</li>
-            <li><strong className="text-text-primary">Forgetting you can paste a link instead of uploading:</strong> If your video is already on YouTube, Vimeo, Loom, Zoom, or TikTok, just paste the URL. No file upload needed at all.</li>
+            <li><strong className="text-text-primary">Forgetting you can paste a link instead of uploading:</strong> If your video is already on YouTube, Instagram, Zoom, Loom, or Vimeo, just paste the URL. No file upload needed at all.</li>
           </ul>
         </section>
 

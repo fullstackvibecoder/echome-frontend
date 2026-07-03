@@ -15,7 +15,7 @@ export default function CompressVideoGuidePage() {
     description: 'Free tools and step-by-step instructions to compress your video files before uploading to EchoMe.',
     url: 'https://tryechome.com/guides/compress-video',
     datePublished: '2026-04-01',
-    dateModified: '2026-04-01',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
@@ -83,7 +83,7 @@ export default function CompressVideoGuidePage() {
         <section className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <h2 className="text-lg font-semibold text-text-primary mb-2">Even better: paste a URL instead</h2>
           <p className="text-sm text-text-secondary">
-            If your video is already on YouTube, Vimeo, Loom, or TikTok, just paste the link into EchoMe. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
+            If your video is already on YouTube, Instagram, Zoom, Loom, or Vimeo, just paste the link into the Create composer. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
           </p>
         </section>
 

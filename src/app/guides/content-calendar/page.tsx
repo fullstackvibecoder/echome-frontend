@@ -16,7 +16,7 @@ export default function ContentCalendarGuidePage() {
     description: 'See all your generated content organized by date. Drag posts to reschedule, preview before publishing, and plan a full week from a single video.',
     url: 'https://tryechome.com/guides/content-calendar',
     datePublished: '2026-04-15',
-    dateModified: '2026-05-01',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -51,7 +51,7 @@ export default function ContentCalendarGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Go to Calendar in the sidebar">
-            <p>Open the Calendar from the main sidebar navigation. Toggle between <strong>Week</strong> and <strong>Month</strong> view at the top. Each scheduled item shows up as a card colored by which Content Kit it came from, with platform icons telling you exactly what&rsquo;s scheduled per platform on that day.</p>
+            <p>Open the Calendar from the main sidebar navigation, under Discover. Toggle between <strong>Week</strong>, <strong>Month</strong>, and <strong>List</strong> view at the top. Each scheduled item shows up as a card colored by which Content Kit it came from, with platform icons telling you exactly what&rsquo;s scheduled per platform on that day.</p>
           </Step>
 
           <Step number={2} title="See everything organized by date">

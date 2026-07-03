@@ -16,7 +16,7 @@ export default function CreatorRadarGuidePage() {
     description: 'Follow creators in your niche from Creator Radar and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
     url: 'https://tryechome.com/guides/creator-radar',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-18',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -67,7 +67,7 @@ export default function CreatorRadarGuidePage() {
           </Step>
 
           <Step number={2} title="Follow creators in your niche">
-            <p>Search for creators by name or paste their channel URL directly. Once you follow a creator, their new video content will appear in your Creator Radar feed automatically.</p>
+            <p>Paste a YouTube channel or Instagram profile URL and hit Follow. Once you follow a creator, their new video content will appear in your Creator Radar feed automatically.</p>
           </Step>
 
           <Step number={3} title="New videos appear in your feed">
@@ -75,11 +75,12 @@ export default function CreatorRadarGuidePage() {
           </Step>
 
           <Step number={4} title="Hit Repurpose on any video">
-            <p>Click Repurpose on any video in your feed. EchoMe generates a full Content Kit from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
+            <p>Click Repurpose on any video in your feed. Pick the platforms you want (Instagram, LinkedIn, Blog, Email, TikTok, Video Script), then hit Generate. EchoMe builds the content from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
+            <Tip>Repurposing requires a paid EchoMe plan. Free accounts can follow creators and browse the feed, but generating content from a video needs Echo, Studio, or Teams.</Tip>
           </Step>
 
           <Step number={5} title="Review and edit">
-            <p>Open the generated Content Kit just like any other. The clips, posts, blog drafts, and emails are all written as if you made the content yourself. Edit anything, export clips, and publish on your schedule.</p>
+            <p>Open the generated Content Kit just like any other. The posts, blog drafts, and emails are all written as if you made the content yourself, and an Instagram carousel gets built too if you picked Instagram. Edit anything, then publish on your schedule.</p>
             <Tip>This is NOT copying. The output is original because the perspective is yours. Their ideas, your context, your voice.</Tip>
           </Step>
         </section>

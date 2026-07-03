@@ -16,7 +16,7 @@ export default function ReelsAndCaptionsGuidePage() {
     description: 'Choose from 8 caption styles for your video clips. Burned-in captions ready for Instagram Reels, TikTok, and YouTube Shorts.',
     url: 'https://tryechome.com/guides/reels-and-captions',
     datePublished: '2026-04-15',
-    dateModified: '2026-07-02',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -102,7 +102,7 @@ export default function ReelsAndCaptionsGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Ready to create captioned reels from your videos?</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Content Kits</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 

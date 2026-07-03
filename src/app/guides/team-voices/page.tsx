@@ -16,7 +16,7 @@ export default function TeamVoicesGuidePage() {
     description: 'Create separate voice profiles for each team member or client. Each voice builds its own waveform and knowledge base. Available on the Echo Teams plan.',
     url: 'https://tryechome.com/guides/team-voices',
     datePublished: '2026-04-15',
-    dateModified: '2026-04-15',
+    dateModified: '2026-07-03',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -85,7 +85,7 @@ export default function TeamVoicesGuidePage() {
         {/* CTA */}
         <section className="text-center py-8">
           <p className="text-text-secondary mb-4">Manage multiple voices from one account.</p>
-          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Generations</a>
+          <a href="/auth/signup" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">Start Free: 5 Content Kits</a>
           <p className="text-xs text-text-secondary/70 mt-3">No credit card required.</p>
         </section>
 
