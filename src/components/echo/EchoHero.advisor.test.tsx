@@ -1,7 +1,7 @@
 /**
  * EchoHero.advisor.test.tsx
  * Tests that EchoHero correctly wires useAdvisor + CreateHeroHeader +
- * ProposalChips/StarterChips + DraftsThreadMessage, and routes proposal
+ * ProposalChips/CreateIntentButtons/CreateStarterCards + DraftsThreadMessage, and routes proposal
  * selection to the ingestion mechanics.
  */
 
@@ -189,22 +189,46 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('renders the teach-first header and starter chips when advisor is empty', () => {
+  it('renders the teach-first header, intent buttons, and starter cards when advisor is empty', () => {
     render(<EchoHero />);
     expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
     expect(screen.queryByRole('heading', { name: /what do you want to create/i })).toBeNull();
-    expect(screen.getByText('Talk for one minute')).toBeTruthy();
-    expect(screen.getByText('Drop a Zoom recording')).toBeTruthy();
-    expect(screen.getByText('Paste a YouTube link')).toBeTruthy();
+    expect(screen.getByText('Clips from a video')).toBeTruthy();
+    expect(screen.getByText('Content from a prompt')).toBeTruthy();
+    expect(screen.getByText('Content from my KB')).toBeTruthy();
+    expect(screen.getByText('Record')).toBeTruthy();
+    expect(screen.getByText('Upload')).toBeTruthy();
+    expect(screen.getByText('Paste a link')).toBeTruthy();
+    expect(screen.getByText('Plan your week')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('renders the teach-first header and starter chips when advisor is null', () => {
+  it('renders the teach-first header, intent buttons, and starter cards when advisor is null', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
     expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
-    expect(screen.getByText('Talk for one minute')).toBeTruthy();
+    expect(screen.getByText('Clips from a video')).toBeTruthy();
+    expect(screen.getByText('Record')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
+  });
+
+  it('intent buttons and starter cards also render in the rich state', () => {
+    vi.mocked(useAdvisor).mockReturnValue({ advisor: RICH_FIXTURE, loading: false, error: null, refetch: vi.fn() });
+    render(<EchoHero />);
+    expect(screen.getByText('Clips from a video')).toBeTruthy();
+    expect(screen.getByText('Record')).toBeTruthy();
+  });
+
+  it('KB intent button prefills the composer', () => {
+    render(<EchoHero />);
+    fireEvent.click(screen.getByText('Content from my KB'));
+    expect(setInputText).toHaveBeenCalledWith('Make content from my knowledge base');
+  });
+
+  it('clip intent button opens the file picker', () => {
+    render(<EchoHero />);
+    fireEvent.click(screen.getByText('Clips from a video'));
+    expect(clickSpy).toHaveBeenCalled();
   });
 
   it('clicking a proposal chip calls setInputText with the proposal title', () => {

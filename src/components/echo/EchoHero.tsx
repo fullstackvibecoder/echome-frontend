@@ -23,7 +23,8 @@ import { Waveform } from '@/components/ui/waveform';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { CreateHeroHeader } from '@/components/create/CreateHeroHeader';
 import { ProposalChips } from '@/components/create/ProposalChips';
-import { StarterChips } from '@/components/create/StarterChips';
+import { CreateIntentButtons } from '@/components/create/CreateIntentButtons';
+import { CreateStarterCards } from '@/components/create/CreateStarterCards';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { QuotaLine } from '@/components/create/QuotaLine';
 import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
@@ -131,6 +132,13 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
 
   const handleProposalSelect = useCallback((proposal: Proposal) => {
     setInputText(proposal.title);
+    focusComposer();
+  }, [setInputText, focusComposer]);
+
+  // Intent buttons + starter cards route through the same prefill mechanism
+  // as proposal chips: drop text in, focus, user reviews and sends.
+  const prefillComposer = useCallback((text: string) => {
+    setInputText(text);
     focusComposer();
   }, [setInputText, focusComposer]);
 
@@ -375,26 +383,23 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
 
       {quota && <QuotaLine remaining={quota.remaining} limit={quota.limit} />}
 
+      {/* Output intents — all states. "What do you want to make." */}
+      <CreateIntentButtons
+        onClipVideo={() => fileInputRef.current?.click()}
+        onPrefill={prefillComposer}
+      />
+
+      {/* Personalized proposals from the KB — quieter ghost chips, rich/thin only */}
       {(advisorState === 'thin' || advisorState === 'rich') && advisor && (
         <ProposalChips proposals={advisor.proposals} onSelect={handleProposalSelect} />
       )}
-      {isEmptyState && (
-        <>
-          <StarterChips
-            onTalk={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
-            onAttach={() => fileInputRef.current?.click()}
-            onType={focusComposer}
-          />
-          {/* One-line do->get orientation. Carries the removed animation's
-              message at zero vertical cost. */}
-          <p
-            className="mt-4 text-center text-xs leading-snug max-w-md"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            A video, a link, or a topic in. Clips, posts, and carousels out, in your voice.
-          </p>
-        </>
-      )}
+
+      {/* Source entries — all states. "What are you starting with." */}
+      <CreateStarterCards
+        onRecord={() => { if (micState === 'idle' || micState === 'error') void startMic(); }}
+        onUpload={() => fileInputRef.current?.click()}
+        onPasteLink={focusComposer}
+      />
 
       {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
 
