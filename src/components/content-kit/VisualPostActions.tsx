@@ -172,7 +172,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
 
     setSubmitting(true);
     try {
-      await api.socialPosting.scheduleFanout({
+      const fanoutResp = await api.socialPosting.scheduleFanout({
         content_kit_id: contentKitId,
         source_output_id: sourceOutputId,
         text: caption,
@@ -183,11 +183,19 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         rows: apiRows,
         created_via: 'manual_inline',
       });
-      toast.success(
-        finalizationRecipe
-          ? `Queued for ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'} — finalizing media in background`
-          : `Posting to ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'}`,
-      );
+      const failures = fanoutResp.data?.failures ?? [];
+      if (failures.length > 0) {
+        const okCount = apiRows.length - failures.length;
+        toast.error(
+          `Posted to ${okCount} of ${apiRows.length} platforms. Failed: ${failures.map((f) => f.platform).join(', ')}. See the calendar to retry.`,
+        );
+      } else {
+        toast.success(
+          finalizationRecipe
+            ? `Queued for ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'} — finalizing media in background`
+            : `Posting to ${apiRows.length} platform${apiRows.length === 1 ? '' : 's'}`,
+        );
+      }
 
       // Also open any link-mode selections for the user to complete manually
       const linkSelections = selected.filter((p) => !API_AUTOPOST_PLATFORMS.includes(p));
@@ -219,8 +227,9 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         .filter((p) => connectedAccounts.includes(p))
         .map((platform) => ({ platform, scheduled_at: iso }));
 
+      let scheduleFailures: Array<{ platform: string; error: string }> = [];
       if (canAutoPost && apiRows.length > 0) {
-        await api.socialPosting.scheduleFanout({
+        const fanoutResp = await api.socialPosting.scheduleFanout({
           content_kit_id: contentKitId,
           source_output_id: sourceOutputId,
           text: caption,
@@ -231,6 +240,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
           rows: apiRows,
           created_via: 'manual_inline',
         });
+        scheduleFailures = fanoutResp.data?.failures ?? [];
       }
 
       // Any platforms we can't auto-post to (non-Studio tier, disconnected, or link-mode) become reminders
@@ -247,7 +257,14 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         });
       }
 
-      toast.success(`Scheduled for ${selected.length} platform${selected.length === 1 ? '' : 's'}`);
+      if (scheduleFailures.length > 0) {
+        const okCount = selected.length - scheduleFailures.length;
+        toast.error(
+          `Scheduled ${okCount} of ${selected.length} platforms. Failed: ${scheduleFailures.map((f) => f.platform).join(', ')}. See the calendar to retry.`,
+        );
+      } else {
+        toast.success(`Scheduled for ${selected.length} platform${selected.length === 1 ? '' : 's'}`);
+      }
       setShowSchedule(false);
       setScheduledAt('');
     } catch (e: unknown) {

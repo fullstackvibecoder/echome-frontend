@@ -4340,6 +4340,8 @@ export const api = {
       return response.data as ApiResponse<{
         fanout_id: string;
         created_post_ids: string[];
+        /** Per-platform rows that failed while others succeeded (backend runFanoutRows). */
+        failures?: Array<{ platform: string; error: string }>;
       }>;
     },
 
