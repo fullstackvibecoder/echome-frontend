@@ -27,13 +27,13 @@ import { StarterChips } from '@/components/create/StarterChips';
 import { DraftsThreadMessage } from '@/components/create/DraftsThreadMessage';
 import { QuotaLine } from '@/components/create/QuotaLine';
 import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
+import { VoiceStrengthStrip } from '@/components/create/VoiceStrengthStrip';
 import { useAuth } from '@/hooks/useAuth';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 import { AttachmentCard } from './AttachmentCard';
 import { useAdvisor } from './useAdvisor';
-import { VoiceLearningChip } from './VoiceLearningChip';
 import { EchoHeroTour } from '@/components/tour/tours/echo-hero';
 import { SketchExplainer } from '@/components/sketch/SketchExplainer';
 import type { Proposal } from '@/types/advisor';
@@ -384,8 +384,10 @@ export function EchoHero({ quota }: EchoHeroProps = {}) {
 
       {(advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
 
-      {/* Voice-profile status chip — links to /app/voice */}
-      <VoiceLearningChip />
+      {/* Voice-profile strip — tier, coverage subline, Teach Echo more CTA */}
+      {(advisorState === 'thin' || advisorState === 'rich') && (
+        <VoiceStrengthStrip coverage={advisor?.coverage ?? null} onTeachMore={focusComposer} />
+      )}
 
       {/* Hero tour + replay pill */}
       <EchoHeroTour />

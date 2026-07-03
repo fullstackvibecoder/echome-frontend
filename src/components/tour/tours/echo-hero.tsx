@@ -19,7 +19,7 @@
  * content. Do not point users out to the knowledge base or voice page; all
  * ingestion happens right here in the chat. User-facing name for the KB is
  * "your voice" — never say "knowledge base". (echo-hero-voice /
- * VoiceLearningChip stays as a status indicator but the tour does not anchor
+ * VoiceStrengthStrip stays as a status indicator but the tour does not anchor
  * on it.)
  *
  * Voice-scope rule: voice = written posts only. The clip IS the user on
