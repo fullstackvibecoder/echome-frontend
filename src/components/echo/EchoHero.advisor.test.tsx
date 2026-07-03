@@ -189,9 +189,9 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('renders the teach-first header, intent buttons, and starter cards when advisor is empty', () => {
+  it('renders the outcome hero header, intent buttons, and starter cards when advisor is empty', () => {
     render(<EchoHero />);
-    expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
+    expect(screen.getByText('Talk for a minute. Post for a week.')).toBeTruthy();
     expect(screen.queryByRole('heading', { name: /what do you want to create/i })).toBeNull();
     expect(screen.getByText('Turn a video into clips')).toBeTruthy();
     expect(screen.getByText('Write posts from a topic')).toBeTruthy();
@@ -203,10 +203,10 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
   });
 
-  it('renders the teach-first header, intent buttons, and starter cards when advisor is null', () => {
+  it('renders the outcome hero header, intent buttons, and starter cards when advisor is null', () => {
     vi.mocked(useAdvisor).mockReturnValue({ advisor: null, loading: false, error: null, refetch: vi.fn() });
     render(<EchoHero />);
-    expect(screen.getByText('Teach Echo to write in your voice.')).toBeTruthy();
+    expect(screen.getByText('Talk for a minute. Post for a week.')).toBeTruthy();
     expect(screen.getByText('Turn a video into clips')).toBeTruthy();
     expect(screen.getByText('Record')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
