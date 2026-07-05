@@ -626,7 +626,11 @@ export default function CarouselEditorModal({
     try {
       const response = await api.contentKits.regenerateCarousel(contentKitId, {
         designPreset: (currentPreset as any) || 'auto',
-        slideOverrides: edits.map((e) => ({ text: e.text })),
+        // structured must ride along — tweet-style edits come through the
+        // structured editor (headline/body), and a text-only override list
+        // re-rendered the OLD copy while the user's fields said "Saved"
+        // (founder repro 2026-07-05). Matches the download path's overrides.
+        slideOverrides: edits.map((e) => ({ text: e.text, structured: e.structured })),
       });
       if (response.success && response.data?.carousel?.slides) {
         const composed = response.data.carousel.slides;
@@ -636,6 +640,10 @@ export default function CarouselEditorModal({
           backgroundUrl: s.backgroundUrl,
           text: s.text,
           template: s.template || s.slideType,
+          // Keep the structured baseline in sync — dropping it here left the
+          // refresh banner permanently lit after a successful refresh (the
+          // dirty check compares edit.structured against slide.structured).
+          structured: s.structured,
         })));
         toast.success('Preview updated');
         onCarouselUpdate();
@@ -694,11 +702,13 @@ export default function CarouselEditorModal({
           } else {
             for (const s of composed) await downloadImage(s.publicUrl, `carousel-slide-${s.slideNumber}.png`);
           }
-          // Update slides with new renders
+          // Update slides with new renders (structured included so the
+          // refresh-banner dirty check clears — same as handleRefreshPreview)
           setSlides(composed.map((s: any) => ({
             slideNumber: s.slideNumber, publicUrl: s.publicUrl,
             backgroundUrl: s.backgroundUrl, text: s.text,
             template: s.template || s.slideType,
+            structured: s.structured,
           })));
         }
       } else {
@@ -984,7 +994,13 @@ export default function CarouselEditorModal({
                   so the user isn't left wondering why their edit isn't
                   showing on the card. */}
               {SINGLE_PASS_TEMPLATES.has(activeSlide.template || '') &&
-                activeEdit.text.trim() !== (activeSlide.text || '').trim() && (
+                (activeEdit.text.trim() !== (activeSlide.text || '').trim() ||
+                  // Structured edits (headline/body) must ALSO surface the
+                  // refresh banner — they're the primary edit path for
+                  // tweet-style, and without this clause the user edits,
+                  // sees "Saved", and the card never changes with no hint.
+                  JSON.stringify(activeEdit.structured ?? {}) !==
+                    JSON.stringify(activeSlide.structured ?? {})) && (
                 <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2">
                   <p className="text-[11px] text-amber-700 dark:text-amber-200 flex-1 leading-relaxed">
                     Text is baked into the tweet card layout for this style. The preview will refresh on download &mdash; or click below to refresh now.
