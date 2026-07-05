@@ -226,7 +226,7 @@ export function ConnectedAccounts() {
         <div>
           <h3 className="text-lg font-semibold text-foreground">Auto-Post to Social</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Schedule your content and let EchoMe post it automatically to Instagram, LinkedIn, Facebook, and Threads.
+            Schedule your content and let EchoMe post it automatically to Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, and Bluesky.
           </p>
         </div>
         <div
@@ -276,7 +276,7 @@ export function ConnectedAccounts() {
           Connect your social accounts to schedule and auto-post content directly from EchoMe.
         </p>
         <p className="text-[11px] text-muted-foreground/60 mt-2">
-          Available now: Instagram, LinkedIn, Facebook, Threads, YouTube, Bluesky.
+          Available now: Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, Bluesky.
         </p>
       </div>
 
