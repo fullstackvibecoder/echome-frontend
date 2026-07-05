@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/json-ld';
 export const metadata: Metadata = {
   title: 'Editing Carousels: Text, Style, Layout, Download | EchoMe Guide',
   description:
-    'Edit carousel slides in EchoMe: change slide text, drag to reposition, restyle with six design presets (Branded, Quote Card, Tweet Card, Stats Card, your image, video frame), and download single slides or a full zip.',
+    'Edit carousel slides in EchoMe: change slide text, drag to reposition, restyle with five design presets (Branded, Quote Card, Tweet Card, Stats Card, My Image), and download single slides or a full zip.',
   keywords: [
     'echome carousel editor',
     'edit carousel slides',
@@ -25,7 +25,7 @@ export default function CarouselsGuidePage() {
     '@type': 'Article',
     headline: 'Editing Carousels: Text, Style, Layout, Download',
     description:
-      'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with six design presets, and download single slides or a full zip.',
+      'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with five design presets, and download single slides or a full zip.',
     url: 'https://tryechome.com/guides/carousels',
     datePublished: '2026-04-23',
     dateModified: '2026-07-03',
@@ -95,14 +95,13 @@ export default function CarouselsGuidePage() {
           </Step>
 
           <Step number={5} title="Restyle with a design preset">
-            <p>Under <strong className="text-text-primary">Carousel Style</strong>, pick one of six presets and EchoMe re-renders every slide in that style in a few seconds:</p>
+            <p>Under <strong className="text-text-primary">Carousel Style</strong>, pick one of five presets and EchoMe re-renders every slide in that style in a few seconds:</p>
             <ul className="list-disc pl-5 space-y-2 mt-2">
               <li><strong className="text-text-primary">Branded</strong>: photo background with bold typography. The default look for personal-brand carousels.</li>
               <li><strong className="text-text-primary">Quote Card</strong>: clean serif text on cream. Best for thought-leadership quotes.</li>
               <li><strong className="text-text-primary">Tweet Card</strong>: Twitter-style dark card. Best for hot takes and short hooks.</li>
               <li><strong className="text-text-primary">Stats Card</strong>: big stat on warm white. Best for data-led carousels.</li>
-              <li><strong className="text-text-primary">My Image</strong>: upload your own background image. Applied to the cover and last slides only; body slides keep the template look.</li>
-              <li><strong className="text-text-primary">Video Frame</strong>: use a still frame from your original video as the slide background. Applied to the cover and last slides only; body slides keep the template look. EchoMe auto-extracts several candidate frames; pick one.</li>
+              <li><strong className="text-text-primary">My Image</strong>: pick any image for the cover and last slides — upload your own, reuse a saved photo, grab a still frame from your original video, or use your profile photo. Body slides keep the template look.</li>
             </ul>
             <p className="mt-3">The <strong className="text-text-primary">Current Style</strong> button below the presets indicates which one is active. Click any other preset to restyle.</p>
             <Tip>Restyling replaces the backgrounds on all slides at once. Text edits you&apos;ve made are preserved, only the design changes.</Tip>
@@ -110,14 +109,14 @@ export default function CarouselsGuidePage() {
 
           <Step number={6} title="Edit the Instagram post caption">
             <p>
-              The <strong className="text-text-primary">Post caption</strong> section at the bottom of the editor pairs with this carousel. Edit it inline; it saves automatically. Use <strong className="text-text-primary">Copy caption</strong> to copy it to your clipboard, or <strong className="text-text-primary">Open Instagram</strong> to jump straight to Instagram with the caption ready to paste.
+              The <strong className="text-text-primary">Post caption</strong> section at the bottom of the editor pairs with this carousel. Edit it inline; it saves automatically. The copy icon beside the label copies it to your clipboard. To publish, use the posting controls at the bottom of the editor: pick your platforms, then <strong className="text-text-primary">Post now</strong> or <strong className="text-text-primary">Schedule</strong>.
             </p>
             <Tip>If the caption field is empty, EchoMe falls back to the kit-level Instagram caption generated for this Content Kit.</Tip>
           </Step>
 
           <Step number={7} title="Download single slide or full set">
             <p>
-              <strong className="text-text-primary">Download Slide</strong> exports the currently visible slide as a PNG. <strong className="text-text-primary">All (N)</strong> (where N is your carousel&apos;s slide count) exports every slide as a zip file, ready to upload to Instagram or LinkedIn in order. You can trim a carousel down to 3 slides or build it up to 20 from the slide strip.
+              The <strong className="text-text-primary">Slide</strong> download button (bottom of the editor, above the posting controls) exports the currently visible slide as a PNG. <strong className="text-text-primary">All (N)</strong> (where N is your carousel&apos;s slide count) exports every slide as a zip file, ready to upload to Instagram or LinkedIn in order. You can trim a carousel down to 3 slides or build it up to 20 from the slide strip.
             </p>
             <Tip>Both Instagram and LinkedIn preserve slide order when you upload multiple images at once. Drag them into the uploader in slide-number order.</Tip>
           </Step>

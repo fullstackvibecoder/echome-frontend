@@ -1093,16 +1093,20 @@ export default function CarouselEditorModal({
               saving={savingCaption}
             />
 
-            {/* Download */}
-            <div className="flex gap-3 pt-2">
+            {/* Download — deliberately quiet. Posting/scheduling below is the
+                primary action; a loud Download button pulled eyes away from it
+                (founder call 2026-07-05: the post actions own the visual weight). */}
+            <div className="flex items-center justify-end gap-1 pt-1">
               <button type="button" onClick={() => handleDownload(activeIndex)} disabled={downloading}
-                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50">
-                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                Download Slide
+                title="Download this slide"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                Slide
               </button>
               <button type="button" onClick={() => handleDownload()} disabled={downloading}
-                className="flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-card transition-colors disabled:opacity-50">
-                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />}
+                title={`Download all ${slides.length} slides`}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileArchive className="h-3.5 w-3.5" />}
                 All ({slides.length})
               </button>
             </div>
