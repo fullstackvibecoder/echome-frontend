@@ -176,6 +176,17 @@ export function useEcho(
   const onIngestCompleteRef = useRef(options?.onIngestComplete);
   onIngestCompleteRef.current = options?.onIngestComplete;
 
+  // Single ingest-complete fanout: fires the direct callback (EchoHero passes
+  // its advisor refetch) AND a window event, so surfaces that did not mount
+  // this hook instance (the Create-page hero when ingest happens via the
+  // global pill) can refresh too.
+  const notifyIngestComplete = useCallback(() => {
+    onIngestCompleteRef.current?.();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('echo:ingest-complete'));
+    }
+  }, []);
+
   // Run counter for the stockpile poll loop. Increment to abort any in-flight
   // poll (reset or second call starts a new run, stale loops detect the change
   // and exit without touching state).
@@ -505,7 +516,7 @@ export function useEcho(
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · AUDIO`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
-          onIngestCompleteRef.current?.();
+          notifyIngestComplete();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -531,7 +542,7 @@ export function useEcho(
           await api.files.upload(kbId, attachment);
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
-          onIngestCompleteRef.current?.();
+          notifyIngestComplete();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -571,7 +582,7 @@ export function useEcho(
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${parsed.emails.length} EMAILS`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: `${parsed.emails.length} emails` } }));
-          onIngestCompleteRef.current?.();
+          notifyIngestComplete();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -591,7 +602,7 @@ export function useEcho(
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${attachment.name}`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', attachment: null, attachmentError: null, confirmation: { title: 'Added to your Voice', detail: attachment.name } }));
-          onIngestCompleteRef.current?.();
+          notifyIngestComplete();
           api.telemetry.event({
             event_name: 'echo_executed',
             event_data: {
@@ -641,7 +652,7 @@ export function useEcho(
             await api.kbContent.startSocialImport({ platform: kind, url });
             addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · ${kind.toUpperCase()} IMPORT`));
             setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Importing to your Voice', detail: `${kind} link` } }));
-            onIngestCompleteRef.current?.();
+            notifyIngestComplete();
             break;
           }
           await api.kbContent.paste({
@@ -651,7 +662,7 @@ export function useEcho(
           });
           addReceipt(formatReceipt(`${INTENT_META.ingest.receiptVerb} · TEXT NOTE`));
           setState((prev) => ({ ...prev, phase: 'done', inputText: '', confirmation: { title: 'Added to your Voice', detail: 'Your note' } }));
-          onIngestCompleteRef.current?.();
+          notifyIngestComplete();
           break;
         }
 
@@ -804,7 +815,7 @@ export function useEcho(
         error: extractErrorMessage(err, 'Something went wrong. Please try again.'),
       }));
     }
-  }, [navigate, addReceipt]);
+  }, [navigate, addReceipt, notifyIngestComplete]);
 
   const chooseOwnership = useCallback((o: 'self' | 'third_party') => {
     setState((prev) => ({ ...prev, videoOwnership: o }));
@@ -840,6 +851,7 @@ export function useEcho(
           savedVideos: res.videos, savedCount: res.savedCount,
           confirmation: { title: `Saved ${res.savedCount} videos to clip later`, detail: '' },
         }));
+        notifyIngestComplete();
       }
     } catch (err) {
       setState((prev) => ({
@@ -847,7 +859,7 @@ export function useEcho(
         error: err instanceof Error ? err.message : 'Something went wrong. Try again.',
       }));
     }
-  }, [addReceipt]);
+  }, [addReceipt, notifyIngestComplete]);
 
   const chooseFileDestination = useCallback(async (dest: 'create' | 'stockpile') => {
     const { videoFileTarget, inputText } = stateRef.current;
@@ -928,6 +940,7 @@ export function useEcho(
                   videoFileTarget: null,
                   confirmation: { title: 'Saved to clip later · added to your voice', detail: null },
                 }));
+                notifyIngestComplete();
                 settled = true;
                 break;
               }
@@ -957,7 +970,7 @@ export function useEcho(
         error: err instanceof Error ? err.message : 'Something went wrong. Try again.',
       }));
     }
-  }, [navigate, addReceipt]);
+  }, [navigate, addReceipt, notifyIngestComplete]);
 
   const clipSavedVideo = useCallback(async (uploadId: string) => {
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
