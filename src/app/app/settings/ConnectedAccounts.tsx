@@ -19,6 +19,7 @@ import {
   AtSign,
   Youtube,
   Cloud,
+  Music2,
   ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
@@ -27,16 +28,19 @@ import {
 // IG/LI/FB/Threads went live in the original 2026-04-19 rollout (3-leg flow
 // for FB/Threads, verified 2026-04-23). YouTube/Bluesky managed keys went
 // live 2026-05-09 — verified end-to-end via /v1/social-networks/{platform}/auth-url
-// returning valid OAuth URLs for both. Pinterest is also managed but held
-// from this UI until we wire the post-side (pins need media + destination URL,
-// which doesn't slot into the kit content shape yet). X, TikTok, Google Business
-// remain BYOK-only and aren't expected to land soon.
+// returning valid OAuth URLs for both. TikTok managed keys went live on
+// Outstand 2026-07 (video-only posting; backend guards enforce it).
+// Pinterest is also managed but held from this UI until we wire the
+// post-side (pins need media + destination URL, which doesn't slot into
+// the kit content shape yet). X and Google Business remain BYOK-only and
+// aren't expected to land soon.
 const PLATFORMS: Array<{ id: string; name: string; Icon: LucideIcon; hint?: string }> = [
   { id: 'instagram', name: 'Instagram', Icon: Instagram, hint: 'Requires a Business or Creator account' },
   { id: 'linkedin', name: 'LinkedIn', Icon: Linkedin, hint: 'Personal profile or Company Page both work' },
   { id: 'facebook', name: 'Facebook', Icon: Facebook, hint: 'Requires a Facebook Page (Meta does not allow API posting to personal profiles)' },
   { id: 'threads', name: 'Threads', Icon: AtSign, hint: 'Requires an Instagram Business/Creator account linked to Threads' },
   { id: 'youtube', name: 'YouTube', Icon: Youtube, hint: 'Publishes vertical clips as YouTube Shorts' },
+  { id: 'tiktok', name: 'TikTok', Icon: Music2, hint: 'Publishes video clips to your TikTok profile' },
   { id: 'bluesky', name: 'Bluesky', Icon: Cloud, hint: 'Short-form posts up to 300 characters' },
 ];
 
@@ -222,7 +226,7 @@ export function ConnectedAccounts() {
         <div>
           <h3 className="text-lg font-semibold text-foreground">Auto-Post to Social</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Schedule your content and let EchoMe post it automatically to Instagram, LinkedIn, Facebook, and Threads.
+            Schedule your content and let EchoMe post it automatically to Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, and Bluesky.
           </p>
         </div>
         <div
@@ -272,7 +276,7 @@ export function ConnectedAccounts() {
           Connect your social accounts to schedule and auto-post content directly from EchoMe.
         </p>
         <p className="text-[11px] text-muted-foreground/60 mt-2">
-          Available now: Instagram, LinkedIn, Facebook, Threads, YouTube, Bluesky.
+          Available now: Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, Bluesky.
         </p>
       </div>
 

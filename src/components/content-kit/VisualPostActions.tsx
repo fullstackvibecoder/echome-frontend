@@ -91,11 +91,13 @@ interface Props {
 // Platforms EchoMe can auto-post to via the API/recipe fanout (vs. copy-and-open
 // link platforms). YouTube is here because clips publish as Shorts through the
 // finalizer (networkOverrideConfiguration.isShort) — without it, selecting YouTube
-// fell through to a copy-and-open redirect and no post was ever made.
-const API_AUTOPOST_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads', 'youtube'];
+// fell through to a copy-and-open redirect and no post was ever made. TikTok
+// joined 2026-07 (Outstand managed keys): video-only, backend attaches the
+// tiktok override block and enforces eligibility.
+const API_AUTOPOST_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads', 'youtube', 'tiktok'];
 
-// Platforms pre-selected on load. Intentionally excludes YouTube: it's opt-in and
-// eligibility-gated (vertical, ≤3 min), so we don't auto-select it.
+// Platforms pre-selected on load. Intentionally excludes YouTube and TikTok:
+// they're opt-in and video-eligibility-gated, so we don't auto-select them.
 const DEFAULT_SELECTED_PLATFORMS = ['instagram', 'linkedin', 'facebook', 'threads'];
 
 export function VisualPostActions({ contentKitId, sourceOutputId, caption, mediaUrls, finalizationRecipe, disabledReasons, youtubeTitle, youtubeDurationSeconds }: Props) {
