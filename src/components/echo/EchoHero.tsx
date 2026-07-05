@@ -118,6 +118,16 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Pill ingests happen in a different useEcho instance; the window event is
+  // how they reach this advisor. Hero ingests never dispatch the event (the
+  // hook fires the direct onIngestComplete callback instead), so this
+  // listener only ever fires for cross-instance ingests. No double fetch.
+  useEffect(() => {
+    const onIngest = () => refetchAdvisor();
+    window.addEventListener('echo:ingest-complete', onIngest);
+    return () => window.removeEventListener('echo:ingest-complete', onIngest);
+  }, [refetchAdvisor]);
+
   // ---- Mic ----
   const handleTranscript = useCallback(
     (text: string) => {

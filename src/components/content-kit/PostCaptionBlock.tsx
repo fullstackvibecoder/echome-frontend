@@ -4,12 +4,11 @@
  * PostCaptionBlock
  *
  * Displays a contextual post caption for a visual output (clip, carousel,
- * reel). Two actions: Copy caption (clipboard only) and Open Instagram
- * (copies + opens instagram.com in a new tab). The latter gives a one-click
- * path from caption to IG — on mobile with the IG app installed it deep-links
- * into the app via iOS universal links / Android app links; on desktop it
- * opens the web composer. Either way the caption is on the clipboard ready
- * to paste.
+ * reel). One quiet action: a copy icon. Posting/scheduling lives EXCLUSIVELY
+ * in VisualPostActions below — this block used to carry its own
+ * "Open Instagram" button, which read as the app's posting mechanism and
+ * pulled eyes away from the real auto-post controls (founder call,
+ * 2026-07-05: lean on the Outstand buttons, one home for publishing).
  *
  * Editable mode (caller passes onChange): the caption renders as a textarea
  * and the parent persists changes (debounced) — same UX as InlineWrittenContent
@@ -20,7 +19,7 @@
  * been generated yet, with a small note so the user knows it's shared.
  */
 import { useState, useEffect, useRef } from 'react';
-import { Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Copy, Check, Loader2 } from 'lucide-react';
 
 interface PostCaptionBlockProps {
   /** Preferred caption (per-output). If null/empty, fallback is used. */
@@ -91,17 +90,6 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Copies caption then opens Instagram in a new tab. On mobile with the IG
-  // app installed this deep-links into the app via iOS universal links / Android
-  // app links; on desktop it opens the web composer. Either way the user has
-  // the caption ready to paste.
-  const handleOpenInstagram = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    window.open('https://www.instagram.com', '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -130,28 +118,17 @@ export function PostCaptionBlock({ caption, fallback, label = 'Post caption', on
             </span>
           )}
         </label>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handleCopy}
-            disabled={!text}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border text-muted-foreground text-xs font-medium hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-            {copied ? 'Copied' : 'Copy caption'}
-          </button>
-          <button
-            type="button"
-            onClick={handleOpenInstagram}
-            disabled={!text}
-            title="Copies the caption and opens Instagram in a new tab"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-gradient-to-r from-purple-600 via-red-500 to-orange-400 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span aria-hidden>📸</span>
-            Open Instagram
-            <ExternalLink className="w-3 h-3" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleCopy}
+          disabled={!text}
+          title="Copy caption"
+          aria-label="Copy caption"
+          className="flex items-center gap-1 px-2 py-1 rounded-md text-muted-foreground text-xs hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? 'Copied' : ''}
+        </button>
       </div>
       {editable ? (
         <textarea
