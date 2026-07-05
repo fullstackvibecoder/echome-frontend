@@ -33,6 +33,10 @@ const PLATFORM_CONFIG: Record<string, { label: string; mode: PostingMode; compos
   facebook:        { label: 'Facebook',  mode: 'api',  composeUrl: 'https://www.facebook.com' },
   threads:         { label: 'Threads',   mode: 'api',  composeUrl: 'https://www.threads.net' },
   x:               { label: 'X',         mode: 'link', composeUrl: 'https://x.com/intent/tweet' },
+  // TikTok is 'api' for VIDEO (clips/reels) but stays 'link' HERE on purpose:
+  // this component posts WRITTEN text, and TikTok has no text-post shape —
+  // an api-mode attempt would 400 at the backend video-only guard. Copy the
+  // caption + open the upload page is the correct written-content behavior.
   tiktok:          { label: 'TikTok',    mode: 'link', composeUrl: 'https://www.tiktok.com/upload' },
   pinterest:       { label: 'Pinterest', mode: 'link', composeUrl: 'https://www.pinterest.com/pin-creation-tool/' },
   bluesky:         { label: 'Bluesky',   mode: 'api',  composeUrl: 'https://bsky.app' },
