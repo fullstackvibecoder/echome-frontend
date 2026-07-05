@@ -24,6 +24,7 @@ import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
 import { EchoExchange } from './EchoExchange';
 import { AttachmentCard } from './AttachmentCard';
+import { getPillSuggestions } from './pill-suggestions';
 
 /** Format elapsed seconds as M:SS */
 function formatElapsed(seconds: number): string {
@@ -283,11 +284,37 @@ export function EchoPill() {
               : ''}
           </div>
 
+          {/* Page-aware suggestion chips. Prefill only, never auto-submit:
+              the user always reviews before sending. Shown only while the
+              exchange is idle/open so receipts and forks keep the space. */}
+          {state.phase === 'open' && (
+            <div className="flex flex-wrap gap-1.5 mb-2 px-1">
+              {getPillSuggestions(pathname ?? '').map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => {
+                    setInputText(chip);
+                    setTimeout(() => textareaRef.current?.focus(), 30);
+                  }}
+                  className="rounded-full border border-[var(--border)] bg-[var(--surface-container)] px-2.5 py-1 text-xs text-[var(--muted-foreground)] hover:text-foreground hover:border-[rgba(0,212,255,0.4)] transition-colors"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          )}
+
           <EchoExchange
             state={state}
             handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
             onTextareaMount={(el) => { textareaRef.current = el; }}
           />
+
+          {/* Do-to-get affordance line: reveal the pill's non-obvious powers. */}
+          <p className="mt-2 px-1 text-[11px] leading-snug text-[var(--muted-foreground)]/70">
+            Drop a video or doc to teach Echo. Paste a link to create content. Tap the mic to talk.
+          </p>
         </div>
       )}
 
