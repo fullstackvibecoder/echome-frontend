@@ -39,7 +39,7 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   facebook:        { id: 'facebook',        name: 'Facebook',        Icon: Facebook,  postingMode: 'api',  hint: 'Posts to your Facebook Page' },
   threads:         { id: 'threads',         name: 'Threads',         Icon: AtSign,    postingMode: 'api',  hint: 'Via linked Instagram' },
   x:               { id: 'x',               name: 'X',               Icon: Twitter,   postingMode: 'link', hint: 'Copy-and-open flow for now' },
-  tiktok:          { id: 'tiktok',          name: 'TikTok',          Icon: Music2,    postingMode: 'link' },
+  tiktok:          { id: 'tiktok',          name: 'TikTok',          Icon: Music2,    postingMode: 'api',  hint: 'Publishes video clips to your TikTok profile' },
   youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'api',  hint: 'Posts as a YouTube Short (vertical, ≤3 min)' },
   pinterest:       { id: 'pinterest',       name: 'Pinterest',       Icon: Pin,       postingMode: 'link' },
   bluesky:         { id: 'bluesky',         name: 'Bluesky',         Icon: CloudSun,  postingMode: 'api',  hint: 'Up to 300 characters' },
