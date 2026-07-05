@@ -176,13 +176,16 @@ export function useEcho(
   const onIngestCompleteRef = useRef(options?.onIngestComplete);
   onIngestCompleteRef.current = options?.onIngestComplete;
 
-  // Single ingest-complete fanout: fires the direct callback (EchoHero passes
-  // its advisor refetch) AND a window event, so surfaces that did not mount
-  // this hook instance (the Create-page hero when ingest happens via the
-  // global pill) can refresh too.
+  // Single ingest-complete fanout. Instances with a direct subscriber
+  // (EchoHero passes its advisor refetch) fire ONLY the callback; instances
+  // without one (the global pill) dispatch the window event so EchoHero's
+  // listener can refresh the advisor cross-instance. Either/or, never both:
+  // dispatching unconditionally made every hero ingest double-fetch the
+  // advisor (its own callback + its own listener catching the event).
   const notifyIngestComplete = useCallback(() => {
-    onIngestCompleteRef.current?.();
-    if (typeof window !== 'undefined') {
+    if (onIngestCompleteRef.current) {
+      onIngestCompleteRef.current();
+    } else if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('echo:ingest-complete'));
     }
   }, []);
