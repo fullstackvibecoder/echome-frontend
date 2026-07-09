@@ -31,7 +31,9 @@ function downloadFile(name: string, contents: string) {
   const a = document.createElement('a');
   a.href = href;
   a.download = name;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(href);
 }
 
