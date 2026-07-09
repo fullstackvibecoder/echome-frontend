@@ -19,6 +19,7 @@ import {
   Code,
   Mail,
   FileDown,
+  FileText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -69,6 +70,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Tools',
     items: [
       { id: 'compress', label: 'Video Compressor', icon: FileDown, path: '/tools/compress-video', external: true, badge: 'FREE' },
+      { id: 'transcribe', label: 'YouTube Transcript', icon: FileText, path: '/tools/transcribe', external: true, badge: 'FREE' },
     ],
   },
   {
