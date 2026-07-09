@@ -9,9 +9,11 @@ function pad(n: number, len = 2): string {
 }
 
 function timestamp(seconds: number, msSep: ',' | '.'): string {
-  const total = Math.max(0, seconds);
-  const whole = Math.floor(total);
-  const ms = Math.round((total - whole) * 1000);
+  // Round to whole milliseconds first so a fractional second that rounds up
+  // (e.g. 1.9995s) rolls into the next second instead of emitting ms=1000.
+  const totalMs = Math.round(Math.max(0, seconds) * 1000);
+  const ms = totalMs % 1000;
+  const whole = Math.floor(totalMs / 1000);
   const h = Math.floor(whole / 3600);
   const m = Math.floor((whole % 3600) / 60);
   const s = whole % 60;
