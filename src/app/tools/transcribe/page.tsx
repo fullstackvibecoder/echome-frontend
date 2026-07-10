@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { FileText, Copy, Download, Check, Loader2, ChevronDown, Zap, Shield, Clock, ArrowRight } from 'lucide-react';
 import { JsonLd } from '@/components/json-ld';
 import { copyAsPlainText } from '@/lib/clipboard';
-import { formatTxt, formatSrt, formatVtt, type TranscriptSegment } from '@/lib/transcript-format';
+import { formatTxt, type TranscriptSegment } from '@/lib/transcript-format';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.tryechome.com/api';
 
@@ -16,13 +16,6 @@ interface TranscriptResult {
   language?: string;
   title?: string;
   source: 'captions' | 'sociavault';
-}
-
-function mmss(seconds: number): string {
-  const s = Math.max(0, Math.floor(seconds));
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  return `${m}:${String(rem).padStart(2, '0')}`;
 }
 
 function downloadFile(name: string, contents: string) {
@@ -42,11 +35,9 @@ export default function TranscribePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TranscriptResult | null>(null);
-  const [showTimestamps, setShowTimestamps] = useState(false);
   const [copied, setCopied] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
-  const hasTimestamps = (result?.segments.length ?? 0) > 0;
   const baseName = (result?.title || 'transcript').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'transcript';
 
   const generate = async () => {
@@ -54,7 +45,6 @@ export default function TranscribePage() {
     setLoading(true);
     setError(null);
     setResult(null);
-    setShowTimestamps(false);
     try {
       const res = await fetch(`${API_BASE}/tools/transcribe/youtube`, {
         method: 'POST',
@@ -137,7 +127,7 @@ export default function TranscribePage() {
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl sm:text-5xl font-bold text-center mb-4">Free YouTube Transcript Generator</h1>
           <p className="text-center text-white/60 mb-8">
-            Paste a YouTube link. Get the full transcript in seconds. Plain text or timestamped, no signup.
+            Paste a YouTube link. Get the full transcript in seconds. No signup.
           </p>
 
           {/* Input */}
@@ -168,37 +158,17 @@ export default function TranscribePage() {
               {result.title && <p className="font-semibold mb-3 text-white/90">{result.title}</p>}
 
               <div className="flex flex-wrap items-center gap-2 mb-4">
-                <button
-                  onClick={() => setShowTimestamps((v) => !v)}
-                  disabled={!hasTimestamps}
-                  className="px-3 py-1.5 text-sm rounded-lg bg-white/5 border border-white/10 disabled:opacity-40"
-                >
-                  {showTimestamps ? 'Hide timestamps' : 'Show timestamps'}
-                </button>
                 <button onClick={copy} className="px-3 py-1.5 text-sm rounded-lg bg-white/5 border border-white/10 flex items-center gap-1.5">
                   {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
                 </button>
                 <div className="flex items-center gap-1.5 ml-auto text-sm">
                   <Download className="w-3.5 h-3.5 text-white/50" />
                   <button onClick={() => downloadFile(`${baseName}.txt`, formatTxt(result.segments, result.plainText))} className="px-2 py-1 rounded-md bg-white/5 border border-white/10">.txt</button>
-                  <button onClick={() => downloadFile(`${baseName}.srt`, formatSrt(result.segments))} disabled={!hasTimestamps} className="px-2 py-1 rounded-md bg-white/5 border border-white/10 disabled:opacity-40">.srt</button>
-                  <button onClick={() => downloadFile(`${baseName}.vtt`, formatVtt(result.segments))} disabled={!hasTimestamps} className="px-2 py-1 rounded-md bg-white/5 border border-white/10 disabled:opacity-40">.vtt</button>
                 </div>
               </div>
 
-              {!hasTimestamps && (
-                <p className="text-xs text-white/40 mb-3">Timestamps are not available for this video.</p>
-              )}
-
               <div className="max-h-[420px] overflow-y-auto rounded-lg bg-black/30 p-4 text-sm leading-relaxed whitespace-pre-wrap">
-                {showTimestamps && hasTimestamps
-                  ? result.segments.map((seg, i) => (
-                      <div key={i} className="flex gap-3 py-0.5">
-                        <span className="text-primary/70 tabular-nums shrink-0">[{mmss(seg.start)}]</span>
-                        <span>{seg.text}</span>
-                      </div>
-                    ))
-                  : result.plainText}
+                {result.plainText}
               </div>
             </div>
           )}
@@ -222,8 +192,8 @@ export default function TranscribePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
             {[
               { icon: <FileText className="w-6 h-6" />, title: 'Paste the video link', desc: 'Drop in any public YouTube URL. No file upload, no download needed.' },
-              { icon: <Zap className="w-6 h-6" />, title: 'Get the transcript', desc: 'We pull the full transcript in seconds, plain text or with timestamps.' },
-              { icon: <Download className="w-6 h-6" />, title: 'Copy or download', desc: 'Copy the text, or download as .txt, .srt or .vtt. No signup or email required.' },
+              { icon: <Zap className="w-6 h-6" />, title: 'Get the transcript', desc: 'We pull the full transcript in seconds, as clean, copy-ready text.' },
+              { icon: <Download className="w-6 h-6" />, title: 'Copy or download', desc: 'Copy the text, or download it as a .txt file. No signup or email required.' },
             ].map((step, i) => (
               <div key={i} className="relative p-6 bg-white/[0.03] border border-white/5 rounded-2xl text-center">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-xs font-bold text-white">
@@ -249,10 +219,10 @@ export default function TranscribePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { icon: <Shield className="w-5 h-5" />, title: 'No signup or email required', desc: 'Get a transcript without creating an account or entering any personal information.' },
-              { icon: <Check className="w-5 h-5" />, title: 'Plain text or timestamped', desc: 'Read the full transcript as plain text, or toggle timestamps to jump to any moment.' },
+              { icon: <Check className="w-5 h-5" />, title: 'Clean, copy-ready text', desc: 'Read the full transcript right on the page, then copy it in one click.' },
               { icon: <Clock className="w-5 h-5" />, title: 'Fast and free', desc: 'Get your transcript in seconds. No queues, no watermarks, no hidden fees.' },
-              { icon: <Zap className="w-5 h-5" />, title: 'Works with captions or audio', desc: 'Uses existing captions when available, falling back to transcription for videos without them.' },
-              { icon: <FileText className="w-5 h-5" />, title: 'Three download formats', desc: 'Download as .txt for plain text, or .srt and .vtt for subtitle files.' },
+              { icon: <Zap className="w-5 h-5" />, title: 'Works with any public video', desc: 'Paste a link to any public YouTube video and get the full transcript back.' },
+              { icon: <FileText className="w-5 h-5" />, title: 'Download as a text file', desc: 'Save the transcript as a .txt file to use anywhere.' },
               { icon: <Download className="w-5 h-5" />, title: 'Instant download', desc: 'Files are generated in your browser. No waiting for email links.' },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
@@ -279,7 +249,7 @@ export default function TranscribePage() {
             {[
               'Turn a video into a blog post or article',
               'Pull quotes for social media captions',
-              'Create subtitle files for editing',
+              'Draft show notes from a video or podcast',
               'Search a long video for a specific moment',
               'Repurpose a talk or podcast into written content',
               'Study or reference a lecture or tutorial',
@@ -363,10 +333,10 @@ export default function TranscribePage() {
 const FAQ_DATA = [
   { q: 'Is this YouTube transcript generator really free?', a: 'Yes. No signup, no watermark, no hidden fees. Generate as many transcripts as you need.' },
   { q: 'Does it work on any YouTube video?', a: 'It works on any public YouTube video. Private or unlisted videos may not be accessible.' },
-  { q: 'What if the video does not have captions?', a: 'We fall back to transcription so you can still get a transcript, though timestamps may not be available in every case.' },
-  { q: 'Can I download the transcript as a subtitle file?', a: 'Yes. Download as .srt or .vtt for use in video editors, or .txt for plain text.' },
+  { q: 'What if the video does not have captions?', a: 'We generate a transcript from the video, so you get the full text even for videos without their own captions.' },
+  { q: 'Can I download the transcript?', a: 'Yes. Download the full transcript as a .txt file, or copy it straight to your clipboard.' },
   { q: 'Do I need to create an account?', a: 'No. No signup, no email, no registration required. Just paste a link and get your transcript.' },
   { q: 'Is my data stored?', a: 'No. Transcripts are generated on demand and not stored on our servers.' },
-  { q: 'How accurate is the transcript?', a: 'Accuracy depends on the source. Transcripts pulled from existing captions are highly accurate. Transcribed audio may contain occasional errors.' },
+  { q: 'How accurate is the transcript?', a: 'Transcripts are generally very accurate, though they may contain occasional errors on unclear audio, heavy accents, or specialized terms.' },
   { q: 'Can I edit the transcript?', a: 'The transcript is copied or downloaded as text, so you can edit it in any text editor or word processor after.' },
 ];
