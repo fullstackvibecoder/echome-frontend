@@ -1,24 +1,24 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free YouTube Transcript Generator — No Signup',
+  title: 'Free YouTube Transcript Generator, No Signup',
   description:
-    'Get the full transcript of any YouTube video for free. Plain text or timestamped, with .txt, .srt and .vtt download. No signup, no email, no account.',
+    'Get the full transcript of any YouTube video for free as clean, copy-ready text. Download it as a .txt file. No signup, no email, no account.',
   keywords: [
     'youtube transcript generator',
     'youtube transcript',
     'get youtube transcript',
     'youtube to text',
     'transcribe youtube video',
-    'youtube subtitles download',
+    'youtube transcript to text file',
     'youtube transcript no signup',
     'free youtube transcript online',
     'youtube captions to text',
-    'download youtube srt',
+    'copy youtube transcript',
   ],
   openGraph: {
-    title: 'Free YouTube Transcript Generator — No Signup',
-    description: 'Paste a YouTube link, get the transcript. Plain or timestamped, with txt, srt and vtt download.',
+    title: 'Free YouTube Transcript Generator, No Signup',
+    description: 'Paste a YouTube link, get the full transcript as clean, copy-ready text. Download as a .txt file.',
     url: 'https://tryechome.com/tools/transcribe',
     images: [{ url: '/media/echome-og.png', width: 1200, height: 630 }],
   },
