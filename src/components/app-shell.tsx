@@ -1,16 +1,17 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import Link from 'next/link';
 import { Sidebar } from './sidebar';
 import { MobileSidebar } from './mobile-sidebar';
 import { AppHeader } from './app-header';
-// import { GenerationBanner } from './generation-banner'; // Temporarily disabled — see JSX below
+// import { GenerationBanner } from './generation-banner'; // Temporarily disabled, see JSX below
 import { HelpWidget } from './help-widget';
 import { EchoPill } from '@/components/echo/EchoPill';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useEchoExperience } from '@/hooks/useEchoExperience';
+import { installConsoleBuffer } from '@/lib/console-buffer';
 
 interface AppShellProps {
   children: ReactNode;
@@ -20,6 +21,10 @@ export function AppShell({ children }: AppShellProps) {
   const { isMobileMenuOpen, closeMobileMenu } = useAppNavigation();
   const { subscription, loading: subLoading } = useSubscription();
   const echoOn = useEchoExperience();
+
+  useEffect(() => {
+    installConsoleBuffer();
+  }, []);
 
   // Show banner if subscription is canceled (not pending cancellation, actually ended)
   const showExpiredBanner = !subLoading
