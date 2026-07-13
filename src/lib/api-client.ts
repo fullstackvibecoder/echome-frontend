@@ -3384,6 +3384,7 @@ export const api = {
       text: string;
       rating?: number;
       pageContext?: string;
+      metadata?: Record<string, unknown>;
     }) => {
       const response = await apiClient.post('/help/feedback', data);
       return response.data as { success: boolean; data: { id: string } };

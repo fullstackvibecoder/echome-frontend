@@ -255,10 +255,24 @@ export default function FeedbackContent() {
                           <div className="text-muted-foreground whitespace-pre-wrap">{item.admin_notes}</div>
                         </div>
                       )}
-                      {Object.keys(item.metadata ?? {}).length > 0 && (
-                        <details className="text-xs">
-                          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Metadata</summary>
-                          <pre className="mt-2 p-2 bg-muted/40 rounded text-[11px] overflow-x-auto">{JSON.stringify(item.metadata, null, 2)}</pre>
+                      {item.metadata && Object.keys(item.metadata).length > 0 && (
+                        <details className="mt-2 text-xs text-muted-foreground">
+                          <summary className="cursor-pointer select-none">Diagnostics</summary>
+                          <div className="mt-1 space-y-1">
+                            {item.metadata.url != null && <div>URL: {String(item.metadata.url)}</div>}
+                            {item.metadata.viewport != null && (
+                              <div>Viewport: {JSON.stringify(item.metadata.viewport)}</div>
+                            )}
+                            {item.metadata.userAgent != null && <div>UA: {String(item.metadata.userAgent)}</div>}
+                            {Array.isArray(item.metadata.consoleErrors) && item.metadata.consoleErrors.length > 0 && (
+                              <ul className="list-disc pl-4">
+                                {item.metadata.consoleErrors.map((e: { message: string; at: string }, i: number) => (
+                                  <li key={i}><code>{e.message}</code></li>
+                                ))}
+                              </ul>
+                            )}
+                            <pre className="mt-2 p-2 bg-muted/40 rounded text-[11px] overflow-x-auto">{JSON.stringify(item.metadata, null, 2)}</pre>
+                          </div>
                         </details>
                       )}
 
