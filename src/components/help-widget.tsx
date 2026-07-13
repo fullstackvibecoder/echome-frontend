@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
+import { getRecentErrors } from '@/lib/console-buffer';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -149,10 +150,20 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
   const submitFeedback = async () => {
     if (!feedbackText.trim()) return;
     try {
+      const metadata =
+        feedbackCategory === 'bug' && typeof window !== 'undefined'
+          ? {
+              url: window.location.href,
+              viewport: { w: window.innerWidth, h: window.innerHeight },
+              userAgent: navigator.userAgent,
+              consoleErrors: getRecentErrors(),
+            }
+          : undefined;
       await api.help.submitFeedback({
         category: feedbackCategory,
         text: feedbackText.trim(),
         pageContext: typeof window !== 'undefined' ? window.location.pathname : undefined,
+        ...(metadata ? { metadata } : {}),
       });
       setFeedbackSent(true);
       setFeedbackText('');
