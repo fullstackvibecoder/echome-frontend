@@ -106,11 +106,24 @@ export function useEchoMic(
 
     streamRef.current = stream;
 
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-      ? 'audio/webm;codecs=opus'
-      : 'audio/webm';
+    // Safari supports neither audio/webm variant, so hardcoding it made
+    // `new MediaRecorder(...)` throw "mimeType not supported". Fall through
+    // a candidate list (webm/opus for Chrome/FF, mp4/aac for Safari) and let
+    // the browser pick its default if none match.
+    const mimeCandidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4;codecs=mp4a.40.2',
+      'audio/mp4',
+    ];
+    const mimeType =
+      typeof MediaRecorder !== 'undefined'
+        ? mimeCandidates.find((t) => MediaRecorder.isTypeSupported(t)) ?? ''
+        : '';
 
-    const mediaRecorder = new MediaRecorder(stream, { mimeType });
+    const mediaRecorder = mimeType
+      ? new MediaRecorder(stream, { mimeType })
+      : new MediaRecorder(stream);
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (e) => {
@@ -120,7 +133,10 @@ export function useEchoMic(
     mediaRecorder.onstop = async () => {
       cleanup();
 
-      const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      // Use the recorder's actual mime (Safari records mp4, not webm) so the
+      // backend/Whisper gets the right container.
+      const blobType = mediaRecorder.mimeType || mimeType || 'audio/webm';
+      const blob = new Blob(audioChunksRef.current, { type: blobType });
       audioChunksRef.current = [];
 
       setMicState('transcribing');
