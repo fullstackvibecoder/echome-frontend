@@ -101,7 +101,10 @@ export default function ContentKitDetailContent() {
   // Check if we're still waiting for carousel (Instagram content but no carousel yet)
   const hasInstagramContentCheck = detail?.contentKit?.contentInstagram;
   const hasCarouselCheck = detail?.carousel?.slides && detail.carousel.slides.length > 0;
-  const awaitingCarousel = hasInstagramContentCheck && !hasCarouselCheck;
+  // Don't keep awaiting (and opening SSE) once the backend reports the carousel
+  // definitively failed — only 'none'/'pending' are still in-flight.
+  const awaitingCarousel =
+    hasInstagramContentCheck && !hasCarouselCheck && (detail?.contentKit?.carouselStatus ?? 'none') !== 'failed';
 
   // Connect to SSE for:
   // 1. Processing state (content generation in progress)
