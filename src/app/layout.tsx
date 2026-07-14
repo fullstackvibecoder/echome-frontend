@@ -119,7 +119,13 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+      {/* suppressHydrationWarning: browser extensions (Grammarly, password
+          managers) inject attributes onto <body> before React hydrates,
+          producing a server/client attribute mismatch. App-side render above
+          the fold is deterministic (no dates, locale formatting, or storage
+          reads), so the only remaining mismatches are extension-injected.
+          Suppresses one level (body's own attrs) only, not children. */}
+      <body suppressHydrationWarning className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <OutageBanner />
         <RecoveryRedirectListener />
         <Providers>{children}</Providers>
