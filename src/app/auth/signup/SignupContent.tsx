@@ -42,6 +42,10 @@ function SignupForm() {
 
         // Carry the captured mode into user preferences post-signup.
         // Best-effort only: never blocks or delays the signup redirect.
+        // Safety: this fire-and-forget PATCH relies on signup() redirecting
+        // via router.push (client-side, no window.location hard redirect) so
+        // the request settles before unmount. If signup() ever hard-redirects,
+        // await this or move it server-side, or mode attribution is lost.
         const stored = readMode();
         if (stored && isModeActive(stored.mode)) {
           track('mode.signup', { mode: stored.mode, source: stored.source });

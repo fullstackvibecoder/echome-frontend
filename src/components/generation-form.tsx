@@ -1116,7 +1116,7 @@ export function GenerationForm({
       // only — suppress the written content kit so no content_kits row is
       // created at all for that run (clips live in their own table).
       // Organic/full_kit and article-mode video pastes are unaffected.
-      const clipModeActive = readMode()?.mode === 'clips' && isModeActive('clips');
+      const clipModeActive = readMode()?.mode === 'clips';
       const processResponse = await api.clips.process(upload.id, {
         generateContent: !clipModeActive, // Generate content kit as part of processing (skipped in clips mode)
         captionStyle, // Pass selected caption style
