@@ -1116,7 +1116,11 @@ export const api = {
     /** Transcribe audio only (returns text, no ingestion) */
     transcribeVoice: async (audioBlob: Blob) => {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      // Match the filename extension to the blob's container. Safari records
+      // audio/mp4, others audio/webm; a fixed .webm name would mislead the
+      // backend's extension fallback (FUL-26) for Safari clips.
+      const ext = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      formData.append('audio', audioBlob, `recording.${ext}`);
 
       const response = await apiClient.post('/kb/content/voice/transcribe', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
