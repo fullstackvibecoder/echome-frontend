@@ -8,6 +8,9 @@ import { Turnstile } from '@marsidev/react-turnstile';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, signupSchema } from '@/hooks/useAuthForm';
 import { OAuthButtons } from '@/components/oauth-buttons';
+import { readMode, captureModeFromParams, persistMode, isModeActive } from '@/lib/mode';
+import { track } from '@/lib/telemetry';
+import { api } from '@/lib/api-client';
 
 function SignupForm() {
   const { signup } = useAuth();
@@ -24,6 +27,11 @@ function SignupForm() {
     if (plan && ['echo', 'echo-studio', 'echo-pro', 'echo-teams-2', 'echo-teams-5', 'echo-teams-10'].includes(plan)) {
       sessionStorage.setItem('pendingPlan', plan);
     }
+
+    // Capture the output mode from the landing page URL (ad-sourced) and
+    // persist it so it survives the redirect through signup.
+    const captured = captureModeFromParams(searchParams);
+    if (captured) persistMode(captured.mode, captured.source);
   }, [searchParams]);
 
   const { errors, isLoading, generalError, handleSubmit, getPasswordStrength } =
@@ -31,6 +39,21 @@ function SignupForm() {
       schema: signupSchema,
       onSubmit: async (data) => {
         await signup(data.email, data.password, data.name, turnstileToken || undefined);
+
+        // Carry the captured mode into user preferences post-signup.
+        // Best-effort only: never blocks or delays the signup redirect.
+        const stored = readMode();
+        if (stored && isModeActive(stored.mode)) {
+          track('mode.signup', { mode: stored.mode, source: stored.source });
+          api.profile
+            .updatePreferences({
+              preferred_mode: stored.mode,
+              preferred_mode_source: stored.source,
+            })
+            .catch(() => {
+              // Non-fatal: preference write can fail without blocking onboarding.
+            });
+        }
       },
     });
 
