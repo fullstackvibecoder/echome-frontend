@@ -140,6 +140,8 @@ export interface GenerationRequest {
   // Carousel design options
   designPreset?: DesignPreset;
   carouselBackground?: BackgroundConfig;
+  generationMode?: 'clips' | 'article' | 'full_kit';
+  modeSource?: 'utm' | 'explicit' | 'default';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   results?: GeneratedContent[];
   voiceScore?: number;

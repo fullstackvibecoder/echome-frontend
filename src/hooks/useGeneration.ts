@@ -9,6 +9,8 @@ interface GenerationOptions {
   designPreset?: DesignPreset;
   carouselBackground?: BackgroundConfig;
   voiceId?: string;
+  generationMode?: 'clips' | 'article' | 'full_kit';
+  modeSource?: 'utm' | 'explicit' | 'default';
 }
 
 interface UseGenerationReturn {
@@ -66,6 +68,8 @@ export function useGeneration(): UseGenerationReturn {
           // Pass carousel design options
           designPreset: options?.designPreset,
           carouselBackground: options?.carouselBackground,
+          generationMode: options?.generationMode,
+          modeSource: options?.modeSource,
         });
 
         if (response.success && response.data) {
