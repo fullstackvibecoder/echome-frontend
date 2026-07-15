@@ -1112,8 +1112,13 @@ export function GenerationForm({
 
       // No carousel-style preselect at generation. Backend defaults to
       // branded-overlay; user can restyle from the kit detail page.
+      // Output Mode Split (Task 8): a clips-mode ad landing promises clips
+      // only — suppress the written content kit so no content_kits row is
+      // created at all for that run (clips live in their own table).
+      // Organic/full_kit and article-mode video pastes are unaffected.
+      const clipModeActive = readMode()?.mode === 'clips' && isModeActive('clips');
       const processResponse = await api.clips.process(upload.id, {
-        generateContent: true, // Generate content kit as part of processing
+        generateContent: !clipModeActive, // Generate content kit as part of processing (skipped in clips mode)
         captionStyle, // Pass selected caption style
         // Reel configuration
         reelTemplate: reelTemplate === 'auto' ? undefined : reelTemplate,
