@@ -509,6 +509,8 @@ export const api = {
           preset_id: data.carouselBackground.presetId,
           image_url: data.carouselBackground.imageUrl,
         } : undefined,
+        generation_mode: data.generationMode,
+        mode_source: data.modeSource,
       };
 
       const response = await apiClient.post<ApiResponse<GenerationRequest>>(

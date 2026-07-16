@@ -14,6 +14,7 @@ import { setActiveGeneration, useActiveGeneration } from './generation-banner';
 import { useGenerationProgress, isVideoStep } from '@/hooks/useGenerationProgress';
 import { showErrorToast } from '@/lib/toast';
 import { track } from '@/lib/telemetry';
+import { readMode, isModeActive, platformsForMode } from '@/lib/mode';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, X, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
 import UnifiedCreateInput from './UnifiedCreateInput';
@@ -551,7 +552,8 @@ interface FirstGenerationProps {
     platforms: Platform[],
     carouselBackground?: BackgroundConfig,
     carouselBackgroundFile?: File,
-    designPreset?: DesignPreset
+    designPreset?: DesignPreset,
+    modeOptions?: { generationMode?: 'clips' | 'article' | 'full_kit'; modeSource?: 'utm' | 'explicit' | 'default' }
   ) => void;
   onRepurpose?: (
     contentId: string,
@@ -622,6 +624,22 @@ export function GenerationForm({
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [videoDragActive, setVideoDragActive] = useState(false);
   const formCardRef = useRef<HTMLDivElement>(null);
+
+  // Output Mode Split: when an ad mode is active, restrict outputs to what the
+  // mode promised; otherwise fall back to the historic full set (unchanged).
+  const resolveGeneration = (): {
+    platforms: Platform[];
+    options: { generationMode?: 'clips' | 'article' | 'full_kit'; modeSource?: 'utm' | 'explicit' | 'default' };
+  } => {
+    const stored = readMode();
+    if (stored && isModeActive(stored.mode)) {
+      return {
+        platforms: platformsForMode(stored.mode),
+        options: { generationMode: stored.mode, modeSource: stored.source },
+      };
+    }
+    return { platforms: ALL_PLATFORMS, options: {} };
+  };
 
   // Video snapshot state (used for clip finder)
   const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
@@ -1094,8 +1112,13 @@ export function GenerationForm({
 
       // No carousel-style preselect at generation. Backend defaults to
       // branded-overlay; user can restyle from the kit detail page.
+      // Output Mode Split (Task 8): a clips-mode ad landing promises clips
+      // only — suppress the written content kit so no content_kits row is
+      // created at all for that run (clips live in their own table).
+      // Organic/full_kit and article-mode video pastes are unaffected.
+      const clipModeActive = readMode()?.mode === 'clips';
       const processResponse = await api.clips.process(upload.id, {
-        generateContent: true, // Generate content kit as part of processing
+        generateContent: !clipModeActive, // Generate content kit as part of processing (skipped in clips mode)
         captionStyle, // Pass selected caption style
         // Reel configuration
         reelTemplate: reelTemplate === 'auto' ? undefined : reelTemplate,
@@ -1428,7 +1451,9 @@ export function GenerationForm({
     // For text input
     if (inputType === 'text') {
       if (!input.trim()) return;
-      onGenerate(input, inputType as InputType, ALL_PLATFORMS, undefined, undefined, 'tweet-style');
+      const { platforms, options } = resolveGeneration();
+      track('mode.first_output', { mode: options.generationMode ?? 'full_kit' });
+      onGenerate(input, inputType as InputType, platforms, undefined, undefined, 'tweet-style', options);
       return;
     }
 
@@ -1513,7 +1538,9 @@ export function GenerationForm({
 
     // Plain text — generate content
     setInput(trimmed);
-    onGenerate(trimmed, 'text' as InputType, ALL_PLATFORMS, undefined, undefined, 'tweet-style');
+    const { platforms, options } = resolveGeneration();
+    track('mode.first_output', { mode: options.generationMode ?? 'full_kit' });
+    onGenerate(trimmed, 'text' as InputType, platforms, undefined, undefined, 'tweet-style', options);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -1626,7 +1653,9 @@ export function GenerationForm({
           onTranscribed={(text) => {
             setInput(text);
             setInputType('text');
-            onGenerate(text, 'text' as InputType, ALL_PLATFORMS, undefined, undefined, 'tweet-style');
+            const { platforms, options } = resolveGeneration();
+            track('mode.first_output', { mode: options.generationMode ?? 'full_kit' });
+            onGenerate(text, 'text' as InputType, platforms, undefined, undefined, 'tweet-style', options);
           }}
           disabled={generating || uploading}
         />

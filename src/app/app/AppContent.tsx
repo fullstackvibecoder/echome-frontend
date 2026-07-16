@@ -177,7 +177,8 @@ export default function AppContent() {
     platforms: Platform[],
     carouselBackground?: BackgroundConfig,
     carouselBackgroundFile?: File,
-    designPreset?: DesignPreset
+    designPreset?: DesignPreset,
+    modeOptions?: { generationMode?: 'clips' | 'article' | 'full_kit'; modeSource?: 'utm' | 'explicit' | 'default' }
   ) => {
     // Track if we should expect a carousel from the backend
     const hasInstagram = platforms.includes('instagram');
@@ -210,6 +211,8 @@ export default function AppContent() {
       designPreset,
       carouselBackground: finalCarouselBackground,
       voiceId: isTeamsUser ? activeVoice?.id : undefined,
+      generationMode: modeOptions?.generationMode,
+      modeSource: modeOptions?.modeSource,
     });
 
     // Redirect to content kit detail page for proper progress UI
