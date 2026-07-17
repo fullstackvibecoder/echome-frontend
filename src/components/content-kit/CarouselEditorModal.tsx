@@ -157,6 +157,7 @@ export default function CarouselEditorModal({
   // can trigger it without forward-reference ordering issues.
   const editsRef = useRef<SlideEdit[]>([]);
   const scheduleRebakeRef = useRef<() => void>(() => {});
+  const applyPhotoToAllRef = useRef<(photoUrl?: string) => void>(() => {});
   const rebakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rebakeInFlight = useRef(false);
   const rebakeDirty = useRef(false);
@@ -509,8 +510,27 @@ export default function CarouselEditorModal({
       );
       // Bake the applied photo into the server PNG now, not just at export.
       scheduleRebakeRef.current();
+      // The picker only appears on cover/last slides, so a user who wants one
+      // photo across the whole carousel would otherwise have to discover the
+      // "Apply to all" button on their own (FUL-29). Prompt them the moment a
+      // photo is picked while other slides still show a different background.
+      // Fixed toast id dedupes the cover+last picks into one prompt.
+      const otherSlideLacksPhoto = slides.some((s, i) => {
+        if (i === slideIndex) return false;
+        const effectiveBg = editsRef.current[i]?.backgroundImageUrl ?? s.backgroundImageUrl;
+        return effectiveBg !== photoUrl;
+      });
+      if (slides.length > 1 && otherSlideLacksPhoto) {
+        toast(`Apply this photo to all ${slides.length} slides?`, {
+          id: 'carousel-apply-photo-all',
+          action: {
+            label: 'Apply to all',
+            onClick: () => applyPhotoToAllRef.current(photoUrl),
+          },
+        });
+      }
     },
-    [],
+    [slides],
   );
 
   /**
@@ -519,13 +539,23 @@ export default function CarouselEditorModal({
    * stays readable. Same local-state-only mechanics as handlePhotoSelect:
    * the per-slide overrides are baked in at Download / Post / Schedule.
    */
-  const handleApplyPhotoToAll = useCallback(() => {
-    const photoUrl =
-      edits[activeIndex]?.backgroundImageUrl ?? slides[activeIndex]?.backgroundImageUrl;
-    if (!photoUrl) return;
-    setEdits((prev) => prev.map((e) => ({ ...e, backgroundImageUrl: photoUrl })));
-    scheduleRebakeRef.current();
-  }, [activeIndex, edits, slides]);
+  const handleApplyPhotoToAll = useCallback(
+    (photoUrl?: string) => {
+      const url =
+        photoUrl ?? edits[activeIndex]?.backgroundImageUrl ?? slides[activeIndex]?.backgroundImageUrl;
+      if (!url) return;
+      setEdits((prev) => prev.map((e) => ({ ...e, backgroundImageUrl: url })));
+      scheduleRebakeRef.current();
+    },
+    [activeIndex, edits, slides],
+  );
+
+  // Expose the latest apply-to-all through a ref so the photo-pick prompt
+  // toast (whose callback captures a stale activeIndex) always applies the
+  // photo it was raised for.
+  useEffect(() => {
+    applyPhotoToAllRef.current = handleApplyPhotoToAll;
+  }, [handleApplyPhotoToAll]);
 
   /**
    * Client-side preview render. Mirrors the backend canvas pipeline so
@@ -1072,8 +1102,8 @@ export default function CarouselEditorModal({
                   slides.length > 1 && (
                     <button
                       type="button"
-                      onClick={handleApplyPhotoToAll}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:bg-card transition-colors"
+                      onClick={() => handleApplyPhotoToAll()}
+                      className="w-full rounded-lg bg-primary-interactive px-3 py-2 text-xs font-semibold text-white hover:bg-primary-interactive/90 transition-colors"
                     >
                       Apply this photo to all {slides.length} slides
                     </button>
