@@ -265,7 +265,7 @@ export default function ReviewContent() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center" translate="no">
         <Loader2 className="w-6 h-6 animate-spin text-accent" />
       </div>
     );
@@ -286,7 +286,7 @@ export default function ReviewContent() {
 
   if (showIdentityModal) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background" translate="no">
         <IsThisYouModal
           candidates={profile.ambiguous_candidates ?? []}
           onResolve={handleResolveIdentity}
@@ -295,8 +295,12 @@ export default function ReviewContent() {
     );
   }
 
+  // translate="no" is the W3C-standard signal that prevents browser
+  // translate engines from mutating this subtree — protects React
+  // reconciliation from the DOM swaps that produced ECHO-ME-FRONTEND-30.
+  // Belt-and-suspenders with the notranslate meta in page.tsx.
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col" translate="no">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 flex-shrink-0">
         <span className="text-lg font-bold text-accent">EchoMe</span>
