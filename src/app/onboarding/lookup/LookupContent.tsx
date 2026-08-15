@@ -144,8 +144,12 @@ export default function LookupContent() {
     router.push('/app');
   }, [router]);
 
+  // translate="no" is the W3C-standard signal that prevents browser
+  // translate engines from mutating this subtree — protects React
+  // reconciliation from the DOM swaps that produced ECHO-ME-FRONTEND-30.
+  // Belt-and-suspenders with the notranslate meta in page.tsx.
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col" translate="no">
       {/* Header — minimal, mirrors onboarding shell */}
       <div className="flex items-center justify-between px-6 py-4 flex-shrink-0">
         <span className="text-lg font-bold text-accent">EchoMe</span>

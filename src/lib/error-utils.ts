@@ -84,14 +84,33 @@ export function extractError(err: unknown, fallback = 'Something went wrong. Ple
     if (data?.error && typeof data.error === 'object' && data.error.message) {
       result.message = sanitize(data.error.message);
       result.code = data.error.code || null;
+
+      // Validation envelopes carry the actionable part in a details array,
+      // either nested (error.details = raw zod issues with `path`) or
+      // top-level next to the error object ({ field, message } entries).
+      // Without surfacing it the user just sees "Validation failed" with no
+      // hint of which field to fix.
+      const details = Array.isArray(data.error.details)
+        ? data.error.details
+        : Array.isArray(data.details)
+          ? data.details
+          : null;
+      const first = details?.[0];
+      if (first?.message) {
+        const field =
+          first.field || (Array.isArray(first.path) ? first.path.join('.') : null);
+        result.message = sanitize(
+          field
+            ? `${data.error.message}: ${field}: ${first.message}`
+            : `${data.error.message}: ${first.message}`
+        );
+      }
     }
-    // Format 2: { error: "string" }
+    // Formats 2+3: { error: "string" }, optionally with details: [...].
+    // These were separate branches, but the string check matched first so
+    // the details branch was unreachable and validation detail never showed.
     else if (data?.error && typeof data.error === 'string') {
-      result.message = sanitize(data.error);
-    }
-    // Format 3: { error: "msg", details: [...] }
-    else if (data?.error && data?.details && Array.isArray(data.details)) {
-      const detail = data.details[0];
+      const detail = Array.isArray(data.details) ? data.details[0] : null;
       result.message = detail?.message
         ? sanitize(`${data.error}: ${detail.message}`)
         : sanitize(data.error);

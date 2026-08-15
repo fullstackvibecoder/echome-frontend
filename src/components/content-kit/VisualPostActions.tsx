@@ -21,6 +21,7 @@ import { api } from '@/lib/api-client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { captionlessPlatforms, formatPlatformList } from '@/lib/caption-guard';
 import { Loader2, Send, CalendarClock, Sparkles } from 'lucide-react';
 import { PlatformMultiPicker, type PlatformId } from '@/components/scheduling/PlatformMultiPicker';
 
@@ -172,6 +173,14 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
       return;
     }
 
+    // Mirror the backend CAPTION_REQUIRED guard: Outstand rejects empty
+    // captions, so block before the request and tell the user what to fix.
+    const missingNow = captionlessPlatforms(apiRows, caption);
+    if (missingNow.length > 0) {
+      toast.error(`Add a caption before posting to ${formatPlatformList(missingNow)}.`);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const fanoutResp = await api.socialPosting.scheduleFanout({
@@ -231,6 +240,12 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
 
       let scheduleFailures: Array<{ platform: string; error: string }> = [];
       if (canAutoPost && apiRows.length > 0) {
+        const missingSched = captionlessPlatforms(apiRows, caption);
+        if (missingSched.length > 0) {
+          // The finally block clears the submitting flag.
+          toast.error(`Add a caption before scheduling to ${formatPlatformList(missingSched)}.`);
+          return;
+        }
         const fanoutResp = await api.socialPosting.scheduleFanout({
           content_kit_id: contentKitId,
           source_output_id: sourceOutputId,
