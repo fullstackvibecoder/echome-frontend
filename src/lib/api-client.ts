@@ -1089,6 +1089,23 @@ export const api = {
       return response.data;
     },
 
+    /** Bulk link paste (FUL-34): video links queue background transcript
+     *  ingest, everything else is scraped as an article. Responds 202 with an
+     *  accepted/rejected report; ingest itself runs server-side in the
+     *  background. Route is /content/links/batch inside the /kb/content
+     *  mount, hence the doubled segment. */
+    ingestLinkBatch: async (data: { urls: string[]; knowledgeBaseId?: string }) => {
+      const response = await apiClient.post('/kb/content/content/links/batch', data);
+      return response.data as {
+        success: boolean;
+        accepted: {
+          videos: Array<{ url: string; uploadId: string; alreadyExisted: boolean }>;
+          articles: string[];
+        };
+        rejected: Array<{ url: string; reason: string }>;
+      };
+    },
+
     pasteBulk: async (data: {
       items: Array<{
         text: string;
