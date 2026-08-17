@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { extractBulkLinks } from '@/lib/link-batch';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { validateFile, isMboxFile, isAudioFile } from '@/lib/file-utils';
 import { parseMboxFile } from '@/lib/mbox-parser';
@@ -327,10 +328,55 @@ export function KBUnifiedInput({ knowledgeBaseId, onImportComplete }: KBUnifiedI
     }
   };
 
+  // --- Bulk link batch (two or more URLs pasted at once) ---
+  const submitLinkBatch = async (urls: string[]) => {
+    if (!knowledgeBaseId) {
+      toast.error('No knowledge base selected');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await api.kbContent.ingestLinkBatch({ urls, knowledgeBaseId });
+
+      const videoCount = result.accepted.videos.length;
+      const articleCount = result.accepted.articles.length;
+      const parts: string[] = [];
+      if (videoCount > 0) parts.push(`${videoCount} video${videoCount === 1 ? '' : 's'}`);
+      if (articleCount > 0) parts.push(`${articleCount} article${articleCount === 1 ? '' : 's'}`);
+      if (parts.length > 0) {
+        toast.success(`Queued ${parts.join(' and ')} for import. They will appear here as they finish.`);
+      }
+
+      if (result.rejected.length > 0) {
+        const n = result.rejected.length;
+        toast.info(`${n} link${n === 1 ? '' : 's'} skipped: ${result.rejected[0].reason}`);
+      }
+
+      setText('');
+      setPlatformHint(null);
+      onImportComplete();
+    } catch (err) {
+      // Keep the pasted links in the textarea so a failed batch can be retried.
+      toast.error(extractErrorMessage(err, 'Failed to import links. Please try again.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // --- Submit handler ---
   const handleSubmit = async () => {
     const trimmed = text.trim();
     if (!trimmed) return;
+
+    // Multiple URLs and nothing else: one batch call instead of the
+    // single-URL polling flow. Must run before isUrl, which would match the
+    // leading URL of a multi-link paste.
+    const bulkLinks = extractBulkLinks(trimmed);
+    if (bulkLinks) {
+      await submitLinkBatch(bulkLinks);
+      return;
+    }
 
     if (isUrl(trimmed)) {
       await startUrlImport(trimmed);
