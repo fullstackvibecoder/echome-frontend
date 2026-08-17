@@ -16,6 +16,12 @@ import CarouselFilmstrip from './CarouselFilmstrip';
 import { CarouselStyleEditor } from './CarouselStyleEditor';
 import { DraggableTextOverlay } from './DraggableTextOverlay';
 import { PhotoPicker } from './PhotoPicker';
+import {
+  CANNOT_RECOMPOSE,
+  canRebake,
+  canShowPhotoPicker,
+  isPhotoRestyleTemplate,
+} from './carousel-editor-rules';
 import { RedWordPicker } from './RedWordPicker';
 import { PostCaptionBlock } from './PostCaptionBlock';
 import { VisualPostActions } from './VisualPostActions';
@@ -107,14 +113,9 @@ const TEMPLATE_TEXT_STYLES: Record<string, {
   },
 };
 
-/**
- * Templates rendered single-pass (text burned into the slide image — no
- * separate background layer). For these, the live preview can't reflect
- * text edits because there's no overlay to draw the new text on; the only
- * way to refresh the preview is a server-side re-render. Mirrors the
- * backend's cf63c01 fix ("single-pass for tweet-style, two-phase for others").
- */
-const SINGLE_PASS_TEMPLATES = new Set(['tweet-style']);
+// CANNOT_RECOMPOSE / picker / rebake eligibility live in
+// carousel-editor-rules.ts so they're unit-testable without mounting
+// this modal.
 
 export default function CarouselEditorModal({
   open,
@@ -232,15 +233,6 @@ export default function CarouselEditorModal({
   }
 
   const hasBackground = slides.some(s => !!s.backgroundUrl);
-  // Auto-rebake eligibility. composeOnly re-renders branded-overlay / quote-card
-  // / stats-card server-side (runComposeOnlyRefresh docstring), so ANY composable
-  // (non-single-pass) carousel can refresh its preview on edit — NOT just the
-  // rare legacy "prepare-editing" carousels that carry a split backgroundUrl.
-  // tweet-style is the only true single-pass template; it keeps the manual
-  // "Refresh preview" banner instead. Gating on hasBackground here silently
-  // skipped fresh branded-overlay carousels (the surface in the carousel-edit
-  // bug report), so edits never re-baked the filmstrip/export.
-  const canRebake = slides.some(s => !SINGLE_PASS_TEMPLATES.has(s.template || ''));
   // hasEdits drives whether the download flow flushes overrides to the
   // backend re-render path. Must detect ANY editable change — text,
   // structured fields, position, photo, redKeyword — otherwise stale
@@ -460,10 +452,20 @@ export default function CarouselEditorModal({
       rebakeDirty.current = true;
       return;
     }
+    // Eligibility is checked at FIRE time, not schedule time:
+    // handlePhotoSelect calls scheduleRebake synchronously after setEdits,
+    // so a schedule-time check would read pre-photo state and skip the very
+    // first photo picked on an all-tweet-style carousel. By the debounce
+    // deadline editsRef has settled and the photo override unlocks the
+    // server-side restyle rebake (legacy → branded-overlay). Text-only edits
+    // on single-pass carousels still no-op here and keep the manual
+    // "Refresh preview" banner.
+    const overrides = buildOverrides();
+    if (!canRebake(slides, overrides)) return;
     rebakeInFlight.current = true;
     setRebaking(true);
     try {
-      await runComposeOnlyRefresh(buildOverrides());
+      await runComposeOnlyRefresh(overrides);
     } catch (err) {
       console.error('Failed to refresh carousel preview', err);
     } finally {
@@ -474,21 +476,19 @@ export default function CarouselEditorModal({
         scheduleRebakeRef.current();
       }
     }
-  }, [buildOverrides, runComposeOnlyRefresh]);
+  }, [slides, buildOverrides, runComposeOnlyRefresh]);
 
-  // Debounced trigger for the server re-bake of slide.publicUrl. Single-pass
-  // templates (tweet-style) bake text into the cached background PNG and can't
-  // be recomposed without the full pipeline, so they keep their manual
-  // "Refresh preview" banner — canRebake gates them out. Composable templates
-  // (branded-overlay / quote-card / stats-card) re-bake here. 1000ms cadence
-  // sits above the 600ms structured PATCH so the jsonb persists first.
+  // Debounced trigger for the server re-bake of slide.publicUrl. Always
+  // schedules; runRebake decides eligibility at fire time (canRebake in
+  // carousel-editor-rules.ts) so a just-picked photo override is visible to
+  // the check. 1000ms cadence sits above the 600ms structured PATCH so the
+  // jsonb persists first.
   const scheduleRebake = useCallback(() => {
-    if (!canRebake) return;
     if (rebakeTimer.current) clearTimeout(rebakeTimer.current);
     rebakeTimer.current = setTimeout(() => {
       void runRebake();
     }, 1000);
-  }, [canRebake, runRebake]);
+  }, [runRebake]);
 
   // Expose the latest scheduleRebake through a ref so the edit handlers
   // defined above (handleStructuredFieldChange) can fire it without a
@@ -1023,7 +1023,7 @@ export default function CarouselEditorModal({
                   real time. Surface the constraint + a manual refresh path
                   so the user isn't left wondering why their edit isn't
                   showing on the card. */}
-              {SINGLE_PASS_TEMPLATES.has(activeSlide.template || '') &&
+              {CANNOT_RECOMPOSE.has(activeSlide.template || '') &&
                 (activeEdit.text.trim() !== (activeSlide.text || '').trim() ||
                   // Structured edits (headline/body) must ALSO surface the
                   // refresh banner — they're the primary edit path for
@@ -1076,10 +1076,12 @@ export default function CarouselEditorModal({
                 the tour copy in tours/carousel-editor.tsx), but they CAN
                 receive the photo via "Apply to all slides" — the body
                 renderer draws it with a heavier overlay. Legacy templates
-                (tweet-style, text-box, photo-overlay) don't render the
-                photo themselves, so the picker is hidden for those too. */}
-            {(activeSlide.template === 'branded-overlay-cover' ||
-              activeSlide.template === 'branded-overlay-last') && (
+                (tweet-style, text-box, photo-overlay) also get the picker on
+                first/last slides: the backend promotes the whole carousel to
+                branded-overlay when a photo override lands
+                (compose-template-remap.ts), so the photo now HAS a render
+                path — picking one restyles the carousel. */}
+            {canShowPhotoPicker(activeSlide.template, activeIndex, slides.length) && (
               <div data-tour="carousel-editor-photo" className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">Background photo</h4>
@@ -1090,6 +1092,11 @@ export default function CarouselEditorModal({
                 <p className="text-xs text-text-tertiary">
                   Click a photo to swap it on slide {activeSlide.slideNumber}.
                 </p>
+                {isPhotoRestyleTemplate(activeSlide.template) && (
+                  <p className="text-xs text-text-tertiary">
+                    Adding a photo switches this carousel to the photo-friendly layout.
+                  </p>
+                )}
                 <PhotoPicker
                   kitId={contentKitId}
                   uploadId={uploadId}
