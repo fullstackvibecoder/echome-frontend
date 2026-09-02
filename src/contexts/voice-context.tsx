@@ -10,8 +10,22 @@ interface VoiceContextType {
   activeVoice: TeamVoice | null;
   /** All voices for this user */
   voices: TeamVoice[];
-  /** Whether the user is on a teams tier */
+  /**
+   * Whether multi-voice UI should be shown.
+   *
+   * True when the user is on a teams tier OR already owns more than one
+   * voice. Ownership matters independently of tier: legacy and comped
+   * accounts can hold voices granted under a plan they have since left,
+   * and gating purely on tier hid those voices completely — the switcher
+   * never rendered and generation silently wrote `voice_id = null`.
+   */
   isTeamsUser: boolean;
+  /**
+   * Whether the user's *tier* grants multi-voice. Use this for anything
+   * that should follow the plan rather than what the user happens to own:
+   * upgrade prompts, and creating additional voices.
+   */
+  isTeamsTier: boolean;
   /** Loading state */
   loading: boolean;
   /** Maximum number of voices allowed for this tier */
@@ -37,12 +51,18 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [voiceCount, setVoiceCount] = useState(0);
   const hasAttemptedFallbackRef = useRef(false);
 
-  const isTeamsUser = (isSubscribed || isTrial) && (
+  const isTeamsTier = (isSubscribed || isTrial) && (
     tier === 'teams_2' ||
     tier === 'teams_5' ||
     tier === 'teams_10' ||
     tier === 'echo_teams'
   );
+
+  // Ownership is an independent grant. The backend agrees: read and switch
+  // access to /api/team-voices is allowed on tier OR on owning >1 voice,
+  // while creating a voice stays tier-gated.
+  const ownsMultipleVoices = voices.length > 1;
+  const isTeamsUser = isTeamsTier || ownsMultipleVoices;
 
   // Tier-based fallback limits (used when /limits endpoint isn't available).
   // For echo_teams the real limit is in users.voice_count and comes back from
@@ -51,12 +71,9 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const tierLimits: Record<string, number> = { teams_2: 2, teams_5: 5, teams_10: 10, echo_teams: 2 };
 
   const fetchLimits = useCallback(async () => {
-    if (!isTeamsUser) {
-      setVoiceLimit(0);
-      setVoiceCount(0);
-      return;
-    }
-
+    // Always ask. The endpoint is ownership-aware, so a non-teams user who
+    // owns several voices gets a real limit back; a single-voice user is
+    // refused and falls through to the tier default below.
     try {
       const response = await api.teamVoices.getLimits();
       if (response.success && response.data) {
@@ -65,14 +82,15 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         return;
       }
     } catch {
-      // Endpoint may not be deployed yet - use tier-based fallback
+      // Not entitled, or endpoint not deployed - use the fallback below.
     }
 
-    // Fallback: derive limit from tier, count from local voices state
-    if (tier) {
-      setVoiceLimit(tierLimits[tier] || 0);
-    }
-  }, [isTeamsUser, tier]);
+    // Fallback: derive limit from tier, count from local voices state.
+    // Floor at what the user owns so voices granted outside the current
+    // tier never render as over-quota.
+    const tierLimit = tier ? tierLimits[tier] || 0 : 0;
+    setVoiceLimit(Math.max(tierLimit, voices.length));
+  }, [tier, voices.length]);
 
   const setActiveFromList = useCallback((voiceList: TeamVoice[]) => {
     const savedVoiceId = localStorage.getItem(ACTIVE_VOICE_KEY);
@@ -90,12 +108,10 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchVoices = useCallback(async () => {
-    if (!isTeamsUser) {
-      setVoices([]);
-      setActiveVoice(null);
-      return;
-    }
-
+    // Fetch unconditionally. Ownership can only be discovered by asking,
+    // and gating the fetch on tier was what made a user's own voices
+    // unreachable. The backend refuses callers with nothing to switch
+    // between, which lands in the catch below and leaves state empty.
     try {
       setLoading(true);
       const response = await api.teamVoices.list();
@@ -119,8 +135,11 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Still 0 voices after retry - create default voice from user's profile
-        if (!hasAttemptedFallbackRef.current) {
+        // Still 0 voices after retry - create default voice from user's
+        // profile. Teams tier only: creating a voice is a tier entitlement,
+        // and now that every user reaches this code path, an unguarded
+        // create would mint a team voice for the whole user base.
+        if (isTeamsTier && !hasAttemptedFallbackRef.current) {
           hasAttemptedFallbackRef.current = true;
           try {
             // Try the profile-based endpoint first (pulls KB, profile context, etc.)
@@ -163,31 +182,48 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         // Without this toast, AppContent.tsx:296 falls back to
         // `voiceId: undefined` and the user silently generates with their
         // default voice instead of their team voice. They'd never know.
-        console.error('Team voice fetch + fallback chain exhausted');
-        toast.error("Couldn't load your team voice", {
-          description: 'Generation will fall back to your default voice. Refresh to try again.',
-          duration: 8000,
-        });
+        // Only a teams-tier user is missing something here. For everyone
+        // else an empty list is the normal, expected answer.
+        if (isTeamsTier) {
+          console.error('Team voice fetch + fallback chain exhausted');
+          toast.error("Couldn't load your team voice", {
+            description: 'Generation will fall back to your default voice. Refresh to try again.',
+            duration: 8000,
+          });
+        }
         setVoices([]);
         setActiveVoice(null);
       }
     } catch (error) {
-      // Outer throw — also surface so the user has the same chance to retry.
-      console.error('Failed to fetch team voices:', error);
-      toast.error("Couldn't load your team voice", {
-        description: 'Generation will fall back to your default voice. Refresh to try again.',
-        duration: 8000,
-      });
+      // A non-entitled caller gets a 403 here, which is the expected answer
+      // rather than a failure. Only surface the retry prompt to users who
+      // were supposed to have voices.
+      if (isTeamsTier) {
+        console.error('Failed to fetch team voices:', error);
+        toast.error("Couldn't load your team voice", {
+          description: 'Generation will fall back to your default voice. Refresh to try again.',
+          duration: 8000,
+        });
+      }
+      setVoices([]);
+      setActiveVoice(null);
     } finally {
       setLoading(false);
     }
-  }, [isTeamsUser, setActiveFromList]);
+  }, [isTeamsTier, setActiveFromList]);
 
-  // Fetch voices and limits when teams status changes
+  // Fetch voices when entitlement inputs change.
   useEffect(() => {
     fetchVoices();
+  }, [fetchVoices]);
+
+  // Limits are fetched separately: fetchLimits depends on how many voices
+  // are loaded (it floors the fallback limit at the owned count), so pairing
+  // it with fetchVoices in one effect would re-fire the voice fetch every
+  // time the voice list changed.
+  useEffect(() => {
     fetchLimits();
-  }, [fetchVoices, fetchLimits]);
+  }, [fetchLimits]);
 
   // Keep voiceCount in sync with local voices array
   useEffect(() => {
@@ -213,6 +249,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         activeVoice,
         voices,
         isTeamsUser,
+        isTeamsTier,
         loading,
         voiceLimit,
         voiceCount,
