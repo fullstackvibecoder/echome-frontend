@@ -850,6 +850,7 @@ export interface GeneratedImage {
   prompt: string;
   style: string;
   aspectRatio: string;
+  altText?: string;
 }
 
 export interface CarouselSlide {

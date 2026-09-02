@@ -80,7 +80,7 @@ export function BlogHeaderPreview({
       >
         <img
           src={image.publicUrl}
-          alt="Generated blog header"
+          alt={image.altText || 'Generated blog header'}
           className="w-full h-full object-cover"
         />
 
@@ -138,7 +138,7 @@ export function BlogHeaderPreview({
 
           <img
             src={image.publicUrl}
-            alt="Generated blog header (fullscreen)"
+            alt={image.altText ? `${image.altText} (fullscreen)` : 'Generated blog header (fullscreen)'}
             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
