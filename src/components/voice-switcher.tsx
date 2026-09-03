@@ -6,7 +6,11 @@ import { ChevronDown, Check, Mic } from 'lucide-react';
 import Link from 'next/link';
 
 export function VoiceSwitcher() {
-  const { activeVoice, voices, isTeamsUser, loading, voiceCount, voiceLimit, switchVoice } = useVoiceContext();
+  const { activeVoice, voices, isTeamsUser, isTeamsTier, loading, voiceCount, voiceLimit, switchVoice } = useVoiceContext();
+  // Ownership-granted users sit at their floored limit permanently, so the
+  // "limit reached" warning is noise for them. Only flag it where buying more
+  // seats is actually possible. See TeamVoicesContent showUpgradeCta.
+  const atPurchasableLimit = isTeamsTier && voiceLimit > 0 && voiceCount >= voiceLimit;
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -61,8 +65,8 @@ export function VoiceSwitcher() {
           <p className="text-sm font-medium text-foreground truncate">
             {activeVoice?.name || 'Select Voice'}
           </p>
-          <p className={`text-xs ${voiceLimit > 0 && voiceCount >= voiceLimit ? 'text-amber-500 font-medium' : 'text-muted-foreground'}`}>
-            {voiceCount} of {voiceLimit || voices.length} voice{(voiceLimit || voices.length) !== 1 ? 's' : ''}{voiceLimit > 0 && voiceCount >= voiceLimit ? ' (limit reached)' : ''}
+          <p className={`text-xs ${atPurchasableLimit ? 'text-amber-500 font-medium' : 'text-muted-foreground'}`}>
+            {voiceCount} of {voiceLimit || voices.length} voice{(voiceLimit || voices.length) !== 1 ? 's' : ''}{atPurchasableLimit ? ' (limit reached)' : ''}
           </p>
         </div>
 

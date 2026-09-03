@@ -59,7 +59,7 @@ function timeAgo(dateStr: string): string {
 
 export default function TeamVoicesContent() {
   const searchParams = useSearchParams();
-  const { voices, isTeamsUser, loading: voiceLoading, refreshVoices, voiceCount, voiceLimit } = useVoiceContext();
+  const { voices, isTeamsUser, isTeamsTier, loading: voiceLoading, refreshVoices, voiceCount, voiceLimit } = useVoiceContext();
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -126,6 +126,12 @@ export default function TeamVoicesContent() {
   }, []);
 
   const isAtLimit = voiceLimit > 0 && voiceCount >= voiceLimit;
+  // Being at capacity is a data fact; being worth an upsell is a commercial one.
+  // Ownership-granted users (legacy plans, comped accounts, manual grants) sit at
+  // their floored limit permanently, so an "upgrade" CTA there is both useless and
+  // wrong -- some of them are comped 100%. Only teams-tier users can actually buy
+  // more seats, so only they see the upsell. Creation stays gated for everyone.
+  const showUpgradeCta = isAtLimit && isTeamsTier;
 
   const openCreateModal = () => {
     setEditingVoice(null);
@@ -349,7 +355,7 @@ export default function TeamVoicesContent() {
         description="Manage multiple voice profiles for your team"
         stats={
           voiceLimit > 0 ? (
-            <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${isAtLimit ? 'text-amber-600 bg-amber-500/10' : 'text-muted-foreground bg-muted'}`}>
+            <span className={`text-sm font-medium px-2.5 py-1 rounded-full ${showUpgradeCta ? 'text-amber-600 bg-amber-500/10' : 'text-muted-foreground bg-muted'}`}>
               {voiceCount} of {voiceLimit}
             </span>
           ) : undefined
@@ -364,7 +370,7 @@ export default function TeamVoicesContent() {
               <Plus className="w-4 h-4" />
               Add Voice
             </button>
-            {isAtLimit && (
+            {showUpgradeCta && (
               <a href="/app/billing" className="text-xs text-amber-600 hover:underline">
                 Upgrade for more voices
               </a>
@@ -426,7 +432,7 @@ export default function TeamVoicesContent() {
             <Plus className="w-4 h-4" />
             Create Voice
           </button>
-          {isAtLimit && (
+          {showUpgradeCta && (
             <p className="text-sm text-amber-600 mt-2">
               Voice limit reached. <a href="/app/billing" className="underline hover:no-underline">Upgrade</a> for more.
             </p>
