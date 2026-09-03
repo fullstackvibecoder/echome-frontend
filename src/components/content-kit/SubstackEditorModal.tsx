@@ -114,8 +114,12 @@ export default function SubstackEditorModal({
     }
   };
 
+  const markdownWithHeaderImage = headerImage
+    ? `![${headerImage.altText || 'Article header'}](${headerImage.publicUrl})\n\n${fullMarkdown}`
+    : fullMarkdown;
+
   const handleCopyRichText = async () => {
-    const success = await copyAsRichText(fullMarkdown);
+    const success = await copyAsRichText(markdownWithHeaderImage);
     if (success) {
       setRichCopied(true);
       setTimeout(() => setRichCopied(false), 2000);
@@ -123,7 +127,7 @@ export default function SubstackEditorModal({
   };
 
   const handleCopyPlainText = async () => {
-    const success = await copyAsPlainText(fullMarkdown);
+    const success = await copyAsPlainText(markdownWithHeaderImage);
     if (success) {
       setPlainCopied(true);
       setTimeout(() => setPlainCopied(false), 2000);
@@ -242,7 +246,7 @@ export default function SubstackEditorModal({
             <div className="space-y-2">
               {headerImage ? (
                 <div className="relative rounded-lg overflow-hidden border border-border">
-                  <img src={headerImage.publicUrl} alt="Article header" className="w-full" />
+                  <img src={headerImage.publicUrl} alt={headerImage.altText || 'Article header'} className="w-full" />
                   <div className="absolute bottom-2 right-2 flex gap-2">
                     <button
                       type="button"
