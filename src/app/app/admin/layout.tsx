@@ -9,7 +9,6 @@ const ADMIN_TABS = [
   { id: 'dashboard', label: 'Dashboard', href: '/app/admin/dashboard' },
   { id: 'users', label: 'Users', href: '/app/admin/users' },
   { id: 'feedback', label: 'Feedback', href: '/app/admin/feedback' },
-  { id: 'campaigns', label: 'Campaigns', href: '/app/admin/campaigns' },
   { id: 'curated', label: 'Curated', href: '/app/admin/curated' },
   { id: 'voice-lab', label: 'Voice Lab', href: '/app/admin/voice-lab' },
 ];
