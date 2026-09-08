@@ -249,6 +249,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
       <CreateHeroHeader
         state={advisorState}
         nudgeHeadline={advisor?.nudge.headline}
+        onNudgeClick={prefillComposer}
         firstName={firstName}
       />
 
