@@ -125,3 +125,33 @@ describe('MobileSidebar', () => {
     expect(navLabels()).toEqual(['Create', 'Library', 'Calendar', 'Settings', 'Admin', 'Drafts']);
   });
 });
+
+describe('Admin divider', () => {
+  beforeEach(() => {
+    mockUseVoiceContext.mockReturnValue(voiceCtx());
+  });
+
+  it('desktop: shows an Admin eyebrow above admin items for admins only', () => {
+    mockUseAuth.mockReturnValue({ user: adminUser, logout: vi.fn() });
+    render(<Sidebar />);
+    expect(screen.getByTestId('admin-nav-divider')).toHaveTextContent('Admin');
+  });
+
+  it('desktop: renders no Admin eyebrow for non-admins', () => {
+    mockUseAuth.mockReturnValue({ user: paidUser, logout: vi.fn() });
+    render(<Sidebar />);
+    expect(screen.queryByTestId('admin-nav-divider')).not.toBeInTheDocument();
+  });
+
+  it('mobile: shows an Admin eyebrow above admin items for admins only', () => {
+    mockUseAuth.mockReturnValue({ user: adminUser, logout: vi.fn() });
+    render(<MobileSidebar isOpen onClose={vi.fn()} />);
+    expect(screen.getByTestId('admin-nav-divider')).toHaveTextContent('Admin');
+  });
+
+  it('mobile: renders no Admin eyebrow for non-admins', () => {
+    mockUseAuth.mockReturnValue({ user: paidUser, logout: vi.fn() });
+    render(<MobileSidebar isOpen onClose={vi.fn()} />);
+    expect(screen.queryByTestId('admin-nav-divider')).not.toBeInTheDocument();
+  });
+});

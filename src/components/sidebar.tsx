@@ -14,11 +14,22 @@ export function Sidebar() {
 
   const isAdmin = !!user?.isAdmin;
 
-  // One flat list. Primary items first, admin items appended for admins.
-  const visibleItems: NavItem[] = [
-    ...NAV_GROUPS.flatMap((group) => group.items),
-    ...(isAdmin ? ADMIN_NAV_GROUP.items : []),
-  ].filter((item) => (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin));
+  // One flat list of primary items. Admin items render below a labeled
+  // divider so the two blocks read as separate, not as six equal peers.
+  const canSee = (item: NavItem) =>
+    (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin);
+  const primaryItems: NavItem[] = NAV_GROUPS.flatMap((group) => group.items).filter(canSee);
+  const adminItems: NavItem[] = isAdmin ? ADMIN_NAV_GROUP.items.filter(canSee) : [];
+
+  const renderItem = (item: NavItem) => (
+    <SidebarItem
+      key={item.id}
+      item={item}
+      isActive={activeItem === item.id}
+      isAdmin={isAdmin}
+      onNavigate={navigate}
+    />
+  );
 
   return (
     <aside className="h-screen w-64 bg-surface-container-lowest dark:bg-surface border-r border-outline-variant/40 flex flex-col">
@@ -40,16 +51,18 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 overflow-y-auto" aria-label="Main navigation">
         <div className="space-y-0.5">
-          {visibleItems.map((item) => (
-            <SidebarItem
-              key={item.id}
-              item={item}
-              isActive={activeItem === item.id}
-              isAdmin={isAdmin}
-              onNavigate={navigate}
-            />
-          ))}
+          {primaryItems.map(renderItem)}
         </div>
+        {adminItems.length > 0 && (
+          <div data-testid="admin-nav-divider" className="mt-3 border-t border-outline-variant/40 pt-3">
+            <p className="px-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+              Admin
+            </p>
+            <div className="space-y-0.5">
+              {adminItems.map(renderItem)}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* User Section */}
