@@ -16,9 +16,17 @@ vi.mock('@/lib/api-client', () => ({
 }));
 
 const showErrorToast = vi.fn();
+const showSuccessToast = vi.fn();
 vi.mock('@/lib/toast', () => ({
   showErrorToast: (...a: unknown[]) => showErrorToast(...a),
-  showSuccessToast: vi.fn(),
+  showSuccessToast: (...a: unknown[]) => showSuccessToast(...a),
+}));
+
+const replace = vi.fn();
+let searchParams = new URLSearchParams();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: (...a: unknown[]) => replace(...a) }),
+  useSearchParams: () => searchParams,
 }));
 
 import { GmailNudgeCard } from './GmailNudgeCard';
@@ -29,6 +37,7 @@ describe('GmailNudgeCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_GMAIL_CONNECT_ENABLED = 'true';
+    searchParams = new URLSearchParams();
   });
 
   afterEach(() => {
@@ -102,5 +111,43 @@ describe('GmailNudgeCard', () => {
     const { container } = render(<GmailNudgeCard />);
     await userEvent.click(await screen.findByRole('button', { name: 'Skip for now' }));
     await waitFor(() => expect(container).toBeEmptyDOMElement());
+  });
+
+  it('shows a success toast and clears the url on ?gmail=connected', async () => {
+    searchParams = new URLSearchParams('gmail=connected');
+    getStatus.mockResolvedValue({ success: true, data: [], nudgeEligible: false, timestamp: 'now' });
+    render(<GmailNudgeCard />);
+    await waitFor(() =>
+      expect(showSuccessToast).toHaveBeenCalledWith('Gmail connected. Echo is reading your sent mail.'),
+    );
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/app'));
+  });
+
+  it('shows an error toast and clears the url on ?gmail=error', async () => {
+    searchParams = new URLSearchParams('gmail=error');
+    getStatus.mockResolvedValue({ success: true, data: [], nudgeEligible: false, timestamp: 'now' });
+    render(<GmailNudgeCard />);
+    await waitFor(() =>
+      expect(showErrorToast).toHaveBeenCalledWith('Gmail connect failed. Try again from Settings.'),
+    );
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/app'));
+  });
+
+  it('does nothing when there is no gmail param', async () => {
+    getStatus.mockResolvedValue({ success: true, data: [], nudgeEligible: false, timestamp: 'now' });
+    render(<GmailNudgeCard />);
+    await waitFor(() => expect(getStatus).toHaveBeenCalled());
+    expect(showSuccessToast).not.toHaveBeenCalled();
+    expect(showErrorToast).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('does nothing on ?gmail=connected when the flag is off', () => {
+    process.env.NEXT_PUBLIC_GMAIL_CONNECT_ENABLED = 'false';
+    searchParams = new URLSearchParams('gmail=connected');
+    render(<GmailNudgeCard />);
+    expect(showSuccessToast).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
+    expect(getStatus).not.toHaveBeenCalled();
   });
 });

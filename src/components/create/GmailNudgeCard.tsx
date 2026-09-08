@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { isGmailConnectEnabled } from '@/lib/flags';
-import { showErrorToast } from '@/lib/toast';
+import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { AdvisorNudgeCard } from './AdvisorNudgeCard';
 import type { Nudge, NudgeAction } from '@/types/advisor';
 
@@ -26,8 +27,26 @@ const GMAIL_NUDGE: Nudge = {
  */
 export function GmailNudgeCard() {
   const enabled = isGmailConnectEnabled();
+  const router = useRouter();
+  const search = useSearchParams();
   const [eligible, setEligible] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Landing effect: the OAuth round-trip leaves the SPA entirely, and the
+  // backend redirects back here with ?gmail=connected or ?gmail=error.
+  useEffect(() => {
+    if (!enabled) return;
+    const outcome = search.get('gmail');
+    if (outcome === 'connected') {
+      showSuccessToast('Gmail connected. Echo is reading your sent mail.');
+      router.replace('/app');
+    } else if (outcome === 'error') {
+      showErrorToast('Gmail connect failed. Try again from Settings.');
+      router.replace('/app');
+    }
+    // router is stable; enabled/search are derived from env + url
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, search]);
 
   useEffect(() => {
     if (!enabled) return;
