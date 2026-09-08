@@ -49,6 +49,7 @@ export default function LearningSources() {
 
   const [view, setView] = useState<GmailView>({ kind: 'loading' });
   const [busy, setBusy] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -159,15 +160,21 @@ export default function LearningSources() {
   const confirmDisconnect = async () => {
     setConfirmOpen(false);
     setBusy(true);
+    setDisconnecting(true);
     try {
       stopPolling();
       await api.social.disconnect('gmail');
+      // The backend has already dropped the integration row by the time it
+      // responds. Flip the UI now instead of waiting on the status reload,
+      // then reconcile with the server in the background.
+      setView({ kind: 'not_connected' });
       showSuccessToast('Gmail disconnected', 'Everything Echo learned from it has been removed.');
-      await refresh();
+      void refresh();
     } catch (err) {
       showErrorToast(err, 'disconnecting Gmail');
     } finally {
       setBusy(false);
+      setDisconnecting(false);
     }
   };
 
@@ -226,9 +233,10 @@ export default function LearningSources() {
               type="button"
               onClick={() => setConfirmOpen(true)}
               disabled={busy}
-              className="inline-flex items-center rounded-md border border-destructive/40 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-md border border-destructive/40 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-60"
             >
-              Disconnect
+              {disconnecting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+              {disconnecting ? 'Disconnecting' : 'Disconnect'}
             </button>
           )}
         </div>

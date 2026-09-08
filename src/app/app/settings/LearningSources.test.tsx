@@ -187,6 +187,26 @@ describe('LearningSources', () => {
     expect(await screen.findByText('Not connected')).toBeInTheDocument();
   });
 
+  it('shows Disconnecting while the purge is in flight and flips to Not connected before the status reload', async () => {
+    let resolveDisconnect: (value: unknown) => void = () => {};
+    disconnect.mockReturnValue(new Promise((resolve) => { resolveDisconnect = resolve; }));
+    // Status reload never resolves: the UI must not depend on it to leave the connected state.
+    getStatus
+      .mockResolvedValueOnce(statusWith([gmail()]))
+      .mockReturnValueOnce(new Promise(() => {}));
+
+    render(<LearningSources />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Disconnect' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Disconnect Gmail' }));
+
+    const pending = await screen.findByRole('button', { name: 'Disconnecting' });
+    expect(pending).toBeDisabled();
+
+    resolveDisconnect({ success: true, data: { itemsDeleted: 1, vectorsDeleted: 1 } });
+    expect(await screen.findByText('Not connected')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Disconnecting' })).not.toBeInTheDocument();
+  });
+
   it('toasts success when landing with ?gmail=connected', async () => {
     search = new URLSearchParams('tab=connections&gmail=connected');
     getStatus.mockResolvedValue(statusWith([gmail()]));
