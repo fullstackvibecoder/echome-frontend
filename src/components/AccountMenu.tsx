@@ -64,7 +64,7 @@ export function AccountMenu({ user, onLogout }: AccountMenuProps) {
           {initial}
         </div>
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-sm font-bold truncate text-foreground">{user.name}</p>
+          <p className="text-sm font-bold truncate text-foreground">{user.name || 'Account'}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">{user.email}</p>
         </div>
       </button>

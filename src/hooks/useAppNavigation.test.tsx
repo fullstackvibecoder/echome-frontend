@@ -3,11 +3,10 @@ import { Sparkles } from 'lucide-react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockUsePathname = vi.fn();
-const mockPush = vi.fn();
 
 vi.mock('next/navigation', () => ({
   usePathname: () => mockUsePathname(),
-  useRouter: () => ({ push: mockPush, replace: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
 vi.mock('@/contexts/navigation-context', () => ({
