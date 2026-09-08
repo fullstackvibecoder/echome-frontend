@@ -6,7 +6,6 @@ import { Loader2, Mail, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { isGmailConnectEnabled } from '@/lib/flags';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
-import { useSubscription } from '@/hooks/useSubscription';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import type { GmailActiveJob, SocialIntegration } from '@/types';
 
@@ -46,7 +45,6 @@ function toView(entry: SocialIntegration | undefined): GmailView {
 export default function LearningSources() {
   const router = useRouter();
   const search = useSearchParams();
-  const { isFreeUser } = useSubscription();
   const enabled = isGmailConnectEnabled();
 
   const [view, setView] = useState<GmailView>({ kind: 'loading' });
@@ -212,7 +210,7 @@ export default function LearningSources() {
               Reconnect
             </button>
           )}
-          {view.kind === 'connected' && !isFreeUser && (
+          {view.kind === 'connected' && view.syncMode === 'incremental' && (
             <button
               type="button"
               onClick={startSync}
