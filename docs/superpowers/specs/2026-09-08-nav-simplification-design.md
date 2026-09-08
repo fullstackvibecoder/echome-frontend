@@ -34,6 +34,24 @@ as a `?tab=reels` tab, documented in `LibraryTabs.tsx`:
 
 `VoiceTabs.tsx` uses the same shape. This design applies it twice more.
 
+## Live sidebar as of 2026-09-08 (prod, `www.tryechome.com`)
+
+Six headed groups plus a VoiceSwitcher card and a footer:
+
+- Active Voice: `VoiceSwitcher` card
+- Create: Create, Your Library, Reel Maker (admin)
+- Your Voice: Your Voice (strength meter icon), Team Voices, Toolkit
+- Discover: Guides, Creator Radar, Calendar, Community
+- Tools: Video Compressor (FREE), YouTube Transcript (FREE)
+- Account: Billing, Developers, Settings
+- Admin: Dashboard, Drafts Analytics
+- Footer: avatar, name, email, Logout
+
+The sidebar scrolls on a 772px-tall viewport; Calendar is the first item cut
+off. Mobile drawer mirrors this exactly. The Your Voice item carries a live
+voice-strength icon; that signal already lives on `/app` in
+`VoiceStrengthStrip`, so nothing is lost when the item goes.
+
 ## Target nav
 
 One group, no group headers, four items:
@@ -54,7 +72,7 @@ One group, no group headers, four items:
 | Your Voice | `/app/voice` | Already linked from `VoiceStrengthStrip.tsx:87` on `/app`. No new wiring. |
 | Toolkit | `/app/toolkit` | Library tab `?tab=toolkit` |
 | Creator Radar | `/app/radar` | Library tab `?tab=radar` |
-| Billing | `/app/billing` | Link from Settings |
+| Billing | `/app/billing` | Settings already has a Billing tab (`?tab=billing`); add a plain link to the full page there |
 | Developers | `/app/developers` | Link from Settings |
 | Guides | `/guides` | Account menu (external) |
 | Community | `/community` | Account menu (external) |
@@ -67,9 +85,37 @@ Toolkit renders `CreatorLibraryContent` and Radar renders `FollowingContent`.
 Both are browse-and-collect surfaces, the same job Library does, which is why
 they fold there rather than into Settings.
 
+Both components render their own page `<h1>` and description under the tab
+bar. That matches the existing Library tabs: `ContentKitContent` renders
+"Your Library" and `ReelsContent` renders "Reel Maker" the same way. Keep
+the headers; do not add an `embedded` prop. Toolkit's inner B-Roll / Caption
+Templates / Reel Scripts switcher is local `useState`, not `?tab=`, so it does
+not collide with the Library tab param. Radar has no inner tabs.
+
 Settings **links out** to Billing and Developers rather than absorbing them.
 `SettingsContent.tsx` is 54KB; growing it further is the wrong trade when a
 link costs nothing and leaves both routes untouched.
+
+Live check 2026-09-08: Settings already renders a Billing tab (usage meter,
+"Upgrade to Pro" that hard-navigates to `/app/billing` for free users, "Open
+Billing Portal"). Paid users currently have no path from that tab to
+`/app/billing`. Add one plain link ("View plans") inside the Billing tab that
+shows for every tier, plus a Developers link in the Account tab. Nothing else
+in Settings changes.
+
+## Account menu placement
+
+Live check 2026-09-08. Desktop sidebar footer already holds avatar, name,
+email, and a Logout link. Mobile drawer footer holds the same plus a full-width
+Logout button. `AccountMenu` replaces that footer block in both: clicking the
+avatar row opens a popover with Guides, Community, Video Compressor (FREE),
+YouTube Transcript (FREE), and Logout. The mobile header avatar (top right)
+is decorative today and stays untouched.
+
+The product tour (`src/components/tour/tours/echo-hero.tsx`, "Replay tour"
+pill bottom-left) targets only `data-tour` attributes inside `EchoHero` and
+`VoiceStrengthStrip`. No tour step targets a sidebar item, so the nav cut
+does not break it. Verified by grep of every `data-tour=` in `src/`.
 
 ## Two defects this work must fix
 
@@ -163,7 +209,7 @@ implementation time.
 | `src/hooks/useFirstTimeUser.ts` | Drop `sidebarHintsSeen` / `markSidebarHintSeen` (no remaining callers) |
 | `src/components/AccountMenu.tsx` | Create: the four external links plus logout |
 | `src/app/app/library/LibraryTabs.tsx` | Add `toolkit` and `radar` tabs |
-| `src/app/app/settings/SettingsContent.tsx` | Add links to Billing and Developers |
+| `src/app/app/settings/SettingsContent.tsx` | Billing tab: add "View plans" link to `/app/billing` for all tiers; Account tab: add Developers link to `/app/developers` |
 
 ## Testing
 
@@ -184,6 +230,9 @@ New tests:
 8. Each demoted route still resolves and renders its content component.
 9. Library `?tab=toolkit` renders `CreatorLibraryContent`; `?tab=radar`
    renders `FollowingContent`.
+10. Settings Billing tab shows a link to `/app/billing` for a paid user;
+    Account tab shows a link to `/app/developers`.
+11. `AccountMenu` renders the four external links and calls logout.
 
 ## Risks
 
