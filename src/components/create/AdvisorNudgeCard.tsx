@@ -1,6 +1,6 @@
 'use client';
 
-import { Mic, Paperclip, Sparkles } from 'lucide-react';
+import { Mail, Mic, Paperclip, Sparkles, X } from 'lucide-react';
 import { Nudge, NudgeAction, NudgeActionType } from '@/types/advisor';
 
 interface AdvisorNudgeCardProps {
@@ -12,6 +12,8 @@ const ICONS: Record<NudgeActionType, typeof Mic> = {
   voice: Mic,
   ingest: Paperclip,
   create: Sparkles,
+  connect_gmail: Mail,
+  dismiss_gmail: X,
 };
 
 export function AdvisorNudgeCard({ nudge, onAction }: AdvisorNudgeCardProps) {

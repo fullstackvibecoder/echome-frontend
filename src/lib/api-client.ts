@@ -12,6 +12,8 @@ import type {
   GenerationRequestDetailWithBreakdown,
   KnowledgeBase,
   SocialIntegration,
+  GmailActiveJob,
+  GmailReturnTo,
   GeneratedImage,
   GeneratedCarousel,
   ImageGenerationOptions,
@@ -288,6 +290,9 @@ function transformTeamVoice(raw: Record<string, unknown>): TeamVoice {
     updatedAt: (raw.updated_at ?? raw.updatedAt) as string,
   };
 }
+
+/** `/social/status` envelope. `nudgeEligible` is only present when the Gmail feature flag is on server-side. */
+export type SocialStatusResponse = ApiResponse<SocialIntegration[]> & { nudgeEligible?: boolean };
 
 // ============================================
 // API FUNCTIONS
@@ -836,10 +841,8 @@ export const api = {
 
   // -------- SOCIAL INTEGRATIONS --------
   social: {
-    getStatus: async () => {
-      const response = await apiClient.get<
-        ApiResponse<SocialIntegration[]>
-      >('/social/status');
+    getStatus: async (): Promise<SocialStatusResponse> => {
+      const response = await apiClient.get<SocialStatusResponse>('/social/status');
       return response.data;
     },
 
@@ -906,6 +909,36 @@ export const api = {
           message?: string;
         };
       };
+    },
+
+    /**
+     * Start the Gmail OAuth round-trip. `returnTo` tells the backend which
+     * page to land on after Google redirects back; the backend appends
+     * `?gmail=connected` or `?gmail=error` to that page.
+     */
+    connectGmail: async (returnTo: GmailReturnTo) => {
+      const response = await apiClient.get<{ success: boolean; data: { authUrl: string; platform: 'gmail' } }>(
+        '/social/connect/gmail',
+        { params: { return_to: returnTo } },
+      );
+      return response.data;
+    },
+
+    /** Paid users only (backend returns 402 otherwise, 429 within an hour). */
+    syncGmail: async () => {
+      const response = await apiClient.post<{ success: boolean; data: { jobId: string } }>('/social/gmail/sync');
+      return response.data;
+    },
+
+    getGmailSyncStatus: async (jobId: string) => {
+      const response = await apiClient.get<{ success: boolean; data: GmailActiveJob }>(`/social/gmail/sync/${jobId}`);
+      return response.data;
+    },
+
+    /** Hide the Connect Gmail nudge on the Create page permanently. */
+    dismissGmailNudge: async () => {
+      const response = await apiClient.post<{ success: boolean; data: { dismissed: true } }>('/social/gmail/nudge-dismiss');
+      return response.data;
     },
 
     /** Start an Instagram sync job (imports latest posts) */

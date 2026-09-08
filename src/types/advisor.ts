@@ -28,7 +28,7 @@ export interface DimensionCoverage {
 
 export type Coverage = Record<DimensionKey, DimensionCoverage>;
 
-export type NudgeActionType = 'voice' | 'ingest' | 'create';
+export type NudgeActionType = 'voice' | 'ingest' | 'create' | 'connect_gmail' | 'dismiss_gmail';
 
 export interface NudgeAction {
   label: string;

@@ -9,8 +9,12 @@ vi.mock('@/hooks/useVoiceStrength', () => ({
   useVoiceStrength: () => strengthMock(),
 }));
 const outcomeMock = vi.fn();
+const statusMock = vi.fn();
 vi.mock('@/lib/api-client', () => ({
-  api: { wbtw: { outcome: () => outcomeMock() } },
+  api: {
+    wbtw: { outcome: () => outcomeMock() },
+    social: { getStatus: () => statusMock() },
+  },
 }));
 
 const COVERAGE: Coverage = {
@@ -27,6 +31,9 @@ describe('VoiceStrengthStrip', () => {
     strengthMock.mockReset();
     outcomeMock.mockReset();
     outcomeMock.mockResolvedValue({ outcome: 'done' });
+    statusMock.mockReset();
+    statusMock.mockResolvedValue({ success: true, data: [], timestamp: 'now' });
+    delete process.env.NEXT_PUBLIC_GMAIL_CONNECT_ENABLED;
   });
 
   it('shows tier label from the strength score', () => {
@@ -76,5 +83,25 @@ describe('VoiceStrengthStrip', () => {
     outcomeMock.mockResolvedValue({ outcome: 'pending' });
     render(<VoiceStrengthStrip coverage={COVERAGE} onTeachMore={vi.fn()} />);
     expect(await screen.findByText('Learning your voice...')).toBeInTheDocument();
+  });
+
+  it('does not ask for social status when the gmail flag is off', async () => {
+    strengthMock.mockReturnValue({ data: { overallStrength: 62 } });
+    render(<VoiceStrengthStrip coverage={COVERAGE} onTeachMore={vi.fn()} />);
+    await screen.findByText('Voice profile: Strong');
+    expect(statusMock).not.toHaveBeenCalled();
+  });
+
+  it('appends the Gmail email count to the subline when the flag is on and Gmail has items', async () => {
+    process.env.NEXT_PUBLIC_GMAIL_CONNECT_ENABLED = 'true';
+    statusMock.mockResolvedValue({
+      success: true,
+      timestamp: 'now',
+      data: [{ id: 'g1', platform: 'gmail', status: 'connected', itemCount: 212 }],
+    });
+    strengthMock.mockReturnValue({ data: { overallStrength: 62 } });
+    render(<VoiceStrengthStrip coverage={COVERAGE} onTeachMore={vi.fn()} />);
+    expect(await screen.findByText(/Gmail, 212 emails/)).toBeInTheDocument();
+    delete process.env.NEXT_PUBLIC_GMAIL_CONNECT_ENABLED;
   });
 });
