@@ -162,6 +162,23 @@ describe('LearningSources', () => {
     expect(screen.getByText(/120 scanned/)).toBeInTheDocument();
   });
 
+  it('shows Retry sync for a free user when the last backfill failed', async () => {
+    getStatus.mockResolvedValue(
+      statusWith([gmail({ activeJob: { id: 'job-5', status: 'failed', scanned: 400, kept: 232 } })]),
+    );
+    syncGmail.mockResolvedValue({ success: true, data: { jobId: 'job-6', mode: 'backfill' } });
+    getGmailSyncStatus.mockResolvedValue({
+      success: true,
+      data: { id: 'job-6', status: 'processing', scanned: 0, kept: 0 },
+    });
+    render(<LearningSources />);
+    expect(await screen.findByText('Last sync did not finish')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sync now' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Retry sync' }));
+    await waitFor(() => expect(syncGmail).toHaveBeenCalled());
+    expect(await screen.findByText(/Syncing/)).toBeInTheDocument();
+  });
+
   it('shows Needs reconnect with a Reconnect button when expired', async () => {
     getStatus.mockResolvedValue(statusWith([gmail({ status: 'expired' })]));
     render(<LearningSources />);
