@@ -38,7 +38,7 @@ export default function PrivacyContent() {
                 <h2 className="text-xl font-medium text-foreground">
                   Effective Date
                 </h2>
-                <p className="text-sm text-stone-600">March 12, 2026</p>
+                <p className="text-sm text-stone-600">September 8, 2026</p>
               </div>
             </div>
             <p className="text-stone-700 leading-relaxed mb-4">
@@ -130,6 +130,26 @@ export default function PrivacyContent() {
                     Google Drive files you explicitly select
                   </li>
                   <li>
+                    • When you connect Gmail, we request the read-only Gmail
+                    scope (gmail.readonly) and read only messages you sent. We
+                    use the text of your sent mail to learn your writing voice
+                    and to give your Echo context for content you ask it to
+                    create. We do not read received mail, attachments, or
+                    contacts, and we never send mail on your behalf
+                  </li>
+                  <li>
+                    • Gmail data is used only to build your own voice profile
+                    and generate your own content. It is never shown to other
+                    users, never used for advertising, and never used to train
+                    AI models. It is processed only by the vendors listed in
+                    Section 6 (OpenAI for embeddings, Pinecone for storage)
+                  </li>
+                  <li>
+                    • EchoMe&rsquo;s use and transfer of information received from
+                    Google APIs adheres to the Google API Services User Data
+                    Policy, including the Limited Use requirements
+                  </li>
+                  <li>
                     • When you connect Instagram, we access your public posts,
                     captions, and profile metadata
                   </li>
@@ -202,6 +222,15 @@ export default function PrivacyContent() {
               You may delete your account at any time, which will trigger
               permanent deletion of all user-specific content and metadata.
             </p>
+            <p className="text-stone-700 leading-relaxed mt-4">
+              Gmail data is kept only while your Gmail connection is active.
+              When you disconnect Gmail or delete your EchoMe account, we
+              immediately delete the stored text, the derived embeddings, and
+              the Google access token. If you revoke access from your Google
+              account instead, we delete the same data the next time we check
+              the connection. You can also ask us to delete it at any time by
+              contacting support.
+            </p>
           </div>
 
           {/* Your Rights */}
@@ -250,7 +279,7 @@ export default function PrivacyContent() {
               <li>• Database & File Storage (Supabase)</li>
               <li>• Payment Processing (Stripe)</li>
               <li>• Email Delivery (Resend)</li>
-              <li>• Social Media Data (Instagram, YouTube)</li>
+              <li>• Social Media &amp; Email Data (Instagram, YouTube, Gmail)</li>
               <li>• Hosting & Infrastructure (Railway, Vercel)</li>
               <li>• Analytics (Plausible)</li>
             </ul>
