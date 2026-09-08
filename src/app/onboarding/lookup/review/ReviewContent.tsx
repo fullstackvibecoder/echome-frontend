@@ -14,6 +14,7 @@ import {
 import { api } from '@/lib/api-client';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { showErrorToast } from '@/lib/toast';
+import { isGmailConnectEnabled } from '@/lib/flags';
 import IsThisYouModal from './IsThisYouModal';
 
 // ============================================
@@ -247,7 +248,7 @@ export default function ReviewContent() {
         ...(voice_sources_to_ingest ? { voice_sources_to_ingest } : {}),
         ...(identityConfirmed ? { identity_confirmed: true } : {}),
       });
-      router.push('/app');
+      router.push(isGmailConnectEnabled() ? '/onboarding/lookup/connect' : '/app');
     } catch (err) {
       showErrorToast(err, 'saving your profile');
       setConfirming(false);
