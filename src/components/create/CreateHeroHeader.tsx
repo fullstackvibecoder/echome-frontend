@@ -50,6 +50,7 @@ export function CreateHeroHeader({
             type="button"
             data-testid="hero-nudge-pill"
             onClick={() => onNudgeClick(nudgeHeadline)}
+            title={nudgeHeadline}
             className="group inline-flex max-w-full items-center gap-1.5 rounded-full border border-border bg-surface-container-low px-3.5 py-1.5 text-sm leading-snug text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <span className="min-w-0 truncate">{nudgeHeadline}</span>
