@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { api } from '@/lib/api-client';
@@ -642,6 +643,17 @@ export default function SettingsContent() {
             </button>
           </div>
 
+          {/* Developers */}
+          <div className="card">
+            <h3 className="text-subheading text-xl mb-2">Developers</h3>
+            <p className="text-body text-text-secondary mb-4">
+              API keys, docs, and usage for the EchoMe public API.
+            </p>
+            <Link href="/app/developers" className="btn-secondary inline-flex">
+              Open Developers
+            </Link>
+          </div>
+
           {/* Account Deletion / Cancellation */}
           <div className="card border-2 border-error/20">
             <h3 className="text-subheading text-xl mb-2 text-error">Danger Zone</h3>
@@ -1022,14 +1034,19 @@ export default function SettingsContent() {
                         : `${usage?.generationsLimit || 10} content kits per month`}
                     </p>
                   </div>
-                  {(!usage || usage.tier === 'free') && (
-                    <button
-                      onClick={() => window.location.href = '/app/billing'}
-                      className="btn-primary"
-                    >
-                      Upgrade to Pro
-                    </button>
-                  )}
+                  <div className="flex items-center gap-4">
+                    <Link href="/app/billing" className="text-small text-accent hover:underline">
+                      View plans
+                    </Link>
+                    {(!usage || usage.tier === 'free') && (
+                      <button
+                        onClick={() => window.location.href = '/app/billing'}
+                        className="btn-primary"
+                      >
+                        Upgrade to Pro
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Usage - only show for limited plans */}
