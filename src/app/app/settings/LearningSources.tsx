@@ -16,7 +16,13 @@ type GmailView =
   | { kind: 'not_connected' }
   | { kind: 'needs_reconnect' }
   | { kind: 'syncing'; job: GmailActiveJob; itemCount: number }
-  | { kind: 'connected'; itemCount: number; syncMode: 'snapshot' | 'incremental' | null; lastSyncAt: string | null };
+  | {
+      kind: 'connected';
+      itemCount: number;
+      syncMode: 'snapshot' | 'incremental' | null;
+      lastSyncAt: string | null;
+      lastJobFailed: boolean;
+    };
 
 function toView(entry: SocialIntegration | undefined): GmailView {
   if (!entry) return { kind: 'not_connected' };
@@ -31,6 +37,7 @@ function toView(entry: SocialIntegration | undefined): GmailView {
     itemCount,
     syncMode: entry.syncMode ?? null,
     lastSyncAt: entry.lastSyncAt ?? null,
+    lastJobFailed: entry.activeJob?.status === 'failed',
   };
 }
 
@@ -217,7 +224,7 @@ export default function LearningSources() {
               Reconnect
             </button>
           )}
-          {view.kind === 'connected' && view.syncMode === 'incremental' && (
+          {view.kind === 'connected' && (view.syncMode === 'incremental' || view.lastJobFailed) && (
             <button
               type="button"
               onClick={startSync}
@@ -225,7 +232,7 @@ export default function LearningSources() {
               className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-60"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Sync now
+              {view.lastJobFailed ? 'Retry sync' : 'Sync now'}
             </button>
           )}
           {(view.kind === 'connected' || view.kind === 'syncing' || view.kind === 'needs_reconnect') && (
@@ -282,6 +289,12 @@ function GmailStatusLine({ view }: { view: GmailView }) {
           <span>{view.itemCount} emails</span>
           <span aria-hidden="true"> · </span>
           <span>{view.syncMode === 'incremental' ? 'Weekly sync' : 'One-time snapshot, upgrade for weekly sync'}</span>
+          {view.lastJobFailed && (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="text-amber-600">Last sync did not finish</span>
+            </>
+          )}
         </div>
       );
   }
