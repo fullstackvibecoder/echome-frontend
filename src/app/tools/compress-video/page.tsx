@@ -69,10 +69,41 @@ export default function CompressVideoToolPage() {
   const pollStatus = async (jobId: string) => {
     const timer = setInterval(() => setProgress((p) => (p >= 50 && p < 90 ? p + 2 : p)), 1000);
     try {
+      // A single failed poll is noise (deploy blip, flaky network). Ten in a
+      // row means the server is gone or the job is unreachable, so stop
+      // instead of spinning silently for the full 30 minutes.
+      const MAX_CONSECUTIVE_POLL_FAILURES = 10;
+      let consecutiveFailures = 0;
       for (let i = 0; i < 600; i++) { // ~30 min @ 3s
         await new Promise((r) => setTimeout(r, 3000));
-        const res = await fetch(`${API_BASE}/tools/compress-video/status/${jobId}`);
-        if (!res.ok) continue;
+        let res: Response;
+        try {
+          res = await fetch(`${API_BASE}/tools/compress-video/status/${jobId}`);
+        } catch {
+          consecutiveFailures += 1;
+          if (consecutiveFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+            setError('Lost contact with the server while compressing. Please try again.');
+            setState('error');
+            return;
+          }
+          continue;
+        }
+        if (res.status === 404) {
+          // The job row is gone. Waiting longer cannot help.
+          setError('Compression job not found. It may have expired. Please try again.');
+          setState('error');
+          return;
+        }
+        if (!res.ok) {
+          consecutiveFailures += 1;
+          if (consecutiveFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+            setError('The server is not responding while compressing. Please try again.');
+            setState('error');
+            return;
+          }
+          continue;
+        }
+        consecutiveFailures = 0;
         const s = await res.json();
         if (s.state === 'done') {
           setResult({
@@ -151,7 +182,7 @@ export default function CompressVideoToolPage() {
     } catch (err) {
       setError(
         err instanceof Error && /etag/i.test(err.message)
-          ? 'Upload failed — your browser could not confirm the upload. Please try again.'
+          ? 'Upload failed. Your browser could not confirm the upload. Please try again.'
           : 'Upload failed. Please check your connection and try again.',
       );
       setState('error');
