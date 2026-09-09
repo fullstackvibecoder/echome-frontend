@@ -5,6 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { supabase } from './supabase';
+import { uploadFileInParts } from './r2-multipart-upload';
 import type {
   ApiResponse,
   GenerationRequest,
@@ -2115,56 +2116,72 @@ export const api = {
       console.log('[api-client] R2 upload initialized:', { uploadId, multipart });
       if (onProgress) onProgress(5);
 
+      // Aborted only when the user actually leaves the page (pagehide). The
+      // multipart helper and the single-PUT XHR both listen to it.
+      const abortController = new AbortController();
+      let abortNotified = false;
+      const notifyAbort = () => {
+        if (abortNotified) return;
+        abortNotified = true;
+        apiClient.post(`/clips/upload/${uploadId}/r2-abort`).catch(() => {});
+      };
+
       const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue = 'Video upload in progress. Are you sure you want to leave?';
         return e.returnValue;
       };
+      // beforeunload only warns. pagehide fires when the user really leaves,
+      // so this is where the backend learns to abort the R2 multipart upload
+      // (orphaned parts otherwise accrue storage) and mark the row failed.
+      // keepalive lets the request outlive the page. sendBeacon cannot carry
+      // the Authorization header, which is why this is a fetch.
+      const pageHideHandler = () => {
+        abortNotified = true;
+        abortController.abort();
+        try {
+          const token = localStorage.getItem('authToken') || '';
+          fetch(`${API_BASE_URL}/clips/upload/${uploadId}/r2-abort`, {
+            method: 'POST',
+            keepalive: true,
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(() => {});
+        } catch {
+          // Leaving the page. Nothing else to do.
+        }
+      };
       window.addEventListener('beforeunload', beforeUnloadHandler);
+      window.addEventListener('pagehide', pageHideHandler);
 
       try {
         if (multipart && parts) {
-          const CONCURRENCY = 3;
-          const completedParts: Array<{ partNumber: number; etag: string }> = [];
-          let completedBytes = 0;
+          // The helper computes slice offsets from array index, so the parts
+          // must be in partNumber order.
+          const sortedParts = [...(parts as Array<{ partNumber: number; url: string }>)]
+            .sort((a, b) => a.partNumber - b.partNumber);
 
-          const uploadPart = async (part: { partNumber: number; url: string }) => {
-            const start = (part.partNumber - 1) * partSize;
-            const end = Math.min(start + partSize, file.size);
-            const chunk = file.slice(start, end);
-
-            const response = await fetch(part.url, {
-              method: 'PUT',
-              body: chunk,
-              headers: { 'Content-Type': 'application/octet-stream' },
-            });
-
-            if (!response.ok) {
-              throw new Error(`Part ${part.partNumber} upload failed: ${response.status}`);
-            }
-
-            const etag = response.headers.get('ETag') || '';
-            completedParts.push({ partNumber: part.partNumber, etag });
-            completedBytes += (end - start);
-
-            if (onProgress) {
-              const pct = Math.round((completedBytes / file.size) * 80) + 5;
-              onProgress(Math.min(pct, 85));
-            }
-
-            apiClient.post(`/clips/upload/${uploadId}/upload-progress`, {
-              bytesUploaded: completedBytes,
-              totalBytes: file.size,
-            }).catch(() => {});
-          };
-
-          for (let i = 0; i < parts.length; i += CONCURRENCY) {
-            const batch = parts.slice(i, i + CONCURRENCY);
-            await Promise.all(batch.map(uploadPart));
-          }
+          // Byte-level progress fires many times per second. The UI gets every
+          // tick; the server-side progress row gets one POST per 5% step.
+          let lastProgressBucket = 1;
+          const completedParts = await uploadFileInParts(file, sortedParts, partSize, {
+            concurrency: 4,
+            signal: abortController.signal,
+            onProgress: (uploadedBytes) => {
+              const pct = Math.min(85, Math.round((uploadedBytes / file.size) * 80) + 5);
+              if (onProgress) onProgress(pct);
+              const bucket = Math.floor(pct / 5);
+              if (bucket !== lastProgressBucket) {
+                lastProgressBucket = bucket;
+                apiClient.post(`/clips/upload/${uploadId}/upload-progress`, {
+                  bytesUploaded: uploadedBytes,
+                  totalBytes: file.size,
+                }).catch(() => {});
+              }
+            },
+          });
 
           const completeResponse = await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {
-            parts: completedParts.sort((a, b) => a.partNumber - b.partNumber),
+            parts: completedParts,
             ...(options?.saveForLater ? { saveForLater: true } : {}),
           });
 
@@ -2172,10 +2189,29 @@ export const api = {
             throw new Error('Failed to complete multipart upload');
           }
         } else if (presignedUrl) {
-          await new Promise<void>((resolve, reject) => {
+          // Files under the multipart threshold go up in one PUT. Network
+          // errors and timeouts get retried; HTTP status failures (expired
+          // presign, bad request) are deterministic and are not.
+          const SINGLE_PUT_ATTEMPTS = 3;
+          const SINGLE_PUT_TIMEOUT_MS = 15 * 60 * 1000;
+          type PutError = Error & { retryable?: boolean };
+
+          const putOnce = () => new Promise<void>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
+            let settled = false;
+            const onAbort = () => { if (!settled) xhr.abort(); };
+            abortController.signal.addEventListener('abort', onAbort, { once: true });
+            const finish = (fn: () => void) => {
+              settled = true;
+              abortController.signal.removeEventListener('abort', onAbort);
+              fn();
+            };
+            const fail = (message: string, retryable: boolean) =>
+              finish(() => reject(Object.assign(new Error(message), { retryable }) as PutError));
+
             xhr.open('PUT', presignedUrl);
             xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+            xhr.timeout = SINGLE_PUT_TIMEOUT_MS;
 
             xhr.upload.onprogress = (e) => {
               if (e.lengthComputable && onProgress) {
@@ -2185,12 +2221,28 @@ export const api = {
             };
 
             xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) resolve();
-              else reject(new Error(`Upload failed: ${xhr.status}`));
+              if (xhr.status >= 200 && xhr.status < 300) finish(resolve);
+              else fail(`Upload failed: ${xhr.status}`, false);
             };
-            xhr.onerror = () => reject(new Error('Upload failed: network error'));
+            xhr.onerror = () => fail('Upload failed: network error', true);
+            xhr.ontimeout = () => fail('Upload failed: timed out', true);
+            xhr.onabort = () => fail('Upload cancelled', false);
             xhr.send(file);
           });
+
+          for (let attempt = 1; ; attempt++) {
+            try {
+              await putOnce();
+              break;
+            } catch (err) {
+              const retryable = (err as PutError).retryable === true;
+              if (!retryable || abortController.signal.aborted || attempt >= SINGLE_PUT_ATTEMPTS) {
+                throw err;
+              }
+              if (onProgress) onProgress(5);
+              await new Promise((r) => setTimeout(r, Math.min(1000 * 2 ** (attempt - 1), 8000)));
+            }
+          }
 
           await apiClient.post(`/clips/upload/${uploadId}/r2-complete`, {
             ...(options?.saveForLater ? { saveForLater: true } : {}),
@@ -2209,8 +2261,12 @@ export const api = {
         const upload = statusResponse.data?.data?.upload;
 
         return { success: true, data: { upload, message: 'Video uploaded via R2' } };
+      } catch (err) {
+        notifyAbort();
+        throw err;
       } finally {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
+        window.removeEventListener('pagehide', pageHideHandler);
       }
     },
 
