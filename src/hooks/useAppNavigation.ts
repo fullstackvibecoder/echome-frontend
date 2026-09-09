@@ -4,20 +4,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useNavigationContext } from '@/contexts/navigation-context';
 import {
   Sparkles,
-  Users,
-  Brain,
   Package,
-  Mic,
-  Film,
-  FolderOpen,
-  BookOpen,
   CalendarDays,
-  MessageCircle,
-  CreditCard,
   Settings,
   BarChart3,
-  Code,
-  FileDown,
   FileText,
   type LucideIcon,
 } from 'lucide-react';
@@ -26,7 +16,10 @@ export interface NavItem {
   id: string;
   label: string;
   icon: LucideIcon;
+  /** Pathname used for active-item matching. Never contains a query string. */
   path: string;
+  /** Optional query string (without the leading `?`) appended only when navigating. */
+  query?: string;
   comingSoon?: boolean;
   teamsOnly?: boolean;
   adminOnly?: boolean;
@@ -39,65 +32,81 @@ export interface NavGroup {
   items: NavItem[];
 }
 
+/**
+ * Primary navigation. One flat group, four items. Everything else that used
+ * to live here is reachable from inside these four surfaces:
+ *   Your Voice   -> Create (VoiceStrengthStrip link) and /app/voice direct
+ *   Toolkit      -> Library ?tab=toolkit
+ *   Creator Radar-> Library ?tab=radar
+ *   Reel Maker   -> Library ?tab=reels (admin)
+ *   Billing      -> Settings Billing tab "View plans"
+ *   Developers   -> Settings Account tab "Open Developers"
+ *   Guides, Community, Video Compressor, YouTube Transcript -> AccountMenu
+ */
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Create',
+    label: 'Main',
     items: [
       { id: 'create', label: 'Create', icon: Sparkles, path: '/app' },
-      { id: 'library', label: 'Your Library', icon: Package, path: '/app/library' },
-      { id: 'reels', label: 'Reel Maker', icon: Film, path: '/app/library?tab=reels', adminOnly: true },
-    ],
-  },
-  {
-    label: 'Your Voice',
-    items: [
-      { id: 'voice', label: 'Your Voice', icon: Brain, path: '/app/voice' },
-      { id: 'team-voices', label: 'Team Voices', icon: Mic, path: '/app/voice?tab=team', teamsOnly: true },
-      { id: 'toolkit', label: 'Toolkit', icon: FolderOpen, path: '/app/toolkit' },
-    ],
-  },
-  {
-    label: 'Discover',
-    items: [
-      { id: 'guides', label: 'Guides', icon: BookOpen, path: '/guides', external: true },
-      { id: 'radar', label: 'Creator Radar', icon: Users, path: '/app/radar' },
+      { id: 'library', label: 'Library', icon: Package, path: '/app/library' },
       { id: 'calendar', label: 'Calendar', icon: CalendarDays, path: '/app/calendar' },
-      { id: 'community', label: 'Community', icon: MessageCircle, path: '/community', external: true },
-    ],
-  },
-  {
-    label: 'Tools',
-    items: [
-      { id: 'compress', label: 'Video Compressor', icon: FileDown, path: '/tools/compress-video', external: true, badge: 'FREE' },
-      { id: 'transcribe', label: 'YouTube Transcript', icon: FileText, path: '/tools/transcribe', external: true, badge: 'FREE' },
-    ],
-  },
-  {
-    label: 'Account',
-    items: [
-      { id: 'billing', label: 'Billing', icon: CreditCard, path: '/app/billing' },
-      { id: 'developers', label: 'Developers', icon: Code, path: '/app/developers' },
       { id: 'settings', label: 'Settings', icon: Settings, path: '/app/settings' },
     ],
   },
 ];
 
-/** Admin-only nav group (appended when user is admin) */
 export const ADMIN_NAV_GROUP: NavGroup = {
   label: 'Admin',
   items: [
-    { id: 'admin', label: 'Dashboard', icon: BarChart3, path: '/app/admin/dashboard' },
-    { id: 'admin-drafts', label: 'Drafts Analytics', icon: BarChart3, path: '/app/admin/drafts', adminOnly: true },
+    { id: 'admin', label: 'Admin', icon: BarChart3, path: '/app/admin/dashboard' },
+    { id: 'admin-drafts', label: 'Drafts', icon: FileText, path: '/app/admin/drafts', adminOnly: true },
   ],
 };
 
-/** Flat list of all items (for active-item matching) */
-export function getAllNavItems(): NavItem[] {
-  return [...NAV_GROUPS.flatMap(g => g.items), ...ADMIN_NAV_GROUP.items];
+/**
+ * Routes that no longer have their own sidebar item, mapped to the nav id
+ * that should highlight while the user is on them. Keys are pathname
+ * prefixes; matching requires a path boundary (`/app/voice` matches
+ * `/app/voice` and `/app/voice/x`, never `/app/voicemail`).
+ */
+export const DEMOTED_OWNER: Record<string, string> = {
+  '/app/voice': 'create',
+  '/app/toolkit': 'library',
+  '/app/radar': 'library',
+  '/app/billing': 'settings',
+  '/app/developers': 'settings',
+};
+
+/** Build the URL to navigate to for a nav item. */
+export function navHref(item: NavItem): string {
+  return item.query ? `${item.path}?${item.query}` : item.path;
 }
 
-interface UseAppNavigationReturn {
-  activeItem: string;
+export function getAllNavItems(): NavItem[] {
+  return [...NAV_GROUPS.flatMap((g) => g.items), ...ADMIN_NAV_GROUP.items];
+}
+
+function atPathBoundary(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export function resolveActiveItem(pathname: string): string | null {
+  if (pathname === '/app') return 'create';
+
+  const direct = getAllNavItems().find(
+    (item) => item.path !== '/app' && atPathBoundary(pathname, item.path),
+  );
+  if (direct) return direct.id;
+
+  const demoted = Object.keys(DEMOTED_OWNER).find((prefix) => atPathBoundary(pathname, prefix));
+  if (demoted) return DEMOTED_OWNER[demoted];
+
+  return null;
+}
+
+export interface UseAppNavigationReturn {
+  /** Id of the highlighted nav item, or null when no item owns the current route. */
+  activeItem: string | null;
   navigate: (path: string, external?: boolean) => void;
   isMobileMenuOpen: boolean;
   toggleMobileMenu: () => void;
@@ -109,14 +118,7 @@ export function useAppNavigation(): UseAppNavigationReturn {
   const router = useRouter();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useNavigationContext();
 
-  // Determine active nav item based on current path
-  const allItems = getAllNavItems();
-  const activeItem = allItems.find((item) => {
-    if (item.path === '/app') {
-      return pathname === '/app';
-    }
-    return pathname.startsWith(item.path);
-  })?.id || 'create';
+  const activeItem = resolveActiveItem(pathname);
 
   const navigate = (path: string, external?: boolean) => {
     if (external) {
@@ -127,11 +129,5 @@ export function useAppNavigation(): UseAppNavigationReturn {
     closeMobileMenu();
   };
 
-  return {
-    activeItem,
-    navigate,
-    isMobileMenuOpen,
-    toggleMobileMenu,
-    closeMobileMenu,
-  };
+  return { activeItem, navigate, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu };
 }
