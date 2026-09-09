@@ -683,7 +683,19 @@ export type SocialPlatform =
   | 'tiktok'
   | 'facebook'
   | 'spotify'
-  | 'google';
+  | 'google'
+  | 'gmail';
+
+/** Gmail ingest job as surfaced on the status endpoint. */
+export interface GmailActiveJob {
+  id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  scanned: number;
+  kept: number;
+}
+
+/** Where the Gmail OAuth round-trip should land the user afterwards. */
+export type GmailReturnTo = 'onboarding' | 'settings' | 'create';
 
 export interface SocialIntegration {
   id: string;
@@ -701,6 +713,11 @@ export interface SocialIntegration {
   createdAt?: Date;
   created_at?: string;
   updated_at?: string;
+  // Gmail-only fields, present when platform === 'gmail'
+  itemCount?: number;
+  lastSyncAt?: string | null;
+  syncMode?: 'snapshot' | 'incremental' | null;
+  activeJob?: GmailActiveJob | null;
 }
 
 // ============================================

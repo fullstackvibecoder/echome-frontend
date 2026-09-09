@@ -30,6 +30,7 @@ import { QuotaLine } from '@/components/create/QuotaLine';
 import { LinkGuidance } from '@/components/create/LinkGuidance';
 import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
 import { VoiceStrengthStrip } from '@/components/create/VoiceStrengthStrip';
+import { GmailNudgeCard } from '@/components/create/GmailNudgeCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
@@ -435,6 +436,9 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
         onUpload={() => fileInputRef.current?.click()}
         onPasteLink={() => { setLinkHintActive(true); focusComposer(); }}
       />
+
+      {/* Gmail nudge — renders null unless flag on and backend says eligible */}
+      {belowFold && <GmailNudgeCard />}
 
       {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
 

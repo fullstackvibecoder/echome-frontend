@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { AppPageHeader } from '@/components/app-page-header';
 import { ConnectedAccounts } from './ConnectedAccounts';
+import LearningSources from './LearningSources';
 
 type SettingsTab = 'profile' | 'account' | 'connections' | 'preferences' | 'billing' | 'referral';
 const VALID_TABS: SettingsTab[] = ['profile', 'account', 'connections', 'preferences', 'billing', 'referral'];
@@ -917,7 +918,10 @@ export default function SettingsContent() {
 
       {/* Connections Tab */}
       {activeTab === 'connections' && (
-        <ConnectedAccounts />
+        <>
+          <LearningSources />
+          <ConnectedAccounts />
+        </>
       )}
 
       {/* Preferences Tab */}

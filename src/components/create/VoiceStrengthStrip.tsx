@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { Loader2, Sparkles } from 'lucide-react';
 import { useVoiceStrength } from '@/hooks/useVoiceStrength';
 import { api } from '@/lib/api-client';
+import { isGmailConnectEnabled } from '@/lib/flags';
 import { DIMENSION_KEYS, DIMENSION_LABELS, type Coverage, type DimensionKey } from '@/types/advisor';
 
 type StripState = 'idle' | 'wbtw-pending' | 'Seed' | 'Growing' | 'Strong' | 'Signature';
@@ -76,9 +77,31 @@ export function VoiceStrengthStrip({ coverage, onTeachMore }: VoiceStrengthStrip
     return () => { cancelled = true; };
   }, [voiceStrength]);
 
+  const [gmailCount, setGmailCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isGmailConnectEnabled()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.social.getStatus();
+        if (cancelled || !res.success || !Array.isArray(res.data)) return;
+        const gmail = res.data.find((i) => i.platform === 'gmail');
+        setGmailCount(gmail?.itemCount ?? 0);
+      } catch {
+        if (!cancelled) setGmailCount(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const isPending = stripState === 'wbtw-pending';
   const score = voiceStrength?.overallStrength ?? 0;
-  const subline = coverage ? coverageSubline(coverage) : null;
+  const sublineParts = [
+    coverage ? coverageSubline(coverage) : null,
+    gmailCount > 0 ? `Gmail, ${gmailCount} emails` : null,
+  ].filter((p): p is string => Boolean(p));
+  const subline = sublineParts.length > 0 ? sublineParts.join(' ') : null;
   const clampedScore = Math.max(0, Math.min(100, score));
 
   return (
