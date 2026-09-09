@@ -34,9 +34,11 @@ vi.mock('@/lib/api-client', () => ({
 
 const showSuccessToast = vi.fn();
 const showErrorToast = vi.fn();
+const showInfoToast = vi.fn();
 vi.mock('@/lib/toast', () => ({
   showSuccessToast: (...a: unknown[]) => showSuccessToast(...a),
   showErrorToast: (...a: unknown[]) => showErrorToast(...a),
+  showInfoToast: (...a: unknown[]) => showInfoToast(...a),
 }));
 
 import LearningSources from './LearningSources';
@@ -111,9 +113,24 @@ describe('LearningSources', () => {
     getStatus.mockResolvedValue(statusWith([gmail()]));
     render(<LearningSources />);
     expect(await screen.findByText('212 emails')).toBeInTheDocument();
-    expect(screen.getByText('One-time snapshot, upgrade for weekly sync')).toBeInTheDocument();
+    expect(screen.getByText('Snapshot saved. Weekly sync comes with paid plans')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Sync now' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade for weekly sync' })).toHaveAttribute('href', '/app/billing');
     expect(screen.getByRole('button', { name: 'Disconnect' })).toBeInTheDocument();
+  });
+
+  it('frames a 402 from sync as a paywall, not an error, and refreshes status', async () => {
+    getStatus
+      .mockResolvedValueOnce(statusWith([gmail({ activeJob: { id: 'job-5', status: 'failed', scanned: 400, kept: 232 } })]))
+      .mockResolvedValueOnce(statusWith([gmail()]));
+    syncGmail.mockRejectedValue({ isAxiosError: true, response: { status: 402, data: { error: 'Weekly sync requires a paid plan' } } });
+    render(<LearningSources />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Retry sync' }));
+    await waitFor(() => expect(showInfoToast).toHaveBeenCalledWith('Weekly sync is part of paid plans', expect.any(String)));
+    expect(showErrorToast).not.toHaveBeenCalled();
+    await waitFor(() => expect(getStatus).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole('link', { name: 'Upgrade for weekly sync' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Retry sync' })).not.toBeInTheDocument();
   });
 
   it('shows Weekly sync and a Sync now button for paid incremental users', async () => {
@@ -172,7 +189,8 @@ describe('LearningSources', () => {
       data: { id: 'job-6', status: 'processing', scanned: 0, kept: 0 },
     });
     render(<LearningSources />);
-    expect(await screen.findByText('Last sync did not finish')).toBeInTheDocument();
+    expect(await screen.findByText('Snapshot stopped early, retry to finish')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Upgrade for weekly sync' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Sync now' })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Retry sync' }));
     await waitFor(() => expect(syncGmail).toHaveBeenCalled());

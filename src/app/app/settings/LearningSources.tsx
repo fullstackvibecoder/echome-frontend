@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Mail, RefreshCw } from 'lucide-react';
+import { Loader2, Mail, RefreshCw, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { isGmailConnectEnabled } from '@/lib/flags';
-import { showErrorToast, showSuccessToast } from '@/lib/toast';
+import { extractError } from '@/lib/error-utils';
+import { showErrorToast, showInfoToast, showSuccessToast } from '@/lib/toast';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import type { GmailActiveJob, SocialIntegration } from '@/types';
 
@@ -158,7 +160,12 @@ export default function LearningSources() {
       }));
       pollJob(res.data.jobId);
     } catch (err) {
-      showErrorToast(err, 'syncing Gmail');
+      if (extractError(err).isPaymentRequired) {
+        showInfoToast('Weekly sync is part of paid plans', 'Your snapshot is saved. Upgrade to keep Echo learning from new mail.');
+        await refresh();
+      } else {
+        showErrorToast(err, 'syncing Gmail');
+      }
     } finally {
       setBusy(false);
     }
@@ -224,6 +231,15 @@ export default function LearningSources() {
               Reconnect
             </button>
           )}
+          {view.kind === 'connected' && view.syncMode !== 'incremental' && !view.lastJobFailed && (
+            <Link
+              href="/app/billing"
+              className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              Upgrade for weekly sync
+            </Link>
+          )}
           {view.kind === 'connected' && (view.syncMode === 'incremental' || view.lastJobFailed) && (
             <button
               type="button"
@@ -288,11 +304,11 @@ function GmailStatusLine({ view }: { view: GmailView }) {
         <div className="text-sm text-muted-foreground">
           <span>{view.itemCount} emails</span>
           <span aria-hidden="true"> · </span>
-          <span>{view.syncMode === 'incremental' ? 'Weekly sync' : 'One-time snapshot, upgrade for weekly sync'}</span>
+          <span>{view.syncMode === 'incremental' ? 'Weekly sync' : 'Snapshot saved. Weekly sync comes with paid plans'}</span>
           {view.lastJobFailed && (
             <>
               <span aria-hidden="true"> · </span>
-              <span className="text-amber-600">Last sync did not finish</span>
+              <span className="text-amber-600">Snapshot stopped early, retry to finish</span>
             </>
           )}
         </div>
