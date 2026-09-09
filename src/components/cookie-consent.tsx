@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function CookieConsent() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -11,7 +13,11 @@ export function CookieConsent() {
     if (!consent) setVisible(true);
   }, []);
 
-  if (!visible) return null;
+  // Inside the signed-in app the only cookies are session cookies, which are
+  // strictly necessary and need no consent. The banner also overlapped the
+  // sidebar account menu and the help bubble there, so it stays marketing-only.
+  const insideApp = pathname === '/app' || pathname?.startsWith('/app/');
+  if (!visible || insideApp) return null;
 
   const handleAccept = () => {
     localStorage.setItem('cookie-consent', 'accepted');

@@ -62,7 +62,7 @@ export function VoiceSwitcher() {
 
         {/* Name */}
         <div className="flex-1 text-left min-w-0">
-          <p className="text-sm font-medium text-foreground truncate">
+          <p className="text-sm font-medium text-foreground truncate" title={activeVoice?.name}>
             {activeVoice?.name || 'Select Voice'}
           </p>
           <p className={`text-xs ${atPurchasableLimit ? 'text-amber-500 font-medium' : 'text-muted-foreground'}`}>
@@ -89,7 +89,7 @@ export function VoiceSwitcher() {
                 {voice.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{voice.name}</p>
+                <p className="text-sm font-medium text-foreground truncate" title={voice.name}>{voice.name}</p>
                 {voice.isDefault && (
                   <p className="text-xs text-muted-foreground">Default</p>
                 )}
