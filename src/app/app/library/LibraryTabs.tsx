@@ -3,26 +3,37 @@
 /**
  * Library page wrapper with tabs.
  *
- * Tier 3 Phase 2 (audit §5.2 cont'd): folds /app/reels list into /app/library
- * as a tab. The reel editor at /reels/[id] is unchanged.
- *
- * Tab state is URL-driven via ?tab=kits|reels so deep links and the
- * /reels → /library?tab=reels redirect both land in the right place.
+ * Tab state is URL-driven via ?tab=kits|toolkit|radar|reels so deep links
+ * and the old /reels -> /library?tab=reels redirect both land in the right
+ * place. Toolkit and Radar were promoted here from their own sidebar items
+ * in the 2026-09 nav simplification; /app/toolkit and /app/radar still
+ * exist for direct links.
  */
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useCallback } from 'react';
-import { Package, Film } from 'lucide-react';
+import { Package, FolderOpen, Users, Film } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import ContentKitContent from './ContentKitContent';
 import ReelsContent from './ReelsContent';
+import CreatorLibraryContent from '../toolkit/CreatorLibraryContent';
+import FollowingContent from '../radar/FollowingContent';
 
-type Tab = 'kits' | 'reels';
+type Tab = 'kits' | 'toolkit' | 'radar' | 'reels';
 
 const ALL_TABS: Array<{ id: Tab; label: string; icon: typeof Package; adminOnly?: boolean }> = [
   { id: 'kits', label: 'Kits', icon: Package },
+  { id: 'toolkit', label: 'Toolkit', icon: FolderOpen },
+  { id: 'radar', label: 'Radar', icon: Users },
   { id: 'reels', label: 'Reels', icon: Film, adminOnly: true },
 ];
+
+function parseTab(raw: string | null, isAdmin: boolean): Tab {
+  if (raw === 'toolkit' || raw === 'radar') return raw;
+  // ?tab=reels honored only for admins. Non-admins always see Kits even if they paste the URL.
+  if (raw === 'reels' && isAdmin) return 'reels';
+  return 'kits';
+}
 
 function LibraryTabsInner() {
   const searchParams = useSearchParams();
@@ -30,9 +41,7 @@ function LibraryTabsInner() {
   const { user } = useAuth();
   const isAdmin = !!user?.isAdmin;
   const tabs = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
-  // ?tab=reels honored only for admins. Non-admins always see Kits even if they paste the URL.
-  const tab: Tab =
-    searchParams.get('tab') === 'reels' && isAdmin ? 'reels' : 'kits';
+  const tab = parseTab(searchParams.get('tab'), isAdmin);
 
   const setTab = useCallback(
     (next: Tab) => {
@@ -83,7 +92,10 @@ function LibraryTabsInner() {
         role="tabpanel"
         aria-labelledby={`tab-${tab}`}
       >
-        {tab === 'kits' ? <ContentKitContent /> : <ReelsContent />}
+        {tab === 'kits' && <ContentKitContent />}
+        {tab === 'toolkit' && <CreatorLibraryContent />}
+        {tab === 'radar' && <FollowingContent />}
+        {tab === 'reels' && <ReelsContent />}
       </div>
     </div>
   );

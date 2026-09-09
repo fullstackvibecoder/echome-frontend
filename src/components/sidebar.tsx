@@ -1,37 +1,35 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_GROUPS, ADMIN_NAV_GROUP, useAppNavigation } from '@/hooks/useAppNavigation';
-import type { NavItem, NavGroup } from '@/hooks/useAppNavigation';
-import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
+import { NAV_GROUPS, ADMIN_NAV_GROUP, useAppNavigation, navHref } from '@/hooks/useAppNavigation';
+import type { NavItem } from '@/hooks/useAppNavigation';
 import { VoiceSwitcher } from '@/components/voice-switcher';
 import { useVoiceContext } from '@/contexts/voice-context';
-import { LogOut } from 'lucide-react';
-import { Waveform } from '@/components/ui/waveform';
-
-const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
+import { AccountMenu } from '@/components/AccountMenu';
 
 export function Sidebar() {
   const { user, logout } = useAuth();
   const { activeItem, navigate } = useAppNavigation();
-  const { isFirstTime, sidebarHintsSeen, markSidebarHintSeen } = useFirstTimeUser();
   const { isTeamsUser } = useVoiceContext();
 
   const isAdmin = !!user?.isAdmin;
 
-  // Build visible groups, filtering out items the user can't see
-  const visibleGroups: NavGroup[] = NAV_GROUPS
-    .map(group => ({
-      ...group,
-      items: group.items.filter(item =>
-        (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin)
-      ),
-    }))
-    .filter(group => group.items.length > 0);
+  // One flat list of primary items. Admin items render below a labeled
+  // divider so the two blocks read as separate, not as six equal peers.
+  const canSee = (item: NavItem) =>
+    (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin);
+  const primaryItems: NavItem[] = NAV_GROUPS.flatMap((group) => group.items).filter(canSee);
+  const adminItems: NavItem[] = isAdmin ? ADMIN_NAV_GROUP.items.filter(canSee) : [];
 
-  if (isAdmin) {
-    visibleGroups.push(ADMIN_NAV_GROUP);
-  }
+  const renderItem = (item: NavItem) => (
+    <SidebarItem
+      key={item.id}
+      item={item}
+      isActive={activeItem === item.id}
+      isAdmin={isAdmin}
+      onNavigate={navigate}
+    />
+  );
 
   return (
     <aside className="h-screen w-64 bg-surface-container-lowest dark:bg-surface border-r border-outline-variant/40 flex flex-col">
@@ -51,53 +49,24 @@ export function Sidebar() {
       <VoiceSwitcher />
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-4" aria-label="Main navigation">
-        {visibleGroups.map((group, groupIndex) => (
-          <div key={group.label}>
-            {/* Section label */}
-            <p className="px-3 mb-1.5 text-machine">
-              {group.label}
+      <nav className="flex-1 px-3 py-2 overflow-y-auto" aria-label="Main navigation">
+        <div className="space-y-0.5">
+          {primaryItems.map(renderItem)}
+        </div>
+        {adminItems.length > 0 && (
+          <div data-testid="admin-nav-divider" className="mt-3 border-t border-outline-variant/40 pt-3">
+            <p className="px-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+              Admin
             </p>
-            {/* Items */}
             <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <SidebarItem
-                  key={item.id}
-                  item={item}
-                  isActive={activeItem === item.id}
-                  isAdmin={isAdmin}
-                  isFirstTime={isFirstTime}
-                  hintSeen={sidebarHintsSeen[item.id]}
-                  onHintSeen={() => markSidebarHintSeen(item.id)}
-                  onNavigate={navigate}
-                />
-              ))}
+              {adminItems.map(renderItem)}
             </div>
           </div>
-        ))}
+        )}
       </nav>
 
       {/* User Section */}
-      {user && (
-        <div className="p-4 border-t border-outline-variant/30">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm ring-2 ring-primary/10">
-              {user.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate text-foreground">{user.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">{user.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-destructive hover:bg-destructive/5 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Logout
-          </button>
-        </div>
-      )}
+      {user && <AccountMenu user={user} onLogout={logout} />}
     </aside>
   );
 }
@@ -106,29 +75,21 @@ function SidebarItem({
   item,
   isActive,
   isAdmin,
-  isFirstTime,
-  hintSeen,
-  onHintSeen,
   onNavigate,
 }: {
   item: NavItem;
   isActive: boolean;
   isAdmin: boolean;
-  isFirstTime: boolean;
-  hintSeen: boolean;
-  onHintSeen: () => void;
   onNavigate: (path: string, external?: boolean) => void;
 }) {
   const Icon = item.icon;
   const disabled = item.comingSoon && !isAdmin;
-  const showHint = isFirstTime && HINT_ITEMS.has(item.id) && !hintSeen;
 
   return (
     <button
       onClick={() => {
         if (disabled) return;
-        if (showHint) onHintSeen();
-        onNavigate(item.path, item.external);
+        onNavigate(navHref(item), item.external);
       }}
       disabled={disabled}
       aria-current={isActive ? 'page' : undefined}
@@ -147,10 +108,6 @@ function SidebarItem({
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
       <span className="flex-1 text-left truncate">{item.label}</span>
-      {item.id === 'voice' && <Waveform bars={4} height={10} />}
-      {showHint && (
-        <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-      )}
       {item.badge && (
         <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
           {item.badge}

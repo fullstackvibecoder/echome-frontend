@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { X, LogOut } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { NAV_GROUPS, ADMIN_NAV_GROUP, useAppNavigation } from '@/hooks/useAppNavigation';
-import type { NavItem, NavGroup } from '@/hooks/useAppNavigation';
-import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
+import { NAV_GROUPS, ADMIN_NAV_GROUP, useAppNavigation, navHref } from '@/hooks/useAppNavigation';
+import type { NavItem } from '@/hooks/useAppNavigation';
 import { VoiceSwitcher } from '@/components/voice-switcher';
 import { useVoiceContext } from '@/contexts/voice-context';
-import { Waveform } from '@/components/ui/waveform';
-
-const HINT_ITEMS = new Set(['knowledge', 'content-kit']);
+import { AccountMenu } from '@/components/AccountMenu';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -20,25 +17,60 @@ interface MobileSidebarProps {
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const { user, logout } = useAuth();
   const { activeItem, navigate } = useAppNavigation();
-  const { isFirstTime, sidebarHintsSeen, markSidebarHintSeen } = useFirstTimeUser();
   const { isTeamsUser } = useVoiceContext();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const isAdmin = !!user?.isAdmin;
 
-  // Build visible groups
-  const visibleGroups: NavGroup[] = NAV_GROUPS
-    .map(group => ({
-      ...group,
-      items: group.items.filter(item =>
-        (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin)
-      ),
-    }))
-    .filter(group => group.items.length > 0);
+  // One flat list of primary items. Admin items render below a labeled
+  // divider so the two blocks read as separate, not as six equal peers.
+  const canSee = (item: NavItem) =>
+    (!item.teamsOnly || isTeamsUser) && (!item.adminOnly || isAdmin);
+  const primaryItems: NavItem[] = NAV_GROUPS.flatMap((group) => group.items).filter(canSee);
+  const adminItems: NavItem[] = isAdmin ? ADMIN_NAV_GROUP.items.filter(canSee) : [];
 
-  if (isAdmin) {
-    visibleGroups.push(ADMIN_NAV_GROUP);
-  }
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const disabled = item.comingSoon && !isAdmin;
+    const isActive = activeItem === item.id;
+
+    return (
+      <button
+        key={item.id}
+        onClick={() => {
+          if (disabled) return;
+          navigate(navHref(item), item.external);
+        }}
+        disabled={disabled}
+        aria-current={isActive ? 'page' : undefined}
+        className={`
+          w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border
+          text-sm font-semibold font-headline tracking-tight transition-all duration-200
+          focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+          ${
+            disabled
+              ? 'border-transparent text-muted-foreground/60 cursor-not-allowed'
+              : isActive
+                ? 'bg-surface-container-low text-foreground border-border shadow-sm'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-surface-container-low hover:text-foreground hover:translate-x-0.5'
+          }
+        `}
+      >
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        <span className="flex-1 text-left truncate">{item.label}</span>
+        {item.badge && (
+          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+            {item.badge}
+          </span>
+        )}
+        {item.comingSoon && !isAdmin && (
+          <span className="text-[9px] font-bold uppercase tracking-wider bg-surface-container-high text-slate-lavender px-2 py-0.5 rounded-full">
+            Soon
+          </span>
+        )}
+      </button>
+    );
+  };
 
   // Escape key to close
   useEffect(() => {
@@ -89,88 +121,23 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label="Main navigation">
-          {visibleGroups.map((group, groupIndex) => (
-            <div key={group.label}>
-              {groupIndex > 0 && (
-                <div className="mx-2 my-2 border-t border-border/40" />
-              )}
-              <p className="px-3 mb-1.5 text-machine">
-                {group.label}
+          <div className="space-y-0.5">
+            {primaryItems.map(renderItem)}
+          </div>
+          {adminItems.length > 0 && (
+            <div data-testid="admin-nav-divider" className="mt-3 border-t border-outline-variant/40 pt-3">
+              <p className="px-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                Admin
               </p>
               <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const disabled = item.comingSoon && !isAdmin;
-                  const showHint = isFirstTime && HINT_ITEMS.has(item.id) && !sidebarHintsSeen[item.id];
-
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        if (disabled) return;
-                        if (showHint) markSidebarHintSeen(item.id);
-                        navigate(item.path, item.external);
-                      }}
-                      disabled={disabled}
-                      aria-current={activeItem === item.id ? 'page' : undefined}
-                      className={`
-                        w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border
-                        text-sm font-semibold font-headline tracking-tight transition-all duration-200
-                        focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
-                        ${
-                          disabled
-                            ? 'border-transparent text-muted-foreground/60 cursor-not-allowed'
-                            : activeItem === item.id
-                              ? 'bg-surface-container-low text-foreground border-border shadow-sm'
-                              : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-surface-container-low hover:text-foreground hover:translate-x-0.5'
-                        }
-                      `}
-                    >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="flex-1 text-left truncate">{item.label}</span>
-                      {item.id === 'voice' && <Waveform bars={4} height={10} />}
-                      {showHint && (
-                        <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                      )}
-                      {item.badge && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                      {item.comingSoon && !isAdmin && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider bg-surface-container-high text-slate-lavender px-2 py-0.5 rounded-full">
-                          Soon
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                {adminItems.map(renderItem)}
               </div>
             </div>
-          ))}
+          )}
         </nav>
 
         {/* User Section */}
-        {user && (
-          <div className="p-4 border-t border-border/50">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
-                {user.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-foreground">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-border rounded-lg text-sm text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              Logout
-            </button>
-          </div>
-        )}
+        {user && <AccountMenu user={user} onLogout={logout} />}
       </aside>
     </>
   );

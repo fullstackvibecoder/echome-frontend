@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CreateHeroHeader } from './CreateHeroHeader';
 
 describe('CreateHeroHeader', () => {
@@ -44,5 +44,31 @@ describe('CreateHeroHeader', () => {
   it('renders no nudge line when headline is empty or absent', () => {
     render(<CreateHeroHeader state="rich" firstName="Ara" nudgeHeadline="" />);
     expect(screen.queryByTestId('hero-nudge-line')).not.toBeInTheDocument();
+  });
+});
+
+describe('CreateHeroHeader nudge pill', () => {
+  it('renders the nudge as a button when onNudgeClick is provided', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const onNudgeClick = vi.fn();
+    render(
+      <CreateHeroHeader
+        state="rich"
+        firstName="Ara"
+        nudgeHeadline="Turn your last video into a carousel"
+        onNudgeClick={onNudgeClick}
+      />,
+    );
+    const pill = screen.getByTestId('hero-nudge-pill');
+    expect(pill.tagName).toBe('BUTTON');
+    expect(screen.queryByTestId('hero-nudge-line')).not.toBeInTheDocument();
+    await userEvent.click(pill);
+    expect(onNudgeClick).toHaveBeenCalledWith('Turn your last video into a carousel');
+  });
+
+  it('keeps the plain nudge line when onNudgeClick is absent', () => {
+    render(<CreateHeroHeader state="rich" firstName="Ara" nudgeHeadline="Echo learned from 3 new videos" />);
+    expect(screen.getByTestId('hero-nudge-line').tagName).toBe('P');
+    expect(screen.queryByTestId('hero-nudge-pill')).not.toBeInTheDocument();
   });
 });

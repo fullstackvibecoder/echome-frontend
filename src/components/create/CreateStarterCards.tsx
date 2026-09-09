@@ -30,7 +30,7 @@ function CardBody({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <span className="min-w-0">
       <span className="block text-[0.8125rem] font-semibold text-foreground">{title}</span>
-      <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
+      <span className="line-clamp-2 text-xs text-muted-foreground">{subtitle}</span>
     </span>
   );
 }
