@@ -52,6 +52,7 @@ interface ConnectedAccount {
   platformAvatarUrl: string | null;
   connectedAt: string;
   status?: 'connected' | 'needs_reauth';
+  provider?: 'outstand' | 'native';
 }
 
 export function ConnectedAccounts() {
@@ -293,6 +294,11 @@ export function ConnectedAccounts() {
                     <span className="text-sm font-medium text-foreground">{config?.name || account.platform}</span>
                     {account.platformUsername && (
                       <span className="text-xs text-muted-foreground ml-2">@{account.platformUsername}</span>
+                    )}
+                    {account.provider === 'native' && (
+                      <span className="text-[10px] text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full ml-2">
+                        Direct
+                      </span>
                     )}
                   </div>
                   {account.status === 'needs_reauth' ? (
