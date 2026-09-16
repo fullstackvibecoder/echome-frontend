@@ -292,8 +292,12 @@ function transformTeamVoice(raw: Record<string, unknown>): TeamVoice {
   };
 }
 
-/** `/social/status` envelope. `nudgeEligible` is only present when the Gmail feature flag is on server-side. */
-export type SocialStatusResponse = ApiResponse<SocialIntegration[]> & { nudgeEligible?: boolean };
+/**
+ * `/social/status` envelope. `nudgeEligible` is only present when the Gmail feature flag is
+ * on server-side. `betaAccess` is true when the current user may connect Gmail (admin or on
+ * the beta allowlist); treat it as false when absent (older backend).
+ */
+export type SocialStatusResponse = ApiResponse<SocialIntegration[]> & { nudgeEligible?: boolean; betaAccess?: boolean };
 
 // ============================================
 // API FUNCTIONS
