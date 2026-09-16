@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail, RefreshCw, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import { isGmailConnectEnabled } from '@/lib/flags';
 import { extractError } from '@/lib/error-utils';
 import { showErrorToast, showInfoToast, showSuccessToast } from '@/lib/toast';
@@ -55,12 +56,21 @@ export default function LearningSources() {
   const router = useRouter();
   const search = useSearchParams();
   const enabled = isGmailConnectEnabled();
+  const { user } = useAuth();
+  const isAdmin = !!user?.isAdmin;
 
   const [view, setView] = useState<GmailView>({ kind: 'loading' });
+  const [betaAccess, setBetaAccess] = useState(false);
   const [busy, setBusy] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Backend truth on who may connect Gmail (admin or beta allowlist); an
+  // older backend that omits the field means "not yet", so default false.
+  // isAdmin stays as a client-side OR fallback so admins never lose the
+  // button if the field is absent from the response.
+  const canConnect = betaAccess === true || isAdmin;
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -75,9 +85,11 @@ export default function LearningSources() {
       const entry = res.success && Array.isArray(res.data)
         ? res.data.find((i) => i.platform === 'gmail')
         : undefined;
+      setBetaAccess(res.success ? res.betaAccess === true : false);
       setView(toView(entry));
     } catch (err) {
       showErrorToast(err, 'loading learning sources');
+      setBetaAccess(false);
       setView({ kind: 'not_connected' });
     }
   }, []);
@@ -206,12 +218,12 @@ export default function LearningSources() {
           </div>
           <div className="min-w-0">
             <div className="font-medium">Gmail</div>
-            <GmailStatusLine view={view} />
+            <GmailStatusLine view={view} canConnect={canConnect} />
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {view.kind === 'not_connected' && (
+          {view.kind === 'not_connected' && canConnect && (
             <button
               type="button"
               onClick={startConnect}
@@ -220,6 +232,19 @@ export default function LearningSources() {
             >
               Connect Gmail
             </button>
+          )}
+          {view.kind === 'not_connected' && !canConnect && (
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                Beta
+              </span>
+              <a
+                href="mailto:support@tryechome.com?subject=Gmail%20beta%20access"
+                className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              >
+                Request access
+              </a>
+            </div>
           )}
           {view.kind === 'needs_reconnect' && (
             <button
@@ -279,7 +304,7 @@ export default function LearningSources() {
   );
 }
 
-function GmailStatusLine({ view }: { view: GmailView }) {
+function GmailStatusLine({ view, canConnect }: { view: GmailView; canConnect: boolean }) {
   switch (view.kind) {
     case 'loading':
       return (
@@ -289,6 +314,13 @@ function GmailStatusLine({ view }: { view: GmailView }) {
         </div>
       );
     case 'not_connected':
+      if (!canConnect) {
+        return (
+          <div className="text-sm text-muted-foreground">
+            Gmail learning is in a private beta. Request access and we will email you when your account is in.
+          </div>
+        );
+      }
       return <div className="text-sm text-muted-foreground">Not connected</div>;
     case 'needs_reconnect':
       return <div className="text-sm text-amber-600">Needs reconnect</div>;
