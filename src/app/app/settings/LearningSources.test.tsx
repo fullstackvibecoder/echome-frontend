@@ -63,8 +63,8 @@ function gmail(overrides: Partial<SocialIntegration> = {}): SocialIntegration {
   };
 }
 
-function statusWith(entries: SocialIntegration[]) {
-  return { success: true, data: entries, timestamp: 'now' };
+function statusWith(entries: SocialIntegration[], betaAccess?: boolean) {
+  return { success: true, data: entries, timestamp: 'now', betaAccess };
 }
 
 describe('LearningSources', () => {
@@ -101,9 +101,9 @@ describe('LearningSources', () => {
     expect(screen.getByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
   });
 
-  it('shows a Beta badge and Request access link for non-admins, no Connect button', async () => {
+  it('shows a Beta badge and Request access link for non-admins with no beta access, no Connect button', async () => {
     isAdmin = false;
-    getStatus.mockResolvedValue(statusWith([]));
+    getStatus.mockResolvedValue(statusWith([], false));
     render(<LearningSources />);
     expect(await screen.findByText('Sources Echo learns from')).toBeInTheDocument();
     expect(screen.getByText('Beta')).toBeInTheDocument();
@@ -113,6 +113,15 @@ describe('LearningSources', () => {
     const link = screen.getByRole('link', { name: 'Request access' });
     expect(link).toHaveAttribute('href', 'mailto:support@tryechome.com?subject=Gmail%20beta%20access');
     expect(screen.queryByRole('button', { name: 'Connect Gmail' })).not.toBeInTheDocument();
+  });
+
+  it('shows Connect Gmail for a non-admin whose status payload grants betaAccess', async () => {
+    isAdmin = false;
+    getStatus.mockResolvedValue(statusWith([], true));
+    render(<LearningSources />);
+    expect(await screen.findByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
+    expect(screen.queryByText('Beta')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Request access' })).not.toBeInTheDocument();
   });
 
   it('Connect Gmail starts OAuth with return_to settings', async () => {
