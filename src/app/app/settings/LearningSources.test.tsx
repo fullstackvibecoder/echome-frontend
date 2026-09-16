@@ -15,6 +15,11 @@ vi.mock('@/hooks/useSubscription', () => ({
   useSubscription: () => ({ isFreeUser, tier: isFreeUser ? 'free' : 'studio', subscription: null }),
 }));
 
+let isAdmin = true;
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { isAdmin }, loading: false, isAuthenticated: true }),
+}));
+
 const getStatus = vi.fn();
 const connectGmail = vi.fn();
 const disconnect = vi.fn();
@@ -68,6 +73,7 @@ describe('LearningSources', () => {
     vi.useRealTimers();
     search = new URLSearchParams();
     isFreeUser = true;
+    isAdmin = true;
     process.env.NEXT_PUBLIC_GMAIL_CONNECT_ENABLED = 'true';
   });
 
@@ -86,12 +92,27 @@ describe('LearningSources', () => {
     expect(getStatus).not.toHaveBeenCalled();
   });
 
-  it('shows the not-connected state with a Connect Gmail button', async () => {
+  it('shows the not-connected state with a Connect Gmail button for admins', async () => {
+    isAdmin = true;
     getStatus.mockResolvedValue(statusWith([]));
     render(<LearningSources />);
     expect(await screen.findByText('Sources Echo learns from')).toBeInTheDocument();
     expect(screen.getByText('Not connected')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
+  });
+
+  it('shows a Beta badge and Request access link for non-admins, no Connect button', async () => {
+    isAdmin = false;
+    getStatus.mockResolvedValue(statusWith([]));
+    render(<LearningSources />);
+    expect(await screen.findByText('Sources Echo learns from')).toBeInTheDocument();
+    expect(screen.getByText('Beta')).toBeInTheDocument();
+    expect(
+      screen.getByText('Gmail learning is in a private beta. Request access and we will email you when your account is in.'),
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Request access' });
+    expect(link).toHaveAttribute('href', 'mailto:support@tryechome.com?subject=Gmail%20beta%20access');
+    expect(screen.queryByRole('button', { name: 'Connect Gmail' })).not.toBeInTheDocument();
   });
 
   it('Connect Gmail starts OAuth with return_to settings', async () => {

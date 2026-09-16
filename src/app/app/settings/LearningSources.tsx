@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail, RefreshCw, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/hooks/useAuth';
 import { isGmailConnectEnabled } from '@/lib/flags';
 import { extractError } from '@/lib/error-utils';
 import { showErrorToast, showInfoToast, showSuccessToast } from '@/lib/toast';
@@ -55,6 +56,8 @@ export default function LearningSources() {
   const router = useRouter();
   const search = useSearchParams();
   const enabled = isGmailConnectEnabled();
+  const { user } = useAuth();
+  const isAdmin = !!user?.isAdmin;
 
   const [view, setView] = useState<GmailView>({ kind: 'loading' });
   const [busy, setBusy] = useState(false);
@@ -206,12 +209,12 @@ export default function LearningSources() {
           </div>
           <div className="min-w-0">
             <div className="font-medium">Gmail</div>
-            <GmailStatusLine view={view} />
+            <GmailStatusLine view={view} isAdmin={isAdmin} />
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {view.kind === 'not_connected' && (
+          {view.kind === 'not_connected' && isAdmin && (
             <button
               type="button"
               onClick={startConnect}
@@ -220,6 +223,19 @@ export default function LearningSources() {
             >
               Connect Gmail
             </button>
+          )}
+          {view.kind === 'not_connected' && !isAdmin && (
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                Beta
+              </span>
+              <a
+                href="mailto:support@tryechome.com?subject=Gmail%20beta%20access"
+                className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              >
+                Request access
+              </a>
+            </div>
           )}
           {view.kind === 'needs_reconnect' && (
             <button
@@ -279,7 +295,7 @@ export default function LearningSources() {
   );
 }
 
-function GmailStatusLine({ view }: { view: GmailView }) {
+function GmailStatusLine({ view, isAdmin }: { view: GmailView; isAdmin: boolean }) {
   switch (view.kind) {
     case 'loading':
       return (
@@ -289,6 +305,13 @@ function GmailStatusLine({ view }: { view: GmailView }) {
         </div>
       );
     case 'not_connected':
+      if (!isAdmin) {
+        return (
+          <div className="text-sm text-muted-foreground">
+            Gmail learning is in a private beta. Request access and we will email you when your account is in.
+          </div>
+        );
+      }
       return <div className="text-sm text-muted-foreground">Not connected</div>;
     case 'needs_reconnect':
       return <div className="text-sm text-amber-600">Needs reconnect</div>;
