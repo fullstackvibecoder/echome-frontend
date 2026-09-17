@@ -21,17 +21,6 @@ vi.mock('@/components/generation-form', () => ({
   GenerationForm: () => <div data-testid="generation-form" />,
 }));
 
-// Mock legacy components so we can assert on their presence/absence
-vi.mock('@/components/dashboard/GetStartedChecklist', () => ({
-  GetStartedChecklist: () => <div data-testid="legacy-checklist" />,
-}));
-vi.mock('@/components/dashboard/DraftedForYou', () => ({
-  DraftedForYou: () => <div data-testid="legacy-drafted" />,
-}));
-vi.mock('@/components/dashboard/OutcomeChips', () => ({
-  OutcomeChips: () => <div data-testid="legacy-outcome" />,
-}));
-
 // Mock useGeneration - returning resting state (no results, not generating)
 vi.mock('@/hooks/useGeneration', () => ({
   useGeneration: () => ({
@@ -72,14 +61,6 @@ vi.mock('@/hooks/usePendingCheckout', () => ({
   usePendingCheckout: () => ({
     checking: false,
     checkoutLoading: false,
-  }),
-}));
-
-// Mock useFirstTimeUser
-vi.mock('@/hooks/useFirstTimeUser', () => ({
-  useFirstTimeUser: () => ({
-    isFirstTime: false,
-    dismissWelcome: vi.fn(),
   }),
 }));
 
@@ -167,21 +148,6 @@ describe('AppContent resting state - admin path (isAdmin: true)', () => {
     expect(screen.getByTestId('echo-hero')).toBeInTheDocument();
   });
 
-  it('does NOT render GetStartedChecklist for admin users', () => {
-    render(<AppContent />);
-    expect(screen.queryByTestId('legacy-checklist')).toBeNull();
-  });
-
-  it('does NOT render DraftedForYou for admin users', () => {
-    render(<AppContent />);
-    expect(screen.queryByTestId('legacy-drafted')).toBeNull();
-  });
-
-  it('does NOT render OutcomeChips for admin users', () => {
-    render(<AppContent />);
-    expect(screen.queryByTestId('legacy-outcome')).toBeNull();
-  });
-
   it('keeps GenerationForm mounted for admin users', () => {
     render(<AppContent />);
     expect(screen.getByTestId('generation-form')).toBeInTheDocument();
@@ -197,10 +163,9 @@ describe('AppContent resting state - admin path (isAdmin: true)', () => {
   });
 });
 
-// GA (2026-06-17): showCreateRedesign is hardcoded true, so the Create
-// redesign renders for EVERY user regardless of isAdmin. These suites pin
-// that non-admin users now get the EchoHero path, not the legacy trio.
-describe('AppContent resting state - GA non-admin (isAdmin: false)', () => {
+// EchoHero is the only resting-state Create surface; it renders for every
+// user regardless of isAdmin (the old admin-gated branch was removed).
+describe('AppContent resting state - non-admin (isAdmin: false)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -209,19 +174,12 @@ describe('AppContent resting state - GA non-admin (isAdmin: false)', () => {
     mockUseVoiceContext.mockReturnValue({ activeVoice: null, isTeamsUser: false, voiceLimit: 1 });
   });
 
-  it('renders EchoHero for non-admin users (GA)', () => {
+  it('renders EchoHero for non-admin users', () => {
     render(<AppContent />);
     expect(screen.getByTestId('echo-hero')).toBeInTheDocument();
   });
 
-  it('does NOT render the legacy trio for non-admin users (GA)', () => {
-    render(<AppContent />);
-    expect(screen.queryByTestId('legacy-checklist')).toBeNull();
-    expect(screen.queryByTestId('legacy-drafted')).toBeNull();
-    expect(screen.queryByTestId('legacy-outcome')).toBeNull();
-  });
-
-  it('keeps GenerationForm mounted in the hidden wrapper for non-admin users (GA)', () => {
+  it('keeps GenerationForm mounted in the hidden wrapper for non-admin users', () => {
     const { container } = render(<AppContent />);
     const hiddenWrapper = container.querySelector('[aria-hidden="true"]');
     expect(hiddenWrapper).not.toBeNull();
@@ -230,7 +188,7 @@ describe('AppContent resting state - GA non-admin (isAdmin: false)', () => {
   });
 });
 
-describe('AppContent resting state - GA non-admin (isAdmin: undefined)', () => {
+describe('AppContent resting state - non-admin (isAdmin: undefined)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
@@ -239,28 +197,20 @@ describe('AppContent resting state - GA non-admin (isAdmin: undefined)', () => {
     mockUseVoiceContext.mockReturnValue({ activeVoice: null, isTeamsUser: false, voiceLimit: 1 });
   });
 
-  it('renders EchoHero when isAdmin is undefined (GA)', () => {
+  it('renders EchoHero when isAdmin is undefined', () => {
     render(<AppContent />);
     expect(screen.getByTestId('echo-hero')).toBeInTheDocument();
   });
 
-  it('does NOT render the legacy trio when isAdmin is undefined (GA)', () => {
-    render(<AppContent />);
-    expect(screen.queryByTestId('legacy-checklist')).toBeNull();
-    expect(screen.queryByTestId('legacy-drafted')).toBeNull();
-    expect(screen.queryByTestId('legacy-outcome')).toBeNull();
-  });
-
-  it('keeps GenerationForm mounted when isAdmin is undefined (GA)', () => {
+  it('keeps GenerationForm mounted when isAdmin is undefined', () => {
     render(<AppContent />);
     expect(screen.getByTestId('generation-form')).toBeInTheDocument();
   });
 });
 
-// Teams onboarding: on the redesign path (showCreateRedesign hardcoded true,
-// so this covers ALL users) the old gradient banner never renders -- it's
-// demoted to a quiet dashed note that renders after EchoHero instead.
-describe('AppContent resting state - Teams onboarding note (redesign path)', () => {
+// Teams onboarding: the old gradient banner never renders -- it's demoted to
+// a quiet dashed note that renders after EchoHero instead.
+describe('AppContent resting state - Teams onboarding note', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
