@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { buildCspDirectives } from "./src/lib/csp";
 
 // ---------------------------------------------------------------------------
 // Security headers
@@ -14,76 +15,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 // nothing. Once the report stream is clean the header name flips to
 // Content-Security-Policy in a follow-up change. ZAP does not credit the
 // report-only form, so the flip is what closes finding 10038.
+//
+// Directive-building logic lives in src/lib/csp.ts (unit tested there) so
+// this file stays a thin adapter between env vars and Next's headers() API.
 // ---------------------------------------------------------------------------
 
-/** Origin of a URL from the environment, or undefined when unset or invalid. */
-function originOf(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  try {
-    return new URL(url).origin;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Sentry accepts CSP violation reports at a security endpoint derived from
- * the DSN: https://<key>@<host>/<project> becomes
- * https://<host>/api/<project>/security/?sentry_key=<key>.
- * The key is the public DSN key that already ships in the client bundle.
- */
-function sentryReportUri(dsn: string | undefined): string | undefined {
-  if (!dsn) return undefined;
-  try {
-    const u = new URL(dsn);
-    const project = u.pathname.replace(/^\/+/, '');
-    if (!u.username || !project) return undefined;
-    return `${u.protocol}//${u.host}/api/${project}/security/?sentry_key=${u.username}`;
-  } catch {
-    return undefined;
-  }
-}
-
-const apiOrigin = originOf(process.env.NEXT_PUBLIC_API_URL) ?? 'https://api.tryechome.com';
-const appOrigin = originOf(process.env.NEXT_PUBLIC_APP_URL) ?? 'https://www.tryechome.com';
-const cspReportUri = sentryReportUri(process.env.NEXT_PUBLIC_SENTRY_DSN);
-
-const cspDirectives = [
-  "default-src 'self'",
-  // 'unsafe-inline' covers the Next.js hydration bootstrap and the Meta
-  // pixel snippet in app/layout.tsx; nonces would force every page dynamic.
-  // No 'unsafe-eval': nothing in the production bundle needs it.
-  [
-    "script-src 'self' 'unsafe-inline'",
-    'https://challenges.cloudflare.com', // Turnstile widget on signup
-    'https://connect.facebook.net', // Meta pixel
-    'https://cdn.affonso.io', // Affonso affiliate pixel
-    'https://va.vercel-scripts.com', // @vercel/analytics debug script (dev only)
-  ].join(' '),
-  "style-src 'self' 'unsafe-inline'",
-  // Avatars, social previews, R2 and Supabase public assets, Loom thumbnails.
-  "img-src 'self' data: blob: https:",
-  // Local File previews, R2 public bucket, Giphy.
-  "media-src 'self' blob: https:",
-  "font-src 'self' data:",
-  [
-    "connect-src 'self'",
-    apiOrigin,
-    'https://*.supabase.co wss://*.supabase.co', // auth + realtime, prod and staging projects
-    'https://*.r2.cloudflarestorage.com', // presigned PUT direct uploads (multipart parts)
-    'https://api.giphy.com', // GIF picker
-    'https://api.affonso.io', // Affonso beacon
-    'https://www.facebook.com https://connect.facebook.net', // Meta pixel
-  ].join(' '),
-  "frame-src 'self' https://challenges.cloudflare.com https://www.loom.com",
-  "worker-src 'self' blob:",
-  "frame-ancestors 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'",
-  'upgrade-insecure-requests',
-  ...(cspReportUri ? [`report-uri ${cspReportUri}`] : []),
-];
+const { directives: cspDirectives, appOrigin } = buildCspDirectives(process.env);
 
 const securityHeaders = [
   { key: 'Content-Security-Policy-Report-Only', value: cspDirectives.join('; ') },
