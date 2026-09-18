@@ -35,12 +35,10 @@ export function showErrorToast(err: unknown, context?: string) {
     return;
   }
 
-  // Payment required
+  // Payment required (402): the global api-client interceptor already fires
+  // the "Subscription required" toast with a "View Plans" action for every
+  // 402, so this returns early to avoid a duplicate toast.
   if (extracted.isPaymentRequired) {
-    toast.error('Subscription required', {
-      description: extracted.message,
-      duration: 6000,
-    });
     return;
   }
 

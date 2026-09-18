@@ -4231,6 +4231,7 @@ export const api = {
           platformUsername: string;
           platformAvatarUrl: string | null;
           connectedAt: string;
+          provider?: 'outstand' | 'native';
         }>;
       }>;
     },

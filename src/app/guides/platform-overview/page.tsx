@@ -89,7 +89,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={2} title="Video upload guidelines">
-            <p className="mb-2">The hard cap on uploads is 5GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings. 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality. Output never upscales past your source resolution, so starting above 1080p buys you nothing.</p>
+            <p className="mb-2">The hard cap on uploads is 5GB, but anything under 500MB processes noticeably faster and more reliably. Avoid 4K recordings. 1080p or 720p is ideal for EchoMe since it analyzes your speech, not pixel quality. Clips export at your source resolution, up to 1080p, so starting above 1080p buys you nothing.</p>
             <p>Use <strong className="text-text-primary">HandBrake</strong> (free desktop app) or <strong className="text-text-primary">FreeConvert.com</strong> (browser-based) to compress before uploading.</p>
             <Tip>See the full compression guide at <a href="/guides/compress-video" className="text-accent hover:underline">How to Compress Videos for EchoMe</a>.</Tip>
           </Step>
