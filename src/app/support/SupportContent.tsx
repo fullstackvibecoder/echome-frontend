@@ -200,7 +200,7 @@ export default function SupportContent() {
               <div>
                 <h3 className="text-base font-medium text-stone-800 mb-2">Export quality</h3>
                 <p className="text-stone-700 text-sm">
-                  Export clips in 720p, 1080p, or 4K resolution. Higher resolutions take slightly longer to render.
+                  Clips export at your source resolution, up to 1080p. Upload a 1080p video and your vertical clips come out at a full 1080x1920.
                 </p>
               </div>
               <div>
