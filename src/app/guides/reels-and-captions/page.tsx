@@ -95,7 +95,7 @@ export default function ReelsAndCaptionsGuidePage() {
           </Step>
 
           <Step number={6} title="Export at source resolution">
-            <p>The captions are burned directly into the video file. Output resolution matches your source, up to 1080p. EchoMe never upscales. Single-speaker view follows whoever&rsquo;s talking; split-screen view shows both speakers stacked. Download and post to Instagram Reels, TikTok, or YouTube Shorts. No extra editing needed.</p>
+            <p>The captions are burned directly into the video file. Output resolution matches your source, up to 1080p: a 1080p upload exports as a full 1080x1920 vertical clip. Single-speaker view follows whoever&rsquo;s talking; split-screen view shows both speakers stacked. Download and post to Instagram Reels, TikTok, or YouTube Shorts. No extra editing needed.</p>
           </Step>
         </section>
 

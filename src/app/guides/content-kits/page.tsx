@@ -66,7 +66,7 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={3} title="Browse Visual Content">
-            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is displayed in an OutputCard with a clean preview. Download captioned clips at up to 1080p (output matches your source resolution, never upscaled), ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
+            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is displayed in an OutputCard with a clean preview. Download captioned clips at up to 1080p (output matches your source resolution), ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
           </Step>
 
           <Step number={4} title="Browse Written Content">
