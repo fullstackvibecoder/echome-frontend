@@ -173,7 +173,10 @@ export function useSubscription(): UseSubscriptionReturn {
   const freeGenerationsUsed = subscription?.freeGenerationsUsed || 0;
   const freeGenerationsLimit = subscription?.freeGenerationsLimit || 5;
   const freeGenerationsRemaining = Math.max(0, freeGenerationsLimit - freeGenerationsUsed);
-  const isFreeUser = !isSubscribed && !isTrial;
+  // Only call someone a free user once their subscription has actually loaded.
+  // Before that the defaults say "not subscribed", which flashed the free-plan banner at paid and comped users on every page
+  // load and logged paywall.banner_shown for them.
+  const isFreeUser = !loading && !isSubscribed && !isTrial;
   const canGenerate = isSubscribed || isTrial || freeGenerationsRemaining > 0;
 
   // Legacy grandfather flag — set on every user who existed before
