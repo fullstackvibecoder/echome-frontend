@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
   title: 'Zoom Recordings: Password-Protected Downloads | EchoMe Guide',
@@ -9,6 +11,13 @@ export const metadata: Metadata = {
 };
 
 export default function ZoomRecordingsGuidePage() {
+  // Zoom import is hidden (46/46 failures in the last 90 days, see flags.ts).
+  // 404 this guide instead of leaving up instructions for a source that
+  // doesn't work. Flip NEXT_PUBLIC_ZOOM_IMPORT_ENABLED=true to restore it.
+  if (!isZoomImportEnabled()) {
+    notFound();
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',

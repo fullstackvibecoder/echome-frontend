@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
   title: 'EchoMe Platform Overview | Guide',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function PlatformOverviewGuidePage() {
+  const zoomEnabled = isZoomImportEnabled();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -80,7 +82,7 @@ export default function PlatformOverviewGuidePage() {
           <Step number={1} title="One input, every format">
             <p className="mb-2">The Create page has a single unified input. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Instagram, Zoom, Loom, or Vimeo. EchoMe auto-detects the platform and asks what to make from it.</li>
+              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}. EchoMe auto-detects the platform and asks what to make from it.</li>
               <li><strong className="text-text-primary">Type a topic</strong>: Describe an idea, paste an article, or write a prompt.</li>
               <li><strong className="text-text-primary">Drop a video file</strong>: Drag and drop directly onto the input.</li>
               <li><strong className="text-text-primary">Record a voice note</strong>: Use the mic button inside the input bar to speak your idea.</li>
@@ -101,9 +103,12 @@ export default function PlatformOverviewGuidePage() {
               <li>Instagram</li>
               <li>Vimeo</li>
               <li>Loom</li>
-              <li>Zoom</li>
+              {zoomEnabled && <li>Zoom</li>}
             </ul>
-            <p className="mt-2">Just paste the URL into the Create input and hit submit. No separate upload step needed. YouTube and Instagram links can become clips and content, or train Your Voice, your choice. Zoom, Loom, and Vimeo recording links become clips and content only. If your Zoom recording requires a passcode, Echo asks for it during processing.</p>
+            <p className="mt-2">
+              Just paste the URL into the Create input and hit submit. No separate upload step needed. YouTube and Instagram links can become clips and content, or train Your Voice, your choice. {zoomEnabled ? 'Zoom, Loom, and Vimeo' : 'Loom and Vimeo'} recording links become clips and content only.
+              {zoomEnabled ? ' If your Zoom recording requires a passcode, Echo asks for it during processing.' : ''}
+            </p>
             <Tip>YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video and uploading the file directly.</Tip>
           </Step>
 

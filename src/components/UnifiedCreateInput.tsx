@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { isZoomImportEnabled, ZOOM_URL_RE } from '@/lib/flags';
 import {
   Paperclip,
   Mic,
@@ -138,7 +139,7 @@ export default function UnifiedCreateInput({
     }
   };
 
-  const isZoomUrl = /zoom\.us/i.test(text);
+  const isZoomUrl = isZoomImportEnabled() && ZOOM_URL_RE.test(text);
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -234,7 +235,7 @@ export default function UnifiedCreateInput({
 
         {/* Supported sources hint */}
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 mt-3">
-          {['YouTube', 'Zoom', 'Loom', 'Vimeo', 'Upload'].map((source) => (
+          {['YouTube', ...(isZoomImportEnabled() ? ['Zoom'] : []), 'Loom', 'Vimeo', 'Upload'].map((source) => (
             <span key={source} className="text-[11px] text-muted-foreground/50">
               {source}
             </span>

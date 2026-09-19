@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { captureModeFromParams, persistMode } from '@/lib/mode';
 import { track } from '@/lib/telemetry';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 function ClipsLanding() {
   const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ function ClipsLanding() {
     <main className="mx-auto max-w-2xl px-6 py-24 text-center">
       <h1 className="text-4xl font-bold mb-4">Turn any video into ready to post clips.</h1>
       <p className="text-lg text-muted-foreground mb-8">
-        Paste a YouTube, Zoom, Loom or Vimeo link. Get vertical, captioned, face tracked
+        Paste a YouTube, Loom{isZoomImportEnabled() ? ', Zoom' : ''} or Vimeo link. Get vertical, captioned, face tracked
         clips in minutes. No editing, no timeline, no setup.
       </p>
       <Link
