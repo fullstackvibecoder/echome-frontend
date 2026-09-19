@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
   title: 'Creating and Managing Video Content in EchoMe | Guide',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function VideoContentGuidePage() {
+  const zoomEnabled = isZoomImportEnabled();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -79,7 +81,7 @@ export default function VideoContentGuidePage() {
         <section className="space-y-8 mb-10">
           <Step number={1} title="Sign in and navigate to Create">
             <p>
-              When you sign up, EchoMe runs an automatic Work Before The Work pass that builds your starting knowledge base. After that, you go straight to the Create page. You&apos;ll see a single unified input where you can paste a link (YouTube, Zoom, Loom, Vimeo), type a topic, drop a video file, or record a voice note using the mic button inside the input bar.
+              When you sign up, EchoMe runs an automatic Work Before The Work pass that builds your starting knowledge base. After that, you go straight to the Create page. You&apos;ll see a single unified input where you can paste a link (YouTube, Loom, Vimeo{zoomEnabled ? ', Zoom' : ''}), type a topic, drop a video file, or record a voice note using the mic button inside the input bar.
             </p>
           </Step>
 
@@ -95,7 +97,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={3} title="Using video links">
             <p>
-              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Instagram, Zoom, Loom, or Vimeo</strong> URL into the composer. No file upload needed. EchoMe pulls the content directly. For YouTube and Instagram links, EchoMe asks whether the video is yours and where to send it before it starts.
+              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}</strong> URL into the composer. No file upload needed. EchoMe pulls the content directly. For YouTube and Instagram links, EchoMe asks whether the video is yours and where to send it before it starts.
             </p>
             <p className="mt-2">
               <strong className="text-text-primary">Note:</strong> YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video first and uploading the file.
@@ -139,7 +141,7 @@ export default function VideoContentGuidePage() {
           <ul className="space-y-2 text-sm text-text-secondary">
             <li><strong className="text-text-primary">Uploading 4K raw footage:</strong> Compress your video first. EchoMe analyzes speech, not pixels. A 720p file gives the same results and uploads in a fraction of the time.</li>
             <li><strong className="text-text-primary">Retrying a failed upload without compressing:</strong> If a large file fails, don&apos;t upload the same file again. Compress it first using a <a href="/guides/compress-video" className="text-accent hover:underline">free tool</a>, then retry.</li>
-            <li><strong className="text-text-primary">Forgetting you can paste a link instead of uploading:</strong> If your video is already on YouTube, Instagram, Zoom, Loom, or Vimeo, just paste the URL. No file upload needed at all.</li>
+            <li><strong className="text-text-primary">Forgetting you can paste a link instead of uploading:</strong> If your video is already on YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}, just paste the URL. No file upload needed at all.</li>
           </ul>
         </section>
 

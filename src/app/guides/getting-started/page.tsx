@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
   title: 'Getting Started: Your First Content Kit | EchoMe Guide',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function GettingStartedGuidePage() {
+  const zoomEnabled = isZoomImportEnabled();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -62,8 +64,8 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={2} title="Go to the Create page">
-            <p>From the sidebar, click Create. You&apos;ll land on one composer: type a topic, paste a link, drop a file with the paperclip icon (or drag it anywhere on the page), or tap the mic and talk. Paste a YouTube or Instagram link and Echo asks what to do with it: cut clips and write content now, save it to clip later, or add it to Your Voice. Paste a Zoom, Loom, or Vimeo recording link and Echo cuts clips and writes content right away.</p>
-            <Tip>If a Zoom recording needs a passcode, Echo asks for it during processing, not when you paste the link.</Tip>
+            <p>From the sidebar, click Create. You&apos;ll land on one composer: type a topic, paste a link, drop a file with the paperclip icon (or drag it anywhere on the page), or tap the mic and talk. Paste a YouTube or Instagram link and Echo asks what to do with it: cut clips and write content now, save it to clip later, or add it to Your Voice. Paste a {zoomEnabled ? 'Zoom, Loom, or Vimeo' : 'Loom or Vimeo'} recording link and Echo cuts clips and writes content right away.</p>
+            {zoomEnabled && <Tip>If a Zoom recording needs a passcode, Echo asks for it during processing, not when you paste the link.</Tip>}
           </Step>
 
           <Step number={3} title="Wait 2-5 minutes for processing">

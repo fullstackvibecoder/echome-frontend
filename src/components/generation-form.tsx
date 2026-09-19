@@ -17,6 +17,7 @@ import { track } from '@/lib/telemetry';
 import { readMode, isModeActive, platformsForMode } from '@/lib/mode';
 import { Upload, Download, Headphones, Brain, Scissors, MessageSquareText, Sparkles, CheckCircle, ShieldCheck, Loader2, ArrowLeft, X, type LucideIcon } from 'lucide-react';
 import { ZoomPasswordModal } from './ZoomPasswordModal';
+import { isZoomImportEnabled, ZOOM_URL_RE, ZOOM_IMPORT_DISABLED_MESSAGE } from '@/lib/flags';
 import UnifiedCreateInput from './UnifiedCreateInput';
 import { takeEchoHandoff } from '@/components/echo/file-handoff';
 import { useEchoExperience } from '@/hooks/useEchoExperience';
@@ -1424,8 +1425,12 @@ export function GenerationForm({
     // For URL input - process through Clip Finder
     if (inputType === 'url') {
       const url = videoUrl.trim();
+      if (url && !isZoomImportEnabled() && ZOOM_URL_RE.test(url)) {
+        setUrlError(ZOOM_IMPORT_DISABLED_MESSAGE);
+        return;
+      }
       if (!url || !isValidUrl(url)) {
-        setUrlError('Please enter a valid video URL (YouTube, Loom, Zoom, Vimeo, or Instagram)');
+        setUrlError('Please enter a valid video URL (YouTube, Loom, Vimeo, or Instagram)');
         return;
       }
 
@@ -1433,7 +1438,7 @@ export function GenerationForm({
       const isYouTube = /youtube\.com|youtu\.be/.test(url);
       const isInstagram = /instagram\.com/.test(url);
       const isLoom = /loom\.com/.test(url);
-      const isZoom = /zoom\.us/.test(url);
+      const isZoom = isZoomImportEnabled() && ZOOM_URL_RE.test(url);
       const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
 
       try {
@@ -1505,11 +1510,17 @@ export function GenerationForm({
     const url = urlMatch ? urlMatch[0].replace(/[.,;:!?)\]}]+$/, '') : null;
 
     if (url) {
+      if (!isZoomImportEnabled() && ZOOM_URL_RE.test(url)) {
+        showErrorToast(ZOOM_IMPORT_DISABLED_MESSAGE);
+        setUrlError(ZOOM_IMPORT_DISABLED_MESSAGE);
+        return;
+      }
+
       if (isValidUrl(url)) {
         const isYouTube = /youtube\.com|youtu\.be/i.test(url);
         const isInstagram = /instagram\.com/i.test(url);
         const isLoom = /loom\.com/i.test(url);
-        const isZoom = /zoom\.us/i.test(url);
+        const isZoom = isZoomImportEnabled() && ZOOM_URL_RE.test(url);
         const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
         const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
         setVideoUrl(url);
@@ -1566,7 +1577,10 @@ export function GenerationForm({
       /^(https?:\/\/)?(www\.)?instagram\.com\/(reel|p)\//, // Instagram
       /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+/, // Vimeo
       /^(https?:\/\/)?(www\.)?loom\.com\/share\//, // Loom
-      /^(https?:\/\/)?([a-z0-9-]+\.)?zoom\.us\/rec\//i, // Zoom cloud recordings (incl. regional subdomains, e.g. us06web.zoom.us)
+      // Zoom cloud recordings (incl. regional subdomains, e.g. us06web.zoom.us).
+      // Excluded while Zoom import is hidden (see src/lib/flags.ts) so a
+      // pasted Zoom link isn't treated as a valid, submittable video URL.
+      ...(isZoomImportEnabled() ? [/^(https?:\/\/)?([a-z0-9-]+\.)?zoom\.us\/rec\//i] : []),
       /^(https?:\/\/)?(www\.)?streamyard\.com\//, // StreamYard
       /^(https?:\/\/)?(www\.)?riverside\.fm\//, // Riverside
       /^(https?:\/\/)?(www\.)?(twitch\.tv|clips\.twitch\.tv)\//, // Twitch
@@ -1870,17 +1884,21 @@ export function GenerationForm({
                           type="url"
                           value={videoUrl}
                           onChange={(e) => { setVideoUrl(e.target.value); setUrlError(null); }}
-                          placeholder="YouTube, Loom, Zoom, Vimeo, TikTok, Riverside..."
+                          placeholder={isZoomImportEnabled() ? 'YouTube, Loom, Zoom, Vimeo, TikTok, Riverside...' : 'YouTube, Loom, Vimeo, TikTok, Riverside...'}
                           className="flex-1 px-3 py-2 rounded-lg bg-card border border-border text-white text-sm placeholder:text-gray-500 focus:border-accent focus:outline-none"
                         />
                         <button
                           onClick={() => {
                             const url = videoUrl.trim();
                             if (!url) return;
+                            if (!isZoomImportEnabled() && ZOOM_URL_RE.test(url)) {
+                              setUrlError(ZOOM_IMPORT_DISABLED_MESSAGE);
+                              return;
+                            }
                             const isYouTube = /youtube\.com|youtu\.be/.test(url);
                             const isInstagram = /instagram\.com/.test(url);
                             const isLoom = /loom\.com/.test(url);
-                            const isZoom = /zoom\.us/.test(url);
+                            const isZoom = isZoomImportEnabled() && ZOOM_URL_RE.test(url);
                             const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
                             const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
                             processVideoWithClipFinder(undefined, sourceType, url, passcode);
@@ -1891,8 +1909,8 @@ export function GenerationForm({
                           Go
                         </button>
                       </div>
-                      {/* Conditional Zoom passcode field — only shown when the URL looks like a Zoom recording */}
-                      {/zoom\.us/i.test(videoUrl) && (
+                      {/* Conditional Zoom passcode field — only shown when the URL looks like a Zoom recording and the source is enabled */}
+                      {isZoomImportEnabled() && ZOOM_URL_RE.test(videoUrl) && (
                         <div className="mt-2">
                           <input
                             type="text"
@@ -2011,8 +2029,8 @@ export function GenerationForm({
                 <div className="flex items-start gap-2 p-2 bg-background/50 rounded">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/20 text-accent text-xs font-bold flex items-center justify-center">2</span>
                   <div>
-                    <span className="font-medium">Try a link from another platform</span>
-                    <span className="text-gray-500 dark:text-gray-400"> — if this video also exists on Loom, Zoom, Vimeo, or as a direct file URL, paste that link instead.</span>
+                    <span className="font-medium">Try a link from another platform.</span>
+                    <span className="text-gray-500 dark:text-gray-400"> If this video also exists on Loom{isZoomImportEnabled() ? ', Zoom' : ''}, Vimeo, or as a direct file URL, paste that link instead.</span>
                   </div>
                 </div>
               </div>

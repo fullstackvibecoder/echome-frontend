@@ -8,9 +8,10 @@ describe('LinkGuidance', () => {
     expect(screen.queryByTestId('link-guidance')).toBeNull();
   });
 
-  it('shows the source hint when the paste-a-link card was clicked', () => {
+  it('shows the source hint when the paste-a-link card was clicked (Zoom hidden by default)', () => {
     render(<LinkGuidance inputText="" hintActive={true} />);
-    expect(screen.getByTestId('link-guidance').textContent).toContain('YouTube, Instagram, Zoom, Loom, and Vimeo');
+    expect(screen.getByTestId('link-guidance').textContent).toContain('YouTube, Instagram, Loom, and Vimeo');
+    expect(screen.getByTestId('link-guidance').textContent).not.toContain('Zoom');
   });
 
   it('names the YouTube outcomes when a YouTube URL is present', () => {
