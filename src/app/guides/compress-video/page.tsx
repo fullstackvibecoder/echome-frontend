@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 export const metadata: Metadata = {
   title: 'How to Reduce Video File Sizes for EchoMe | Guide',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function CompressVideoGuidePage() {
+  const zoomEnabled = isZoomImportEnabled();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -83,7 +85,7 @@ export default function CompressVideoGuidePage() {
         <section className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <h2 className="text-lg font-semibold text-text-primary mb-2">Even better: paste a URL instead</h2>
           <p className="text-sm text-text-secondary">
-            If your video is already on YouTube, Instagram, Zoom, Loom, or Vimeo, just paste the link into the Create composer. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
+            If your video is already on YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}, just paste the link into the Create composer. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
           </p>
         </section>
 

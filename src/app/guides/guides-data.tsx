@@ -24,6 +24,7 @@ import {
   Images,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 export interface Guide {
   slug: string;
@@ -70,7 +71,7 @@ const thumbnails: Record<string, string> = {
   'content-calendar': '/guide-screenshots/scheduling-preparing-media.png',
 };
 
-export const guides: Guide[] = [
+const ALL_GUIDES: Guide[] = [
   // ---- Start here ----
   {
     slug: 'getting-started',
@@ -264,3 +265,11 @@ export const guides: Guide[] = [
     hasVideo: false,
   },
 ].map((g) => ({ ...g, thumbnail: thumbnails[g.slug] }));
+
+// Zoom import is hidden by default (46/46 failures in the last 90 days, see
+// flags.ts). Drop the dedicated Zoom guide from the index and sitemap until
+// it's re-enabled; the entry itself stays in ALL_GUIDES above so this is a
+// one-line revert.
+export const guides: Guide[] = isZoomImportEnabled()
+  ? ALL_GUIDES
+  : ALL_GUIDES.filter((g) => g.slug !== 'zoom-recordings');

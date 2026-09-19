@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 import {
   Video,
   FileText,
@@ -113,6 +114,7 @@ const TAB_LABELS: Record<TabKey, { label: string; badge?: string }> = {
 
 export default function DevelopersPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('auth');
+  const zoomEnabled = isZoomImportEnabled();
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -237,7 +239,7 @@ export default function DevelopersPage() {
               {
                 icon: <Video className="w-6 h-6 text-primary" />,
                 title: 'Video to Content',
-                desc: 'Upload a YouTube, Loom, or Zoom link. Get clips with captions + written posts for every platform.',
+                desc: `Upload a YouTube${zoomEnabled ? ', Loom, or Zoom' : ' or Loom'} link. Get clips with captions + written posts for every platform.`,
               },
               {
                 icon: <FileText className="w-6 h-6 text-primary" />,

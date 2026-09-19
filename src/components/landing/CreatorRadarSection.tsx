@@ -2,6 +2,7 @@
 
 import { UserPlus, Bell, Sparkles, MessageSquare, ArrowRight } from 'lucide-react';
 import { AnimatedSection } from '@/components/shared/AnimatedSection';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 const steps = [
   {
@@ -12,7 +13,7 @@ const steps = [
   {
     icon: Bell,
     title: 'Get Notified',
-    desc: 'When they drop something new, or paste any link (YouTube, Zoom, Vimeo, Loom), it lands in your Creator Radar feed.',
+    desc: `When they drop something new, or paste any link (YouTube, Vimeo, Loom${isZoomImportEnabled() ? ', Zoom' : ''}), it lands in your Creator Radar feed.`,
   },
   {
     icon: Sparkles,

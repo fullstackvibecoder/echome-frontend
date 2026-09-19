@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Library, Plus } from 'lucide-react';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 // SP1 routing labels. SP2 makes these per-item agentic suggestions backed by the
 // deferred-ingestion backend. Default route is Stockpile (library), not clip-now.
@@ -48,7 +49,7 @@ export function VideoLibraryDrop() {
           onKeyDown={(e) => {
             if (e.key === 'Enter') addLink();
           }}
-          placeholder="Paste a YouTube or Zoom link"
+          placeholder={isZoomImportEnabled() ? 'Paste a YouTube or Zoom link' : 'Paste a YouTube link'}
           className="flex-1 rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-primary/40"
         />
         <button

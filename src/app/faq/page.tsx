@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
 import { JsonLd } from '@/components/json-ld';
+import { isZoomImportEnabled } from '@/lib/flags';
 
 const faqCategories = [
   {
@@ -42,10 +43,14 @@ const faqCategories = [
         q: 'How long does processing take?',
         a: 'Most videos are fully processed in 3 to 8 minutes. Longer videos (30+ minutes) or YouTube imports with retries may take up to 15 minutes. You can navigate away during processing — EchoMe will notify you when your Content Kit is ready.',
       },
-      {
-        q: 'Can I use password-protected Zoom recordings?',
-        a: 'Yes. EchoMe supports password-protected Zoom cloud recordings. When you paste a Zoom recording link, you will be prompted to enter the recording password. EchoMe downloads and processes the recording the same way as any other video source.',
-      },
+      ...(isZoomImportEnabled()
+        ? [
+            {
+              q: 'Can I use password-protected Zoom recordings?',
+              a: 'Yes. EchoMe supports password-protected Zoom cloud recordings. When you paste a Zoom recording link, you will be prompted to enter the recording password. EchoMe downloads and processes the recording the same way as any other video source.',
+            },
+          ]
+        : []),
       {
         q: "What's included in a Content Kit?",
         a: 'Every Content Kit includes video clips with auto-generated captions scored by engagement potential, social posts written in your voice for LinkedIn, Twitter, and Instagram, carousel slides in square and portrait formats, and a full transcript of your video. Each clip comes with a thumbnail, transcript, and suggested caption.',

@@ -12,9 +12,14 @@
  */
 
 import { extractFirstUrl, detectIngestUrlKind } from '@/lib/url-platform';
+import { isZoomImportEnabled } from '@/lib/flags';
 
-const HINT_COPY =
-  'Works with YouTube, Instagram, Zoom, Loom, and Vimeo links, plus blogs and articles. Videos become clips and content. Articles fill your knowledge base, for Echo to learn from and create with.';
+function getHintCopy(): string {
+  const sources = isZoomImportEnabled()
+    ? 'YouTube, Instagram, Zoom, Loom, and Vimeo'
+    : 'YouTube, Instagram, Loom, and Vimeo';
+  return `Works with ${sources} links, plus blogs and articles. Videos become clips and content. Articles fill your knowledge base, for Echo to learn from and create with.`;
+}
 
 const DETECTED_COPY: Record<string, string> = {
   youtube: 'YouTube link. Echo can cut clips, make content, or learn your voice from it.',
@@ -32,7 +37,7 @@ interface LinkGuidanceProps {
 
 export function LinkGuidance({ inputText, hintActive }: LinkGuidanceProps) {
   const url = extractFirstUrl(inputText);
-  const message = url ? DETECTED_COPY[detectIngestUrlKind(url)] : hintActive ? HINT_COPY : null;
+  const message = url ? DETECTED_COPY[detectIngestUrlKind(url)] : hintActive ? getHintCopy() : null;
   if (!message) return null;
 
   return (
