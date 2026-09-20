@@ -5076,6 +5076,10 @@ export interface StripeSubscriptionStatus {
   status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete' | null;
   currentPeriodEnd?: string;
   cancelAtPeriodEnd?: boolean;
+  /** Stripe's scheduled end date, set by a billing-portal cancellation.
+   *  Read it via getScheduledCancellation, never on its own: a cancellation
+   *  can be expressed by this field or by cancelAtPeriodEnd. */
+  cancelAt?: string | null;
   trialEnd?: string;
   isAdminAssigned?: boolean;
   freeGenerationsUsed?: number;

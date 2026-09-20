@@ -12,6 +12,7 @@ import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useEchoExperience } from '@/hooks/useEchoExperience';
 import { installConsoleBuffer } from '@/lib/console-buffer';
+import { isCancellationPending } from '@/lib/subscription-status';
 
 interface AppShellProps {
   children: ReactNode;
@@ -26,10 +27,12 @@ export function AppShell({ children }: AppShellProps) {
     installConsoleBuffer();
   }, []);
 
-  // Show banner if subscription is canceled (not pending cancellation, actually ended)
+  // Show banner if subscription is canceled (not pending cancellation, actually ended).
+  // A portal cancellation schedules an end date instead of setting
+  // cancelAtPeriodEnd, so check both — and check the date has actually passed.
   const showExpiredBanner = !subLoading
     && subscription?.status === 'canceled'
-    && !subscription?.cancelAtPeriodEnd;
+    && !isCancellationPending(subscription);
 
   return (
     <div className="app-canvas flex h-screen overflow-hidden bg-surface">
