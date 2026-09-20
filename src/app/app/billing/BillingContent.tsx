@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Check, CreditCard, Loader2, ExternalLink, Sparkles, AlertCircle } from 'lucide-react';
 import api, { StripePlan, StripeSubscriptionStatus } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
+import { getScheduledCancellation } from '@/lib/subscription-status';
 import { trackSubscribe } from '@/lib/meta-pixel';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { DowngradeWarningModal } from '@/components/scheduling/DowngradeWarningModal';
@@ -129,6 +130,7 @@ function BillingContentInner() {
   const searchParams = useSearchParams();
   const [plans, setPlans] = useState<StripePlan[]>([]);
   const [subscription, setSubscription] = useState<StripeSubscriptionStatus | null>(null);
+  const scheduledCancellation = getScheduledCancellation(subscription);
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('month');
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
@@ -504,17 +506,21 @@ function BillingContentInner() {
                   Active
                 </span>
               )}
-              {subscription?.cancelAtPeriodEnd && (
+              {scheduledCancellation && (
                 <span className="px-2 py-0.5 bg-orange-500/20 text-orange-600 text-xs font-medium rounded-full">
-                  Cancels at period end
+                  Cancels {new Date(scheduledCancellation.endsAt).toLocaleDateString()}
                 </span>
               )}
             </div>
-            {subscription?.currentPeriodEnd && (
+            {scheduledCancellation ? (
               <p className="text-sm text-muted-foreground mt-1">
-                {subscription.cancelAtPeriodEnd ? 'Access until' : 'Renews'}: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                Access until: {new Date(scheduledCancellation.endsAt).toLocaleDateString()}
               </p>
-            )}
+            ) : subscription?.currentPeriodEnd ? (
+              <p className="text-sm text-muted-foreground mt-1">
+                Renews: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+              </p>
+            ) : null}
           </div>
           {subscription?.isSubscribed && (
             <button

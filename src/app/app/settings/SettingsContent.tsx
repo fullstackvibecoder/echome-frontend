@@ -825,16 +825,22 @@ export default function SettingsContent() {
                         try {
                           setDeleteError(null);
                           const res = await api.account.cancelSubscription(feedbackId || undefined);
-                          if (res.success && res.data) {
+                          // A success envelope carrying no date used to be
+                          // reported as "Subscription cancelled." even though
+                          // the backend had not reached Stripe. Only claim a
+                          // cancellation the server actually described.
+                          if (res.success && res.data?.cancelAtPeriodEnd) {
                             setCancelAtPeriodEnd(res.data.cancelAtPeriodEnd);
                             toast.success(
-                              res.data.cancelAtPeriodEnd
-                                ? `Subscription cancelled. Access continues until ${new Date(res.data.cancelAtPeriodEnd).toLocaleDateString()}.`
-                                : 'Subscription cancelled.'
+                              `Subscription cancelled. Access continues until ${new Date(res.data.cancelAtPeriodEnd).toLocaleDateString()}.`
                             );
                             setDeleteStep('idle');
                             setDeleteReason('');
                             setDeleteDetails('');
+                          } else {
+                            setDeleteError(
+                              'We could not confirm the cancellation. Please contact support so we can sort it out.'
+                            );
                           }
                         } catch (err) {
                           setDeleteError(extractErrorMessage(err));
