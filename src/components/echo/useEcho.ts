@@ -17,7 +17,7 @@ import {
 } from '@/lib/echo-client';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
-import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES } from './intent-meta';
+import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES, MAX_ECHO_VIDEO_BYTES, ECHO_VIDEO_COMPRESS_HINT_BYTES } from './intent-meta';
 import { stashEchoHandoff } from './file-handoff';
 import { extractFirstUrl, detectIngestUrlKind, detectVideoUrlTarget, type VideoUrlTarget } from '@/lib/url-platform';
 
@@ -43,6 +43,8 @@ export interface EchoState {
   attachment: File | null;
   /** Inline error specific to the attachment (type or size) */
   attachmentError: string | null;
+  /** Non-blocking advice about the attachment (e.g. large video, compress first) */
+  attachmentNote: string | null;
   classification: EchoClassification | null;
   /** User-overridden intent (null = use classification.intent) */
   selectedIntent: EchoIntent | null;
@@ -135,6 +137,7 @@ const INITIAL_STATE: EchoState = {
   inputText: '',
   attachment: null,
   attachmentError: null,
+  attachmentNote: null,
   classification: null,
   selectedIntent: null,
   answer: null,
@@ -224,6 +227,7 @@ export function useEcho(
         ...prev,
         attachment: null,
         attachmentError: null,
+        attachmentNote: null,
         videoFileTarget: null,
         // If we entered confirming phase only because of a video file, go back to input
         phase: prev.videoFileTarget && prev.phase === 'confirming' ? 'open' : prev.phase,
@@ -265,12 +269,31 @@ export function useEcho(
       return;
     }
     if (kind === 'video') {
+      // Video was the only attachment kind with no size check here, so an
+      // oversized file failed later in api-client after the user had already
+      // committed. Reject at the 5GB backend cap up front, and nudge anyone
+      // over 2GB to the free compressor, since that is where uploads start
+      // timing out on slower connections.
+      if (file.size > MAX_ECHO_VIDEO_BYTES) {
+        setState((prev) => ({
+          ...prev,
+          attachment: null,
+          attachmentError: `Videos must be under 5 GB. This one is ${(file.size / (1024 * 1024 * 1024)).toFixed(1)} GB. Shrink it first with the free compressor at /tools/compress-video, then come back.`,
+          attachmentNote: null,
+        }));
+        return;
+      }
+      const attachmentNote =
+        file.size > ECHO_VIDEO_COMPRESS_HINT_BYTES
+          ? `Large file (${(file.size / (1024 * 1024 * 1024)).toFixed(1)} GB). Over 2 GB, uploads can time out on slower connections. Compressing first is faster.`
+          : null;
       // Video files skip the classify round-trip and show the destination fork
       // immediately. No "press Enter" gate — the fork appears on attach.
       setState((prev) => ({
         ...prev,
         attachment: file,
         attachmentError: null,
+        attachmentNote,
         videoFileTarget: { file },
         phase: 'confirming',
       }));

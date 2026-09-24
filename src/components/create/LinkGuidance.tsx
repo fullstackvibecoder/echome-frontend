@@ -18,7 +18,7 @@ function getHintCopy(): string {
   const sources = isZoomImportEnabled()
     ? 'YouTube, Instagram, Zoom, Loom, and Vimeo'
     : 'YouTube, Instagram, Loom, and Vimeo';
-  return `Works with ${sources} links, plus blogs and articles. Videos become clips and content. Articles fill your knowledge base, for Echo to learn from and create with.`;
+  return `Works with ${sources} links, plus blogs and articles. A video needs you talking in it, at least 10 seconds; Echo cuts clips from it and writes the posts. Articles fill your knowledge base, for Echo to learn from and create with.`;
 }
 
 const DETECTED_COPY: Record<string, string> = {
