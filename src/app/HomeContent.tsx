@@ -400,7 +400,7 @@ export default function HomeContent() {
           {/* Enterprise CTA */}
           <div className="max-w-3xl mx-auto text-center mt-12 p-8 bg-gray-900 rounded-3xl">
             <h3 className="text-2xl font-bold text-white mb-2">Need Enterprise Features?</h3>
-            <p className="text-white/70 mb-4 text-sm">API access, 4K exports, team collaboration, white-label options, and custom integrations.</p>
+            <p className="text-white/70 mb-4 text-sm">API access, team collaboration, white-label options, and custom integrations.</p>
             <a href="mailto:enterprise@tryechome.com" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-all">
               <Mail className="w-4 h-4" />
               Contact Sales
