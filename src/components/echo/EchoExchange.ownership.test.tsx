@@ -17,6 +17,7 @@ const BASE_STATE: EchoState = {
   inputText: '',
   attachment: null,
   attachmentError: null,
+  attachmentNote: null,
   classification: null,
   selectedIntent: null,
   answer: null,

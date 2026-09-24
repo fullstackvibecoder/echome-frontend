@@ -194,7 +194,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
     [setAttachment],
   );
 
-  const { attachment, attachmentError } = state;
+  const { attachment, attachmentError, attachmentNote } = state;
 
   // Empty state has little content by design; vertically center it so the
   // whitespace reads as composition, not absence. Thin/rich stay top-anchored
@@ -238,7 +238,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
             className="mb-6 text-center text-sm leading-snug max-w-xl"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Share a video, a link, or a minute of talking. Echo learns your voice, then writes the posts, cuts the clips, and builds the carousels. You approve, it posts.
+            Drop one video of you talking, 2 to 60 minutes. Echo cuts the best moments into clips and writes the posts and carousels around them, in your voice. You approve, it posts. No video handy? A link or a minute of talking works too.
           </p>
           {/* SketchExplainer animation removed 2026-07-03 (founder call): it
               dominated the empty-state viewport and pushed the composer, the
@@ -283,6 +283,16 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
         {attachmentError && (
           <p className="text-xs text-destructive leading-snug mb-3 px-1" role="alert">
             {attachmentError}
+          </p>
+        )}
+
+        {/* Non-blocking attachment advice (large video: compress first) */}
+        {attachmentNote && (
+          <p className="text-xs leading-snug mb-3 px-1" style={{ color: 'var(--muted-foreground)' }} role="status">
+            {attachmentNote}{' '}
+            <a href="/tools/compress-video" target="_blank" rel="noreferrer" className="underline">
+              Open the free compressor
+            </a>
           </p>
         )}
 

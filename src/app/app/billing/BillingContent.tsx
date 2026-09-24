@@ -874,7 +874,7 @@ function BillingContentInner() {
       <div className="text-center p-8 bg-muted/50 rounded-2xl">
         <h3 className="text-xl font-bold mb-2">Need Enterprise Features?</h3>
         <p className="text-muted-foreground mb-4">
-          API access, 4K exports, team collaboration, white-label options, and custom integrations.
+          API access, team collaboration, white-label options, and custom integrations.
         </p>
         <a
           href="mailto:enterprise@tryechome.com"

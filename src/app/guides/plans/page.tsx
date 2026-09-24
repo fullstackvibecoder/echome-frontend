@@ -83,7 +83,7 @@ export default function PlansGuidePage() {
               <li>Per-voice knowledge bases &amp; profile context</li>
               <li>Shared usage pool across voices</li>
               <li>Unlimited video length</li>
-              <li>15 clips per video</li>
+              <li>12 clips per video</li>
               <li>Email import (100), priority support</li>
               <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
             </ul>

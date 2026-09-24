@@ -47,6 +47,10 @@ export const MAX_ECHO_AUDIO_BYTES = 250 * 1024 * 1024; // backend KB ingest cap
 export const MAX_ECHO_TEXT_BYTES = 1 * 1024 * 1024;
 // KB document route caps PDF/DOCX/DOC at 500 MB (file-service KB_FILE_TYPES)
 export const MAX_ECHO_DOCUMENT_BYTES = MAX_FILE_SIZE;
+/** Backend video upload cap (routes/clips.ts r2-init). Same on every plan. */
+export const MAX_ECHO_VIDEO_BYTES = 5 * 1024 * 1024 * 1024;
+/** Above this, uploads start timing out on slow connections; nudge to the compressor. */
+export const ECHO_VIDEO_COMPRESS_HINT_BYTES = 2 * 1024 * 1024 * 1024;
 
 export interface IntentMeta {
   /** Short uppercase label shown on the intent chip */
