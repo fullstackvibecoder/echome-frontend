@@ -7,6 +7,7 @@ import { useVoiceContext } from '@/contexts/voice-context';
 import { StatusSection } from '@/components/content-library/StatusSection';
 import { useScheduledKitCounts } from '@/hooks/useScheduledKitCounts';
 import { Search, RefreshCw } from 'lucide-react';
+import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 
 const EARLIER_THRESHOLD_DAYS = 7;
@@ -134,12 +135,15 @@ function ContentKitListInner() {
           <Link href="/app" className="btn-primary">
             Create your first piece
           </Link>
-          <Link
-            href="/guides/content-kits"
-            className="text-xs text-text-tertiary hover:text-text-secondary mt-3"
-          >
-            See a sample kit →
-          </Link>
+          <div className="flex items-center gap-4 mt-3">
+            <Link
+              href="/guides/content-kits"
+              className="text-xs text-text-tertiary hover:text-text-secondary"
+            >
+              See a sample kit →
+            </Link>
+            <WatchWalkthroughLink />
+          </div>
         </div>
       </div>
     );

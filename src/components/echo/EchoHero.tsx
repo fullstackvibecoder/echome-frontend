@@ -31,6 +31,7 @@ import { LinkGuidance } from '@/components/create/LinkGuidance';
 import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
 import { VoiceStrengthStrip } from '@/components/create/VoiceStrengthStrip';
 import { GmailNudgeCard } from '@/components/create/GmailNudgeCard';
+import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
 import { useAuth } from '@/hooks/useAuth';
 import { useEcho } from './useEcho';
 import { useEchoMic } from './useEchoMic';
@@ -447,6 +448,11 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
         onUpload={() => fileInputRef.current?.click()}
         onPasteLink={() => { setLinkHintActive(true); focusComposer(); }}
       />
+
+      {/* Walkthrough link — empty state only, same conditions as the starter cards' framing */}
+      {isEmptyState && (
+        <WatchWalkthroughLink className="mt-4" />
+      )}
 
       {/* Gmail nudge — renders null unless flag on and backend says eligible */}
       {belowFold && <GmailNudgeCard />}

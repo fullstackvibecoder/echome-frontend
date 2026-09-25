@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
 import { getRecentErrors } from '@/lib/console-buffer';
+import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -273,6 +274,11 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
             </div>
           ) : tab === 'chat' ? (
             <>
+              {/* Compact walkthrough nudge, above the chat */}
+              <div className="px-4 pt-3">
+                <WatchWalkthroughLink />
+              </div>
+
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[280px] max-h-[350px]">
                 {messages.length === 0 && (

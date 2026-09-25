@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 import { isZoomImportEnabled } from '@/lib/flags';
+import { WalkthroughVideo } from '@/components/guides/WalkthroughVideo';
 
 export const metadata: Metadata = {
   title: 'EchoMe Platform Overview | Guide',
@@ -65,17 +66,7 @@ export default function PlatformOverviewGuidePage() {
         />
 
         {/* Video embed */}
-        <div className="mb-10 rounded-xl overflow-hidden border border-border">
-          <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
-            <iframe
-              src="https://www.loom.com/embed/136ee8a0709e44eaa5a2ba128d3ab624"
-              frameBorder="0"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-              title="EchoMe Platform Overview - Video Walkthrough"
-            />
-          </div>
-        </div>
+        <WalkthroughVideo variant="inline" />
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
