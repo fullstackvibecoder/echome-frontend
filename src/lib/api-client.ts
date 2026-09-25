@@ -41,9 +41,12 @@ import type {
   DraftAction,
 } from '../types';
 import type { AdvisorResponse } from '@/types/advisor';
+import type { Scorecard } from '@/types/insights';
 
 // Re-export reel types for convenience
 export type { ReelTemplate, MusicTrackSummary, MusicTrack, TemplateSegment };
+// Re-export insights types for convenience
+export type { Scorecard };
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -4452,6 +4455,15 @@ export const api = {
         day_delta: number;
         results: Array<{ post_id: string; new_scheduled_at: string; succeeded: boolean; error?: string }>;
       }>;
+    },
+  },
+
+  // -------- Insights --------
+  insights: {
+    /** Personal insights scorecard: reach headline, records, streak, follower deltas. */
+    getScorecard: async () => {
+      const response = await apiClient.get('/insights/scorecard');
+      return response.data as ApiResponse<Scorecard>;
     },
   },
 
