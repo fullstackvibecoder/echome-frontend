@@ -7,7 +7,7 @@ import { Menu, X, Check, Mail, ArrowRight } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { SeeItWorkSection } from '@/components/landing/SeeItWorkSection';
-import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
+import { VoiceProfileSection } from '@/components/landing/VoiceProfileSection';
 import { CreatorRadarSection } from '@/components/landing/CreatorRadarSection';
 import { OutputShowcase } from '@/components/landing/OutputShowcase';
 import { TestimonialStrip } from '@/components/landing/TestimonialStrip';
@@ -111,9 +111,9 @@ export default function HomeContent() {
         <SeeItWorkSection />
       </TrackedSection>
 
-      {/* Knowledge Base — now owns the #how anchor and the detailed how-it-works */}
-      <TrackedSection name="knowledge_base">
-        <KnowledgeBaseSection />
+      {/* Voice Profile (Work Before the Work) — owns the #how anchor */}
+      <TrackedSection name="voice_profile">
+        <VoiceProfileSection />
       </TrackedSection>
 
       {/* Not ChatGPT — core differentiator */}
