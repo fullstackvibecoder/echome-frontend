@@ -181,9 +181,9 @@ const ALL_GUIDES: Guide[] = [
   {
     slug: 'creator-radar',
     icon: <Heart className="w-6 h-6" />,
-    title: "Creator Radar: Repurpose Creators' Videos",
+    title: "Creator Radar: Write Your Take on Creators' Videos",
     description:
-      'Follow creators in your niche from Creator Radar and repurpose their videos into original posts written in your voice. Stay active without filming new videos.',
+      'Follow creators in your niche from Creator Radar and write your take on their videos, as original posts written in your voice. Stay active without filming new videos.',
     category: 'Create content',
     readTime: '3 min',
     hasVideo: false,

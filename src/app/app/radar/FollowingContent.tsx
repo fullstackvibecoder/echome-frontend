@@ -502,7 +502,7 @@ export default function FollowingContent() {
                     onClick={() => openRepurposeModal(content)}
                     className="px-4 py-2 bg-primary-interactive text-white text-sm font-medium rounded-lg hover:bg-primary-interactive/90 transition-colors flex-shrink-0 whitespace-nowrap"
                   >
-                    Repurpose &rarr;
+                    Write My Take &rarr;
                   </button>
                 </div>
               ))}
@@ -519,7 +519,7 @@ export default function FollowingContent() {
         >
           <div className="bg-card text-card-foreground rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
-              <h2 className="text-xl font-semibold text-foreground">Repurpose Content</h2>
+              <h2 className="text-xl font-semibold text-foreground">Write My Take</h2>
               <button onClick={closeRepurposeModal} disabled={repurposing} className="p-2 hover:bg-muted rounded-lg disabled:opacity-50 text-foreground">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

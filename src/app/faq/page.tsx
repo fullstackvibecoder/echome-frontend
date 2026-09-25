@@ -87,11 +87,11 @@ const faqCategories = [
     questions: [
       {
         q: 'What is Creator Radar?',
-        a: 'Creator Radar lets you discover and repurpose content from other creators in your niche. Browse trending videos, find relevant content, and turn it into your own posts — rewritten in your voice with your perspective. It is a way to stay active on social media even when you do not have new videos of your own.',
+        a: 'Creator Radar lets you discover creators in your niche and write your take on their content. Browse trending videos, find relevant content, and turn it into your own posts, rewritten in your voice with your perspective. It is a way to stay active on social media even when you do not have new videos of your own.',
       },
       {
-        q: 'Is repurposing the same as copying?',
-        a: 'No. EchoMe does not copy or plagiarize content. When you repurpose a video through Creator Radar, EchoMe uses the video as a topic source and generates entirely new content written in your voice with your unique perspective. The output is original content inspired by the topic, not a rewrite of someone else\'s words.',
+        q: 'Is writing my take the same as copying?',
+        a: 'No. EchoMe does not copy or plagiarize content. When you write your take on a video through Creator Radar, EchoMe uses the video as a topic source and generates entirely new content written in your voice with your unique perspective. The output is original content inspired by the topic, not a rewrite of someone else\'s words.',
       },
     ],
   },

@@ -160,7 +160,7 @@ export function EchoExchange({ state, handlers, onTextareaMount, placeholder }: 
               className="text-machine rounded px-2.5 py-1 border border-[var(--border)] bg-[var(--surface-container)] text-[var(--muted-foreground)] hover:bg-[var(--surface-container-high)] disabled:opacity-50"
               style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
             >
-              Not me - repurpose
+              Not me - write my take
             </button>
           </div>
         </div>

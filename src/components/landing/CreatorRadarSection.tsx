@@ -17,7 +17,7 @@ const steps = [
   },
   {
     icon: Sparkles,
-    title: 'Hit Repurpose',
+    title: 'Write Your Take',
     desc: 'Echo generates content from their video or link, grounded in your context and your perspective.',
   },
   {
