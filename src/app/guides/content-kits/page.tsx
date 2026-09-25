@@ -71,11 +71,21 @@ export default function ContentKitsGuidePage() {
 
           <Step number={4} title="Browse Written Content">
             <p>The Written Content section contains your LinkedIn post, Instagram caption, X post, TikTok caption, blog draft, email newsletter, YouTube description, and video script. Each OutputCard shows a preview of the content with options to edit, copy, or export.</p>
+            <img
+              src="/guide-screenshots/substack-article.png"
+              alt="Substack article editor with Copy for Substack"
+              className="w-full rounded-xl border border-border mt-4"
+            />
             <Tip>Each piece of content is written in your voice, trained from your previous uploads and knowledge base.</Tip>
           </Step>
 
           <Step number={5} title="Edit any post">
             <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, X, TikTok, blog, email, YouTube description, and video script are all editable inline. Make it yours, then save.</p>
+            <img
+              src="/guide-screenshots/post-editor.png"
+              alt="Platform tabs with Save, Regenerate, Post now, Schedule"
+              className="w-full rounded-xl border border-border mt-4"
+            />
             <Tip>Thumbs up the outputs that sound like you, thumbs down the ones that don&apos;t. The system trains on both. For 30 days, the patterns you flagged as off get excluded from future generations.</Tip>
           </Step>
 

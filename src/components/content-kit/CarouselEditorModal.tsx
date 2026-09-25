@@ -917,7 +917,7 @@ export default function CarouselEditorModal({
 
                 {coverNeedsEmphasis && (
                   <p className="text-[11px] text-muted-foreground bg-background rounded px-2 py-1 mb-2 border border-border">
-                    Cover slides shine with one emphasized word — pick one below.
+                    Cover slides shine with one emphasized word. Pick one below.
                   </p>
                 )}
 

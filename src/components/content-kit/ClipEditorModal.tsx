@@ -468,7 +468,7 @@ export default function ClipEditorModal({
                 </div>
                 <p className="text-[11px] text-muted-foreground">
                   Drag the caption to move it. Drag the corner handle to resize.
-                  Edit text below to fix typos — clicking a line jumps the preview to that moment.
+                  Edit text below to fix typos. Clicking a line jumps the preview to that moment.
                 </p>
               </div>
             )}
