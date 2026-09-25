@@ -23,11 +23,13 @@ export default function PlatformOverviewGuidePage() {
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
       '@type': 'VideoObject',
-      name: 'EchoMe Platform Overview - Video Walkthrough',
+      name: 'EchoMe walkthrough',
       description: 'A complete video walkthrough of the EchoMe platform covering input methods, video processing, captions, content generation, and voice profile building.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/136ee8a0709e44eaa5a2ba128d3ab624-with-play.gif',
-      embedUrl: 'https://www.loom.com/embed/136ee8a0709e44eaa5a2ba128d3ab624',
-      uploadDate: '2026-04-01',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/77e3e0f47fdc406cb5487ded1b87206c-with-play.gif',
+      embedUrl: 'https://www.loom.com/embed/77e3e0f47fdc406cb5487ded1b87206c',
+      contentUrl: 'https://www.loom.com/share/77e3e0f47fdc406cb5487ded1b87206c',
+      duration: 'PT20M11S',
+      uploadDate: '2026-09-25',
     },
     breadcrumb: {
       '@type': 'BreadcrumbList',
