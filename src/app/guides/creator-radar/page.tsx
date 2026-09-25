@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Creator Radar: Repurpose Other Creators\' Videos | EchoMe Guide',
-  description: 'Follow creators in your niche from Creator Radar and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
-  keywords: ['echome creator radar', 'repurpose content', 'follow creators', 'content repurposing', 'ai content'],
+  title: 'Creator Radar: Write Your Take on Other Creators\' Videos | EchoMe Guide',
+  description: 'Follow creators in your niche from Creator Radar and write your take on their videos, as original content written in your voice. Their ideas, your context, your words.',
+  keywords: ['echome creator radar', 'write your take', 'follow creators', 'content ideas', 'ai content'],
   alternates: { canonical: 'https://tryechome.com/guides/creator-radar' },
 };
 
@@ -12,8 +12,8 @@ export default function CreatorRadarGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Creator Radar: Repurpose Other Creators\' Videos',
-    description: 'Follow creators in your niche from Creator Radar and repurpose their videos into original content written in your voice. Their ideas, your context, your words.',
+    headline: 'Creator Radar: Write Your Take on Other Creators\' Videos',
+    description: 'Follow creators in your niche from Creator Radar and write your take on their videos, as original content written in your voice. Their ideas, your context, your words.',
     url: 'https://tryechome.com/guides/creator-radar',
     datePublished: '2026-04-15',
     dateModified: '2026-07-03',
@@ -39,7 +39,7 @@ export default function CreatorRadarGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Creator Radar: Repurpose Other Creators&apos; Videos
+          Creator Radar: Write Your Take on Other Creators&apos; Videos
         </h1>
         <p className="text-lg text-text-secondary mb-2">
           Follow creators in your niche and turn their latest videos into original content, written in your voice, grounded in your context. Same ideas, your words.
@@ -74,9 +74,9 @@ export default function CreatorRadarGuidePage() {
             <p>When a creator you follow posts new video content, it shows up in your Creator Radar feed. You&apos;ll see the video title, thumbnail, and publish date. No need to check YouTube manually.</p>
           </Step>
 
-          <Step number={4} title="Hit Repurpose on any video">
-            <p>Click Repurpose on any video in your feed. Pick the platforms you want (Instagram, LinkedIn, Blog, Email, TikTok, Video Script), then hit Generate. EchoMe builds the content from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
-            <Tip>Repurposing requires a paid EchoMe plan. Free accounts can follow creators and browse the feed, but generating content from a video needs Echo, Studio, or Teams.</Tip>
+          <Step number={4} title="Write your take on any video">
+            <p>Click Write My Take on any video in your feed. Pick the platforms you want (Instagram, LinkedIn, Blog, Email, TikTok, Video Script), then hit Generate. EchoMe builds the content from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
+            <Tip>Writing your take requires a paid EchoMe plan. Free accounts can follow creators and browse the feed, but generating content from a video needs Echo, Studio, or Teams.</Tip>
           </Step>
 
           <Step number={5} title="Review and edit">

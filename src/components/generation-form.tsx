@@ -1696,7 +1696,7 @@ export function GenerationForm({
               {inputType === 'video' && 'Upload Video'}
               {inputType === 'text' && 'Type or Paste'}
               {inputType === 'audio' && 'Record Voice'}
-              {inputType === 'repurpose' && 'Repurpose Content'}
+              {inputType === 'repurpose' && 'Write My Take'}
               {inputType === 'url' && 'Import from URL'}
             </h2>
           </div>
@@ -1713,7 +1713,7 @@ export function GenerationForm({
         /* Repurpose content list */
         <div className="border-2 border-border rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2 bg-bg-secondary border-b border-border">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Select content to repurpose</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Pick a post to write your take on</span>
             <button
               onClick={() => { setInputType('video'); clearFile(); }}
               className="text-xs text-accent hover:underline"
@@ -1730,7 +1730,7 @@ export function GenerationForm({
             <div className="p-8 text-center">
               <div className="text-5xl mb-4">👥</div>
               <p className="text-body text-gray-600 dark:text-gray-300 mb-4">
-                No content available for repurposing yet
+                No creator posts yet
               </p>
               <p className="text-small text-gray-600 dark:text-gray-300">
                 Follow creators in the Following page to see their content here
@@ -2180,7 +2180,7 @@ export function GenerationForm({
             {[
               'Unlimited content generation',
               'Video clip extraction',
-              'Creator Radar - follow & repurpose',
+              'Creator Radar: follow creators, write your take',
               'Instagram carousels',
               'Priority processing',
             ].map((feature) => (
@@ -2334,10 +2334,10 @@ export function GenerationForm({
               ) : generating ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {inputType === 'repurpose' ? 'Repurposing...' : 'Creating...'}
+                  {inputType === 'repurpose' ? 'Writing your take...' : 'Creating...'}
                 </span>
               ) : inputType === 'repurpose' ? (
-                'Repurpose Content'
+                'Write My Take'
               ) : (
                 'Create My Content'
               )}

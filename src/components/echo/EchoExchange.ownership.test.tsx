@@ -1,7 +1,7 @@
 /**
  * EchoExchange.ownership.test.tsx
  * Tests for the video ownership chip (Task 6):
- *   - "This is me" / "Not me - repurpose" chips when videoOwnership is null
+ *   - "This is me" / "Not me - write my take" chips when videoOwnership is null
  *   - The Create/Store fork is hidden until ownership is answered
  *   - After ownership is chosen, the fork shows and the "Add to Voice" button is absent
  */
@@ -85,7 +85,7 @@ describe('EchoExchange ownership chips', () => {
     expect(handlers.chooseOwnership).toHaveBeenCalledWith('self');
   });
 
-  it('calls chooseOwnership("third_party") when "Not me - repurpose" chip is clicked', () => {
+  it('calls chooseOwnership("third_party") when "Not me - write my take" chip is clicked', () => {
     handlers.chooseOwnership.mockClear();
     renderExchange({
       phase: 'confirming',
