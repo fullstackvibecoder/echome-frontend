@@ -143,10 +143,10 @@ export default function SchedulingPostsGuidePage() {
             </p>
             <div className="my-4 rounded-lg overflow-hidden border border-border">
               <Image
-                src="/guide-screenshots/scheduling-post-buttons.png"
-                alt="Platform picker with Instagram, LinkedIn, and Facebook selected, plus Post now and Schedule buttons"
-                width={1600}
-                height={900}
+                src="/guide-screenshots/post-editor.png"
+                alt="Platform tabs with Save, Regenerate, Post now, Schedule"
+                width={1458}
+                height={482}
                 className="w-full h-auto"
               />
             </div>
@@ -173,10 +173,10 @@ export default function SchedulingPostsGuidePage() {
             </ul>
             <div className="my-4 rounded-lg overflow-hidden border border-border">
               <Image
-                src="/guide-screenshots/scheduling-clip-post-actions.png"
-                alt="Content Kit editor showing generated visuals and a written post draft with platform tabs, Save, Regenerate, and Copy actions"
-                width={1600}
-                height={1200}
+                src="/guide-screenshots/clip-editor.png"
+                alt="Post to buttons under a clip"
+                width={1284}
+                height={1460}
                 className="w-full h-auto"
               />
             </div>
