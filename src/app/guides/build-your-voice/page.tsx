@@ -63,7 +63,7 @@ export default function BuildYourVoiceGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="What is Your Voice?">
-            <p>Your Voice (shown in the sidebar) is where EchoMe stores and analyzes your content. It maps your unique voice across five dimensions: signature phrases, avoid phrases, writing style, AI-phrase cleanliness, and semantic similarity to your past content. Think of it as teaching an AI how you think and communicate.</p>
+            <p>Your Voice (open it from Teach Echo more on the Create page) is where EchoMe stores and analyzes your content. It maps your unique voice across five dimensions: signature phrases, avoid phrases, writing style, AI-phrase cleanliness, and semantic similarity to your past content. Think of it as teaching an AI how you think and communicate.</p>
             <Tip>When you sign up, EchoMe runs a "Work Before The Work" pass that automatically builds your starting voice profile and knowledge base from your existing content. Paid users get this refreshed every Monday to keep both current. You can keep adding sources below at any time.</Tip>
           </Step>
 

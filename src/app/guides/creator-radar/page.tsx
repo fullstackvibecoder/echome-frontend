@@ -63,7 +63,7 @@ export default function CreatorRadarGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Go to Creator Radar">
-            <p>Open <strong>Creator Radar</strong> from the sidebar under Discover. This is your feed for staying on top of what creators in your space are publishing.</p>
+            <p>Open <strong>Creator Radar</strong> from Library, Radar tab. This is your feed for staying on top of what creators in your space are publishing.</p>
           </Step>
 
           <Step number={2} title="Follow creators in your niche">
