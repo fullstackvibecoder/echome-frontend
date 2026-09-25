@@ -91,6 +91,11 @@ export default function ReelsAndCaptionsGuidePage() {
 
           <Step number={5} title="Drag to position. Drag a corner to resize.">
             <p>Open any clip in the editor. Drag the caption block anywhere on the video and it stays. Drag the corner handle and the text scales to fit. Click any transcript line on the right to fix a typo. The caption updates live, the video preview jumps to that moment, and your edit gets baked into the next download.</p>
+            <img
+              src="/guide-screenshots/clip-editor.png"
+              alt="Clip editor: caption style, transcript, and post caption"
+              className="w-full rounded-xl border border-border mt-4"
+            />
             <Tip>The post caption (the text that goes alongside the video on Instagram/LinkedIn/etc.) is also editable inline. Click into it, type, save. It&rsquo;s ready when you hit Schedule or Post Now.</Tip>
           </Step>
 

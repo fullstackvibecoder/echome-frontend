@@ -100,7 +100,12 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={5} title="Edit, export, and publish">
-            <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style. Copy text to clipboard. Everything is saved in <strong>Your Library</strong> for later.</p>
+            <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style. Copy text to clipboard. Everything is saved in <strong>Your Library</strong> for later. It works in your phone&apos;s browser too.</p>
+            <img
+              src="/guide-screenshots/clip-editor-mobile.png"
+              alt="Clip editor on a phone"
+              className="w-full max-w-xs mx-auto rounded-xl border border-border mt-4"
+            />
           </Step>
         </section>
 
