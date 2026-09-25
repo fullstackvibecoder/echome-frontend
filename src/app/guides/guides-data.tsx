@@ -18,13 +18,10 @@ import {
   Captions,
   CalendarDays,
   Users,
-  BookOpen,
-  Lock,
   CreditCard,
   Images,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { isZoomImportEnabled } from '@/lib/flags';
 
 export interface Guide {
   slug: string;
@@ -55,7 +52,6 @@ const thumbnails: Record<string, string> = {
   'getting-started': '/guide-screenshots/create-page.png',
   'platform-overview': '/guide-screenshots/create-page.png',
   'build-your-voice': '/guide-screenshots/build-your-voice.png',
-  'knowledge-base': '/guide-screenshots/build-your-voice.png',
   'content-kits': '/guide-screenshots/content-kit-detail.png',
   carousels: '/guide-screenshots/carousel-editor.png',
   'video-content': '/guide-screenshots/create-page.png',
@@ -71,7 +67,7 @@ const thumbnails: Record<string, string> = {
   'content-calendar': '/guide-screenshots/scheduling-preparing-media.png',
 };
 
-const ALL_GUIDES: Guide[] = [
+export const guides: Guide[] = [
   // ---- Start here ----
   {
     slug: 'getting-started',
@@ -129,16 +125,6 @@ const ALL_GUIDES: Guide[] = [
     hasVideo: false,
   },
   {
-    slug: 'zoom-recordings',
-    icon: <Lock className="w-6 h-6" />,
-    title: 'Zoom Recordings: Password-Protected Downloads',
-    description:
-      'Import password-protected Zoom cloud recordings directly into EchoMe. Paste the link, enter the password, and process like any other video.',
-    category: 'Create content',
-    readTime: '2 min',
-    hasVideo: false,
-  },
-  {
     slug: 'content-kits',
     icon: <Package className="w-6 h-6" />,
     title: 'Working with Content Kits',
@@ -190,16 +176,6 @@ const ALL_GUIDES: Guide[] = [
   },
 
   // ---- Teach Echo your voice ----
-  {
-    slug: 'knowledge-base',
-    icon: <BookOpen className="w-6 h-6" />,
-    title: 'Building Your Knowledge Base',
-    description:
-      'Add text, URLs, documents, emails, and voice samples to your Knowledge Base. The more context EchoMe has, the better your voice match.',
-    category: 'Teach Echo your voice',
-    readTime: '3 min',
-    hasVideo: false,
-  },
   {
     slug: 'email-upload',
     icon: <Mail className="w-6 h-6" />,
@@ -265,11 +241,3 @@ const ALL_GUIDES: Guide[] = [
     hasVideo: false,
   },
 ].map((g) => ({ ...g, thumbnail: thumbnails[g.slug] }));
-
-// Zoom import is hidden by default (46/46 failures in the last 90 days, see
-// flags.ts). Drop the dedicated Zoom guide from the index and sitemap until
-// it's re-enabled; the entry itself stays in ALL_GUIDES above so this is a
-// one-line revert.
-export const guides: Guide[] = isZoomImportEnabled()
-  ? ALL_GUIDES
-  : ALL_GUIDES.filter((g) => g.slug !== 'zoom-recordings');

@@ -161,7 +161,7 @@ export default function PlatformOverviewGuidePage() {
           </Step>
 
           <Step number={9} title="Follow other creators">
-            <p className="mb-2">The <strong className="text-text-primary">Creator Radar</strong> entry in the sidebar lets you follow other creators. When they post new videos, you can write your take on their content, in your voice and context.</p>
+            <p className="mb-2"><strong className="text-text-primary">Creator Radar</strong>, in Library under the Radar tab, lets you follow other creators. When they post new videos, you can write your take on their content, in your voice and context.</p>
             <p>The output sounds like you, not them. EchoMe applies your voice profile to transform their ideas into your style and perspective.</p>
           </Step>
 

@@ -150,6 +150,10 @@ const nextConfig: NextConfig = {
       // bookmarks) redirect home instead of 404ing.
       { source: '/realtors', destination: '/', permanent: true },
       { source: '/realtors/:path*', destination: '/', permanent: true },
+      // Guides pruned: Zoom import guide (feature hidden behind a disabled
+      // flag) and Knowledge Base guide (concept folded into Your Voice).
+      { source: '/guides/zoom-recordings', destination: '/guides/video-content', permanent: true },
+      { source: '/guides/knowledge-base', destination: '/guides/build-your-voice', permanent: true },
     ];
   },
 };
