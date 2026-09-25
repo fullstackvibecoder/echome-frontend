@@ -30,4 +30,10 @@ describe('HeroSection', () => {
     await userEvent.click(screen.getByRole('link', { name: /start free/i }));
     expect(trackCtaClick).toHaveBeenCalledWith('hero_primary');
   });
+
+  it('links the walkthrough teaser to the see-it-work section', () => {
+    render(<HeroSection />);
+    const link = screen.getByRole('link', { name: /watch ara run it end to end \(20 min\)/i });
+    expect(link).toHaveAttribute('href', '#see-it-work');
+  });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Crown } from 'lucide-react';
+import { ArrowRight, Crown, Play } from 'lucide-react';
 import { HeroDemoVideo } from './HeroDemoVideo';
 import { trackCtaClick } from '@/lib/analytics';
 
@@ -64,6 +64,17 @@ export function HeroSection() {
                 className="px-8 py-4 rounded-full font-bold text-lg text-white hover:bg-white/5 transition-all flex items-center gap-3"
               >
                 See Examples
+              </a>
+            </div>
+
+            {/* Secondary link to the founder walkthrough */}
+            <div className="opacity-0 animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <a
+                href="#see-it-work"
+                className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white/90 transition-colors"
+              >
+                <Play className="w-3.5 h-3.5" aria-hidden="true" />
+                Watch Ara run it end to end (20 min)
               </a>
             </div>
 

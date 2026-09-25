@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Menu, X, Check, Mail, ArrowRight } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
 import { HeroSection } from '@/components/landing/HeroSection';
+import { SeeItWorkSection } from '@/components/landing/SeeItWorkSection';
 import { KnowledgeBaseSection } from '@/components/landing/KnowledgeBaseSection';
 import { CreatorRadarSection } from '@/components/landing/CreatorRadarSection';
 import { OutputShowcase } from '@/components/landing/OutputShowcase';
@@ -103,6 +104,11 @@ export default function HomeContent() {
       <main id="main-content">
       <TrackedSection name="hero">
         <HeroSection />
+      </TrackedSection>
+
+      {/* See it work — founder walkthrough, right after the hero */}
+      <TrackedSection name="see_it_work">
+        <SeeItWorkSection />
       </TrackedSection>
 
       {/* Knowledge Base — now owns the #how anchor and the detailed how-it-works */}
