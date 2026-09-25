@@ -57,7 +57,7 @@ export function CreateStarterCards({ onRecord, onUpload, onPasteLink }: CreateSt
       </button>
       <button type="button" className={CARD_CLASS} onClick={onUpload}>
         <CardIcon><Upload size={16} /></CardIcon>
-        <CardBody title="Upload" subtitle="Becomes posts, clips, and carousels" />
+        <CardBody title="Repurpose a video" subtitle="Clips, posts, carousels, in your voice" />
       </button>
       <button type="button" className={CARD_CLASS} onClick={onPasteLink}>
         <CardIcon><Link2 size={16} /></CardIcon>
