@@ -12,6 +12,7 @@ import { X, Download, Film, RotateCcw } from 'lucide-react';
 import { api, type VideoClip } from '@/lib/api-client';
 import { selectClipVideoSrc } from './clip-video-src';
 import { ClipCleanBanner } from './ClipCleanBanner';
+import { ClipTrimControls } from './ClipTrimControls';
 import { formatDuration } from '@/lib/content-kit-utils';
 import { VideoPlayer, type VideoPlayerHandle } from './VideoPlayer';
 import { CaptionStylePopover } from './CaptionStylePopover';
@@ -141,12 +142,39 @@ export default function ClipEditorModal({
   const [postCaption, setPostCaption] = useState<string>(clip.suggestedCaption ?? '');
   const [savingCaption, setSavingCaption] = useState(false);
 
+  // Local mirror of a completed trim/reset job. The modal has no parent
+  // refetch wired up for this first sliver (unlike caption edits, which
+  // persist silently without needing one either), so we track the latest
+  // applied bounds + media here and derive everything downstream from it
+  // instead of `clip.startTime`/`clip.endTime` directly.
+  const [trimOverride, setTrimOverride] = useState<{
+    media: { url: string; thumbnailUrl: string | null };
+    startTime: number;
+    endTime: number;
+  } | null>(null);
+  useEffect(() => {
+    setTrimOverride(null);
+  }, [clip.id]);
+  const effectiveStartTime = trimOverride?.startTime ?? clip.startTime;
+  const effectiveEndTime = trimOverride?.endTime ?? clip.endTime;
+  const effectiveDuration = effectiveEndTime - effectiveStartTime;
+  const effectiveThumbnailUrl = trimOverride?.media.thumbnailUrl ?? clip.thumbnailUrl;
+
   const backdropRef = useRef<HTMLDivElement>(null);
   // Imperative handle on the video player so we can jump to a transcript
   // segment's start time when the user focuses/clicks that segment's input.
   // This keeps the live caption preview in sync with what the user is editing
   // — they see their typo fix on-frame instead of having to scrub manually.
   const playerRef = useRef<VideoPlayerHandle>(null);
+  // Wraps the VideoPlayer so ClipTrimControls can read the raw <video>
+  // element's currentTime for "Set at playhead" — VideoPlayerHandle only
+  // exposes seekTo, not a time getter, so we grab the DOM node directly
+  // instead of extending that shared component for this one control.
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const trimVideoElRef = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    trimVideoElRef.current = playerContainerRef.current?.querySelector('video') ?? null;
+  });
   // Refs for the per-segment <input> elements so focus survives a re-render
   // when the user types fast (overlay updates → re-render → naive React would
   // unmount-and-remount the input). Storing keyed by index lets us key the
@@ -154,7 +182,12 @@ export default function ClipEditorModal({
 
   // Build caption segments from transcript text, then apply user overrides on top.
   // Live preview reflects edits because captionSegments is derived from segmentEdits.
-  const baseSegments = useMemo(() => buildCaptionSegments(clip), [clip]);
+  // Duration reflects an active trim so overlay timing stays in sync with the
+  // shorter clip instead of the pre-trim segments spilling past the end.
+  const baseSegments = useMemo(
+    () => buildCaptionSegments(trimOverride ? { ...clip, duration: effectiveDuration } : clip),
+    [clip, trimOverride, effectiveDuration],
+  );
   const captionSegments = useMemo(() => {
     if (segmentEdits.size === 0) return baseSegments;
     return baseSegments.map((seg, i) => {
@@ -163,13 +196,14 @@ export default function ClipEditorModal({
     });
   }, [baseSegments, segmentEdits]);
 
-  // Determine video source: split view, then cleaned-vs-original (see selectClipVideoSrc).
+  // Determine video source: split view, then cleaned-vs-original (see selectClipVideoSrc),
+  // then an applied trim (which replaces whichever of those was showing).
   const hasSplitScreen = !!(clip as unknown as Record<string, unknown>).splitScreenUrl;
   const cleanedAvailable = !!clip.autoCleanApplied && !!clip.cleanedUrl;
-  const videoSrc = selectClipVideoSrc(clip, viewMode, showOriginal);
+  const videoSrc = trimOverride?.media.url ?? selectClipVideoSrc(clip, viewMode, showOriginal);
   const aspectRatio = FORMAT_TO_ASPECT[clip.format] || '9:16';
   const youtubeDisabledReasons = (() => {
-    const reason = youtubeShortBlockReason(clip.duration, aspectRatio);
+    const reason = youtubeShortBlockReason(effectiveDuration, aspectRatio);
     return reason ? { youtube: reason } : undefined;
   })();
   const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
@@ -323,16 +357,16 @@ export default function ClipEditorModal({
         <div className="flex flex-col lg:flex-row w-full overflow-y-auto">
           {/* Left: Video Player (45%) */}
           <div className="flex items-center justify-center p-4 lg:w-[45%] shrink-0 bg-background/50">
-            <div className="w-full max-w-[280px]">
+            <div ref={playerContainerRef} className="w-full max-w-[280px] space-y-3">
               {videoSrc ? (
                 <VideoPlayer
                   ref={playerRef}
                   key={`${viewMode}-${videoSrc}`}
                   src={videoSrc}
-                  poster={viewMode === 'split' ? undefined : clip.thumbnailUrl}
+                  poster={viewMode === 'split' ? undefined : effectiveThumbnailUrl}
                   aspectRatio="9:16"
                   showControls
-                  duration={clip.duration}
+                  duration={effectiveDuration}
                   captionSegments={showCaptionOverlay ? captionSegments : undefined}
                   captionStyle={captionStyle}
                   captionsEnabled={showCaptionOverlay}
@@ -352,6 +386,20 @@ export default function ClipEditorModal({
                   </div>
                 </div>
               )}
+              <ClipTrimControls
+                uploadId={uploadId}
+                clipId={clip.id}
+                startTime={effectiveStartTime}
+                endTime={effectiveEndTime}
+                originalStartTime={clip.originalStartTime ?? clip.startTime}
+                originalEndTime={clip.originalEndTime ?? clip.endTime}
+                isTrimmed={trimOverride ? true : !!clip.isTrimmed}
+                trimStatus={clip.trimStatus ?? 'idle'}
+                videoRef={trimVideoElRef}
+                onTrimApplied={(media, bounds) => {
+                  setTrimOverride({ media, startTime: bounds.startTime, endTime: bounds.endTime });
+                }}
+              />
             </div>
           </div>
 
@@ -364,7 +412,7 @@ export default function ClipEditorModal({
                   {clip.title || `Clip ${clip.sortOrder + 1}`}
                 </h2>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <span>{formatDuration(clip.duration)}</span>
+                  <span>{formatDuration(effectiveDuration)}</span>
                   <span className="text-border">|</span>
                   <span>{FORMAT_LABELS[clip.format] || clip.format}</span>
                   {clip.engagementPotential != null && clip.engagementPotential > 0 && (
