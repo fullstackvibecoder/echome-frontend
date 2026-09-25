@@ -199,7 +199,7 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByText('Write posts from a topic')).toBeTruthy();
     expect(screen.getByText('Create from what Echo knows')).toBeTruthy();
     expect(screen.getByText('Record')).toBeTruthy();
-    expect(screen.getByText('Upload')).toBeTruthy();
+    expect(screen.getByText('Repurpose a video')).toBeTruthy();
     expect(screen.getByText('Paste a link')).toBeTruthy();
     expect(screen.getByText('Plan your week')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();

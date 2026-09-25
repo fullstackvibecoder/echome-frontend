@@ -128,7 +128,7 @@ export const FAQS: FAQItem[] = [
   {
     question: 'What is Creator Radar?',
     answer:
-      'Creator Radar lets you follow other creators and thought leaders. When they post new content, you can repurpose it in your own voice with one click - great for staying current and adding your perspective.',
+      'Creator Radar lets you follow other creators and thought leaders. When they post new content, you can write your take on it in your own voice with one click - great for staying current and adding your perspective.',
     category: 'features',
   },
   {

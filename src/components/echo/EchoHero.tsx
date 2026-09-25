@@ -238,7 +238,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
             className="mb-6 text-center text-sm leading-snug max-w-xl"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Drop one video of you talking, 2 to 60 minutes. Echo cuts the best moments into clips and writes the posts and carousels around them, in your voice. You approve, it posts. No video handy? A link or a minute of talking works too.
+            Already have a video of you talking? Drop it in, 2 to 60 minutes. Echo cuts the best moments into clips and writes the posts and carousels around them, in your voice. You approve, it posts. No video handy? A link or a minute of talking works too.
           </p>
           {/* SketchExplainer animation removed 2026-07-03 (founder call): it
               dominated the empty-state viewport and pushed the composer, the

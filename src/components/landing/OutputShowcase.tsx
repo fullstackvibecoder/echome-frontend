@@ -41,7 +41,7 @@ const slides: Record<string, Slide[]> = {
     { image: '/showcase/platform/v2/voice.png', alt: 'Build your voice knowledge base with connect, import, and record options', caption: 'Teach Echo how you think and sound.' },
   ],
   tools: [
-    { image: '/showcase/platform/v2/creator-radar.png', alt: 'Creator Radar following feed with repurpose buttons', caption: 'Follow creators. Repurpose their videos and links in your voice.' },
+    { image: '/showcase/platform/v2/creator-radar.png', alt: 'Creator Radar following feed with write your take buttons', caption: 'Follow creators. Write your take on their videos and links, in your voice.' },
     { image: '/showcase/platform/v2/creator-library.png', alt: 'Creator Library with monthly B-roll', caption: 'Monthly B-roll drops, caption templates, and reel scripts' },
   ],
   schedule: [

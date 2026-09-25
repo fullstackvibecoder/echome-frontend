@@ -44,7 +44,7 @@ const features = [
     label: 'Creator Following',
     icon: Users,
     component: CreatorRepurposing,
-    description: 'Repurpose through your voice',
+    description: 'Write your take, in your voice',
   },
 ];
 
