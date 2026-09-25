@@ -108,8 +108,16 @@ export function ClipTrimControls({
   const [trimmedFlag, setTrimmedFlag] = useState(isTrimmed);
 
   const barRef = useRef<HTMLDivElement>(null);
-  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollStartedAtRef = useRef(0);
+  // Guards against setState/onTrimApplied firing after unmount, for a
+  // getTrimStatus request that was already in flight.
+  const mountedRef = useRef(true);
+  // Bumped on every stop/start. A request captures the token when it's
+  // issued; if the token has moved on by the time it resolves (stopped,
+  // or a newer poll loop started), the stale response is discarded instead
+  // of scheduling another tick or touching state.
+  const pollTokenRef = useRef(0);
 
   // A different clip loaded into the same modal instance — reset local
   // editing state to that clip's current bounds/status.
@@ -126,46 +134,72 @@ export function ClipTrimControls({
   }, [clipId]);
 
   const stopPolling = useCallback(() => {
+    pollTokenRef.current += 1;
     if (pollTimerRef.current) {
-      clearInterval(pollTimerRef.current);
+      clearTimeout(pollTimerRef.current);
       pollTimerRef.current = null;
     }
   }, []);
 
   // Stop polling if the modal (and this component) unmounts mid-job.
-  useEffect(() => stopPolling, [stopPolling]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      stopPolling();
+    };
+  }, [stopPolling]);
 
   const startPolling = useCallback(() => {
     stopPolling();
     setTimedOut(false);
     pollStartedAtRef.current = Date.now();
-    pollTimerRef.current = setInterval(async () => {
-      if (Date.now() - pollStartedAtRef.current > POLL_MAX_MS) {
-        stopPolling();
-        setTimedOut(true);
-        return;
-      }
-      try {
-        const res = await api.clips.getTrimStatus(uploadId, clipId);
-        const data = res.data;
-        if (data.trimStatus === 'processing') return;
-        stopPolling();
-        setStatus(data.trimStatus);
-        setError(data.trimError);
-        setNotes(data.trimNotes);
-        setTrimmedFlag(data.isTrimmed);
-        if (data.trimStatus === 'idle') {
-          setInTime(data.startTime);
-          setOutTime(data.endTime);
-          setApplied(true);
-          onTrimApplied(data.media, { startTime: data.startTime, endTime: data.endTime });
+    const token = pollTokenRef.current;
+
+    const tick = () => {
+      pollTimerRef.current = setTimeout(async () => {
+        // A newer poll loop started, or stopPolling ran, while this tick
+        // was waiting — bail without touching state or scheduling again.
+        if (token !== pollTokenRef.current || !mountedRef.current) return;
+
+        if (Date.now() - pollStartedAtRef.current > POLL_MAX_MS) {
+          stopPolling();
+          setTimedOut(true);
+          return;
         }
-      } catch (err) {
-        stopPolling();
-        setStatus('failed');
-        setError(extractApiError(err, 'Failed to check trim status').message);
-      }
-    }, POLL_INTERVAL_MS);
+
+        try {
+          const res = await api.clips.getTrimStatus(uploadId, clipId);
+          // The request was in flight when the component unmounted, or the
+          // poll loop was stopped/superseded while it was pending.
+          if (token !== pollTokenRef.current || !mountedRef.current) return;
+
+          const data = res.data;
+          if (data.trimStatus === 'processing') {
+            tick();
+            return;
+          }
+          stopPolling();
+          setStatus(data.trimStatus);
+          setError(data.trimError);
+          setNotes(data.trimNotes);
+          setTrimmedFlag(data.isTrimmed);
+          if (data.trimStatus === 'idle') {
+            setInTime(data.startTime);
+            setOutTime(data.endTime);
+            setApplied(true);
+            onTrimApplied(data.media, { startTime: data.startTime, endTime: data.endTime });
+          }
+        } catch (err) {
+          if (token !== pollTokenRef.current || !mountedRef.current) return;
+          stopPolling();
+          setStatus('failed');
+          setError(extractApiError(err, 'Failed to check trim status').message);
+        }
+      }, POLL_INTERVAL_MS);
+    };
+
+    tick();
   }, [uploadId, clipId, stopPolling, onTrimApplied]);
 
   const applyIn = useCallback(
@@ -439,10 +473,10 @@ export function ClipTrimControls({
       )}
 
       {notes?.includes('auto_clean_dropped') && (
-        <p className="text-[11px] text-muted-foreground">Auto-clean was removed by this trim.</p>
+        <p className="text-[11px] text-muted-foreground">Auto-clean was removed by this trim</p>
       )}
       {notes?.includes('split_screen_dropped') && (
-        <p className="text-[11px] text-muted-foreground">Split-screen layout was removed by this trim.</p>
+        <p className="text-[11px] text-muted-foreground">Split-screen layout was removed by this trim</p>
       )}
 
       <div className="flex items-center gap-3">

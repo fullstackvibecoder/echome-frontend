@@ -192,6 +192,96 @@ describe('ClipTrimControls', () => {
     expect(baseProps.onTrimApplied).not.toHaveBeenCalled();
   });
 
+  it('does not issue a second getTrimStatus call while the previous one is still pending', async () => {
+    vi.useFakeTimers();
+    trim.mockResolvedValue({ success: true, data: { clipId: 'clip-1', trimStatus: 'processing' } });
+    let resolveStatus: (value: unknown) => void = () => {};
+    getTrimStatus.mockImplementation(
+      () => new Promise((resolve) => { resolveStatus = resolve; }),
+    );
+
+    render(<ClipTrimControls {...baseProps} />);
+    fireEvent.keyDown(getSlider(/trim in point/i), { key: 'ArrowRight', shiftKey: true });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /apply trim/i }));
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    expect(getTrimStatus).toHaveBeenCalledTimes(1);
+
+    // The first request is still pending. The self-scheduling loop only
+    // queues the next tick once it resolves, so even a large advance must
+    // not fire a second call while it's in flight.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    expect(getTrimStatus).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveStatus({
+        success: true,
+        data: {
+          trimStatus: 'processing',
+          trimError: null,
+          startTime: 10,
+          endTime: 20,
+          originalStartTime: 0,
+          originalEndTime: 30,
+          duration: 10,
+          isTrimmed: false,
+          trimNotes: null,
+          media: { url: 'https://cdn.example.com/old.mp4', thumbnailUrl: null },
+        },
+      });
+    });
+  });
+
+  it('discards a getTrimStatus response that resolves after unmount', async () => {
+    vi.useFakeTimers();
+    trim.mockResolvedValue({ success: true, data: { clipId: 'clip-1', trimStatus: 'processing' } });
+    let resolveStatus: (value: unknown) => void = () => {};
+    getTrimStatus.mockImplementation(
+      () => new Promise((resolve) => { resolveStatus = resolve; }),
+    );
+
+    const { unmount } = render(<ClipTrimControls {...baseProps} />);
+    fireEvent.keyDown(getSlider(/trim in point/i), { key: 'ArrowRight', shiftKey: true });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /apply trim/i }));
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    expect(getTrimStatus).toHaveBeenCalledTimes(1);
+
+    unmount();
+
+    await act(async () => {
+      resolveStatus({
+        success: true,
+        data: {
+          trimStatus: 'idle',
+          trimError: null,
+          startTime: 12,
+          endTime: 20,
+          originalStartTime: 0,
+          originalEndTime: 30,
+          duration: 8,
+          isTrimmed: true,
+          trimNotes: null,
+          media: { url: 'https://cdn.example.com/new.mp4', thumbnailUrl: null },
+        },
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(baseProps.onTrimApplied).not.toHaveBeenCalled();
+  });
+
   it('only shows Reset to original when the clip is trimmed', () => {
     const { rerender } = render(<ClipTrimControls {...baseProps} isTrimmed={false} />);
     expect(screen.queryByRole('button', { name: /reset to original/i })).not.toBeInTheDocument();
