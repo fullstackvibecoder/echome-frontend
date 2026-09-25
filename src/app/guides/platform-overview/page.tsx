@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 import { isZoomImportEnabled } from '@/lib/flags';
+import { WalkthroughVideo } from '@/components/guides/WalkthroughVideo';
 
 export const metadata: Metadata = {
   title: 'EchoMe Platform Overview | Guide',
@@ -22,11 +23,13 @@ export default function PlatformOverviewGuidePage() {
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
       '@type': 'VideoObject',
-      name: 'EchoMe Platform Overview - Video Walkthrough',
+      name: 'EchoMe walkthrough',
       description: 'A complete video walkthrough of the EchoMe platform covering input methods, video processing, captions, content generation, and voice profile building.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/136ee8a0709e44eaa5a2ba128d3ab624-with-play.gif',
-      embedUrl: 'https://www.loom.com/embed/136ee8a0709e44eaa5a2ba128d3ab624',
-      uploadDate: '2026-04-01',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/77e3e0f47fdc406cb5487ded1b87206c-with-play.gif',
+      embedUrl: 'https://www.loom.com/embed/77e3e0f47fdc406cb5487ded1b87206c',
+      contentUrl: 'https://www.loom.com/share/77e3e0f47fdc406cb5487ded1b87206c',
+      duration: 'PT20M11S',
+      uploadDate: '2026-09-25',
     },
     breadcrumb: {
       '@type': 'BreadcrumbList',
@@ -65,17 +68,7 @@ export default function PlatformOverviewGuidePage() {
         />
 
         {/* Video embed */}
-        <div className="mb-10 rounded-xl overflow-hidden border border-border">
-          <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
-            <iframe
-              src="https://www.loom.com/embed/136ee8a0709e44eaa5a2ba128d3ab624"
-              frameBorder="0"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-              title="EchoMe Platform Overview - Video Walkthrough"
-            />
-          </div>
-        </div>
+        <WalkthroughVideo variant="inline" />
 
         {/* Steps */}
         <section className="space-y-8 mb-10">
