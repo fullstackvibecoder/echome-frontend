@@ -60,14 +60,6 @@ export default function GuidesIndexPage() {
 
         <GuidesIndexClient />
 
-        {/* For realtors CTA */}
-        <div className="p-6 bg-bg-secondary border border-border rounded-xl text-center">
-          <p className="text-text-secondary text-sm mb-2">Are you a real estate agent?</p>
-          <Link href="/realtors" className="text-accent font-semibold hover:underline">
-            See how EchoMe works for real estate &rarr;
-          </Link>
-        </div>
-
         {/* Footer */}
         <footer className="border-t border-border pt-6 mt-12 text-center text-xs text-text-secondary">
           <p>Need more help? Use the chat widget in the bottom-right corner of any EchoMe page.</p>
