@@ -2395,8 +2395,6 @@ export const api = {
       segmentOverrides?: Array<{ index: number; text: string }>;
       /** Editable post caption — the text to paste alongside this clip when posting to socials. */
       suggestedCaption?: string;
-      startTime?: number;
-      endTime?: number;
     }) => {
       const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data);
       return response.data as {
@@ -2404,6 +2402,37 @@ export const api = {
         data: {
           clip: VideoClip;
         };
+      };
+    },
+
+    /**
+     * Start a non-destructive shrink-only trim job for a clip. Bounds are
+     * absolute source-time seconds (same units as the clip's startTime/endTime).
+     * Returns 202 while the job runs in the background; poll getTrimStatus.
+     */
+    trim: async (uploadId: string, clipId: string, body: { startTime: number; endTime: number }) => {
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/trim`, body);
+      return response.data as {
+        success: boolean;
+        data: { clipId: string; trimStatus: 'processing' };
+      };
+    },
+
+    /** Discard the active trim and restore the clip's original bounds. */
+    resetTrim: async (uploadId: string, clipId: string) => {
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/trim/reset`);
+      return response.data as {
+        success: boolean;
+        data: { clipId: string; trimStatus: 'processing' };
+      };
+    },
+
+    /** Poll while a trim/reset job runs; also returns the current bounds and delivery media. */
+    getTrimStatus: async (uploadId: string, clipId: string) => {
+      const response = await apiClient.get(`/clips/${uploadId}/clips/${clipId}/trim`);
+      return response.data as {
+        success: boolean;
+        data: ClipTrimStatus;
       };
     },
 
@@ -4886,6 +4915,13 @@ export interface VideoClip {
   startTime: number;
   endTime: number;
   duration: number;
+  /** Pre-trim bounds. Present once a clip has ever been trimmed; undefined otherwise. */
+  originalStartTime?: number;
+  originalEndTime?: number;
+  /** 'processing' while a trim/reset job runs; 'failed' after an error (see trimError via getTrimStatus). */
+  trimStatus?: 'idle' | 'processing' | 'failed';
+  /** True once a shrink trim is active (trimmedUrl set server-side). */
+  isTrimmed?: boolean;
   title?: string;
   transcriptText?: string;
   viralityScore?: number;
@@ -4940,6 +4976,20 @@ export interface ClipExport {
   storagePath: string;
   url: string;
   fileSizeBytes?: number;
+}
+
+/** Response shape for GET /clips/:uploadId/clips/:clipId/trim. */
+export interface ClipTrimStatus {
+  trimStatus: 'idle' | 'processing' | 'failed';
+  trimError: string | null;
+  startTime: number;
+  endTime: number;
+  originalStartTime: number;
+  originalEndTime: number;
+  duration: number;
+  isTrimmed: boolean;
+  trimNotes: string[] | null;
+  media: { url: string; thumbnailUrl: string | null };
 }
 
 export interface ContentKit {
