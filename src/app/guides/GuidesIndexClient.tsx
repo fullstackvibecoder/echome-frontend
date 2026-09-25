@@ -13,6 +13,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Search, Video } from 'lucide-react';
 import { guides, START_HERE_SLUGS, CATEGORY_ORDER, type Guide } from './guides-data';
+import { WalkthroughVideo } from '@/components/guides/WalkthroughVideo';
 
 function GuideCard({ guide }: { guide: Guide }) {
   return (
@@ -125,6 +126,8 @@ export function GuidesIndexClient() {
 
       {browsing ? (
         <>
+          <WalkthroughVideo variant="hero" />
+
           {/* Start here — a real sequence, so it gets numbers */}
           <section className="mb-14">
             <h2 className="text-xl font-semibold text-text-primary mb-1">Start here</h2>

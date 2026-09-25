@@ -203,6 +203,7 @@ describe('EchoHero advisor + drafts wiring', () => {
     expect(screen.getByText('Paste a link')).toBeTruthy();
     expect(screen.getByText('Plan your week')).toBeTruthy();
     expect(screen.getByTestId('drafts-thread')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /not sure what to do\? watch the walkthrough/i })).toBeTruthy();
   });
 
   it('renders the outcome hero header, intent buttons, and starter cards when advisor is null', () => {
