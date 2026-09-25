@@ -46,7 +46,7 @@ export function CreatorRadarSection() {
             </h2>
 
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              Follow creators in your space. Their ideas get filtered through your knowledge base and come out in your voice.
+              Follow creators in your space. Their ideas go through your voice profile and come out sounding like you.
             </p>
           </div>
 

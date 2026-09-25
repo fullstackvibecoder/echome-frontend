@@ -377,8 +377,7 @@ export default function HomeContent() {
                   <div className="space-y-3 pt-4 border-t-2 border-border">
                     {[
                       'Per-voice scaling, pay only for what you use',
-                      'Per-voice knowledge bases',
-                      'Per-voice profile context',
+                      'A voice profile for every team member',
                       'Shared usage pool across voices',
                       'Auto-post to Instagram, LinkedIn & Facebook',
                       'Built-in teleprompter for talking-head video',
