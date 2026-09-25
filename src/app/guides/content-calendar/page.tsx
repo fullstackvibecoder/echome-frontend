@@ -51,7 +51,7 @@ export default function ContentCalendarGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Go to Calendar in the sidebar">
-            <p>Open the Calendar from the main sidebar navigation, under Discover. Toggle between <strong>Week</strong>, <strong>Month</strong>, and <strong>List</strong> view at the top. Each scheduled item shows up as a card colored by which Content Kit it came from, with platform icons telling you exactly what&rsquo;s scheduled per platform on that day.</p>
+            <p>Open Calendar in the sidebar. Toggle between <strong>Week</strong>, <strong>Month</strong>, and <strong>List</strong> view at the top. Each scheduled item shows up as a card colored by which Content Kit it came from, with platform icons telling you exactly what&rsquo;s scheduled per platform on that day.</p>
           </Step>
 
           <Step number={2} title="See everything organized by date">

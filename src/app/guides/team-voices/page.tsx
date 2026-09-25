@@ -59,8 +59,8 @@ export default function TeamVoicesGuidePage() {
             <p>The Echo Teams plan is $47 per voice per month with a 2-voice minimum and no upper cap. Add voices any time as your team grows. Upgrade from your account settings or the pricing page.</p>
           </Step>
 
-          <Step number={2} title="Go to Team Voices in the sidebar">
-            <p>Once you&apos;re on Echo Teams, the Team Voices section appears in your sidebar. This is where you manage all voice profiles for your team.</p>
+          <Step number={2} title="Go to the Team tab on Your Voice">
+            <p>Once you&apos;re on Echo Teams, Team Voices appears as the Team tab on Your Voice. This is where you manage all voice profiles for your team.</p>
           </Step>
 
           <Step number={3} title="Create a new voice profile">
