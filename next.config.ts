@@ -146,6 +146,10 @@ const nextConfig: NextConfig = {
       // /app/integrations was a "Coming Soon" stub — the real connections
       // UI lives in Settings. Redirect so existing bookmarks resolve.
       { source: '/app/integrations', destination: '/app/settings#connections', permanent: true },
+      // /realtors landing page retired. Old inbound links (ads, backlinks,
+      // bookmarks) redirect home instead of 404ing.
+      { source: '/realtors', destination: '/', permanent: true },
+      { source: '/realtors/:path*', destination: '/', permanent: true },
     ];
   },
 };

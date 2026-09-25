@@ -571,7 +571,6 @@ export default function CompressVideoToolPage() {
         <div className="max-w-3xl mx-auto flex flex-wrap justify-center gap-4 text-sm">
           <Link href="/guides/compress-video" className="text-primary hover:underline">Video compression guide</Link>
           <Link href="/guides" className="text-primary hover:underline">All guides</Link>
-          <Link href="/realtors" className="text-primary hover:underline">EchoMe for real estate</Link>
         </div>
       </section>
 
