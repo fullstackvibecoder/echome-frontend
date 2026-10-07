@@ -40,11 +40,16 @@ const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   threads:         { id: 'threads',         name: 'Threads',         Icon: AtSign,    postingMode: 'api',  hint: 'Via linked Instagram' },
   x:               { id: 'x',               name: 'X',               Icon: Twitter,   postingMode: 'link', hint: 'Copy-and-open flow for now' },
   tiktok:          { id: 'tiktok',          name: 'TikTok',          Icon: Music2,    postingMode: 'api',  hint: 'Publishes video clips to your TikTok profile' },
-  youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'api',  hint: 'Posts as a YouTube Short (vertical, ≤3 min)' },
+  youtube:         { id: 'youtube',         name: 'YouTube',         Icon: Youtube,   postingMode: 'api',  hint: 'Posts as a YouTube Short (vertical, ≤3 min). Publishes at 3:05 AM Eastern.' },
   pinterest:       { id: 'pinterest',       name: 'Pinterest',       Icon: Pin,       postingMode: 'link' },
   bluesky:         { id: 'bluesky',         name: 'Bluesky',         Icon: CloudSun,  postingMode: 'api',  hint: 'Up to 300 characters' },
   google_business: { id: 'google_business', name: 'Google Business', Icon: MapPin,    postingMode: 'link' },
 };
+
+/** Mirrors backend YOUTUBE_WINDOW_USER_NOTE (youtube-quota-window.ts). */
+const YOUTUBE_WINDOW_NOTE =
+  'YouTube posts publish at 3:05 AM Eastern (07:05 UTC), the next one after your chosen time. ' +
+  'YouTube limits daily uploads through our posting partner, and that is when the limit resets.';
 
 interface Props {
   /** Currently-selected platforms */
@@ -132,6 +137,9 @@ export function PlatformMultiPicker({
           </Link>{' '}
           to start posting.
         </p>
+      )}
+      {value.includes('youtube') && (
+        <p className="text-[11px] text-muted-foreground">{YOUTUBE_WINDOW_NOTE}</p>
       )}
     </div>
   );
