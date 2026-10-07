@@ -41,9 +41,12 @@ import type {
   DraftAction,
 } from '../types';
 import type { AdvisorResponse } from '@/types/advisor';
+import type { Scorecard } from '@/types/insights';
 
 // Re-export reel types for convenience
 export type { ReelTemplate, MusicTrackSummary, MusicTrack, TemplateSegment };
+// Re-export insights types for convenience
+export type { Scorecard };
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -159,11 +162,17 @@ apiClient.interceptors.response.use(
       // Read the message from either shape so the quota toast fires for both.
       const raw = error.response?.data?.error;
       const message = (typeof raw === 'string' ? raw : raw?.message) || error.response?.data?.message || '';
-      const isQuotaError = /free generation|generation limit|subscribe|upgrade/i.test(message);
-      if (isQuotaError && typeof window !== 'undefined') {
+      const code = (typeof raw === 'object' && raw?.code) || error.response?.data?.code || '';
+      // Only the free-tier quota gate (QUOTA_EXCEEDED) means "free generations
+      // used". Other 403s that mention upgrading (tier gates, voice limit,
+      // video minutes) hit paying users too, so they must show the backend's
+      // own message rather than claim the user is on the free plan.
+      const isFreeQuota = code === 'QUOTA_EXCEEDED' || /free generation/i.test(message);
+      const isPlanGate = /generation limit|subscribe|upgrade/i.test(message);
+      if ((isFreeQuota || isPlanGate) && typeof window !== 'undefined') {
         import('sonner').then(({ toast }) => {
-          toast.error('Free generations used', {
-            description: 'Subscribe to unlock unlimited content creation.',
+          toast.error(isFreeQuota ? 'Free generations used' : 'Not available on your plan', {
+            description: isFreeQuota ? 'Subscribe to unlock unlimited content creation.' : message,
             action: {
               label: 'View Plans',
               onClick: () => { window.location.href = '/app/billing'; },
@@ -2392,8 +2401,6 @@ export const api = {
       segmentOverrides?: Array<{ index: number; text: string }>;
       /** Editable post caption — the text to paste alongside this clip when posting to socials. */
       suggestedCaption?: string;
-      startTime?: number;
-      endTime?: number;
     }) => {
       const response = await apiClient.patch(`/clips/${uploadId}/clips/${clipId}`, data);
       return response.data as {
@@ -2401,6 +2408,37 @@ export const api = {
         data: {
           clip: VideoClip;
         };
+      };
+    },
+
+    /**
+     * Start a non-destructive shrink-only trim job for a clip. Bounds are
+     * absolute source-time seconds (same units as the clip's startTime/endTime).
+     * Returns 202 while the job runs in the background; poll getTrimStatus.
+     */
+    trim: async (uploadId: string, clipId: string, body: { startTime: number; endTime: number }) => {
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/trim`, body);
+      return response.data as {
+        success: boolean;
+        data: { clipId: string; trimStatus: 'processing' };
+      };
+    },
+
+    /** Discard the active trim and restore the clip's original bounds. */
+    resetTrim: async (uploadId: string, clipId: string) => {
+      const response = await apiClient.post(`/clips/${uploadId}/clips/${clipId}/trim/reset`);
+      return response.data as {
+        success: boolean;
+        data: { clipId: string; trimStatus: 'processing' };
+      };
+    },
+
+    /** Poll while a trim/reset job runs; also returns the current bounds and delivery media. */
+    getTrimStatus: async (uploadId: string, clipId: string) => {
+      const response = await apiClient.get(`/clips/${uploadId}/clips/${clipId}/trim`);
+      return response.data as {
+        success: boolean;
+        data: ClipTrimStatus;
       };
     },
 
@@ -4455,6 +4493,15 @@ export const api = {
     },
   },
 
+  // -------- Insights --------
+  insights: {
+    /** Personal insights scorecard: reach headline, records, streak, follower deltas. */
+    getScorecard: async () => {
+      const response = await apiClient.get('/insights/scorecard');
+      return response.data as ApiResponse<Scorecard>;
+    },
+  },
+
   // -------- WBTW (Work Before The Work) --------
   // Funnel telemetry write endpoint. Fire-and-forget from the UI;
   // backend stores asynchronously. Used to instrument the paywall
@@ -4874,6 +4921,13 @@ export interface VideoClip {
   startTime: number;
   endTime: number;
   duration: number;
+  /** Pre-trim bounds. Present once a clip has ever been trimmed; undefined otherwise. */
+  originalStartTime?: number;
+  originalEndTime?: number;
+  /** 'processing' while a trim/reset job runs; 'failed' after an error (see trimError via getTrimStatus). */
+  trimStatus?: 'idle' | 'processing' | 'failed';
+  /** True once a shrink trim is active (trimmedUrl set server-side). */
+  isTrimmed?: boolean;
   title?: string;
   transcriptText?: string;
   viralityScore?: number;
@@ -4928,6 +4982,20 @@ export interface ClipExport {
   storagePath: string;
   url: string;
   fileSizeBytes?: number;
+}
+
+/** Response shape for GET /clips/:uploadId/clips/:clipId/trim. */
+export interface ClipTrimStatus {
+  trimStatus: 'idle' | 'processing' | 'failed';
+  trimError: string | null;
+  startTime: number;
+  endTime: number;
+  originalStartTime: number;
+  originalEndTime: number;
+  duration: number;
+  isTrimmed: boolean;
+  trimNotes: string[] | null;
+  media: { url: string; thumbnailUrl: string | null };
 }
 
 export interface ContentKit {

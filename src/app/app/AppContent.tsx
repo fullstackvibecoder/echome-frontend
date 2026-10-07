@@ -13,6 +13,7 @@ import { setActiveGeneration, clearActiveGeneration } from '@/components/generat
 import { requestNotificationPermission, showNotificationIfHidden } from '@/lib/notifications';
 import { InputType, Platform, BackgroundConfig, CarouselSlide, DesignPreset } from '@/types';
 import { EchoHero } from '@/components/echo/EchoHero';
+import { InsightsScorecard } from '@/components/insights/InsightsScorecard';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { useSubscription } from '@/hooks/useSubscription';
 import { showErrorToast, showInfoToast } from '@/lib/toast';
@@ -347,6 +348,8 @@ export default function AppContent() {
         <div className="animate-fade-in">
           {/* EchoHero owns the resting Create page surface. */}
           <EchoHero quota={isFreeUser ? { remaining: freeGenerationsRemaining, limit: freeGenerationsLimit } : null} />
+
+          <InsightsScorecard />
 
           {/* GenerationForm: hidden execution engine. Kept mounted so its
               effects (processVideoWithClipFinder, handleUnifiedSubmit,
