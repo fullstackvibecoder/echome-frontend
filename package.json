@@ -47,7 +47,9 @@
   },
   "overrides": {
     "serialize-javascript": ">=7.0.3",
-    "postcss": ">=8.5.23"
+    "postcss": ">=8.5.23",
+    "source-map-js": ">=1.2.2",
+    "postcss-selector-parser": ">=7.1.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
