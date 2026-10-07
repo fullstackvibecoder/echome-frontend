@@ -162,11 +162,17 @@ apiClient.interceptors.response.use(
       // Read the message from either shape so the quota toast fires for both.
       const raw = error.response?.data?.error;
       const message = (typeof raw === 'string' ? raw : raw?.message) || error.response?.data?.message || '';
-      const isQuotaError = /free generation|generation limit|subscribe|upgrade/i.test(message);
-      if (isQuotaError && typeof window !== 'undefined') {
+      const code = (typeof raw === 'object' && raw?.code) || error.response?.data?.code || '';
+      // Only the free-tier quota gate (QUOTA_EXCEEDED) means "free generations
+      // used". Other 403s that mention upgrading (tier gates, voice limit,
+      // video minutes) hit paying users too, so they must show the backend's
+      // own message rather than claim the user is on the free plan.
+      const isFreeQuota = code === 'QUOTA_EXCEEDED' || /free generation/i.test(message);
+      const isPlanGate = /generation limit|subscribe|upgrade/i.test(message);
+      if ((isFreeQuota || isPlanGate) && typeof window !== 'undefined') {
         import('sonner').then(({ toast }) => {
-          toast.error('Free generations used', {
-            description: 'Subscribe to unlock unlimited content creation.',
+          toast.error(isFreeQuota ? 'Free generations used' : 'Not available on your plan', {
+            description: isFreeQuota ? 'Subscribe to unlock unlimited content creation.' : message,
             action: {
               label: 'View Plans',
               onClick: () => { window.location.href = '/app/billing'; },
