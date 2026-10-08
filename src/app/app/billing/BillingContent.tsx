@@ -380,7 +380,14 @@ function BillingContentInner() {
       }
     } catch (err) {
       console.error('Plan selection error:', err);
-      setError(extractErrorMessage(err, 'Failed to process your request. Please try again.'));
+      // The backend refuses to sell a plan a partner grant already covers.
+      // That is good news for the user, not a failure.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((err as any)?.response?.data?.error?.code === 'PARTNER_GRANT_ACTIVE') {
+        setSuccessMessage(extractErrorMessage(err, 'Your account already has this access through a partner. No payment is needed.'));
+      } else {
+        setError(extractErrorMessage(err, 'Failed to process your request. Please try again.'));
+      }
       setCheckoutLoading(null);
     }
   };
@@ -391,6 +398,14 @@ function BillingContentInner() {
     if (autoCheckoutDone || loading || plans.length === 0) return;
     const planParam = searchParams.get('plan');
     if (!planParam) return;
+    // A comped partner member followed a marketing pricing link. Their grant
+    // already pays for their seat, so do not launch Stripe Checkout at them;
+    // the partner card below explains their access instead.
+    if (subscription?.partnerGrant) {
+      setAutoCheckoutDone(true);
+      window.history.replaceState({}, '', '/app/billing');
+      return;
+    }
     // Currently sold plans only. Echo Pro ($99/mo) was retired; legacy
     // EchoTeams Duo/Pro/Agency (teams_2/5/10) retired for new signups
     // (1 grandfathered customer on teams_2 stays via Stripe portal, not
@@ -457,6 +472,14 @@ function BillingContentInner() {
     return subscription?.tier === plan.tier && subscription?.isSubscribed;
   };
 
+  // A reseller grant (e.g. The Listings Lab) pays for this seat. No Stripe
+  // customer exists, so the portal button and the individual plan cards
+  // would only lead to a dead end or a downgrade they pay for.
+  const partnerGrant = subscription?.partnerGrant;
+  const partnerGrantEnds = partnerGrant?.expiresAt
+    ? new Date(partnerGrant.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -516,13 +539,17 @@ function BillingContentInner() {
               <p className="text-sm text-muted-foreground mt-1">
                 Access until: {new Date(scheduledCancellation.endsAt).toLocaleDateString()}
               </p>
+            ) : partnerGrant ? (
+              <p className="text-sm text-muted-foreground mt-1">
+                Included through {partnerGrant.partner}{partnerGrantEnds ? ` until ${partnerGrantEnds}` : ''}. Nothing to pay.
+              </p>
             ) : subscription?.currentPeriodEnd ? (
               <p className="text-sm text-muted-foreground mt-1">
                 Renews: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
               </p>
             ) : null}
           </div>
-          {subscription?.isSubscribed && (
+          {subscription?.isSubscribed && !partnerGrant && (
             <button
               onClick={handleManageSubscription}
               disabled={portalLoading}
@@ -540,7 +567,25 @@ function BillingContentInner() {
         </div>
       </div>
 
+      {/* Partner-paid seat: say who covers it and skip the plan grid */}
+      {partnerGrant && (
+        <div className="mb-8 p-6 border-2 border-green-500/40 rounded-2xl bg-card">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-green-600" />
+            <h2 className="text-lg font-semibold">
+              {getTierDisplayName(partnerGrant.tier)} through {partnerGrant.partner}
+            </h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Your seat is paid for by {partnerGrant.partner}
+            {partnerGrantEnds ? ` and runs until ${partnerGrantEnds}` : ''}. There is nothing to buy here. If you
+            want to add team voices, the team plans below still apply.
+          </p>
+        </div>
+      )}
+
       {/* Billing Interval Toggle */}
+      {!partnerGrant && (
       <div className="flex justify-center mb-8">
         <div className="inline-flex items-center bg-muted rounded-lg p-1 shadow-sm">
           <button
@@ -568,9 +613,10 @@ function BillingContentInner() {
           </button>
         </div>
       </div>
+      )}
 
       {/* Free Tier Card - show for free users */}
-      {(!subscription?.isSubscribed || subscription?.tier === 'free') && (
+      {!partnerGrant && (!subscription?.isSubscribed || subscription?.tier === 'free') && (
         <div className="mb-6 p-5 border-2 border-border rounded-2xl bg-card flex items-center justify-between ring-2 ring-green-500">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -586,9 +632,9 @@ function BillingContentInner() {
         </div>
       )}
 
-      {/* Pricing Cards */}
+      {/* Pricing Cards (hidden for partner-paid seats: nothing here to buy) */}
       <div className="grid md:grid-cols-3 gap-6 mb-8 stagger-children">
-        {individualPlans.map((plan) => {
+        {(partnerGrant ? [] : individualPlans).map((plan) => {
           const isCurrent = isCurrentPlan(plan);
           const isPopular = plan.id === 'echo-studio';
           const price = billingInterval === 'month' ? plan.monthlyPrice : plan.annualPrice;

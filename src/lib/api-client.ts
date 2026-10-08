@@ -5150,6 +5150,14 @@ export interface StripeSubscriptionStatus {
   cancelAt?: string | null;
   trialEnd?: string;
   isAdminAssigned?: boolean;
+  /** Set when the tier comes from an active reseller grant (e.g. The Listings
+   *  Lab). Nothing to pay; the billing page must not offer plans the grant
+   *  already covers. */
+  partnerGrant?: {
+    partner: string;
+    tier: SubscriptionTier;
+    expiresAt: string | null;
+  };
   freeGenerationsUsed?: number;
   freeGenerationsLimit?: number;
   /** True when this user was grandfathered into Studio-equivalent feature
