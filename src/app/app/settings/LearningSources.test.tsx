@@ -25,10 +25,12 @@ const connectGmail = vi.fn();
 const disconnect = vi.fn();
 const syncGmail = vi.fn();
 const getGmailSyncStatus = vi.fn();
+const requestGmailAccess = vi.fn();
 vi.mock('@/lib/api-client', () => ({
   api: {
     social: {
       getStatus: () => getStatus(),
+      requestGmailAccess: () => requestGmailAccess(),
       connectGmail: (...a: unknown[]) => connectGmail(...a),
       disconnect: (...a: unknown[]) => disconnect(...a),
       syncGmail: () => syncGmail(),
@@ -110,9 +112,20 @@ describe('LearningSources', () => {
     expect(
       screen.getByText('Gmail learning is in a private beta. Request access and we will email you when your account is in.'),
     ).toBeInTheDocument();
-    const link = screen.getByRole('link', { name: 'Request access' });
-    expect(link).toHaveAttribute('href', 'mailto:support@tryechome.com?subject=Gmail%20beta%20access');
+    expect(screen.getByRole('button', { name: 'Request access' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Connect Gmail' })).not.toBeInTheDocument();
+  });
+
+  it('Request access posts to the backend and flips to Request sent', async () => {
+    isAdmin = false;
+    getStatus.mockResolvedValue(statusWith([], false));
+    requestGmailAccess.mockResolvedValue({ success: true, data: { requested: true, alreadyAllowed: false } });
+    render(<LearningSources />);
+    const button = await screen.findByRole('button', { name: 'Request access' });
+    await userEvent.click(button);
+    await waitFor(() => expect(requestGmailAccess).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole('button', { name: 'Request sent' })).toBeDisabled();
+    expect(showSuccessToast).toHaveBeenCalled();
   });
 
   it('shows Connect Gmail for a non-admin whose status payload grants betaAccess', async () => {

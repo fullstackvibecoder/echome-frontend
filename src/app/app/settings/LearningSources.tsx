@@ -61,6 +61,7 @@ export default function LearningSources() {
 
   const [view, setView] = useState<GmailView>({ kind: 'loading' });
   const [betaAccess, setBetaAccess] = useState(false);
+  const [accessRequested, setAccessRequested] = useState(false);
   const [busy, setBusy] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -147,6 +148,22 @@ export default function LearningSources() {
   }, [view, pollJob]);
 
   if (!enabled) return null;
+
+  // The old link was a mailto: to support@, which does nothing on webmail or
+  // a phone and lands nowhere anyone watches. This one emails the founder the
+  // two manual steps (Railway allowlist + GCP test user).
+  const requestAccess = async () => {
+    setBusy(true);
+    try {
+      await api.social.requestGmailAccess();
+      setAccessRequested(true);
+      showSuccessToast('Request sent', 'You will get an email once your account is in.');
+    } catch (err) {
+      showErrorToast(err, 'requesting Gmail access');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const startConnect = async () => {
     setBusy(true);
@@ -238,12 +255,14 @@ export default function LearningSources() {
               <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 Beta
               </span>
-              <a
-                href="mailto:support@tryechome.com?subject=Gmail%20beta%20access"
-                className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              <button
+                type="button"
+                onClick={requestAccess}
+                disabled={busy || accessRequested}
+                className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-60"
               >
-                Request access
-              </a>
+                {accessRequested ? 'Request sent' : 'Request access'}
+              </button>
             </div>
           )}
           {view.kind === 'needs_reconnect' && (
