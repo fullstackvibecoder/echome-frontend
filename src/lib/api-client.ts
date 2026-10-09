@@ -949,6 +949,17 @@ export const api = {
       return response.data;
     },
 
+    /**
+     * Ask to be let into the Gmail beta. The backend emails the admin; the
+     * user hears back by email once the allowlist and GCP test user are set.
+     */
+    requestGmailAccess: async () => {
+      const response = await apiClient.post<{ success: boolean; data: { requested: true; alreadyAllowed: boolean } }>(
+        '/social/gmail/request-access',
+      );
+      return response.data;
+    },
+
     /** Hide the Connect Gmail nudge on the Create page permanently. */
     dismissGmailNudge: async () => {
       const response = await apiClient.post<{ success: boolean; data: { dismissed: true } }>('/social/gmail/nudge-dismiss');
