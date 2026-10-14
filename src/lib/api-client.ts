@@ -52,6 +52,9 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 // Create axios instance with default timeout
+// Last subscription tier seen from /auth/me; used to avoid telling paid users to subscribe.
+let knownTier: string | null = null;
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -177,9 +180,17 @@ apiClient.interceptors.response.use(
       // own message rather than claim the user is on the free plan.
       const isFreeQuota = code === 'QUOTA_EXCEEDED' || /free generation/i.test(message);
       const isPlanGate = /generation limit|subscribe|upgrade/i.test(message);
-      if ((isFreeQuota || isPlanGate) && typeof window !== 'undefined') {
+      // A paid account never has "free generations used". If the backend says
+      // so anyway, it mis-resolved the tier; telling the customer to subscribe
+      // is wrong and alarming, so stay quiet (the request still fails).
+      const knownPaid = !!knownTier && knownTier !== 'free';
+      if (isFreeQuota && knownPaid) {
+        console.warn('[api] QUOTA_EXCEEDED for a paid tier; toast suppressed', { tier: knownTier });
+      } else if ((isFreeQuota || isPlanGate) && typeof window !== 'undefined') {
         import('sonner').then(({ toast }) => {
           toast.error(isFreeQuota ? 'Free generations used' : 'Not available on your plan', {
+            // Fixed id: parallel requests failing together show ONE toast.
+            id: isFreeQuota ? 'quota-exceeded' : 'plan-gate',
             description: isFreeQuota ? 'Subscribe to unlock unlimited content creation.' : message,
             action: {
               label: 'View Plans',
@@ -363,6 +374,8 @@ export const api = {
 
     getCurrentUser: async () => {
       const response = await apiClient.get('/auth/me');
+      const tier = response.data?.data?.subscription_tier ?? response.data?.subscription_tier;
+      if (typeof tier === 'string') knownTier = tier;
       return response.data;
     },
 
