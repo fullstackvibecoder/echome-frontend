@@ -116,8 +116,12 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 Unauthorized - show toast then redirect to login
-    if (error.response?.status === 401) {
+    // Handle 401 Unauthorized - show toast then redirect to login.
+    // Login/signup 401s are bad credentials, not an expired session: let the
+    // form show the error instead of toasting "Session expired" and reloading.
+    const requestUrl: string = error.config?.url ?? '';
+    const isCredentialRequest = requestUrl.endsWith('/auth/login') || requestUrl.endsWith('/auth/signup');
+    if (error.response?.status === 401 && !isCredentialRequest) {
       localStorage.removeItem('authToken');
       if (typeof window !== 'undefined') {
         // Store current path so user can return after login
@@ -134,8 +138,12 @@ apiClient.interceptors.response.use(
           });
         });
 
-        // Small delay so the toast is visible before redirect
+        // Small delay so the toast is visible before redirect. Re-check when it
+        // fires: a stale token 401s on page load, and a user who signs in
+        // within the delay must not be thrown back to the login page.
         setTimeout(() => {
+          if (localStorage.getItem('authToken')) return;
+          if (window.location.pathname === '/auth/login') return;
           window.location.href = '/auth/login';
         }, 1500);
       }
@@ -331,6 +339,20 @@ export const api = {
         password,
       });
       return response.data;
+    },
+
+    // Password login/signup go through the backend, so supabase-js never sees
+    // the session and cannot refresh it. Hand it both tokens so its
+    // auto-refresh (and the TOKEN_REFRESHED listener above) keeps authToken
+    // alive past JWT expiry, the same as for Google sign-in.
+    adoptSession: async (accessToken: string, refreshToken?: string) => {
+      localStorage.setItem('authToken', accessToken);
+      if (!refreshToken) return;
+      try {
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      } catch (err) {
+        console.warn('[auth] Could not hand session to supabase-js; it will expire without refresh', err);
+      }
     },
 
     logout: () => {
