@@ -138,8 +138,12 @@ apiClient.interceptors.response.use(
           });
         });
 
-        // Small delay so the toast is visible before redirect
+        // Small delay so the toast is visible before redirect. Re-check when it
+        // fires: a stale token 401s on page load, and a user who signs in
+        // within the delay must not be thrown back to the login page.
         setTimeout(() => {
+          if (localStorage.getItem('authToken')) return;
+          if (window.location.pathname === '/auth/login') return;
           window.location.href = '/auth/login';
         }, 1500);
       }
