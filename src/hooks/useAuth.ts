@@ -58,7 +58,7 @@ export function useAuth(): UseAuthReturn {
     try {
       const response = await api.auth.login(email, password);
       if (response.success && response.data) {
-        localStorage.setItem('authToken', response.data.token);
+        await api.auth.adoptSession(response.data.token, response.data.refreshToken);
         setUser(response.data.user);
         // Check for stored redirect path (from 401 session expiry), URL param, or default to /app
         const storedRedirect = localStorage.getItem('redirectAfterLogin');
@@ -84,7 +84,7 @@ export function useAuth(): UseAuthReturn {
     try {
       const response = await api.auth.signup(email, password, name, turnstileToken);
       if (response.success && response.data) {
-        localStorage.setItem('authToken', response.data.token);
+        await api.auth.adoptSession(response.data.token, response.data.refreshToken);
         setUser(response.data.user);
 
         // Track signup for Affonso affiliate attribution
