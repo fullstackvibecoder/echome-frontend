@@ -41,7 +41,7 @@ interface Props {
 }
 
 export function FeatureTour({ tourId, steps, replayNonce = 0, onClose }: Props) {
-  const { hasSeen, markSeen } = useTourState();
+  const { hasSeen, markSeen, ready } = useTourState();
   const viewport = useTourViewport();
   const [run, setRun] = useState(false);
   const seenRef = useRef(hasSeen);
@@ -50,11 +50,14 @@ export function FeatureTour({ tourId, steps, replayNonce = 0, onClose }: Props) 
   useEffect(() => { seenRef.current = hasSeen; }, [hasSeen]);
 
   useEffect(() => {
+    // Wait for the user to load: before that hasSeen() reads an empty
+    // toursSeen and every already-seen tour re-fires on each page load.
+    if (!ready) return;
     if (replayNonce > 0 || !seenRef.current(tourId)) {
       const t = setTimeout(() => setRun(true), 500);
       return () => clearTimeout(t);
     }
-  }, [tourId, replayNonce]);
+  }, [tourId, replayNonce, ready]);
 
   const handleClose = () => {
     setRun(false);
