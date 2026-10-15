@@ -35,7 +35,7 @@ function writeFallback(ids: string[]) {
 }
 
 export function useTourState() {
-  const { user, refreshUser } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
 
   const serverSeen: string[] = user?.preferences?.toursSeen ?? [];
   const localSeen = readFallback();
@@ -61,5 +61,7 @@ export function useTourState() {
     [allSeen, serverSeen, localSeen, refreshUser],
   );
 
-  return { hasSeen, markSeen };
+  // `ready` is false until the user (and so preferences.toursSeen) has loaded.
+  // Deciding before then reads an empty toursSeen and re-fires seen tours.
+  return { hasSeen, markSeen, ready: !loading };
 }
