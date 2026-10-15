@@ -51,6 +51,13 @@ export type { Scorecard };
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** Don't toast a 403 plan gate for this request; the caller handles refusal. */
+    silentPlanGate?: boolean;
+  }
+}
+
 // Create axios instance with default timeout
 // Last subscription tier seen from /auth/me; used to avoid telling paid users to subscribe.
 let knownTier: string | null = null;
@@ -186,6 +193,9 @@ apiClient.interceptors.response.use(
       const knownPaid = !!knownTier && knownTier !== 'free';
       if (isFreeQuota && knownPaid) {
         console.warn('[api] QUOTA_EXCEEDED for a paid tier; toast suppressed', { tier: knownTier });
+      } else if (!isFreeQuota && error.config?.silentPlanGate) {
+        // Background entitlement probe (e.g. team voices on every /app load):
+        // a refusal is an expected answer, not something the user tried to do.
       } else if ((isFreeQuota || isPlanGate) && typeof window !== 'undefined') {
         import('sonner').then(({ toast }) => {
           toast.error(isFreeQuota ? 'Free generations used' : 'Not available on your plan', {
@@ -3907,7 +3917,9 @@ export const api = {
   // -------- TEAM VOICES --------
   teamVoices: {
     list: async (): Promise<ApiResponse<TeamVoice[]>> => {
-      const response = await apiClient.get('/team-voices');
+      // VoiceProvider probes this on every /app load; single-voice non-teams
+      // users get a 403 that must not toast "Not available on your plan".
+      const response = await apiClient.get('/team-voices', { silentPlanGate: true });
       const raw = response.data as ApiResponse<Record<string, unknown>[]>;
       return {
         ...raw,
@@ -3984,7 +3996,7 @@ export const api = {
     },
 
     getLimits: async (): Promise<ApiResponse<{ voiceCount: number; voiceLimit: number; tier: string }>> => {
-      const response = await apiClient.get('/team-voices/limits');
+      const response = await apiClient.get('/team-voices/limits', { silentPlanGate: true });
       return response.data;
     },
 
