@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   CANNOT_RECOMPOSE,
   canShowPhotoPicker,
+  shouldOfferApplyToAll,
   isPhotoRestyleTemplate,
   canRebake,
 } from './carousel-editor-rules';
@@ -18,38 +19,44 @@ describe('CANNOT_RECOMPOSE', () => {
 });
 
 describe('canShowPhotoPicker', () => {
-  it('shows for branded-overlay cover and last slides (existing behavior)', () => {
-    expect(canShowPhotoPicker('branded-overlay-cover', 0, 5)).toBe(true);
-    expect(canShowPhotoPicker('branded-overlay-last', 4, 5)).toBe(true);
+  it('shows on every branded-overlay slide, body included (FUL-48)', () => {
+    expect(canShowPhotoPicker('branded-overlay-cover')).toBe(true);
+    expect(canShowPhotoPicker('branded-overlay-body')).toBe(true);
+    expect(canShowPhotoPicker('branded-overlay-last')).toBe(true);
   });
 
-  it('stays hidden for branded-overlay body slides', () => {
-    expect(canShowPhotoPicker('branded-overlay-body', 2, 5)).toBe(false);
-  });
-
-  it('shows for legacy restylable templates on the first and last slide', () => {
-    expect(canShowPhotoPicker('tweet-style', 0, 5)).toBe(true);
-    expect(canShowPhotoPicker('tweet-style', 4, 5)).toBe(true);
-    expect(canShowPhotoPicker('text-box', 0, 3)).toBe(true);
-    expect(canShowPhotoPicker('photo-overlay', 2, 3)).toBe(true);
-  });
-
-  it('stays hidden for legacy templates on middle slides (mirrors cover/last rule)', () => {
-    expect(canShowPhotoPicker('tweet-style', 2, 5)).toBe(false);
-    expect(canShowPhotoPicker('text-box', 1, 3)).toBe(false);
-  });
-
-  it('shows on a single-slide legacy carousel (slide is both cover and last)', () => {
-    expect(canShowPhotoPicker('tweet-style', 0, 1)).toBe(true);
+  it('shows on every slide of a legacy restylable carousel', () => {
+    expect(canShowPhotoPicker('tweet-style')).toBe(true);
+    expect(canShowPhotoPicker('text-box')).toBe(true);
+    expect(canShowPhotoPicker('photo-overlay')).toBe(true);
   });
 
   it('stays hidden for quote-card and stats-card slides (explicit family wins server-side; photo would not render)', () => {
-    expect(canShowPhotoPicker('quote-card-cover', 0, 5)).toBe(false);
-    expect(canShowPhotoPicker('stats-card-last', 4, 5)).toBe(false);
+    expect(canShowPhotoPicker('quote-card-cover')).toBe(false);
+    expect(canShowPhotoPicker('quote-card-body')).toBe(false);
+    expect(canShowPhotoPicker('stats-card-last')).toBe(false);
   });
 
   it('stays hidden when template is undefined', () => {
-    expect(canShowPhotoPicker(undefined, 0, 5)).toBe(false);
+    expect(canShowPhotoPicker(undefined)).toBe(false);
+  });
+});
+
+describe('shouldOfferApplyToAll', () => {
+  it('offers on the first photo picked in the carousel (FUL-29)', () => {
+    expect(shouldOfferApplyToAll(0, ['a.jpg', undefined, undefined])).toBe(true);
+  });
+
+  it('does not offer once another slide has its own photo (FUL-48 per-slide photos)', () => {
+    expect(shouldOfferApplyToAll(1, ['a.jpg', 'b.jpg', undefined, 'a.jpg'])).toBe(false);
+  });
+
+  it('does not offer on a single-slide carousel', () => {
+    expect(shouldOfferApplyToAll(0, ['a.jpg'])).toBe(false);
+  });
+
+  it('treats null and empty backgrounds as no photo', () => {
+    expect(shouldOfferApplyToAll(2, [null, '', 'c.jpg'])).toBe(true);
   });
 });
 
