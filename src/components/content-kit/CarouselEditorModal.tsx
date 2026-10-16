@@ -20,6 +20,7 @@ import {
   CANNOT_RECOMPOSE,
   canRebake,
   canShowPhotoPicker,
+  shouldOfferApplyToAll,
   isPhotoRestyleTemplate,
 } from './carousel-editor-rules';
 import { RedWordPicker } from './RedWordPicker';
@@ -510,17 +511,14 @@ export default function CarouselEditorModal({
       );
       // Bake the applied photo into the server PNG now, not just at export.
       scheduleRebakeRef.current();
-      // The picker only appears on cover/last slides, so a user who wants one
-      // photo across the whole carousel would otherwise have to discover the
-      // "Apply to all" button on their own (FUL-29). Prompt them the moment a
-      // photo is picked while other slides still show a different background.
-      // Fixed toast id dedupes the cover+last picks into one prompt.
-      const otherSlideLacksPhoto = slides.some((s, i) => {
-        if (i === slideIndex) return false;
-        const effectiveBg = editsRef.current[i]?.backgroundImageUrl ?? s.backgroundImageUrl;
-        return effectiveBg !== photoUrl;
-      });
-      if (slides.length > 1 && otherSlideLacksPhoto) {
+      // Offer "Apply to all" on the first photo picked (FUL-29: users missed
+      // the button). Once another slide has a photo the user is choosing
+      // per-slide photos (FUL-48), so stay quiet rather than invite them to
+      // overwrite those choices. Fixed toast id dedupes repeat prompts.
+      const effectiveBackgrounds = slides.map(
+        (s, i) => editsRef.current[i]?.backgroundImageUrl ?? s.backgroundImageUrl,
+      );
+      if (shouldOfferApplyToAll(slideIndex, effectiveBackgrounds)) {
         toast(`Apply this photo to all ${slides.length} slides?`, {
           id: 'carousel-apply-photo-all',
           action: {
@@ -1070,18 +1068,14 @@ export default function CarouselEditorModal({
               </button>
             )}
 
-            {/* Photo picker — branded-overlay cover/last slides support photo
-                swap via the compose-only fast path. Body slides don't get
-                their own picker (matches the red-word picker rule below and
-                the tour copy in tours/carousel-editor.tsx), but they CAN
-                receive the photo via "Apply to all slides" — the body
-                renderer draws it with a heavier overlay. Legacy templates
-                (tweet-style, text-box, photo-overlay) also get the picker on
-                first/last slides: the backend promotes the whole carousel to
-                branded-overlay when a photo override lands
-                (compose-template-remap.ts), so the photo now HAS a render
-                path — picking one restyles the carousel. */}
-            {canShowPhotoPicker(activeSlide.template, activeIndex, slides.length) && (
+            {/* Photo picker — every branded-overlay slide (cover, body, last)
+                takes its own photo; body slides draw it under a heavier
+                overlay. Legacy templates (tweet-style, text-box,
+                photo-overlay) get it on every slide too: the backend promotes
+                the whole carousel to branded-overlay when a photo override
+                lands (compose-template-remap.ts), so picking one restyles the
+                carousel. */}
+            {canShowPhotoPicker(activeSlide.template) && (
               <div data-tour="carousel-editor-photo" className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground">Background photo</h4>

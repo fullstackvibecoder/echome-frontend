@@ -32,22 +32,39 @@ export function isPhotoRestyleTemplate(template: string | undefined): boolean {
 }
 
 /**
- * Photo picker visibility. Branded-overlay cover/last render the photo in
- * place (compose-only fast path). Legacy restylable templates get the picker
- * on the first/last slide only, mirroring the cover/last rule — after the
- * restyle those positions become branded-overlay-cover/-last, so the picker
- * stays put across the transition.
+ * Photo picker visibility. Every branded-overlay slide draws a photo
+ * background (body slides under a heavier overlay, renderBrandedOverlayBody),
+ * and the compose route honors a per-slide backgroundImageUrl, so each slide
+ * can carry its own photo. Legacy restylable templates get the picker on
+ * every slide too: picking a photo anywhere promotes the whole carousel to
+ * branded-overlay, and every position keeps the picker after the restyle.
+ *
+ * Until 2026-10-16 this was cover/last only, which left body slides stuck on
+ * the cover photo or none (FUL-29, FUL-48: users want a different photo on
+ * each slide).
  */
-export function canShowPhotoPicker(
-  template: string | undefined,
-  slideIndex: number,
-  totalSlides: number,
-): boolean {
-  if (template === 'branded-overlay-cover' || template === 'branded-overlay-last') return true;
-  if (isPhotoRestyleTemplate(template)) {
-    return slideIndex === 0 || slideIndex === totalSlides - 1;
+export function canShowPhotoPicker(template: string | undefined): boolean {
+  if (
+    template === 'branded-overlay-cover' ||
+    template === 'branded-overlay-body' ||
+    template === 'branded-overlay-last'
+  ) {
+    return true;
   }
-  return false;
+  return isPhotoRestyleTemplate(template);
+}
+
+/**
+ * Whether picking a photo should offer "Apply to all". Only for the first
+ * photo in the carousel: once another slide already has a photo, the user is
+ * choosing per-slide photos and the prompt would invite overwriting them.
+ */
+export function shouldOfferApplyToAll(
+  slideIndex: number,
+  effectiveBackgrounds: Array<string | undefined | null>,
+): boolean {
+  if (effectiveBackgrounds.length < 2) return false;
+  return effectiveBackgrounds.every((bg, i) => i === slideIndex || !bg);
 }
 
 /**

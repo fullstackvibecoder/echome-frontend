@@ -32,9 +32,9 @@ const STEPS: TourStep[] = [
   },
   {
     target: "[data-tour='carousel-editor-photo']",
-    title: 'Swap the photo on cover / last slides',
+    title: 'Swap the photo on any slide',
     content:
-      'Pick a frame from your uploaded video, use your profile photo, or upload your own image. Body slides keep the template look.',
+      'Pick a frame from your uploaded video, use your profile photo, or upload your own image. Each slide can have its own photo.',
     placement: 'left',
   },
   {
