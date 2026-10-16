@@ -206,7 +206,12 @@ export default function ClipEditorModal({
     const reason = youtubeShortBlockReason(effectiveDuration, aspectRatio);
     return reason ? { youtube: reason } : undefined;
   })();
-  const showCaptionOverlay = !clip.captionsBurnedIn && captionSegments.length > 0;
+  // EchoMe captions can be switched off for videos that already carry their
+  // own on-screen captions (FUL-49: double captions). Drives the preview,
+  // the main download, and the posting recipe.
+  const [addCaptions, setAddCaptions] = useState(true);
+  const canBurnCaptions = !clip.captionsBurnedIn && captionSegments.length > 0;
+  const showCaptionOverlay = canBurnCaptions && addCaptions;
 
   // Debounced save for transcript edits, drag positions, and box resize.
   // Style change still saves immediately (it's a discrete pick). Edits to
@@ -514,6 +519,22 @@ export default function ClipEditorModal({
                     </button>
                   )}
                 </div>
+                {canBurnCaptions && (
+                  <label className="flex items-start gap-2 text-xs text-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={addCaptions}
+                      onChange={(e) => setAddCaptions(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      Add EchoMe captions
+                      <span className="block text-[11px] text-muted-foreground">
+                        Turn off if your video already has captions on screen.
+                      </span>
+                    </span>
+                  </label>
+                )}
                 <p className="text-[11px] text-muted-foreground">
                   Drag the caption to move it. Drag the corner handle to resize.
                   Edit text below to fix typos. Clicking a line jumps the preview to that moment.
@@ -603,7 +624,7 @@ export default function ClipEditorModal({
             <div className="pt-2 mt-auto space-y-3">
               <button
                 type="button"
-                onClick={() => onExport(clip.id, viewMode, captionStyle, false)}
+                onClick={() => onExport(clip.id, viewMode, captionStyle, canBurnCaptions && !addCaptions)}
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary-interactive px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
               >
                 <Download className="h-4 w-4" />
@@ -639,7 +660,7 @@ export default function ClipEditorModal({
                   // segmentOverrides are read from caption_config server-side.
                   caption_position: clip.captionPosition || 'bottom',
                   view_mode: viewMode,
-                  skip_captions: clip.captionsBurnedIn ? false : captionSegments.length === 0,
+                  skip_captions: clip.captionsBurnedIn ? false : captionSegments.length === 0 || !addCaptions,
                 }}
               />
             </div>
