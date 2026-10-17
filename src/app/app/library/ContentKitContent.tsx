@@ -1,12 +1,14 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
 import { useVoiceContext } from '@/contexts/voice-context';
 import { StatusSection } from '@/components/content-library/StatusSection';
 import { useScheduledKitCounts } from '@/hooks/useScheduledKitCounts';
 import { Search, RefreshCw } from 'lucide-react';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 
@@ -38,7 +40,22 @@ function ContentKitListInner() {
     error,
     setSearchQuery,
     refresh,
+    deleteItem,
   } = useContentLibrary();
+
+  const [pendingDelete, setPendingDelete] = useState<NormalizedContent | null>(null);
+
+  const confirmDelete = useCallback(async () => {
+    const target = pendingDelete;
+    if (!target) return;
+    setPendingDelete(null);
+    try {
+      await deleteItem(target.id);
+      showSuccessToast('Content kit deleted');
+    } catch (err) {
+      showErrorToast(err, 'Failed to delete content kit');
+    }
+  }, [pendingDelete, deleteItem]);
 
   // Scheduling counts per kit — renders as a small "N scheduled / M posted" indicator on each card
   const { counts: scheduleCounts } = useScheduledKitCounts();
@@ -213,18 +230,21 @@ function ContentKitListInner() {
         dotColor="#22c55e"
         items={readyToPublish}
         scheduleCounts={scheduleCounts}
+        onDelete={setPendingDelete}
       />
       <StatusSection
         label="Processing"
         dotColor="#f59e0b"
         items={processing}
         scheduleCounts={scheduleCounts}
+        onDelete={setPendingDelete}
       />
       <StatusSection
         label="Failed"
         dotColor="#ef4444"
         items={failed}
         scheduleCounts={scheduleCounts}
+        onDelete={setPendingDelete}
       />
       <StatusSection
         label="Earlier"
@@ -232,6 +252,17 @@ function ContentKitListInner() {
         items={earlier}
         defaultCollapsed
         scheduleCounts={scheduleCounts}
+        onDelete={setPendingDelete}
+      />
+
+      <ConfirmDialog
+        isOpen={pendingDelete !== null}
+        title="Delete content kit"
+        message="Delete this content kit? This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
       />
     </div>
   );
