@@ -559,6 +559,12 @@ export function useContentLibrary(): UseContentLibraryReturn {
     }
   }, [processedItems, state.selectedIds, clearSelection]);
 
+  /** Delete a single content kit (soft delete on the backend) and drop it from the list. */
+  const deleteItem = useCallback(async (id: string) => {
+    await api.contentKits.delete(id);
+    setAllItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
   const downloadSelected = useCallback(async () => {
     // TODO: Implement bulk download
     console.log('Download selected:', Array.from(state.selectedIds));
@@ -606,6 +612,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
     // Bulk actions
     deleteSelected,
+    deleteItem,
     downloadSelected,
   };
 }

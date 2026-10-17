@@ -8,7 +8,7 @@
  */
 
 import Link from 'next/link';
-import { Loader2, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, Clock, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 import type { KitScheduleCounts } from '@/hooks/useScheduledKitCounts';
 
@@ -16,14 +16,17 @@ interface ContentKitCardProps {
   item: NormalizedContent;
   /** Per-kit scheduling counts keyed by content_kit_id. Optional — when omitted, no indicator is shown. */
   scheduleCounts?: KitScheduleCounts;
+  /** When provided, shows a delete button on the card. Receives the item to delete. */
+  onDelete?: (item: NormalizedContent) => void;
 }
 
-export function ContentKitCard({ item, scheduleCounts }: ContentKitCardProps) {
+export function ContentKitCard({ item, scheduleCounts, onDelete }: ContentKitCardProps) {
   const isProcessing = item.status === 'processing' || item.status === 'pending';
   const isFailed = item.status === 'failed';
   const detailUrl = `/app/library/${item.videoUploadId || item.generationRequestId || item.sourceId}`;
 
   return (
+    <div className="group relative">
     <Link
       href={detailUrl}
       className={`
@@ -111,6 +114,18 @@ export function ContentKitCard({ item, scheduleCounts }: ContentKitCardProps) {
         </div>
       </div>
     </Link>
+    {onDelete && (
+      <button
+        type="button"
+        onClick={() => onDelete(item)}
+        aria-label={`Delete ${item.title}`}
+        title="Delete"
+        className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-black/60 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive transition-opacity"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    )}
+    </div>
   );
 }
 
