@@ -12,6 +12,7 @@ interface StatusSectionProps {
   defaultCollapsed?: boolean;
   /** Optional per-kit scheduling counts, keyed by content_kit_id */
   scheduleCounts?: Record<string, KitScheduleCounts>;
+  onDelete?: (item: NormalizedContent) => void;
 }
 
 export function StatusSection({
@@ -20,6 +21,7 @@ export function StatusSection({
   items,
   defaultCollapsed = false,
   scheduleCounts,
+  onDelete,
 }: StatusSectionProps) {
   return (
     <SharedStatusSection
@@ -34,7 +36,7 @@ export function StatusSection({
           // different fields across shapes, so try a few.
           const kitId = (item as unknown as { contentKitId?: string; id: string }).contentKitId || item.id;
           return (
-            <ContentKitCard key={item.id} item={item} scheduleCounts={scheduleCounts?.[kitId]} />
+            <ContentKitCard key={item.id} item={item} scheduleCounts={scheduleCounts?.[kitId]} onDelete={onDelete} />
           );
         })}
       </div>

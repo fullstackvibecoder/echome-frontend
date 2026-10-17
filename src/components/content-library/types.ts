@@ -183,6 +183,7 @@ export interface UseContentLibraryReturn {
 
   // Bulk actions
   deleteSelected: () => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
   downloadSelected: () => Promise<void>;
 }
 
