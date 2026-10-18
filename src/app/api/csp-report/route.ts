@@ -11,11 +11,15 @@
  */
 import * as Sentry from '@sentry/nextjs';
 import { classifyCspReport, parseCspReports } from '@/lib/csp-report';
+import { readBodyCapped } from '@/lib/read-body-capped';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const MAX_BODY_BYTES = 16 * 1024;
+// A batched reports+json body can hold several reports; cap what one
+// request can push into Sentry.
+const MAX_FORWARDED_PER_REQUEST = 3;
 
 const noContent = () => new Response(null, { status: 204 });
 
@@ -24,8 +28,8 @@ export async function POST(request: Request) {
     const declared = Number(request.headers.get('content-length'));
     if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return noContent();
 
-    const text = await request.text();
-    if (text.length > MAX_BODY_BYTES) return noContent();
+    const text = await readBodyCapped(request.body, MAX_BODY_BYTES);
+    if (text === null) return noContent();
 
     let json: unknown;
     try {
@@ -38,6 +42,7 @@ export async function POST(request: Request) {
     for (const report of parseCspReports(json)) {
       const verdict = classifyCspReport(report);
       if (verdict.action !== 'forward') continue;
+      if (forwarded >= MAX_FORWARDED_PER_REQUEST) break;
       forwarded += 1;
       Sentry.captureMessage(`CSP: ${verdict.directive} blocked ${report.blocked}`, {
         level: 'warning',
