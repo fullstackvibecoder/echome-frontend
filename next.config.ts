@@ -10,8 +10,8 @@ import { withSentryConfig } from "@sentry/nextjs";
 // "multiple HSTS headers" rule.
 //
 // The CSP ships as Content-Security-Policy-Report-Only. Browsers report
-// violations (to Sentry when NEXT_PUBLIC_SENTRY_DSN is set) but block
-// nothing. Once the report stream is clean the header name flips to
+// violations to /api/csp-report (filtered, then forwarded to Sentry) but
+// block nothing. Once the report stream is clean the header name flips to
 // Content-Security-Policy in a follow-up change. ZAP does not credit the
 // report-only form, so the flip is what closes finding 10038.
 // ---------------------------------------------------------------------------
@@ -26,27 +26,17 @@ function originOf(url: string | undefined): string | undefined {
   }
 }
 
-/**
- * Sentry accepts CSP violation reports at a security endpoint derived from
- * the DSN: https://<key>@<host>/<project> becomes
- * https://<host>/api/<project>/security/?sentry_key=<key>.
- * The key is the public DSN key that already ships in the client bundle.
- */
-function sentryReportUri(dsn: string | undefined): string | undefined {
-  if (!dsn) return undefined;
-  try {
-    const u = new URL(dsn);
-    const project = u.pathname.replace(/^\/+/, '');
-    if (!u.username || !project) return undefined;
-    return `${u.protocol}//${u.host}/api/${project}/security/?sentry_key=${u.username}`;
-  } catch {
-    return undefined;
-  }
-}
-
 const apiOrigin = originOf(process.env.NEXT_PUBLIC_API_URL) ?? 'https://api.tryechome.com';
 const appOrigin = originOf(process.env.NEXT_PUBLIC_APP_URL) ?? 'https://www.tryechome.com';
-const cspReportUri = sentryReportUri(process.env.NEXT_PUBLIC_SENTRY_DSN);
+// Vercel preview deployments inject the Vercel toolbar (feedback widget):
+// script from vercel.live in an iframe. Production never loads it, so it is
+// only allowed on previews (ECHO-ME-FRONTEND-3W, 3X).
+const isVercelPreview = process.env.VERCEL_ENV === 'preview';
+const vercelLive = isVercelPreview ? ['https://vercel.live'] : [];
+
+// Reports go to our own collector, which drops known noise and forwards the
+// rest to Sentry (see src/lib/csp-report.ts). Relative URLs are allowed.
+const cspReportUri = '/api/csp-report';
 
 const cspDirectives = [
   "default-src 'self'",
@@ -59,6 +49,7 @@ const cspDirectives = [
     'https://connect.facebook.net', // Meta pixel
     'https://cdn.affonso.io', // Affonso affiliate pixel
     'https://va.vercel-scripts.com', // @vercel/analytics debug script (dev only)
+    ...vercelLive, // Vercel preview toolbar
   ].join(' '),
   "style-src 'self' 'unsafe-inline'",
   // Avatars, social previews, R2 and Supabase public assets, Loom thumbnails.
@@ -75,14 +66,20 @@ const cspDirectives = [
     'https://api.affonso.io', // Affonso beacon
     'https://www.facebook.com https://connect.facebook.net', // Meta pixel
   ].join(' '),
-  "frame-src 'self' https://challenges.cloudflare.com https://www.loom.com",
+  [
+    "frame-src 'self'",
+    'https://challenges.cloudflare.com',
+    'https://www.loom.com',
+    'https://www.facebook.com', // Meta pixel iframe fallback (ECHO-ME-FRONTEND-41)
+    ...vercelLive, // Vercel preview toolbar
+  ].join(' '),
   "worker-src 'self' blob:",
   "frame-ancestors 'self'",
   "base-uri 'self'",
-  "form-action 'self'",
+  "form-action 'self' https://www.facebook.com", // Meta pixel form fallback (ECHO-ME-FRONTEND-42)
   "object-src 'none'",
   'upgrade-insecure-requests',
-  ...(cspReportUri ? [`report-uri ${cspReportUri}`] : []),
+  `report-uri ${cspReportUri}`,
 ];
 
 const securityHeaders = [
