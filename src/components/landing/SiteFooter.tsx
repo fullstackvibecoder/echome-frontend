@@ -83,7 +83,7 @@ export function SiteFooter() {
             <span>© 2025–{new Date().getFullYear()} EchoMe. All rights reserved.</span>
           </div>
           <span className="text-white/50">
-            EchoMe is a <a href="https://bottlenecklabs.ai" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-accent-purple transition-colors duration-200">BottleneckLabs.ai</a> company
+            EchoMe is a <a href="https://www.bottlenecklabs.ai/products/echome" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-accent-purple transition-colors duration-200">BottleneckLabs.ai</a> company
           </span>
         </div>
       </div>
