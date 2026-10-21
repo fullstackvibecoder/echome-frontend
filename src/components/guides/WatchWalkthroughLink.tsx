@@ -1,6 +1,6 @@
 /**
  * WatchWalkthroughLink.tsx
- * Small secondary link to the founder's 20-minute walkthrough video,
+ * Small secondary link to the founder's 30-minute walkthrough video,
  * anchored to the video embed on the platform-overview guide. Rendered
  * in first-run surfaces (Create hero empty state, library empty state,
  * help widget) so a stuck user always has a way to watch someone else
