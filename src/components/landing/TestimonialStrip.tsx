@@ -46,6 +46,11 @@ export function TestimonialStrip() {
           <p className="text-center text-white/60 font-light text-lg mt-8 max-w-2xl mx-auto">
             No script, no studio. The clips came from a video she had already recorded, so they sound like her.
           </p>
+          <p className="text-center mt-4">
+            <a href="/blog/giovanna-3000-views-overnight" className="text-primary hover:underline font-medium">
+              Read why it worked &rarr;
+            </a>
+          </p>
 
           <SectionCTA headline="Turn your next video into clips that sound like you" buttonText="Start Free" trust="No credit card required" />
         </div>
