@@ -184,13 +184,6 @@ export function renderStatsCardBody(
     config.structured?.body ?? config.text.split('\n').slice(1).join('\n').trim(),
   );
 
-  const bodyIndex = Math.max(1, config.slideNumber - 1);
-  ctx.font = `800 64px "Inter", "Noto Sans", sans-serif`;
-  ctx.fillStyle = COLOR_STAT;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(`${String(bodyIndex).padStart(2, '0')}`, PADDING, PADDING);
-
   const statSize = pickStatFontSize(statRaw);
   const statFont = statFontString(statSize);
   const statLineHeight = statSize * 1.05;

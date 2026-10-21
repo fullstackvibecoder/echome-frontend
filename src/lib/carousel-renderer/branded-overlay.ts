@@ -8,7 +8,7 @@
  *
  * The three render functions handle:
  *   - renderBrandedOverlayCover   — slide 1 (hook)
- *   - renderBrandedOverlayBody    — slides 2..N-1 (numeral + content)
+ *   - renderBrandedOverlayBody    — slides 2..N-1 (content)
  *   - renderBrandedOverlayLast    — slide N (centered details + CTA)
  *
  * Each takes a 2D context, dimensions, the slide config, and a
@@ -165,22 +165,6 @@ function drawTextWithRedSpans(
   return cursorY - y;
 }
 
-function drawLargeNumeral(
-  ctx: CanvasRenderingContext2D,
-  numeral: number,
-  x: number,
-  y: number,
-  color: string,
-  fontSize: number,
-): number {
-  ctx.font = getFontString(fontSize, 800);
-  ctx.fillStyle = color;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(`${numeral}.`, x, y);
-  return fontSize;
-}
-
 function estimateTextHeight(
   ctx: CanvasRenderingContext2D,
   rawText: string,
@@ -297,11 +281,6 @@ export function renderBrandedOverlayBody(
   drawPhotoBackground(ctx, image, width, height, ds.primaryColor);
   drawDarkOverlay(ctx, ds.primaryColor, OVERLAY_OPACITY_BODY, width, height);
 
-  const bodyIndex = Math.max(1, config.slideNumber - 1);
-  const numeralFontSize = 96;
-  const numeralY = Math.round(height * 0.32);
-  drawLargeNumeral(ctx, bodyIndex, padding, numeralY, ds.textColor, numeralFontSize);
-
   // Body slides ignore redKeyword per design rule, so no override here.
   const headlineRaw = config.structured?.headline ?? config.text.split('\n')[0];
   const bodyRaw = config.structured?.body ?? config.text.split('\n').slice(1).join('\n').trim();
@@ -313,7 +292,8 @@ export function renderBrandedOverlayBody(
 
   const textLeft = padding;
   const textWidth = width - padding * 2;
-  let cursorY = numeralY + numeralFontSize + 24;
+  // Text block start matches the backend slot the removed numeral used to occupy.
+  let cursorY = Math.round(height * 0.32) + 96 + 24;
 
   if (headlineRaw) {
     const drawn = drawTextWithRedSpans(
