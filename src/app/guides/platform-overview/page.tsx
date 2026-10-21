@@ -25,7 +25,7 @@ export default function PlatformOverviewGuidePage() {
       '@type': 'VideoObject',
       name: 'EchoMe walkthrough',
       description: 'A complete video walkthrough of the EchoMe platform covering input methods, video processing, captions, content generation, and voice profile building.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/df3ea6a04b8e4173be0b85a0f0557829-with-play.gif',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/df3ea6a04b8e4173be0b85a0f0557829-9d24e6aab4d827d1.gif',
       embedUrl: 'https://www.loom.com/embed/df3ea6a04b8e4173be0b85a0f0557829',
       contentUrl: 'https://www.loom.com/share/df3ea6a04b8e4173be0b85a0f0557829',
       duration: 'PT30M37S',

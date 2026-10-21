@@ -24,7 +24,7 @@ export default function VideoContentGuidePage() {
       '@type': 'VideoObject',
       name: 'Creating and Managing Video Content in EchoMe - Video Walkthrough',
       description: 'Video walkthrough of uploading videos, using video links, editing clips, and generating content in EchoMe.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/df3ea6a04b8e4173be0b85a0f0557829-with-play.gif',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/df3ea6a04b8e4173be0b85a0f0557829-9d24e6aab4d827d1.gif',
       embedUrl: 'https://www.loom.com/embed/df3ea6a04b8e4173be0b85a0f0557829',
       contentUrl: 'https://www.loom.com/share/df3ea6a04b8e4173be0b85a0f0557829',
       duration: 'PT30M37S',
