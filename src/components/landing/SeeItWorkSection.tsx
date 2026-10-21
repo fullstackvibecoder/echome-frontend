@@ -6,15 +6,20 @@ import { AnimatedSection } from '@/components/shared/AnimatedSection';
 import { WalkthroughVideo } from '@/components/guides/WalkthroughVideo';
 
 const chapters = [
-  '0:00 What EchoMe does with one long video',
-  '2:00 The content kit: posts, carousels, Substack article',
-  '4:00 Onboarding and the settings that matter',
-  '6:00 Paste a video link, clips arrive',
-  '7:00 Post now or schedule the week',
-  '9:00 Creator Radar',
-  '10:00 B-roll reel for a listing',
-  '11:00 Work Before the Work: your voice profile builds itself',
-  '19:00 Voice match is for text; video is already you',
+  '0:00 Almost 3,000 views overnight, and why it worked',
+  '4:00 One box: drop a video or paste a YouTube link',
+  '5:35 Clips arrive: captions, styles, trimming',
+  '7:30 Carousels with your photos',
+  '8:45 Substack-ready blog and platform-tuned posts',
+  '11:15 No video? Start from an idea',
+  '12:40 Add to your voice instead of making content',
+  '16:20 A full content kit from one typed idea',
+  '18:20 Video script and built-in teleprompter',
+  '20:40 Creator Radar: your take on creators you follow',
+  '22:15 Record in the car, no polish needed',
+  '23:40 Work Before the Work: your voice profile builds itself',
+  '25:25 Connect Gmail or upload your sent folder',
+  '29:00 Settings, profile photo and connections',
 ];
 
 export function SeeItWorkSection() {
@@ -30,7 +35,7 @@ export function SeeItWorkSection() {
               See it work
             </h2>
             <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-              Ara takes four members through EchoMe from dropping in a video to posting. Twenty minutes, no edits, real accounts.
+              Ara walks members through EchoMe live, from dropping in a video to posting. Thirty minutes, real accounts.
             </p>
           </div>
 
