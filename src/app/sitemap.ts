@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { posts, visibleCategories } from './blog/posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.tryechome.com';
@@ -56,18 +57,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     // Blog
-    {
-      url: `${baseUrl}/blog`,
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    ...visibleCategories().map((c) => ({
+      url: `${baseUrl}/blog/category/${c.slug}`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/giovanna-3000-views-overnight`,
-      lastModified: new Date('2026-10-21'),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    })),
+    ...posts.map((p) => ({
+      url: `${baseUrl}/blog/${p.slug}`,
+      lastModified: new Date(`${p.date}T12:00:00Z`),
+      changeFrequency: 'monthly' as const,
       priority: 0.6,
-    },
+    })),
     // Guides
     {
       url: `${baseUrl}/guides`,
