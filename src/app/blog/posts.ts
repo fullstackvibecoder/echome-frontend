@@ -77,10 +77,10 @@ export const posts: BlogPost[] = [
     tags: ['video clips', 'real estate', 'short-form video', 'authenticity'],
     author: 'ara',
     cover: {
-      src: '/blog/giovanna-office-hours.webp',
-      alt: 'Giovanna Cavarra speaking on the EchoMe weekly office hours call',
+      src: '/blog/clip-editor.webp',
+      alt: 'The EchoMe clip editor showing a vertical clip, its transcript, the post caption and posting options',
       width: 1600,
-      height: 901,
+      height: 805,
     },
     featured: true,
   },
