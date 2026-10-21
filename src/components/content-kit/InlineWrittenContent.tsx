@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from 'react';
 import {
   Linkedin,
   Twitter,
-  Instagram,
   Mail,
   Music2,
   Youtube,
@@ -34,14 +33,13 @@ interface PlatformConfig {
   charLimit: number | null;
 }
 
-// Instagram appears as a read/copy/schedule tab only. IG posts require media
-// (carousel or reel), so the caption is edited next to the asset that carries
-// it — see PostCaptionBlock inside CarouselEditorModal. Instagram is NOT in
-// POST_ACTION_PLATFORM_MAP so it never shows a "Post Now" button here.
+// Instagram has no tab: it can't publish a text-only post. IG posts require
+// media (carousel or reel), so the caption is edited next to the asset that
+// carries it — see PostCaptionBlock inside CarouselEditorModal. The
+// contentInstagram data is kept as the carousel's fallback caption.
 const PLATFORMS: PlatformConfig[] = [
   { key: 'linkedin', label: 'LinkedIn', field: 'contentLinkedin', icon: Linkedin, accent: '#0A66C2', charLimit: 3000 },
   { key: 'twitter', label: 'Twitter/X', field: 'contentTwitter', icon: Twitter, accent: '#1DA1F2', charLimit: 280 },
-  { key: 'instagram', label: 'Instagram', field: 'contentInstagram', icon: Instagram, accent: '#E1306C', charLimit: 2200 },
   { key: 'email', label: 'Email', field: 'contentEmail', icon: Mail, accent: '#0077AA', charLimit: null },
   { key: 'tiktok', label: 'TikTok', field: 'contentTiktok', icon: Music2, accent: '#000000', charLimit: 2200 },
   { key: 'youtube', label: 'YouTube', field: 'contentYoutube', icon: Youtube, accent: '#FF0000', charLimit: 5000 },
