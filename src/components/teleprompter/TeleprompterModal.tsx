@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, RotateCcw, Download, Upload, Loader2, Type, Gauge, FlipHorizontal2, Camera, AlertCircle, Maximize2, Minimize2, ZoomIn, ChevronUp, ChevronDown, Pause, Play } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { toast } from 'sonner';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
 
 interface TeleprompterModalProps {
@@ -146,6 +147,8 @@ function formatDuration(seconds: number): string {
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
+
+const NO_CAMERA_MESSAGE = "Camera isn't connected. Check camera access and try again.";
 
 export function TeleprompterModal({
   open,
@@ -425,7 +428,13 @@ export function TeleprompterModal({
 
   // ─── Recording lifecycle ───────────────────────────────────────────
   const beginRecording = useCallback(() => {
-    if (!streamRef.current) return;
+    if (!streamRef.current) {
+      // Stream dropped during the countdown. Fall back to ready instead of
+      // sitting on a countdown phase with no scroll and no feedback.
+      setPhase('ready');
+      toast.error(NO_CAMERA_MESSAGE);
+      return;
+    }
     const mimeType = pickSupportedMimeType();
     const recorder = mimeType
       ? new MediaRecorder(streamRef.current, { mimeType })
@@ -609,6 +618,10 @@ export function TeleprompterModal({
   }, [phase, scrollDriver, script, startScroll, stopScroll]);
 
   const startCountdown = useCallback(() => {
+    if (!streamRef.current) {
+      toast.error(NO_CAMERA_MESSAGE);
+      return;
+    }
     setPhase('countdown');
     setCountdown(3);
     let n = 3;
