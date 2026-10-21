@@ -28,9 +28,18 @@ export default function CarouselsGuidePage() {
       'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with five design presets, and download single slides or a full zip.',
     url: 'https://tryechome.com/guides/carousels',
     datePublished: '2026-04-23',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-21',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
+    video: {
+      '@type': 'VideoObject',
+      name: 'How to Edit a Carousel Slide Deck - Video Walkthrough',
+      description: 'Video walkthrough of the EchoMe carousel editor: editing slide text, swapping photos, restyling, and downloading.',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/6b1e6f5fff584fcf8b77bc72642f6040-1be782097d623e3c.gif',
+      embedUrl: 'https://www.loom.com/embed/6b1e6f5fff584fcf8b77bc72642f6040',
+      contentUrl: 'https://www.loom.com/share/6b1e6f5fff584fcf8b77bc72642f6040',
+      uploadDate: '2026-10-21',
+    },
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -57,8 +66,21 @@ export default function CarouselsGuidePage() {
           Every Content Kit generates a set of carousel slides ready for Instagram and LinkedIn. You can edit the text on each slide, reposition it, restyle the whole set with one click, and download single slides or the full set as a zip.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
-          4 min read
+          4 min read &middot; Video walkthrough included
         </p>
+
+        {/* Video embed */}
+        <div className="mb-10 rounded-xl overflow-hidden border border-border">
+          <div style={{ position: 'relative', paddingBottom: '74.96%', height: 0 }}>
+            <iframe
+              src="https://www.loom.com/embed/6b1e6f5fff584fcf8b77bc72642f6040"
+              frameBorder="0"
+              allowFullScreen
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+              title="How to Edit a Carousel Slide Deck - Video Walkthrough"
+            />
+          </div>
+        </div>
 
         {/* Hero image: the carousel editor in use */}
         <img
