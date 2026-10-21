@@ -111,6 +111,11 @@ export default function HomeContent() {
         <SeeItWorkSection />
       </TrackedSection>
 
+      {/* Testimonial: real result, right after the demo */}
+      <TrackedSection name="testimonials">
+        <TestimonialStrip />
+      </TrackedSection>
+
       {/* Voice Profile (Work Before the Work) — owns the #how anchor */}
       <TrackedSection name="voice_profile">
         <VoiceProfileSection />
@@ -129,11 +134,6 @@ export default function HomeContent() {
       {/* Use Cases — persona fit */}
       <TrackedSection name="use_cases">
         <UseCasesSection />
-      </TrackedSection>
-
-      {/* Testimonials */}
-      <TrackedSection name="testimonials">
-        <TestimonialStrip />
       </TrackedSection>
 
       {/* Creator Radar — bonus differentiator */}
