@@ -142,7 +142,7 @@ export const guides: Guide[] = [
       'Edit slide text, drag to reposition, restyle the whole set with Quote Card / Tweet Card / My Image / Video Frame, and download single slides or a zip.',
     category: 'Create content',
     readTime: '4 min',
-    hasVideo: false,
+    hasVideo: true,
   },
   {
     slug: 'reels-and-captions',
