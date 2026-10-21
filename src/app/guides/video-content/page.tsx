@@ -17,16 +17,18 @@ export default function VideoContentGuidePage() {
     description: 'Learn how to upload videos, use external video links, edit clips with captions, and generate a full content kit from a single video in EchoMe.',
     url: 'https://tryechome.com/guides/video-content',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-21',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     video: {
       '@type': 'VideoObject',
       name: 'Creating and Managing Video Content in EchoMe - Video Walkthrough',
       description: 'Video walkthrough of uploading videos, using video links, editing clips, and generating content in EchoMe.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/136ee8a0709e44eaa5a2ba128d3ab624-with-play.gif',
-      embedUrl: 'https://www.loom.com/embed/136ee8a0709e44eaa5a2ba128d3ab624',
-      uploadDate: '2026-04-01',
+      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/df3ea6a04b8e4173be0b85a0f0557829-9d24e6aab4d827d1.gif',
+      embedUrl: 'https://www.loom.com/embed/df3ea6a04b8e4173be0b85a0f0557829',
+      contentUrl: 'https://www.loom.com/share/df3ea6a04b8e4173be0b85a0f0557829',
+      duration: 'PT30M37S',
+      uploadDate: '2026-10-21',
     },
     breadcrumb: {
       '@type': 'BreadcrumbList',
@@ -66,9 +68,9 @@ export default function VideoContentGuidePage() {
 
         {/* Video embed */}
         <div className="mb-10 rounded-xl overflow-hidden border border-border">
-          <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
+          <div style={{ position: 'relative', paddingBottom: '50.29%', height: 0 }}>
             <iframe
-              src="https://www.loom.com/embed/136ee8a0709e44eaa5a2ba128d3ab624"
+              src="https://www.loom.com/embed/df3ea6a04b8e4173be0b85a0f0557829"
               frameBorder="0"
               allowFullScreen
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
