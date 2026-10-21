@@ -54,6 +54,7 @@ export function SiteFooter() {
               <li><a href="/developers" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">API</a></li>
               <li><a href="/community" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Community</a></li>
               <li><a href="/guides" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Guides</a></li>
+              <li><a href="/blog" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Blog</a></li>
               <li><a href="/tools/compress-video" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Free Video Compressor</a></li>
               <li><a href="/tools/transcribe" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Free YouTube Transcript Generator</a></li>
             </ul>
