@@ -19,6 +19,7 @@ import { PhotoPicker } from './PhotoPicker';
 import {
   CANNOT_RECOMPOSE,
   canRebake,
+  chooseDownloadStrategy,
   canShowPhotoPicker,
   shouldOfferApplyToAll,
   isPhotoRestyleTemplate,
@@ -408,14 +409,17 @@ export default function CarouselEditorModal({
       });
       if (response.success && response.data?.carousel?.slides) {
         const composed = response.data.carousel.slides;
-        setSlides(
-          composed.map((s: any) => ({
+        setSlides((prev) =>
+          composed.map((s: any, i: number) => ({
             slideNumber: s.slideNumber,
             publicUrl: s.publicUrl,
             backgroundUrl: s.backgroundUrl ?? s.background_url,
             backgroundImageUrl: s.backgroundImageUrl,
             text: s.text,
             template: s.template,
+            // Keep the structured baseline: dropping it made hasEdits always
+            // true after any preview rebake (dirty check compares against it).
+            structured: s.structured ?? prev[i]?.structured,
           })),
         );
         onCarouselUpdate();
@@ -683,16 +687,19 @@ export default function CarouselEditorModal({
     }
   };
 
-  // Download: composeOnly if backgrounds exist, full regenerate with overrides otherwise.
+  // Download: compose-only for every carousel compose can render, full regenerate
+  // only for tweet-style, stored images when nothing changed (chooseDownloadStrategy).
   // We always flush the current edits.structured into the slideOverrides so that
   // download/share renders match the live editor preview — even if the debounced
   // updateSlide PATCH hasn't landed yet. Backend prefers override.structured over
   // the persisted slide.structured at render time.
   const handleDownload = async (slideIndex?: number) => {
+    const strategy = chooseDownloadStrategy(slides, buildOverrides(), hasEdits);
     setDownloading(true);
     try {
-      if (hasBackground) {
-        // Two-phase: compose text onto cached backgrounds
+      if (strategy === 'compose-only') {
+        // Compose onto the stored carousel with every override so photos,
+        // red keyword and position survive (no LLM, no rebuild)
         const response = await api.contentKits.regenerateCarousel(contentKitId, {
           designPreset: (currentPreset as any) || 'auto',
           composeOnly: true,
@@ -712,9 +719,16 @@ export default function CarouselEditorModal({
           } else {
             for (const s of composed) await downloadImage(s.publicUrl, `carousel-slide-${s.slideNumber}.png`);
           }
+          setSlides((prev) => composed.map((s: any, i: number) => ({
+            slideNumber: s.slideNumber, publicUrl: s.publicUrl,
+            backgroundUrl: s.backgroundUrl ?? s.background_url,
+            backgroundImageUrl: s.backgroundImageUrl,
+            text: s.text, template: s.template || s.slideType,
+            structured: s.structured ?? prev[i]?.structured,
+          })));
         }
-      } else if (hasEdits) {
-        // Single-pass (tweet-style): full regenerate with text + structured overrides
+      } else if (strategy === 'full-regenerate') {
+        // Single-pass tweet-style that compose-only can't render: full regenerate with text + structured overrides
         const response = await api.contentKits.regenerateCarousel(contentKitId, {
           designPreset: (currentPreset as any) || 'auto',
           slideOverrides: edits.map((e) => ({
