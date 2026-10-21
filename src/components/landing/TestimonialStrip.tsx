@@ -10,7 +10,7 @@ const featured = {
   quote:
     "I wasn't getting a lot of views. Then I put a video I'd made into EchoMe, it cut it into short clips, and I posted right from EchoMe. Overnight I got almost 3,000 views. I didn't do anything except click a couple buttons.",
   name: 'Giovanna Cavarra',
-  role: 'Real estate agent',
+  role: 'Real Estate Sales Representative',
   initials: 'GC',
 };
 
