@@ -1,4 +1,4 @@
-import { Figure, H2, PostLayout, Quote, Strong } from '@/components/blog/PostLayout';
+import { H2, PostLayout, Quote, Strong } from '@/components/blog/PostLayout';
 import { postMetadata } from '../posts';
 
 const SLUG = 'giovanna-3000-views-overnight';
@@ -24,14 +24,6 @@ export default function GiovannaCaseStudyPage() {
       <p>
         EchoMe made the clip. It found the moment in her video, cut it, captioned it, and posted it. That part saved her time, and that is what the product is for.
       </p>
-
-      <Figure
-        src="/blog/clip-editor.webp"
-        alt="The EchoMe clip editor showing a vertical clip, its transcript, the post caption and posting options"
-        width={1600}
-        height={805}
-        caption="The clip editor: EchoMe picks the moment, you can trim it, tweak the caption, and post or schedule from one screen."
-      />
 
       <p>
         The views came from what was in the clip. The software didn&apos;t invent anything. It found something real she had already said and put it in front of people. If the video had been a polished pitch, the same clip-cutting would have produced a polished pitch, and people would have scrolled past it.

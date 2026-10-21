@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/blog`,
     title: 'The EchoMe Blog',
     description: 'Case studies, office hours recaps and how-tos from people turning real conversations into content.',
-    images: [{ url: `${SITE_URL}/blog/giovanna-office-hours.webp`, width: 1600, height: 901 }],
+    images: [{ url: `${SITE_URL}/blog/clip-editor.webp`, width: 1600, height: 805 }],
   },
 };
 
