@@ -200,14 +200,6 @@ export function renderQuoteCardBody(
     structured?.body ?? config.text.split('\n').slice(1).join('\n').trim(),
   );
 
-  // Numeral top-left
-  const bodyIndex = Math.max(1, config.slideNumber - 1);
-  ctx.font = 'bold 64px "Playfair Display", "Noto Serif", serif';
-  ctx.fillStyle = COLOR_ACCENT;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(`${String(bodyIndex).padStart(2, '0')}`, PADDING, PADDING);
-
   // Headline + body block, vertically centered
   const headlineFontSize = 48;
   const headlineFont = `700 ${headlineFontSize}px "Playfair Display", "Noto Serif", serif`;

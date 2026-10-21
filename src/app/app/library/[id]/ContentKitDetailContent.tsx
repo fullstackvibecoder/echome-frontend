@@ -362,7 +362,10 @@ export default function ContentKitDetailContent() {
 
   const platformContent = getPlatformContent();
   const hasClips = detail?.clips && detail.clips.length > 0;
-  const hasWrittenContent = platformContent.length > 0;
+  // Instagram text is carousel caption data, not a standalone written post, so
+  // it doesn't count toward the written-content sections.
+  const writtenPlatformContent = platformContent.filter(p => p.platform !== 'instagram');
+  const hasWrittenContent = writtenPlatformContent.length > 0;
 
   // Map of platform → generated_content.id for feedback widgets.
   // Pulls from detail.content[] (per-platform generated_content rows). Late-arriving
@@ -472,7 +475,7 @@ export default function ContentKitDetailContent() {
                     <>
                       <span>•</span>
                       <span className="text-accent font-medium">
-                        ✍️ {platformContent.length} platform{platformContent.length !== 1 ? 's' : ''}
+                        ✍️ {writtenPlatformContent.length} platform{writtenPlatformContent.length !== 1 ? 's' : ''}
                       </span>
                     </>
                   )}
@@ -648,7 +651,7 @@ export default function ContentKitDetailContent() {
           )}
 
           {/* Written Content */}
-          {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin || detail?.contentKit?.contentTwitter || detail?.contentKit?.contentInstagram || detail?.contentKit?.contentTiktok || detail?.contentKit?.contentYoutube || detail?.contentKit?.contentEmail || detail?.contentKit?.contentVideoScript) && (
+          {(detail?.contentKit?.contentBlog || detail?.contentKit?.contentLinkedin || detail?.contentKit?.contentTwitter || detail?.contentKit?.contentTiktok || detail?.contentKit?.contentYoutube || detail?.contentKit?.contentEmail || detail?.contentKit?.contentVideoScript) && (
             <section className="mt-8">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-accent-purple/10 flex items-center justify-center">
@@ -673,14 +676,13 @@ export default function ContentKitDetailContent() {
                 )}
 
                 {/* Platform posts — inline tabbed editor */}
-                {(detail?.contentKit?.contentLinkedin || detail?.contentKit?.contentTwitter || detail?.contentKit?.contentInstagram || detail?.contentKit?.contentTiktok || detail?.contentKit?.contentYoutube || detail?.contentKit?.contentEmail || detail?.contentKit?.contentVideoScript) && (
+                {(detail?.contentKit?.contentLinkedin || detail?.contentKit?.contentTwitter || detail?.contentKit?.contentTiktok || detail?.contentKit?.contentYoutube || detail?.contentKit?.contentEmail || detail?.contentKit?.contentVideoScript) && (
                   <InlineWrittenContent
                     contentKitId={detail.contentKit.id}
                     contentKitTitle={detail.contentKit.title}
                     knowledgeBaseId={detail.contentKit.knowledgeBaseId}
                     content={{
                       linkedin: detail.contentKit.contentLinkedin,
-                      instagram: detail.contentKit.contentInstagram,
                       twitter: detail.contentKit.contentTwitter,
                       email: detail.contentKit.contentEmail,
                       tiktok: detail.contentKit.contentTiktok,

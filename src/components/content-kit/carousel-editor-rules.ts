@@ -82,3 +82,27 @@ export function canRebake(
   if (slides.some((s) => !CANNOT_RECOMPOSE.has(s.template || ''))) return true;
   return overrides.some((o) => !!o.backgroundImageUrl);
 }
+
+export type DownloadStrategy = 'stored' | 'compose-only' | 'full-regenerate';
+
+/**
+ * How Download (and any terminal bake) should produce its PNGs.
+ *
+ * compose-only keeps everything the user set (photos, red keyword, text
+ * position, structured fields) because the server re-renders from the stored
+ * carousel plus our overrides. Full regenerate deletes and rebuilds the
+ * carousel from text + structured only, so it is reserved for single-pass
+ * tweet-style carousels that compose-only cannot render (canRebake false).
+ *
+ * Legacy two-phase carousels (cached backgroundUrl) always compose, edited or
+ * not, as before. Everything else with no edits downloads the stored images.
+ */
+export function chooseDownloadStrategy(
+  slides: Array<{ template?: string; backgroundUrl?: string }>,
+  overrides: Array<{ backgroundImageUrl?: string }>,
+  hasEdits: boolean,
+): DownloadStrategy {
+  if (slides.some((s) => !!s.backgroundUrl)) return 'compose-only';
+  if (!hasEdits) return 'stored';
+  return canRebake(slides, overrides) ? 'compose-only' : 'full-regenerate';
+}

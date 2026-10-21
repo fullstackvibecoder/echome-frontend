@@ -5,6 +5,7 @@ import {
   shouldOfferApplyToAll,
   isPhotoRestyleTemplate,
   canRebake,
+  chooseDownloadStrategy,
 } from './carousel-editor-rules';
 
 describe('CANNOT_RECOMPOSE', () => {
@@ -99,5 +100,36 @@ describe('canRebake', () => {
 
   it('handles overrides array shorter than slides', () => {
     expect(canRebake([slide('tweet-style'), slide('tweet-style')], [])).toBe(false);
+  });
+});
+
+describe('chooseDownloadStrategy', () => {
+  const branded = [{ template: 'branded-overlay-cover' }, { template: 'branded-overlay-body' }];
+  const tweet = [{ template: 'tweet-style' }, { template: 'tweet-style' }];
+
+  it('downloads stored images when nothing changed', () => {
+    expect(chooseDownloadStrategy(branded, [{}, {}], false)).toBe('stored');
+    expect(chooseDownloadStrategy(tweet, [{}, {}], false)).toBe('stored');
+  });
+
+  it('composes (keeps photos/keyword/position) for branded-overlay edits without backgroundUrl', () => {
+    expect(chooseDownloadStrategy(branded, [{ backgroundImageUrl: 'p.jpg' }, {}], true)).toBe('compose-only');
+  });
+
+  it('composes for quote-card and stats-card edits', () => {
+    expect(chooseDownloadStrategy([{ template: 'quote-card-body' }], [{}], true)).toBe('compose-only');
+    expect(chooseDownloadStrategy([{ template: 'stats-card-body' }], [{}], true)).toBe('compose-only');
+  });
+
+  it('always composes legacy two-phase carousels with cached backgrounds', () => {
+    expect(chooseDownloadStrategy([{ template: 'text-box', backgroundUrl: 'bg.png' }], [{}], false)).toBe('compose-only');
+  });
+
+  it('full-regenerates only single-pass tweet-style text edits', () => {
+    expect(chooseDownloadStrategy(tweet, [{}, {}], true)).toBe('full-regenerate');
+  });
+
+  it('composes tweet-style once a photo override promotes it server-side', () => {
+    expect(chooseDownloadStrategy(tweet, [{ backgroundImageUrl: 'p.jpg' }, {}], true)).toBe('compose-only');
   });
 });
