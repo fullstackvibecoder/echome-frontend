@@ -139,7 +139,7 @@ export function postMetadata(slug: string): Metadata {
   const url = `${SITE_URL}/blog/${post.slug}`;
   const image = { url: `${SITE_URL}${post.cover.src}`, width: post.cover.width, height: post.cover.height, alt: post.cover.alt };
   return {
-    title: `${post.title} | EchoMe Blog`,
+    title: post.title,
     description: post.subtitle,
     keywords: post.tags,
     authors: [{ name: authors[post.author].name }],

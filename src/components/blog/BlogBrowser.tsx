@@ -129,7 +129,7 @@ export function BlogBrowser({ categorySlug }: BlogBrowserProps) {
           <section>
             <h2 className="text-2xl font-bold text-text-primary mb-2">Latest</h2>
             <div>
-              {posts.map((p) => (
+              {posts.filter((p) => p.slug !== featured.slug).map((p) => (
                 <PostCard key={p.slug} post={p} variant="row" />
               ))}
             </div>

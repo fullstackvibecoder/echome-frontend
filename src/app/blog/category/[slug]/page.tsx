@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const category = getCategory(slug);
   if (!category) return {};
   return {
-    title: `${category.name} | EchoMe Blog`,
+    title: `${category.name} | Blog`,
     description: category.description,
     alternates: { canonical: `${SITE_URL}/blog/category/${category.slug}` },
   };

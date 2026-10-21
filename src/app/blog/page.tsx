@@ -5,7 +5,7 @@ import { SubscribeCard } from '@/components/blog/SubscribeCard';
 import { SITE_URL } from './posts';
 
 export const metadata: Metadata = {
-  title: 'Blog | EchoMe',
+  title: 'Blog',
   description: 'Case studies, office hours recaps and how-tos from people turning real conversations into content with EchoMe.',
   alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
