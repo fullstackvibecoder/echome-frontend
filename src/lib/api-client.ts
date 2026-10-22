@@ -42,6 +42,7 @@ import type {
 } from '../types';
 import type { AdvisorResponse } from '@/types/advisor';
 import type { Scorecard } from '@/types/insights';
+import { markBusy } from './deploy-version';
 
 // Re-export reel types for convenience
 export type { ReelTemplate, MusicTrackSummary, MusicTrack, TemplateSegment };
@@ -2221,6 +2222,7 @@ export const api = {
       };
       window.addEventListener('beforeunload', beforeUnloadHandler);
       window.addEventListener('pagehide', pageHideHandler);
+      const releaseBusy = markBusy();
 
       try {
         if (multipart && parts) {
@@ -2336,6 +2338,7 @@ export const api = {
       } finally {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         window.removeEventListener('pagehide', pageHideHandler);
+        releaseBusy();
       }
     },
 

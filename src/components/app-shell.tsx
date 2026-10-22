@@ -7,6 +7,7 @@ import { MobileSidebar } from './mobile-sidebar';
 import { AppHeader } from './app-header';
 // import { GenerationBanner } from './generation-banner'; // Temporarily disabled, see JSX below
 import { HelpWidget } from './help-widget';
+import { StaleDeployBanner } from './stale-deploy-banner';
 import { EchoPill } from '@/components/echo/EchoPill';
 import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -54,6 +55,8 @@ export function AppShell({ children }: AppShellProps) {
 
         {/* Ambient glow decoration */}
         <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.03] blur-[120px] rounded-full -mr-48 -mt-48 z-0" />
+
+        <StaleDeployBanner />
 
         {/* Subscription expired banner */}
         {showExpiredBanner && (
