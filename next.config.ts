@@ -98,6 +98,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Baked into the client bundle so long-lived tabs can compare it with
+  // /api/version and offer a refresh after a deploy.
+  env: {
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? '',
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
