@@ -2057,19 +2057,21 @@ export const api = {
       const { Upload } = await import('tus-js-client');
       const { supabaseUrl, supabaseAnonKey } = await import('./supabase');
 
-      // Get the user's session token for RLS-authorized uploads
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token ?? supabaseAnonKey;
-
       await new Promise<void>((resolve, reject) => {
         const upload = new Upload(file, {
-          endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+          // Signed-upload endpoint: the backend's upload token authorizes this
+          // one object path, so no user session (or anon fallback) is needed
+          // and storage RLS can stay locked down.
+          endpoint: `${supabaseUrl}/storage/v1/upload/resumable/sign`,
           retryDelays: [0, 1000, 3000, 5000],
           headers: {
-            authorization: `Bearer ${accessToken}`,
+            'x-signature': token,
             apikey: supabaseAnonKey,
             'x-upsert': 'true',
           },
+          // Each init issues a new path + token, so only resume an upload to
+          // this exact path.
+          fingerprint: async (f: File) => ['tus-sb-signed', storagePath, f.size, f.lastModified].join('-'),
           uploadDataDuringCreation: true,
           removeFingerprintOnSuccess: true,
           metadata: {
