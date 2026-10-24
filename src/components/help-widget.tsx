@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { api } from '@/lib/api-client';
 import { getRecentErrors } from '@/lib/console-buffer';
 import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
@@ -22,7 +23,7 @@ const PUBLIC_FAQS: FAQItem[] = [
   },
   {
     question: 'How do free content kits work?',
-    answer: '5 free content kits, no credit card. Each kit produces content across all platforms at once — Instagram, LinkedIn, Blog, Email, TikTok, plus a video script you can record on the built-in teleprompter.',
+    answer: '5 free content kits, no credit card. Each kit produces content across all platforms at once: Instagram, LinkedIn, Blog, Email, TikTok, plus a video script you can record on the built-in teleprompter.',
   },
   {
     question: 'What can I add to my Knowledge Base?',
@@ -60,6 +61,8 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackCategory, setFeedbackCategory] = useState<'bug' | 'feature_request' | 'general'>('general');
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -149,7 +152,9 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
   }, [input, loading, messages]);
 
   const submitFeedback = async () => {
-    if (!feedbackText.trim()) return;
+    if (!feedbackText.trim() || feedbackSubmitting) return;
+    setFeedbackSubmitting(true);
+    setFeedbackError(null);
     try {
       const metadata =
         feedbackCategory === 'bug' && typeof window !== 'undefined'
@@ -169,8 +174,25 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
       setFeedbackSent(true);
       setFeedbackText('');
       setTimeout(() => setFeedbackSent(false), 3000);
-    } catch {
-      // Silently fail
+    } catch (err: unknown) {
+      // A failed submit used to be swallowed, so the button looked dead and we
+      // never heard about it (Mike Parker, 2026-10-23: no request reached the
+      // backend and nothing was logged). Keep the text, say what happened, and
+      // report it so the next one is diagnosable.
+      const status = (err as { response?: { status?: number } }).response?.status;
+      Sentry.captureException(err, {
+        tags: { feature: 'help_feedback', status: status ? String(status) : 'no_response' },
+        extra: { category: feedbackCategory, textLength: feedbackText.trim().length },
+      });
+      setFeedbackError(
+        status === undefined
+          ? "Couldn't reach EchoMe. Check your connection and try again."
+          : status === 429
+            ? 'Too many submissions. Wait a minute and try again.'
+            : "Couldn't send your feedback. Try again, or email support@tryechome.com.",
+      );
+    } finally {
+      setFeedbackSubmitting(false);
     }
   };
 
@@ -372,18 +394,23 @@ export function HelpWidget({ isPublic = false }: HelpWidgetProps) {
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Message</label>
                     <textarea
                       value={feedbackText}
-                      onChange={e => setFeedbackText(e.target.value)}
+                      onChange={e => { setFeedbackText(e.target.value); setFeedbackError(null); }}
                       placeholder="Tell us what you think..."
                       rows={5}
                       className="w-full px-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     />
                   </div>
+                  {feedbackError && (
+                    <p role="alert" className="text-xs text-destructive">
+                      {feedbackError}
+                    </p>
+                  )}
                   <button
                     onClick={submitFeedback}
-                    disabled={!feedbackText.trim()}
+                    disabled={!feedbackText.trim() || feedbackSubmitting}
                     className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-primary/90 transition-colors"
                   >
-                    Submit Feedback
+                    {feedbackSubmitting ? 'Sending...' : 'Submit Feedback'}
                   </button>
                 </>
               )}
