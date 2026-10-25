@@ -2588,10 +2588,11 @@ export const api = {
           clips: raw.clips ?? [],
           carousel: raw.carousel ?? null,
           reelContent: raw.reelContent ?? null,
+          noClipsReason: raw.noClipsReason ?? null,
         },
       } as {
         success: boolean;
-        data: { kit: ContentKit; upload: VideoUpload | null; clips: VideoClip[]; carousel: any; reelContent: any };
+        data: { kit: ContentKit; upload: VideoUpload | null; clips: VideoClip[]; carousel: any; reelContent: any; noClipsReason?: string | null };
       };
     },
 
