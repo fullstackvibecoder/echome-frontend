@@ -1487,6 +1487,8 @@ export interface LinkedReelSummary {
 export interface ContentKitDetailWithReel extends ContentKitDetail {
   reelContent?: ReelContentStructure;
   reel?: LinkedReelSummary;
+  /** Why a finished video upload produced zero clips (null/absent when not applicable) */
+  noClipsReason?: string | null;
   trendingAudioSuggestion?: string;
 }
 

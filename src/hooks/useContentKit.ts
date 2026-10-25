@@ -158,6 +158,7 @@ interface UseContentKitDetailReturn {
     contentKit: any | null;
     carousel: any | null;
     content: any[];
+    noClipsReason?: string | null;
   } | null;
   loading: boolean;
   error: string | null;
@@ -222,6 +223,7 @@ export function useContentKitDetail(options: UseContentKitDetailOptions): UseCon
               contentKit: kit,
               carousel,
               content: [],
+              noClipsReason: data.noClipsReason ?? null,
             });
             return;
           }
