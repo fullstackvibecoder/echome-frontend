@@ -698,6 +698,13 @@ export default function ContentKitDetailContent() {
             </section>
           )}
 
+          {/* Why a video upload produced no clips */}
+          {!hasClips && !isProcessing && detail?.contentKit?.videoUploadId && detail?.noClipsReason && (
+            <p data-testid="no-clips-reason" className="mt-8 text-sm text-muted-foreground">
+              {detail.noClipsReason}
+            </p>
+          )}
+
           {/* Failed Generation State */}
           {!hasClips && !hasWrittenContent && !hasCarousel && !isProcessing && (item?.status === 'failed' || progressError) && (
             <div className="text-center py-16 bg-error/5 rounded-xl border border-error/20">

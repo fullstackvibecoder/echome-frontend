@@ -37,4 +37,16 @@ describe('contentKits.get transform', () => {
     expect(kit.clipsStatus).toBe('none');
     expect(kit.generationRequestId).toBe('r1');
   });
+
+  it('passes noClipsReason through, defaulting to null', async () => {
+    const kit = { id: 'k1', user_id: 'u1', created_at: 'c' };
+    getMock.mockResolvedValueOnce({ data: { success: true, data: {
+      kit, upload: null, clips: [], carousel: null, reelContent: null,
+      noClipsReason: 'No clips: not enough talking in this video.',
+    } } });
+    expect((await api.contentKits.get('k1')).data.noClipsReason).toBe('No clips: not enough talking in this video.');
+
+    getMock.mockResolvedValueOnce({ data: { success: true, data: { kit, upload: null, clips: [] } } });
+    expect((await api.contentKits.get('k1')).data.noClipsReason).toBeNull();
+  });
 });
