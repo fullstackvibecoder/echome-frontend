@@ -8,7 +8,7 @@
  * etc.) — no platform picker, just two buttons.
  *
  * Tier behavior:
- *   Studio+ → Post Now calls the API, Schedule opens the time picker
+ *   Paid plan → Post Now calls the API, Schedule opens the time picker
  *   Lower tiers → Schedule becomes "Schedule reminder" (creates a calendar
  *   reminder with email notification at the scheduled time)
  *
@@ -91,8 +91,8 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
 
     // API mode
     if (!canAutoPost) {
-      toast('Auto-post is an Echo Studio feature', {
-        description: 'Upgrade to post directly, or use Schedule to set an email reminder instead.',
+      toast('Auto-post needs an active plan', {
+        description: 'Subscribe to post directly, or use Schedule to set an email reminder instead.',
         action: { label: 'Upgrade', onClick: () => { window.location.href = '/app/billing'; } },
       });
       return;
@@ -205,7 +205,7 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
           cfg.mode === 'link'
             ? `Copies content and opens ${cfg.label}`
             : !canAutoPost
-              ? 'Auto-post is available on Echo Studio and above'
+              ? 'Auto-post is available on paid plans'
               : !connected
                 ? `Connect ${cfg.label} in Settings to post directly`
                 : `Post to ${cfg.label} now`
@@ -235,7 +235,7 @@ export function WrittenPostActions({ platform, contentKitId, sourceOutputId, tex
       {/* Helper text for non-capable states */}
       {cfg.mode === 'api' && !canAutoPost && (
         <span className="text-[10px] text-muted-foreground/70">
-          <Link href="/app/billing" className="underline hover:text-foreground">Upgrade to Studio</Link> for auto-post
+          <Link href="/app/billing" className="underline hover:text-foreground">Subscribe to Echo</Link> for auto-post
         </span>
       )}
       {cfg.mode === 'api' && canAutoPost && !connected && (

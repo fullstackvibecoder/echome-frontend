@@ -54,9 +54,8 @@ interface UseSubscriptionReturn {
    * Whether the user can auto-post to connected social platforms.
    *
    * Access rules (product spec 2026-04-24):
-   *   - Studio / Echo Pro (enterprise) / Teams — always true
+   *   - Any active or trialing paid tier (Echo 'pro', Studio, Teams, enterprise): true
    *   - Free tier with freeGenerationsRemaining > 0 — true
-   *   - Echo ($37 / 'pro') — false (scheduling via reminders only)
    *   - Free with no quota, or no subscription — false
    *
    * Use this instead of hasTierAccess('studio') for any auto-post UX.
@@ -204,14 +203,13 @@ export function useSubscription(): UseSubscriptionReturn {
     return false;
   }, [tier, isSubscribed, isTrial, freeGenerationsRemaining, isLegacyGrandfathered]);
 
-  // Auto-post access — Studio+ OR free-with-quota OR grandfathered. See the
-  // interface comment for the full rule table. Echo ($29 / 'pro') is
-  // explicitly excluded so that Echo users (non-grandfathered) fall into the
-  // reminders path instead.
+  // Auto-post access: any active/trialing paid tier (Echo included, founder
+  // ruling 2026-10-26: Echo never gets less than free) OR free-with-quota OR
+  // grandfathered. Mirrors backend requireAutoPostAccess.
   const canAutoPost: boolean = (() => {
     if (isLegacyGrandfathered) return true;
     if (isSubscribed || isTrial) {
-      return (TIER_LEVELS[tier] || 0) >= TIER_LEVELS.studio;
+      return true;
     }
     return freeGenerationsRemaining > 0;
   })();

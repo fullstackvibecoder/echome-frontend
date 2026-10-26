@@ -51,7 +51,7 @@ export default function PlansGuidePage() {
         {/* Plan sections */}
         <section className="space-y-8 mb-10">
           <PlanSection title="Free Tier">
-            <p>5 lifetime content kits, no credit card required. You get clips, captions, posts, newsletters, blog posts, and voice matching. Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky unlocks at Echo Studio. On Free and Echo, you can still schedule posts and get email reminders at the scheduled time. Try everything else before you commit.</p>
+            <p>5 lifetime content kits, no credit card required. You get clips, captions, posts, newsletters, blog posts, and voice matching. Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky is included during your free kits and on every paid plan. Once your free kits are used up, scheduled posts become email reminders until you subscribe. Try everything else before you commit.</p>
           </PlanSection>
 
           <PlanSection title="Echo: $37/mo">
@@ -61,7 +61,9 @@ export default function PlansGuidePage() {
               <li>Voice matching</li>
               <li>3 Creator Radar slots</li>
               <li>1080p exports</li>
-              <li>Content calendar with email reminders at your scheduled times (auto-posting unlocks at Studio)</li>
+              <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
+              <li>Content calendar with scheduled posting</li>
+              <li>Email import (50)</li>
             </ul>
           </PlanSection>
 
@@ -72,7 +74,6 @@ export default function PlansGuidePage() {
               <li>Deep voice matching</li>
               <li>10 Creator Radar slots</li>
               <li>Email import (50)</li>
-              <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
             </ul>
           </PlanSection>
 

@@ -57,7 +57,7 @@ export default function EmailUploadGuidePage() {
 
         {/* Tier-gate callout */}
         <div className="mb-10 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Plan required:</strong> Email import is available on Echo Studio and higher. Free and Echo plans will hit an upgrade prompt when uploading the .mbox file. <a href="/guides/plans" className="underline">Compare plans</a>.</p>
+          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Plan required:</strong> Email import (up to 50 emails) is available on Free, Echo, and all higher plans. <a href="/guides/plans" className="underline">Compare plans</a>.</p>
         </div>
 
         {/* Video embed */}

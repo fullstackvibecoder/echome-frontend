@@ -11,7 +11,7 @@
  * their edits (styling, captions, downloads). That's deliberate — you don't
  * want to commit to a platform before you know what the final asset looks like.
  *
- * Tier + connection states mirror WrittenPostActions: Studio+ required for
+ * Tier + connection states mirror WrittenPostActions: paid plan required for
  * auto-post to api-mode platforms; lower tiers get reminder fallback; link-mode
  * platforms always do copy-and-open regardless of tier.
  */
@@ -157,8 +157,8 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
 
     // Mixed or api-only: fanout-schedule with now-time
     if (!canAutoPost) {
-      toast('Auto-post is an Echo Studio feature', {
-        description: 'Upgrade to post directly, or use Schedule to set an email reminder instead.',
+      toast('Auto-post needs an active plan', {
+        description: 'Subscribe to post directly, or use Schedule to set an email reminder instead.',
         action: { label: 'Upgrade', onClick: () => { window.location.href = '/app/billing'; } },
       });
       return;
@@ -302,7 +302,7 @@ export function VisualPostActions({ contentKitId, sourceOutputId, caption, media
         {!canAutoPost && (
           <Link href="/app/billing" className="text-[10px] text-muted-foreground hover:text-foreground">
             <Sparkles className="w-3 h-3 inline mr-0.5" />
-            Upgrade for auto-post
+            Subscribe for auto-post
           </Link>
         )}
       </div>
