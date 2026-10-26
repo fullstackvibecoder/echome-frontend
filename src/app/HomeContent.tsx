@@ -256,7 +256,9 @@ export default function HomeContent() {
                       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
                       'Creator Radar, track what your audience watches',
                       'Built-in teleprompter for talking-head video',
-                      'Content calendar with email reminders (auto-posting unlocks at Studio)'
+                      'Auto-post to Instagram, LinkedIn & Facebook',
+                      'Content calendar with scheduled posting',
+                      'Email import (up to 50 emails)'
                     ].map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -303,7 +305,6 @@ export default function HomeContent() {
                       'Deep voice matching with thumbs feedback',
                       'Reads your full email history',
                       'Creator Radar with deeper insights',
-                      'Auto-post to Instagram, LinkedIn & Facebook',
                       'Built-in teleprompter for talking-head video',
                       'Priority processing'
                     ].map((feature, idx) => (

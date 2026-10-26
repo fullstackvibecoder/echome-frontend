@@ -305,7 +305,7 @@ export default function SupportContent() {
               <div>
                 <h3 className="text-base font-medium text-stone-800 mb-2">Free plan</h3>
                 <p className="text-stone-700 text-sm">
-                  Includes 5 free content kits with voice matching and a content calendar with email reminders. No credit card required. Auto-posting to Instagram, LinkedIn, and Facebook unlocks at Echo Studio ($87/mo).
+                  Includes 5 free content kits with voice matching and a content calendar with email reminders. No credit card required. Auto-posting to Instagram, LinkedIn, and Facebook is included on every paid plan.
                 </p>
               </div>
               <div>

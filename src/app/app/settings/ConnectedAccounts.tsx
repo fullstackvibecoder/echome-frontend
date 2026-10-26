@@ -203,15 +203,10 @@ export function ConnectedAccounts() {
     // different upgrade framing than a genuinely signed-out visitor.
     const [headline, subcopy] = (() => {
       switch (autoPostBlockedReason) {
-        case 'echo-tier':
-          return [
-            'Available on Echo Studio and Teams',
-            'Your Echo plan can still schedule posts on the calendar. We\'ll email you the copy-ready content at the scheduled time.',
-          ];
         case 'free-exhausted':
           return [
             'Your free content kits are used up',
-            'Upgrade to Echo Studio or above to connect your accounts and auto-post. Your Echo plan alternative uses scheduled email reminders.',
+            'Subscribe to Echo or above to connect your accounts and auto-post.',
           ];
         case 'no-subscription':
         default:

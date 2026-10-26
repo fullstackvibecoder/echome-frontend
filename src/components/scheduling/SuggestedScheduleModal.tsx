@@ -5,8 +5,8 @@
  *
  * The "wow moment" — shows the AI-suggested rollout right after a kit is
  * generated (or on-demand from a kit view). Universal across tiers:
- *   Studio+ → clicking "Use this schedule" creates real auto-posts via Outstand
- *   Below Studio → creates calendar reminders with same UI language
+ *   Paid plans (Echo+) → clicking "Use this schedule" creates real auto-posts via Outstand
+ *   Free past quota → creates calendar reminders with same UI language
  *
  * Each row has a reason_text tooltip explaining the suggestion, and the time
  * is editable in place. Users can accept the whole rollout with one click.

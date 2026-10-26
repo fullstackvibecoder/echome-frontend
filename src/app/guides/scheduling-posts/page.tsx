@@ -64,7 +64,7 @@ export default function SchedulingPostsGuidePage() {
         </p>
         <p className="text-sm text-text-secondary/70 mb-2">4 min read &middot; Video walkthrough below</p>
         <p className="text-xs text-text-secondary/70 mb-8">
-          Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky unlocks at <strong>Echo Studio</strong> ($87/mo). On Free and Echo plans you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business stay copy-and-open (we pre-fill the caption and open the native composer).
+          Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky is included on <strong>every paid plan</strong> (Echo and up) and during your free kits. Without it, you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business stay copy-and-open (we pre-fill the caption and open the native composer).
         </p>
 
         {/* Loom walkthrough — 2-minute SOP covering the full flow. Aspect-ratio

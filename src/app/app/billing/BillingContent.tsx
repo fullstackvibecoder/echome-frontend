@@ -32,7 +32,9 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
       'Creator Radar — track what your audience watches',
       'Built-in teleprompter for talking-head video',
-      'Content calendar with email reminders (auto-posting unlocks at Studio)',
+      'Auto-post to Instagram, LinkedIn & Facebook',
+      'Content calendar with scheduled posting',
+      'Email import (up to 50 emails)',
     ],
     limits: {
       videoMinutesPerMonth: 120,
@@ -40,7 +42,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       knowledgeBases: 1,
       creatorRadar: 3,
       exportQuality: '1080p',
-      emailImportMaxEmails: 0,
+      emailImportMaxEmails: 50,
     },
   },
   {
@@ -55,7 +57,6 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Deep voice matching with thumbs feedback',
       'Reads your full email history',
       'Creator Radar with deeper insights',
-      'Auto-post to Instagram, LinkedIn & Facebook',
       'Built-in teleprompter for talking-head video',
       'Priority processing',
     ],
@@ -424,7 +425,7 @@ function BillingContentInner() {
   // If they proceed, the confirm handler calls the actual portal redirect.
   const handleManageSubscription = () => {
     const tier = subscription?.tier || '';
-    const hasAutoPostAccess = ['studio', 'enterprise', 'teams_2', 'teams_5', 'teams_10', 'echo_teams'].includes(tier);
+    const hasAutoPostAccess = ['pro', 'studio', 'enterprise', 'teams_2', 'teams_5', 'teams_10', 'echo_teams'].includes(tier);
     if (hasAutoPostAccess) {
       setDowngradeWarningOpen(true);
     } else {
