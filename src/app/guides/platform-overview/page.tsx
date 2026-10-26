@@ -144,7 +144,7 @@ export default function PlatformOverviewGuidePage() {
             <p className="mb-2">Add sources via the unified input on the Your Voice page so Echo can match your style. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong className="text-text-primary">Paste social links</strong>: Import content from YouTube or Instagram.</li>
-              <li><strong className="text-text-primary">Drop files or paste URLs</strong>: Upload PDFs, articles, blog posts, or emails (Echo Studio+ for email).</li>
+              <li><strong className="text-text-primary">Drop files or paste URLs</strong>: Upload PDFs, articles, blog posts, or emails.</li>
               <li><strong className="text-text-primary">Record a voice note</strong>: Use the mic button inside the input bar. Just talk. Echo figures out the rest.</li>
             </ul>
             <p className="mt-2">The more content you add, the better the voice matching becomes. EchoMe learns your tone, vocabulary, sentence structure, and perspective over time.</p>

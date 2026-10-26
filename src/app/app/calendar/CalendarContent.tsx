@@ -17,7 +17,7 @@ export default function CalendarContent() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Content Calendar</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Your scheduled posts and reminders. Studio+ plans auto-post; lower tiers get email reminders at the scheduled time.
+            Your scheduled posts and reminders. Paid plans auto-post to your connected accounts; free accounts past their kits get email reminders at the scheduled time.
           </p>
         </div>
         <div className="inline-flex rounded-lg border border-border bg-card p-0.5">

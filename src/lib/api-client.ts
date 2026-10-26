@@ -4414,7 +4414,7 @@ export const api = {
       }>;
     },
 
-    /** Schedule one content piece to N platforms sharing one fanout_id. Studio+ only. */
+    /** Schedule one content piece to N platforms sharing one fanout_id. Paid plans only. */
     scheduleFanout: async (data: {
       content_kit_id?: string;
       source_output_id?: string;
@@ -4529,13 +4529,13 @@ export const api = {
       }>;
     },
 
-    /** Retry a failed post. Studio+ only. */
+    /** Retry a failed post. Paid plans only. */
     retryPost: async (id: string) => {
       const response = await apiClient.post(`/social-posting/posts/${id}/retry`);
       return response.data as ApiResponse<{ post_id: string; status: string }>;
     },
 
-    /** Reschedule a scheduled/failed post to a new time. Studio+ only. */
+    /** Reschedule a scheduled/failed post to a new time. Paid plans only. */
     reschedulePost: async (id: string, scheduled_at: string) => {
       const response = await apiClient.post(`/social-posting/posts/${id}/reschedule`, { scheduled_at });
       return response.data as ApiResponse<{ post_id: string; scheduled_at: string; status: string }>;
@@ -4543,7 +4543,7 @@ export const api = {
 
     /**
      * Shift a whole fanout by N days (preserves per-platform stagger).
-     * Used by the week-grid drag-to-reschedule UX. Studio+ only.
+     * Used by the week-grid drag-to-reschedule UX. Paid plans only.
      */
     rescheduleFanout: async (fanoutId: string, day_delta: number) => {
       const response = await apiClient.post(`/social-posting/fanouts/${fanoutId}/reschedule`, { day_delta }, {

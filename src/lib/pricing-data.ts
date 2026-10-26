@@ -54,7 +54,9 @@ export const individualPlans: PlanData[] = [
       'Reads YouTube, Instagram, blog, email, voice notes, PDFs',
       'Creator Radar, track what your audience watches',
       'Built-in teleprompter for talking-head video',
-      'Content calendar with scheduled email reminders',
+      'Auto-post to Instagram, LinkedIn & Facebook',
+      'Content calendar with scheduled posting',
+      'Email import (up to 50 emails)',
     ],
   },
   {
@@ -71,7 +73,6 @@ export const individualPlans: PlanData[] = [
       'Deep voice matching with thumbs feedback',
       'Reads your full email history',
       'Creator Radar with deeper insights',
-      'Auto-post to Instagram, LinkedIn & Facebook',
       'Built-in teleprompter for talking-head video',
       'Priority processing',
     ],
