@@ -55,9 +55,9 @@ export default function EmailUploadGuidePage() {
           3 min read &middot; Video walkthrough included
         </p>
 
-        {/* Tier-gate callout */}
+        {/* Why email callout */}
         <div className="mb-10 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Plan required:</strong> Email import (up to 50 emails) is available on Free, Echo, and all higher plans. <a href="/guides/plans" className="underline">Compare plans</a>.</p>
+          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Included on every plan.</strong> Your sent emails are how you actually talk to clients, so Echo writes posts that sound like you on a good day with a client, not like a marketer.</p>
         </div>
 
         {/* Video embed */}
@@ -121,7 +121,7 @@ export default function EmailUploadGuidePage() {
 
           <Step number={7} title="Download and unzip">
             <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong>. That&apos;s what you&apos;ll upload to EchoMe.</p>
-            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. EchoMe imports up to 100 emails per upload, so keep your label filtered to a focused date range rather than exporting everything at once.</Tip>
+            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. EchoMe keeps your 100 most recent emails from each upload. For a very large mailbox, a focused date range makes the export faster.</Tip>
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
@@ -145,7 +145,7 @@ export default function EmailUploadGuidePage() {
             <li><strong className="text-text-primary">Uploading your entire mailbox:</strong> Export only your Sent folder, filtered to the last 6 months. Huge files will time out or include other people&apos;s writing.</li>
             <li><strong className="text-text-primary">Forgetting to filter by label in Takeout:</strong> If you don&apos;t select your specific label, Google exports everything. Use the label filter.</li>
             <li><strong className="text-text-primary">Uploading inbox emails:</strong> Echo learns from <em>your</em> writing. Inbox emails are written by other people. That&apos;s their voice, not yours.</li>
-            <li><strong className="text-text-primary">Expecting every email to import:</strong> EchoMe imports up to 100 emails per upload. If your label has more, narrow the date range in Gmail before you export so the most relevant emails make the cut.</li>
+            <li><strong className="text-text-primary">Expecting every email to import:</strong> EchoMe keeps your 100 most recent emails from each upload. Want older ones in too? Export another date range and upload that as well.</li>
           </ul>
         </section>
 

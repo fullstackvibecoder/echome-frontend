@@ -74,7 +74,7 @@ export default function BuildYourVoiceGuidePage() {
 
           <Step number={3} title="Import your writing">
             <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL. EchoMe auto-discovers RSS feeds, with a sitemap fallback for static blogs (Hugo, Astro) that don&apos;t expose an RSS feed. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
-            <Tip>Email import (.mbox) is included on every plan, up to 50 emails.</Tip>
+            <Tip>Email import is included on every plan. Echo keeps your 100 most recent emails from each upload.</Tip>
           </Step>
 
           <Step number={4} title="Record a voice note">

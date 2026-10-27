@@ -34,7 +34,7 @@ const FALLBACK_PLANS: StripePlan[] = [
       'Built-in teleprompter for talking-head video',
       'Auto-post to Instagram, LinkedIn & Facebook',
       'Content calendar with scheduled posting',
-      'Email import (up to 50 emails)',
+      'Learns how you talk to clients from your sent email',
     ],
     limits: {
       videoMinutesPerMonth: 120,
@@ -55,7 +55,7 @@ const FALLBACK_PLANS: StripePlan[] = [
     annualPrice: 870,
     features: [
       'Deep voice matching with thumbs feedback',
-      'Reads your full email history',
+      '5 hours of video a month',
       'Creator Radar with deeper insights',
       'Built-in teleprompter for talking-head video',
       'Priority processing',
@@ -867,11 +867,10 @@ function BillingContentInner() {
                 {([
                   // Video-minute row dropped — caps were unenforced and the
                   // new tier structure removes the axis. Clips-per-video
-                  // count and email-import count are real (enforced by
-                  // clip-finder + ingest workers), so we keep those rows.
+                  // count is real (enforced by clip-finder), so it stays. Email
+                  // import is the same on every plan (ruling 2026-10-27).
                   { label: 'Clips per Video', key: 'clipsPerVideo', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
                   { label: 'Creator Radar Slots', key: 'creatorRadar', format: (v: number | string) => v === -1 ? 'Unlimited' : `${v}` },
-                  { label: 'Email Import', key: 'emailImportMaxEmails', format: (v: number | string) => v === 0 ? '-' : v === -1 ? 'Unlimited' : `Up to ${v}` },
                 ] as const).map(row => (
                   <tr key={row.label} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 font-medium text-foreground">{row.label}</td>
