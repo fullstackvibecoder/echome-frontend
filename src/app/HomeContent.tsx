@@ -1,145 +1,56 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Menu, X, Check, Mail, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Mail } from 'lucide-react';
 import { HelpWidget } from '@/components/help-widget';
-import { HeroSection } from '@/components/landing/HeroSection';
-import { SeeItWorkSection } from '@/components/landing/SeeItWorkSection';
-import { VoiceProfileSection } from '@/components/landing/VoiceProfileSection';
-import { CreatorRadarSection } from '@/components/landing/CreatorRadarSection';
-import { OutputShowcase } from '@/components/landing/OutputShowcase';
-import { TestimonialStrip } from '@/components/landing/TestimonialStrip';
-import { NotChatGPTSection } from '@/components/landing/NotChatGPTSection';
-import { UseCasesSection } from '@/components/landing/UseCasesSection';
+import { HomeNav } from '@/components/landing/home/HomeNav';
+import { HomeHero } from '@/components/landing/home/HomeHero';
+import { KitDemo } from '@/components/landing/home/KitDemo';
+import { TwoWaysIn } from '@/components/landing/home/TwoWaysIn';
+import { VoiceContrast } from '@/components/landing/home/VoiceContrast';
+import { ProofQuote } from '@/components/landing/home/ProofQuote';
+import { ClosingCta } from '@/components/landing/home/ClosingCta';
 import { TrackedSection } from '@/components/landing/TrackedSection';
 import { SiteFooter } from '@/components/landing/SiteFooter';
 import { CommunitySection } from '@/components/landing/CommunitySection';
-import { trackCtaClick } from '@/lib/analytics';
+import { spaceGrotesk } from '@/lib/fonts';
 
 export default function HomeContent() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   // Echo Teams card uses a per-voice selector. State default = 2 (plan minimum).
   const [echoTeamsVoices, setEchoTeamsVoices] = useState<number>(2);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className={`${spaceGrotesk.variable} min-h-screen bg-background text-foreground`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:shadow-lg">
         Skip to main content
       </a>
-      {/* Navigation */}
-      <nav className={`fixed w-full z-[999] transition-all duration-300 pointer-events-auto ${scrolled ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shadow-lg' : 'bg-gray-900/50 backdrop-blur-md border-b border-white/10'}`}>
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-3 group">
-              <Image src="/media/echome-logo.svg" alt="Echo, your Agentic content assistant" width={40} height={40} className="object-contain transition-transform group-hover:scale-110" />
-              <span className={`text-xl font-bold tracking-tight transition-colors ${scrolled ? 'text-foreground' : 'text-white'}`}>EchoMe</span>
-            </Link>
+      <HomeNav />
 
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#how" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>How It Works</a>
-              <a href="#output-showcase" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Examples</a>
-              <a href="#pricing" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Pricing</a>
-              <a href="#community" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Community</a>
-              <a href="/privacy" className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}>Privacy</a>
-              <a
-                href="/auth/login"
-                className={`transition font-medium ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}
-              >
-                Sign In
-              </a>
-              <a
-                href="/auth/signup"
-                onClick={() => trackCtaClick('nav_signup')}
-                className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all shadow-md"
-              >
-                Try Free
-              </a>
-            </div>
-
-            <button aria-label="Toggle navigation menu" aria-expanded={isMenuOpen} className={`md:hidden p-3 -m-3 ${scrolled ? 'text-foreground' : 'text-white'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* Mobile menu */}
-          {isMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-white/10 shadow-xl">
-              <div className="flex flex-col p-6 space-y-4">
-                <a href="#how" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">How It Works</a>
-                <a href="#output-showcase" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Examples</a>
-                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Pricing</a>
-                <a href="#community" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Community</a>
-                <a href="/privacy" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">Privacy</a>
-                <a
-                  href="/auth/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-left text-foreground hover:text-primary transition font-medium"
-                >
-                  Sign In
-                </a>
-                <a
-                  href="/auth/signup"
-                  onClick={() => { setIsMenuOpen(false); trackCtaClick('nav_signup_mobile'); }}
-                  className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg transition-all text-center shadow-md"
-                >
-                  Try Free
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* Hero */}
       <main id="main-content">
-      <TrackedSection name="hero">
-        <HeroSection />
-      </TrackedSection>
+      {/* Story: talk once (phone or link) -> Echo cuts the kit -> week on autopilot, voice profile underneath */}
+      <div className="bg-home-paper text-home-ink">
+        <TrackedSection name="hero">
+          <HomeHero />
+          <KitDemo />
+        </TrackedSection>
 
-      {/* See it work — founder walkthrough, right after the hero */}
-      <TrackedSection name="see_it_work">
-        <SeeItWorkSection />
-      </TrackedSection>
+        <TrackedSection name="two_ways_in">
+          <TwoWaysIn />
+        </TrackedSection>
 
-      {/* Testimonial: real result, right after the demo */}
-      <TrackedSection name="testimonials">
-        <TestimonialStrip />
-      </TrackedSection>
+        <TrackedSection name="voice_contrast">
+          <VoiceContrast />
+        </TrackedSection>
 
-      {/* Voice Profile (Work Before the Work) — owns the #how anchor */}
-      <TrackedSection name="voice_profile">
-        <VoiceProfileSection />
-      </TrackedSection>
+        <TrackedSection name="testimonials">
+          <ProofQuote />
+        </TrackedSection>
 
-      {/* Not ChatGPT — core differentiator */}
-      <TrackedSection name="not_chatgpt">
-        <NotChatGPTSection />
-      </TrackedSection>
-
-      {/* Output Showcase — proof */}
-      <TrackedSection name="output_showcase">
-        <OutputShowcase />
-      </TrackedSection>
-
-      {/* Use Cases — persona fit */}
-      <TrackedSection name="use_cases">
-        <UseCasesSection />
-      </TrackedSection>
-
-      {/* Creator Radar — bonus differentiator */}
-      <TrackedSection name="creator_radar">
-        <CreatorRadarSection />
-      </TrackedSection>
+        <TrackedSection name="closing_cta">
+          <ClosingCta />
+        </TrackedSection>
+      </div>
 
       {/* Pricing */}
       <TrackedSection name="pricing">
@@ -420,62 +331,6 @@ export default function HomeContent() {
       <TrackedSection name="community">
         <CommunitySection />
       </TrackedSection>
-
-      {/* Affiliate Program */}
-      <section className="py-20 px-6 bg-gray-900 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/15 to-transparent rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 border border-primary/25 rounded-full mb-6">
-                <span className="text-lg">💰</span>
-                <span className="text-primary font-semibold text-sm">Affiliate Program</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
-                Earn <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">25% Recurring</span>
-                <br />
-                Sharing EchoMe
-              </h2>
-              <p className="text-white/70 font-light text-lg mb-6 leading-relaxed">
-                Love what EchoMe does for your content? Share it with your audience and earn 25% of every subscription - not just the first month, every month they stay.
-              </p>
-              <a
-                href="/affiliates"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                Learn More
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {[
-                { plan: 'Echo', price: '$37/mo', commission: '$9.25', color: 'from-primary/20 to-primary/5' },
-                { plan: 'Echo Studio', price: '$87/mo', commission: '$21.75', color: 'from-primary/25 to-primary/10', popular: true },
-                { plan: 'Echo Teams', price: '$47/voice/mo', commission: '$11.75/voice', color: 'from-accent-purple/20 to-accent-purple/5' },
-              ].map((tier) => (
-                <div
-                  key={tier.plan}
-                  className={`flex items-center justify-between p-4 bg-gradient-to-r ${tier.color} rounded-xl border ${
-                    tier.popular ? 'border-primary/30' : 'border-white/10'
-                  }`}
-                >
-                  <div>
-                    <span className="font-bold text-white">{tier.plan}</span>
-                    <span className="text-white/50 text-sm ml-2">{tier.price}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xl font-extrabold text-primary">{tier.commission}</span>
-                    <span className="text-white/50 text-sm">/mo per referral</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       </main>
 

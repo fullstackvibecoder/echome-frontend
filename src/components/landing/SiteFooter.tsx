@@ -49,7 +49,7 @@ export function SiteFooter() {
           <div>
             <h4 className="font-extrabold text-lg mb-6 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Product</h4>
             <ul className="space-y-3 text-white/70 font-light">
-              <li><a href="#how" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">How It Works</a></li>
+              <li><a href="/#how" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">How It Works</a></li>
               <li><a href="#pricing" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Pricing</a></li>
               <li><a href="/developers" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">API</a></li>
               <li><a href="/community" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Community</a></li>

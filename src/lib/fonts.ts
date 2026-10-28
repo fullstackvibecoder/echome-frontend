@@ -1,5 +1,5 @@
 import localFont from "next/font/local";
-import { Manrope, Montserrat, Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
+import { Manrope, Montserrat, Inter, Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
 export const manrope = Manrope({
   subsets: ["latin"],
@@ -102,5 +102,13 @@ export const satoshi = localFont({
     },
   ],
   variable: "--font-satoshi",
+  display: "swap",
+});
+
+// Homepage display face (2026-10 revamp). Applied only on the marketing homepage.
+export const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-space-grotesk",
   display: "swap",
 });

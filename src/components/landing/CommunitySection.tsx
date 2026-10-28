@@ -146,7 +146,7 @@ export function CommunitySection() {
             {
               icon: <Users className="w-5 h-5 text-primary" />,
               title: 'Real Conversations',
-              description: 'Drop in with questions, share what you&apos;re working on, hear what others are building.',
+              description: 'Drop in with questions, share what you’re working on, hear what others are building.',
             },
             {
               icon: <MessageCircle className="w-5 h-5 text-accent-purple" />,
