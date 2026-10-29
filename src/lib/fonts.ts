@@ -1,39 +1,41 @@
 import localFont from "next/font/local";
-import { Manrope, Montserrat, Inter, Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+// All fonts are self-hosted. next/font/google downloads from Google at build
+// time, and that fetch flaked often enough to fail CI and Vercel builds
+// (2026-10-29). Files are the Latin subsets from Google Fonts, SIL OFL 1.1.
 
-export const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+export const manrope = localFont({
+  src: "../../public/fonts/manrope/Manrope-Variable-latin.woff2",
+  weight: "400 800",
   variable: "--font-manrope",
   display: "swap",
 });
 
 // Caption overlay fonts — preloaded to prevent FOUT during playback
-export const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "700", "800"],
+export const montserrat = localFont({
+  src: "../../public/fonts/montserrat/Montserrat-Variable-latin.woff2",
+  weight: "400 800",
   variable: "--font-montserrat",
   display: "swap",
 });
 
-export const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400"],
+export const inter = localFont({
+  src: "../../public/fonts/inter/Inter-Regular-latin.woff2",
+  weight: "400",
   variable: "--font-inter",
   display: "swap",
 });
 
-export const bebasNeue = Bebas_Neue({
-  subsets: ["latin"],
-  weight: ["400"],
+export const bebasNeue = localFont({
+  src: "../../public/fonts/bebas-neue/BebasNeue-Regular-latin.woff2",
+  weight: "400",
   variable: "--font-bebas-neue",
   display: "swap",
 });
 
 // Machine voice — receipts, stats, statuses, kickers (design spec 2026-06-10)
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+export const jetbrainsMono = localFont({
+  src: "../../public/fonts/jetbrains-mono/JetBrainsMono-Variable-latin.woff2",
+  weight: "400 700",
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
@@ -106,9 +108,9 @@ export const satoshi = localFont({
 });
 
 // Homepage display face (2026-10 revamp). Applied only on the marketing homepage.
-export const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+export const spaceGrotesk = localFont({
+  src: "../../public/fonts/space-grotesk/SpaceGrotesk-Variable-latin.woff2",
+  weight: "500 700",
   variable: "--font-space-grotesk",
   display: "swap",
 });
