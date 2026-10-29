@@ -45,7 +45,7 @@ export default function CommunityPageContent() {
               <Link href="/#how" className="text-foreground hover:text-primary transition font-medium">
                 How It Works
               </Link>
-              <Link href="/#output-showcase" className="text-foreground hover:text-primary transition font-medium">
+              <Link href="/#demo" className="text-foreground hover:text-primary transition font-medium">
                 Examples
               </Link>
               <Link href="/#pricing" className="text-foreground hover:text-primary transition font-medium">
@@ -84,7 +84,7 @@ export default function CommunityPageContent() {
                 <Link href="/#how" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">
                   How It Works
                 </Link>
-                <Link href="/#output-showcase" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">
+                <Link href="/#demo" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">
                   Examples
                 </Link>
                 <Link href="/#pricing" onClick={() => setIsMenuOpen(false)} className="text-foreground hover:text-primary transition font-medium">
