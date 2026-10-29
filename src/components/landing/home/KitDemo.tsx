@@ -1,79 +1,109 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { Link2, Pause, Play } from 'lucide-react';
-import {
-  LOOP_HOLD,
-  LOOP_MS,
-  PERSONAS,
-  PHASE,
-  WEEKDAYS,
-  WEEK_PLAN,
-  type Persona,
-  type PersonaId,
-} from './kitDemoData';
+import { DEMO, LOOP_HOLD, LOOP_MS, PHASE, WEEK_PLAN, type KitExtra, type Media, type Persona } from './kitDemoData';
 
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
 const easeOut = (x: number) => 1 - Math.pow(1 - x, 3);
-/** Slight overshoot so cards "snap" into place. */
-const easeBack = (x: number) => 1 + 2.7 * Math.pow(x - 1, 3) + 1.7 * Math.pow(x - 1, 2);
+const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 
-const words = (text: string) => text.match(/\S+\s*/g) ?? [];
+/** 1226 -> "20:26" */
+export const mmss = (secs: number) => `${Math.floor(secs / 60)}:${String(Math.round(secs) % 60).padStart(2, '0')}`;
 
-export type Stage = 'Recording' | 'Finding moments' | 'Building kit' | 'Scheduled';
+/** The longest clip Echo makes; the length bar is drawn against this. */
+const MAX_CLIP_SECS = 90;
+const WAVE_BARS = 120;
+/** Deterministic "waveform", so server and client render the same bars. */
+const WAVE = Array.from({ length: WAVE_BARS }, (_, i) => 0.25 + 0.75 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.37)));
+
+export type Stage = 'Recording' | 'Importing' | 'Finding clips' | 'Building kit' | 'Scheduling' | 'Scheduled';
+
+type KitItem =
+  | { kind: 'clip'; label: string; short: string; body: string; secs: number; media?: Media }
+  | (KitExtra & { secs?: undefined; media?: undefined });
 
 /** Everything the demo shows at loop position t (0..1). Pure, so it's testable. */
 export function deriveFrame(persona: Persona, rawT: number) {
   const t = Math.min(1, Math.max(0, rawT));
-  const recordProgress = clamp(t / PHASE.recordEnd);
-  const totalWords = persona.transcript.reduce((n, run) => n + words(run.text).length, 0);
-  const revealed = Math.floor(recordProgress * totalWords);
+  const playhead = clamp(t / PHASE.recordEnd);
+  const playSecs = playhead * persona.source.seconds;
 
-  let cursor = 0;
-  const runs = persona.transcript.map((run) => {
-    const parts = words(run.text);
-    const n = Math.max(0, Math.min(parts.length, revealed - cursor));
-    cursor += parts.length;
-    const highlight = run.highlight
-      ? clamp((t - (PHASE.highlightStart + (run.highlight - 1) * PHASE.highlightStep)) / PHASE.highlightLength)
-      : 0;
+  const items: KitItem[] = [
+    ...persona.clips.map((c, i) => ({
+      kind: 'clip' as const,
+      label: `Clip ${i + 1}`,
+      short: `Clip ${i + 1}`,
+      body: c.opening,
+      secs: Math.round(c.end - c.start),
+      media: c.media,
+    })),
+    ...persona.extras,
+  ];
+  // `fly`: bracket (or source) -> kit slot. `drop`: kit slot -> its day.
+  const kit = items.map((item, i) => {
+    const n = WEEK_PLAN.findIndex((p) => p.ref === i);
     return {
-      shown: parts.slice(0, n).join(''),
-      rest: parts.slice(n).join(''),
-      clip: run.highlight,
-      highlight,
+      ...item,
+      fly: clamp((t - (PHASE.kitStart + i * PHASE.kitStep)) / PHASE.kitLength),
+      drop: clamp((t - (PHASE.weekStart + n * PHASE.weekStep)) / PHASE.weekLength),
     };
   });
 
-  const clipLines = persona.transcript.filter((r) => r.highlight).map((r) => r.text.trim());
-  const kit = [
-    ...clipLines.map((body, i) => ({ kind: 'clip' as const, label: `Clip ${i + 1}`, short: `Clip ${i + 1}`, body })),
-    ...persona.extras,
-  ].map((item, i) => ({ ...item, appear: clamp((t - (PHASE.kitStart + i * PHASE.kitStep)) / PHASE.kitLength) }));
-
-  const week = WEEKDAYS.map((day, d) => ({
-    day,
-    items: WEEK_PLAN.map((p, n) => ({ ...p, n }))
-      .filter((p) => p.day === d)
-      .map((p) => ({
-        n: p.n,
-        kind: kit[p.ref].short,
-        when: `${persona.networks[p.n]}, ${p.time}`,
-        appear: clamp((t - (PHASE.weekStart + p.n * PHASE.weekStep)) / PHASE.weekLength),
-      })),
+  const brackets = persona.clips.map((c, i) => ({
+    left: c.start / persona.source.seconds,
+    width: (c.end - c.start) / persona.source.seconds,
+    secs: Math.round(c.end - c.start),
+    draw: clamp((t - (PHASE.bracketStart + i * PHASE.bracketStep)) / PHASE.bracketLength),
   }));
 
-  const secs = Math.round(recordProgress * persona.source.seconds);
+  // The clip Echo is looking at right now, while it brackets.
+  const bracketing = t >= PHASE.bracketStart && t < PHASE.kitStart;
+  const focus = bracketing
+    ? Math.min(persona.clips.length - 1, Math.floor((t - PHASE.bracketStart) / PHASE.bracketStep))
+    : -1;
+  // While recording, captions show the clip the playhead last passed.
+  const live = persona.clips.reduce((last, c, i) => (c.start <= playSecs ? i : last), -1);
+
+  const week = WEEK_PLAN.map((p, n) => ({
+    day: p.day,
+    ref: p.ref,
+    when: `${persona.networks[n]}, ${p.time}`,
+    landed: kit[p.ref].drop >= 1,
+  }));
+
+  const lastLanding = PHASE.weekStart + (WEEK_PLAN.length - 1) * PHASE.weekStep + PHASE.weekLength;
   const stage: Stage =
-    t < PHASE.recordEnd ? 'Recording' : t < PHASE.kitStart ? 'Finding moments' : t < PHASE.weekStart ? 'Building kit' : 'Scheduled';
+    t < PHASE.recordEnd
+      ? persona.source.type === 'link'
+        ? 'Importing'
+        : 'Recording'
+      : t < PHASE.kitStart
+        ? 'Finding clips'
+        : t < PHASE.weekStart
+          ? 'Building kit'
+          : t < lastLanding
+            ? 'Scheduling'
+            : 'Scheduled';
+
+  // Which layer the right-hand panel shows.
+  const panel: 'live' | 'bracket' | 'kit' | 'summary' =
+    t < PHASE.bracketStart ? 'live' : bracketing ? 'bracket' : t < lastLanding - 0.02 ? 'kit' : 'summary';
 
   return {
-    runs,
+    playhead,
+    clock: mmss(playSecs),
+    recording: t < PHASE.recordEnd,
+    brackets,
+    focus,
+    focusDraw: focus >= 0 ? brackets[focus].draw : 0,
+    live,
     kit,
     week,
     stage,
-    recording: t < PHASE.recordEnd,
-    clock: `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`,
+    panel,
+    secsRange: [Math.min(...brackets.map((b) => b.secs)), Math.max(...brackets.map((b) => b.secs))] as const,
   };
 }
 
@@ -93,36 +123,134 @@ function usePrefersReducedMotion() {
   );
 }
 
+type Box = { x: number; y: number; w: number; h: number };
+
+/** Layout boxes the flying cards travel between, in stage coordinates. */
+type Geometry = { brackets: Box[]; source: Box; kit: Box[]; week: Box[] };
+
+/** Offsets ignore transforms, so this is the untransformed layout box. */
+function boxWithin(el: HTMLElement, root: HTMLElement): Box {
+  let x = 0;
+  let y = 0;
+  let node: HTMLElement | null = el;
+  while (node && node !== root) {
+    x += node.offsetLeft;
+    y += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+}
+
+function measure(stage: HTMLElement): Geometry | null {
+  // The phone and the compact bar are both in the DOM; only one is displayed.
+  const source = Array.from(stage.querySelectorAll<HTMLElement>('[data-geo="source"]')).find((el) => el.offsetParent);
+  if (!source) return null;
+  const all = (name: string) =>
+    Array.from(stage.querySelectorAll<HTMLElement>(`[data-geo="${name}"]`))
+      .sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index))
+      .map((el) => boxWithin(el, stage));
+  return { brackets: all('bracket'), source: boxWithin(source, stage), kit: all('kit'), week: all('week') };
+}
+
+const CLIP_KIT = 'h-[89px] w-[50px] sm:h-[184px] sm:w-[104px]';
+const EXTRA_KIT = 'h-[64px] w-[110px] sm:h-[184px] sm:w-[156px]';
+const CLIP_WEEK = 'h-[89px] w-[50px] sm:h-[128px] sm:w-[72px]';
+const EXTRA_WEEK = 'h-[89px] w-full sm:h-[128px] sm:w-full';
+
+function CardFace({ item, size, video }: { item: KitItem; size: 'kit' | 'week'; video: boolean }) {
+  const chip = 'relative self-start rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-home-paper sm:px-2 sm:py-1 sm:text-xs';
+  if (item.kind === 'clip') {
+    return (
+      <div className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[10px] bg-gradient-to-b from-[#2A2D35] to-[#15161B] p-1.5 sm:rounded-[14px] sm:p-2">
+        {item.media &&
+          (video ? (
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src={item.media.video}
+              poster={item.media.poster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-hidden="true"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="absolute inset-0 h-full w-full object-cover" src={item.media.poster} alt="" />
+          ))}
+        {item.media && <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-transparent from-50% to-black/80" />}
+        <span className={`${chip} hidden sm:block`}>{item.label}</span>
+        {size === 'kit' && !item.media && (
+          <span className="relative hidden font-grotesk text-[13px] font-semibold leading-[1.15] sm:line-clamp-5">{item.body}</span>
+        )}
+        <span className="relative self-end rounded-md bg-home-signal px-1 py-0.5 font-grotesk text-[10px] font-bold tabular-nums text-home-ink sm:px-1.5 sm:text-[13px]">
+          {mmss(item.secs)}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`flex h-full w-full flex-col justify-between overflow-hidden rounded-[10px] p-1.5 text-home-ink sm:rounded-[14px] sm:p-2.5 ${
+        item.kind === 'post' ? 'bg-home-signal' : 'bg-home-paper'
+      }`}
+    >
+      <span className={chip}>
+        <span className="sm:hidden">{item.short}</span>
+        <span className="hidden sm:inline">{item.label}</span>
+      </span>
+      <span
+        className={`hidden font-grotesk font-semibold leading-[1.15] tracking-[-0.01em] sm:line-clamp-4 ${
+          size === 'kit' ? 'text-[16px]' : 'text-[13px]'
+        }`}
+      >
+        {item.body}
+      </span>
+    </div>
+  );
+}
+
 export function KitDemo() {
   const reducedMotion = usePrefersReducedMotion();
-  const [personaId, setPersonaId] = useState<PersonaId>('coach');
   // Server render and first paint show the finished week, so the content never
-  // depends on JS. The loop starts the first time the stage scrolls into view.
+  // depends on JS. The loop starts once most of the stage is on screen.
   const [t, setT] = useState(1);
   const [playing, setPlaying] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [visibility, setVisibility] = useState(0);
+  const [geo, setGeo] = useState<Geometry | null>(null);
   const started = useRef(false);
   const stageRef = useRef<HTMLDivElement | null>(null);
 
-  const persona = PERSONAS.find((p) => p.id === personaId) ?? PERSONAS[0];
+  const persona = DEMO;
   const frame = deriveFrame(persona, t);
+  const inView = visibility >= 0.2;
 
-  // Only animate while the stage is on screen.
   useEffect(() => {
     const el = stageRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.2 });
+    const io = new IntersectionObserver(([entry]) => setVisibility(entry.intersectionRatio), { threshold: [0, 0.2, 0.5] });
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
+  // Re-measure whenever the layout can change: resize or font swap.
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const update = () => setGeo(measure(el));
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    document.fonts?.ready.then(update);
+    return () => ro.disconnect();
+  }, []);
+
   // Reduced motion never autoplays: it stays on the finished week.
   useEffect(() => {
-    if (!inView || started.current || reducedMotion) return;
+    if (visibility < 0.5 || started.current || reducedMotion) return;
     started.current = true;
     setT(0);
     setPlaying(true);
-  }, [inView, reducedMotion]);
+  }, [visibility, reducedMotion]);
 
   useEffect(() => {
     if (!playing || !inView) return;
@@ -138,44 +266,71 @@ export function KitDemo() {
     return () => cancelAnimationFrame(raf);
   }, [playing, inView]);
 
-  const pickPersona = useCallback(
-    (id: PersonaId) => {
-      started.current = true;
-      setPersonaId(id);
-      setT(reducedMotion ? 1 : 0);
-      setPlaying(!reducedMotion);
-    },
-    [reducedMotion],
-  );
-
   const togglePlay = () => {
     if (!playing && t >= 1) setT(0);
     setPlaying(!playing);
   };
 
-  const fullTranscript = persona.transcript.map((r) => r.text).join('');
   const showVideo = !reducedMotion;
+  const sizeFor = (item: KitItem, where: 'kit' | 'week') =>
+    item.kind === 'clip' ? (where === 'kit' ? CLIP_KIT : CLIP_WEEK) : where === 'kit' ? EXTRA_KIT : EXTRA_WEEK;
+  const isLink = persona.source.type === 'link';
+  const total = mmss(persona.source.seconds);
+  const [minSecs, maxSecs] = frame.secsRange;
+
+  // Cards in flight are drawn in an overlay; settled cards render in their slot.
+  const flights = geo
+    ? frame.kit.flatMap((item, i) => {
+        const kitBox = geo.kit[i];
+        const weekBox = geo.week[i];
+        if (!kitBox || !weekBox) return [];
+        let from: Box;
+        let to: Box;
+        let p: number;
+        let arc: number;
+        const lifting = item.fly > 0 && item.fly < 1;
+        if (lifting) {
+          // A clip lifts off its bracket on the timeline; posts come from the source.
+          from = (item.kind === 'clip' && geo.brackets[i]) || geo.source;
+          to = kitBox;
+          p = item.fly;
+          arc = 60;
+        } else if (item.drop > 0 && item.drop < 1) {
+          from = kitBox;
+          to = weekBox;
+          p = item.drop;
+          arc = 40;
+        } else {
+          return [];
+        }
+        const e = easeInOut(p);
+        const style: CSSProperties = {
+          left: lerp(from.x, to.x, e),
+          top: lerp(from.y, to.y, e) - Math.sin(Math.PI * p) * arc,
+          width: lerp(from.w, to.w, e),
+          height: lerp(from.h, to.h, e),
+          transform: `rotate(${(Math.sin(Math.PI * p) * (i % 2 ? -6 : 6)).toFixed(2)}deg)`,
+        };
+        return [
+          <div key={i} className="absolute overflow-hidden rounded-[10px] bg-home-signal sm:rounded-[14px]" style={style}>
+            <div className="h-full w-full" style={{ opacity: lifting ? easeOut(clamp((p - 0.15) / 0.6)) : 1 }}>
+              <CardFace item={item} size={lifting ? 'kit' : 'week'} video={false} />
+            </div>
+          </div>,
+        ];
+      })
+    : [];
+
+  const layer = (on: boolean): CSSProperties => ({ opacity: on ? 1 : 0, visibility: on ? 'visible' : 'hidden' });
+  const focusClip = frame.focus >= 0 ? persona.clips[frame.focus] : null;
+  const liveClip = frame.live >= 0 ? persona.clips[frame.live] : null;
 
   return (
-    <section id="demo" aria-label="Watch one recording become a week of content" className="mx-auto max-w-[1320px] px-4 sm:px-6 pb-24">
-      <div ref={stageRef} className="flex flex-col gap-7 overflow-hidden rounded-[32px] bg-home-stage p-5 text-home-paper sm:p-7">
+    <section id="demo" aria-label="Watch one recording become a week of content" className="mx-auto max-w-[1320px] px-4 pb-24 sm:px-6">
+      <div ref={stageRef} className="relative flex flex-col gap-4 overflow-hidden rounded-[32px] bg-home-stage p-4 text-home-paper sm:gap-5 sm:p-7">
         {/* Controls */}
         <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
-          <div role="group" aria-label="Show an example for" className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-home-stage-raised p-1">
-            {PERSONAS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                aria-pressed={p.id === personaId}
-                onClick={() => pickPersona(p.id)}
-                className={`min-h-11 flex-none cursor-pointer whitespace-nowrap rounded-full px-4 text-[15px] transition-colors ${
-                  p.id === personaId ? 'bg-home-paper font-semibold text-home-stage' : 'font-medium text-home-paper hover:bg-white/10'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+          <span className="font-grotesk text-[17px] font-semibold">{persona.who}</span>
           <div className="flex min-w-[260px] flex-[0_1_420px] items-center gap-3.5">
             <button
               type="button"
@@ -200,160 +355,218 @@ export function KitDemo() {
               }}
               className="h-11 min-w-0 flex-1 accent-home-signal"
             />
-            <span className="w-[132px] flex-none text-right font-grotesk text-[15px] tabular-nums text-home-stage-muted">{frame.stage}</span>
+            <span className="w-[120px] flex-none text-right font-grotesk text-[15px] tabular-nums text-home-stage-muted">{frame.stage}</span>
           </div>
         </div>
 
-        {/* Source + live captions */}
-        <div className="flex flex-wrap items-center gap-x-10 gap-y-5 sm:gap-y-7">
+        <p className="sr-only">
+          {`${persona.source.where}, ${total} long. Echo cut ${persona.clips.length} clips from it: `}
+          {persona.clips.map((c, i) => `Clip ${i + 1}, ${mmss(c.end - c.start)}, starting “${c.opening}” `).join('')}
+        </p>
+
+        {/* Source + what Echo is doing */}
+        <div className="grid gap-4 sm:h-[260px] sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-8">
           {/* Phones: a compact source bar instead of the phone frame */}
-          <div className="flex w-full items-center gap-3 rounded-2xl bg-home-stage-raised px-4 py-3 sm:hidden">
+          <div data-geo="source" className="flex items-center gap-3 rounded-2xl bg-home-stage-raised px-4 py-3 sm:hidden">
             <span aria-hidden="true" className={`h-2.5 w-2.5 flex-none rounded-full ${frame.recording ? 'bg-red-500' : 'bg-[#5A5E68]'}`} />
             <span className="flex-none font-grotesk text-lg font-semibold tabular-nums">{frame.clock}</span>
-            <span className="min-w-0 truncate text-sm text-home-stage-muted">
-              {persona.source.type === 'link' ? persona.source.link : persona.source.where}
-            </span>
+            <span className="min-w-0 truncate text-sm text-home-stage-muted">{isLink ? persona.source.link : persona.source.where}</span>
           </div>
-          <div className="hidden h-[440px] w-[220px] flex-none rounded-[40px] bg-black p-2.5 shadow-[inset_0_0_0_2px_#2A2D35] sm:block">
-            <div className="flex h-full flex-col items-center justify-between rounded-[31px] bg-home-stage-raised px-4 pb-6 pt-7">
-              <div className="flex items-center gap-2 font-grotesk text-lg font-semibold tabular-nums">
-                <span
-                  aria-hidden="true"
-                  className={`inline-block h-2.5 w-2.5 rounded-full ${frame.recording ? 'bg-red-500' : 'bg-[#5A5E68]'}`}
-                />
-                {frame.clock}
-              </div>
-              {persona.source.type === 'link' && (
-                <div className="flex w-full flex-col gap-2 rounded-xl bg-home-stage p-3">
-                  <span className="flex items-center gap-1.5 text-xs text-home-stage-muted">
-                    <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    Pasted link
-                  </span>
-                  <span className="break-all text-sm">{persona.source.link}</span>
+          <div data-geo="source" className="relative hidden h-full w-[150px] rounded-[28px] bg-black p-2 shadow-[inset_0_0_0_2px_#2A2D35] sm:block">
+            <div className="relative h-full overflow-hidden rounded-[21px] bg-home-stage-raised">
+              {persona.sourceMedia ? (
+                showVideo ? (
+                  <video
+                    key={persona.sourceMedia.video}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    src={persona.sourceMedia.video}
+                    poster={persona.sourceMedia.poster}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    aria-hidden="true"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="absolute inset-0 h-full w-full object-cover" src={persona.sourceMedia.poster} alt="" />
+                )
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center gap-[3px]" aria-hidden="true">
+                  {Array.from({ length: 14 }, (_, i) => (
+                    <span
+                      key={i}
+                      className="block w-1 rounded bg-home-paper"
+                      style={{ height: `${Math.round(8 + (frame.recording ? Math.abs(Math.sin(t * 40 + i * 0.9)) : 0.15) * 50)}px` }}
+                    />
+                  ))}
                 </div>
               )}
-              <div className="flex h-[72px] items-center gap-[3px]" aria-hidden="true">
-                {Array.from({ length: 18 }, (_, i) => (
-                  <span
-                    key={i}
-                    className="block w-1 rounded bg-home-paper"
-                    style={{ height: `${Math.round(8 + (frame.recording ? Math.abs(Math.sin(t * 40 + i * 0.9)) : 0.15) * 56)}px` }}
-                  />
-                ))}
+              <div className="absolute inset-x-0 top-3 flex justify-center">
+                <span className="flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 font-grotesk text-sm font-semibold tabular-nums">
+                  <span aria-hidden="true" className={`h-2 w-2 rounded-full ${frame.recording ? 'bg-red-500' : 'bg-[#8A8F9B]'}`} />
+                  {frame.clock}
+                </span>
               </div>
-              <span className="text-center text-[13px] text-home-stage-muted">{persona.source.where}</span>
+              <div className="absolute inset-x-2 bottom-2 flex flex-col gap-1 rounded-xl bg-black/70 p-2 text-[11px] leading-snug">
+                {isLink && (
+                  <span className="flex items-center gap-1 text-home-stage-muted">
+                    <Link2 className="h-3 w-3" aria-hidden="true" />
+                    Pasted link
+                  </span>
+                )}
+                <span className="break-all">{isLink ? persona.source.link : persona.source.where}</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-3.5">
-            <span className="text-sm text-home-stage-muted">
-              {frame.recording ? 'Live captions' : 'Echo is picking the moments worth posting'}
-            </span>
-            <p className="sr-only">{fullTranscript}</p>
-            <p aria-hidden="true" className="m-0 font-grotesk text-[clamp(26px,3.4vw,50px)] font-semibold leading-[1.12] tracking-[-0.025em]">
-              {frame.runs.map((run, i) => (
-                <span key={i}>
-                  <span
-                    className={run.clip ? 'rounded px-0.5 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]' : undefined}
-                    style={
-                      run.clip
-                        ? {
-                            color: run.highlight > 0 ? '#0E0F13' : undefined,
-                            backgroundImage: 'linear-gradient(#22D3EE, #22D3EE)',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundSize: `${Math.round(run.highlight * 100)}% 100%`,
-                          }
-                        : { color: frame.recording ? undefined : '#8A8F9B' }
-                    }
-                  >
-                    {run.shown}
+          {/* Right panel: four layers, one visible at a time */}
+          <div aria-hidden="true" className="relative min-h-[190px] min-w-0">
+            <div className="absolute inset-0 flex flex-col gap-3" style={layer(frame.panel === 'live')}>
+              <span className="text-sm text-home-stage-muted">{isLink ? 'Transcribing as it imports' : 'Live captions'}</span>
+              <p className="m-0 font-grotesk text-[22px] font-semibold leading-[1.14] tracking-[-0.02em] sm:text-[clamp(24px,2.6vw,36px)]">
+                {liveClip ? liveClip.opening : ''}
+              </p>
+            </div>
+
+            <div className="absolute inset-0 flex flex-col gap-3 sm:gap-4" style={layer(frame.panel === 'bracket')}>
+              {focusClip && (
+                <>
+                  <span className="text-sm text-home-stage-muted">
+                    Clip {frame.focus + 1} of {persona.clips.length}, {mmss(focusClip.start)} to {mmss(focusClip.end)}
                   </span>
-                  <span className="text-transparent">{run.rest}</span>
-                  {run.clip > 0 && run.highlight >= 1 && (
-                    <span className="mx-2 inline-block rounded-full bg-home-paper px-2 py-0.5 align-middle font-sans text-[13px] font-semibold tracking-normal text-home-stage">
-                      Clip {run.clip}
+                  <p className="m-0 font-grotesk text-[20px] font-semibold leading-[1.16] tracking-[-0.02em] sm:text-[clamp(22px,2.3vw,32px)]">
+                    <span
+                      className="rounded px-0.5 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]"
+                      style={{
+                        color: frame.focusDraw > 0.5 ? '#0E0F13' : undefined,
+                        backgroundColor: `rgba(34, 211, 238, ${easeOut(frame.focusDraw).toFixed(3)})`,
+                      }}
+                    >
+                      {focusClip.opening}
                     </span>
-                  )}
-                </span>
+                    <span className="text-home-stage-muted">…</span>
+                  </p>
+                  {/* How long this clip is, against the 90 second max */}
+                  <div className="mt-auto flex flex-col gap-1.5">
+                    <div className="relative h-3 rounded-full bg-home-stage-raised">
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full bg-home-signal"
+                        style={{ width: `${((focusClip.end - focusClip.start) / MAX_CLIP_SECS) * easeOut(frame.focusDraw) * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between font-grotesk text-xs tabular-nums text-home-stage-muted">
+                      <span>0s</span>
+                      <span className="text-base font-bold text-home-paper">{Math.round(focusClip.end - focusClip.start)} seconds</span>
+                      <span>90s</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <ul className="absolute inset-0 m-0 flex list-none flex-wrap content-end items-end gap-1.5 p-0 sm:flex-nowrap sm:gap-3" style={layer(frame.panel === 'kit')}>
+              {frame.kit.map((item, i) => (
+                <li
+                  key={i}
+                  data-geo="kit"
+                  data-index={i}
+                  className={`flex-none rounded-[10px] outline-1 outline-white/15 outline-dashed sm:rounded-[14px] ${sizeFor(item, 'kit')}`}
+                >
+                  {item.fly >= 1 && item.drop <= 0 && <CardFace item={item} size="kit" video={showVideo} />}
+                </li>
               ))}
-            </p>
+            </ul>
+
+            <div className="absolute inset-0 flex flex-col justify-center gap-3" style={layer(frame.panel === 'summary')}>
+              <p className="m-0 font-grotesk text-[26px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[clamp(30px,3.6vw,52px)]">
+                {persona.clips.length} clips, {minSecs} to {maxSecs} seconds each. A full week. {persona.outro}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* The kit */}
-        <ul aria-label="Your kit" className="m-0 flex list-none items-end gap-4 overflow-x-auto p-0 pb-2 sm:flex-wrap sm:overflow-visible">
-          {frame.kit.map((item, i) => {
-            const a = item.appear;
-            const motion = {
-              opacity: easeOut(a),
-              transform: `translateY(${Math.round((1 - easeOut(a)) * 60)}px) scale(${(0.6 + 0.4 * easeBack(a)).toFixed(3)})`,
-              transformOrigin: '50% 100%',
-            };
-            if (item.kind === 'clip') {
-              const media = persona.clipMedia?.[i];
-              return (
-                <li key={`${persona.id}-${i}`} style={motion} className="relative flex h-[266px] w-[150px] flex-none flex-col justify-between overflow-hidden rounded-[18px] bg-gradient-to-b from-[#2A2D35] to-[#15161B] p-3">
-                  {media &&
-                    (showVideo && a > 0 ? (
-                      <video
-                        className="absolute inset-0 h-full w-full object-cover"
-                        src={media.video}
-                        poster={media.poster}
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img className="absolute inset-0 h-full w-full object-cover" src={media.poster} alt="" />
-                    ))}
-                  {media && <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-transparent from-40% to-black/80" />}
-                  <span className="relative self-start rounded-md bg-black/55 px-2 py-1 text-xs font-semibold">{item.label}</span>
-                  <span className="relative font-grotesk text-[17px] font-bold leading-[1.15] [text-shadow:0_2px_0_#000,0_0_12px_rgba(0,0,0,0.8)]">
-                    {item.body}
-                  </span>
-                </li>
-              );
-            }
-            const look =
-              item.kind === 'carousel'
-                ? 'h-[220px] w-[220px] rounded-[10px] bg-home-paper text-home-ink shadow-[8px_-8px_0_#3A3D46,16px_-16px_0_#262830] text-2xl font-bold leading-[1.05]'
-                : i % 2
-                  ? 'h-[180px] w-[280px] rounded bg-home-paper text-home-ink text-[21px] font-semibold leading-[1.2]'
-                  : 'h-[180px] w-[280px] rounded bg-home-signal text-home-ink text-[21px] font-semibold leading-[1.2]';
+        {/* The tape: the whole recording, with each clip bracketed where it came from */}
+        <div aria-hidden="true" className="flex flex-col gap-1.5">
+          <div className="relative h-[84px] rounded-xl bg-home-stage-raised px-2 py-5">
+            <div className="flex h-full items-center gap-[2px]">
+              {WAVE.map((h, i) => (
+                <span
+                  key={i}
+                  className="block flex-1 rounded-sm"
+                  style={{ height: `${Math.round(h * 100)}%`, background: i / WAVE_BARS < frame.playhead ? '#4A4F5C' : '#262830' }}
+                />
+              ))}
+            </div>
+            {frame.brackets.map((b, i) => (
+              <div
+                key={i}
+                data-geo="bracket"
+                data-index={i}
+                className="absolute bottom-5 top-5"
+                style={{ left: `calc(8px + (100% - 16px) * ${b.left})`, width: `max(6px, calc((100% - 16px) * ${b.width}))` }}
+              >
+                <div
+                  className="h-full rounded-[3px] border-2 border-home-signal bg-home-signal/30"
+                  style={{ width: `${b.draw * 100}%`, opacity: b.draw > 0 ? 1 : 0 }}
+                />
+                <span
+                  // Alternate above/below so neighbouring clips don't collide.
+                  className={`absolute left-1/2 -translate-x-1/2 rounded bg-home-signal px-1 font-grotesk text-[11px] font-bold tabular-nums text-home-ink ${
+                    i % 2 ? '-bottom-[19px]' : '-top-[19px]'
+                  } ${
+                    frame.focus === i ? '' : 'hidden sm:block'
+                  }`}
+                  style={{ opacity: b.draw >= 1 ? 1 : 0 }}
+                >
+                  {mmss(b.secs)}
+                </span>
+              </div>
+            ))}
+            {frame.recording && (
+              <span className="absolute bottom-4 top-4 w-0.5 bg-red-500" style={{ left: `calc(8px + (100% - 16px) * ${frame.playhead})` }} />
+            )}
+          </div>
+          <div className="flex justify-between font-grotesk text-xs tabular-nums text-home-stage-muted">
+            <span>0:00</span>
+            <span>{total}</span>
+          </div>
+        </div>
+
+        {/* The week */}
+        <ol aria-label="Scheduled week" className="m-0 grid list-none grid-cols-4 gap-1.5 p-0 sm:grid-cols-7 sm:gap-2">
+          {frame.week.map((d) => {
+            const item = frame.kit[d.ref];
             return (
-              <li key={`${persona.id}-${i}`} style={motion} className={`flex flex-none flex-col justify-between p-3 ${look}`}>
-                <span className="self-start rounded-md bg-black/55 px-2 py-1 font-sans text-xs font-semibold text-home-paper">{item.label}</span>
-                <span className="font-grotesk tracking-[-0.01em]">{item.body}</span>
+              <li key={d.day} className="flex min-w-0 flex-col gap-1.5 rounded-[14px] bg-home-stage-raised p-1.5 sm:gap-2 sm:p-2.5">
+                <span className="flex flex-wrap items-baseline justify-between gap-x-2">
+                  <span className="font-grotesk text-[15px] font-bold sm:text-base">{d.day}</span>
+                  <span className="hidden text-[11px] text-home-stage-muted sm:inline" style={{ opacity: d.landed ? 1 : 0 }}>
+                    {d.when.split(', ')[1]}
+                  </span>
+                </span>
+                <span className="sr-only">
+                  {d.when}: {item.label}
+                  {item.kind === 'clip' ? `, ${mmss(item.secs)}` : ''}. {item.body}
+                </span>
+                <div
+                  aria-hidden="true"
+                  data-geo="week"
+                  data-index={d.ref}
+                  className={`rounded-[10px] sm:rounded-[14px] ${sizeFor(item, 'week')} ${d.landed ? '' : 'outline-1 outline-white/15 outline-dashed'}`}
+                >
+                  {d.landed && <CardFace item={item} size="week" video={showVideo} />}
+                </div>
               </li>
             );
           })}
-        </ul>
-
-        {/* The week */}
-        <div className="overflow-x-auto">
-          <ol aria-label="Scheduled week" className="m-0 grid min-w-[700px] list-none grid-cols-7 gap-1.5 p-0">
-            {frame.week.map((d) => (
-              <li key={d.day} className="flex min-h-[120px] flex-col gap-2 rounded-[14px] bg-home-stage-raised px-2.5 py-3">
-                <span className="font-grotesk text-lg font-bold">{d.day}</span>
-                {d.items.map((it) => (
-                  <div
-                    key={it.n}
-                    className="flex flex-col gap-0.5 rounded-lg bg-home-signal p-2 text-xs leading-[1.3] text-home-stage"
-                    style={{ opacity: easeOut(it.appear), transform: `translateY(${Math.round((1 - easeOut(it.appear)) * -40)}px)` }}
-                  >
-                    <span className="font-semibold">{it.kind}</span>
-                    <span>{it.when}</span>
-                  </div>
-                ))}
-              </li>
-            ))}
-          </ol>
-        </div>
+        </ol>
 
         <p className="m-0 text-[13px] leading-normal text-home-stage-muted">{persona.note}</p>
+
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
+          {flights}
+        </div>
       </div>
     </section>
   );

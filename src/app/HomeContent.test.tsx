@@ -35,7 +35,7 @@ describe('HomeContent landing structure', () => {
   it('renders the kit demo with real proof from Jess', () => {
     render(<HomeContent />);
     expect(screen.getByRole('region', { name: 'Watch one recording become a week of content' })).toBeInTheDocument();
-    expect(screen.getByText(/Real: Jess Lenouvel/)).toBeInTheDocument();
+    expect(screen.getByText(/Real: a 38-minute video from Jess Lenouvel/)).toBeInTheDocument();
   });
 
   it('keeps the anchors other pages link to', () => {
