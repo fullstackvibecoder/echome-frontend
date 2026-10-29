@@ -21,7 +21,7 @@ jobs:
       - name: Get PR diff
         id: diff
         run: |
-          gh pr diff ${{ github.event.pull_request.number }} > /tmp/pr-diff.txt
+          gh pr diff "$PR_NUMBER" > /tmp/pr-diff.txt
           # Truncate to ~30KB to stay within token limits
           head -c 30000 /tmp/pr-diff.txt > /tmp/pr-diff-limited.txt
           DIFF_SIZE=$(wc -c < /tmp/pr-diff.txt | tr -d ' ')
@@ -33,16 +33,14 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Run AI review
+        # PR title and body are untrusted input. They arrive through env and are
+        # only ever read as quoted variables, never interpolated into the script.
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY=$(cat <<'PRBODY'
-          ${{ github.event.pull_request.body }}
-          PRBODY
-          )
           TRUNCATION_NOTE=""
-          if [ "${{ steps.diff.outputs.truncated }}" = "true" ]; then
+          if [ "$DIFF_TRUNCATED" = "true" ]; then
             TRUNCATION_NOTE="Note: The diff was truncated to 30KB. Focus your review on what's shown."
           fi
 
@@ -62,7 +60,7 @@ jobs:
             }')
 
           RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
-            -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
             -d "$PAYLOAD")
@@ -78,6 +76,11 @@ jobs:
 
           # Post as PR comment
           printf '## AI Code Review\n\n%s\n\n---\n_Reviewed by Claude Sonnet_' "$REVIEW" > /tmp/review-comment.txt
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/review-comment.txt
+          gh pr comment "$PR_NUMBER" --body-file /tmp/review-comment.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          DIFF_TRUNCATED: ${{ steps.diff.outputs.truncated }}
