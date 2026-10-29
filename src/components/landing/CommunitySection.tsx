@@ -1,18 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Calendar,
-  Video,
-  MessageCircle,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Users,
-  ArrowRight,
-  ExternalLink,
-  Sparkles,
-} from 'lucide-react';
+import { Calendar, ChevronDown, ExternalLink, Search } from 'lucide-react';
+import { spaceGrotesk } from '@/lib/fonts';
 import {
   OFFICE_HOURS_CONFIG,
   FAQS,
@@ -35,30 +25,22 @@ function FAQAccordion({ items }: { items: FAQItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="space-y-3">
+    <div className="border-t border-home-ink/15">
       {items.map((item, idx) => (
-        <div
-          key={idx}
-          className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all"
-        >
+        <div key={idx} className="border-b border-home-ink/15">
           <button
+            type="button"
+            aria-expanded={openIndex === idx}
             onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-            className="w-full flex items-center justify-between p-5 text-left group"
+            className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
           >
-            <span className="font-semibold text-foreground pr-4 group-hover:text-primary transition-colors">
-              {item.question}
-            </span>
-            {openIndex === idx ? (
-              <ChevronUp className="w-5 h-5 text-primary flex-shrink-0" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            )}
+            <span className="font-grotesk text-lg font-semibold tracking-[-0.01em]">{item.question}</span>
+            <ChevronDown
+              className={`h-5 w-5 flex-none text-home-muted transition-transform ${openIndex === idx ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
           </button>
-          {openIndex === idx && (
-            <div className="px-5 pb-5 -mt-1">
-              <p className="text-muted-foreground leading-relaxed">{item.answer}</p>
-            </div>
-          )}
+          {openIndex === idx && <p className="m-0 max-w-[68ch] pb-6 leading-relaxed text-home-muted">{item.answer}</p>}
         </div>
       ))}
     </div>
@@ -79,204 +61,91 @@ export function CommunitySection() {
   });
 
   const categories = Object.entries(FAQ_CATEGORY_LABELS) as [FAQCategory, string][];
+  const pill = (active: boolean) =>
+    `min-h-10 cursor-pointer whitespace-nowrap rounded-full px-4 text-[15px] font-semibold transition-colors ${
+      active ? 'bg-home-ink text-home-paper' : 'border border-home-ink/15 text-home-ink hover:bg-home-ink/5'
+    }`;
 
   return (
-    <section id="community" className="py-20 px-6 bg-gradient-to-br from-background to-background relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl -z-10" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-tl from-accent-purple/5 to-transparent rounded-full blur-3xl -z-10" />
-
-      <div className="max-w-5xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-4">
-            <Users className="w-4 h-4 text-primary" />
-            <span className="text-primary font-semibold text-sm">Community</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight text-foreground leading-tight">
-            You&apos;re Not Doing
-            <br />
-            <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-              This Alone
-            </span>
-          </h2>
-          <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">
-            Weekly office hours and real conversations about using EchoMe well.
-          </p>
-        </div>
-
-        {/* Office Hours Schedule Card */}
-        <div className="relative overflow-hidden rounded-3xl bg-gray-900 p-8 md:p-12 shadow-2xl mb-8">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent-purple/15 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-full mb-4">
-              <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span className="text-primary font-semibold text-xs uppercase tracking-wider">Office Hours</span>
-            </div>
-            <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">
-              Every {OFFICE_HOURS_CONFIG.dayOfWeek} · {OFFICE_HOURS_CONFIG.time}
-            </h3>
-            <p className="text-white/70 font-light mb-6 max-w-lg mx-auto leading-relaxed">
-              Drop in for live Q&amp;A and real conversations about using EchoMe well.
-              Open to everyone, paid subscribers and free-trial users alike.
+    <section id="community" className={`${spaceGrotesk.variable} bg-home-paper text-home-ink`}>
+      <div className="mx-auto flex max-w-[1320px] flex-col gap-16 px-4 py-24 sm:px-6">
+        {/* Office hours */}
+        <div className="grid gap-10 rounded-[32px] bg-home-stage p-6 text-home-paper sm:p-10 lg:grid-cols-[1.2fr_1fr]">
+          <div className="flex flex-col gap-5">
+            <h2 className="m-0 font-grotesk text-[clamp(40px,5vw,72px)] font-bold leading-[0.95] tracking-[-0.04em]">
+              You’re not doing this alone.
+            </h2>
+            <p className="m-0 max-w-[36em] text-[17px] leading-normal text-home-stage-muted">
+              Office hours every {OFFICE_HOURS_CONFIG.dayOfWeek} at {OFFICE_HOURS_CONFIG.time}, on Zoom. Bring questions, share what
+              you’re working on, and see how other members get better results from their voice profile. Open to everyone, paid or on
+              the free kits.
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-              <Video className="w-4 h-4" />
-              <span>Via Zoom</span>
-            </div>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <a
-                href={OFFICE_HOURS_CONFIG.zoomLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-              >
-                Join Call
-                <ExternalLink className="w-4 h-4" />
-              </a>
-              <AddToCalendarButton />
-            </div>
           </div>
-        </div>
-
-        {/* What to Expect */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          {[
-            {
-              icon: <Users className="w-5 h-5 text-primary" />,
-              title: 'Real Conversations',
-              description: 'Drop in with questions, share what you’re working on, hear what others are building.',
-            },
-            {
-              icon: <MessageCircle className="w-5 h-5 text-accent-purple" />,
-              title: 'Live Q&A',
-              description: 'Get your questions answered in real-time by the EchoMe team.',
-            },
-            {
-              icon: <Video className="w-5 h-5 text-accent-pink" />,
-              title: 'Best Practices',
-              description: 'Workflows and techniques for getting better results from your voice model.',
-            },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="p-6 bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-primary/15 to-accent-purple/10 rounded-xl flex items-center justify-center mb-3">
-                {item.icon}
-              </div>
-              <h4 className="font-bold text-foreground mb-1">{item.title}</h4>
-              <p className="text-sm text-muted-foreground font-light">{item.description}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Free Trial CTA */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-accent-purple/10 to-primary/10 border-2 border-primary/20 p-6 md:p-8 mb-12">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-extrabold text-foreground">Try EchoMe Before the Call</h3>
-              </div>
-              <p className="text-muted-foreground text-sm max-w-lg">
-                5 free content kits, no credit card. Try it before the call so you show up with real questions.
-              </p>
-            </div>
+          <div className="flex flex-col justify-end gap-3 sm:flex-row sm:items-end lg:flex-col lg:items-start">
             <a
-              href="/auth/signup"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap flex-shrink-0"
+              href={OFFICE_HOURS_CONFIG.zoomLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-home-signal px-6 py-3.5 text-[15px] font-semibold text-home-ink transition-opacity hover:opacity-85"
             >
-              Start Free
-              <ArrowRight className="w-4 h-4" />
+              Join the call
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
             </a>
+            <AddToCalendarButton />
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="space-y-6">
-          <div className="text-center">
-            <h3 className="text-2xl md:text-3xl font-extrabold text-foreground mb-2">
-              Frequently Asked Questions
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              Can&apos;t find what you&apos;re looking for? Join the next call.
+        {/* FAQ */}
+        <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="flex flex-col gap-5">
+            <h2 className="m-0 font-grotesk text-[clamp(36px,4vw,56px)] font-bold leading-[0.95] tracking-[-0.04em]">Questions</h2>
+            <p className="m-0 text-home-muted">
+              Can’t find it? Bring it to {OFFICE_HOURS_CONFIG.dayOfWeek}’s call, or{' '}
+              <a href="/auth/signup" className="text-home-ink underline underline-offset-4 hover:opacity-80">
+                start free
+              </a>{' '}
+              and ask in the app.
             </p>
-          </div>
-
-          {/* Search */}
-          <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search questions..."
-              value={faqSearch}
-              onChange={(e) => setFaqSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-card/80 backdrop-blur-xl border-2 border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
-            />
-          </div>
-
-          {/* Category Pills */}
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              onClick={() => setFaqCategory('all')}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                faqCategory === 'all'
-                  ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                  : 'bg-card/80 border border-border text-muted-foreground hover:text-primary hover:border-primary/30'
-              }`}
-            >
-              All
-            </button>
-            {categories.map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setFaqCategory(key)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  faqCategory === key
-                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                    : 'bg-card/80 border border-border text-muted-foreground hover:text-primary hover:border-primary/30'
-                }`}
-              >
-                {label}
+            <label className="relative block">
+              <span className="sr-only">Search questions</span>
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-home-muted" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="Search questions"
+                value={faqSearch}
+                onChange={(e) => setFaqSearch(e.target.value)}
+                className="w-full rounded-full border border-home-ink/15 bg-white/60 py-3 pl-11 pr-4 text-home-ink placeholder:text-home-muted focus:border-home-ink focus:outline-none"
+              />
+            </label>
+            <div role="group" aria-label="Filter questions" className="flex flex-wrap gap-2">
+              <button type="button" aria-pressed={faqCategory === 'all'} onClick={() => setFaqCategory('all')} className={pill(faqCategory === 'all')}>
+                All
               </button>
-            ))}
+              {categories.map(([key, label]) => (
+                <button key={key} type="button" aria-pressed={faqCategory === key} onClick={() => setFaqCategory(key)} className={pill(faqCategory === key)}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* FAQ List */}
           {filteredFaqs.length > 0 ? (
             <FAQAccordion items={filteredFaqs} />
           ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-2">No questions match your search.</p>
+            <div className="flex flex-col items-start gap-2 border-t border-home-ink/15 py-8">
+              <p className="m-0 text-home-muted">No questions match your search.</p>
               <button
+                type="button"
                 onClick={() => {
                   setFaqSearch('');
                   setFaqCategory('all');
                 }}
-                className="text-primary font-semibold hover:underline"
+                className="cursor-pointer font-semibold text-home-ink underline underline-offset-4"
               >
                 Clear filters
               </button>
             </div>
           )}
-
-          {/* Still have questions CTA */}
-          <div className="text-center mt-8 p-8 bg-gradient-to-r from-primary/5 to-accent-purple/5 rounded-2xl border border-primary/10">
-            <h3 className="text-lg font-bold text-foreground mb-2">Still have questions?</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              Bring them to Wednesday&apos;s call, or sign up and use the in-app chat.
-            </p>
-            <a
-              href="/auth/signup"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-card border-2 border-border text-foreground rounded-xl font-semibold hover:border-primary/30 hover:text-primary transition-all"
-            >
-              Sign Up Free
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
         </div>
       </div>
     </section>
@@ -327,9 +196,10 @@ function AddToCalendarButton() {
   return (
     <button
       onClick={handleAddToCalendar}
-      className="inline-flex items-center gap-2 px-5 py-3 bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
+      type="button"
+      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-white/25 px-6 py-3.5 text-[15px] font-semibold text-home-paper transition-colors hover:bg-white/10"
     >
-      <Calendar className="w-4 h-4" />
+      <Calendar className="h-4 w-4" aria-hidden="true" />
       Add to Calendar
     </button>
   );

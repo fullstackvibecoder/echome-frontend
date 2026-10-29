@@ -154,8 +154,8 @@ function measure(stage: HTMLElement): Geometry | null {
 
 const CLIP_KIT = 'h-[89px] w-[50px] sm:h-[184px] sm:w-[104px]';
 const EXTRA_KIT = 'h-[64px] w-[110px] sm:h-[184px] sm:w-[156px]';
-const CLIP_WEEK = 'h-[89px] w-[50px] sm:h-[128px] sm:w-[72px]';
-const EXTRA_WEEK = 'h-[89px] w-full sm:h-[128px] sm:w-full';
+const CLIP_WEEK = 'h-[60px] w-full sm:h-[128px] sm:w-[72px]';
+const EXTRA_WEEK = 'h-[60px] w-full sm:h-[128px] sm:w-full';
 
 function CardFace({ item, size, video }: { item: KitItem; size: 'kit' | 'week'; video: boolean }) {
   const chip = 'relative self-start rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-home-paper sm:px-2 sm:py-1 sm:text-xs';
@@ -183,7 +183,7 @@ function CardFace({ item, size, video }: { item: KitItem; size: 'kit' | 'week'; 
         {size === 'kit' && !item.media && (
           <span className="relative hidden font-grotesk text-[13px] font-semibold leading-[1.15] sm:line-clamp-5">{item.body}</span>
         )}
-        <span className="relative self-end rounded-md bg-home-signal px-1 py-0.5 font-grotesk text-[10px] font-bold tabular-nums text-home-ink sm:px-1.5 sm:text-[13px]">
+        <span className="relative mt-auto self-end rounded-md bg-home-signal px-1 py-0.5 font-grotesk text-[10px] font-bold tabular-nums text-home-ink sm:px-1.5 sm:text-[13px]">
           {mmss(item.secs)}
         </span>
       </div>
@@ -195,7 +195,7 @@ function CardFace({ item, size, video }: { item: KitItem; size: 'kit' | 'week'; 
         item.kind === 'post' ? 'bg-home-signal' : 'bg-home-paper'
       }`}
     >
-      <span className={chip}>
+      <span className={`${chip} ${size === 'week' ? 'hidden sm:block' : ''}`}>
         <span className="sm:hidden">{item.short}</span>
         <span className="hidden sm:inline">{item.label}</span>
       </span>
@@ -365,7 +365,7 @@ export function KitDemo() {
         </p>
 
         {/* Source + what Echo is doing */}
-        <div className="grid gap-4 sm:h-[260px] sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-8">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:h-[260px] sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-8">
           {/* Phones: a compact source bar instead of the phone frame */}
           <div data-geo="source" className="flex items-center gap-3 rounded-2xl bg-home-stage-raised px-4 py-3 sm:hidden">
             <span aria-hidden="true" className={`h-2.5 w-2.5 flex-none rounded-full ${frame.recording ? 'bg-red-500' : 'bg-[#5A5E68]'}`} />
@@ -421,7 +421,7 @@ export function KitDemo() {
           </div>
 
           {/* Right panel: four layers, one visible at a time */}
-          <div aria-hidden="true" className="relative min-h-[190px] min-w-0">
+          <div aria-hidden="true" className="relative min-h-[170px] min-w-0">
             <div className="absolute inset-0 flex flex-col gap-3" style={layer(frame.panel === 'live')}>
               <span className="text-sm text-home-stage-muted">{isLink ? 'Transcribing as it imports' : 'Live captions'}</span>
               <p className="m-0 font-grotesk text-[22px] font-semibold leading-[1.14] tracking-[-0.02em] sm:text-[clamp(24px,2.6vw,36px)]">
@@ -488,7 +488,7 @@ export function KitDemo() {
 
         {/* The tape: the whole recording, with each clip bracketed where it came from */}
         <div aria-hidden="true" className="flex flex-col gap-1.5">
-          <div className="relative h-[84px] rounded-xl bg-home-stage-raised px-2 py-5">
+          <div className="relative h-[68px] rounded-xl bg-home-stage-raised px-2 py-4 sm:h-[84px] sm:py-5">
             <div className="flex h-full items-center gap-[2px]">
               {WAVE.map((h, i) => (
                 <span
@@ -503,7 +503,7 @@ export function KitDemo() {
                 key={i}
                 data-geo="bracket"
                 data-index={i}
-                className="absolute bottom-5 top-5"
+                className="absolute bottom-4 top-4 sm:bottom-5 sm:top-5"
                 style={{ left: `calc(8px + (100% - 16px) * ${b.left})`, width: `max(6px, calc((100% - 16px) * ${b.width}))` }}
               >
                 <div
@@ -534,13 +534,13 @@ export function KitDemo() {
         </div>
 
         {/* The week */}
-        <ol aria-label="Scheduled week" className="m-0 grid list-none grid-cols-4 gap-1.5 p-0 sm:grid-cols-7 sm:gap-2">
+        <ol aria-label="Scheduled week" className="m-0 grid list-none grid-cols-7 gap-1 p-0 sm:gap-2">
           {frame.week.map((d) => {
             const item = frame.kit[d.ref];
             return (
-              <li key={d.day} className="flex min-w-0 flex-col gap-1.5 rounded-[14px] bg-home-stage-raised p-1.5 sm:gap-2 sm:p-2.5">
+              <li key={d.day} className="flex min-w-0 flex-col gap-1 rounded-[10px] bg-home-stage-raised p-1 sm:gap-2 sm:rounded-[14px] sm:p-2.5">
                 <span className="flex flex-wrap items-baseline justify-between gap-x-2">
-                  <span className="font-grotesk text-[15px] font-bold sm:text-base">{d.day}</span>
+                  <span className="font-grotesk text-[11px] font-bold sm:text-base">{d.day}</span>
                   <span className="hidden text-[11px] text-home-stage-muted sm:inline" style={{ opacity: d.landed ? 1 : 0 }}>
                     {d.when.split(', ')[1]}
                   </span>

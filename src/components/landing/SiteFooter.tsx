@@ -1,36 +1,30 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { Twitter, Linkedin } from 'lucide-react';
+import { spaceGrotesk } from '@/lib/fonts';
 
 export function SiteFooter() {
   return (
-    <footer className="relative z-20 py-20 px-6 bg-gray-900 text-white overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent-purple" />
-      <div className="absolute top-10 right-20 w-64 h-64 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative max-w-7xl mx-auto">
+    <footer className={`${spaceGrotesk.variable} relative z-20 bg-home-stage py-20 text-home-paper`}>
+      <div className="mx-auto max-w-[1320px] px-4 sm:px-6">
         <div className="grid md:grid-cols-4 gap-12 mb-16">
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-3 mb-6 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent-purple rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <Image src="/media/echome-logo.svg" alt="Echo, your Agentic content assistant" width={48} height={48} className="relative object-contain" />
-              </div>
-              <span className="text-2xl font-extrabold bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
-                EchoMe
-              </span>
+            <div className="mb-6 flex items-center gap-3">
+              <Image src="/media/echome-logo.svg" alt="Echo, your Agentic content assistant" width={44} height={44} className="object-contain" />
+              <span className="font-grotesk text-2xl font-bold tracking-[-0.02em]">EchoMe</span>
             </div>
-            <p className="text-white/80 font-light text-lg leading-relaxed mb-6">
-              Context-aware content generation. Your history, your voice, your output.
+            <p className="mb-6 max-w-[28em] font-grotesk text-2xl font-semibold leading-tight tracking-[-0.02em]">
+              Talk once. Show up all week.
             </p>
             <div className="flex items-center gap-4">
               <div className="flex gap-3">
-                <a href="https://x.com/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">
-                  <Twitter className="w-4 h-4 text-white/70 group-hover:text-white" />
+                <a href="https://x.com/tryechome" target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
+                  <Twitter className="w-4 h-4 text-home-paper" />
                 </a>
-                <a href="https://linkedin.com/company/tryechome" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl hover:bg-gradient-to-r hover:from-primary hover:to-accent-purple flex items-center justify-center transition-all duration-300 group">
-                  <Linkedin className="w-4 h-4 text-white/70 group-hover:text-white" />
+                <a href="https://linkedin.com/company/tryechome" target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
+                  <Linkedin className="w-4 h-4 text-home-paper" />
                 </a>
               </div>
               <a href="https://www.bestin2026.com/articles/echome-review-2026" target="_blank" rel="noopener noreferrer">
@@ -47,44 +41,40 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h4 className="font-extrabold text-lg mb-6 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">Product</h4>
-            <ul className="space-y-3 text-white/70 font-light">
-              <li><a href="/#how" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">How It Works</a></li>
-              <li><a href="#pricing" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Pricing</a></li>
-              <li><a href="/developers" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">API</a></li>
-              <li><a href="/community" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Community</a></li>
-              <li><a href="/guides" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Guides</a></li>
-              <li><a href="/blog" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Blog</a></li>
-              <li><a href="/tools/compress-video" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Free Video Compressor</a></li>
-              <li><a href="/tools/transcribe" className="inline-block py-2 -my-1 hover:text-primary transition-colors duration-200">Free YouTube Transcript Generator</a></li>
+            <h4 className="mb-5 font-grotesk text-lg font-bold">Product</h4>
+            <ul className="space-y-3 text-home-stage-muted">
+              <li><Link href="/#how" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">How It Works</Link></li>
+              <li><Link href="/#pricing" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Pricing</Link></li>
+              <li><a href="/developers" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">API</a></li>
+              <li><a href="/community" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Community</a></li>
+              <li><a href="/guides" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Guides</a></li>
+              <li><a href="/blog" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Blog</a></li>
+              <li><a href="/tools/compress-video" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Free Video Compressor</a></li>
+              <li><a href="/tools/transcribe" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Free YouTube Transcript Generator</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-extrabold text-lg mb-6 bg-gradient-to-r from-accent-purple to-accent-pink bg-clip-text text-transparent">Company</h4>
-            <ul className="space-y-3 text-white/70 font-light">
-              <li><a href="/auth/login" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Sign In</a></li>
-              <li><a href="/auth/signup" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Sign Up</a></li>
-              <li><a href="/affiliates" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Affiliates</a></li>
-              <li><a href="/support" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Support</a></li>
-              <li><a href="/privacy" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Privacy Policy</a></li>
-              <li><a href="/terms" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Terms of Service</a></li>
-              <li><a href="/data-deletion" className="inline-block py-2 -my-1 hover:text-accent-purple transition-colors duration-200">Data Deletion</a></li>
+            <h4 className="mb-5 font-grotesk text-lg font-bold">Company</h4>
+            <ul className="space-y-3 text-home-stage-muted">
+              <li><a href="/auth/login" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Sign In</a></li>
+              <li><a href="/auth/signup" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Sign Up</a></li>
+              <li><a href="/affiliates" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Affiliates</a></li>
+              <li><a href="/support" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Support</a></li>
+              <li><a href="/privacy" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Privacy Policy</a></li>
+              <li><a href="/terms" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Terms of Service</a></li>
+              <li><a href="/data-deletion" className="inline-block py-2 -my-1 transition-colors hover:text-home-paper">Data Deletion</a></li>
             </ul>
           </div>
         </div>
 
-        <div className="relative h-px mb-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        </div>
-
-        <div className="text-center text-white/60 text-sm font-light flex flex-col items-center justify-center gap-3">
+        <div className="flex flex-col gap-3 border-t border-white/15 pt-8 text-sm text-home-stage-muted sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Image src="/media/echo-mini.svg" alt="" aria-hidden="true" width={20} height={20} className="echo-wave-hover inline-block" />
             <span>© 2025–{new Date().getFullYear()} EchoMe. All rights reserved.</span>
           </div>
-          <span className="text-white/50">
-            EchoMe is a <a href="https://bottlenecklabs.ai" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-accent-purple transition-colors duration-200">BottleneckLabs.ai</a> company
+          <span>
+            EchoMe is a <a href="https://bottlenecklabs.ai" target="_blank" rel="noopener noreferrer" className="text-home-paper underline-offset-4 hover:underline">BottleneckLabs.ai</a> company
           </span>
         </div>
       </div>
