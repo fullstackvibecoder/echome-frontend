@@ -10,11 +10,8 @@ vi.mock('@/lib/analytics', () => ({
   trackCtaClick: vi.fn(),
 }));
 
-// OutputShowcase calls scrollRef.current.scrollTo() on mount; jsdom doesn't
-// implement it on HTMLElement. Stub it globally so the effect doesn't throw.
-if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.scrollTo) {
-  HTMLElement.prototype.scrollTo = () => {};
-}
+// next/font only runs inside the Next compiler.
+vi.mock('@/lib/fonts', () => ({ spaceGrotesk: { variable: '' } }));
 
 import HomeContent from './HomeContent';
 
@@ -30,26 +27,37 @@ describe('HomeContent landing structure', () => {
     );
   });
 
-  it('renders the hero "Context is King" eyebrow', () => {
+  it('leads with the outcome headline', () => {
     render(<HomeContent />);
-    expect(screen.getByText('Context is King')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Talk once. Show up all week.' })).toBeInTheDocument();
   });
 
-  it('mounts the resurrected UseCases section', () => {
+  it('renders the kit demo with real proof from Jess', () => {
     render(<HomeContent />);
-    expect(screen.getByText('Real Estate Agent')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Watch one recording become a week of content' })).toBeInTheDocument();
+    expect(screen.getByText(/Real: a 38-minute video from Jess Lenouvel/)).toBeInTheDocument();
   });
 
-  it('no longer renders the cut HowItWorks section', () => {
-    render(<HomeContent />);
-    // "Feed it your history" is HowItWorks-only copy.
-    expect(screen.queryByText('Feed it your history')).not.toBeInTheDocument();
-  });
-
-  it('repoints the #how anchor onto a rendered section', () => {
+  it('keeps the anchors other pages link to', () => {
     const { container } = render(<HomeContent />);
-    const how = container.querySelector('#how');
-    expect(how).not.toBeNull();
-    expect(how!.tagName.toLowerCase()).toBe('section');
+    for (const id of ['how', 'demo', 'voice', 'pricing', 'community']) {
+      expect(container.querySelector(`#${id}`), `#${id}`).not.toBeNull();
+    }
+  });
+
+  it('drops the cut sections and unverifiable proof', () => {
+    render(<HomeContent />);
+    expect(screen.queryByText('300+ Creators')).not.toBeInTheDocument();
+    expect(screen.queryByText('Context is King')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Earn 25% Recurring/)).not.toBeInTheDocument();
+  });
+
+  it('every signup CTA goes to /auth/signup', () => {
+    render(<HomeContent />);
+    for (const name of ['Start free', 'Make your first kit free']) {
+      for (const link of screen.getAllByRole('link', { name })) {
+        expect(link).toHaveAttribute('href', '/auth/signup');
+      }
+    }
   });
 });
