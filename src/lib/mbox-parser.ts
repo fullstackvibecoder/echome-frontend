@@ -32,7 +32,10 @@ export interface MboxParseResult {
 }
 
 export interface MboxParseOptions {
+  /** Emails returned: the most recent ones from the pool. */
   maxEmails?: number;
+  /** Qualifying emails collected before choosing; bounds memory on huge exports. */
+  poolSize?: number;
   minContentLength?: number;
   onlyFromEmail?: string; // Filter to only emails FROM this address
   onProgress?: (progress: { percent: number; emailsFound: number; status: string }) => void;
@@ -40,6 +43,7 @@ export interface MboxParseOptions {
 
 const DEFAULT_OPTIONS: Required<Omit<MboxParseOptions, 'onlyFromEmail' | 'onProgress'>> = {
   maxEmails: 100, // Start with 100 emails - enough for voice matching, can expand later
+  poolSize: 1000,
   minContentLength: 50,
 };
 
@@ -83,8 +87,8 @@ export async function parseMboxFile(
   let offset = 0;
   while (offset < fileSize) {
     // Check if we have enough emails
-    if (result.emails.length >= opts.maxEmails) {
-      console.log(`[MBOX Parser] Reached ${opts.maxEmails} email limit, stopping early`);
+    if (result.emails.length >= opts.poolSize) {
+      console.log(`[MBOX Parser] Collected ${opts.poolSize} candidate emails, stopping early`);
       break;
     }
 
@@ -135,7 +139,7 @@ export async function parseMboxFile(
         messageCount++;
         result.totalEmailsFound = messageCount;
 
-        if (result.emails.length < opts.maxEmails) {
+        if (result.emails.length < opts.poolSize) {
           try {
             const rawMessage = currentMessage.join('\n');
             const email = parseEmail(rawMessage);
@@ -179,7 +183,7 @@ export async function parseMboxFile(
   }
 
   // Process any remaining buffer content (last email)
-  if (buffer.length > 0 && result.emails.length < opts.maxEmails) {
+  if (buffer.length > 0 && result.emails.length < opts.poolSize) {
     const lines = buffer.split(/\r?\n/);
     let currentMessage: string[] = [];
 
@@ -241,6 +245,11 @@ export async function parseMboxFile(
     }
   }
 
+  // Exports are not reliably in date order, so the first N in the file can be
+  // years old. Keep the most recent ones from the pool instead.
+  result.emails = pickMostRecent(result.emails, opts.maxEmails);
+  result.emailsParsed = result.emails.length;
+
   const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`[MBOX Parser] Complete in ${totalTime}s:`, {
     totalEmailsFound: result.totalEmailsFound,
@@ -257,6 +266,22 @@ export async function parseMboxFile(
   });
 
   return result;
+}
+
+/**
+ * The `count` most recent emails, newest first. Emails with no parseable date
+ * sort after dated ones, in their original order.
+ */
+export function pickMostRecent(emails: ParsedEmail[], count: number): ParsedEmail[] {
+  const time = (e: ParsedEmail) => {
+    const t = Date.parse(e.date);
+    return Number.isNaN(t) ? -Infinity : t;
+  };
+  return emails
+    .map((email, index) => ({ email, index, t: time(email) }))
+    .sort((a, b) => b.t - a.t || a.index - b.index)
+    .slice(0, count)
+    .map(({ email }) => email);
 }
 
 /**

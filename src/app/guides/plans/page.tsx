@@ -63,7 +63,7 @@ export default function PlansGuidePage() {
               <li>1080p exports</li>
               <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
               <li>Content calendar with scheduled posting</li>
-              <li>Email import (50)</li>
+              <li>Learns from your sent email</li>
             </ul>
           </PlanSection>
 
@@ -73,7 +73,7 @@ export default function PlansGuidePage() {
               <li>10 clips per video</li>
               <li>Deep voice matching</li>
               <li>10 Creator Radar slots</li>
-              <li>Email import (50)</li>
+              <li>Learns from your sent email</li>
             </ul>
           </PlanSection>
 
@@ -85,7 +85,7 @@ export default function PlansGuidePage() {
               <li>Shared usage pool across voices</li>
               <li>Unlimited video length</li>
               <li>12 clips per video</li>
-              <li>Email import (100), priority support</li>
+              <li>Priority support</li>
               <li>Auto-post to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky</li>
             </ul>
             <p className="mt-2">Total cost = $47 &times; the number of voices on your plan. 2 voices = $94/mo, 5 voices = $235/mo, etc.</p>

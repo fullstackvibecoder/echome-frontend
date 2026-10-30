@@ -133,7 +133,7 @@ export default function AffiliatesContent() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { plan: 'Echo', price: 37, commission: 9.25, features: ['Voice profile, learning continuously', 'Reads YouTube, IG, blog, email, voice notes, PDFs', 'Creator Radar'] },
-              { plan: 'Echo Studio', price: 87, commission: 21.75, features: ['Deep voice matching with feedback', 'Reads your full email history', 'Priority processing'], popular: true },
+              { plan: 'Echo Studio', price: 87, commission: 21.75, features: ['Deep voice matching with feedback', '5 hours of video a month', 'Priority processing'], popular: true },
               { plan: 'Echo Teams', price: 47, perVoice: true, commission: 11.75, features: ['Per-voice scaling, 2-voice minimum', 'Per-voice knowledge bases', 'Shared usage pool, priority support'] },
             ].map((tier) => (
               <div

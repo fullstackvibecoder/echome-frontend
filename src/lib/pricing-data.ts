@@ -56,7 +56,7 @@ export const individualPlans: PlanData[] = [
       'Built-in teleprompter for talking-head video',
       'Auto-post to Instagram, LinkedIn & Facebook',
       'Content calendar with scheduled posting',
-      'Email import (up to 50 emails)',
+      'Learns how you talk to clients from your sent email',
     ],
   },
   {
@@ -71,7 +71,7 @@ export const individualPlans: PlanData[] = [
     accentColor: 'primary',
     features: [
       'Deep voice matching with thumbs feedback',
-      'Reads your full email history',
+      '5 hours of video a month',
       'Creator Radar with deeper insights',
       'Built-in teleprompter for talking-head video',
       'Priority processing',
