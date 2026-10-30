@@ -2151,7 +2151,7 @@ export const api = {
         recordingDurationSeconds?: number;
         /** When true, the upload is stored for later clipping rather than
          *  immediately starting the generation pipeline. The backend reads
-         *  req.body.saveForLater in POST /clips/upload/:id/r2-complete. */
+         *  req.body.saveForLater in r2-init (stored on the row) and r2-complete. */
         saveForLater?: boolean;
         /** Who owns this content. Defaults to 'self'. */
         ownership?: 'self' | 'third_party';
@@ -2178,6 +2178,7 @@ export const api = {
         parentContentKitId: options?.parentContentKitId,
         recordingDurationSeconds: options?.recordingDurationSeconds,
         ownership: options?.ownership,
+        ...(options?.saveForLater ? { saveForLater: true } : {}),
       });
 
       if (!initResponse.data.success || !initResponse.data.data) {
