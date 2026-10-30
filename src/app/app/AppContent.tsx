@@ -504,14 +504,9 @@ export default function AppContent() {
                     </div>
                     {/* Clip Info */}
                     <div className="p-4">
-                      <h4 className="font-semibold text-body mb-2 line-clamp-2">
+                      <h4 className="font-semibold text-body mb-3 line-clamp-2">
                         {clip.title || `Clip ${index + 1}`}
                       </h4>
-                      {clip.selectionReason && (
-                        <p className="text-small text-text-secondary line-clamp-2 mb-3">
-                          {clip.selectionReason}
-                        </p>
-                      )}
                       <div className="flex items-center gap-2">
                         <span className="text-xs bg-accent/10 text-accent px-2.5 py-1 rounded-full font-medium">
                           {clip.format === 'portrait' ? '📱 Vertical' : clip.format === 'landscape' ? '🖥️ Horizontal' : '⬜ Square'}

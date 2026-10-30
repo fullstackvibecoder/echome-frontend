@@ -29,6 +29,8 @@ import SubstackEditorModal from '@/components/content-kit/SubstackEditorModal';
 import ClipEditorModal from '@/components/content-kit/ClipEditorModal';
 import CarouselEditorModal from '@/components/content-kit/CarouselEditorModal';
 import { EmptyStateCards } from '@/components/content-kit/EmptyStateCards';
+import { KitNextStepCard, useKitNextStep } from '@/components/content-kit/KitNextStepCard';
+import { useSubscription } from '@/hooks/useSubscription';
 
 // Progress step component
 function ProgressStep({
@@ -97,6 +99,10 @@ export default function ContentKitDetailContent() {
 
   // Determine if we're in processing state
   const isProcessing = item?.status === 'processing' || (item?.status as string) === 'pending';
+
+  // Kit -> connect -> schedule nudge, only for users who can actually post.
+  const { canAutoPost, loading: subscriptionLoading } = useSubscription();
+  const nextStep = useKitNextStep(!subscriptionLoading && canAutoPost && !isProcessing && item?.status === 'completed');
 
   // Check if we're still waiting for carousel (Instagram content but no carousel yet)
   const hasInstagramContentCheck = detail?.contentKit?.contentInstagram;
@@ -519,6 +525,10 @@ export default function ContentKitDetailContent() {
                 )}
               </div>
             </div>
+
+            {!scheduleSuccess && (
+              <KitNextStepCard step={nextStep} onSchedule={() => setSuggestedScheduleOpen(true)} />
+            )}
 
             {/* Processing State with Step Progress */}
             {isProcessing && (
