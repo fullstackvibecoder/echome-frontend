@@ -64,7 +64,7 @@ export default function GettingStartedGuidePage() {
           </Step>
 
           <Step number={2} title="Go to the Create page">
-            <p>From the sidebar, click Create. You&apos;ll land on one composer: type a topic, paste a link, drop a file with the paperclip icon (or drag it anywhere on the page), or tap the mic and talk. Paste a YouTube or Instagram link and Echo asks what to do with it: cut clips and write content now, save it to clip later, or add it to Your Voice. Paste a {zoomEnabled ? 'Zoom, Loom, or Vimeo' : 'Loom or Vimeo'} recording link and Echo cuts clips and writes content right away.</p>
+            <p>From the sidebar, click Create. You&apos;ll land on one composer: type a topic, paste a link, drop a file with the paperclip icon (or drag it anywhere on the page), or tap the mic and talk. Paste a YouTube or Instagram link and Echo first asks whether the video is yours (&ldquo;This is me&rdquo; or &ldquo;Not me - write my take&rdquo;), then lets you choose &ldquo;Make content now&rdquo; or &ldquo;Save videos to clip later&rdquo;. Paste a {zoomEnabled ? 'Zoom, Loom, or Vimeo' : 'Loom or Vimeo'} recording link and Echo cuts clips and writes content right away.</p>
             {zoomEnabled && <Tip>If a Zoom recording needs a passcode, Echo asks for it during processing, not when you paste the link.</Tip>}
           </Step>
 
@@ -83,24 +83,24 @@ export default function GettingStartedGuidePage() {
             <p className="mt-2"><strong className="text-text-primary">Visual Content:</strong></p>
             <ul className="list-disc list-inside mt-1 space-y-1">
               <li>Short-form clips with captions</li>
-              <li>Carousel slides</li>
+              <li>Instagram carousel, with its post caption</li>
             </ul>
             <p className="mt-2"><strong className="text-text-primary">Written Content:</strong></p>
             <ul className="list-disc list-inside mt-1 space-y-1">
+              <li>Blog draft (opens as a Substack article)</li>
               <li>LinkedIn post</li>
-              <li>Instagram caption</li>
               <li>X post</li>
               <li>TikTok caption</li>
-              <li>Blog draft</li>
               <li>Email newsletter</li>
               <li>YouTube description</li>
               <li>Video script</li>
             </ul>
-            <p className="mt-2">Each piece is written in your voice, grounded in your context.</p>
+            <p className="mt-2">Each piece is written in your voice, grounded in your context. The Instagram caption sits next to the carousel and clips as their post caption.</p>
+            <p className="mt-2">On a paid plan, a card at the top of the kit tells you your next step: <strong className="text-text-primary">Connect an account</strong> if nothing is connected yet, or <strong className="text-text-primary">Schedule with Echo</strong> if you have not scheduled a post.</p>
           </Step>
 
           <Step number={5} title="Edit, export, and publish">
-            <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style. Copy text to clipboard. Everything is saved in <strong>Your Library</strong> for later. It works in your phone&apos;s browser too.</p>
+            <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style, or choose Download without captions. Copy text to clipboard. Everything is saved in <strong>Your Library</strong> for later. It works in your phone&apos;s browser too.</p>
             <img
               src="/guide-screenshots/clip-editor-mobile.png"
               alt="Clip editor on a phone"

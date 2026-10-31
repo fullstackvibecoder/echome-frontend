@@ -16,7 +16,7 @@ export default function TeleprompterGuidePage() {
     description: 'Record talking-head video against a script EchoMe wrote in your voice. Built-in teleprompter with WPM control, voice tracking, and pause-on-silence.',
     url: 'https://tryechome.com/guides/teleprompter',
     datePublished: '2026-05-01',
-    dateModified: '2026-05-01',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -63,7 +63,7 @@ export default function TeleprompterGuidePage() {
             <p>Two layout modes:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li><strong>Camera-first (default)</strong>: camera fills the screen, script floats in the top third near the lens. Best for short scripts and natural eye-line.</li>
-              <li><strong>Big script</strong>: script dominates the viewport at ~1.7&times; font, camera shrinks to a 120&times;180 corner thumbnail. Best for long YouTube scripts where readability matters more than eye-line.</li>
+              <li><strong>Big script</strong>: script dominates the viewport at a larger font, camera shrinks to a 120&times;180 corner thumbnail. Best for long YouTube scripts where readability matters more than eye-line.</li>
             </ul>
           </Step>
 
@@ -75,7 +75,7 @@ export default function TeleprompterGuidePage() {
               <li><strong>Font family</strong>: Sans / Serif / Mono.</li>
               <li><strong>Mirror</strong>: flips the camera horizontally if your front cam shows you reversed.</li>
               <li><strong>Width</strong>: narrow the script box to reduce side-to-side eye sweep.</li>
-              <li><strong>Zoom</strong>: 1&times; to ~3&times;. Hardware zoom on supported cameras (most Android back cameras, some iOS); CSS preview-only fallback when not.</li>
+              <li><strong>Zoom</strong>: hardware zoom up to your camera&apos;s limit. If your camera doesn&rsquo;t support it, the slider goes to 2.5&times; but only changes the preview (it shows a &quot;preview&quot; label), not your recording.</li>
               <li><strong>9:16 / 16:9</strong>: portrait or landscape framing.</li>
             </ul>
           </Step>
@@ -92,7 +92,7 @@ export default function TeleprompterGuidePage() {
 
           <Step number={6} title="Record + review">
             <p>Hit the red record button to start. A 3-2-1 countdown gives you a beat. The script begins scrolling on its own. You can use the up/down arrows on the right edge to nudge by a couple of lines, or pause/resume mid-take.</p>
-            <p className="mt-2">When you stop, the review screen lets you preview the take, retake, download (with or without burned-in captions), or upload to Echo.</p>
+            <p className="mt-2">When you stop, the review screen lets you preview the take, <strong>Retake</strong>, <strong>Download</strong>, or <strong>Upload to Echo</strong>. Captions are not burned into the download. You add them to the clip in your library after you upload.</p>
           </Step>
 
           <Step number={7} title="What happens after Upload to Echo">

@@ -75,7 +75,7 @@ export default function PlatformOverviewGuidePage() {
           <Step number={1} title="One input, every format">
             <p className="mb-2">The Create page has a single unified input. You can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}. EchoMe auto-detects the platform and asks what to make from it.</li>
+              <li><strong className="text-text-primary">Paste a link</strong>: YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}. EchoMe auto-detects the platform and, for YouTube and Instagram, asks whether the video is yours.</li>
               <li><strong className="text-text-primary">Type a topic</strong>: Describe an idea, paste an article, or write a prompt.</li>
               <li><strong className="text-text-primary">Drop a video file</strong>: Drag and drop directly onto the input.</li>
               <li><strong className="text-text-primary">Record a voice note</strong>: Use the mic button inside the input bar to speak your idea.</li>
@@ -99,15 +99,15 @@ export default function PlatformOverviewGuidePage() {
               {zoomEnabled && <li>Zoom</li>}
             </ul>
             <p className="mt-2">
-              Just paste the URL into the Create input and hit submit. No separate upload step needed. YouTube and Instagram links can become clips and content, or train Your Voice, your choice. {zoomEnabled ? 'Zoom, Loom, and Vimeo' : 'Loom and Vimeo'} recording links become clips and content only.
+              Just paste the URL into the Create input and hit submit. No separate upload step needed. For YouTube and Instagram links, EchoMe asks whether the video is yours: This is me, or Not me - write my take. Videos you mark as yours also train Your Voice. {zoomEnabled ? 'Zoom, Loom, and Vimeo' : 'Loom and Vimeo'} recording links become clips and content.
               {zoomEnabled ? ' If your Zoom recording requires a passcode, Echo asks for it during processing.' : ''}
             </p>
             <Tip>YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video and uploading the file directly.</Tip>
           </Step>
 
           <Step number={4} title="Video clip dashboard">
-            <p className="mb-2">After processing, EchoMe automatically extracts the best clips from your video. Each clip receives a strength score so you can prioritize the strongest moments.</p>
-            <p>When multiple speakers are detected, EchoMe generates both single-speaker and split-screen views so you can choose the best format for each platform.</p>
+            <p className="mb-2">After processing, EchoMe automatically extracts the best clips from your video. EchoMe keeps up to 12 clips per video. Each clip receives a strength score so you can prioritize the strongest moments. You can also trim a clip in the clip editor. Trimming can only shorten it, and Reset to original undoes it.</p>
+            <p>When multiple speakers are detected, EchoMe generates both Single Speaker and Split Screen views so you can choose the best format for each platform.</p>
           </Step>
 
           <Step number={5} title="8 caption styles">
@@ -122,7 +122,7 @@ export default function PlatformOverviewGuidePage() {
               <li>Subtitle Bar</li>
               <li>Clean &amp; Simple</li>
             </ul>
-            <p className="mt-2">Position captions at the top, center, or bottom of the frame. Preview everything in real-time before downloading.</p>
+            <p className="mt-2">Position captions at the top, center, or bottom of the frame. Preview everything in real-time before downloading. If your video already has captions, turn off Add EchoMe captions, or use Download without captions.</p>
           </Step>
 
           <Step number={6} title="Written content for every platform">
@@ -137,7 +137,7 @@ export default function PlatformOverviewGuidePage() {
               <li>YouTube description</li>
               <li>Video script</li>
             </ul>
-            <p className="mt-2">Each post is written in your voice based on your voice profile. Copy and post directly, or schedule through your preferred tool.</p>
+            <p className="mt-2">Each post is written in your voice based on your voice profile. Copy and post directly, or use Post Now or Schedule on each platform. YouTube posting supports vertical clips only.</p>
           </Step>
 
           <Step number={7} title="Your Voice">

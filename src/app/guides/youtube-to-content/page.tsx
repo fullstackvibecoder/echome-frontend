@@ -42,7 +42,7 @@ export default function YouTubeToContentGuidePage() {
           Turn YouTube Videos into Social Media Content
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          You already have hours of content on YouTube. EchoMe turns any public YouTube video into a full content kit: clips with captions, Instagram carousels, LinkedIn posts, X threads, email newsletters, and blog posts. All written in your voice.
+          You already have hours of content on YouTube. EchoMe turns any public YouTube video into a full content kit: clips with captions, Instagram carousels, LinkedIn posts, X posts, email newsletters, and blog posts. All written in your voice.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           4 min read
@@ -63,20 +63,20 @@ export default function YouTubeToContentGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Paste any YouTube link">
-            <p>Go to the Create page and paste your YouTube URL into the composer. EchoMe auto-detects YouTube links and asks if the video is yours, then whether to make content now or, for a channel link, save the videos to clip later. Works with any public YouTube video: watch pages, share links, and shorts.</p>
+            <p>Go to the Create page and paste your YouTube URL into the composer. EchoMe auto-detects YouTube links and asks whether the video is yours: <strong className="text-text-primary">This is me</strong> or <strong className="text-text-primary">Not me - write my take</strong>. Then choose <strong className="text-text-primary">Make content now</strong> or, for a channel link, <strong className="text-text-primary">Save videos to clip later</strong>. Works with any public YouTube video: watch pages, share links, and shorts. Videos you mark as yours also train your voice.</p>
           </Step>
 
           <Step number={2} title="EchoMe downloads and transcribes">
-            <p>EchoMe fetches the video and transcribes the audio automatically. No manual transcription needed. Processing takes 5&ndash;15 minutes depending on video length.</p>
+            <p>EchoMe fetches the video and transcribes the audio automatically. No manual transcription needed. Processing time depends on video length. You can leave the page; the kit lands in Your Library.</p>
             <Tip>YouTube links may be intermittent. For reliable results, download the video and <a href="/guides/compress-video" className="text-accent hover:underline">compress it first</a>.</Tip>
           </Step>
 
           <Step number={3} title="AI extracts the best clips">
-            <p>EchoMe analyzes your transcript and identifies the most engaging moments. Each clip gets a strength score. If the video has multiple speakers (interviews, podcasts), split-screen clips are generated automatically.</p>
+            <p>EchoMe analyzes your transcript and identifies the most engaging moments, up to 12 clips per video. Each clip shows a strength score. If the video has multiple speakers (interviews, podcasts), a split-screen version is generated automatically. Open a clip to trim it with <strong className="text-text-primary">Apply trim</strong>. Trimming can only shorten a clip, and <strong className="text-text-primary">Reset to original</strong> undoes it.</p>
           </Step>
 
           <Step number={4} title="8 caption styles">
-            <p>Every clip gets captions. Choose from 8 styles: Modern, Big &amp; Bold, Color Pop, Karaoke, Underline, One at a Time, Subtitle Bar, and Clean &amp; Simple. Position captions at the top, center, or bottom. Download single or split-screen versions.</p>
+            <p>Every clip gets captions. Choose from 8 styles: Modern, Big &amp; Bold, Color Pop, Karaoke, Underline, One at a Time, Subtitle Bar, and Clean &amp; Simple. Position captions at the top, center, or bottom. Switch between <strong className="text-text-primary">Single Speaker</strong> and <strong className="text-text-primary">Split Screen</strong> when a split version exists. If your video already has captions on screen, turn off <strong className="text-text-primary">Add EchoMe captions</strong>. Use <strong className="text-text-primary">Download 1080p</strong> or <strong className="text-text-primary">Download without captions</strong>.</p>
           </Step>
 
           <Step number={5} title="Full written content kit">
@@ -84,7 +84,7 @@ export default function YouTubeToContentGuidePage() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>LinkedIn posts</li>
               <li>Instagram captions and carousels</li>
-              <li>X/Twitter threads</li>
+              <li>X/Twitter posts</li>
               <li>TikTok captions</li>
               <li>Email newsletters</li>
               <li>Blog posts</li>
@@ -95,7 +95,7 @@ export default function YouTubeToContentGuidePage() {
           </Step>
 
           <Step number={6} title="Download and share">
-            <p>Copy any post to clipboard. Download video clips. Schedule content to your calendar. Everything is saved in Your Library for later.</p>
+            <p>Copy any post to clipboard. Download video clips. Use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform you have connected. YouTube posting supports vertical clips only. Everything is saved in Your Library for later.</p>
           </Step>
         </section>
 

@@ -5,7 +5,7 @@ import { JsonLd } from '@/components/json-ld';
 export const metadata: Metadata = {
   title: 'Scheduling & Auto-Posting | EchoMe Guide',
   description:
-    'Schedule your posts once, publish everywhere. Connect Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky, pick platforms per clip or carousel, post now or schedule ahead, and manage everything from the Content Calendar.',
+    'Schedule your posts once, publish everywhere. Connect Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, and Bluesky, pick platforms per clip or carousel, post now or schedule ahead, and manage everything from the Content Calendar.',
   keywords: [
     'echome scheduling',
     'auto-post to social media',
@@ -22,10 +22,10 @@ export default function SchedulingPostsGuidePage() {
     '@type': 'Article',
     headline: 'Scheduling & Auto-Posting',
     description:
-      'How to connect your social accounts and schedule posts to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
+      'How to connect your social accounts and schedule posts to Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, and Bluesky directly from EchoMe. Includes connecting accounts, picking platforms per post, scheduling ahead, and managing scheduled content from the calendar.',
     url: 'https://tryechome.com/guides/scheduling-posts',
     datePublished: '2026-04-24',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -62,33 +62,18 @@ export default function SchedulingPostsGuidePage() {
           each post, and let EchoMe auto-publish at the exact time you choose, all from inside your
           Content Kits.
         </p>
-        <p className="text-sm text-text-secondary/70 mb-2">4 min read &middot; Video walkthrough below</p>
+        <p className="text-sm text-text-secondary/70 mb-2">4 min read</p>
         <p className="text-xs text-text-secondary/70 mb-8">
-          Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky is included on <strong>every paid plan</strong> (Echo and up) and during your free kits. Without it, you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business stay copy-and-open (we pre-fill the caption and open the native composer).
+          Auto-posting to Instagram, LinkedIn, Facebook, Threads, YouTube, TikTok, and Bluesky is included on <strong>every paid plan</strong> (Echo and up) and during your free kits. Without it, you can still schedule posts and get email reminders at the scheduled time. X, Pinterest, and Google Business stay copy-and-open (we pre-fill the caption and open the native composer). TikTok is video only, so written posts for TikTok are copy-and-open too.
         </p>
-
-        {/* Loom walkthrough — 2-minute SOP covering the full flow. Aspect-ratio
-            padding-bottom trick lets the iframe stay responsive without a
-            dedicated wrapper component. */}
-        <div className="mb-10 rounded-xl overflow-hidden border border-border bg-black">
-          <div style={{ position: 'relative', paddingBottom: '62.7906976744186%', height: 0 }}>
-            <iframe
-              src="https://www.loom.com/embed/6425ffcdd0c840228a714efeacd0465e"
-              title="EchoMe: Scheduling &amp; Auto-Posting walkthrough"
-              allow="fullscreen"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-            />
-          </div>
-        </div>
 
         {/* Steps */}
         <section className="space-y-10 mb-10">
           <Step number={1} title="Connect your social accounts first">
             <p>
-              Head to <strong>Settings &rarr; Connections</strong>. You&rsquo;ll see a card for each supported
-              platform. Click <strong>Connect</strong> and authorize EchoMe inside a popup window. Your account
-              stays linked until you disconnect it.
+              Head to <strong>Settings &rarr; Connections</strong>. Click <strong>Connect Account</strong>, pick a
+              platform from the list, and authorize EchoMe inside a popup window. If your browser blocks the
+              popup, allow popups for the site and try again. Your account stays linked until you disconnect it.
             </p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>
@@ -109,14 +94,17 @@ export default function SchedulingPostsGuidePage() {
               </li>
               <li>
                 <strong>YouTube</strong>: EchoMe publishes your edited clips as YouTube Shorts (vertical
-                video, up to 3 minutes). No subscriber requirement.
+                video, up to 3 minutes). Landscape clips can&rsquo;t be posted.
+              </li>
+              <li>
+                <strong>TikTok</strong>: video clips only. Written posts can&rsquo;t go to TikTok.
               </li>
               <li>
                 <strong>Bluesky</strong>: connect through the same popup authorization flow as the platforms above. Short-form posts, up to 300 characters.
               </li>
             </ul>
             <Tip>
-              X, TikTok, Pinterest, and Google Business don&rsquo;t support API auto-post the way the platforms
+              X, Pinterest, and Google Business don&rsquo;t support API auto-post the way the platforms
               above do, so EchoMe handles those via copy-and-open: we pre-fill the caption and open the native
               composer in a new tab. You confirm and post.
             </Tip>
@@ -138,8 +126,8 @@ export default function SchedulingPostsGuidePage() {
           <Step number={3} title="Pick the platforms you want to post to">
             <p>
               At the bottom of the clip editor you&rsquo;ll see <strong>Post to</strong>. Tap the platforms
-              you want this specific piece to go to. Connected platforms light up white; unsupported or
-              unconnected ones stay dimmed with a coming-soon feel.
+              you want this specific piece to go to. Platforms you&rsquo;ve connected can be selected; ones you haven&rsquo;t connected yet stay dimmed.
+              Hover a dimmed platform to see why.
             </p>
             <div className="my-4 rounded-lg overflow-hidden border border-border">
               <Image
@@ -151,7 +139,7 @@ export default function SchedulingPostsGuidePage() {
               />
             </div>
             <p className="mt-2">
-              You can send the same piece to one platform, two, or all six at once. Each platform gets
+              You can send the same piece to one platform or several at once. Each platform gets
               its own row in the calendar so you can act on them individually later.
             </p>
           </Step>
@@ -193,7 +181,7 @@ export default function SchedulingPostsGuidePage() {
               icons that tell you exactly what&rsquo;s happening per platform.
             </p>
             <p className="mt-2">
-              Right after you schedule, the card will show &ldquo;Preparing media.&rdquo; That&rsquo;s
+              Right after you schedule, the card will show &ldquo;Preparing media&hellip;&rdquo; That&rsquo;s
               EchoMe finalizing your captioned video or composited carousel behind the scenes. Usually takes
               under a minute. Once it&rsquo;s ready, the state flips to <em>Scheduled</em>, and at your
               chosen time it publishes and flips to <em>Posted</em>.
@@ -226,11 +214,11 @@ export default function SchedulingPostsGuidePage() {
                 losing the audit record.
               </li>
               <li>
-                <strong>Dismiss the whole event</strong> with one click from the modal header.
+                <strong>Dismiss event</strong> to remove every platform for that post from the calendar in one click.
               </li>
             </ul>
             <p className="mt-2">
-              If your calendar header shows a red <strong>N failed</strong> counter, click it.
+              If the week view header shows a red <strong>N failed</strong> counter, click it.
               You&rsquo;ll get a side panel listing every failed post with <strong>Dismiss</strong> and
               <strong> Dismiss all</strong> so you can clear stale issues in one click.
             </p>
@@ -243,9 +231,9 @@ export default function SchedulingPostsGuidePage() {
               starts.
             </p>
             <p className="mt-2">
-              For bigger rollouts, use the <strong>AI Schedule</strong> button on any Content Kit to
-              staggered-post a full week of content from one kit with a single click. (Another layer of
-              this is coming soon, you&rsquo;ll love it.)
+              For bigger rollouts, use the <strong>AI Schedule</strong> button on a finished Content Kit. EchoMe suggests a
+              staggered rollout with best-time defaults. You can edit any time, then click <strong>Use this
+              schedule</strong> (or <strong>Create reminders</strong> if auto-post isn&rsquo;t available on your account).
             </p>
           </Step>
         </section>

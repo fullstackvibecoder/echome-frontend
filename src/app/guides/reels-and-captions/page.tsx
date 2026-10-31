@@ -42,7 +42,7 @@ export default function ReelsAndCaptionsGuidePage() {
           Reels &amp; Caption Styles
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Manage all your reels in the dedicated Reel Maker page. Choose from 8 distinct caption styles to match your brand and content type, then export at 1080p, ready for Instagram Reels, TikTok, or YouTube Shorts.
+          Manage your reels in the Reel Maker. Choose from 8 distinct caption styles for your clips in the clip editor to match your brand and content type, then download at up to 1080p, ready for Instagram Reels, TikTok, or YouTube Shorts.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           3 min read
@@ -57,7 +57,7 @@ export default function ReelsAndCaptionsGuidePage() {
 
         {/* Beta callout */}
         <div className="mb-10 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Beta access:</strong> The Reel Maker is currently in admin-only beta. The Reels tab in the sidebar and the <code>?tab=reels</code> URL are gated to admin accounts. Request access via the chat widget if you want to try it.</p>
+          <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Beta access:</strong> The Reel Maker is currently in admin-only beta. The Reels tab inside Library and the <code>?tab=reels</code> URL are gated to admin accounts. Request access via the chat widget if you want to try it.</p>
         </div>
 
         {/* Steps */}
@@ -67,7 +67,7 @@ export default function ReelsAndCaptionsGuidePage() {
           </Step>
 
           <Step number={2} title="Create new reels from the create bar">
-            <p>Use the compact create bar at the top of the Reel Maker to start a new reel. You can also access the <strong className="text-text-primary">B-Roll Wizard</strong> directly from the create bar to add cinematic b-roll footage to your clips.</p>
+            <p>Use the create bar at the top of the Reel Maker to start a new reel. Type a topic and click <strong className="text-text-primary">Create</strong>. The create bar also has a <strong className="text-text-primary">B-Roll Wizard</strong> button and a <strong className="text-text-primary">From Content Kit</strong> button, which takes you to Your Library.</p>
           </Step>
 
           <Step number={3} title="Choose from 8 caption styles">
@@ -85,7 +85,7 @@ export default function ReelsAndCaptionsGuidePage() {
           </Step>
 
           <Step number={4} title="Change caption style per clip">
-            <p>Click the style selector on any clip card to switch between caption styles. Each clip can use a different style, mix and match to suit your content.</p>
+            <p>Open a clip from its kit and use the <strong className="text-text-primary">Caption Style</strong> picker in the clip editor to switch between caption styles. Each clip can use a different style, mix and match to suit your content.</p>
             <Tip>Modern and Big &amp; Bold work best for fast-paced content. Karaoke is great for music or spoken word. Clean &amp; Simple keeps the focus on the visuals.</Tip>
           </Step>
 
@@ -96,11 +96,11 @@ export default function ReelsAndCaptionsGuidePage() {
               alt="Clip editor: caption style, transcript, and post caption"
               className="w-full rounded-xl border border-border mt-4"
             />
-            <Tip>The post caption (the text that goes alongside the video on Instagram/LinkedIn/etc.) is also editable inline. Click into it, type, save. It&rsquo;s ready when you hit Schedule or Post Now.</Tip>
+            <Tip>The post caption (the text that goes alongside the video on Instagram/LinkedIn/etc.) is also editable inline. Click into it, type, save. It&rsquo;s ready when you hit Post now or Schedule.</Tip>
           </Step>
 
           <Step number={6} title="Export at source resolution">
-            <p>The captions are burned directly into the video file. Output resolution matches your source, up to 1080p: a 1080p upload exports as a full 1080x1920 vertical clip. Single-speaker view follows whoever&rsquo;s talking; split-screen view shows both speakers stacked. Download and post to Instagram Reels, TikTok, or YouTube Shorts. No extra editing needed.</p>
+            <p>The captions are burned directly into the video file. Output resolution matches your source, up to 1080p: a 1080p upload exports as a full 1080x1920 vertical clip. If the video has more than one speaker, switch between Single Speaker and Split Screen in the clip editor. Click <strong className="text-text-primary">Download 1080p</strong>, or <strong className="text-text-primary">Download without captions</strong> if you want to caption it elsewhere. Download and post to Instagram Reels, TikTok, or YouTube Shorts. No extra editing needed.</p>
           </Step>
         </section>
 

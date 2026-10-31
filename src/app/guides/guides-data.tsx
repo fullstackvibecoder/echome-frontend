@@ -58,12 +58,7 @@ const thumbnails: Record<string, string> = {
   'reels-and-captions': '/guide-screenshots/reel-maker.png',
   'youtube-to-content': '/guide-screenshots/create-page.png',
   'creator-radar': '/guide-screenshots/following.png',
-  // Animated Loom thumbnail — autoplays on hover in most browsers and signals
-  // "this guide has a video" without needing a separate badge. Loom requires
-  // a salted token in the path (`-<token>-full-play.gif`); without it the
-  // CDN returns 403. Token comes from scraping the /share/<id> page HTML.
-  'scheduling-posts':
-    'https://cdn.loom.com/sessions/thumbnails/6425ffcdd0c840228a714efeacd0465e-912442c0bd3c7ef4-full-play.gif',
+  'scheduling-posts': '/guide-screenshots/post-editor.png',
   'content-calendar': '/guide-screenshots/scheduling-preparing-media.png',
 };
 
@@ -119,7 +114,7 @@ export const guides: Guide[] = [
     icon: <Youtube className="w-6 h-6" />,
     title: 'Turn YouTube Videos into Content',
     description:
-      'Paste any YouTube link into the unified input and get clips, carousels, LinkedIn posts, Instagram content, newsletters, and more. All in your voice.',
+      'Paste any YouTube link into the unified input and get clips, a carousel, LinkedIn and X posts, an email, a blog draft, and more. All in your voice.',
     category: 'Create content',
     readTime: '4 min',
     hasVideo: false,
@@ -149,7 +144,7 @@ export const guides: Guide[] = [
     icon: <Captions className="w-6 h-6" />,
     title: 'Reels & Caption Styles',
     description:
-      'Manage your reels in the Reel Maker, choose from 8 caption styles, and export clips optimized for Instagram Reels, TikTok, and YouTube Shorts.',
+      'Pick from 8 caption styles in the clip editor and export clips sized for Instagram Reels, TikTok, and YouTube Shorts.',
     category: 'Create content',
     readTime: '3 min',
     hasVideo: false,
@@ -203,7 +198,7 @@ export const guides: Guide[] = [
     icon: <CalendarDays className="w-6 h-6" />,
     title: 'Scheduling & Auto-Posting',
     description:
-      'Connect Instagram, LinkedIn, Facebook, Threads, YouTube, and Bluesky and auto-publish your content at the time you choose. Manage everything from the Content Calendar.',
+      'Connect Instagram, LinkedIn, Facebook, Threads, TikTok, YouTube, and Bluesky and auto-publish your content at the time you choose. Manage everything from the Content Calendar.',
     category: 'Schedule and publish',
     readTime: '4 min',
     hasVideo: true,

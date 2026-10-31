@@ -16,7 +16,7 @@ export default function ContentCalendarGuidePage() {
     description: 'See all your generated content organized by date. Drag posts to reschedule, preview before publishing, and plan a full week from a single video.',
     url: 'https://tryechome.com/guides/content-calendar',
     datePublished: '2026-04-15',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -55,7 +55,7 @@ export default function ContentCalendarGuidePage() {
           </Step>
 
           <Step number={2} title="See everything organized by date">
-            <p>Every piece of generated content (clips, carousels, written posts, newsletters) appears at its scheduled date. Each card has small platform dots so you can see at a glance which platforms are firing on which day.</p>
+            <p>Every piece of content you schedule (clips, carousels, written posts) appears at its scheduled date. Each card has small platform dots so you can see at a glance which platforms are firing on which day.</p>
             <Tip>The calendar populates from your Content Kits the moment you schedule a post or use AI Schedule. New generation = new posts on your calendar.</Tip>
           </Step>
 
@@ -68,14 +68,14 @@ export default function ContentCalendarGuidePage() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li><strong>Cancel</strong> a scheduled or preparing post before it goes out.</li>
               <li><strong>Retry</strong> a failed post if a platform-side issue (Meta verification, rate limit) cleared after the first attempt.</li>
-              <li><strong>Dismiss</strong> a failed or completed row to clear it from the calendar without losing the audit record.</li>
+              <li><strong>Dismiss</strong> a failed row, or <strong>Dismiss event</strong> to clear the whole post from the calendar. The record is kept.</li>
             </ul>
-            <p className="mt-2">If the calendar header shows a red <strong>N failed</strong> counter, click it. You&rsquo;ll get a side panel listing every failed post with <strong>Dismiss all</strong> to clear stale issues in one click.</p>
+            <p className="mt-2">If the week view header shows a red <strong>N failed</strong> counter, click it. You&rsquo;ll get a side panel listing every failed post with <strong>Dismiss</strong> for each one and <strong>Dismiss all</strong> to clear stale issues in one click.</p>
           </Step>
 
           <Step number={5} title="Connect your social accounts and auto-post">
-            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, Facebook, Threads, YouTube (your edited clips publish as Shorts), and Bluesky directly. Auto-posting is included on every paid plan (and during your free kits); otherwise you can still schedule posts and get email reminders at the scheduled time. X, TikTok, Pinterest, and Google Business are copy-and-open: we pre-fill the caption and open the native composer in a new tab.</p>
-            <Tip>Use the AI Schedule button on any content kit to roll out a full week of staggered posts with one click.</Tip>
+            <p>Settings &rarr; Connections lets you connect Instagram, LinkedIn, Facebook, Threads, YouTube (your edited clips publish as Shorts), TikTok (video only), and Bluesky directly. Auto-posting is included on every paid plan (and during your free kits); otherwise you can still schedule posts and get email reminders at the scheduled time. X, Pinterest, and Google Business are copy-and-open: we pre-fill the caption and open the native composer in a new tab.</p>
+            <Tip>Use the AI Schedule button on a finished content kit. It suggests a staggered rollout with best-time defaults, and you confirm it with Use this schedule.</Tip>
           </Step>
         </section>
 
