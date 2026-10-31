@@ -99,7 +99,7 @@ export default function VideoContentGuidePage() {
 
           <Step number={3} title="Using video links">
             <p>
-              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}</strong> URL into the composer. No file upload needed. EchoMe pulls the content directly. For YouTube and Instagram links, EchoMe asks whether the video is yours and where to send it before it starts.
+              Instead of uploading a file, paste a <strong className="text-text-primary">YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}</strong> URL into the composer. No file upload needed. EchoMe pulls the content directly. For YouTube and Instagram links, EchoMe asks whether the video is yours (<strong className="text-text-primary">This is me</strong> or <strong className="text-text-primary">Not me - write my take</strong>) and whether to make content now before it starts.
             </p>
             <p className="mt-2">
               <strong className="text-text-primary">Note:</strong> YouTube links may be intermittent due to platform restrictions. If a YouTube link fails, try downloading the video first and uploading the file.
@@ -114,25 +114,25 @@ export default function VideoContentGuidePage() {
 
           <Step number={5} title="Editing video clips">
             <p>
-              View your extracted clips along with strength scores. <strong className="text-text-primary">Single speaker view</strong> shows one frame. <strong className="text-text-primary">Split-screen view</strong> is auto-generated when multiple speakers are detected, such as in interviews or podcasts. Download the Single or Split version of each clip.
+              View your extracted clips (up to 12 per video) along with strength scores. In the clip editor, <strong className="text-text-primary">Single Speaker</strong> shows one frame. <strong className="text-text-primary">Split Screen</strong> is auto-generated when multiple speakers are detected, such as in interviews or podcasts. Use <strong className="text-text-primary">Apply trim</strong> to shorten a clip. Trimming can only shorten, and <strong className="text-text-primary">Reset to original</strong> undoes it. Download with <strong className="text-text-primary">Download 1080p</strong> or <strong className="text-text-primary">Download without captions</strong>.
             </p>
           </Step>
 
           <Step number={6} title="Customizing captions">
             <p>
-              Choose from 8 caption styles: <strong className="text-text-primary">Modern, Big &amp; Bold, Color Pop, Karaoke, Underline, One at a Time, Subtitle Bar,</strong> and <strong className="text-text-primary">Clean &amp; Simple</strong>. Position captions at the top, center, or bottom of the frame. Toggle captions on or off, and preview changes in real-time.
+              Choose from 8 caption styles: <strong className="text-text-primary">Modern, Big &amp; Bold, Color Pop, Karaoke, Underline, One at a Time, Subtitle Bar,</strong> and <strong className="text-text-primary">Clean &amp; Simple</strong>. Position captions at the top, center, or bottom of the frame. Turn <strong className="text-text-primary">Add EchoMe captions</strong> off if your video already has captions on screen, and preview changes in real-time.
             </p>
           </Step>
 
           <Step number={7} title="Written content and scheduling">
             <p>
-              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Instagram, X/Twitter, TikTok, Newsletter, Blog, YouTube description,</strong> and <strong className="text-text-primary">Video script</strong>, plus an Instagram carousel. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform, or add to your calendar.
+              EchoMe generates posts for <strong className="text-text-primary">LinkedIn, Instagram, X/Twitter, TikTok, Newsletter, Blog, YouTube description,</strong> and <strong className="text-text-primary">Video script</strong>, plus an Instagram carousel. Each platform gets tailored content matching its format and audience expectations. Copy to clipboard, or use <strong className="text-text-primary">Post Now</strong> or <strong className="text-text-primary">Schedule</strong> on each platform. YouTube posting supports vertical clips only.
             </p>
           </Step>
 
           <Step number={8} title="Your videos shape your voice">
             <p>
-              Every video you upload also feeds your voice profile. The more it reads, the better EchoMe matches your tone, vocabulary, and style. Check your voice strength on the <strong className="text-text-primary">Your Voice</strong> page.
+              Every video you upload or mark as yours also feeds your voice profile. The more it reads, the better EchoMe matches your tone, vocabulary, and style. Check your voice strength on the <strong className="text-text-primary">Your Voice</strong> page.
             </p>
           </Step>
         </section>

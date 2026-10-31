@@ -63,7 +63,7 @@ export default function CreatorRadarGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Go to Creator Radar">
-            <p>Open <strong>Creator Radar</strong> from Library, Radar tab. This is your feed for staying on top of what creators in your space are publishing.</p>
+            <p>Open <strong>Library</strong> from the sidebar, then the <strong>Radar</strong> tab. This is your feed for staying on top of what creators in your space are publishing.</p>
           </Step>
 
           <Step number={2} title="Follow creators in your niche">
@@ -75,8 +75,8 @@ export default function CreatorRadarGuidePage() {
           </Step>
 
           <Step number={4} title="Write your take on any video">
-            <p>Click Write My Take on any video in your feed. Pick the platforms you want (Instagram, LinkedIn, Blog, Email, TikTok, Video Script), then hit Generate. EchoMe builds the content from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
-            <Tip>Writing your take requires a paid EchoMe plan. Free accounts can follow creators and browse the feed, but generating content from a video needs Echo, Studio, or Teams.</Tip>
+            <p>Click Write My Take on any video in your feed. Pick the platforms you want (Instagram, LinkedIn, Blog, Email, TikTok, Video Script), then click Generate. If the video has no transcript yet, EchoMe pulls it when you generate. EchoMe builds the content from their video, grounded in YOUR voice and YOUR context. The result uses your style, your framing, and your perspective.</p>
+            <Tip>Free accounts can write a take while they still have free generations left. After the 5 free kits are used, writing a take needs a paid plan.</Tip>
           </Step>
 
           <Step number={5} title="Review and edit">

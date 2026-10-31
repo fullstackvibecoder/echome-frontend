@@ -58,7 +58,7 @@ export default function ContentKitsGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Find your kit in Your Library">
-            <p>Open <strong>Your Library</strong> from the sidebar. Your kits are organized by status: Ready to Publish, Processing, and Earlier. The most recent kits appear at the top.</p>
+            <p>Open <strong>Your Library</strong> from the sidebar. Your kits are organized by status: Ready to Publish, Processing, Failed, and Earlier. Use the search box to find a kit by name. The most recent kits appear at the top.</p>
           </Step>
 
           <Step number={2} title="Open a kit">
@@ -66,11 +66,11 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={3} title="Browse Visual Content">
-            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is displayed in an OutputCard with a clean preview. Download captioned clips at up to 1080p (output matches your source resolution), ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, split-screen versions are available too.</p>
+            <p>The Visual Content section contains your video clips with captions and carousel slides. Each piece is shown as a card with a preview. The carousel is called Instagram Carousel. Download captioned clips at up to 1080p (output matches your source resolution), ready for any platform. Each clip is optimized for vertical (9:16) short-form content. If the original video had multiple speakers, open the clip and switch between Single Speaker and Split Screen.</p>
           </Step>
 
           <Step number={4} title="Browse Written Content">
-            <p>The Written Content section contains your LinkedIn post, Instagram caption, X post, TikTok caption, blog draft, email newsletter, YouTube description, and video script. Each OutputCard shows a preview of the content with options to edit, copy, or export.</p>
+            <p>The Written Content section contains your blog draft (a Substack card), plus tabs for LinkedIn, Twitter/X, Email, TikTok, YouTube, and Video Script. The Instagram caption is not a tab. It sits with the carousel and clips as their Post caption.</p>
             <img
               src="/guide-screenshots/substack-article.png"
               alt="Substack article editor with Copy for Substack"
@@ -80,7 +80,7 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={5} title="Edit any post">
-            <p>Click on any piece of written content to edit it directly. LinkedIn, Instagram, X, TikTok, blog, email, YouTube description, and video script are all editable inline. Make it yours, then save.</p>
+            <p>Click on any piece of written content to edit it directly. Pick a tab (LinkedIn, Twitter/X, Email, TikTok, YouTube, or Video Script), edit the text, then click Save. Regenerate rewrites the post, and Copy copies it. The blog draft opens in the Substack Article editor, where you can Copy for Substack or Copy as Markdown. To edit an Instagram caption, open the carousel or clip and change its Post caption.</p>
             <img
               src="/guide-screenshots/post-editor.png"
               alt="Platform tabs with Save, Regenerate, Post now, Schedule"
@@ -90,13 +90,13 @@ export default function ContentKitsGuidePage() {
           </Step>
 
           <Step number={6} title="Edit captions and clip text in the clip editor">
-            <p>Open any clip and you&rsquo;ll get the full editor. Pick from 8 caption styles, drag the caption block anywhere on the video, drag a corner handle to resize the text, and click any transcript line to fix a mis-transcription. The preview jumps to that moment so you can see your edit live. The post caption that goes alongside the clip is also editable inline.</p>
+            <p>Open any clip and you&rsquo;ll get the full editor. Use the Trim bar to shorten the clip (you can only cut it shorter, and Reset to original undoes it). Pick from 8 caption styles, drag the caption block anywhere on the video, drag a corner handle to resize the text, and click any transcript line to fix a mis-transcription. The preview jumps to that moment so you can see your edit live. The post caption that goes alongside the clip is also editable inline.</p>
           </Step>
 
           <Step number={7} title="Share or copy">
-            <p>Copy any text to clipboard with one click. Download video clips directly. Share content to your platforms or save it in Your Library for later publishing.</p>
+            <p>Copy any text to clipboard with one click. Download video clips with Download 1080p, or choose Download without captions if you caption elsewhere. Post or schedule from the clip, carousel, or written tab, or leave it in Your Library for later.</p>
             <Tip>Use the carousel slides for LinkedIn carousels and Instagram posts. They&apos;re generated automatically from your content.</Tip>
-            <Tip>Daily drafts can be dismissed from the kit header. Dismissing permanently deletes the kit and all its artifacts. This cannot be undone.</Tip>
+            <Tip>Daily drafts show up as cards with Review, Schedule, and Kill buttons. Kill permanently deletes the kit and all its artifacts. This cannot be undone.</Tip>
           </Step>
         </section>
 

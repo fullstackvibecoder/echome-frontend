@@ -16,7 +16,7 @@ export default function TeamVoicesGuidePage() {
     description: 'Create separate voice profiles for each team member or client. Each voice builds its own waveform and knowledge base. Available on the Echo Teams plan.',
     url: 'https://tryechome.com/guides/team-voices',
     datePublished: '2026-04-15',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -56,28 +56,28 @@ export default function TeamVoicesGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="Upgrade to Echo Teams">
-            <p>The Echo Teams plan is $47 per voice per month with a 2-voice minimum and no upper cap. Add voices any time as your team grows. Upgrade from your account settings or the pricing page.</p>
+            <p>The Echo Teams plan is $47 per voice per month with a 2-voice minimum and no upper cap. Add voices any time as your team grows. Upgrade from the Billing page.</p>
           </Step>
 
-          <Step number={2} title="Go to the Team tab on Your Voice">
-            <p>Once you&apos;re on Echo Teams, Team Voices appears as the Team tab on Your Voice. This is where you manage all voice profiles for your team.</p>
+          <Step number={2} title="Open the Team Voices tab">
+            <p>Once you&apos;re on Echo Teams, a <strong>Team Voices</strong> tab appears next to Your Voice. This is where you manage all voice profiles for your team. Your default voice is created from your profile, so you can edit it first.</p>
           </Step>
 
           <Step number={3} title="Create a new voice profile">
-            <p>Click to create a new voice profile. Name it, and assign it to a specific team member, brand, or client. Each profile is completely independent.</p>
+            <p>Click <strong>Add Voice</strong>. Give it a name and a short description, pick a knowledge base (or create a new one), and fill in the profile context. Use one voice for each team member, brand, or client. Each profile is independent.</p>
           </Step>
 
           <Step number={4} title="Feed each voice separately">
-            <p>Upload content specific to each voice: videos, emails, blog posts, social media examples. Each voice profile builds its own knowledge base from the material you provide.</p>
+            <p>Each voice uses its own knowledge base. Add material that belongs to that voice, such as videos, emails, blog posts, and social media examples, to its knowledge base.</p>
             <Tip>Each voice profile builds its own unique waveform. The more you feed it, the more distinct it becomes.</Tip>
           </Step>
 
           <Step number={5} title="Select which voice to use when generating">
-            <p>When creating content, choose which voice profile to use. The generated content will match that voice&rsquo;s style, tone, and knowledge base, not a generic average of all voices.</p>
+            <p>Use the <strong>Active Voice</strong> switcher in the sidebar to choose which voice profile to use before you generate. The generated content will match that voice&rsquo;s style, tone, and knowledge base, not a generic average of all voices.</p>
           </Step>
 
           <Step number={6} title="Filter Your Library by voice">
-            <p>See what each voice has produced. Filter Your Library by voice profile to review, compare, and manage content across your entire team.</p>
+            <p>See what each voice has produced. Use the voice dropdown in Your Library (All Voices, a single voice, or No Voice) to review and manage content across your team.</p>
             <Tip>Great for agencies managing multiple clients. Each client gets their own voice without cross-contamination.</Tip>
           </Step>
         </section>

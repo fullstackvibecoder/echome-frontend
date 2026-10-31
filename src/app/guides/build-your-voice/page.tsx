@@ -16,7 +16,7 @@ export default function BuildYourVoiceGuidePage() {
     description: 'Train EchoMe to write in your voice. Upload videos, import social media, add emails and blog posts to your Knowledge Base. The more you add, the more it sounds like you.',
     url: 'https://tryechome.com/guides/build-your-voice',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-02',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     breadcrumb: {
@@ -63,22 +63,23 @@ export default function BuildYourVoiceGuidePage() {
         {/* Steps */}
         <section className="space-y-8 mb-10">
           <Step number={1} title="What is Your Voice?">
-            <p>Your Voice (open it from Teach Echo more on the Create page) is where EchoMe stores and analyzes your content. It maps your unique voice across five dimensions: signature phrases, avoid phrases, writing style, AI-phrase cleanliness, and semantic similarity to your past content. Think of it as teaching an AI how you think and communicate.</p>
-            <Tip>When you sign up, EchoMe runs a "Work Before The Work" pass that automatically builds your starting voice profile and knowledge base from your existing content. Paid users get this refreshed every Monday to keep both current. You can keep adding sources below at any time.</Tip>
+            <p>Your Voice is where EchoMe stores and analyzes your content. It maps your unique voice across five dimensions: signature phrases, avoid phrases, writing style, AI-phrase cleanliness, and semantic similarity to your past content. Think of it as teaching an AI how you think and communicate.</p>
+            <p className="mt-2">To open it, use the voice profile strip on the Create page, or go straight to <strong>/app/voice</strong>. There is no sidebar link for it.</p>
+            <Tip>When you sign up, EchoMe runs a &quot;Work Before The Work&quot; pass that automatically builds your starting voice profile and knowledge base from your existing content. Paid users get this refreshed every Monday to keep both current. You can keep adding sources below at any time.</Tip>
           </Step>
 
-          <Step number={2} title="Use the unified input to add content">
-            <p>The Your Voice page has a single chat-style input where you can add any type of content source. Paste a YouTube channel URL, Instagram profile link, blog URL, or drop files directly. You can also type or paste text, or record a voice note using the mic button. EchoMe auto-detects the content type and processes it accordingly.</p>
+          <Step number={2} title="Use the Echo bar to add content">
+            <p>You add content through the Echo bar on the Create page. It says <em>&quot;Talk, type, or drop a file.&quot;</em> Paste a YouTube channel URL, Instagram profile link, or blog URL, type or paste text, or attach a file with the <strong>paperclip</strong>. Echo shows what it plans to do. Check that it says <strong>Adding to your Voice</strong>, then click <strong>Add to Voice</strong>.</p>
             <Tip>Uploading or linking any of your own videos trains both your voice profile and your knowledge base at the same time. You get stronger voice matching and better content recall from a single ingest.</Tip>
           </Step>
 
           <Step number={3} title="Import your writing">
-            <p>Upload PDFs, Word docs, or text files through the unified input. Import blog posts by pasting your blog URL. EchoMe auto-discovers RSS feeds, with a sitemap fallback for static blogs (Hugo, Astro) that don&apos;t expose an RSS feed. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
-            <Tip>Email import is included on every plan. Echo keeps your 100 most recent emails from each upload.</Tip>
+            <p>Attach PDFs, Word docs, or text files with the paperclip. PDFs and Word docs can be up to 500MB, and .txt or .md files up to 1MB. Import blog posts by pasting your blog URL. EchoMe auto-discovers RSS feeds, with a sitemap fallback for static blogs (Hugo, Astro) that don&apos;t expose an RSS feed. Import sent emails via <a href="/guides/email-upload" className="text-accent hover:underline">Google Takeout</a>. Or paste any text directly.</p>
+            <Tip>Email import is included on every plan. Echo keeps up to 100 emails from each upload.</Tip>
           </Step>
 
-          <Step number={4} title="Record a voice note">
-            <p>Click the <strong>mic button</strong> inside the chat-style input (next to the paperclip attach button) and speak naturally about any topic for 2+ minutes. EchoMe transcribes and analyzes your speaking patterns. This captures cadence, rhythm, and word choice that written content sometimes misses.</p>
+          <Step number={4} title="Add your spoken voice">
+            <p>Two ways. Click the <strong>mic button</strong> in the Echo bar (&quot;Record your voice&quot;) and speak for up to 2 minutes. EchoMe turns it into text in the bar so you can add it. Or attach an audio file (mp3, m4a, wav, ogg, or flac, up to 250MB). EchoMe transcribes it and learns from how you speak. This captures cadence, rhythm, and word choice that written content sometimes misses.</p>
           </Step>
 
           <Step number={5} title="How voice matching works">
@@ -108,7 +109,7 @@ export default function BuildYourVoiceGuidePage() {
           </Step>
 
           <Step number={8} title="Checking your voice strength">
-            <p>Open <strong>Your Voice</strong> in the sidebar. The page shows your voice strength as a 0&ndash;100 score with a visual waveform across the five dimensions above. Use the chat input at the top to ask Echo about your voice. Questions like &quot;how close is the match?&quot;, &quot;describe my style&quot;, or &quot;what am I missing?&quot; work well to identify gaps in your training data.</p>
+            <p>Open <strong>Your Voice</strong>. The header shows your voice strength as a tier (Seed, Growing, Strong, or Signature), a 0&ndash;100 score, and a small waveform. Click <strong>Sources</strong> at the bottom of the page to see what Echo has read and where you&apos;re thin. To ask Echo about your voice, use the Echo bar. Questions like &quot;how close is the match?&quot;, &quot;describe my style&quot;, or &quot;what am I missing?&quot; work well to identify gaps in your training data.</p>
           </Step>
         </section>
 
