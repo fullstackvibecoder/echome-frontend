@@ -747,16 +747,25 @@ export function useEcho(
             setState((prev) => ({ ...prev, pendingAction: null }));
           }
 
-          const kbId = await resolveDefaultKbId();
-          if (!kbId) {
-            setState((prev) => ({
-              ...prev,
-              phase: 'confirming',
-              error: 'No Voice KB found. Add content to Your Voice first.',
-            }));
-            return;
+          // How-to questions about EchoMe itself (classifier args.kind ===
+          // 'help') go to the help docs, not the user's Voice KB, which knows
+          // nothing about the product and would answer with a guess.
+          const isHelp = args.kind === 'help';
+          let raw: string;
+          if (isHelp) {
+            raw = await api.help.chat(query);
+          } else {
+            const kbId = await resolveDefaultKbId();
+            if (!kbId) {
+              setState((prev) => ({
+                ...prev,
+                phase: 'confirming',
+                error: 'No Voice KB found. Add content to Your Voice first.',
+              }));
+              return;
+            }
+            raw = await api.kb.chat(kbId, query);
           }
-          const raw = await api.kb.chat(kbId, query);
           // Parse SSE response (same pattern as help-widget.tsx)
           let answer = '';
           const lines = raw.split('\n');
@@ -774,12 +783,12 @@ export function useEcho(
             }
           }
           if (!answer) answer = 'No answer found. Try rephrasing your question.';
-          addReceipt(formatReceipt(INTENT_META.question.receiptVerb));
+          addReceipt(formatReceipt(isHelp ? 'CHECKED HELP DOCS' : INTENT_META.question.receiptVerb));
           setState((prev) => ({
             ...prev,
             phase: 'answered',
             answer,
-            answerUpsell: gatedFree,
+            answerUpsell: gatedFree && !isHelp,
           }));
           break;
         }
