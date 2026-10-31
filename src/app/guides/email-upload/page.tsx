@@ -15,17 +15,9 @@ export default function EmailUploadGuidePage() {
     description: 'Step-by-step guide to exporting your sent emails from Gmail and importing them into EchoMe to train your voice profile.',
     url: 'https://tryechome.com/guides/email-upload',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
-    video: {
-      '@type': 'VideoObject',
-      name: 'How to Upload Emails to EchoMe - Video Walkthrough',
-      description: 'Step-by-step video walkthrough showing how to export sent emails from Gmail via Google Takeout and upload them to EchoMe.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/78b0e064185a440d9edc3fb2015debff-with-play.gif',
-      embedUrl: 'https://www.loom.com/embed/78b0e064185a440d9edc3fb2015debff',
-      uploadDate: '2026-04-01',
-    },
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -49,28 +41,15 @@ export default function EmailUploadGuidePage() {
           How to Upload Emails to EchoMe
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Your sent emails are one of the best sources for training your voice. Here&apos;s exactly how to export them from Gmail and upload them to EchoMe, in under 3 minutes.
+          Your sent emails are one of the best sources for training your voice. Here&apos;s exactly how to export them from Gmail and upload them to EchoMe, in a few minutes.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
-          3 min read &middot; Video walkthrough included
+          3 min read
         </p>
 
         {/* Why email callout */}
         <div className="mb-10 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
           <p className="text-sm text-amber-800 dark:text-amber-200"><strong>Included on every plan.</strong> Your sent emails are how you actually talk to clients, so Echo writes posts that sound like you on a good day with a client, not like a marketer.</p>
-        </div>
-
-        {/* Video embed */}
-        <div className="mb-10 rounded-xl overflow-hidden border border-border">
-          <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
-            <iframe
-              src="https://www.loom.com/embed/78b0e064185a440d9edc3fb2015debff"
-              frameBorder="0"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-              title="How to Upload Emails to EchoMe - Video Walkthrough"
-            />
-          </div>
         </div>
 
         {/* Why this matters */}
@@ -121,20 +100,22 @@ export default function EmailUploadGuidePage() {
 
           <Step number={7} title="Download and unzip">
             <p>Open the email from Google Takeout and click the download button. Save the <strong>.zip file</strong> to your computer, then <strong>unzip it</strong>. Inside the extracted folder, look for a file ending in <strong>.mbox</strong>. That&apos;s what you&apos;ll upload to EchoMe.</p>
-            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. EchoMe keeps your 100 most recent emails from each upload. For a very large mailbox, a focused date range makes the export faster.</Tip>
+            <Tip>The .mbox file is usually inside a &quot;Mail&quot; folder within the extracted zip. It may be named after your label (e.g. &quot;For Download.mbox&quot;). Apple Mail exports also work. The file may be named just <code>mbox</code> with no extension. EchoMe accepts both. EchoMe keeps up to 100 emails from each upload. It favors longer emails you wrote, newest first, and skips calendar replies and auto-replies. For a very large mailbox, a focused date range makes the export faster.</Tip>
           </Step>
 
           <Step number={8} title="Upload to EchoMe">
-            <p>Go to <strong>Your Voice</strong> in EchoMe. Near the top of the page there&apos;s a chat-style input where you&apos;d type or paste content. Click the <strong>paperclip icon</strong> at the bottom of that input and pick the <strong>.mbox file</strong> you extracted, or just <strong>drag and drop the file onto the input</strong>. EchoMe will parse your emails and start processing them.</p>
-            <Tip>You won&apos;t see a separate &quot;Email&quot; button or an &quot;Import my Writing&quot; card. That older UI was replaced by the single chat input. The paperclip / drag-drop is the way in for everything: PDFs, Word docs, voice recordings, and .mbox exports.</Tip>
+            <p>Open the <strong>Create</strong> page in EchoMe. The Echo bar at the top says <em>&quot;Talk, type, or drop a file.&quot;</em> Click the <strong>paperclip icon</strong> (&quot;Attach a video, PDF, or document&quot;) and pick the <strong>.mbox file</strong> you extracted, or <strong>drag and drop the file onto the bar</strong>.</p>
+            <p className="mt-2">Echo will show what it plans to do with the file. Check that it says <strong>Adding to your Voice</strong>, then click <strong>Add to Voice</strong>. If it picked something else, switch it before you confirm.</p>
+            <Tip>The Your Voice page no longer has its own upload box. Everything goes in through the Echo bar: .mbox exports, PDFs, Word docs, text files, and audio.</Tip>
           </Step>
 
           <Step number={9} title="Wait for processing">
-            <p>You&apos;ll see a short progress bar while EchoMe reads the file and uploads the emails it finds. The upload takes a minute or two depending on how many emails you have.</p>
+            <p>EchoMe reads the file in your browser, then uploads the emails it finds in batches. Stay on the page until you see <strong>Added to your Voice</strong> with the number of emails. It usually takes a minute or two.</p>
+            <p className="mt-2">If you see &quot;No emails found,&quot; the file probably isn&apos;t your Sent mail. Re-check your label and export again.</p>
           </Step>
 
           <Step number={10} title="Confirm your upload">
-            <p>Once done, your emails appear as a new source in the <strong>Sources</strong> drawer on the Your Voice page. Open it to confirm the batch landed. Check your voice strength score in the header. It should have jumped up with all that new content.</p>
+            <p>Once done, open <strong>Your Voice</strong>. There&apos;s no sidebar link for it, so use the voice profile strip on the Create page, or go straight to <strong>/app/voice</strong>. Click <strong>Sources</strong> near the bottom of the page. Your emails show up under the <strong>Email</strong> category. Your voice strength score is in the header next to the page title, and it may move up with the new content.</p>
           </Step>
         </section>
 
@@ -145,7 +126,7 @@ export default function EmailUploadGuidePage() {
             <li><strong className="text-text-primary">Uploading your entire mailbox:</strong> Export only your Sent folder, filtered to the last 6 months. Huge files will time out or include other people&apos;s writing.</li>
             <li><strong className="text-text-primary">Forgetting to filter by label in Takeout:</strong> If you don&apos;t select your specific label, Google exports everything. Use the label filter.</li>
             <li><strong className="text-text-primary">Uploading inbox emails:</strong> Echo learns from <em>your</em> writing. Inbox emails are written by other people. That&apos;s their voice, not yours.</li>
-            <li><strong className="text-text-primary">Expecting every email to import:</strong> EchoMe keeps your 100 most recent emails from each upload. Want older ones in too? Export another date range and upload that as well.</li>
+            <li><strong className="text-text-primary">Expecting every email to import:</strong> EchoMe keeps up to 100 emails from each upload. Want more in? Export another date range and upload that as well.</li>
           </ul>
         </section>
 

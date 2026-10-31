@@ -17,17 +17,9 @@ export default function CompressVideoGuidePage() {
     description: 'Free tools and step-by-step instructions to compress your video files before uploading to EchoMe.',
     url: 'https://tryechome.com/guides/compress-video',
     datePublished: '2026-04-01',
-    dateModified: '2026-07-03',
+    dateModified: '2026-10-31',
     author: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
     publisher: { '@type': 'Organization', name: 'EchoMe', url: 'https://tryechome.com' },
-    video: {
-      '@type': 'VideoObject',
-      name: 'How to Reduce Video File Sizes for EchoMe - Video Walkthrough',
-      description: 'Video walkthrough of free tools to compress video files before uploading to EchoMe.',
-      thumbnailUrl: 'https://cdn.loom.com/sessions/thumbnails/0268f787bbfe47a683712c79a1b1cb13-with-play.gif',
-      embedUrl: 'https://www.loom.com/embed/0268f787bbfe47a683712c79a1b1cb13',
-      uploadDate: '2026-04-01',
-    },
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -51,24 +43,11 @@ export default function CompressVideoGuidePage() {
           How to Reduce Video File Sizes for EchoMe
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          EchoMe accepts files up to 2GB, but uploads under 500MB are noticeably faster and more reliable. Here&apos;s how to get there without losing quality, for free.
+          EchoMe accepts video files up to 5GB (MP4, MOV, WebM, AVI, or MKV). Over 2GB, uploads can time out on slower connections, and files under 500MB are noticeably faster and more reliable. Here&apos;s how to get there without losing quality, for free.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
-          3 min read &middot; Video walkthrough included
+          3 min read
         </p>
-
-        {/* Video embed */}
-        <div className="mb-10 rounded-xl overflow-hidden border border-border">
-          <div style={{ position: 'relative', paddingBottom: '64.98%', height: 0 }}>
-            <iframe
-              src="https://www.loom.com/embed/0268f787bbfe47a683712c79a1b1cb13"
-              frameBorder="0"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-              title="How to Reduce Video File Sizes for EchoMe - Video Walkthrough"
-            />
-          </div>
-        </div>
 
         {/* Why this matters */}
         <section className="mb-10">
@@ -79,13 +58,16 @@ export default function CompressVideoGuidePage() {
           <p className="text-text-secondary">
             Compressing a video from 2GB to 300MB takes a couple of minutes and makes your upload faster, more reliable, and produces the exact same results. <strong className="text-text-primary">Aim for under 500MB.</strong>
           </p>
+          <p className="text-text-secondary mt-3">
+            Length matters too. A video under 10 seconds is rejected, because there isn&apos;t enough speech to work with. For a full content kit, 2 to 60 minutes works best.
+          </p>
         </section>
 
         {/* Pro tip: use a URL instead */}
         <section className="mb-10 p-5 bg-accent/5 border border-accent/20 rounded-xl">
           <h2 className="text-lg font-semibold text-text-primary mb-2">Even better: paste a URL instead</h2>
           <p className="text-sm text-text-secondary">
-            If your video is already on YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}, just paste the link into the Create composer. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
+            If your video is already on YouTube, Instagram, Loom, or Vimeo{zoomEnabled ? ', or Zoom' : ''}, just paste the link into the Create page. No upload needed. EchoMe will pull the content directly. This is the fastest and most reliable option.
           </p>
         </section>
 

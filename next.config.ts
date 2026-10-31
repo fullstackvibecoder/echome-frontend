@@ -124,6 +124,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/app/content-kit', destination: '/app/library', permanent: true },
+      // Reels guide removed 2026-10-31 (Reel Maker is admin-only); caption styles live in the clip editor.
+      { source: '/guides/reels-and-captions', destination: '/guides/video-content', permanent: true },
       { source: '/app/content-kit/:id', destination: '/app/library/:id', permanent: true },
       // /app/reels list folded into /app/library as the Reels tab (Tier 3 Phase 2).
       // The editor at /app/reels/:id stays put — different concern, deeper route.
