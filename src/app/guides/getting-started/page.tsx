@@ -103,7 +103,7 @@ export default function GettingStartedGuidePage() {
             <p>Click any piece of content to edit it directly. Download clips in 1080p with your chosen caption style, or choose Download without captions. Copy text to clipboard. Everything is saved in <strong>Your Library</strong> for later. It works in your phone&apos;s browser too.</p>
             <img
               src="/guide-screenshots/clip-editor-mobile.png"
-              alt="Clip editor on a phone"
+              alt="Clip editor on a phone, with captions on and Download 1080p or Download without captions"
               className="w-full max-w-xs mx-auto rounded-xl border border-border mt-4"
             />
           </Step>

@@ -85,7 +85,7 @@ export default function CarouselsGuidePage() {
         {/* Hero image: the carousel editor in use */}
         <img
           src="/guide-screenshots/carousel-editor.png"
-          alt="EchoMe Carousel Editor showing the slide preview, text editor, style presets, and post caption"
+          alt="EchoMe Carousel Editor on slide 2, showing the Headline and Body fields and a background photo picked for that slide"
           className="w-full rounded-xl border border-border mb-8"
         />
 

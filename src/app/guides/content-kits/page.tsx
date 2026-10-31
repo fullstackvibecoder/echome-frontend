@@ -83,7 +83,7 @@ export default function ContentKitsGuidePage() {
             <p>Click on any piece of written content to edit it directly. Pick a tab (LinkedIn, Twitter/X, Email, TikTok, YouTube, or Video Script), edit the text, then click Save. Regenerate rewrites the post, and Copy copies it. The blog draft opens in the Substack Article editor, where you can Copy for Substack or Copy as Markdown. To edit an Instagram caption, open the carousel or clip and change its Post caption.</p>
             <img
               src="/guide-screenshots/post-editor.png"
-              alt="Platform tabs with Save, Regenerate, Post now, Schedule"
+              alt="Platform tabs with Save, Regenerate, Copy, Post now, Schedule"
               className="w-full rounded-xl border border-border mt-4"
             />
             <Tip>Thumbs up the outputs that sound like you, thumbs down the ones that don&apos;t. The system trains on both. For 30 days, the patterns you flagged as off get excluded from future generations.</Tip>
