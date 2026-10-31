@@ -15,7 +15,6 @@ import {
   Rocket,
   Package,
   Heart,
-  Captions,
   CalendarDays,
   Users,
   CreditCard,
@@ -55,7 +54,6 @@ const thumbnails: Record<string, string> = {
   'content-kits': '/guide-screenshots/content-kit-detail.png',
   carousels: '/guide-screenshots/carousel-editor.png',
   'video-content': '/guide-screenshots/create-page.png',
-  'reels-and-captions': '/guide-screenshots/reel-maker.png',
   'youtube-to-content': '/guide-screenshots/create-page.png',
   'creator-radar': '/guide-screenshots/following.png',
   'scheduling-posts': '/guide-screenshots/post-editor.png',
@@ -140,16 +138,6 @@ export const guides: Guide[] = [
     hasVideo: true,
   },
   {
-    slug: 'reels-and-captions',
-    icon: <Captions className="w-6 h-6" />,
-    title: 'Reels & Caption Styles',
-    description:
-      'Pick from 8 caption styles in the clip editor and export clips sized for Instagram Reels, TikTok, and YouTube Shorts.',
-    category: 'Create content',
-    readTime: '3 min',
-    hasVideo: false,
-  },
-  {
     slug: 'teleprompter',
     icon: <Video className="w-6 h-6" />,
     title: 'Built-in Teleprompter',
@@ -179,7 +167,7 @@ export const guides: Guide[] = [
       'Export your sent emails from Gmail using Google Takeout and upload them to train your voice profile. Only takes a few minutes.',
     category: 'Teach Echo your voice',
     readTime: '3 min',
-    hasVideo: true,
+    hasVideo: false,
   },
   {
     slug: 'team-voices',
@@ -201,7 +189,7 @@ export const guides: Guide[] = [
       'Connect Instagram, LinkedIn, Facebook, Threads, TikTok, YouTube, and Bluesky and auto-publish your content at the time you choose. Manage everything from the Content Calendar.',
     category: 'Schedule and publish',
     readTime: '4 min',
-    hasVideo: true,
+    hasVideo: false,
   },
   {
     slug: 'content-calendar',
@@ -223,7 +211,7 @@ export const guides: Guide[] = [
       'Free tools and step-by-step instructions to compress your videos before uploading. Keep quality, shrink the file, faster uploads.',
     category: 'Tools and plans',
     readTime: '3 min',
-    hasVideo: true,
+    hasVideo: false,
   },
   {
     slug: 'plans',
