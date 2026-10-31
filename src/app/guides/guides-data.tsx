@@ -137,9 +137,9 @@ export const guides: Guide[] = [
   {
     slug: 'carousels',
     icon: <Images className="w-6 h-6" />,
-    title: 'Editing Carousels: Text, Style, Layout, Download',
+    title: 'Editing Carousels: Text, Photos, Style, Download',
     description:
-      'Edit slide text, drag to reposition, restyle the whole set with Quote Card / Tweet Card / My Image / Video Frame, and download single slides or a zip.',
+      'Edit slide text, put a photo on any slide, restyle the whole set with one click, and download single slides or a zip.',
     category: 'Create content',
     readTime: '4 min',
     hasVideo: true,

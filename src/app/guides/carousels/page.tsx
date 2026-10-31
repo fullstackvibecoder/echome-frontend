@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { JsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'Editing Carousels: Text, Style, Layout, Download | EchoMe Guide',
+  title: 'Editing Carousels: Text, Photos, Style, Download | EchoMe Guide',
   description:
-    'Edit carousel slides in EchoMe: change slide text, drag to reposition, restyle with five design presets (Branded, Quote Card, Tweet Card, Stats Card, My Image), and download single slides or a full zip.',
+    'Edit carousel slides in EchoMe: change slide text, put a photo on any slide, restyle with five design presets (Branded, Quote Card, Tweet Card, Stats Card, My Image), and download single slides or a full zip.',
   keywords: [
     'echome carousel editor',
     'edit carousel slides',
@@ -23,9 +23,9 @@ export default function CarouselsGuidePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: 'Editing Carousels: Text, Style, Layout, Download',
+    headline: 'Editing Carousels: Text, Photos, Style, Download',
     description:
-      'Edit carousel slides in EchoMe: change text, drag to reposition, restyle with five design presets, and download single slides or a full zip.',
+      'Edit carousel slides in EchoMe: change text, put a photo on any slide, restyle with five design presets, and download single slides or a full zip.',
     url: 'https://tryechome.com/guides/carousels',
     datePublished: '2026-04-23',
     dateModified: '2026-10-21',
@@ -60,10 +60,10 @@ export default function CarouselsGuidePage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-3">
-          Editing Carousels: Text, Style, Layout, Download
+          Editing Carousels: Text, Photos, Style, Download
         </h1>
         <p className="text-lg text-text-secondary mb-2">
-          Every Content Kit generates a set of carousel slides ready for Instagram and LinkedIn. You can edit the text on each slide, reposition it, restyle the whole set with one click, and download single slides or the full set as a zip.
+          Every Content Kit generates a set of carousel slides ready for Instagram and LinkedIn. You can edit the text on each slide, put your own photo on any slide, restyle the whole set with one click, and download single slides or the full set as a zip.
         </p>
         <p className="text-sm text-text-secondary/70 mb-8">
           4 min read &middot; Video walkthrough included
@@ -106,14 +106,16 @@ export default function CarouselsGuidePage() {
 
           <Step number={3} title="Edit slide text">
             <p>
-              The <strong className="text-text-primary">Slide N Text</strong> field on the right (or below the preview on mobile) shows the current slide&apos;s text. Click into it and edit. Keep slides short: 1&ndash;2 sentences per slide reads best on a phone. Long paragraphs will overflow.
+              The <strong className="text-text-primary">Slide N content</strong> section on the right (or below the preview on mobile) splits each slide into fields like <strong className="text-text-primary">Headline</strong> and <strong className="text-text-primary">Body</strong>. Click into a field and edit. Changes save on their own and the preview updates a moment later. Keep slides short: 1&ndash;2 sentences per slide reads best on a phone.
             </p>
+            <Tip>On the cover and last slide, the <strong className="text-text-primary">Red word</strong> picker lets you mark one word in red so the hook pops. Click the word again to remove it.</Tip>
           </Step>
 
-          <Step number={4} title="Reposition text by dragging">
+          <Step number={4} title="Put a photo on any slide">
             <p>
-              You&apos;ll see the hint <em>&ldquo;Drag the text on the preview to reposition&rdquo;</em> under the text field. Click and drag the text box directly on the slide preview to move it anywhere on the canvas. Use this when the default centered placement fights the background image.
+              Under <strong className="text-text-primary">Background photo</strong>, click a photo to put it on the slide you&apos;re looking at. You can upload your own, reuse a saved photo, grab a still frame from your video, or use your profile photo. Move to another slide and pick a different photo to give each slide its own.
             </p>
+            <Tip>Want the same photo everywhere? After picking one, click <strong className="text-text-primary">Apply this photo to all</strong>.</Tip>
           </Step>
 
           <Step number={5} title="Restyle with a design preset">
@@ -150,7 +152,7 @@ export default function CarouselsGuidePage() {
           <ul className="list-disc pl-5 space-y-2 text-sm text-text-secondary">
             <li><strong className="text-text-primary">Slide 1 is the hook.</strong> Most of your audience decides whether to swipe based on the first slide alone. Edit it last, after the rest of the carousel is settled, so you know what you&apos;re hooking them into.</li>
             <li><strong className="text-text-primary">Read the carousel on a phone.</strong> The editor preview is desktop-sized. Slides that look fine on a laptop can feel cramped on mobile. Download a slide and open it on your phone before publishing.</li>
-            <li><strong className="text-text-primary">Match the background to the mood.</strong> Video Frame works for personal/behind-the-scenes content. Quote Card works for business advice. Tweet Card works for strong opinions and hot takes.</li>
+            <li><strong className="text-text-primary">Match the background to the mood.</strong> A still frame from your video works for personal/behind-the-scenes content. Quote Card works for business advice. Tweet Card works for strong opinions and hot takes.</li>
             <li><strong className="text-text-primary">Caption and carousel should complement, not duplicate.</strong> The caption is where you expand on what the slides can&apos;t fit: context, story, and the call to action.</li>
           </ul>
         </section>
