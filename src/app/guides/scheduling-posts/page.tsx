@@ -132,7 +132,7 @@ export default function SchedulingPostsGuidePage() {
             <div className="my-4 rounded-lg overflow-hidden border border-border">
               <Image
                 src="/guide-screenshots/post-editor.png"
-                alt="Platform tabs with Save, Regenerate, Post now, Schedule"
+                alt="Platform tabs with Save, Regenerate, Copy, Post now, Schedule"
                 width={1458}
                 height={482}
                 className="w-full h-auto"

@@ -51,7 +51,7 @@ export default function BuildYourVoiceGuidePage() {
         {/* Hero image */}
         <img
           src="/guide-screenshots/build-your-voice.png"
-          alt="EchoMe Your Voice"
+          alt="Your Voice page with voice strength, Feed your voice, and Sources"
           className="w-full rounded-xl border border-border mb-8"
         />
 
