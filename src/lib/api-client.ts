@@ -4977,6 +4977,16 @@ export interface CleanReport {
   fillerRemoved: number;
   pausesTrimmed: number;
   secondsSaved: number;
+  /** Stammered repeats cut ("to to"). Absent on older reports. */
+  repeatsRemoved?: number;
+}
+
+/** A transcript segment on a clip's own timeline (seconds from clip start). */
+export interface ClipTranscriptSegment {
+  text: string;
+  start: number;
+  end: number;
+  words?: Array<{ word: string; start: number; end: number }>;
 }
 
 export interface VideoClip {
@@ -5039,6 +5049,13 @@ export interface VideoClip {
   autoCleanApplied?: boolean;
   /** What the auto-clean pass removed. Present only when autoCleanApplied is true. */
   cleanReport?: CleanReport;
+  /** Cleaned transcript with real word timings. Present only when autoCleanApplied is true. */
+  cleanedSegments?: ClipTranscriptSegment[] | null;
+  /**
+   * Clips built by the clip editor are joined from several source ranges.
+   * Trim re-cuts one contiguous range, so it is not offered for them.
+   */
+  sourceRanges?: Array<{ start: number; end: number }> | null;
 }
 
 export interface ClipExport {

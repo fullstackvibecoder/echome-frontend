@@ -52,7 +52,17 @@ interface ClipEditorModalProps {
  * Build CaptionSegment[] from the clip's transcriptText for the overlay.
  * Uses simple sentence splitting since we don't have word-level timing on clips.
  */
-function buildCaptionSegments(clip: VideoClip): CaptionSegment[] {
+function buildCaptionSegments(clip: VideoClip, useCleaned = false): CaptionSegment[] {
+  // The cleaned render has real word timings on its own timeline, and the
+  // fillers and repeats are already gone from them. Use those as-is.
+  if (useCleaned && clip.cleanedSegments && clip.cleanedSegments.length > 0) {
+    return clip.cleanedSegments.map((s) => ({
+      text: s.text,
+      start: s.start,
+      end: s.end,
+      words: (s.words ?? []).map((w) => ({ word: w.word, start: w.start, end: w.end })),
+    }));
+  }
   if (!clip.transcriptText) return [];
 
   const text = clip.transcriptText.trim();
@@ -184,9 +194,13 @@ export default function ClipEditorModal({
   // Live preview reflects edits because captionSegments is derived from segmentEdits.
   // Duration reflects an active trim so overlay timing stays in sync with the
   // shorter clip instead of the pre-trim segments spilling past the end.
+  // Captions follow the video that is actually playing: the cleaned render
+  // (see selectClipVideoSrc) unless split view, the original, or a trim is shown.
+  const playingSplit = viewMode === 'split' && !!(clip as unknown as Record<string, unknown>).splitScreenUrl;
+  const useCleanedCaptions = !!clip.autoCleanApplied && !!clip.cleanedUrl && !showOriginal && !trimOverride && !playingSplit;
   const baseSegments = useMemo(
-    () => buildCaptionSegments(trimOverride ? { ...clip, duration: effectiveDuration } : clip),
-    [clip, trimOverride, effectiveDuration],
+    () => buildCaptionSegments(trimOverride ? { ...clip, duration: effectiveDuration } : clip, useCleanedCaptions),
+    [clip, trimOverride, effectiveDuration, useCleanedCaptions],
   );
   const captionSegments = useMemo(() => {
     if (segmentEdits.size === 0) return baseSegments;
@@ -391,6 +405,7 @@ export default function ClipEditorModal({
                   </div>
                 </div>
               )}
+              {!(clip.sourceRanges && clip.sourceRanges.length > 1) && (
               <ClipTrimControls
                 uploadId={uploadId}
                 clipId={clip.id}
@@ -405,6 +420,7 @@ export default function ClipEditorModal({
                   setTrimOverride({ media, startTime: bounds.startTime, endTime: bounds.endTime });
                 }}
               />
+              )}
             </div>
           </div>
 
