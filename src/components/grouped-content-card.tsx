@@ -73,6 +73,7 @@ function getSourceDescription(sourceType: ContentSourceType, itemCount: number, 
     youtube_import: `${totalChunks.toLocaleString()} snippets from video transcripts`,
     instagram_import: `${totalChunks.toLocaleString()} snippets from Instagram`,
     blog_import: `${totalChunks.toLocaleString()} snippets from blog/website content`,
+    claude_import: `${itemCount} profile${itemCount === 1 ? '' : 's'} Claude wrote about you`,
     generation: `${itemCount} Agentic-generated pieces`,
     'clip-finder': `${itemCount} video clips extracted`,
   };
@@ -93,6 +94,7 @@ function getSourceIcon(sourceType: ContentSourceType): string {
     youtube_import: '🎬',
     instagram_import: '📸',
     blog_import: '🌐',
+    claude_import: '🤖',
     generation: '✨',
     'clip-finder': '🎥',
   };
@@ -113,6 +115,7 @@ function getSourceColor(sourceType: ContentSourceType): string {
     youtube_import: 'bg-red-500/10 text-red-400 border-red-500/20',
     instagram_import: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20',
     blog_import: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+    claude_import: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
     generation: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
     'clip-finder': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
   };

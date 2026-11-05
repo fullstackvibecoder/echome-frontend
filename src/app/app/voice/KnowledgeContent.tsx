@@ -16,6 +16,7 @@ import { KBUnifiedInput } from './KBUnifiedInput';
 import KBChat from './KBChat';
 import { SourcesDrawer } from './components/SourcesDrawer';
 import { VideoSourcesList } from './components/VideoSourcesList';
+import { FillFromClaude } from './components/FillFromClaude';
 
 type WBTWOutcome = 'pending' | 'confirmed' | 'empty' | 'declined' | 'capped' | 'errored' | null;
 
@@ -278,6 +279,8 @@ export default function KnowledgeContent() {
               </Link>
             </div>
           )}
+
+          <FillFromClaude knowledgeBaseId={selectedKb} onAdded={handleImportComplete} />
 
           {/* Unified Input — hidden when the Echo experience is on; the Echo
               bar owns intake there. Component kept for one release for rollback. */}
