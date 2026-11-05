@@ -1185,7 +1185,7 @@ export const api = {
     paste: async (data: {
       text: string;
       title?: string;
-      sourceType: 'writing_sample' | 'social_post' | 'email' | 'text';
+      sourceType: 'writing_sample' | 'social_post' | 'email' | 'text' | 'claude_profile';
       knowledgeBaseId?: string;
       metadata?: Record<string, unknown>;
     }) => {
