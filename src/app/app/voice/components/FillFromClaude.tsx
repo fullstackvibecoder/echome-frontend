@@ -6,22 +6,37 @@ import { showErrorToast, showSuccessToast } from '@/lib/toast';
 
 // What we ask Claude to write. Business and content only: a user's Claude
 // memory can hold private details that have no place in their knowledge base.
+// The code block gives the answer a one-click Copy button in Claude. The
+// split voice headings keep phrases, banned words and format rules apart.
 export const CLAUDE_PROFILE_REQUEST = `I'm setting up EchoMe, an app that writes social media content in my voice. Using what you remember about me and our past conversations, write a profile of me that EchoMe can learn from.
 
 Only include what you actually know about me. Skip anything you would have to guess. Leave out health, family, money and anything private.
 
-Use these headings:
+If I run more than one business, focus on the one I post about most and list the others in one line under What I offer.
+
+Put the whole profile in one plain-text code block so I can copy it in one click. Use these headings:
 - What I do and who I serve
 - My audience
 - What I offer
 - Topics I talk about
 - Stories and examples I use
-- How I sound: words and phrases I use, and things I would never say
+- Phrases I use
+- Words and phrases I never use
+- Format rules (length, structure, punctuation, hashtags, emojis)
 - What I want my content to do
 
-Plain text, under 800 words.`;
+Under 800 words.`;
+
+// Matches the backend's CLAUDE_REQUEST_MARKER: present in the request, never
+// in Claude's answer.
+const REQUEST_MARKER = 'write a profile of me that EchoMe can learn from';
 
 const MIN_CHARS = 100;
+
+/** Copying the whole Claude message (not the block's Copy button) brings the fences along. */
+export function stripCodeFences(text: string): string {
+  return text.trim().replace(/^```[a-z]*\s*\n/i, '').replace(/\n?```\s*$/, '').trim();
+}
 
 interface FillFromClaudeProps {
   knowledgeBaseId: string | null;
@@ -36,20 +51,27 @@ export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromCla
   const [answer, setAnswer] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Both calls start inside the click: awaiting the clipboard first loses the
-  // user gesture and Safari then blocks the new tab.
+  const cleaned = stripCodeFences(answer);
+  const isRequest = cleaned.includes(REQUEST_MARKER);
+  const canSave = !saving && !isRequest && cleaned.length >= MIN_CHARS;
+
+  // Opens Claude with the request filled in. Nothing goes on the clipboard:
+  // a copied request is what users then pasted back instead of the answer.
   const askClaude = () => {
     window.open(`https://claude.ai/new?q=${encodeURIComponent(CLAUDE_PROFILE_REQUEST)}`, '_blank', 'noopener,noreferrer');
-    navigator.clipboard.writeText(CLAUDE_PROFILE_REQUEST).then(() => setCopied(true)).catch(() => setCopied(false));
     setAsked(true);
   };
 
+  const copyRequest = () => {
+    navigator.clipboard.writeText(CLAUDE_PROFILE_REQUEST).then(() => setCopied(true)).catch(() => {});
+  };
+
   const save = async () => {
-    if (answer.trim().length < MIN_CHARS) return;
+    if (!canSave) return;
     setSaving(true);
     try {
       await api.kbContent.paste({
-        text: answer.trim(),
+        text: cleaned,
         title: 'What Claude knows about me',
         sourceType: 'claude_profile',
         knowledgeBaseId: knowledgeBaseId ?? undefined,
@@ -91,19 +113,22 @@ export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromCla
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-text-secondary leading-relaxed">
-            Claude opened in a new tab with the request filled in.
-            {copied ? ' If it is empty, paste: the request is on your clipboard.' : ''}
-            {' '}When Claude answers, copy its reply and paste it here.
+            Claude opened in a new tab with our request filled in. Send it, then click Copy on
+            the profile Claude writes and paste it here.
           </p>
-          {!copied && (
-            <button
-              type="button"
-              onClick={() => navigator.clipboard.writeText(CLAUDE_PROFILE_REQUEST).then(() => setCopied(true)).catch(() => {})}
-              className="text-xs text-primary-interactive hover:underline"
-            >
-              Copy the request
+          <p className="text-xs text-text-secondary leading-relaxed">
+            Claude shows a caution note on any link that fills in a message. That is normal.
+            The request is the one below.
+          </p>
+          <details className="text-xs text-text-secondary">
+            <summary className="cursor-pointer hover:text-foreground">See what we ask Claude</summary>
+            <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-bg-secondary p-3 font-sans leading-relaxed">
+              {CLAUDE_PROFILE_REQUEST}
+            </pre>
+            <button type="button" onClick={copyRequest} className="mt-2 text-primary-interactive hover:underline">
+              {copied ? 'Copied' : 'Claude opened empty? Copy the request'}
             </button>
-          )}
+          </details>
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
@@ -113,16 +138,22 @@ export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromCla
             aria-label="Claude's reply"
             className="w-full px-3 py-2 border border-border rounded-lg bg-transparent text-sm leading-relaxed focus:outline-none focus:border-accent resize-y disabled:opacity-50"
           />
-          <p className="text-xs text-text-secondary leading-relaxed">
-            Read it first and delete anything you would not want Echo to use. It is saved as its
-            own &ldquo;From Claude&rdquo; source: Echo learns your topics and audience from it, but
-            not your wording, because these are Claude&rsquo;s words.
-          </p>
+          {isRequest ? (
+            <p role="alert" className="text-xs text-destructive leading-relaxed">
+              That&rsquo;s our request, not Claude&rsquo;s answer. Copy Claude&rsquo;s reply and paste that instead.
+            </p>
+          ) : (
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Read it first and delete anything you would not want Echo to use. It is saved as its
+              own &ldquo;From Claude&rdquo; source: Echo learns your topics and audience from it, but
+              not your wording, because these are Claude&rsquo;s words.
+            </p>
+          )}
           <div className="flex gap-2">
             <button
               type="button"
               onClick={save}
-              disabled={saving || answer.trim().length < MIN_CHARS}
+              disabled={!canSave}
               className="btn-primary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Add to my knowledge base'}
