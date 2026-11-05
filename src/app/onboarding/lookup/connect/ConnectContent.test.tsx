@@ -59,10 +59,10 @@ describe('ConnectContent', () => {
     expect(screen.getByRole('button', { name: 'Skip for now' })).toBeInTheDocument();
   });
 
-  it('Skip for now goes to /app', async () => {
+  it('Skip for now goes to the Claude step', async () => {
     render(<ConnectContent />);
     await userEvent.click(screen.getByRole('button', { name: 'Skip for now' }));
-    expect(push).toHaveBeenCalledWith('/app');
+    expect(push).toHaveBeenCalledWith('/onboarding/lookup/claude');
   });
 
   it('Connect Gmail asks the backend for an auth url with return_to onboarding and redirects', async () => {
@@ -91,11 +91,11 @@ describe('ConnectContent', () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it('?gmail=connected toasts success and moves on to /app', () => {
+  it('?gmail=connected toasts success and moves on to the Claude step', () => {
     search = new URLSearchParams('gmail=connected');
     render(<ConnectContent />);
     expect(showSuccessToast).toHaveBeenCalledWith('Gmail connected. Echo is reading your sent mail.');
-    expect(replace).toHaveBeenCalledWith('/app');
+    expect(replace).toHaveBeenCalledWith('/onboarding/lookup/claude');
   });
 
   it('?gmail=error toasts an error and stays on the page', () => {
