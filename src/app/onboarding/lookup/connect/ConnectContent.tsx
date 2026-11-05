@@ -30,7 +30,7 @@ export default function ConnectContent() {
     }
     if (outcome === 'connected') {
       showSuccessToast('Gmail connected. Echo is reading your sent mail.');
-      router.replace('/app');
+      router.replace('/onboarding/lookup/claude');
     } else if (outcome === 'error') {
       showErrorToast(new Error('Gmail connection failed'), 'connecting Gmail');
     }
@@ -77,7 +77,7 @@ export default function ConnectContent() {
         </button>
         <button
           type="button"
-          onClick={() => router.push('/app')}
+          onClick={() => router.push('/onboarding/lookup/claude')}
           disabled={starting}
           className="inline-flex items-center justify-center rounded-md border px-5 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-60"
         >

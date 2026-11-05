@@ -248,7 +248,7 @@ export default function ReviewContent() {
         ...(voice_sources_to_ingest ? { voice_sources_to_ingest } : {}),
         ...(identityConfirmed ? { identity_confirmed: true } : {}),
       });
-      router.push(isGmailConnectEnabled() ? '/onboarding/lookup/connect' : '/app');
+      router.push(isGmailConnectEnabled() ? '/onboarding/lookup/connect' : '/onboarding/lookup/claude');
     } catch (err) {
       showErrorToast(err, 'saving your profile');
       setConfirming(false);
