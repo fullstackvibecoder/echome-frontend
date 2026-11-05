@@ -11,7 +11,7 @@ vi.mock('@/lib/api-client', () => ({ api: { kbContent: { paste: vi.fn() } } }));
 vi.mock('@/lib/toast', () => ({ showSuccessToast: vi.fn(), showErrorToast: vi.fn() }));
 
 import { api } from '@/lib/api-client';
-import { FillFromClaude, CLAUDE_PROFILE_REQUEST } from './FillFromClaude';
+import { FillFromClaude, CLAUDE_PROFILE_REQUEST, stripCodeFences } from './FillFromClaude';
 
 const REPLY = 'What I do and who I serve: I run a real estate team in Halifax helping first-time buyers. '.repeat(2);
 
@@ -22,11 +22,11 @@ describe('FillFromClaude', () => {
     vi.spyOn(window, 'open').mockImplementation(() => null);
   });
 
-  it('copies the request and opens Claude with it prefilled', async () => {
+  it('opens Claude with the request prefilled and leaves the clipboard alone', async () => {
     render(<FillFromClaude knowledgeBaseId="kb-1" onAdded={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: 'Ask Claude' }));
     await waitFor(() => expect(window.open).toHaveBeenCalled());
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(CLAUDE_PROFILE_REQUEST);
+    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
     expect((window.open as any).mock.calls[0][0]).toBe(`https://claude.ai/new?q=${encodeURIComponent(CLAUDE_PROFILE_REQUEST)}`);
     expect(CLAUDE_PROFILE_REQUEST).not.toMatch(/[–—]/);
   });
@@ -47,5 +47,19 @@ describe('FillFromClaude', () => {
       sourceType: 'claude_profile',
       knowledgeBaseId: 'kb-1',
     });
+  });
+
+  it('refuses the request pasted back as the answer', async () => {
+    render(<FillFromClaude knowledgeBaseId="kb-1" onAdded={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ask Claude' }));
+    fireEvent.change(screen.getByLabelText("Claude's reply"), { target: { value: CLAUDE_PROFILE_REQUEST } });
+    expect(screen.getByRole('alert')).toHaveTextContent('not Claude');
+    expect(screen.getByRole('button', { name: 'Add to my knowledge base' })).toBeDisabled();
+  });
+
+  it('strips code fences from a whole-message copy', () => {
+    expect(stripCodeFences('```\nWHAT I DO\nStuff\n```')).toBe('WHAT I DO\nStuff');
+    expect(stripCodeFences('```text\nA\n```\n')).toBe('A');
+    expect(stripCodeFences('Plain answer')).toBe('Plain answer');
   });
 });
