@@ -34,14 +34,11 @@ export function FillFromClaude({ knowledgeBaseId, onAdded }: FillFromClaudeProps
   const [answer, setAnswer] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const askClaude = async () => {
-    try {
-      await navigator.clipboard.writeText(CLAUDE_PROFILE_REQUEST);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
+  // Both calls start inside the click: awaiting the clipboard first loses the
+  // user gesture and Safari then blocks the new tab.
+  const askClaude = () => {
     window.open(`https://claude.ai/new?q=${encodeURIComponent(CLAUDE_PROFILE_REQUEST)}`, '_blank', 'noopener,noreferrer');
+    navigator.clipboard.writeText(CLAUDE_PROFILE_REQUEST).then(() => setCopied(true)).catch(() => setCopied(false));
     setAsked(true);
   };
 
