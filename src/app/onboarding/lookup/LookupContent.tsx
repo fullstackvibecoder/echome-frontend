@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, CheckCircle2, Loader2, ArrowRight, Shield } from 'lucide-react';
 import { api } from '@/lib/api-client';
-import { showInfoToast } from '@/lib/toast';
 
 // ============================================
 // Echo avatar (mirrors the existing onboarding chat shape)
@@ -111,12 +110,8 @@ export default function LookupContent() {
         if (hasAnyField) {
           router.push('/onboarding/lookup/review');
         } else {
-          // Empty profile is a valid response — degrade gracefully.
-          showInfoToast(
-            "Couldn't find much yet",
-            "Drop a video, paste a link, or type a topic — Echo learns from anything you give it."
-          );
-          router.push('/app');
+          // Nothing public found: the users who gain most from Fill from Claude.
+          router.push('/onboarding/lookup/claude');
         }
       }, 600);
     } catch (err: unknown) {
@@ -141,7 +136,7 @@ export default function LookupContent() {
   // offer them a chance to opt back in) then drop them at /app.
   const handleDecline = useCallback(() => {
     api.wbtw.decline().catch(() => { /* non-blocking */ });
-    router.push('/app');
+    router.push('/onboarding/lookup/claude');
   }, [router]);
 
   // translate="no" is the W3C-standard signal that prevents browser

@@ -26,9 +26,11 @@ const MIN_CHARS = 100;
 interface FillFromClaudeProps {
   knowledgeBaseId: string | null;
   onAdded: () => void;
+  /** Onboarding: show a "Skip for now" beside Ask Claude. */
+  onSkip?: () => void;
 }
 
-export function FillFromClaude({ knowledgeBaseId, onAdded }: FillFromClaudeProps) {
+export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromClaudeProps) {
   const [asked, setAsked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [answer, setAnswer] = useState('');
@@ -72,9 +74,20 @@ export function FillFromClaude({ knowledgeBaseId, onAdded }: FillFromClaudeProps
       </p>
 
       {!asked ? (
-        <button type="button" onClick={askClaude} className="btn-primary px-4 py-2 text-sm">
-          Ask Claude
-        </button>
+        <div className="flex gap-2">
+          <button type="button" onClick={askClaude} className="btn-primary px-4 py-2 text-sm">
+            Ask Claude
+          </button>
+          {onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="px-4 py-2 text-sm text-text-secondary hover:text-foreground"
+            >
+              Skip for now
+            </button>
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-text-secondary leading-relaxed">
