@@ -63,6 +63,12 @@ declare module 'axios' {
 // Last subscription tier seen from /auth/me; used to avoid telling paid users to subscribe.
 let knownTier: string | null = null;
 
+export interface VoiceRules {
+  usePhrases: string[];
+  neverUse: string[];
+  formatRules: string[];
+}
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -1130,6 +1136,23 @@ export const api = {
 
   // -------- VOICE STATUS --------
   voice: {
+    /** Phrases, never-use words and format rules the user approved. */
+    getRules: async () => {
+      const response = await apiClient.get('/voice/rules');
+      return response.data as { success: boolean; data?: VoiceRules };
+    },
+
+    saveRules: async (rules: VoiceRules) => {
+      const response = await apiClient.put('/voice/rules', rules);
+      return response.data as { success: boolean; data?: VoiceRules };
+    },
+
+    /** Suggested rules from Claude profile text, or the latest Fill from Claude entry when omitted. */
+    suggestRules: async (text?: string) => {
+      const response = await apiClient.post('/voice/rules/suggest', text ? { text } : {});
+      return response.data as { success: boolean; data?: VoiceRules };
+    },
+
     getStatus: async () => {
       const response = await apiClient.get('/voice/status');
       return response.data as {
