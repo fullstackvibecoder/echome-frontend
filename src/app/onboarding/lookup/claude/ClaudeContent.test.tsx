@@ -25,7 +25,7 @@ describe('onboarding Claude step', () => {
 
   it('saves the pasted reply to the default knowledge base, then goes to the app', async () => {
     render(<ClaudeContent />);
-    fireEvent.click(screen.getByRole('button', { name: 'Ask Claude' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start transfer' }));
     fireEvent.change(screen.getByLabelText("Claude's reply"), { target: { value: 'I help first-time buyers in Halifax. '.repeat(4) } });
     fireEvent.click(screen.getByRole('button', { name: 'Add to my knowledge base' }));
     await waitFor(() => expect(push).toHaveBeenCalledWith('/app'));
