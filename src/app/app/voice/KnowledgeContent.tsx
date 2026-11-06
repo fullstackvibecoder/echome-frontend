@@ -279,7 +279,6 @@ export default function KnowledgeContent() {
             </div>
           )}
 
-
           {/* Unified Input — hidden when the Echo experience is on; the Echo
               bar owns intake there. Component kept for one release for rollback. */}
           {!echoOn && (
