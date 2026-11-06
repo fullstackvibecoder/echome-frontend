@@ -30,6 +30,7 @@ import { QuotaLine } from '@/components/create/QuotaLine';
 import { LinkGuidance } from '@/components/create/LinkGuidance';
 import { RecentKitsStrip } from '@/components/create/RecentKitsStrip';
 import { VoiceStrengthStrip } from '@/components/create/VoiceStrengthStrip';
+import { ClaudeNudgeCard } from '@/components/create/ClaudeNudgeCard';
 import { GmailNudgeCard } from '@/components/create/GmailNudgeCard';
 import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -456,6 +457,9 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
 
       {/* Gmail nudge — renders null unless flag on and backend says eligible */}
       {belowFold && <GmailNudgeCard />}
+
+      {/* Fill from Claude: hides itself once added or skipped */}
+      {belowFold && <ClaudeNudgeCard />}
 
       {belowFold && (advisorState === 'thin' || advisorState === 'rich') && <RecentKitsStrip />}
 
