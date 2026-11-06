@@ -24,7 +24,7 @@ describe('FillFromClaude', () => {
 
   it('opens Claude with the request prefilled and leaves the clipboard alone', async () => {
     render(<FillFromClaude knowledgeBaseId="kb-1" onAdded={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Ask Claude' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start transfer' }));
     await waitFor(() => expect(window.open).toHaveBeenCalled());
     expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
     expect((window.open as any).mock.calls[0][0]).toBe(`https://claude.ai/new?q=${encodeURIComponent(CLAUDE_PROFILE_REQUEST)}`);
@@ -35,7 +35,7 @@ describe('FillFromClaude', () => {
     (api.kbContent.paste as any).mockResolvedValue({});
     const onAdded = vi.fn();
     render(<FillFromClaude knowledgeBaseId="kb-1" onAdded={onAdded} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Ask Claude' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start transfer' }));
     const save = await screen.findByRole('button', { name: 'Add to my knowledge base' });
     expect(save).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Claude's reply"), { target: { value: REPLY } });
@@ -51,7 +51,7 @@ describe('FillFromClaude', () => {
 
   it('refuses the request pasted back as the answer', async () => {
     render(<FillFromClaude knowledgeBaseId="kb-1" onAdded={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Ask Claude' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start transfer' }));
     fireEvent.change(screen.getByLabelText("Claude's reply"), { target: { value: CLAUDE_PROFILE_REQUEST } });
     expect(screen.getByRole('alert')).toHaveTextContent('not Claude');
     expect(screen.getByRole('button', { name: 'Add to my knowledge base' })).toBeDisabled();
@@ -61,5 +61,7 @@ describe('FillFromClaude', () => {
     expect(stripCodeFences('```\nWHAT I DO\nStuff\n```')).toBe('WHAT I DO\nStuff');
     expect(stripCodeFences('```text\nA\n```\n')).toBe('A');
     expect(stripCodeFences('Plain answer')).toBe('Plain answer');
+    // Whole-message copy: Claude's notes around the block are dropped.
+    expect(stripCodeFences('Here it is.\n\n```\nWHAT I DO\nStuff\n```\n\nI focused on BottleneckLabs.')).toBe('WHAT I DO\nStuff');
   });
 });

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/api-client';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
+import { ClaudeLogo } from '@/components/create/ClaudeLogo';
 
 // What we ask Claude to write. Business and content only: a user's Claude
 // memory can hold private details that have no place in their knowledge base.
@@ -33,19 +34,32 @@ const REQUEST_MARKER = 'write a profile of me that EchoMe can learn from';
 
 const MIN_CHARS = 100;
 
-/** Copying the whole Claude message (not the block's Copy button) brings the fences along. */
+/** Set once a profile is added or the Create card is skipped. */
+export const CLAUDE_FILL_DONE_KEY = 'echome_claude_fill_done';
+
+/**
+ * Copying the whole Claude message (not the block's Copy button) brings the
+ * fences and Claude's notes around the block along. Keep only the block.
+ */
 export function stripCodeFences(text: string): string {
-  return text.trim().replace(/^```[a-z]*\s*\n/i, '').replace(/\n?```\s*$/, '').trim();
+  const block = text.match(/```[^\n]*\n([\s\S]*?)\n?```/);
+  return (block ? block[1] : text).trim();
 }
 
 interface FillFromClaudeProps {
   knowledgeBaseId: string | null;
   onAdded: () => void;
-  /** Onboarding: show a "Skip for now" beside Ask Claude. */
+  /** Onboarding and Create: show a "Skip for now" beside Ask Claude. */
   onSkip?: () => void;
+  className?: string;
 }
 
-export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromClaudeProps) {
+export function FillFromClaude({
+  knowledgeBaseId,
+  onAdded,
+  onSkip,
+  className = 'mb-8 rounded-xl border border-border bg-card p-5',
+}: FillFromClaudeProps) {
   const [asked, setAsked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [answer, setAnswer] = useState('');
@@ -79,6 +93,11 @@ export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromCla
       showSuccessToast('Added to your knowledge base', 'Echo will use it for what you talk about and who you talk to.');
       setAnswer('');
       setAsked(false);
+      try {
+        localStorage.setItem(CLAUDE_FILL_DONE_KEY, new Date().toISOString());
+      } catch {
+        // per-browser convenience only
+      }
       onAdded();
     } catch (err) {
       showErrorToast(err, 'Could not save what Claude wrote');
@@ -88,17 +107,28 @@ export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromCla
   };
 
   return (
-    <div className="mb-8 rounded-xl border border-border bg-card p-5">
-      <p className="text-machine mb-1.5">Fill from Claude</p>
-      <p className="text-sm text-text-secondary leading-relaxed mb-3">
-        Already use Claude? It knows what you do, who you serve and what you talk about.
-        Let it write that down for Echo in one go.
+    <div className={className}>
+      <p className="text-machine mb-1.5 flex items-center gap-1.5">
+        <ClaudeLogo className="h-4 w-4" />
+        From Claude
+      </p>
+      <h2 className="text-lg font-semibold text-foreground">
+        Transfer what Claude knows about you into Echo
+      </h2>
+      <p className="mt-1 text-sm text-text-secondary leading-relaxed mb-4">
+        Already use Claude? It knows what you do, who you serve and what you talk about. A couple
+        of clicks moves that into Echo, so your knowledge base starts full instead of empty.
       </p>
 
       {!asked ? (
         <div className="flex gap-2">
-          <button type="button" onClick={askClaude} className="btn-primary px-4 py-2 text-sm">
-            Ask Claude
+          <button
+            type="button"
+            onClick={askClaude}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-foreground hover:border-[#D97757]/50"
+          >
+            <ClaudeLogo className="h-4 w-4" decorative />
+            Start transfer
           </button>
           {onSkip && (
             <button
@@ -112,10 +142,11 @@ export function FillFromClaude({ knowledgeBaseId, onAdded, onSkip }: FillFromCla
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-text-secondary leading-relaxed">
-            Claude opened in a new tab with our request filled in. Send it, then click Copy on
-            the profile Claude writes and paste it here.
-          </p>
+          <ol className="list-decimal pl-5 text-sm text-text-secondary leading-relaxed space-y-0.5">
+            <li>Claude opened in a new tab with our request filled in. Send it.</li>
+            <li>Click Copy on the profile Claude writes.</li>
+            <li>Paste it below and add it.</li>
+          </ol>
           <p className="text-xs text-text-secondary leading-relaxed">
             Claude shows a caution note on any link that fills in a message. That is normal.
             The request is the one below.
