@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '@/lib/api-client';
+import { api, VoiceRules } from '@/lib/api-client';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { ClaudeLogo } from '@/components/create/ClaudeLogo';
+import { VoiceRulesReview, countRules } from '@/components/voice/VoiceRulesReview';
 
 // What we ask Claude to write. Business and content only: a user's Claude
 // memory can hold private details that have no place in their knowledge base.
@@ -64,6 +65,8 @@ export function FillFromClaude({
   const [copied, setCopied] = useState(false);
   const [answer, setAnswer] = useState('');
   const [saving, setSaving] = useState(false);
+  const [readingRules, setReadingRules] = useState(false);
+  const [suggestions, setSuggestions] = useState<VoiceRules | null>(null);
 
   const cleaned = stripCodeFences(answer);
   const isRequest = cleaned.includes(REQUEST_MARKER);
@@ -80,6 +83,13 @@ export function FillFromClaude({
     navigator.clipboard.writeText(CLAUDE_PROFILE_REQUEST).then(() => setCopied(true)).catch(() => {});
   };
 
+  const finish = () => {
+    setAnswer('');
+    setAsked(false);
+    setSuggestions(null);
+    onAdded();
+  };
+
   const save = async () => {
     if (!canSave) return;
     setSaving(true);
@@ -91,19 +101,31 @@ export function FillFromClaude({
         knowledgeBaseId: knowledgeBaseId ?? undefined,
       });
       showSuccessToast('Added to your knowledge base', 'Echo will use it for what you talk about and who you talk to.');
-      setAnswer('');
-      setAsked(false);
       try {
         localStorage.setItem(CLAUDE_FILL_DONE_KEY, new Date().toISOString());
       } catch {
         // per-browser convenience only
       }
-      onAdded();
     } catch (err) {
       showErrorToast(err, 'Could not save what Claude wrote');
-    } finally {
       setSaving(false);
+      return;
     }
+    setSaving(false);
+
+    // Offer the phrases, never-use words and format rules as voice rules.
+    // Any failure just skips the step: the profile is already saved.
+    setReadingRules(true);
+    let found: VoiceRules | null = null;
+    try {
+      const res = await api.voice.suggestRules(cleaned);
+      if (res.data && countRules(res.data) > 0) found = res.data;
+    } catch {
+      found = null;
+    }
+    setReadingRules(false);
+    if (found) setSuggestions(found);
+    else finish();
   };
 
   return (
@@ -120,7 +142,11 @@ export function FillFromClaude({
         of clicks moves that into Echo, so your knowledge base starts full instead of empty.
       </p>
 
-      {!asked ? (
+      {readingRules ? (
+        <p className="text-sm text-text-secondary" role="status">Reading your voice rules...</p>
+      ) : suggestions ? (
+        <VoiceRulesReview suggestions={suggestions} onDone={finish} />
+      ) : !asked ? (
         <div className="flex gap-2">
           <button
             type="button"

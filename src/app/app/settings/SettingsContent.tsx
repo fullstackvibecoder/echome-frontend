@@ -1,5 +1,6 @@
 'use client';
 
+import { VoiceRulesCard } from '@/components/voice/VoiceRulesCard';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -545,6 +546,8 @@ export default function SettingsContent() {
               </div>
             )}
           </div>
+
+          <VoiceRulesCard />
 
           {/* Profile Image Card */}
           <div
