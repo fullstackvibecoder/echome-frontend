@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EchoMe transfer from Claude (demo loop)</title>
+<!--
+  Self-contained 18s loop, 1280x720. All timing is in the script at the bottom;
+  record.mjs freezes every animation and seeks it frame by frame.
+  The chat panel is a generic neutral AI chat labelled "Claude" in plain text.
+  No Anthropic or Claude logo, mark or colours. Only EchoMe tokens are used.
+  The persona and every phrase are fictional. No em or en dashes anywhere.
+-->
+<style>
+  :root { --signal:#22D3EE; --signal-d:#0E7490; --ink:#F4F1EA; --bg:#0E0F13; --raised:#1A1C22; --paper:#F4F1EA; --dark:#111216; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { width:1280px; height:720px; background:var(--bg); overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; color:var(--ink); }
+  .stage { position:relative; width:1280px; height:720px; overflow:hidden;
+    background:radial-gradient(60% 70% at 78% 8%, rgba(34,211,238,.18), transparent 70%),
+               radial-gradient(50% 60% at 8% 100%, rgba(34,211,238,.08), transparent 70%), var(--bg); }
+  .brand { position:absolute; left:48px; top:34px; font-weight:700; font-size:28px; letter-spacing:-.03em; }
+  .tag { position:absolute; right:48px; top:42px; font:600 15px ui-monospace,Menlo,monospace; letter-spacing:.1em; color:var(--signal); }
+  .caption { position:absolute; left:0; right:0; top:88px; text-align:center; font-size:46px; font-weight:700; letter-spacing:-.02em; opacity:0; }
+  .caption em { font-style:normal; color:var(--signal); }
+
+  .panel { position:absolute; left:140px; top:170px; width:1000px; height:490px; border-radius:18px; background:#FAFAFA; color:#1C1C1E;
+    box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); overflow:hidden; }
+  .bar { height:48px; background:#EEEEEE; border-bottom:1px solid #DDD; display:flex; align-items:center; padding:0 18px; gap:8px; }
+  .bar u { width:12px; height:12px; border-radius:50%; background:#C9C9CC; }
+  .bar { position:relative; } .bar span { margin-left:12px; font-weight:600; font-size:17px; color:#333; }
+  .scene { position:absolute; left:0; right:0; top:48px; bottom:0; padding:26px 40px; opacity:0; }
+  .tx { display:inline-block; white-space:nowrap; clip-path:inset(0 100% 0 0); }
+
+  /* scene 1: Create card */
+  .card { margin:20px auto 0; width:700px; background:#fff; border:1px solid #DADADD; border-radius:14px; padding:30px 34px; box-shadow:0 8px 30px rgba(0,0,0,.08); }
+  .kick { font:600 13px ui-monospace,Menlo,monospace; letter-spacing:.1em; color:var(--signal-d); margin-bottom:8px; }
+  .card h3 { font-size:25px; line-height:1.2; margin-bottom:10px; letter-spacing:-.01em; }
+  .card p { font-size:17px; line-height:1.45; color:#555; margin-bottom:22px; }
+  .btn { display:inline-block; padding:12px 24px; border-radius:10px; font-weight:700; font-size:17px; background:var(--dark); color:#fff; }
+  .btn.alt { background:#fff; color:#222; border:1px solid #C9C9CE; }
+
+  /* scene 2: chat */
+  .msg { max-width:760px; margin:0 0 14px auto; background:#E9E9EC; padding:12px 18px; border-radius:16px 16px 4px 16px; font-size:17px; line-height:1.4; width:fit-content; }
+  .code { background:#101216; color:#E7E9EE; border-radius:12px; padding:16px 20px; font:500 15px/1.5 ui-monospace,Menlo,monospace; white-space:pre; }
+  .code .h { color:var(--signal); font-weight:700; }
+  .code .ln { display:block; opacity:0; }
+  .codehead { display:flex; justify-content:space-between; align-items:center; font:600 13px ui-monospace,Menlo,monospace; color:#777; margin-bottom:8px; }
+  .copy { background:#fff; border:1px solid #C9C9CE; border-radius:8px; padding:5px 12px; color:#222; font:600 13px ui-monospace,Menlo,monospace; }
+
+  /* scene 3: paste */
+  .area { border:1px solid #C9C9CE; border-radius:12px; background:#fff; padding:16px 18px; height:210px; overflow:hidden; font:500 14px/1.5 ui-monospace,Menlo,monospace; color:#222; white-space:pre; position:relative; }
+  .area .ln { display:block; opacity:0; }
+  .area .ph { position:absolute; left:18px; top:16px; color:#999; font-family:inherit; }
+  .row { display:flex; align-items:center; gap:14px; margin-top:16px; }
+
+  /* scene 4: rules */
+  .grp { margin-bottom:12px; }
+  .grp b { display:block; font:700 13px ui-monospace,Menlo,monospace; letter-spacing:.08em; color:#555; margin-bottom:7px; }
+  .chips { display:flex; flex-wrap:wrap; gap:9px; }
+  .rule { display:inline-flex; align-items:center; gap:9px; background:#fff; border:1px solid #D8D8DC; border-radius:10px; padding:9px 14px; font-size:17px; }
+  .rule i { width:20px; height:20px; border-radius:6px; border:2px solid #B5B5BB; display:grid; place-items:center; font-style:normal; font-size:14px; font-weight:800; color:transparent; }
+  .rule.on { border-color:var(--signal-d); background:#ECFBFE; }
+  .rule.on i { background:var(--signal-d); border-color:var(--signal-d); color:#fff; }
+
+  /* scene 5: draft */
+  .draft { margin:6px auto 0; width:640px; background:#fff; border:1px solid #DADADD; border-radius:14px; padding:24px 28px; box-shadow:0 8px 30px rgba(0,0,0,.08); }
+  .who { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .who i { width:40px; height:40px; border-radius:50%; background:var(--dark); color:#fff; display:grid; place-items:center; font-style:normal; font-weight:700; }
+  .who strong { font-size:17px; display:block; } .who span { font-size:14px; color:#777; }
+  .post p { font-size:19px; line-height:1.4; margin-bottom:12px; }
+  .post mark { background:#CFF6FD; color:inherit; padding:0 3px; border-radius:3px; }
+  .checks { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+  .checks span { font:700 12px ui-monospace,Menlo,monospace; letter-spacing:.06em; color:var(--signal-d); background:#ECFBFE; border:1px solid #A5E8F5; padding:5px 10px; border-radius:999px; }
+  .foot { position:absolute; left:0; right:0; bottom:20px; text-align:center; font:500 15px ui-monospace,Menlo,monospace; color:rgba(244,241,234,.55); }
+  .endcard { position:absolute; inset:0; display:grid; place-items:center; text-align:center; background:var(--bg); opacity:0; }
+  .endcard h2 { font-size:64px; letter-spacing:-.03em; line-height:1.1; }
+  .endcard h2 em { font-style:normal; color:var(--signal); }
+  .endcard p { margin-top:18px; font:600 18px ui-monospace,Menlo,monospace; color:rgba(244,241,234,.6); letter-spacing:.06em; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="brand">EchoMe</div>
+  <div class="tag">WORKS WITH CLAUDE</div>
+
+  <div class="caption" id="cap1">Click <em>Start transfer</em></div>
+  <div class="caption" id="cap2">Your assistant writes your profile</div>
+  <div class="caption" id="cap3">Paste it into Echo</div>
+  <div class="caption" id="cap4">Tick the rules to <em>keep</em></div>
+  <div class="caption" id="cap5">Your next post follows them</div>
+
+  <div class="panel">
+    <div class="bar"><u></u><u></u><u></u><span id="bt1">EchoMe &middot; Create</span><span id="bt2" style="position:absolute;left:62px">Claude</span></div>
+
+    <div class="scene" id="s1">
+      <div class="card">
+        <div class="kick">FROM CLAUDE</div>
+        <h3>Transfer what Claude knows about you into Echo</h3>
+        <p>Already use Claude? It knows what you do and who you serve. One copy and paste moves that into Echo.</p>
+        <span class="btn" id="startbtn">Start transfer</span> <span class="btn alt">Skip for now</span>
+      </div>
+    </div>
+
+    <div class="scene" id="s2">
+      <div class="msg"><span class="tx" id="t-req">Write a profile of me for EchoMe, in one code block.</span></div>
+      <div class="codehead"><span>profile</span><span class="copy" id="copybtn">Copy</span></div>
+      <div class="code" id="code"><span class="ln"><span class="h">What I do</span></span><span class="ln">I coach freelancers on pricing and steady income.</span><span class="ln"><span class="h">My audience</span></span><span class="ln">Designers and writers, 2 to 5 years in, tired of feast and famine.</span><span class="ln"><span class="h">Phrases I use</span></span><span class="ln">"Here's the thing" / "Small steps, real money"</span><span class="ln"><span class="h">Words I never use</span></span><span class="ln">game-changer / hustle / crushing it</span><span class="ln"><span class="h">Format rules</span></span><span class="ln">No hashtags. Short paragraphs. End with one question.</span></div>
+    </div>
+
+    <div class="scene" id="s3">
+      <p style="font-size:18px;margin-bottom:12px;color:#333;font-weight:600">Transfer what Claude knows about you into Echo</p>
+      <div class="area"><span class="ph" id="ph">Paste your profile here</span><span class="ln">What I do</span><span class="ln">I coach freelancers on pricing and steady income.</span><span class="ln">My audience</span><span class="ln">Designers and writers, 2 to 5 years in, tired of feast and famine.</span><span class="ln">Phrases I use</span><span class="ln">"Here's the thing" / "Small steps, real money"</span><span class="ln">Words I never use</span><span class="ln">game-changer / hustle / crushing it</span><span class="ln">Format rules</span><span class="ln">No hashtags. Short paragraphs. End with one question.</span></div>
+      <div class="row"><span class="btn" id="addbtn">Add to Echo</span></div>
+    </div>
+
+    <div class="scene" id="s4">
+      <p style="font-size:18px;margin-bottom:14px;color:#333;font-weight:600">Voice rules from your profile. Keep what is true.</p>
+      <div class="grp"><b>PHRASES I USE</b><div class="chips"><span class="rule" id="a1"><i>&#10003;</i>Here's the thing</span><span class="rule" id="a2"><i>&#10003;</i>Small steps, real money</span></div></div>
+      <div class="grp"><b>WORDS I NEVER USE</b><div class="chips"><span class="rule" id="b1"><i>&#10003;</i>game-changer</span><span class="rule" id="b2"><i>&#10003;</i>hustle</span><span class="rule" id="b3"><i>&#10003;</i>crushing it</span></div></div>
+      <div class="grp"><b>FORMAT RULES</b><div class="chips"><span class="rule" id="c1"><i>&#10003;</i>No hashtags</span><span class="rule" id="c2"><i>&#10003;</i>Short paragraphs</span><span class="rule" id="c3"><i>&#10003;</i>End with one question</span></div></div>
+      <div class="row"><span class="btn" id="keepbtn">Keep 8 rules</span></div>
+    </div>
+
+    <div class="scene" id="s5">
+      <div class="draft">
+        <div class="who"><i>J</i><div><strong>Jordan Ellis</strong><span>Draft in your voice</span></div></div>
+        <div class="post">
+          <p id="p1"><mark>Here's the thing:</mark> your rate is not a guess.</p>
+          <p id="p2">Raise it by 10 percent on your next quote. <mark>Small steps, real money.</mark></p>
+          <p id="p3">What is one price you have not changed in a year?</p>
+        </div>
+        <div class="checks" id="checks"><span>PHRASE USED</span><span>NO HASHTAGS</span><span>SHORT PARAGRAPHS</span><span>ENDS WITH A QUESTION</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">Sample persona. Names and words are fictional.</div>
+
+  <div class="endcard" id="end"><div><h2>Posts that sound<br><em>even more like you.</em></h2><p>ECHOME &middot; TRANSFER WHAT CLAUDE KNOWS ABOUT YOU</p></div></div>
+</div>
+
+<script>
+const T = 18000; // loop length, ms
+const o = (s) => Math.min(Math.max(s * 1000 / T, 0), 1);
+const $ = (id) => document.getElementById(id);
+
+function show(el, tIn, tOut, opt = {}) {
+  const f = opt.fade ?? 0.35, dy = opt.dy ?? 10, end = tOut ?? 17.6;
+  const frames = [
+    { offset: 0, opacity: 0, transform: `translateY(${dy}px)` },
+    { offset: o(tIn), opacity: 0, transform: `translateY(${dy}px)` },
+    { offset: o(tIn + f), opacity: 1, transform: "translateY(0)" },
+    { offset: o(end - f), opacity: 1, transform: "translateY(0)" },
+    { offset: o(end), opacity: 0, transform: "translateY(0)" },
+    { offset: 1, opacity: 0, transform: "translateY(0)" },
+  ];
+  if (opt.visibleAtStart) { frames[0].opacity = 1; frames[0].transform = "translateY(0)"; frames[1].opacity = 1; frames[1].transform = "translateY(0)"; frames[2].offset = frames[1].offset; }
+  el.animate(frames, { duration: T, fill: "both", easing: "linear", iterations: Infinity });
+}
+function type(el, t0, t1, chars) {
+  el.animate([
+    { offset: 0, clipPath: "inset(0 100% 0 0)" },
+    { offset: o(t0), clipPath: "inset(0 100% 0 0)", easing: `steps(${chars}, end)` },
+    { offset: o(t1), clipPath: "inset(0 0% 0 0)" },
+    { offset: 1, clipPath: "inset(0 0% 0 0)" },
+  ], { duration: T, fill: "both", easing: "linear", iterations: Infinity });
+}
+/** stays hidden until tIn, then visible until the scene ends (parent handles fade-out) */
+function appear(el, tIn, f = 0.2) {
+  el.animate([
+    { offset: 0, opacity: 0 }, { offset: o(tIn), opacity: 0 }, { offset: o(tIn + f), opacity: 1 }, { offset: 1, opacity: 1 },
+  ], { duration: T, fill: "both", easing: "linear", iterations: Infinity });
+}
+/** brightness pulse to mark a click */
+function press(el, t) {
+  el.animate([
+    { offset: 0, filter: "brightness(1)" }, { offset: o(t), filter: "brightness(1)" },
+    { offset: o(t + 0.12), filter: "brightness(1.6)" }, { offset: o(t + 0.4), filter: "brightness(1)" }, { offset: 1, filter: "brightness(1)" },
+  ], { duration: T, fill: "both", iterations: Infinity });
+}
+/** rule goes from unticked to ticked at t */
+function tick(el, t) {
+  el.animate([
+    { offset: 0, background: "#fff" }, { offset: o(t), background: "#fff" }, { offset: o(t + 0.01), background: "#ECFBFE" }, { offset: 1, background: "#ECFBFE" },
+  ], { duration: T, fill: "both", iterations: Infinity });
+  const i = el.querySelector("i");
+  i.animate([
+    { offset: 0, background: "transparent", borderColor: "#B5B5BB", color: "transparent" },
+    { offset: o(t), background: "transparent", borderColor: "#B5B5BB", color: "transparent" },
+    { offset: o(t + 0.01), background: "#0E7490", borderColor: "#0E7490", color: "#fff" },
+    { offset: 1, background: "#0E7490", borderColor: "#0E7490", color: "#fff" },
+  ], { duration: T, fill: "both", iterations: Infinity });
+  el.animate([
+    { offset: 0, borderColor: "#D8D8DC" }, { offset: o(t), borderColor: "#D8D8DC" }, { offset: o(t + 0.01), borderColor: "#0E7490" }, { offset: 1, borderColor: "#0E7490" },
+  ], { duration: T, fill: "both", iterations: Infinity });
+}
+
+const swap = (el, a, b, vis) => el.animate([{offset:0,opacity:vis?0:1},{offset:o(a),opacity:vis?0:1},{offset:o(a+0.01),opacity:vis?1:0},{offset:o(b),opacity:vis?1:0},{offset:o(b+0.01),opacity:vis?0:1},{offset:1,opacity:vis?0:1}],{duration:T,fill:"both",iterations:Infinity});
+swap($("bt1"),3.8,8.2,false); swap($("bt2"),3.8,8.2,true);
+// Beat 1: 0 - 3.8s  Create card
+show($("cap1"), 0.1, 3.7, { visibleAtStart: false });
+show($("s1"), 0.1, 3.8, { dy: 0 });
+press($("startbtn"), 2.6);
+// Beat 2: 3.8 - 8.2s  chat
+show($("cap2"), 3.7, 8.1);
+show($("s2"), 3.8, 8.2, { dy: 0 });
+type($("t-req"), 4.1, 5.1, 54);
+[...$("code").children].forEach((ln, i) => appear(ln, 5.4 + i * 0.22, 0.15));
+press($("copybtn"), 7.6);
+// Beat 3: 8.2 - 11.4s  paste
+show($("cap3"), 8.1, 11.3);
+show($("s3"), 8.2, 11.4, { dy: 0 });
+$("ph").animate([{ offset: 0, opacity: 1 }, { offset: o(8.8), opacity: 1 }, { offset: o(8.85), opacity: 0 }, { offset: 1, opacity: 0 }], { duration: T, fill: "both", iterations: Infinity });
+[...document.querySelectorAll("#s3 .area .ln")].forEach((ln, i) => appear(ln, 8.9 + i * 0.12, 0.1));
+press($("addbtn"), 10.7);
+// Beat 4: 11.4 - 14.4s  tick rules
+show($("cap4"), 11.3, 14.3);
+show($("s4"), 11.4, 14.4, { dy: 0 });
+["a1","a2","b1","b2","b3","c1","c2","c3"].forEach((id, i) => tick($(id), 11.9 + i * 0.2));
+press($("keepbtn"), 13.7);
+// Beat 5: 14.4 - 16.8s  draft
+show($("cap5"), 14.3, 16.7);
+show($("s5"), 14.4, 16.8, { dy: 0 });
+show($("p1"), 14.7, 16.8); show($("p2"), 15.2, 16.8); show($("p3"), 15.7, 16.8); show($("checks"), 16.1, 16.8, { fade: 0.2 });
+// End frame 16.8 - 18s (loops back to a cut: panel hidden under dark end card)
+$("end").animate([{ offset: 0, opacity: 0 }, { offset: o(16.8), opacity: 0 }, { offset: o(17.2), opacity: 1 }, { offset: o(17.85), opacity: 1 }, { offset: 1, opacity: 0 }], { duration: T, fill: "both", iterations: Infinity });
+</script>
+</body>
+</html>

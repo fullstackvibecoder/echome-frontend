@@ -3,6 +3,7 @@
 import { HelpWidget } from '@/components/help-widget';
 import { HomeNav } from '@/components/landing/home/HomeNav';
 import { HomeHero } from '@/components/landing/home/HomeHero';
+import { ClaudeDemoVideo } from '@/components/marketing/ClaudeDemoVideo';
 import { KitDemo } from '@/components/landing/home/KitDemo';
 import { TwoWaysIn } from '@/components/landing/home/TwoWaysIn';
 import { VoiceContrast } from '@/components/landing/home/VoiceContrast';
@@ -28,6 +29,15 @@ export default function HomeContent() {
         <TrackedSection name="hero">
           <HomeHero />
           <KitDemo />
+        </TrackedSection>
+
+        <TrackedSection name="claude_transfer">
+          <section className="mx-auto max-w-[1320px] px-4 py-10 sm:px-6">
+            <h2 className="m-0 mb-5 text-center font-grotesk text-[28px] font-semibold tracking-[-0.02em] text-home-ink">
+              Already use Claude? Bring what it knows about you.
+            </h2>
+            <ClaudeDemoVideo />
+          </section>
         </TrackedSection>
 
         <TrackedSection name="two_ways_in">
