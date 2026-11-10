@@ -33,6 +33,8 @@ const STORAGE_KEY = 'content-library-preferences';
 const PAGE_SIZE = 20;
 /** Uploads fetched once per refresh to surface failed rows (kits are paginated separately). */
 const UPLOADS_FETCH_LIMIT = 100;
+const UPLOADS_MAX_PAGES = 5;
+const UPLOAD_POLL_MS = 10_000;
 
 interface StoredPreferences {
   viewMode: ViewMode;
@@ -114,7 +116,8 @@ export function transformFailedUpload(upload: VideoUpload): NormalizedContent {
     id: upload.id,
     type: 'video-upload',
     title: upload.contentKitTitle || upload.originalFilename || upload.sourceUrl || 'Untitled video',
-    status: 'failed',
+    // In-flight uploads (e.g. just retried) stay visible as processing, never vanish.
+    status: upload.status === 'failed' ? 'failed' : 'processing',
     platforms: [],
     thumbnailUrl: upload.thumbnailUrl,
     createdAt: new Date(upload.createdAt),
@@ -126,12 +129,30 @@ export function transformFailedUpload(upload: VideoUpload): NormalizedContent {
   };
 }
 
-/** Failed uploads that are not already represented by a kit in the list. */
+/** Failed and in-flight uploads that are not already represented by a kit in the list. */
 export function pickFailedUploads(uploads: VideoUpload[], kits: NormalizedContent[]): NormalizedContent[] {
   const covered = new Set(kits.map(k => k.videoUploadId).filter(Boolean));
   return uploads
-    .filter(u => u.status === 'failed' && !covered.has(u.id))
+    .filter(u => u.status !== 'completed' && !covered.has(u.id))
     .map(transformFailedUpload);
+}
+
+/** Page through uploads so failures older than the newest page still show. Capped. */
+async function fetchAllUploads(): Promise<{ success: true; data: { uploads: VideoUpload[] } } | null> {
+  const all: VideoUpload[] = [];
+  try {
+    for (let page = 0; page < UPLOADS_MAX_PAGES; page++) {
+      const res = await api.clips.list(UPLOADS_FETCH_LIMIT, page * UPLOADS_FETCH_LIMIT, { includeFailed: true });
+      if (!res?.success) return page === 0 ? null : { success: true, data: { uploads: all } };
+      const batch = res.data?.uploads ?? [];
+      all.push(...batch);
+      if (batch.length < UPLOADS_FETCH_LIMIT) break;
+    }
+  } catch {
+    // A failure here must not break the kit list.
+    return all.length ? { success: true, data: { uploads: all } } : null;
+  }
+  return { success: true, data: { uploads: all } };
 }
 
 /**
@@ -139,7 +160,7 @@ export function pickFailedUploads(uploads: VideoUpload[], kits: NormalizedConten
  * Failed uploads are excluded so the "N kits" counts stay about real kits.
  */
 function calculateKitStats(allItems: NormalizedContent[]): ContentLibraryStats {
-  const items = allItems.filter(i => !(i.type === 'video-upload' && i.status === 'failed'));
+  const items = allItems.filter(i => i.type !== 'video-upload');
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -338,11 +359,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
       // A failure here must not break the kit list, so it falls back to no failed rows.
       const [result, uploadsResult] = await Promise.all([
         api.contentKits.list(PAGE_SIZE, currentOffset),
-        reset
-          ? api.clips
-              .list(UPLOADS_FETCH_LIMIT, 0, { includeFailed: true })
-              .catch(() => null)
-          : Promise.resolve(null),
+        reset ? fetchAllUploads() : Promise.resolve(null),
       ]);
 
       if (!result.success) {
@@ -403,6 +420,33 @@ export function useContentLibrary(): UseContentLibraryReturn {
   useEffect(() => {
     fetchData(true);
   }, []);
+
+  // While a retried or in-flight upload has no kit yet, watch it so the row turns
+  // into a kit or back into a failure without the user pressing Refresh.
+  const allItemsRef = useRef(allItems);
+  allItemsRef.current = allItems;
+  const hasInFlightUpload = allItems.some(i => i.type === 'video-upload' && i.status === 'processing');
+  useEffect(() => {
+    if (!hasInFlightUpload) return;
+    let cancelled = false;
+    const timer = setInterval(async () => {
+      const res = await fetchAllUploads();
+      if (cancelled || !res) return;
+      const byId = new Map(res.data.uploads.map(u => [u.id, u]));
+      const watched = allItemsRef.current.filter(i => i.type === 'video-upload' && i.status === 'processing');
+      const finished = watched.some(i => byId.get(i.id)?.status === 'completed');
+      setAllItems(prev => prev.map(item => {
+        if (item.type !== 'video-upload' || item.status !== 'processing') return item;
+        const fresh = byId.get(item.id);
+        if (!fresh || fresh.status === 'completed') return item;
+        return transformFailedUpload(fresh);
+      }));
+      // A finished upload now has a kit: reload the list so it shows as one.
+      if (finished && !cancelled) fetchData(true);
+    }, UPLOAD_POLL_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInFlightUpload]);
 
   // ============================================
   // PROCESSED DATA

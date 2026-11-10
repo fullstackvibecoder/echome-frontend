@@ -71,6 +71,46 @@ describe('useContentLibrary failed uploads', () => {
     expect(result.current.items.find(i => i.id === 'f1')?.status).toBe('failed');
   });
 
+  it('shows an in-flight upload with no kit as processing', async () => {
+    vi.mocked(api.clips.list).mockResolvedValue({
+      success: true, data: { uploads: [upload({ id: 'p1', status: 'transcribing' })] },
+    } as never);
+    const { result } = renderHook(() => useContentLibrary());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.items.find(i => i.id === 'p1')?.status).toBe('processing');
+  });
+
+  it('pages through uploads so older failures show', async () => {
+    const full = Array.from({ length: 100 }, (_, i) => upload({ id: `c${i}`, status: 'completed' }));
+    vi.mocked(api.clips.list)
+      .mockResolvedValueOnce({ success: true, data: { uploads: full } } as never)
+      .mockResolvedValueOnce({ success: true, data: { uploads: [upload({ id: 'old' })] } } as never);
+    const { result } = renderHook(() => useContentLibrary());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(api.clips.list).toHaveBeenNthCalledWith(2, 100, 100, { includeFailed: true });
+    expect(result.current.items.some(i => i.id === 'old')).toBe(true);
+  });
+
+  it('after a retry, polls and shows the new failure', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.mocked(api.clips.process).mockResolvedValue({ success: true } as never);
+      const { result } = renderHook(() => useContentLibrary());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      vi.mocked(api.clips.list).mockResolvedValue({
+        success: true, data: { uploads: [upload({ id: 'f1', statusMessage: 'Second failure' })] },
+      } as never);
+      await act(async () => { await result.current.retryUpload('f1'); });
+      expect(result.current.items.find(i => i.id === 'f1')?.status).toBe('processing');
+      await act(async () => { await vi.advanceTimersByTimeAsync(10_500); });
+      const row = result.current.items.find(i => i.id === 'f1');
+      expect(row?.status).toBe('failed');
+      expect((row?.raw as { statusMessage: string }).statusMessage).toBe('Second failure');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('deletes a failed upload through the clips API', async () => {
     vi.mocked(api.clips.delete).mockResolvedValue({} as never);
     const { result } = renderHook(() => useContentLibrary());
