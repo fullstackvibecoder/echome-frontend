@@ -30,13 +30,27 @@ export function getFailedUploadActions(input: {
   if (code === 'zoom_password_required' || code === 'zoom_password_incorrect') return ['enter_passcode'];
   if (code === 'video_url_invalid') return ['upload_file'];
 
+  // Retrying cannot fix a silent video or a post with no downloadable video.
+  if (code === 'video_no_speech' || code === 'video_download_unavailable') return ['upload_file'];
+
   const isLink = !!input.sourceType && !FILE_SOURCES.has(input.sourceType);
   if (isLink) return ['try_again', 'upload_file'];
+
+  // Old rows with no code (e.g. reaped mid-upload): the stored file may be gone.
+  if (!code) return ['upload_again'];
 
   return ['try_again'];
 }
 
+// Mirrors the backend's RAW_MARKERS. Rows written before the message catalog
+// shipped can hold downloader output, which must never reach the user.
+const RAW_MARKERS = /ERROR:|\[(?:zoom-dl|ytdlp|youtube|instagram|loom|zoom|vimeo|generic)\]|library-ingest-failed|errorCode=|\bat\s+\S+\s+\(|ENOENT|ECONN|ETIMEDOUT|exit code|ffmpeg|\bspawn\b|\bundefined\b|\bnull\b/i;
+const MAX_MESSAGE_LENGTH = 300;
+
 export function getFailedUploadMessage(statusMessage?: string | null): string {
   const trimmed = statusMessage?.trim();
-  return trimmed ? trimmed : FAILED_UPLOAD_FALLBACK_MESSAGE;
+  if (!trimmed || trimmed.length > MAX_MESSAGE_LENGTH || RAW_MARKERS.test(trimmed)) {
+    return FAILED_UPLOAD_FALLBACK_MESSAGE;
+  }
+  return trimmed;
 }

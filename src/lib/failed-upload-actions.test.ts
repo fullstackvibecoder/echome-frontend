@@ -31,10 +31,19 @@ describe('getFailedUploadActions', () => {
     }
   });
 
-  it('offers Try again for file uploads and recordings with any other code', () => {
+  it('offers Try again for file uploads and recordings with a known code', () => {
     expect(getFailedUploadActions({ errorCode: 'processing_failed', sourceType: 'upload' })).toEqual(['try_again']);
-    expect(getFailedUploadActions({ errorCode: null, sourceType: 'recording' })).toEqual(['try_again']);
-    expect(getFailedUploadActions({})).toEqual(['try_again']);
+  });
+
+  it('offers Upload again when a file row has no code', () => {
+    expect(getFailedUploadActions({ errorCode: null, sourceType: 'recording' })).toEqual(['upload_again']);
+    expect(getFailedUploadActions({})).toEqual(['upload_again']);
+  });
+
+  it('never offers Try again when retrying cannot help', () => {
+    for (const errorCode of ['video_no_speech', 'video_download_unavailable']) {
+      expect(getFailedUploadActions({ errorCode, sourceType: 'youtube' })).toEqual(['upload_file']);
+    }
   });
 
   it('uses plain labels with no vendor names or em dashes', () => {
@@ -48,6 +57,11 @@ describe('getFailedUploadActions', () => {
 describe('getFailedUploadMessage', () => {
   it('shows the backend message as is', () => {
     expect(getFailedUploadMessage('That video is private.')).toBe('That video is private.');
+  });
+  it('replaces raw legacy downloader text with the fallback', () => {
+    expect(getFailedUploadMessage('Failed to download video: ERROR: [youtube] abc: Sign in to confirm')).toBe(FAILED_UPLOAD_FALLBACK_MESSAGE);
+    expect(getFailedUploadMessage('spawn ENOENT')).toBe(FAILED_UPLOAD_FALLBACK_MESSAGE);
+    expect(getFailedUploadMessage('x'.repeat(301))).toBe(FAILED_UPLOAD_FALLBACK_MESSAGE);
   });
   it('falls back when the message is missing or blank', () => {
     expect(getFailedUploadMessage(undefined)).toBe('This video did not finish.');
