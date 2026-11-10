@@ -424,7 +424,7 @@ export function useContentLibrary(): UseContentLibraryReturn {
   // While a retried or in-flight upload has no kit yet, watch it so the row turns
   // into a kit or back into a failure without the user pressing Refresh.
   const allItemsRef = useRef(allItems);
-  allItemsRef.current = allItems;
+  useEffect(() => { allItemsRef.current = allItems; }, [allItems]);
   const hasInFlightUpload = allItems.some(i => i.type === 'video-upload' && i.status === 'processing');
   useEffect(() => {
     if (!hasInFlightUpload) return;
