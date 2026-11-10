@@ -1,10 +1,14 @@
 'use client';
 
 import { trackCtaClick } from '@/lib/analytics';
+import { WorksWithClaudeBadge } from '@/components/marketing/WorksWithClaudeBadge';
 
 export function HomeHero() {
   return (
     <section className="mx-auto flex max-w-[1320px] flex-col gap-8 px-4 pb-10 pt-6 sm:px-6 sm:pt-10">
+      <div>
+        <WorksWithClaudeBadge />
+      </div>
       <h1 className="m-0 font-grotesk text-[clamp(56px,9vw,136px)] font-bold leading-[0.88] tracking-[-0.055em] text-home-ink">
         <span className="block">Talk once.</span> <span className="block">Show up all week.</span>
       </h1>
