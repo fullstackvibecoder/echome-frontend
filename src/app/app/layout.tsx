@@ -14,6 +14,14 @@ function AuthGuard({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
+      // Keep the deep link (e.g. /app?transfer=claude from an email) so
+      // login, signup and the OAuth callback return the user to it.
+      try {
+        const path = window.location.pathname + window.location.search;
+        if (path !== '/app') localStorage.setItem('redirectAfterLogin', path);
+      } catch {
+        // storage blocked: user lands on /app after login
+      }
       router.replace('/auth/login');
     }
   }, [loading, user, router]);
