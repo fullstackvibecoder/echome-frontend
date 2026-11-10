@@ -5,10 +5,13 @@ const getRules = vi.fn();
 const saveRules = vi.fn();
 const suggestRules = vi.fn();
 const paste = vi.fn();
+const getProfile = vi.fn();
+const updateProfile = vi.fn();
 vi.mock('@/lib/api-client', () => ({
   api: {
     voice: { getRules: () => getRules(), saveRules: (r: unknown) => saveRules(r), suggestRules: (t?: string) => suggestRules(t) },
     kbContent: { paste: (b: unknown) => paste(b) },
+    auth: { getProfile: () => getProfile(), updateProfile: (u: unknown) => updateProfile(u) },
   },
 }));
 vi.mock('@/lib/toast', () => ({ showSuccessToast: vi.fn(), showErrorToast: vi.fn(), showInfoToast: vi.fn() }));
@@ -87,5 +90,36 @@ describe('FillFromClaude then voice rules', () => {
     const onAdded = vi.fn();
     await transfer(onAdded);
     await waitFor(() => expect(onAdded).toHaveBeenCalled());
+  });
+
+  it('shows profile fields first, then the rules, and saves with the profile call', async () => {
+    suggestRules.mockResolvedValue({ success: true, data: { ...SUGGESTED, profile: { bio: 'I run an AI consultancy.', role: 'AI consultant', topics: '', cta: '', guardrails: '' } } });
+    getProfile.mockResolvedValue({ success: true, data: { bio: 'Real estate broker.', profile_role: '' } });
+    updateProfile.mockResolvedValue({ success: true });
+    const onAdded = vi.fn();
+    await transfer(onAdded);
+    expect(await screen.findByText('Echo found details for your profile')).toBeInTheDocument();
+    expect(screen.getByText('Real estate broker.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Save 1 to my profile' }));
+    await waitFor(() => expect(updateProfile).toHaveBeenCalledWith({ profile_role: 'AI consultant' }));
+    expect(await screen.findByText('Echo found your voice rules')).toBeInTheDocument();
+    expect(onAdded).not.toHaveBeenCalled();
+  });
+
+  it('skips the profile step when the saved profile cannot be read', async () => {
+    suggestRules.mockResolvedValue({ success: true, data: { ...SUGGESTED, profile: { bio: 'I run an AI consultancy.' } } });
+    getProfile.mockRejectedValue(new Error('down'));
+    await transfer(vi.fn());
+    expect(await screen.findByText('Echo found your voice rules')).toBeInTheDocument();
+    expect(screen.queryByText('Echo found details for your profile')).toBeNull();
+  });
+
+  it('finishes when only profile fields were found and the user skips them', async () => {
+    suggestRules.mockResolvedValue({ success: true, data: { usePhrases: [], neverUse: [], formatRules: [], profile: { bio: 'I run an AI consultancy.' } } });
+    getProfile.mockResolvedValue({ success: true, data: {} });
+    const onAdded = vi.fn();
+    await transfer(onAdded);
+    fireEvent.click(await screen.findByRole('button', { name: 'Not now' }));
+    expect(onAdded).toHaveBeenCalled();
   });
 });

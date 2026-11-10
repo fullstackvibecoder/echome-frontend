@@ -1,10 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { api, VoiceRules } from '@/lib/api-client';
+import { api, VoiceRules, ProfileFieldSuggestions } from '@/lib/api-client';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { ClaudeLogo } from '@/components/create/ClaudeLogo';
 import { VoiceRulesReview, countRules } from '@/components/voice/VoiceRulesReview';
+import {
+  ProfileFieldsReview,
+  EMPTY_CURRENT,
+  reviewableFields,
+  type CurrentProfileFields,
+} from '@/components/voice/ProfileFieldsReview';
 
 // What we ask Claude to write. Business and content only: a user's Claude
 // memory can hold private details that have no place in their knowledge base.
@@ -67,6 +73,7 @@ export function FillFromClaude({
   const [saving, setSaving] = useState(false);
   const [readingRules, setReadingRules] = useState(false);
   const [suggestions, setSuggestions] = useState<VoiceRules | null>(null);
+  const [profileReview, setProfileReview] = useState<{ suggested: ProfileFieldSuggestions; current: CurrentProfileFields } | null>(null);
 
   const cleaned = stripCodeFences(answer);
   const isRequest = cleaned.includes(REQUEST_MARKER);
@@ -87,6 +94,7 @@ export function FillFromClaude({
     setAnswer('');
     setAsked(false);
     setSuggestions(null);
+    setProfileReview(null);
     onAdded();
   };
 
@@ -116,16 +124,37 @@ export function FillFromClaude({
     // Offer the phrases, never-use words and format rules as voice rules.
     // Any failure just skips the step: the profile is already saved.
     setReadingRules(true);
+    // The same call also suggests the always-on profile fields; they are shown
+    // first, next to what the user has saved today.
     let found: VoiceRules | null = null;
+    let fields: ProfileFieldSuggestions | null = null;
+    let current: CurrentProfileFields = EMPTY_CURRENT;
     try {
       const res = await api.voice.suggestRules(cleaned);
       if (res.data && countRules(res.data) > 0) found = res.data;
+      fields = res.data?.profile ?? null;
     } catch {
       found = null;
     }
+    if (fields) {
+      try {
+        const p = (await api.auth.getProfile()).data;
+        current = {
+          bio: p?.bio ?? '',
+          role: p?.profile_role ?? '',
+          topics: p?.profile_topics ?? '',
+          cta: p?.profile_cta ?? '',
+          guardrails: p?.profile_guardrails ?? '',
+        };
+      } catch {
+        // Unknown current values: treat as empty would risk overwriting, so skip the step.
+        fields = null;
+      }
+    }
     setReadingRules(false);
-    if (found) setSuggestions(found);
-    else finish();
+    setSuggestions(found);
+    if (fields && reviewableFields(fields, current).length > 0) setProfileReview({ suggested: fields, current });
+    else if (!found) finish();
   };
 
   return (
@@ -143,7 +172,13 @@ export function FillFromClaude({
       </p>
 
       {readingRules ? (
-        <p className="text-sm text-text-secondary" role="status">Reading your voice rules...</p>
+        <p className="text-sm text-text-secondary" role="status">Reading your profile...</p>
+      ) : profileReview ? (
+        <ProfileFieldsReview
+          suggested={profileReview.suggested}
+          current={profileReview.current}
+          onDone={() => (suggestions ? setProfileReview(null) : finish())}
+        />
       ) : suggestions ? (
         <VoiceRulesReview suggestions={suggestions} onDone={finish} />
       ) : !asked ? (

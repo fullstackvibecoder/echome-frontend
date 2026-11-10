@@ -69,6 +69,17 @@ export interface VoiceRules {
   formatRules: string[];
 }
 
+/** Always-on profile fields Echo suggests from a Claude profile (all optional, empty when not covered). */
+export interface ProfileFieldSuggestions {
+  bio?: string;
+  role?: string;
+  topics?: string;
+  cta?: string;
+  guardrails?: string;
+}
+
+export type VoiceRuleSuggestions = VoiceRules & { profile?: ProfileFieldSuggestions };
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -1150,7 +1161,7 @@ export const api = {
     /** Suggested rules from Claude profile text, or the latest Fill from Claude entry when omitted. */
     suggestRules: async (text?: string) => {
       const response = await apiClient.post('/voice/rules/suggest', text ? { text } : {});
-      return response.data as { success: boolean; data?: VoiceRules };
+      return response.data as { success: boolean; data?: VoiceRuleSuggestions };
     },
 
     getStatus: async () => {
