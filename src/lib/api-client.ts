@@ -2473,8 +2473,11 @@ export const api = {
     },
 
     /** List user's video uploads */
-    list: async (limit?: number, offset?: number) => {
-      const response = await apiClient.get('/clips', { params: { limit, offset } });
+    list: async (limit?: number, offset?: number, options?: { includeFailed?: boolean }) => {
+      // includeFailed is sent only when true so existing callers hit the same URL as before.
+      const response = await apiClient.get('/clips', {
+        params: { limit, offset, ...(options?.includeFailed ? { includeFailed: true } : {}) },
+      });
       return response.data as {
         success: boolean;
         data: {
