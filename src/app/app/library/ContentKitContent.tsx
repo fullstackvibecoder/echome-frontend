@@ -10,7 +10,9 @@ import { Search, RefreshCw } from 'lucide-react';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { showErrorToast, showSuccessToast } from '@/lib/toast';
 import { WatchWalkthroughLink } from '@/components/guides/WatchWalkthroughLink';
+import { ZoomPasswordModal } from '@/components/ZoomPasswordModal';
 import type { NormalizedContent } from '@/lib/content-normalizer';
+import type { VideoUpload } from '@/lib/api-client';
 
 const EARLIER_THRESHOLD_DAYS = 7;
 
@@ -41,9 +43,12 @@ function ContentKitListInner() {
     setSearchQuery,
     refresh,
     deleteItem,
+    retryUpload,
+    retryUploadWithPassword,
   } = useContentLibrary();
 
   const [pendingDelete, setPendingDelete] = useState<NormalizedContent | null>(null);
+  const [passcodeTarget, setPasscodeTarget] = useState<NormalizedContent | null>(null);
 
   const confirmDelete = useCallback(async () => {
     const target = pendingDelete;
@@ -51,7 +56,7 @@ function ContentKitListInner() {
     setPendingDelete(null);
     try {
       await deleteItem(target.id);
-      showSuccessToast('Content kit deleted');
+      showSuccessToast(target.type === 'video-upload' ? 'Video deleted' : 'Content kit deleted');
     } catch (err) {
       showErrorToast(err, 'Failed to delete content kit');
     }
@@ -245,6 +250,8 @@ function ContentKitListInner() {
         items={failed}
         scheduleCounts={scheduleCounts}
         onDelete={setPendingDelete}
+        onRetryUpload={retryUpload}
+        onPasscode={setPasscodeTarget}
       />
       <StatusSection
         label="Earlier"
@@ -255,10 +262,21 @@ function ContentKitListInner() {
         onDelete={setPendingDelete}
       />
 
+      <ZoomPasswordModal
+        open={passcodeTarget !== null}
+        isRetryAfterIncorrect={(passcodeTarget?.raw as VideoUpload | undefined)?.errorCode === 'zoom_password_incorrect'}
+        onSubmit={async (password) => {
+          if (!passcodeTarget) return;
+          await retryUploadWithPassword(passcodeTarget.id, password);
+          setPasscodeTarget(null);
+        }}
+        onCancel={() => setPasscodeTarget(null)}
+      />
+
       <ConfirmDialog
         isOpen={pendingDelete !== null}
-        title="Delete content kit"
-        message="Delete this content kit? This cannot be undone."
+        title={pendingDelete?.type === 'video-upload' ? 'Delete video' : 'Delete content kit'}
+        message={pendingDelete?.type === 'video-upload' ? 'Delete this video? This cannot be undone.' : 'Delete this content kit? This cannot be undone.'}
         confirmLabel="Delete"
         variant="danger"
         onConfirm={confirmDelete}
