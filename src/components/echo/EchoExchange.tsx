@@ -10,6 +10,7 @@ import { useRef, useCallback } from 'react';
 import { Check } from 'lucide-react';
 import type { EchoIntent } from '@/lib/echo-client';
 import { INTENT_META, ALL_INTENTS } from './intent-meta';
+import { EchoClipProgress } from './EchoClipProgress';
 import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
@@ -318,7 +319,17 @@ export function EchoExchange({ state, handlers, onTextareaMount, placeholder }: 
       )}
 
       {/* Done state: loud success card for ingests, bare row otherwise */}
-      {isDone && confirmation && (
+      {isDone && confirmation && state.clipJob && (
+        <div className="rounded-xl border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.06)] px-3 py-2.5">
+          <EchoClipProgress
+            key={state.clipJob.jobId}
+            uploadId={state.clipJob.uploadId}
+            jobId={state.clipJob.jobId}
+            onRetry={reset}
+          />
+        </div>
+      )}
+      {isDone && confirmation && !state.clipJob && (
         <div className="rounded-xl border border-[rgba(0,212,255,0.35)] bg-[rgba(0,212,255,0.06)] px-3 py-2.5">
           <div className="flex items-start gap-2.5">
             <div

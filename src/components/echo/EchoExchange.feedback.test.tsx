@@ -25,6 +25,7 @@ const BASE_STATE: EchoState = {
   receipts: [],
   error: null,
   confirmation: null,
+  clipJob: null,
   videoUrlTarget: null,
   videoFileTarget: null,
   fileUploadProgress: null,
