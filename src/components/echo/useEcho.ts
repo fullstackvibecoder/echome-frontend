@@ -57,6 +57,8 @@ export interface EchoState {
    * only "added to your Voice" outcomes get the confirmation.
    */
   confirmation: { title: string; detail: string | null } | null;
+  /** Set when a clip job was started from Echo; drives the live progress card. Cleared on reset. */
+  clipJob: { uploadId: string; jobId: string } | null;
   /** Set when the submitted text contains a video URL (YouTube/Instagram single or channel). null otherwise. */
   videoUrlTarget: VideoUrlTarget | null;
   /** Set immediately when the user attaches a video file, triggering the file fork. null otherwise. */
@@ -144,6 +146,7 @@ const INITIAL_STATE: EchoState = {
   receipts: [],
   error: null,
   confirmation: null,
+  clipJob: null,
   videoUrlTarget: null,
   videoFileTarget: null,
   fileUploadProgress: null,
@@ -871,11 +874,13 @@ export function useEcho(
           throw new Error('Failed to upload video');
         }
         const upload = uploadResponse.data.upload;
-        await api.clips.process(upload.id, { generateContent: true });
+        const processRes = await api.clips.process(upload.id, { generateContent: true });
+        const jobId = processRes?.data?.jobId;
         addReceipt(formatReceipt('CLIP · MAKE CONTENT NOW'));
         setState((prev) => ({
           ...prev, phase: 'done', inputText: '', videoUrlTarget: null,
           savedVideos: null, savedCount: null,
+          clipJob: jobId ? { uploadId: upload.id, jobId } : null,
           confirmation: { title: 'Clipping your video', detail: 'Making content now' },
         }));
       } else {
@@ -1010,11 +1015,13 @@ export function useEcho(
   const clipSavedVideo = useCallback(async (uploadId: string) => {
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
-      await api.clips.process(uploadId, { generateContent: true });
+      const processRes = await api.clips.process(uploadId, { generateContent: true });
+      const jobId = processRes?.data?.jobId;
       addReceipt(formatReceipt('CLIP · STARTED'));
       setState((prev) => ({
         ...prev,
         phase: 'done',
+        clipJob: jobId ? { uploadId, jobId } : null,
         savedVideos: prev.savedVideos ? prev.savedVideos.filter((v) => v.uploadId !== uploadId) : null,
         confirmation: { title: 'Clipping started', detail: '' },
       }));
