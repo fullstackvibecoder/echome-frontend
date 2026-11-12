@@ -27,6 +27,10 @@ vi.mock('@/lib/api-client', () => ({
   },
 }));
 
+vi.mock('@/lib/video-duration', () => ({
+  checkVideoTooShort: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock('@/lib/echo-client', () => ({
   classifyEchoInput: vi.fn(),
 }));

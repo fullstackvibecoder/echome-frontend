@@ -20,6 +20,7 @@ import { ZoomPasswordModal } from './ZoomPasswordModal';
 import { isZoomImportEnabled, ZOOM_URL_RE, ZOOM_IMPORT_DISABLED_MESSAGE } from '@/lib/flags';
 import UnifiedCreateInput from './UnifiedCreateInput';
 import { takeEchoHandoff } from '@/components/echo/file-handoff';
+import { checkVideoTooShort } from '@/lib/video-duration';
 import { useEchoExperience } from '@/hooks/useEchoExperience';
 import { EchoHero } from '@/components/echo/EchoHero';
 
@@ -1074,6 +1075,9 @@ export function GenerationForm({
     sourceUrl?: string,
     zoomPassword?: string
   ): Promise<boolean> => {
+    // Covers every file entry path (manual pick, drop, Echo handoff, unified
+    // input) before any upload bytes are sent.
+    if (file && (sourceType || 'upload') === 'upload' && (await rejectIfTooShort(file))) return false;
     try {
       const effectiveSource = sourceType || 'upload';
       setVideoSourceType(effectiveSource);
@@ -1373,10 +1377,23 @@ export function GenerationForm({
     return true;
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // FUL-57: fail fast in the browser when a video is known to be under the
+  // minimum length. Unknown duration (unreadable codec, timeout) passes through
+  // and the server decides. Returns true when the file was rejected.
+  const rejectIfTooShort = async (file: File): Promise<boolean> => {
+    const message = await checkVideoTooShort(file);
+    if (!message) return false;
+    setUploadError(message);
+    setUploadWarning(null);
+    setSelectedFile(null);
+    return true;
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!validateVideoFile(file)) return;
+    if (await rejectIfTooShort(file)) return;
     setSelectedFile(file);
   };
 
@@ -1412,7 +1429,10 @@ export function GenerationForm({
       return;
     }
     if (!validateVideoFile(file)) return;
-    setSelectedFile(file);
+    void (async () => {
+      if (await rejectIfTooShort(file)) return;
+      setSelectedFile(file);
+    })();
   };
 
   const handleGenerate = async () => {

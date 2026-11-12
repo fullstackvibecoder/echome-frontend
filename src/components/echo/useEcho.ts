@@ -19,6 +19,7 @@ import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES, MAX_ECHO_VIDEO_BYTES, ECHO_VIDEO_COMPRESS_HINT_BYTES } from './intent-meta';
 import { stashEchoHandoff } from './file-handoff';
+import { checkVideoTooShort } from '@/lib/video-duration';
 import { extractFirstUrl, detectIngestUrlKind, detectVideoUrlTarget, type VideoUrlTarget } from '@/lib/url-platform';
 
 // ---- State machine phases ----
@@ -486,6 +487,11 @@ export function useEcho(
 
         if (intent === 'create') {
           if (kind === 'video') {
+            const tooShort = await checkVideoTooShort(attachment);
+            if (tooShort) {
+              setState((prev) => ({ ...prev, phase: 'confirming', error: tooShort }));
+              return;
+            }
             // Video handed off directly to Create form via in-memory store
             stashEchoHandoff({ kind: 'video-file', file: attachment, note: text || undefined });
             navigate('/app?echoFile=1');
@@ -908,6 +914,11 @@ export function useEcho(
 
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
+      const tooShort = await checkVideoTooShort(file);
+      if (tooShort) {
+        setState((prev) => ({ ...prev, phase: 'confirming', error: tooShort }));
+        return;
+      }
       if (dest === 'create') {
         // Mirror the video-file create branch from confirm() — stash the file
         // for the Create form to pick up, then navigate.
