@@ -1074,10 +1074,10 @@ export function GenerationForm({
     sourceType?: VideoSourceType,
     sourceUrl?: string,
     zoomPassword?: string
-  ) => {
+  ): Promise<boolean> => {
     // Covers every file entry path (manual pick, drop, Echo handoff, unified
     // input) before any upload bytes are sent.
-    if (file && (sourceType || 'upload') === 'upload' && (await rejectIfTooShort(file))) return;
+    if (file && (sourceType || 'upload') === 'upload' && (await rejectIfTooShort(file))) return false;
     try {
       const effectiveSource = sourceType || 'upload';
       setVideoSourceType(effectiveSource);
@@ -1144,7 +1144,7 @@ export function GenerationForm({
 
       // Step 3: Poll for completion
       await pollProcessingStatus(upload.id, jobId);
-
+      return true;
     } catch (err) {
       console.error('Video processing error:', err);
       const errorMsg = getErrorMessage(err);
@@ -1152,6 +1152,7 @@ export function GenerationForm({
       setVideoProcessing(false);
       setVideoProcessingStatus(null);
       showErrorToast(err, 'processing video');
+      return false;
     }
   };
 
@@ -1463,10 +1464,15 @@ export function GenerationForm({
 
       try {
         const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
-        await processVideoWithClipFinder(undefined, sourceType, url, passcode);
-        setVideoUrl('');
-        setZoomPasswordUpfront('');
-        clearFile();
+        // processVideoWithClipFinder reports failure by returning false (it never
+        // throws), so only clear the pasted link on success. On failure the user
+        // keeps it to retry or edit.
+        const ok = await processVideoWithClipFinder(undefined, sourceType, url, passcode);
+        if (ok) {
+          setVideoUrl('');
+          setZoomPasswordUpfront('');
+          clearFile();
+        }
       } catch (err) {
         setUrlError(err instanceof Error ? err.message : 'Failed to process video URL');
       }
@@ -1504,7 +1510,7 @@ export function GenerationForm({
     // and switches to text mode, so audio case never reaches here
   };
 
-  const handleUnifiedSubmit = (text: string, file?: File) => {
+  const handleUnifiedSubmit = async (text: string, file?: File) => {
     if (file) {
       const MAX_SIZE = 2 * 1024 * 1024 * 1024;
       if (file.size > MAX_SIZE) {
@@ -1544,7 +1550,10 @@ export function GenerationForm({
         const sourceType = isYouTube ? 'youtube' : isInstagram ? 'instagram' : isLoom ? 'loom' : isZoom ? 'zoom' : 'url';
         const passcode = isZoom ? zoomPasswordUpfront.trim() || undefined : undefined;
         setVideoUrl(url);
-        processVideoWithClipFinder(undefined, sourceType as VideoSourceType, url, passcode);
+        const ok = await processVideoWithClipFinder(undefined, sourceType as VideoSourceType, url, passcode);
+        // The hero clears its box on submit and is unmounted while processing.
+        // Re-seed it with what the user typed so a failed link is not lost.
+        if (!ok) setInput(trimmed);
         return;
       }
 

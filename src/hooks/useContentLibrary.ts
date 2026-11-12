@@ -8,7 +8,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { api, ContentKitListItem } from '@/lib/api-client';
+import { api, ContentKitListItem, VideoUpload } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import type { NormalizedContent } from '@/lib/content-normalizer';
 import type {
   ContentLibraryState,
@@ -30,6 +31,10 @@ import type { Platform } from '@/types';
 
 const STORAGE_KEY = 'content-library-preferences';
 const PAGE_SIZE = 20;
+/** Uploads fetched once per refresh to surface failed rows (kits are paginated separately). */
+const UPLOADS_FETCH_LIMIT = 100;
+const UPLOADS_MAX_PAGES = 5;
+const UPLOAD_POLL_MS = 10_000;
 
 interface StoredPreferences {
   viewMode: ViewMode;
@@ -103,9 +108,59 @@ function transformKit(kit: ContentKitListItem): NormalizedContent {
 }
 
 /**
- * Calculate stats from content kits
+ * A failed upload has no kit, so it would otherwise be invisible. Shown as a
+ * failed row; the card reads the upload from `raw` for message and actions.
  */
-function calculateKitStats(items: NormalizedContent[]): ContentLibraryStats {
+export function transformFailedUpload(upload: VideoUpload): NormalizedContent {
+  return {
+    id: upload.id,
+    type: 'video-upload',
+    title: upload.contentKitTitle || upload.originalFilename || upload.sourceUrl || 'Untitled video',
+    // In-flight uploads (e.g. just retried) stay visible as processing, never vanish.
+    status: upload.status === 'failed' ? 'failed' : 'processing',
+    platforms: [],
+    thumbnailUrl: upload.thumbnailUrl,
+    createdAt: new Date(upload.createdAt),
+    sourceId: upload.id,
+    videoUploadId: upload.id,
+    clipCount: 0,
+    platformCount: 0,
+    raw: upload,
+  };
+}
+
+/** Failed and in-flight uploads that are not already represented by a kit in the list. */
+export function pickFailedUploads(uploads: VideoUpload[], kits: NormalizedContent[]): NormalizedContent[] {
+  const covered = new Set(kits.map(k => k.videoUploadId).filter(Boolean));
+  return uploads
+    .filter(u => u.status !== 'completed' && !covered.has(u.id))
+    .map(transformFailedUpload);
+}
+
+/** Page through uploads so failures older than the newest page still show. Capped. */
+async function fetchAllUploads(): Promise<{ success: true; data: { uploads: VideoUpload[] } } | null> {
+  const all: VideoUpload[] = [];
+  try {
+    for (let page = 0; page < UPLOADS_MAX_PAGES; page++) {
+      const res = await api.clips.list(UPLOADS_FETCH_LIMIT, page * UPLOADS_FETCH_LIMIT, { includeFailed: true });
+      if (!res?.success) return page === 0 ? null : { success: true, data: { uploads: all } };
+      const batch = res.data?.uploads ?? [];
+      all.push(...batch);
+      if (batch.length < UPLOADS_FETCH_LIMIT) break;
+    }
+  } catch {
+    // A failure here must not break the kit list.
+    return all.length ? { success: true, data: { uploads: all } } : null;
+  }
+  return { success: true, data: { uploads: all } };
+}
+
+/**
+ * Calculate stats from content kits
+ * Failed uploads are excluded so the "N kits" counts stay about real kits.
+ */
+function calculateKitStats(allItems: NormalizedContent[]): ContentLibraryStats {
+  const items = allItems.filter(i => i.type !== 'video-upload');
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -300,7 +355,12 @@ export function useContentLibrary(): UseContentLibraryReturn {
       const currentOffset = reset ? 0 : pagination.offset;
 
       // Fetch content kits directly (backend now returns slim response with boolean platform flags)
-      const result = await api.contentKits.list(PAGE_SIZE, currentOffset);
+      // On a fresh load also ask for failed uploads, which the default list hides.
+      // A failure here must not break the kit list, so it falls back to no failed rows.
+      const [result, uploadsResult] = await Promise.all([
+        api.contentKits.list(PAGE_SIZE, currentOffset),
+        reset ? fetchAllUploads() : Promise.resolve(null),
+      ]);
 
       if (!result.success) {
         throw new Error('Failed to fetch content kits');
@@ -310,13 +370,20 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
       // Merge with existing items if not resetting
       if (reset) {
-        setAllItems(newItems);
+        const failedItems = uploadsResult?.success
+          ? pickFailedUploads(uploadsResult.data?.uploads ?? [], newItems)
+          : [];
+        setAllItems([...newItems, ...failedItems]);
       } else {
         setAllItems(prev => {
-          // Dedupe by ID
+          // Dedupe by ID; a failed-upload row is dropped if a newly loaded kit now covers it
+          const covered = new Set(newItems.map(k => k.videoUploadId).filter(Boolean));
           const existingIds = new Set(prev.map(i => i.id));
           const uniqueNew = newItems.filter(i => !existingIds.has(i.id));
-          return [...prev, ...uniqueNew];
+          return [
+            ...prev.filter(i => !(i.type === 'video-upload' && covered.has(i.id))),
+            ...uniqueNew,
+          ];
         });
       }
 
@@ -353,6 +420,33 @@ export function useContentLibrary(): UseContentLibraryReturn {
   useEffect(() => {
     fetchData(true);
   }, []);
+
+  // While a retried or in-flight upload has no kit yet, watch it so the row turns
+  // into a kit or back into a failure without the user pressing Refresh.
+  const allItemsRef = useRef(allItems);
+  useEffect(() => { allItemsRef.current = allItems; }, [allItems]);
+  const hasInFlightUpload = allItems.some(i => i.type === 'video-upload' && i.status === 'processing');
+  useEffect(() => {
+    if (!hasInFlightUpload) return;
+    let cancelled = false;
+    const timer = setInterval(async () => {
+      const res = await fetchAllUploads();
+      if (cancelled || !res) return;
+      const byId = new Map(res.data.uploads.map(u => [u.id, u]));
+      const watched = allItemsRef.current.filter(i => i.type === 'video-upload' && i.status === 'processing');
+      const finished = watched.some(i => byId.get(i.id)?.status === 'completed');
+      setAllItems(prev => prev.map(item => {
+        if (item.type !== 'video-upload' || item.status !== 'processing') return item;
+        const fresh = byId.get(item.id);
+        if (!fresh || fresh.status === 'completed') return item;
+        return transformFailedUpload(fresh);
+      }));
+      // A finished upload now has a kit: reload the list so it shows as one.
+      if (finished && !cancelled) fetchData(true);
+    }, UPLOAD_POLL_MS);
+    return () => { cancelled = true; clearInterval(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInFlightUpload]);
 
   // ============================================
   // PROCESSED DATA
@@ -561,9 +655,38 @@ export function useContentLibrary(): UseContentLibraryReturn {
 
   /** Delete a single content kit (soft delete on the backend) and drop it from the list. */
   const deleteItem = useCallback(async (id: string) => {
-    await api.contentKits.delete(id);
+    // A failed upload row is an upload, not a kit, so it goes through the clips API.
+    const target = allItems.find(item => item.id === id);
+    if (target?.type === 'video-upload') {
+      await api.clips.delete(id);
+    } else {
+      await api.contentKits.delete(id);
+    }
     setAllItems(prev => prev.filter(item => item.id !== id));
+  }, [allItems]);
+
+  const markProcessing = useCallback((id: string) => {
+    setAllItems(prev => prev.map(item => (item.id === id ? { ...item, status: 'processing' as const } : item)));
   }, []);
+
+  /** Re-run a failed upload in place. Throws the API's own message so the card can show it. */
+  const retryUpload = useCallback(async (id: string) => {
+    try {
+      await api.clips.process(id, { generateContent: true });
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'We could not restart this video. Please try again.'));
+    }
+    markProcessing(id);
+  }, [markProcessing]);
+
+  const retryUploadWithPassword = useCallback(async (id: string, password: string) => {
+    try {
+      await api.clips.retryWithPassword(id, password);
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'We could not use that passcode. Please try again.'));
+    }
+    markProcessing(id);
+  }, [markProcessing]);
 
   const downloadSelected = useCallback(async () => {
     // TODO: Implement bulk download
@@ -613,6 +736,8 @@ export function useContentLibrary(): UseContentLibraryReturn {
     // Bulk actions
     deleteSelected,
     deleteItem,
+    retryUpload,
+    retryUploadWithPassword,
     downloadSelected,
   };
 }
