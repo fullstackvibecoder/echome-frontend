@@ -25,11 +25,18 @@ export function getVideoDurationSeconds(file: File): Promise<number | null> {
       return;
     }
 
+    let url: string;
+    try {
+      url = URL.createObjectURL(file);
+    } catch {
+      resolve(null);
+      return;
+    }
+
     const video = document.createElement('video');
     let settled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    // Declared before finish so it is in scope; finish only runs after this assignment.
-    const timer = setTimeout(() => finish(null), METADATA_TIMEOUT_MS);
     const finish = (value: number | null) => {
       if (settled) return;
       settled = true;
@@ -45,14 +52,7 @@ export function getVideoDurationSeconds(file: File): Promise<number | null> {
       URL.revokeObjectURL(url);
       resolve(value);
     };
-
-    let url: string;
-    try {
-      url = URL.createObjectURL(file);
-    } catch {
-      resolve(null);
-      return;
-    }
+    timer = setTimeout(() => finish(null), METADATA_TIMEOUT_MS);
 
     video.preload = 'metadata';
     video.muted = true;
@@ -66,7 +66,7 @@ export function getVideoDurationSeconds(file: File): Promise<number | null> {
 }
 
 export function tooShortMessage(seconds: number): string {
-  const whole = Math.max(0, Math.floor(seconds));
+  const whole = Math.max(1, Math.floor(seconds));
   const length = whole === 1 ? '1 second' : `${whole} seconds`;
   return `This video is ${length} long. Videos need to be at least ${MIN_VIDEO_SECONDS} seconds to make clips. Pick a longer one.`;
 }
