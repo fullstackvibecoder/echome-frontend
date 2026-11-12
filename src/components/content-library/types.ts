@@ -184,6 +184,10 @@ export interface UseContentLibraryReturn {
   // Bulk actions
   deleteSelected: () => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
+  /** Re-run a failed upload in place (same row). Throws with the API's message on failure. */
+  retryUpload: (id: string) => Promise<void>;
+  /** Recover a failed link upload with a meeting passcode. Throws with the API's message on failure. */
+  retryUploadWithPassword: (id: string, password: string) => Promise<void>;
   downloadSelected: () => Promise<void>;
 }
 
