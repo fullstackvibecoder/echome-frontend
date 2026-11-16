@@ -26,7 +26,10 @@ export default function CompressVideoToolPage() {
   const [file, setFile] = useState<File | null>(null);
   const [quality, setQuality] = useState<Quality>('medium');
   const [state, setState] = useState<CompressState>('idle');
+  // Upload phase: real bytes uploaded (0-100). Compress phase: real ffmpeg
+  // progress from the server (0-100, null until the server reports it).
   const [progress, setProgress] = useState(0);
+  const [compressProgress, setCompressProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     originalSize: number;
@@ -67,7 +70,6 @@ export default function CompressVideoToolPage() {
   }, [handleFileSelect]);
 
   const pollStatus = async (jobId: string) => {
-    const timer = setInterval(() => setProgress((p) => (p >= 50 && p < 90 ? p + 2 : p)), 1000);
     try {
       // A single failed poll is noise (deploy blip, flaky network). Ten in a
       // row means the server is gone or the job is unreachable, so stop
@@ -105,6 +107,10 @@ export default function CompressVideoToolPage() {
         }
         consecutiveFailures = 0;
         const s = await res.json();
+        if (typeof s.progress === 'number') {
+          // Never let the bar move backwards on a stale or out-of-order poll.
+          setCompressProgress((p) => Math.max(p ?? 0, Math.min(100, s.progress)));
+        }
         if (s.state === 'done') {
           setResult({
             originalSize: s.originalSize || file?.size || 0,
@@ -112,7 +118,7 @@ export default function CompressVideoToolPage() {
             reductionPercent: s.reductionPercent || 0,
             downloadUrl: s.downloadUrl,
           });
-          setProgress(100);
+          setCompressProgress(100);
           setState('done');
           return;
         }
@@ -125,7 +131,7 @@ export default function CompressVideoToolPage() {
       setError('Compression is taking longer than expected. Please try again.');
       setState('error');
     } finally {
-      clearInterval(timer);
+      // nothing to clean up: progress now comes from the server, not a timer
     }
   };
 
@@ -133,6 +139,7 @@ export default function CompressVideoToolPage() {
     if (!file) return;
     setState('uploading');
     setProgress(0);
+    setCompressProgress(null);
     setError(null);
     setResult(null);
 
@@ -156,14 +163,15 @@ export default function CompressVideoToolPage() {
       }
       const { jobId, key, uploadId, partUrls, partSize } = await initRes.json();
 
-      // 2. upload parts directly to R2 (0-50% of the bar)
+      // 2. upload parts directly to R2 (real upload progress, 0-100%)
       const parts = await uploadFileInParts(file, partUrls, partSize, {
         concurrency: 4,
-        onProgress: (uploaded) => setProgress(Math.min(50, Math.round((uploaded / file.size) * 50))),
+        onProgress: (uploaded) => setProgress(Math.min(100, Math.round((uploaded / file.size) * 100))),
       });
 
       // 3. finalize the multipart upload + queue compression
-      setProgress(50);
+      setProgress(100);
+      setCompressProgress(0);
       setState('compressing');
       const completeRes = await fetch(`${API_BASE}/tools/compress-video/complete`, {
         method: 'POST',
@@ -177,7 +185,7 @@ export default function CompressVideoToolPage() {
         return;
       }
 
-      // 4. poll for compression result (50-100%)
+      // 4. poll for the real compression progress and result
       await pollStatus(jobId);
     } catch (err) {
       setError(
@@ -188,6 +196,18 @@ export default function CompressVideoToolPage() {
       setState('error');
     }
   };
+
+  // Stage label + percent for the processing card. Compressing splits into
+  // preparing (server downloading the file, 0%), encoding, and finishing
+  // (encode done, result being stored).
+  const stage = (() => {
+    if (state === 'uploading') return { label: 'Uploading...', pct: progress as number | null };
+    const c = compressProgress;
+    if (c !== null && c >= 100) return { label: 'Finishing...', pct: 100 as number | null };
+    if (c === null) return { label: 'Compressing...', pct: null as number | null };
+    if (c <= 0) return { label: 'Preparing...', pct: 0 as number | null };
+    return { label: 'Compressing...', pct: c as number | null };
+  })();
 
   const handleDownload = () => {
     if (!result?.downloadUrl) return;
@@ -200,6 +220,7 @@ export default function CompressVideoToolPage() {
     setFile(null);
     setState('idle');
     setProgress(0);
+    setCompressProgress(null);
     setError(null);
     setResult(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -358,16 +379,14 @@ export default function CompressVideoToolPage() {
             {(state === 'uploading' || state === 'compressing') && (
               <div className="text-center py-8">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
-                <p className="text-white font-medium mb-2">
-                  {state === 'uploading' ? 'Uploading...' : 'Compressing...'}
-                </p>
+                <p className="text-white font-medium mb-2">{stage.label}</p>
                 <div className="w-full max-w-xs mx-auto h-2 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary to-accent-purple rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
+                    className={`h-full bg-gradient-to-r from-primary to-accent-purple rounded-full transition-all duration-500 ${stage.pct === null ? 'animate-pulse' : ''}`}
+                    style={{ width: `${stage.pct === null ? 100 : stage.pct}%` }}
                   />
                 </div>
-                <p className="text-sm text-white/40 mt-2">{progress}%</p>
+                {stage.pct !== null && <p className="text-sm text-white/40 mt-2">{stage.pct}%</p>}
               </div>
             )}
 
