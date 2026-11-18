@@ -55,6 +55,8 @@ export default function FollowingContent() {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [selectedVideoForRepurpose, setSelectedVideoForRepurpose] = useState<ContentWithCreator | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'linkedin', 'blog']);
+  // Optional one-line user angle for Write my take; sent as differentiationAngle.
+  const [takeAngle, setTakeAngle] = useState('');
   const [repurposing, setRepurposing] = useState(false);
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
@@ -197,6 +199,7 @@ export default function FollowingContent() {
     setShowRepurposeModal(true);
     setRepurposeError(null);
     setSelectedPlatforms(['instagram', 'linkedin', 'blog']);
+    setTakeAngle('');
   };
 
   const closeRepurposeModal = () => {
@@ -253,8 +256,10 @@ export default function FollowingContent() {
 
       // No carousel-style preselect — backend defaults to branded-overlay,
       // user can restyle from the kit detail page after generation.
+      const angle = takeAngle.trim();
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
+        ...(angle ? { differentiationAngle: angle } : {}),
       });
 
       if (response.success && response.result.requestId) {
@@ -557,6 +562,26 @@ export default function FollowingContent() {
                   <p className="text-sm text-foreground">{selectedVideoForRepurpose.summary}</p>
                 </div>
               )}
+
+              {/* Optional user angle: becomes the spine of the post */}
+              <div>
+                <label htmlFor="take-angle" className="block font-medium mb-1 text-foreground">
+                  Add your take <span className="font-normal text-muted-foreground">(optional)</span>
+                </label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  One line on what you think about this. Echo builds the post around it.
+                </p>
+                <textarea
+                  id="take-angle"
+                  value={takeAngle}
+                  onChange={(e) => setTakeAngle(e.target.value)}
+                  disabled={repurposing}
+                  maxLength={500}
+                  rows={2}
+                  placeholder="e.g. Most of my clients get this backwards, and here's what I tell them instead"
+                  className="w-full rounded-lg border border-border bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-interactive disabled:opacity-50"
+                />
+              </div>
 
               {/* Platform Selection */}
               <div>
