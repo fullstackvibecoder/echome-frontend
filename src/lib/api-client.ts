@@ -1869,6 +1869,8 @@ export const api = {
     repurpose: async (contentId: string, data: {
       platforms: string[];
       knowledgeBaseId?: string;
+      /** Teams: write the take as this voice (its KB and profile). */
+      voiceId?: string;
       tone?: string;
       additionalInstructions?: string;
       focusOnIdeas?: string[];

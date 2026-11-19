@@ -269,3 +269,13 @@ export function useVoiceContext() {
   }
   return context;
 }
+
+/**
+ * The voice to write as: the active voice id on a Teams account, otherwise
+ * undefined (the backend writes as the account owner). Never throws, so it is
+ * safe in components that tests render without a VoiceProvider.
+ */
+export function useActiveVoiceId(): string | undefined {
+  const context = useContext(VoiceContext);
+  return context?.isTeamsUser ? context.activeVoice?.id : undefined;
+}
