@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { AppPageHeader } from '@/components/app-page-header';
 import { ConnectedAccounts } from './ConnectedAccounts';
+import { EchoMeInClaude } from './EchoMeInClaude';
 import LearningSources from './LearningSources';
 
 type SettingsTab = 'profile' | 'account' | 'connections' | 'preferences' | 'billing' | 'referral';
@@ -942,6 +943,7 @@ export default function SettingsContent() {
         <>
           <LearningSources />
           <ConnectedAccounts />
+          <EchoMeInClaude />
         </>
       )}
 

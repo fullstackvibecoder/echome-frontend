@@ -19,6 +19,7 @@ import {
   Users,
   CreditCard,
   Images,
+  Plug,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -219,6 +220,16 @@ export const guides: Guide[] = [
     title: 'Understanding EchoMe Plans',
     description:
       'Compare Free, Echo, Echo Studio, and Echo Teams plans. See what is included in each tier and how to upgrade or downgrade.',
+    category: 'Tools and plans',
+    readTime: '3 min',
+    hasVideo: false,
+  },
+  {
+    slug: 'use-echome-in-claude',
+    icon: <Plug className="w-6 h-6" />,
+    title: 'Use EchoMe in Claude',
+    description:
+      'Connect EchoMe to Claude, Claude Code or Cursor. Draft posts and kits in your voice and schedule them, without leaving the chat. Studio plan.',
     category: 'Tools and plans',
     readTime: '3 min',
     hasVideo: false,
