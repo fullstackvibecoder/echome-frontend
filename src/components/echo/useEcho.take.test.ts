@@ -100,4 +100,26 @@ describe('Not me - write my take', () => {
     expect(api.creators.contentFromUrl).not.toHaveBeenCalled();
     expect(api.clips.upload).toHaveBeenCalled();
   });
+
+  it('ignores a late Radar reply after the user resets', async () => {
+    let resolveRead: (v: unknown) => void = () => {};
+    vi.mocked(api.creators.contentFromUrl).mockReturnValue(new Promise((r) => { resolveRead = r; }) as never);
+    const { result } = await pasted('https://youtu.be/o9TPlkE3Wpw');
+    act(() => { result.current.chooseOwnership('third_party'); });
+    act(() => { result.current.reset(); });
+    await act(async () => {
+      resolveRead({ success: true, data: { contentId: 'c-late', title: 'Late', thumbnailUrl: null, durationSeconds: null, platform: 'youtube', reused: false } });
+    });
+    expect(result.current.state.takeTarget).toBeNull();
+    expect(result.current.state.phase).toBe('open');
+  });
+
+  it('sends one Radar read and one take on double clicks', async () => {
+    const { result } = await pasted('https://youtu.be/o9TPlkE3Wpw');
+    act(() => { result.current.chooseOwnership('third_party'); result.current.chooseOwnership('third_party'); });
+    await waitFor(() => expect(result.current.state.takeTarget).not.toBeNull());
+    expect(api.creators.contentFromUrl).toHaveBeenCalledTimes(1);
+    await act(async () => { await Promise.all([result.current.writeTake(), result.current.writeTake()]); });
+    expect(api.creators.repurpose).toHaveBeenCalledTimes(1);
+  });
 });

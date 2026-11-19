@@ -218,6 +218,9 @@ export function useEcho(
   // poll (reset or second call starts a new run, stale loops detect the change
   // and exit without touching state).
   const pollRunRef = useRef(0);
+  // Run counter for the "Not me" Radar read. Bumped on reset, close, submit and
+  // each new ownership pick, so a late reply for an abandoned video never lands.
+  const takeRunRef = useRef(0);
 
   // Stable per-mount session id for the agentic Echo chat loop (threads
   // turns into one server-side session).
@@ -232,10 +235,17 @@ export function useEcho(
   }, []);
 
   const close = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      phase: 'idle',
-    }));
+    // Drop an unfinished "Not me" read: its reply must not reopen the box, and
+    // the chips come back next time instead of a stuck half-chosen state.
+    takeRunRef.current += 1;
+    setState((prev) => {
+      const readInFlight = prev.videoOwnership === 'third_party' && !prev.takeTarget && prev.phase === 'executing';
+      return {
+        ...prev,
+        phase: 'idle',
+        ...(readInFlight ? { videoOwnership: null } : {}),
+      };
+    });
   }, []);
 
   const setInputText = useCallback((text: string) => {
@@ -336,6 +346,7 @@ export function useEcho(
     // Bump the run counter so any in-flight stockpile poll loop detects it has
     // been superseded and exits without writing state.
     pollRunRef.current += 1;
+    takeRunRef.current += 1;
     setState((prev) => ({
       ...INITIAL_STATE,
       phase: 'open',
@@ -374,6 +385,7 @@ export function useEcho(
 
     // Invalidate any in-flight stockpile poll so it exits without touching state.
     pollRunRef.current += 1;
+    takeRunRef.current += 1;
 
     // Clear any prior success card and poll phase so a new exchange starts clean.
     setState((prev) => ({ ...prev, phase: 'classifying', error: null, confirmation: null, ingestPhase: null }));
@@ -881,7 +893,13 @@ export function useEcho(
   }, [navigate, addReceipt, notifyIngestComplete]);
 
   const chooseOwnership = useCallback((o: 'self' | 'third_party') => {
-    const { inputText, videoUrlTarget } = stateRef.current;
+    const { inputText, videoUrlTarget, phase, videoOwnership } = stateRef.current;
+    // Chips vanish once ownership is set; this stops a double-click sending twice.
+    if (phase === 'executing' || videoOwnership !== null) return;
+    takeRunRef.current += 1;
+    const runId = takeRunRef.current;
+    // Record the pick on the ref at once so a second click in the same frame stops above.
+    stateRef.current = { ...stateRef.current, videoOwnership: o };
     setState((prev) => ({ ...prev, videoOwnership: o, takeTarget: null, takeAngle: '' }));
     // Someone else's single video: no clips. Put it on Radar so the user can
     // write their take right here in the box.
@@ -892,6 +910,7 @@ export function useEcho(
     void (async () => {
       try {
         const res = await api.creators.contentFromUrl(url);
+        if (takeRunRef.current !== runId) return;
         if (!res.success || !res.data?.contentId) throw new Error('EchoMe could not read that video.');
         setState((prev) => ({
           ...prev,
@@ -899,6 +918,7 @@ export function useEcho(
           takeTarget: { contentId: res.data.contentId, title: res.data.title, thumbnailUrl: res.data.thumbnailUrl },
         }));
       } catch (err) {
+        if (takeRunRef.current !== runId) return;
         setState((prev) => ({
           ...prev,
           phase: 'confirming',
@@ -914,8 +934,10 @@ export function useEcho(
   }, []);
 
   const writeTake = useCallback(async () => {
-    const { takeTarget, takeAngle } = stateRef.current;
-    if (!takeTarget) return;
+    const { takeTarget, takeAngle, phase } = stateRef.current;
+    if (!takeTarget || phase === 'executing') return;
+    // Mark executing on the ref at once so a second click in the same frame stops here.
+    stateRef.current = { ...stateRef.current, phase: 'executing' };
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
       const angle = takeAngle.trim();
