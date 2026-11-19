@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { toast } from 'sonner';
+import { didConnect, RETURN_GRACE_MS, STUCK_TIPS, supportMailto } from './connect-help';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import {
@@ -64,6 +65,9 @@ export function ConnectedAccounts() {
   const [connecting, setConnecting] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  // Platform whose connect came back without an account: shows "didn't finish".
+  const [stuck, setStuck] = useState<{ platform: string; startedAt: number } | null>(null);
+  const [connectStartedAt, setConnectStartedAt] = useState(0);
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -90,6 +94,7 @@ export function ConnectedAccounts() {
       if (event.data?.type === 'social-account-connected') {
         toast.success(`${event.data.platform} connected!`);
         setConnecting(null);
+        setStuck(null);
         setDropdownOpen(false);
         loadAccounts();
       }
@@ -105,23 +110,36 @@ export function ConnectedAccounts() {
   // connecting resets or after 3 minutes.
   useEffect(() => {
     if (!connecting) return;
-    const startCount = accounts.length;
+    const platform = connecting;
+    const startedAt = connectStartedAt;
     const poll = setInterval(async () => {
       try {
         const resp = await api.socialPosting.listAccounts();
-        if (resp.success && resp.data && resp.data.accounts.length > startCount) {
+        // Matches on (re)connect time, not count: a reconnect replaces the row.
+        if (resp.success && resp.data && didConnect(resp.data.accounts, platform, startedAt)) {
           setAccounts(resp.data.accounts);
           setConnecting(null);
+          setStuck(null);
           setDropdownOpen(false);
-          toast.success(`${connecting} connected!`);
+          toast.success(`${platform} connected!`);
         }
       } catch {
-        // transient — keep polling
+        // transient: keep polling
       }
     }, 2500);
-    const stop = setTimeout(() => clearInterval(poll), 180_000);
-    return () => { clearInterval(poll); clearTimeout(stop); };
-  }, [connecting, accounts.length]);
+    // Coming back to this tab while the popup sits on the network's feed or
+    // error page is the usual sign it failed: offer help without stopping the poll.
+    const onFocus = () => {
+      if (Date.now() - startedAt >= RETURN_GRACE_MS) setStuck({ platform, startedAt });
+    };
+    window.addEventListener('focus', onFocus);
+    const stop = setTimeout(() => {
+      clearInterval(poll);
+      setConnecting((c) => (c === platform ? null : c));
+      setStuck({ platform, startedAt });
+    }, 180_000);
+    return () => { clearInterval(poll); clearTimeout(stop); window.removeEventListener('focus', onFocus); };
+  }, [connecting, connectStartedAt]);
 
   useEffect(() => {
     if (!dropdownOpen) return;
@@ -130,8 +148,11 @@ export function ConnectedAccounts() {
     return () => document.removeEventListener('click', close);
   }, [dropdownOpen]);
 
-  const handleConnect = async (platform: string) => {
+  const handleConnect = useCallback(async (platform: string) => {
     try {
+      const startedAt = Date.now();
+      setConnectStartedAt(startedAt);
+      setStuck(null);
       setConnecting(platform);
       setDropdownOpen(false);
       const response = await api.socialPosting.getAuthUrl(platform);
@@ -146,8 +167,13 @@ export function ConnectedAccounts() {
           const pollTimer = setInterval(() => {
             if (popup.closed) {
               clearInterval(pollTimer);
-              setConnecting(null);
-              loadAccounts();
+              void api.socialPosting.listAccounts().then((resp) => {
+                if (!resp.success || !resp.data) return;
+                setAccounts(resp.data.accounts);
+                if (!didConnect(resp.data.accounts, platform, startedAt)) setStuck({ platform, startedAt });
+              }).catch(() => {}).finally(() => {
+                setConnecting((c) => (c === platform ? null : c));
+              });
             }
           }, 1000);
           setTimeout(() => clearInterval(pollTimer), 300000);
@@ -165,7 +191,7 @@ export function ConnectedAccounts() {
       toast.error(extractErrorMessage(err, 'Failed to start connection. Please try again.'));
       setConnecting(null);
     }
-  };
+  }, []);
 
   const handleDisconnect = async (account: ConnectedAccount) => {
     try {
@@ -332,6 +358,53 @@ export function ConnectedAccounts() {
           })}
         </div>
       )}
+
+      {stuck && (() => {
+        const name = PLATFORMS.find((p) => p.id === stuck.platform)?.name ?? stuck.platform;
+        const tips = STUCK_TIPS[stuck.platform] ?? [];
+        return (
+          <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">{name} didn&apos;t finish connecting</p>
+                <p className="text-xs text-muted-foreground">
+                  This often happens on the first try: {name} signs you in, then shows your feed or an error
+                  instead of finishing. A second try usually works.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pl-6">
+              <button
+                type="button"
+                onClick={() => handleConnect(stuck.platform)}
+                className="px-3 py-1.5 text-xs font-medium text-white bg-primary-interactive rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Try again
+              </button>
+              <button
+                type="button"
+                onClick={() => setStuck(null)}
+                className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Dismiss
+              </button>
+            </div>
+            <div className="pl-6 space-y-1">
+              <p className="text-xs font-medium text-foreground">Still stuck?</p>
+              <ul className="list-disc pl-4 space-y-1 text-xs text-muted-foreground">
+                {tips.map((tip) => <li key={tip}>{tip}</li>)}
+                <li>
+                  <a className="underline hover:text-foreground" href={supportMailto(name, stuck.startedAt)}>
+                    Email us
+                  </a>{' '}
+                  with a screenshot of what {name} showed you, and we&apos;ll sort it out.
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
+      })()}
 
       {availablePlatforms.length > 0 && (
         <div className="relative">
