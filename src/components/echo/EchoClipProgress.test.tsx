@@ -103,7 +103,9 @@ describe('EchoExchange done card', () => {
   } as unknown as EchoState;
   const handlers = {
     setInputText: vi.fn(), submit: vi.fn(), selectIntent: vi.fn(), confirm: vi.fn(), reset: vi.fn(),
-    chooseOwnership: vi.fn(), chooseDestination: vi.fn(), chooseFileDestination: vi.fn(),
+    chooseOwnership: vi.fn(),
+    setTakeAngle: vi.fn(),
+    writeTake: vi.fn(), chooseDestination: vi.fn(), chooseFileDestination: vi.fn(),
     clipSavedVideo: vi.fn(), confirmAction: vi.fn(),
   };
 

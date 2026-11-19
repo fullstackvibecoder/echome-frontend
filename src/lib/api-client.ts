@@ -1739,6 +1739,26 @@ export const api = {
       };
     },
 
+    /**
+     * Put one video someone else made on the user's Radar (Create box "Not me -
+     * write my take"). Returns as soon as the video info is read; reuses the
+     * existing Radar row when the user already has this video.
+     */
+    contentFromUrl: async (url: string) => {
+      const response = await apiClient.post('/creators/content/from-url', { url });
+      return response.data as {
+        success: boolean;
+        data: {
+          contentId: string;
+          title: string | null;
+          thumbnailUrl: string | null;
+          durationSeconds: number | null;
+          platform: 'youtube' | 'instagram';
+          reused: boolean;
+        };
+      };
+    },
+
     /** Unfollow a creator */
     unfollow: async (creatorId: string) => {
       const response = await apiClient.delete(`/creators/${creatorId}`);

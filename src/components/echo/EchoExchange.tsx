@@ -15,7 +15,7 @@ import type { EchoState, UseEchoReturn } from './useEcho';
 
 interface EchoExchangeProps {
   state: EchoState;
-  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseOwnership' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo' | 'confirmAction'>;
+  handlers: Pick<UseEchoReturn, 'setInputText' | 'submit' | 'selectIntent' | 'confirm' | 'reset' | 'chooseOwnership' | 'setTakeAngle' | 'writeTake' | 'chooseDestination' | 'chooseFileDestination' | 'clipSavedVideo' | 'confirmAction'>;
   /** Called with the textarea element once it mounts, so EchoPill can manage focus */
   onTextareaMount?: (el: HTMLTextAreaElement | null) => void;
   /** Textarea placeholder override. Defaults to the standard EchoExchange copy. */
@@ -24,7 +24,7 @@ interface EchoExchangeProps {
 
 export function EchoExchange({ state, handlers, onTextareaMount, placeholder }: EchoExchangeProps) {
   const { phase, inputText, classification, selectedIntent, answer, receipts, error, confirmation, videoOwnership } = state;
-  const { setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction } = handlers;
+  const { setInputText, submit, selectIntent, confirm, reset, chooseOwnership, setTakeAngle, writeTake, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction } = handlers;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -167,8 +167,53 @@ export function EchoExchange({ state, handlers, onTextareaMount, placeholder }: 
         </div>
       )}
 
-      {/* Destination fork: shown in confirming phase when input contains a video URL and ownership is set */}
-      {isConfirming && state.videoUrlTarget && videoOwnership !== null && (
+      {/* Someone else's single video: read it onto Radar, then write the take here */}
+      {isConfirming && state.videoUrlTarget?.kind === 'single' && videoOwnership === 'third_party' && !state.takeTarget && phase === 'executing' && (
+        <span className="text-machine" role="status" style={{ color: 'var(--muted-foreground)' }}>
+          READING THE VIDEO...
+        </span>
+      )}
+
+      {isConfirming && state.takeTarget && (
+        <div className="flex flex-col gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-container-high)] p-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {state.takeTarget.thumbnailUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={state.takeTarget.thumbnailUrl} alt="" className="h-12 w-20 flex-shrink-0 rounded object-cover" />
+            )}
+            <span className="text-sm text-foreground line-clamp-2 min-w-0">{state.takeTarget.title ?? 'Video'}</span>
+          </div>
+          <label htmlFor="echo-take" className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
+            ADD YOUR TAKE (OPTIONAL)
+          </label>
+          <textarea
+            id="echo-take"
+            value={state.takeAngle}
+            onChange={(e) => setTakeAngle(e.target.value)}
+            disabled={phase === 'executing'}
+            maxLength={500}
+            rows={2}
+            placeholder="One line on what you think. Echo builds the post around it."
+            className="w-full resize-none rounded border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[rgba(0,212,255,0.6)] disabled:opacity-50"
+          />
+          <div>
+            <button
+              type="button"
+              onClick={() => writeTake()}
+              disabled={phase === 'executing'}
+              className="text-machine rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)] disabled:opacity-50"
+              style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
+            >
+              {phase === 'executing' ? 'Writing...' : 'Write my take'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Destination fork: shown in confirming phase when input contains a video URL and ownership is set.
+          Not for someone else's single video: that goes through the take card above. */}
+      {isConfirming && state.videoUrlTarget && videoOwnership !== null
+        && !(videoOwnership === 'third_party' && state.videoUrlTarget.kind === 'single') && (
         <div className="flex flex-col gap-2">
           <span className="text-machine" style={{ color: 'var(--muted-foreground)' }}>
             WHERE SHOULD THIS GO
@@ -181,14 +226,17 @@ export function EchoExchange({ state, handlers, onTextareaMount, placeholder }: 
               className="text-machine rounded px-2.5 py-1 border border-[rgba(0,212,255,0.6)] bg-[rgba(0,212,255,0.08)] text-[rgba(0,212,255,0.9)] hover:bg-[rgba(0,212,255,0.12)] disabled:opacity-50"
               style={{ fontSize: '0.625rem', letterSpacing: '0.12em' }}
             >
-              {state.videoUrlTarget.kind === 'single' ? 'Make content now' : 'Save videos to clip later'}
+              {state.videoUrlTarget.kind === 'single'
+                ? 'Make content now'
+                : videoOwnership === 'third_party' ? 'Follow on Radar' : 'Save videos to clip later'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Consent line: persistent notice whenever a video URL is in scope */}
-      {isConfirming && state.videoUrlTarget && (
+      {/* Consent line: shown when a video URL could become the user's own voice
+          material. Someone else's video never trains the voice. */}
+      {isConfirming && state.videoUrlTarget && videoOwnership !== 'third_party' && (
         <p className="text-machine" style={{ color: 'var(--muted-foreground)', fontSize: '0.625rem' }}>
           Videos you add train your voice.{' '}
           <a href="#" className="underline hover:opacity-80">Learn more.</a>
