@@ -19,8 +19,11 @@ vi.mock('@/lib/api-client', () => ({
   },
 }));
 vi.mock('@/lib/echo-client', () => ({ classifyEchoInput: vi.fn() }));
+const activeVoice = vi.hoisted(() => ({ id: undefined as string | undefined }));
+vi.mock('@/contexts/voice-context', () => ({ useActiveVoiceId: () => activeVoice.id }));
 
 beforeEach(() => {
+  activeVoice.id = undefined;
   vi.mocked(api.telemetry.event).mockResolvedValue(undefined);
   vi.mocked(classifyEchoInput).mockResolvedValue({ intent: 'create', confidence: 0.9, source: 'heuristic', args: {}, latencyMs: 0 });
   vi.mocked(api.creators.contentFromUrl).mockResolvedValue({
@@ -63,6 +66,15 @@ describe('Not me - write my take', () => {
     });
     expect(navigate).toHaveBeenCalledWith('/app/library/req-1');
     expect(result.current.state.takeTarget).toBeNull();
+  });
+
+  it('writes the take as the active Teams voice', async () => {
+    activeVoice.id = 'voice-2';
+    const { result } = await pasted('https://youtu.be/o9TPlkE3Wpw');
+    act(() => { result.current.chooseOwnership('third_party'); });
+    await waitFor(() => expect(result.current.state.takeTarget).not.toBeNull());
+    await act(async () => { await result.current.writeTake(); });
+    expect(api.creators.repurpose).toHaveBeenCalledWith('c-1', { platforms: ['instagram', 'linkedin', 'blog'], voiceId: 'voice-2' });
   });
 
   it('sends no angle when the take box is empty', async () => {

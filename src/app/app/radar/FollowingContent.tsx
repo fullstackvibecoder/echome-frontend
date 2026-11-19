@@ -7,6 +7,7 @@ import { extractErrorMessage } from '@/lib/error-utils';
 import { showErrorToast } from '@/lib/toast';
 import { Platform } from '@/types';
 import { UpgradeBanner } from '@/components/upgrade-banner';
+import { useActiveVoiceId } from '@/contexts/voice-context';
 
 type CreatorPlatform = 'youtube' | 'instagram';
 
@@ -61,6 +62,8 @@ export default function FollowingContent() {
   const [repurposeError, setRepurposeError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const router = useRouter();
+  // Teams: Radar takes are written as the voice active in the header.
+  const activeVoiceId = useActiveVoiceId();
 
   useEffect(() => {
     loadData();
@@ -260,6 +263,7 @@ export default function FollowingContent() {
       const response = await api.creators.repurpose(selectedVideoForRepurpose.id, {
         platforms: selectedPlatforms as string[],
         ...(angle ? { differentiationAngle: angle } : {}),
+        ...(activeVoiceId ? { voiceId: activeVoiceId } : {}),
       });
 
       if (response.success && response.result.requestId) {
