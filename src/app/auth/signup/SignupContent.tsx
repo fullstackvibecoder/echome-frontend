@@ -11,6 +11,7 @@ import { OAuthButtons } from '@/components/oauth-buttons';
 import { readMode, captureModeFromParams, persistMode, isModeActive } from '@/lib/mode';
 import { track } from '@/lib/telemetry';
 import { api } from '@/lib/api-client';
+import { usePendingRedirect, withRedirect } from '@/lib/auth-redirect';
 
 function SignupForm() {
   const { signup } = useAuth();
@@ -20,6 +21,7 @@ function SignupForm() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const searchParams = useSearchParams();
+  const pendingRedirect = usePendingRedirect();
 
   // Store plan selection in sessionStorage for checkout after signup
   useEffect(() => {
@@ -106,7 +108,7 @@ function SignupForm() {
             {generalError}
             <p className="mt-2 text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:underline font-medium">
+              <Link href={withRedirect('/auth/login', pendingRedirect)} className="text-primary hover:underline font-medium">
                 Sign in instead
               </Link>
             </p>
@@ -337,7 +339,7 @@ function SignupForm() {
       {/* Login Link */}
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/auth/login" className="text-primary hover:underline font-medium">
+        <Link href={withRedirect('/auth/login', pendingRedirect)} className="text-primary hover:underline font-medium">
           Sign in
         </Link>
       </p>

@@ -7,11 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthForm, loginSchema } from '@/hooks/useAuthForm';
 import { useBackendHealth } from '@/hooks/useBackendHealth';
 import { OAuthButtons } from '@/components/oauth-buttons';
+import { usePendingRedirect, withRedirect } from '@/lib/auth-redirect';
 
 export default function LoginContent() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const { status: backendStatus } = useBackendHealth();
+  const pendingRedirect = usePendingRedirect();
 
   const { errors, isLoading, generalError, handleSubmit } = useAuthForm({
     schema: loginSchema,
@@ -73,7 +75,7 @@ export default function LoginContent() {
             <p className="mt-2 text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link
-                href="/auth/signup"
+                href={withRedirect('/auth/signup', pendingRedirect)}
                 className="text-primary hover:underline font-medium"
               >
                 Create one here
@@ -182,7 +184,7 @@ export default function LoginContent() {
       <p className="mt-6 text-center text-sm text-muted-foreground">
         New to EchoMe?{' '}
         <Link
-          href="/auth/signup"
+          href={withRedirect('/auth/signup', pendingRedirect)}
           className="text-primary hover:underline font-medium"
         >
           Create an account

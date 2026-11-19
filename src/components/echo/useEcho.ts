@@ -16,6 +16,7 @@ import {
   type EchoIntent,
 } from '@/lib/echo-client';
 import { api } from '@/lib/api-client';
+import { useActiveVoiceId } from '@/contexts/voice-context';
 import { extractErrorMessage } from '@/lib/error-utils';
 import { INTENT_META, COMMAND_ROUTE_MAP, formatReceipt, classifyFile, MAX_ECHO_AUDIO_BYTES, MAX_ECHO_TEXT_BYTES, MAX_ECHO_DOCUMENT_BYTES, MAX_ECHO_VIDEO_BYTES, ECHO_VIDEO_COMPRESS_HINT_BYTES } from './intent-meta';
 import { stashEchoHandoff } from './file-handoff';
@@ -194,6 +195,12 @@ export function useEcho(
   // Keep a ref so callbacks always read fresh state
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Teams: the take is written as the voice active in the header (voice plan
+  // PR C). A ref keeps writeTake's deps stable.
+  const activeVoiceId = useActiveVoiceId();
+  const activeVoiceIdRef = useRef(activeVoiceId);
+  activeVoiceIdRef.current = activeVoiceId;
 
   // Keep onIngestComplete in a ref so confirm()'s useCallback deps stay stable
   // while always firing the latest callback.
@@ -941,9 +948,11 @@ export function useEcho(
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
       const angle = takeAngle.trim();
+      const voiceId = activeVoiceIdRef.current;
       const res = await api.creators.repurpose(takeTarget.contentId, {
         platforms: [...TAKE_PLATFORMS],
         ...(angle ? { differentiationAngle: angle } : {}),
+        ...(voiceId ? { voiceId } : {}),
       });
       const requestId = res.success ? res.result?.requestId : null;
       if (!requestId) throw new Error(res.result?.error || 'Writing your take failed. Try again.');
