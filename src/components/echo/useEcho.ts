@@ -76,6 +76,13 @@ export interface EchoState {
    * Always null when there is no videoUrlTarget (forced null on each new URL submission).
    */
   videoOwnership: 'self' | 'third_party' | null;
+  /**
+   * Someone else's single video, put on the user's Radar after "Not me - write
+   * my take". Drives the in-box take card. null until the video is read.
+   */
+  takeTarget: { contentId: string; title: string | null; thumbnailUrl: string | null } | null;
+  /** The user's optional one-line take for takeTarget (sent as differentiationAngle). */
+  takeAngle: string;
   /** Ingest-polling phase for the Store/stockpile path. null = not in store flow. */
   ingestPhase: 'importing' | 'success' | 'failed' | null;
   /**
@@ -104,6 +111,10 @@ export interface UseEchoReturn {
   reset: () => void;
   /** Set the ownership for a pasted video URL before choosing a destination. */
   chooseOwnership: (o: 'self' | 'third_party') => void;
+  /** Edit the optional take for state.takeTarget. */
+  setTakeAngle: (text: string) => void;
+  /** Write the user's take on state.takeTarget (Radar repurpose), then open the kit. */
+  writeTake: () => Promise<void>;
   chooseDestination: (choice: 'create' | 'stockpile') => Promise<void>;
   chooseFileDestination: (dest: 'create' | 'stockpile') => Promise<void>;
   clipSavedVideo: (uploadId: string) => Promise<void>;
@@ -112,6 +123,10 @@ export interface UseEchoReturn {
 }
 
 const MAX_RECEIPTS = 3;
+/** Same default platforms as Radar's Write my take box. */
+const TAKE_PLATFORMS = ['instagram', 'linkedin', 'blog'] as const;
+/** Matches the backend cap on a take (take-angle.ts). */
+const MAX_TAKE_CHARS = 500;
 
 // Module-level KB id cache (session lifetime, cleared on page unload)
 let cachedKbId: string | null = null;
@@ -154,6 +169,8 @@ const INITIAL_STATE: EchoState = {
   savedVideos: null,
   savedCount: null,
   videoOwnership: null,
+  takeTarget: null,
+  takeAngle: '',
   ingestPhase: null,
   pendingAction: null,
   answerUpsell: false,
@@ -423,6 +440,8 @@ export function useEcho(
         savedCount: null,
         // Force ownership chip to be answered fresh on each new URL submission
         videoOwnership: null,
+        takeTarget: null,
+        takeAngle: '',
       }));
     } catch (err) {
       setState((prev) => ({
@@ -862,8 +881,60 @@ export function useEcho(
   }, [navigate, addReceipt, notifyIngestComplete]);
 
   const chooseOwnership = useCallback((o: 'self' | 'third_party') => {
-    setState((prev) => ({ ...prev, videoOwnership: o }));
+    const { inputText, videoUrlTarget } = stateRef.current;
+    setState((prev) => ({ ...prev, videoOwnership: o, takeTarget: null, takeAngle: '' }));
+    // Someone else's single video: no clips. Put it on Radar so the user can
+    // write their take right here in the box.
+    if (o !== 'third_party' || videoUrlTarget?.kind !== 'single') return;
+    const url = extractFirstUrl(inputText);
+    if (!url) return;
+    setState((prev) => ({ ...prev, phase: 'executing', error: null }));
+    void (async () => {
+      try {
+        const res = await api.creators.contentFromUrl(url);
+        if (!res.success || !res.data?.contentId) throw new Error('EchoMe could not read that video.');
+        setState((prev) => ({
+          ...prev,
+          phase: 'confirming',
+          takeTarget: { contentId: res.data.contentId, title: res.data.title, thumbnailUrl: res.data.thumbnailUrl },
+        }));
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          phase: 'confirming',
+          videoOwnership: null,
+          error: extractErrorMessage(err, 'EchoMe could not read that video. Check the link is public and try again.'),
+        }));
+      }
+    })();
   }, []);
+
+  const setTakeAngle = useCallback((text: string) => {
+    setState((prev) => ({ ...prev, takeAngle: text.slice(0, MAX_TAKE_CHARS) }));
+  }, []);
+
+  const writeTake = useCallback(async () => {
+    const { takeTarget, takeAngle } = stateRef.current;
+    if (!takeTarget) return;
+    setState((prev) => ({ ...prev, phase: 'executing', error: null }));
+    try {
+      const angle = takeAngle.trim();
+      const res = await api.creators.repurpose(takeTarget.contentId, {
+        platforms: [...TAKE_PLATFORMS],
+        ...(angle ? { differentiationAngle: angle } : {}),
+      });
+      const requestId = res.success ? res.result?.requestId : null;
+      if (!requestId) throw new Error(res.result?.error || 'Writing your take failed. Try again.');
+      addReceipt(formatReceipt(`TAKE · ${takeTarget.title ?? 'VIDEO'}`));
+      setState((prev) => ({
+        ...prev, phase: 'done', inputText: '', videoUrlTarget: null, videoOwnership: null,
+        takeTarget: null, takeAngle: '',
+      }));
+      navigate(`/app/library/${requestId}`);
+    } catch (err) {
+      setState((prev) => ({ ...prev, phase: 'confirming', error: extractErrorMessage(err, 'Writing your take failed. Try again.') }));
+    }
+  }, [addReceipt, navigate]);
 
   const chooseDestination = useCallback(async (choice: 'create' | 'stockpile') => {
     const { inputText, videoUrlTarget, videoOwnership } = stateRef.current;
@@ -871,6 +942,9 @@ export function useEcho(
     if (!url || !videoUrlTarget) return;
 
     const ownership = videoOwnership ?? 'self';
+    // Someone else's single video never goes to clips: it takes the in-box
+    // take path (chooseOwnership -> writeTake).
+    if (ownership === 'third_party' && videoUrlTarget.kind === 'single') return;
 
     setState((prev) => ({ ...prev, phase: 'executing', error: null }));
     try {
@@ -888,6 +962,17 @@ export function useEcho(
           savedVideos: null, savedCount: null,
           clipJob: jobId ? { uploadId: upload.id, jobId } : null,
           confirmation: { title: 'Clipping your video', detail: 'Making content now' },
+        }));
+      } else if (ownership === 'third_party') {
+        // Someone else's channel: follow it on Radar (their new videos land
+        // there for a take). Nothing is downloaded or stored as the user's voice.
+        const res = await api.creators.follow({ platform: videoUrlTarget.platform, creatorUrl: url });
+        if (!res.success) throw new Error(res.error || 'Could not follow that creator.');
+        const name = res.creator?.creator_name || res.creator?.creator_username || 'this creator';
+        addReceipt(formatReceipt(`RADAR · FOLLOWING ${name}`));
+        setState((prev) => ({
+          ...prev, phase: 'done', inputText: '', videoUrlTarget: null, videoOwnership: null,
+          confirmation: { title: `Following ${name} on Radar`, detail: 'Their new videos show up in Radar, ready for your take.' },
         }));
       } else {
         const res = await api.kbContent.startChannelStockpile({ url, ownership });
@@ -1055,6 +1140,8 @@ export function useEcho(
     confirm,
     reset,
     chooseOwnership,
+    setTakeAngle,
+    writeTake,
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,

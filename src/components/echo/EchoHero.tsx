@@ -85,6 +85,8 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
     confirm,
     reset,
     chooseOwnership,
+    setTakeAngle,
+    writeTake,
     chooseDestination,
     chooseFileDestination,
     clipSavedVideo,
@@ -347,7 +349,7 @@ export function EchoHero({ quota, belowFold = true }: EchoHeroProps = {}) {
         {/* Exchange: textarea, intent chips, receipts, confirm */}
         <EchoExchange
           state={state}
-          handlers={{ setInputText, submit: (...a) => { setLinkHintActive(false); return submit(...a); }, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
+          handlers={{ setInputText, submit: (...a) => { setLinkHintActive(false); return submit(...a); }, selectIntent, confirm, reset, chooseOwnership, setTakeAngle, writeTake, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
           placeholder="Talk, type, or drop a file. A video, a link, or just a topic."
           onTextareaMount={(el) => {
             textareaRef.current = el;
