@@ -35,7 +35,7 @@ function formatElapsed(seconds: number): string {
 
 export function EchoPill() {
   const { navigate } = useAppNavigation();
-  const { state, open, close, setInputText, setAttachment, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction } = useEcho(navigate);
+  const { state, open, close, setInputText, setAttachment, submit, selectIntent, confirm, reset, chooseOwnership, setTakeAngle, writeTake, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction } = useEcho(navigate);
   const pathname = usePathname();
 
   const pillRef = useRef<HTMLDivElement>(null);
@@ -307,7 +307,7 @@ export function EchoPill() {
 
           <EchoExchange
             state={state}
-            handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
+            handlers={{ setInputText, submit, selectIntent, confirm, reset, chooseOwnership, setTakeAngle, writeTake, chooseDestination, chooseFileDestination, clipSavedVideo, confirmAction }}
             onTextareaMount={(el) => { textareaRef.current = el; }}
           />
 

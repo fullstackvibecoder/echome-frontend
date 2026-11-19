@@ -31,6 +31,8 @@ const BASE_STATE: EchoState = {
   savedVideos: null,
   savedCount: null,
   videoOwnership: null,
+  takeTarget: null,
+  takeAngle: '',
   ingestPhase: null,
   pendingAction: null,
   answerUpsell: false,
@@ -47,6 +49,8 @@ const handlers = {
   clipSavedVideo: vi.fn(),
   confirmAction: vi.fn(),
   chooseOwnership: vi.fn(),
+  setTakeAngle: vi.fn(),
+  writeTake: vi.fn(),
 };
 
 function renderExchange(overrides: Partial<EchoState>) {
@@ -119,14 +123,49 @@ describe('EchoExchange ownership chips', () => {
     expect(screen.queryByText(/add to voice/i)).not.toBeInTheDocument();
   });
 
-  it('shows fork for channel URLs after ownership is set', () => {
+  it('shows "Save videos to clip later" for the user\'s own channel', () => {
+    renderExchange({
+      phase: 'confirming',
+      videoUrlTarget: { platform: 'youtube', kind: 'channel' },
+      videoOwnership: 'self',
+    });
+    expect(screen.getByText('Save videos to clip later')).toBeInTheDocument();
+    expect(screen.queryByText(/add to voice/i)).not.toBeInTheDocument();
+  });
+
+  it('offers "Follow on Radar" for someone else\'s channel', () => {
     renderExchange({
       phase: 'confirming',
       videoUrlTarget: { platform: 'youtube', kind: 'channel' },
       videoOwnership: 'third_party',
     });
-    expect(screen.getByText('Save videos to clip later')).toBeInTheDocument();
-    expect(screen.queryByText(/add to voice/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Follow on Radar')).toBeInTheDocument();
+    expect(screen.queryByText('Save videos to clip later')).not.toBeInTheDocument();
+    expect(screen.queryByText(/train your voice/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the take card, not "Make content now", for someone else\'s single video', () => {
+    handlers.writeTake.mockClear();
+    renderExchange({
+      phase: 'confirming',
+      videoUrlTarget: { platform: 'youtube', kind: 'single' },
+      videoOwnership: 'third_party',
+      takeTarget: { contentId: 'c-1', title: 'Housing talk', thumbnailUrl: null },
+    });
+    expect(screen.queryByText('Make content now')).not.toBeInTheDocument();
+    expect(screen.getByText('Housing talk')).toBeInTheDocument();
+    expect(screen.getByLabelText(/add your take/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /write my take/i }));
+    expect(handlers.writeTake).toHaveBeenCalled();
+  });
+
+  it('says it is reading the video while Radar fetches it', () => {
+    renderExchange({
+      phase: 'executing',
+      videoUrlTarget: { platform: 'youtube', kind: 'single' },
+      videoOwnership: 'third_party',
+    });
+    expect(screen.getByRole('status')).toHaveTextContent(/reading the video/i);
   });
 
   it('renders the consent line when a videoUrlTarget is present', () => {
