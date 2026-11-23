@@ -9,11 +9,11 @@ import { VoiceProvider } from '@/contexts/voice-context';
 import { useAuth } from '@/hooks/useAuth';
 
 function AuthGuard({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, reconnecting, connectionFailed, retry } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !reconnecting && !connectionFailed) {
       // Keep the deep link (e.g. /app?transfer=claude from an email) so
       // login, signup and the OAuth callback return the user to it.
       try {
@@ -24,7 +24,32 @@ function AuthGuard({ children }: { children: ReactNode }) {
       }
       router.replace('/auth/login');
     }
-  }, [loading, user, router]);
+  }, [loading, user, reconnecting, connectionFailed, router]);
+
+  if (reconnecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-8" role="status">
+        <p className="text-sm text-muted-foreground">Reconnecting...</p>
+      </div>
+    );
+  }
+
+  if (connectionFailed) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
+        <p className="text-sm text-muted-foreground">
+          We can&apos;t reach EchoMe right now. You are still signed in.
+        </p>
+        <button
+          type="button"
+          onClick={retry}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
