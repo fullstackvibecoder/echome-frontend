@@ -59,52 +59,47 @@ export function useAuth(): UseAuthReturn {
     if (inFlight.current) return;
     inFlight.current = true;
     try {
-      await fetchCurrentUserLoop();
+      setConnectionFailed(false);
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const response = await api.auth.getCurrentUser();
+          if (!mounted.current) return;
+          if (response.success && response.data) {
+            userLoaded.current = true;
+            setUser(response.data);
+          }
+          setReconnecting(false);
+          setLoading(false);
+          return;
+        } catch (error) {
+          if (!mounted.current) return;
+          if (isUnauthorized(error)) {
+            localStorage.removeItem('authToken');
+            userLoaded.current = false;
+            setUser(null);
+            setReconnecting(false);
+            setLoading(false);
+            return;
+          }
+          console.error('Failed to fetch user:', error);
+          const delay = AUTH_RETRY_DELAYS_MS[attempt];
+          if (delay === undefined) {
+            setReconnecting(false);
+            // A user we already have stays signed in; only a cold load shows the retry card.
+            if (!userLoaded.current) setConnectionFailed(true);
+            setLoading(false);
+            return;
+          }
+          // Skip the reconnecting screen when a user is already on screen.
+          if (!userLoaded.current) setReconnecting(true);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          if (!mounted.current) return;
+        }
+      }
     } finally {
       inFlight.current = false;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const fetchCurrentUserLoop = async () => {
-    setConnectionFailed(false);
-    for (let attempt = 0; ; attempt++) {
-      try {
-        const response = await api.auth.getCurrentUser();
-        if (!mounted.current) return;
-        if (response.success && response.data) {
-          userLoaded.current = true;
-          setUser(response.data);
-        }
-        setReconnecting(false);
-        setLoading(false);
-        return;
-      } catch (error) {
-        if (!mounted.current) return;
-        if (isUnauthorized(error)) {
-          localStorage.removeItem('authToken');
-          userLoaded.current = false;
-          setUser(null);
-          setReconnecting(false);
-          setLoading(false);
-          return;
-        }
-        console.error('Failed to fetch user:', error);
-        const delay = AUTH_RETRY_DELAYS_MS[attempt];
-        if (delay === undefined) {
-          setReconnecting(false);
-          // A user we already have stays signed in; only a cold load shows the retry card.
-          if (!userLoaded.current) setConnectionFailed(true);
-          setLoading(false);
-          return;
-        }
-        // Skip the reconnecting screen when a user is already on screen.
-        if (!userLoaded.current) setReconnecting(true);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        if (!mounted.current) return;
-      }
-    }
-  };
 
   // Check if user is authenticated on mount
   useEffect(() => {
