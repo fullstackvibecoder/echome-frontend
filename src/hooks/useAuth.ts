@@ -42,6 +42,7 @@ export function useAuth(): UseAuthReturn {
   const router = useRouter();
   const mounted = useRef(true);
   const userLoaded = useRef(false);
+  const inFlight = useRef(false);
 
   useEffect(() => {
     mounted.current = true;
@@ -54,6 +55,18 @@ export function useAuth(): UseAuthReturn {
   // token and queued the login redirect). A 5xx, timeout or network error during
   // a deploy keeps the token and retries with backoff.
   const fetchCurrentUser = useCallback(async () => {
+    // One fetch loop at a time: a double-clicked "Try again" must not start two.
+    if (inFlight.current) return;
+    inFlight.current = true;
+    try {
+      await fetchCurrentUserLoop();
+    } finally {
+      inFlight.current = false;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchCurrentUserLoop = async () => {
     setConnectionFailed(false);
     for (let attempt = 0; ; attempt++) {
       try {
@@ -91,7 +104,7 @@ export function useAuth(): UseAuthReturn {
         if (!mounted.current) return;
       }
     }
-  }, []);
+  };
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -181,6 +194,7 @@ export function useAuth(): UseAuthReturn {
 
   const logout = () => {
     api.auth.logout();
+    userLoaded.current = false;
     setUser(null);
     router.push('/');
   };
