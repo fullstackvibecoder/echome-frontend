@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { extractErrorMessage } from '@/lib/error-utils';
@@ -20,12 +20,86 @@ interface UseAuthReturn {
   signup: (email: string, password: string, name: string, turnstileToken?: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  /** True while /auth/me is being retried after a backend or network error. */
+  reconnecting: boolean;
+  /** True when every retry failed. The session is kept; the user can try again. */
+  connectionFailed: boolean;
+  retry: () => void;
+}
+
+/** Waits between /auth/me attempts after a non-401 failure (about 30s in all). */
+export const AUTH_RETRY_DELAYS_MS = [2000, 4000, 8000, 16000];
+
+function isUnauthorized(error: unknown): boolean {
+  return (error as { response?: { status?: number } })?.response?.status === 401;
 }
 
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reconnecting, setReconnecting] = useState(false);
+  const [connectionFailed, setConnectionFailed] = useState(false);
   const router = useRouter();
+  const mounted = useRef(true);
+  const userLoaded = useRef(false);
+  const inFlight = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  // Only a 401 means the session is gone (the api client has already cleared the
+  // token and queued the login redirect). A 5xx, timeout or network error during
+  // a deploy keeps the token and retries with backoff.
+  const fetchCurrentUser = useCallback(async () => {
+    // One fetch loop at a time: a double-clicked "Try again" must not start two.
+    if (inFlight.current) return;
+    inFlight.current = true;
+    try {
+      setConnectionFailed(false);
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const response = await api.auth.getCurrentUser();
+          if (!mounted.current) return;
+          if (response.success && response.data) {
+            userLoaded.current = true;
+            setUser(response.data);
+          }
+          setReconnecting(false);
+          setLoading(false);
+          return;
+        } catch (error) {
+          if (!mounted.current) return;
+          if (isUnauthorized(error)) {
+            localStorage.removeItem('authToken');
+            userLoaded.current = false;
+            setUser(null);
+            setReconnecting(false);
+            setLoading(false);
+            return;
+          }
+          console.error('Failed to fetch user:', error);
+          const delay = AUTH_RETRY_DELAYS_MS[attempt];
+          if (delay === undefined) {
+            setReconnecting(false);
+            // A user we already have stays signed in; only a cold load shows the retry card.
+            if (!userLoaded.current) setConnectionFailed(true);
+            setLoading(false);
+            return;
+          }
+          // Skip the reconnecting screen when a user is already on screen.
+          if (!userLoaded.current) setReconnecting(true);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          if (!mounted.current) return;
+        }
+      }
+    } finally {
+      inFlight.current = false;
+    }
+  }, []);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -37,22 +111,12 @@ export function useAuth(): UseAuthReturn {
 
     // Validate token and fetch user data
     fetchCurrentUser();
-  }, []);
+  }, [fetchCurrentUser]);
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await api.auth.getCurrentUser();
-      if (response.success && response.data) {
-        setUser(response.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      localStorage.removeItem('authToken');
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const retry = useCallback(() => {
+    setLoading(true);
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -125,6 +189,7 @@ export function useAuth(): UseAuthReturn {
 
   const logout = () => {
     api.auth.logout();
+    userLoaded.current = false;
     setUser(null);
     router.push('/');
   };
@@ -141,5 +206,8 @@ export function useAuth(): UseAuthReturn {
     signup,
     logout,
     refreshUser,
+    reconnecting,
+    connectionFailed,
+    retry,
   };
 }
