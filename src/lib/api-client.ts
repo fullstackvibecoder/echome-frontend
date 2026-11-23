@@ -2981,7 +2981,8 @@ export const api = {
     /** Create checkout session and get redirect URL */
     createCheckoutSession: async (
       planId: PlanId,
-      billingInterval: 'month' | 'year'
+      billingInterval: 'month' | 'year',
+      quantity?: number // Echo Teams voice count (2..50); ignored for other plans
     ): Promise<StripeCheckoutResponse> => {
       // Get Affonso referral ID for affiliate attribution
       const referralId = typeof window !== 'undefined' ? (window as any).affonso_referral : undefined;
@@ -2992,6 +2993,7 @@ export const api = {
         successUrl: `${window.location.origin}/app/billing?success=true${localStorage.getItem('needsOnboarding') ? '&onboarding=true' : ''}`,
         cancelUrl: `${window.location.origin}/app/billing?canceled=true`,
         ...(referralId && { clientReferenceId: referralId }),
+        ...(planId === 'echo-teams' && quantity ? { quantity } : {}),
       });
       return response.data;
     },
@@ -3029,7 +3031,8 @@ export const api = {
     /** Switch to a different plan (upgrade or downgrade) */
     switchPlan: async (
       planId: PlanId,
-      billingInterval: 'month' | 'year'
+      billingInterval: 'month' | 'year',
+      quantity?: number // Echo Teams voice count (2..50); ignored for other plans
     ): Promise<{
       success: boolean;
       data: {
@@ -3041,6 +3044,7 @@ export const api = {
       const response = await apiClient.post('/stripe/subscription/switch', {
         planId,
         billingInterval,
+        ...(planId === 'echo-teams' && quantity ? { quantity } : {}),
       });
       return response.data;
     },
