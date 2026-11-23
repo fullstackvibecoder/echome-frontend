@@ -16,9 +16,7 @@ import type {
   GmailActiveJob,
   GmailReturnTo,
   GeneratedImage,
-  GeneratedCarousel,
   ImageGenerationOptions,
-  BackgroundConfig,
   BackgroundPreset,
   UnifiedContentResponse,
   UserProfile,
@@ -1548,104 +1546,6 @@ export const api = {
         '/images/blog-header',
         { sourceContent, options, blogContent },
         { timeout: 60000 } // 60 seconds for image generation
-      );
-      return response.data;
-    },
-
-    generateCarousel: async (
-      contentId: string,
-      slides: Array<{ text: string; type?: string }>,
-      options?: {
-        background?: BackgroundConfig;
-        contentSummary?: string;
-      }
-    ) => {
-      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
-        '/images/carousel',
-        {
-          contentId,
-          slides,
-          background: options?.background,
-          contentSummary: options?.contentSummary,
-        },
-        { timeout: 120000 } // 2 minutes for carousel generation
-      );
-      return response.data;
-    },
-
-    generateCarouselWithUpload: async (
-      contentId: string,
-      slides: Array<{ text: string; type?: string }>,
-      backgroundImage: File
-    ) => {
-      const formData = new FormData();
-      formData.append('backgroundImage', backgroundImage);
-      formData.append('contentId', contentId);
-      formData.append('slides', JSON.stringify(slides));
-
-      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
-        '/images/carousel/with-upload',
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 180000, // 3 minutes for upload + generation
-        }
-      );
-      return response.data;
-    },
-
-    /**
-     * Generate optimized carousel from Instagram content
-     * Automatically structures slides for maximum engagement
-     */
-    generateOptimizedCarousel: async (
-      contentId: string,
-      instagramContent: string,
-      userInput: string,
-      options?: {
-        background?: BackgroundConfig;
-      }
-    ) => {
-      const response = await apiClient.post<
-        ApiResponse<{
-          carousel: GeneratedCarousel;
-          quality?: { score: number };
-        }>
-      >(
-        '/images/carousel',
-        {
-          contentId,
-          instagramContent,
-          userInput,
-          background: options?.background,
-        },
-        { timeout: 120000 }
-      );
-      return response.data;
-    },
-
-    /**
-     * Generate optimized carousel with uploaded background
-     */
-    generateOptimizedCarouselWithUpload: async (
-      contentId: string,
-      instagramContent: string,
-      userInput: string,
-      backgroundImage: File
-    ) => {
-      const formData = new FormData();
-      formData.append('backgroundImage', backgroundImage);
-      formData.append('contentId', contentId);
-      formData.append('instagramContent', instagramContent);
-      formData.append('userInput', userInput);
-
-      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
-        '/images/carousel/with-upload',
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 180000,
-        }
       );
       return response.data;
     },
