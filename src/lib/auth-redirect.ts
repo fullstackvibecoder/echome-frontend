@@ -8,7 +8,10 @@
 import { useSyncExternalStore } from 'react';
 
 export function safeRedirectPath(value: string | null | undefined): string | null {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : null;
+  // Browsers read "/\\host" like "//host", so both forms would leave the site.
+  return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\')
+    ? value
+    : null;
 }
 
 export function withRedirect(path: string, redirect: string | null): string {
