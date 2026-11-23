@@ -23,6 +23,7 @@ export function usePendingCheckout() {
         // Check sessionStorage (from signup flow) and localStorage (from checkout that survived session expiry)
         let pendingPlan = sessionStorage.getItem('pendingPlan') as PlanId | null;
         let billingIntervalOverride: BillingInterval | null = null;
+        let quantityOverride: number | undefined;
 
         if (!pendingPlan) {
           // Check localStorage for plan saved before Stripe redirect
@@ -32,6 +33,7 @@ export function usePendingCheckout() {
               const parsed = JSON.parse(stored);
               pendingPlan = parsed.planId as PlanId;
               billingIntervalOverride = parsed.billingInterval as BillingInterval;
+              if (typeof parsed.quantity === 'number') quantityOverride = parsed.quantity;
             } catch { /* ignore parse errors */ }
             localStorage.removeItem('pendingCheckoutPlan');
           }
@@ -57,7 +59,7 @@ export function usePendingCheckout() {
         setCheckoutLoading(true);
         const billingInterval: BillingInterval = billingIntervalOverride || 'month';
 
-        const response = await api.stripe.createCheckoutSession(pendingPlan, billingInterval);
+        const response = await api.stripe.createCheckoutSession(pendingPlan, billingInterval, quantityOverride);
 
         if (response.success && response.data.url) {
           // Redirect to Stripe Checkout

@@ -10,6 +10,9 @@ import { trackSubscribe } from '@/lib/meta-pixel';
 import { InfoTooltip } from '@/components/info-tooltip';
 import { DowngradeWarningModal } from '@/components/scheduling/DowngradeWarningModal';
 
+/** Backend limit on Echo Teams voices per subscription. */
+const ECHO_TEAMS_MAX_VOICES = 50;
+
 type BillingInterval = 'month' | 'year';
 
 // Fallback plans in case API fails. Updated 2026-04-30 to match backend
@@ -140,7 +143,8 @@ function BillingContentInner() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   // Echo Teams card has a per-voice quantity selector. Default to 2 (the
-  // plan minimum). Pushed to Stripe checkout as `quantity` on the line item.
+  // plan minimum), capped at 50 (the backend limit). Sent to checkout and
+  // switch as `quantity`, which Stripe bills per voice.
   const [echoTeamsVoices, setEchoTeamsVoices] = useState<number>(2);
 
   // Handle success/cancel/upgrade query params
@@ -343,6 +347,7 @@ function BillingContentInner() {
 
   // Handle plan selection - either checkout for new users or switch for existing subscribers
   const handlePlanSelect = async (planId: string) => {
+    const quantity = planId === 'echo-teams' ? echoTeamsVoices : undefined;
     try {
       setCheckoutLoading(planId);
       setError(null);
@@ -350,7 +355,7 @@ function BillingContentInner() {
 
       // If user already has an active Stripe subscription (not admin-assigned), switch plans instead of checkout
       if (subscription?.isSubscribed && !subscription?.isAdminAssigned && (subscription.status === 'active' || subscription.status === 'trialing')) {
-        const response = await api.stripe.switchPlan(planId as any, billingInterval);
+        const response = await api.stripe.switchPlan(planId as any, billingInterval, quantity);
 
         if (response.success) {
           const plan = plans.find(p => p.id === planId);
@@ -368,11 +373,11 @@ function BillingContentInner() {
         }
       } else {
         // New user - create checkout session
-        const response = await api.stripe.createCheckoutSession(planId as any, billingInterval);
+        const response = await api.stripe.createCheckoutSession(planId as any, billingInterval, quantity);
 
         if (response.success && response.data.url) {
           // Persist plan selection so it survives session expiry during checkout
-          localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval }));
+          localStorage.setItem('pendingCheckoutPlan', JSON.stringify({ planId, billingInterval, quantity }));
           // Redirect to Stripe Checkout
           window.location.href = response.data.url;
         } else {
@@ -779,8 +784,9 @@ function BillingContentInner() {
                           <span className="min-w-[2rem] text-center font-bold">{voiceCount}</span>
                           <button
                             type="button"
-                            onClick={() => setEchoTeamsVoices(v => v + 1)}
-                            className="w-7 h-7 rounded-md border border-border bg-background hover:bg-muted text-sm font-bold"
+                            onClick={() => setEchoTeamsVoices(v => Math.min(ECHO_TEAMS_MAX_VOICES, v + 1))}
+                            disabled={echoTeamsVoices >= ECHO_TEAMS_MAX_VOICES}
+                            className="w-7 h-7 rounded-md border border-border bg-background hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed text-sm font-bold"
                             aria-label="Increase voice count"
                           >
                             +

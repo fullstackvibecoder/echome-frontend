@@ -16,9 +16,7 @@ import type {
   GmailActiveJob,
   GmailReturnTo,
   GeneratedImage,
-  GeneratedCarousel,
   ImageGenerationOptions,
-  BackgroundConfig,
   BackgroundPreset,
   UnifiedContentResponse,
   UserProfile,
@@ -1552,104 +1550,6 @@ export const api = {
       return response.data;
     },
 
-    generateCarousel: async (
-      contentId: string,
-      slides: Array<{ text: string; type?: string }>,
-      options?: {
-        background?: BackgroundConfig;
-        contentSummary?: string;
-      }
-    ) => {
-      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
-        '/images/carousel',
-        {
-          contentId,
-          slides,
-          background: options?.background,
-          contentSummary: options?.contentSummary,
-        },
-        { timeout: 120000 } // 2 minutes for carousel generation
-      );
-      return response.data;
-    },
-
-    generateCarouselWithUpload: async (
-      contentId: string,
-      slides: Array<{ text: string; type?: string }>,
-      backgroundImage: File
-    ) => {
-      const formData = new FormData();
-      formData.append('backgroundImage', backgroundImage);
-      formData.append('contentId', contentId);
-      formData.append('slides', JSON.stringify(slides));
-
-      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
-        '/images/carousel/with-upload',
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 180000, // 3 minutes for upload + generation
-        }
-      );
-      return response.data;
-    },
-
-    /**
-     * Generate optimized carousel from Instagram content
-     * Automatically structures slides for maximum engagement
-     */
-    generateOptimizedCarousel: async (
-      contentId: string,
-      instagramContent: string,
-      userInput: string,
-      options?: {
-        background?: BackgroundConfig;
-      }
-    ) => {
-      const response = await apiClient.post<
-        ApiResponse<{
-          carousel: GeneratedCarousel;
-          quality?: { score: number };
-        }>
-      >(
-        '/images/carousel',
-        {
-          contentId,
-          instagramContent,
-          userInput,
-          background: options?.background,
-        },
-        { timeout: 120000 }
-      );
-      return response.data;
-    },
-
-    /**
-     * Generate optimized carousel with uploaded background
-     */
-    generateOptimizedCarouselWithUpload: async (
-      contentId: string,
-      instagramContent: string,
-      userInput: string,
-      backgroundImage: File
-    ) => {
-      const formData = new FormData();
-      formData.append('backgroundImage', backgroundImage);
-      formData.append('contentId', contentId);
-      formData.append('instagramContent', instagramContent);
-      formData.append('userInput', userInput);
-
-      const response = await apiClient.post<ApiResponse<{ carousel: GeneratedCarousel }>>(
-        '/images/carousel/with-upload',
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 180000,
-        }
-      );
-      return response.data;
-    },
-
     uploadBackground: async (image: File, contentId?: string) => {
       const formData = new FormData();
       formData.append('image', image);
@@ -3081,7 +2981,8 @@ export const api = {
     /** Create checkout session and get redirect URL */
     createCheckoutSession: async (
       planId: PlanId,
-      billingInterval: 'month' | 'year'
+      billingInterval: 'month' | 'year',
+      quantity?: number // Echo Teams voice count (2..50); ignored for other plans
     ): Promise<StripeCheckoutResponse> => {
       // Get Affonso referral ID for affiliate attribution
       const referralId = typeof window !== 'undefined' ? (window as any).affonso_referral : undefined;
@@ -3092,6 +2993,7 @@ export const api = {
         successUrl: `${window.location.origin}/app/billing?success=true${localStorage.getItem('needsOnboarding') ? '&onboarding=true' : ''}`,
         cancelUrl: `${window.location.origin}/app/billing?canceled=true`,
         ...(referralId && { clientReferenceId: referralId }),
+        ...(planId === 'echo-teams' && quantity ? { quantity } : {}),
       });
       return response.data;
     },
@@ -3129,7 +3031,8 @@ export const api = {
     /** Switch to a different plan (upgrade or downgrade) */
     switchPlan: async (
       planId: PlanId,
-      billingInterval: 'month' | 'year'
+      billingInterval: 'month' | 'year',
+      quantity?: number // Echo Teams voice count (2..50); ignored for other plans
     ): Promise<{
       success: boolean;
       data: {
@@ -3141,6 +3044,7 @@ export const api = {
       const response = await apiClient.post('/stripe/subscription/switch', {
         planId,
         billingInterval,
+        ...(planId === 'echo-teams' && quantity ? { quantity } : {}),
       });
       return response.data;
     },

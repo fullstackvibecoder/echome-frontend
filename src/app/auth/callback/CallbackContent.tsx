@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api-client';
+import { safeRedirectPath } from '@/lib/auth-redirect';
 
 export default function CallbackContent() {
   const router = useRouter();
@@ -24,6 +25,18 @@ export default function CallbackContent() {
         if (data.session) {
           // Store the access token for API calls
           localStorage.setItem('authToken', data.session.access_token);
+
+          // A stored return path wins over onboarding, for new users too:
+          // a partner /redeem link, the Claude connect consent screen, or a
+          // 401 session expiry all park it here before sending the user to
+          // sign in. Consume it now so a stale one can't hijack a later
+          // login. Mirrors signup() in useAuth.
+          const storedRedirect = safeRedirectPath(localStorage.getItem('redirectAfterLogin'));
+          localStorage.removeItem('redirectAfterLogin');
+          if (storedRedirect) {
+            router.push(storedRedirect);
+            return;
+          }
 
           // Decide whether to send the user through onboarding. The legacy
           // gate only checked "does the KB have items?" — but ~30% of users
@@ -70,15 +83,7 @@ export default function CallbackContent() {
             // lookup → review → /app).
             router.push('/onboarding/lookup');
           } else {
-            // Check for stored redirect path (from 401 session expiry)
-            const redirectPath = localStorage.getItem('redirectAfterLogin');
-            if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
-              localStorage.removeItem('redirectAfterLogin');
-              router.push(redirectPath);
-            } else {
-              localStorage.removeItem('redirectAfterLogin');
-              router.push('/app');
-            }
+            router.push('/app');
           }
         } else {
           // No session, redirect to login
