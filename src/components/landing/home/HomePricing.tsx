@@ -68,6 +68,8 @@ export function HomePricing() {
   const [echoTeamsVoices, setEchoTeamsVoices] = useState<number>(2);
   const monthly = billingPeriod === 'monthly';
   const per = monthly ? '/mo' : '/yr';
+  // Carry the Monthly/Annual choice into signup so checkout bills the period the visitor picked.
+  const interval = monthly ? 'month' : 'year';
   const twoMonthsFree = (featured?: boolean) =>
     !monthly && <p className={`m-0 -mt-4 text-sm font-semibold ${featured ? 'text-home-signal' : 'text-home-ink'}`}>2 months free</p>;
 
@@ -129,7 +131,7 @@ export function HomePricing() {
           >
             <Price amount={`$${monthly ? '37' : '370'}`} period={per} />
             {twoMonthsFree()}
-            <a href="/auth/signup?plan=echo" className={`${cta} bg-home-ink text-home-paper`}>
+            <a href={`/auth/signup?plan=echo&interval=${interval}`} className={`${cta} bg-home-ink text-home-paper`}>
               Try Echo Free
             </a>
           </Card>
@@ -150,7 +152,7 @@ export function HomePricing() {
           >
             <Price amount={`$${monthly ? '87' : '870'}`} period={per} featured />
             {twoMonthsFree(true)}
-            <a href="/auth/signup?plan=echo-studio" className={`${cta} bg-home-signal text-home-ink`}>
+            <a href={`/auth/signup?plan=echo-studio&interval=${interval}`} className={`${cta} bg-home-signal text-home-ink`}>
               Try Studio Free
             </a>
           </Card>
@@ -200,7 +202,7 @@ export function HomePricing() {
               </p>
             </div>
             {twoMonthsFree()}
-            <a href={`/auth/signup?plan=echo-teams&voices=${echoTeamsVoices}`} className={`${cta} bg-home-ink text-home-paper`}>
+            <a href={`/auth/signup?plan=echo-teams&voices=${echoTeamsVoices}&interval=${interval}`} className={`${cta} bg-home-ink text-home-paper`}>
               Try Echo Teams Free
             </a>
           </Card>

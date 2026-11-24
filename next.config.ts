@@ -123,6 +123,9 @@ const nextConfig: NextConfig = {
   // mental model. /app/toolkit is the new home for the curated content.
   async redirects() {
     return [
+      // There is no /pricing page; pricing lives on the homepage. Old links (MCP
+      // upgrade message, emails, outside sites) land on that section.
+      { source: '/pricing', destination: '/#pricing', permanent: false },
       { source: '/app/content-kit', destination: '/app/library', permanent: true },
       // Reels guide removed 2026-10-31 (Reel Maker is admin-only); caption styles live in the clip editor.
       { source: '/guides/reels-and-captions', destination: '/guides/video-content', permanent: true },
