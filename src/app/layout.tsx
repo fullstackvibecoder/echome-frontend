@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from 'sonner';
 import { CookieConsent } from '@/components/cookie-consent';
 import { OutageBanner } from '@/components/outage-banner';
+import { ServiceNotice } from '@/components/service-notice';
 import { ReceiptHost } from '@/components/shared/ReceiptHost';
 import { RecoveryRedirectListener } from '@/components/auth/RecoveryRedirectListener';
 import { satoshi, manrope, montserrat, inter, bebasNeue, jetbrainsMono } from '@/lib/fonts';
@@ -126,6 +127,7 @@ export default function RootLayout({
           Suppresses one level (body's own attrs) only, not children. */}
       <body suppressHydrationWarning className={`${satoshi.variable} ${manrope.variable} ${montserrat.variable} ${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <OutageBanner />
+        <ServiceNotice />
         <RecoveryRedirectListener />
         <Providers>{children}</Providers>
         <Analytics />
