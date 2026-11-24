@@ -8,14 +8,19 @@ vi.mock('next/navigation', () => ({ usePathname: () => pathname }));
 import { ServiceNotice, SERVICE_NOTICE } from './service-notice';
 
 describe('ServiceNotice', () => {
+  it.skipIf(SERVICE_NOTICE)('renders nothing while no notice is set', () => {
+    render(<ServiceNotice />);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
   beforeEach(() => {
     sessionStorage.clear();
     pathname = '/app';
   });
 
-  it('shows the notice on app pages', async () => {
+  it.skipIf(!SERVICE_NOTICE)('shows the notice on app pages', async () => {
     render(<ServiceNotice />);
-    expect(await screen.findByRole('status')).toHaveTextContent(/long YouTube videos/i);
+    expect(await screen.findByRole('status')).toHaveTextContent(SERVICE_NOTICE?.message ?? '');
   });
 
   it('stays off marketing pages', () => {
@@ -24,7 +29,7 @@ describe('ServiceNotice', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('hides for the session once dismissed', async () => {
+  it.skipIf(!SERVICE_NOTICE)('hides for the session once dismissed', async () => {
     const { unmount } = render(<ServiceNotice />);
     await userEvent.click(await screen.findByRole('button', { name: 'Dismiss notice' }));
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
