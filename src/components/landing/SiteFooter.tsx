@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Twitter, Linkedin } from 'lucide-react';
+import { Linkedin } from 'lucide-react';
 import { spaceGrotesk } from '@/lib/fonts';
 
 export function SiteFooter() {
@@ -20,9 +20,6 @@ export function SiteFooter() {
             </p>
             <div className="flex items-center gap-4">
               <div className="flex gap-3">
-                <a href="https://x.com/tryechome" target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
-                  <Twitter className="w-4 h-4 text-home-paper" />
-                </a>
                 <a href="https://linkedin.com/company/tryechome" target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20">
                   <Linkedin className="w-4 h-4 text-home-paper" />
                 </a>

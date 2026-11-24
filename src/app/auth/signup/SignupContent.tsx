@@ -12,6 +12,7 @@ import { readMode, captureModeFromParams, persistMode, isModeActive } from '@/li
 import { track } from '@/lib/telemetry';
 import { api } from '@/lib/api-client';
 import { usePendingRedirect, withRedirect } from '@/lib/auth-redirect';
+import { parseSignupPlan, PENDING_PLAN_KEY } from '@/lib/pending-plan';
 
 function SignupForm() {
   const { signup } = useAuth();
@@ -25,9 +26,9 @@ function SignupForm() {
 
   // Store plan selection in sessionStorage for checkout after signup
   useEffect(() => {
-    const plan = searchParams.get('plan');
-    if (plan && ['echo', 'echo-studio', 'echo-pro', 'echo-teams-2', 'echo-teams-5', 'echo-teams-10'].includes(plan)) {
-      sessionStorage.setItem('pendingPlan', plan);
+    const plan = parseSignupPlan(searchParams);
+    if (plan) {
+      sessionStorage.setItem(PENDING_PLAN_KEY, JSON.stringify(plan));
     }
 
     // Capture the output mode from the landing page URL (ad-sourced) and

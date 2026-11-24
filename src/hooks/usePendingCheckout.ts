@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api-client';
 import type { PlanId, BillingInterval } from '@/lib/api-client';
+import { readStoredPendingPlan, PENDING_PLAN_KEY } from '@/lib/pending-plan';
 
 /**
  * Hook to handle pending checkout from signup flow
@@ -21,9 +22,10 @@ export function usePendingCheckout() {
     const checkPendingPlan = async () => {
       try {
         // Check sessionStorage (from signup flow) and localStorage (from checkout that survived session expiry)
-        let pendingPlan = sessionStorage.getItem('pendingPlan') as PlanId | null;
-        let billingIntervalOverride: BillingInterval | null = null;
-        let quantityOverride: number | undefined;
+        const fromSignup = readStoredPendingPlan(sessionStorage.getItem(PENDING_PLAN_KEY));
+        let pendingPlan: PlanId | null = fromSignup?.planId ?? null;
+        let billingIntervalOverride: BillingInterval | null = fromSignup?.billingInterval ?? null;
+        let quantityOverride: number | undefined = fromSignup?.quantity;
 
         if (!pendingPlan) {
           // Check localStorage for plan saved before Stripe redirect
@@ -45,7 +47,7 @@ export function usePendingCheckout() {
         }
 
         // Clear the pending plan immediately to prevent loops
-        sessionStorage.removeItem('pendingPlan');
+        sessionStorage.removeItem(PENDING_PLAN_KEY);
 
         // Check if user already has an active subscription
         const subResponse = await api.stripe.getSubscription();

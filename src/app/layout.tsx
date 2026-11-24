@@ -71,7 +71,6 @@ export const metadata: Metadata = {
     description:
       'Stop sounding like every other AI tool. EchoMe learns your voice and creates content that is unmistakably you.',
     images: ['/media/echome-og.png'],
-    creator: '@tryechome',
   },
   alternates: {
     canonical: 'https://tryechome.com',

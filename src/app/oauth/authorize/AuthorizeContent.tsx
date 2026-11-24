@@ -119,7 +119,7 @@ export default function AuthorizeContent() {
               <h1 className="text-lg font-semibold text-foreground mb-2">EchoMe in Claude is part of Studio</h1>
               <p className="text-muted-foreground mb-6">{view.message}</p>
               <Link
-                href="/pricing"
+                href="/app/billing"
                 className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
                 See plans
