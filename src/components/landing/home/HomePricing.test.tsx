@@ -11,9 +11,9 @@ describe('HomePricing', () => {
     render(<HomePricing />);
     for (const price of ['$0', '$37', '$87', '$94']) expect(screen.getByText(price)).toBeInTheDocument();
     expect(link('Start Free')).toHaveAttribute('href', '/auth/signup');
-    expect(link('Try Echo Free')).toHaveAttribute('href', '/auth/signup?plan=echo');
-    expect(link('Try Studio Free')).toHaveAttribute('href', '/auth/signup?plan=echo-studio');
-    expect(link('Try Echo Teams Free')).toHaveAttribute('href', '/auth/signup?plan=echo-teams&voices=2');
+    expect(link('Try Echo Free')).toHaveAttribute('href', '/auth/signup?plan=echo&interval=month');
+    expect(link('Try Studio Free')).toHaveAttribute('href', '/auth/signup?plan=echo-studio&interval=month');
+    expect(link('Try Echo Teams Free')).toHaveAttribute('href', '/auth/signup?plan=echo-teams&voices=2&interval=month');
     expect(link('Contact Sales')).toHaveAttribute('href', 'mailto:enterprise@tryechome.com');
   });
 
@@ -22,6 +22,10 @@ describe('HomePricing', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Annual, save 17%' }));
     for (const price of ['$370', '$870', '$940']) expect(screen.getByText(price)).toBeInTheDocument();
     expect(screen.getAllByText('2 months free')).toHaveLength(3);
+    // The annual choice must reach checkout, not silently fall back to monthly.
+    expect(link('Try Echo Free')).toHaveAttribute('href', '/auth/signup?plan=echo&interval=year');
+    expect(link('Try Studio Free')).toHaveAttribute('href', '/auth/signup?plan=echo-studio&interval=year');
+    expect(link('Try Echo Teams Free')).toHaveAttribute('href', '/auth/signup?plan=echo-teams&voices=2&interval=year');
   });
 
   it('prices Echo Teams per voice, minimum 2', async () => {
@@ -29,6 +33,6 @@ describe('HomePricing', () => {
     expect(screen.getByRole('button', { name: 'Decrease voice count' })).toBeDisabled();
     await userEvent.click(screen.getByRole('button', { name: 'Increase voice count' }));
     expect(screen.getByText('$141')).toBeInTheDocument();
-    expect(link('Try Echo Teams Free')).toHaveAttribute('href', '/auth/signup?plan=echo-teams&voices=3');
+    expect(link('Try Echo Teams Free')).toHaveAttribute('href', '/auth/signup?plan=echo-teams&voices=3&interval=month');
   });
 });
