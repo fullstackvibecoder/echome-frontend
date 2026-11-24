@@ -57,12 +57,14 @@ export function readStoredPendingPlan(raw: string | null): PendingPlan | null {
   if (raw.startsWith('{')) {
     try {
       const parsed = JSON.parse(raw) as Partial<PendingPlan>;
-      if (!parsed.planId) return null;
-      return {
-        planId: parsed.planId,
-        billingInterval: parsed.billingInterval === 'year' ? 'year' : 'month',
-        ...(typeof parsed.quantity === 'number' ? { quantity: parsed.quantity } : {}),
+      // Re-validate through the same rules as the URL so storage can't smuggle
+      // in an unsellable plan or an out-of-range voice count.
+      const fields: Record<string, string | null> = {
+        plan: typeof parsed.planId === 'string' ? parsed.planId : null,
+        interval: parsed.billingInterval === 'year' ? 'year' : 'month',
+        voices: typeof parsed.quantity === 'number' ? String(parsed.quantity) : null,
       };
+      return parseSignupPlan({ get: (name) => fields[name] ?? null });
     } catch {
       return null;
     }

@@ -54,6 +54,12 @@ describe('readStoredPendingPlan', () => {
     expect(readStoredPendingPlan('echo-studio')).toEqual({ planId: 'echo-studio', billingInterval: 'month' });
   });
 
+  it('re-validates stored JSON: unsellable plans dropped, voices clamped', () => {
+    expect(readStoredPendingPlan(JSON.stringify({ planId: 'echo-pro', billingInterval: 'month' }))).toBeNull();
+    expect(readStoredPendingPlan(JSON.stringify({ planId: 'echo-teams', billingInterval: 'month', quantity: 9999 }))?.quantity).toBe(100);
+    expect(readStoredPendingPlan(JSON.stringify({ planId: 'echo', billingInterval: 'month', quantity: 5 }))).toEqual({ planId: 'echo', billingInterval: 'month' });
+  });
+
   it('returns null for empty or junk', () => {
     expect(readStoredPendingPlan(null)).toBeNull();
     expect(readStoredPendingPlan('{bad json')).toBeNull();
