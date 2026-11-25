@@ -13,16 +13,21 @@ const coverage: Coverage = {
 };
 
 describe('CoverageMeter', () => {
-  it('renders all six dimension labels', () => {
+  it('renders the five fillable dimension labels', () => {
     render(<CoverageMeter coverage={coverage} />);
-    for (const label of ['Work', 'Industry', 'Interests', 'Personal', 'Relationships', 'Voice']) {
+    for (const label of ['Work', 'Industry', 'Interests', 'Personal', 'Voice']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });
 
-  it('shows the covered count', () => {
+  it('hides Relationships until the backend can fill it (#113)', () => {
     render(<CoverageMeter coverage={coverage} />);
-    expect(screen.getByText(/3 of 6/i)).toBeInTheDocument();
+    expect(screen.queryByText('Relationships')).not.toBeInTheDocument();
+  });
+
+  it('shows the covered count out of the displayed dimensions', () => {
+    render(<CoverageMeter coverage={coverage} />);
+    expect(screen.getByText(/3 of 5/i)).toBeInTheDocument();
   });
 
   it('renders the heading label', () => {
