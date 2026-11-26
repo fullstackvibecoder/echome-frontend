@@ -16,7 +16,9 @@ describe('AutopilotProposalCard', () => {
   it('always shows the title and kit label', () => {
     render(<AutopilotProposalCard proposal={proposal} onSelect={() => {}} />);
     expect(screen.getByText('A LinkedIn post on hiring')).toBeInTheDocument();
-    expect(screen.getByText('social post')).toBeInTheDocument();
+    expect(screen.getByText('Suggested angle')).toBeInTheDocument();
+    // Kit label shares a line with the composer hint (#113 honest framing).
+    expect(screen.getByText(/social post · Load in composer/)).toBeInTheDocument();
   });
 
   it('keeps the rationale in the DOM but collapses it at rest on hover devices', () => {
