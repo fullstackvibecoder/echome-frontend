@@ -11,6 +11,7 @@ const ADMIN_TABS = [
   { id: 'feedback', label: 'Feedback', href: '/app/admin/feedback' },
   { id: 'curated', label: 'Curated', href: '/app/admin/curated' },
   { id: 'voice-lab', label: 'Voice Lab', href: '/app/admin/voice-lab' },
+  { id: 'design', label: 'Design', href: '/app/admin/design-system' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
