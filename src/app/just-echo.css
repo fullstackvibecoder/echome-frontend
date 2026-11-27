@@ -1,0 +1,118 @@
+/* Just Echo design tokens. Scoped to .je so nothing outside it changes. */
+
+.je {
+  --je-canvas: #08090D;
+  --je-bg: radial-gradient(700px 420px at 52% 45%, rgba(167,139,250,.13), transparent 65%), radial-gradient(600px 340px at 15% 0%, rgba(34,211,238,.06), transparent 60%), #08090D;
+  --je-g1: #22D3EE;
+  --je-g2: #A78BFA;
+  --je-ink: #F2F3F7;
+  --je-ink-2: #C3C6D1;
+  --je-muted: #7D8294;
+  --je-item: rgba(255,255,255,.04);
+  --je-field: rgba(20,22,30,.95);
+  --je-panel: rgba(255,255,255,.025);
+  --je-hair: rgba(255,255,255,.07);
+  --je-faint: rgba(255,255,255,.14);
+  --je-accent: #C4B5FD;
+  --je-tint: rgba(167,139,250,.14);
+  --je-glow: rgba(167,139,250,.28);
+  --je-glow-2: rgba(34,211,238,.16);
+  --je-on-grad: #08090D;
+  --je-ok: #4ADE80;
+  --je-thumb: linear-gradient(160deg,#2a2f42,#151823);
+  --je-badge-ring: #08090D;
+  --je-r-control: 8px;
+  --je-r-item: 12px;
+  --je-r-box: 22px;
+  color: var(--je-ink);
+  font-family: var(--font-satoshi);
+}
+
+html[data-theme="light"] .je:not([data-je-theme="dark"]),
+.je[data-je-theme="light"] {
+  --je-canvas: #F4F5F8;
+  --je-bg: radial-gradient(700px 420px at 52% 45%, rgba(139,92,246,.10), transparent 65%), radial-gradient(600px 340px at 15% 0%, rgba(6,182,212,.06), transparent 60%), #F4F5F8;
+  --je-g1: #06B6D4;
+  --je-g2: #8B5CF6;
+  --je-ink: #0F1117;
+  --je-ink-2: #363A48;
+  --je-muted: #676C7C;
+  --je-item: rgba(15,17,23,.03);
+  --je-field: #FFFFFF;
+  --je-panel: rgba(255,255,255,.6);
+  --je-hair: rgba(15,17,23,.08);
+  --je-faint: rgba(15,17,23,.14);
+  --je-accent: #6D28D9;
+  --je-tint: rgba(124,58,237,.08);
+  --je-glow: rgba(124,58,237,.20);
+  --je-glow-2: rgba(6,182,212,.14);
+  --je-on-grad: #FFFFFF;
+  --je-ok: #15803D;
+  --je-thumb: linear-gradient(160deg,#e1e4ec,#cdd1db);
+  --je-badge-ring: #FFFFFF;
+}
+
+@theme inline {
+  --color-je-canvas: var(--je-canvas);
+  --color-je-ink: var(--je-ink);
+  --color-je-ink-2: var(--je-ink-2);
+  --color-je-muted: var(--je-muted);
+  --color-je-item: var(--je-item);
+  --color-je-field: var(--je-field);
+  --color-je-panel: var(--je-panel);
+  --color-je-hair: var(--je-hair);
+  --color-je-faint: var(--je-faint);
+  --color-je-accent: var(--je-accent);
+  --color-je-tint: var(--je-tint);
+  --color-je-on-grad: var(--je-on-grad);
+  --color-je-ok: var(--je-ok);
+}
+
+.je-canvas { background: var(--je-bg); }
+
+.je-grad { background: linear-gradient(135deg, var(--je-g1), var(--je-g2)); }
+
+.je-grad-text {
+  background: linear-gradient(90deg, var(--je-g1), var(--je-g2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.je-ring { position: relative; }
+.je-ring::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(120deg, var(--je-g1), var(--je-g2));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.je-mono { font-family: var(--font-mono); }
+
+.je-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes je-scan { from { left: 0; } to { left: 100%; } }
+@keyframes je-pulse { 0%, 100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes je-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes je-slide { from { left: 0; } to { left: 60%; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .je *, .je *::before, .je *::after { animation: none !important; }
+}
