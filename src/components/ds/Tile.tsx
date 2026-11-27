@@ -23,9 +23,9 @@ export function Tile({ picture, action, onClick, href, className }: TileProps) {
       <span className="relative block h-[84px] w-full overflow-hidden" aria-hidden="true">
         {picture}
       </span>
-      <span className="flex items-center gap-[6px] px-3 py-[10px] text-[13px] font-medium">
-        <span>{action}</span>
-        <ArrowRight size={16} strokeWidth={1.7} aria-hidden="true" className="ml-auto text-je-accent" />
+      <span className="flex min-w-0 items-center gap-[6px] px-3 py-[10px] text-[13px] font-medium">
+        <span className="min-w-0 truncate">{action}</span>
+        <ArrowRight size={16} strokeWidth={1.7} aria-hidden="true" className="ml-auto shrink-0 text-je-accent" />
       </span>
     </>
   );

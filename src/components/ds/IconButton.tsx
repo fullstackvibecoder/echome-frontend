@@ -22,6 +22,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   const radius = variant === 'grad' ? 'rounded-[11px]' : size === 30 ? 'rounded-[9px]' : 'rounded-[10px]';
   return (
     <button
+      {...rest}
       ref={ref}
       type={type}
       aria-label={label}
@@ -33,7 +34,6 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         variant === 'grad' ? 'je-grad text-je-on-grad' : 'border border-je-hair text-je-muted',
         className,
       )}
-      {...rest}
     >
       <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
     </button>

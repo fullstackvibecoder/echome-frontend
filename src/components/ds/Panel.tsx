@@ -14,7 +14,9 @@ export type PanelProps = {
 export function Panel({ title, onClose, actions, children, className }: PanelProps) {
   // Handler lives on the section (not window) so Escape is never stolen from the Echo box.
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key === 'Escape') onClose();
+    if (e.key !== 'Escape') return;
+    if (e.defaultPrevented || e.nativeEvent.isComposing) return;
+    onClose();
   };
   return (
     <section

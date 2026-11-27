@@ -48,7 +48,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
             onClick={() => setPref(value)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={cx(
-              'flex h-[26px] w-[26px] items-center justify-center rounded-[6px]',
+              'flex h-[26px] w-[26px] items-center justify-center rounded-[6px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--je-accent)]',
               selected ? 'bg-je-tint text-je-ink' : 'text-je-muted',
             )}
           >

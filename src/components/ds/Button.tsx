@@ -13,6 +13,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 ) {
   return (
     <button
+      {...rest}
       ref={ref}
       type={type}
       disabled={disabled || loading}
@@ -25,7 +26,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         disabled && !loading && 'opacity-50',
         className,
       )}
-      {...rest}
     >
       {children}
     </button>

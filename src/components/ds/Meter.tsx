@@ -11,7 +11,7 @@ const FILLED = 'je-grad';
 const EMPTY_BG = 'var(--je-faint)';
 
 export function Meter({ value, total, label, className }: MeterProps) {
-  if (!Number.isFinite(total) || total <= 0) return null;
+  if (!Number.isFinite(total) || Math.floor(total) <= 0) return null;
   const max = Math.floor(total);
   const now = Number.isFinite(value) ? Math.min(Math.max(Math.floor(value), 0), max) : 0;
   const segmented = max <= 14;
@@ -22,6 +22,7 @@ export function Meter({ value, total, label, className }: MeterProps) {
       aria-valuemin={0}
       aria-valuemax={max}
       aria-valuenow={now}
+      aria-valuetext={`${now} of ${max}`}
       aria-label={label}
       className={cx('inline-flex items-center gap-[6px]', className)}
     >

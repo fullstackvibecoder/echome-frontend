@@ -35,7 +35,7 @@ export function ProgressWave({ bars, hits = [], scanning = false, className }: P
       {scanning && (
         <span
           data-scan=""
-          className="absolute top-0 block h-full w-[2px] animate-[je-scan_4.5s_linear_infinite]"
+          className="absolute top-0 block h-full w-[2px] motion-reduce:hidden animate-[je-scan_4.5s_linear_infinite]"
           style={{
             left: 0,
             background: 'linear-gradient(180deg, transparent, var(--je-g2), transparent)',

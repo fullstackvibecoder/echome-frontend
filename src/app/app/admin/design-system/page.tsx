@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/hooks/useAuth';
 import { Bookmark, Send, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ds/Button';
 import { IconButton } from '@/components/ds/IconButton';
@@ -107,6 +108,8 @@ function Specimen({ theme }: { theme: 'dark' | 'light' }) {
 }
 
 export default function DesignSystemPage() {
+  const { user } = useAuth();
+  if (!user?.isAdmin) return null;
   return (
     <div className="flex flex-col gap-4">
       <div className="je je-canvas flex items-center justify-between rounded-[22px] p-4">

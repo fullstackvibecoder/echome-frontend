@@ -55,7 +55,11 @@ export function Thumb({ src, alt, duration, platform, aspect = 'square', state =
             className="h-full w-full object-cover"
           />
         ) : pending ? null : (
-          <div role="img" aria-label={alt} className="h-full w-full" style={{ background: 'var(--je-thumb)' }} />
+          alt === '' ? (
+            <div aria-hidden="true" className="h-full w-full" style={{ background: 'var(--je-thumb)' }} />
+          ) : (
+            <div role="img" aria-label={alt} className="h-full w-full" style={{ background: 'var(--je-thumb)' }} />
+          )
         )}
         {pending && (
           <span
@@ -69,7 +73,7 @@ export function Thumb({ src, alt, duration, platform, aspect = 'square', state =
         )}
       </div>
       {done && (
-        <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-white">
+        <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-white drop-shadow-[0_1px_2px_rgba(0,0,0,.6)]">
           <Check size={18} strokeWidth={1.7} />
         </span>
       )}

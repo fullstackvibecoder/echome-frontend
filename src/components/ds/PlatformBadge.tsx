@@ -21,7 +21,7 @@ function metaFor(platform: string): Meta {
   const known = PLATFORMS[platform.toLowerCase()];
   if (known) return known;
   const name = platform.charAt(0).toUpperCase() + platform.slice(1);
-  return { name, glyph: platform.charAt(0).toUpperCase(), bg: '#7D8294' };
+  return { name, glyph: platform.charAt(0).toUpperCase(), bg: '#5B6070' };
 }
 
 export type PlatformBadgeProps = Omit<HTMLAttributes<HTMLSpanElement>, 'children'> & {
