@@ -83,8 +83,8 @@ function Specimen({ theme }: { theme: 'dark' | 'light' }) {
 
       <Section title="Rows">
         <div className="flex flex-col gap-2">
-          <Row lead={<Thumb alt="" className="w-10" />} title="Weekly recap" detail="Instagram, 2 clips" trail={<PlatformBadge platform="instagram" />} selected />
-          <Row lead={<Thumb alt="" className="w-10" />} title="Client story" detail="LinkedIn, draft" trail={<PlatformBadge platform="linkedin" />} />
+          <Row lead={<span className="block w-10 shrink-0"><Thumb alt="" /></span>} title="Weekly recap" detail="Instagram, 2 clips" trail={<PlatformBadge platform="instagram" />} selected />
+          <Row lead={<span className="block w-10 shrink-0"><Thumb alt="" /></span>} title="Client story" detail="LinkedIn, draft" trail={<PlatformBadge platform="linkedin" />} />
         </div>
       </Section>
 
