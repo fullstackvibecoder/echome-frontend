@@ -1,7 +1,7 @@
 # Just Echo: EchoMe Web App Redesign
 
 **Date:** 2026-11-27
-**Status:** Design, awaiting founder approval. No build until approved.
+**Status:** Approved by the founder 11-27. Phase plans in `docs/superpowers/plans/2026-11-27-just-echo-*`.
 **Scope:** The authenticated web app (`/app/*`) plus the Echo backend it needs. Marketing site, mobile app and admin pages are out of scope (see Non-goals).
 **Approved mockup:** `assets/2026-11-27-just-echo/just-echo-v4.html` (open in a browser; three screens: Home dark, Home light, Making something). This file is the visual source of truth.
 **Supersedes in part:** `2026-06-10-platform-redesign-echo-copilot-design.md` (pill placement, "outputs never in chat", cyan-only look). Its intake-unification goal stands and is completed here.
