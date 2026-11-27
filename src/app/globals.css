@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@import "./just-echo.css";
 
 :root {
   --radius: 0.625rem;

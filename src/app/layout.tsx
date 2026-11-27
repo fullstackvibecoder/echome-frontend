@@ -7,6 +7,7 @@ import { OutageBanner } from '@/components/outage-banner';
 import { ServiceNotice } from '@/components/service-notice';
 import { ReceiptHost } from '@/components/shared/ReceiptHost';
 import { RecoveryRedirectListener } from '@/components/auth/RecoveryRedirectListener';
+import { THEME_BOOTSTRAP_SCRIPT } from '@/lib/theme';
 import { satoshi, manrope, montserrat, inter, bebasNeue, jetbrainsMono } from '@/lib/fonts';
 import { Providers } from './providers';
 import './globals.css';
@@ -90,8 +91,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Pre-paint theme bootstrap: plain <script> so it runs before first paint */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
         {/* iOS Smart App Banner — shows "Open in App" in Safari */}
         <meta name="apple-itunes-app" content="app-id=6761504034" />
         {/* Meta Pixel */}
