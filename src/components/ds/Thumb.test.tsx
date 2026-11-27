@@ -34,6 +34,27 @@ describe('Thumb', () => {
     expect(screen.getByRole('img', { name: 'Clip one' })).toBeInTheDocument();
   });
 
+  it('shows the placeholder when the image already failed before hydration', () => {
+    Object.defineProperty(HTMLImageElement.prototype, 'complete', { configurable: true, get: () => true });
+    Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', { configurable: true, get: () => 0 });
+    try {
+      const { container } = render(<Thumb src="/missing.jpg" alt="Clip one" />);
+      expect(container.querySelector('img')).toBeNull();
+      expect(screen.getByRole('img', { name: 'Clip one' })).toBeInTheDocument();
+    } finally {
+      delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).complete;
+      delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).naturalWidth;
+    }
+  });
+
+  it('retries when src changes after an error', () => {
+    const { container, rerender } = render(<Thumb src="/a.jpg" alt="Clip one" />);
+    fireEvent.error(container.querySelector('img')!);
+    expect(container.querySelector('img')).toBeNull();
+    rerender(<Thumb src="/b.jpg" alt="Clip one" />);
+    expect(container.querySelector('img')).toHaveAttribute('src', '/b.jpg');
+  });
+
   it('renders a placeholder without src', () => {
     const { container } = render(<Thumb alt="Nothing" />);
     expect(container.querySelector('img')).toBeNull();
@@ -61,6 +82,21 @@ describe('Thumb', () => {
 });
 
 describe('PlatformBadge', () => {
+  it.each([
+    ['instagram', 'Instagram', 'IG'],
+    ['linkedin', 'LinkedIn', 'in'],
+    ['facebook', 'Facebook', 'f'],
+    ['tiktok', 'TikTok', 'TT'],
+    ['youtube', 'YouTube', 'YT'],
+    ['twitter', 'X', 'X'],
+    ['x', 'X', 'X'],
+    ['threads', 'Threads', '@'],
+    ['blog', 'Blog', 'B'],
+  ])('maps %s to %s / %s', (platform, name, glyph) => {
+    render(<PlatformBadge platform={platform} />);
+    expect(screen.getByRole('img', { name })).toHaveTextContent(glyph);
+  });
+
   it('renders known platforms case-insensitively', () => {
     render(<PlatformBadge platform="Instagram" />);
     const el = screen.getByRole('img', { name: 'Instagram' });

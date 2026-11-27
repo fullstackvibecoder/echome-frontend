@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { cx } from './cx';
 import { formatDuration } from './format';
@@ -18,7 +18,15 @@ const ASPECT = { square: '1 / 1', reel: '9 / 14', wide: '16 / 9' } as const;
 
 export function Thumb({ src, alt, duration, platform, aspect = 'square', state = 'default', className }: ThumbProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const showImg = !!src && failedSrc !== src && state !== 'pending';
+
+  // Server-rendered images can fail before hydration attaches onError; catch that here.
+  useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (src && img && img.complete && img.naturalWidth === 0) setFailedSrc(src);
+  }, [src]);
+
   const dur = formatDuration(duration);
   const done = state === 'done';
   const pending = state === 'pending';
@@ -39,6 +47,7 @@ export function Thumb({ src, alt, duration, platform, aspect = 'square', state =
         {showImg ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            ref={imgRef}
             src={src!}
             alt={alt}
             loading="lazy"
