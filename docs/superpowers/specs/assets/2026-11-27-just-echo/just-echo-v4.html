@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EchoMe redesign: Just Echo v4</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Satoshi', system-ui, sans-serif; background: #e9eaee; color: #0F1117; padding: 32px 28px 60px; }
+  .sec { max-width: 1340px; margin: 0 auto 28px; }
+  .sec h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #3b3f4c; }
+
+  .app { --r-c: 8px; --r-i: 12px; --r-x: 20px; height: 640px; border-radius: 16px; overflow: hidden; color: var(--ink); display: grid; grid-template-columns: 208px 1fr 392px; background: var(--bg); box-shadow: 0 10px 40px rgba(0,0,0,.12); }
+  .dark { --g1:#22D3EE; --g2:#A78BFA; --item:rgba(255,255,255,.04); --field:rgba(20,22,30,.95); --panel:rgba(255,255,255,.025); --ink:#F2F3F7; --ink2:#c3c6d1; --muted:#7d8294; --faint:rgba(255,255,255,.14); --hair:rgba(255,255,255,.07); --accent:#C4B5FD; --tint:rgba(167,139,250,.14); --glow:rgba(167,139,250,.28); --glow2:rgba(34,211,238,.16); --on-grad:#08090D; --ok:#4ade80; --thumb: linear-gradient(160deg,#2a2f42,#151823);
+    --bg: radial-gradient(700px 420px at 52% 45%, rgba(167,139,250,.13), transparent 65%), radial-gradient(600px 340px at 15% 0%, rgba(34,211,238,.06), transparent 60%), #08090D; }
+  .light { --g1:#06B6D4; --g2:#8B5CF6; --item:rgba(15,17,23,.03); --field:#fff; --panel:rgba(255,255,255,.6); --ink:#0F1117; --ink2:#363a48; --muted:#7b8091; --faint:rgba(15,17,23,.14); --hair:rgba(15,17,23,.08); --accent:#6D28D9; --tint:rgba(124,58,237,.08); --glow:rgba(124,58,237,.20); --glow2:rgba(6,182,212,.14); --on-grad:#fff; --ok:#16a34a; --thumb: linear-gradient(160deg,#e1e4ec,#cdd1db);
+    --bg: radial-gradient(700px 420px at 52% 45%, rgba(139,92,246,.10), transparent 65%), radial-gradient(600px 340px at 15% 0%, rgba(6,182,212,.06), transparent 60%), #F4F5F8; }
+  .grad { background: linear-gradient(135deg,var(--g1),var(--g2)); }
+  .grad-text { background: linear-gradient(90deg,var(--g1),var(--g2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .ring { position: relative; }
+  .ring::before { content:''; position:absolute; inset:-1px; border-radius: inherit; padding:1.5px; background: linear-gradient(120deg,var(--g1),var(--g2)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+  .lbl { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .01em; }
+  .img { background-size: cover; background-position: center; background-color: #1d2030; }
+  svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* platform badges */
+  .pf { width: 16px; height: 16px; border-radius: 5px; display: grid; place-items: center; font-size: 8.5px; font-weight: 900; color: #fff; box-shadow: 0 0 0 2px var(--badge-ring, #08090D); }
+  .light .pf { --badge-ring: #fff; }
+  .pf.ig { background: linear-gradient(135deg,#f58529,#dd2a7b 55%,#8134af); }
+  .pf.li { background: #0A66C2; }
+  .pf.fb { background: #1877F2; }
+  .pf.tt { background: #111; }
+
+  /* left: conversations */
+  .convs { display: flex; flex-direction: column; padding: 16px 12px; gap: 2px; border-right: 1px solid var(--hair); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; padding: 0 8px 16px; }
+  .logo { width: 26px; height: 26px; border-radius: var(--r-c); }
+  .newb { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 10px; background: var(--item); border: 1px solid var(--hair); font-size: 13px; margin-bottom: 12px; }
+  .cv { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 8px; border-radius: 10px; font-size: 13px; color: var(--ink2); white-space: nowrap; overflow: hidden; }
+  .cv .ct { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; }
+  .cv.on { background: var(--tint); color: var(--ink); }
+  .cv .live { width: 6px; height: 6px; border-radius: 50%; margin-left: auto; flex-shrink: 0; animation: pulse 1.6s ease-in-out infinite; }
+  .convs .sp { flex: 1; }
+  .me { display: flex; align-items: center; gap: 8px; padding: 8px; font-size: 13px; }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; }
+  .tog { margin-left: auto; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--muted); border: 1px solid var(--hair); }
+
+  /* center: the source of truth */
+  .stage { display: flex; flex-direction: column; justify-content: center; padding: 32px 40px; gap: 24px; position: relative; }
+  .hello { font-size: 36px; font-weight: 900; letter-spacing: -0.04em; line-height: 1.05; }
+  .input { background: var(--field); border-radius: 22px; padding: 18px 14px 14px 22px; box-shadow: 0 0 0 6px var(--tint), 0 20px 80px var(--glow), 0 0 120px var(--glow2); }
+  .input .ph { font-size: 16px; color: var(--muted); height: 52px; }
+  .input .row { display: flex; align-items: center; gap: 6px; }
+  .ib { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); border: 1px solid var(--hair); }
+  .send { margin-left: auto; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: var(--on-grad); }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .tile { border-radius: 16px; overflow: hidden; background: var(--item); border: 1px solid var(--hair); display: flex; flex-direction: column; }
+  .tile .pic { height: 84px; position: relative; }
+  .tile .pic .badge { position: absolute; right: 8px; bottom: 8px; font-family: 'DM Mono', monospace; font-size: 10.5px; color: #fff; background: rgba(0,0,0,.55); border-radius: 6px; padding: 2px 6px; }
+  .tile .pic .play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; }
+  .tile .pic.note { display: grid; place-items: center; background: var(--tint); color: var(--accent); }
+  .tile .pic.note svg { width: 30px; height: 30px; }
+  .tile .pic.radar { display: flex; flex-direction: column; justify-content: center; padding: 0 14px; background: linear-gradient(135deg, rgba(34,211,238,.14), rgba(167,139,250,.14)); }
+  .tile .pic.radar .big { font-size: 28px; font-weight: 900; letter-spacing: -0.03em; }
+  .tile .pic.radar .src { font-size: 10.5px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .tile .cta { display: flex; align-items: center; gap: 6px; padding: 10px 12px; font-size: 13px; font-weight: 500; }
+  .tile .cta .arr { margin-left: auto; color: var(--accent); }
+
+  /* right: week + ready + knowledge */
+  .side { border-left: 1px solid var(--hair); background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+  .hd { display: flex; align-items: center; gap: 10px; }
+  .hd .r { margin-left: auto; }
+  .meter { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .meter .bars { display: flex; gap: 3px; }
+  .meter .bars i { width: 10px; height: 4px; border-radius: 2px; background: var(--faint); display: block; }
+  .meter .bars i.on { background: linear-gradient(90deg,var(--g1),var(--g2)); }
+  .wk { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .col .d { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .col.today .d { color: var(--ink); font-weight: 900; }
+  .post { width: 100%; aspect-ratio: 1; border-radius: 10px; position: relative; }
+  .post .pf { position: absolute; right: -4px; bottom: -4px; }
+  .post.done { opacity: .5; filter: saturate(.4); }
+  .post.done::after { content: '\2713'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 14px; font-weight: 900; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  .open { width: 100%; aspect-ratio: 1; border-radius: 10px; border: 1.5px dashed var(--faint); display: grid; place-items: center; color: var(--muted); font-size: 16px; }
+  .col.today .open { border-color: var(--accent); color: var(--accent); background: var(--tint); }
+  .empty { width: 100%; aspect-ratio: 1; }
+  .nx { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; background: var(--item); border: 1px solid var(--hair); }
+  .nx .th { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+  .nx .t { font-size: 13px; font-weight: 500; }
+  .nx .s { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .nx .pfs { margin-left: auto; display: flex; gap: 6px; }
+  .rd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .reel { aspect-ratio: 9/14; border-radius: 10px; position: relative; overflow: hidden; }
+  .reel .badge { position: absolute; left: 6px; bottom: 6px; font-family: 'DM Mono', monospace; font-size: 9.5px; color: #fff; background: rgba(0,0,0,.55); border-radius: 5px; padding: 1px 5px; }
+  .reel.kit { display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; background: linear-gradient(160deg, rgba(34,211,238,.18), rgba(167,139,250,.22)); }
+  .reel.kit .n { font-size: 22px; font-weight: 900; line-height: 1; }
+  .reel.kit .s { font-size: 10px; color: var(--ink2); margin-top: 2px; }
+  .know { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: var(--item); border: 1px solid var(--hair); margin-top: auto; }
+  .know .n { font-size: 30px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+  .know .s { font-size: 12px; color: var(--muted); line-height: 1.35; }
+  .know .plus { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ok); background: rgba(74,222,128,.1); border-radius: 999px; padding: 3px 8px; }
+  .spark { display: flex; align-items: flex-end; gap: 2px; height: 26px; }
+  .spark i { width: 4px; border-radius: 2px; background: linear-gradient(180deg,var(--g1),var(--g2)); display: block; opacity: .8; }
+
+  /* making view */
+  .conv { display: flex; flex-direction: column; padding: 28px 40px; gap: 16px; }
+  .thread { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 16px; }
+  .msg { font-size: 14px; line-height: 1.55; }
+  .msg.u { align-self: flex-end; background: var(--item); border: 1px solid var(--hair); padding: 9px 14px; border-radius: 16px 16px 4px 16px; }
+  .msg.e { color: var(--ink2); }
+  .jobc { margin-top: 12px; border-radius: 16px; border: 1px solid var(--hair); background: var(--item); padding: 14px; display: flex; gap: 14px; align-items: center; }
+  .jobc .src { width: 64px; height: 84px; border-radius: 10px; flex-shrink: 0; position: relative; }
+  .jobc .src .badge { position: absolute; left: 4px; bottom: 4px; font-family: 'DM Mono', monospace; font-size: 9px; color: #fff; background: rgba(0,0,0,.55); border-radius: 4px; padding: 1px 4px; }
+  .jobc .body { flex: 1; min-width: 0; }
+  .wave { display: flex; align-items: center; gap: 2px; height: 38px; position: relative; }
+  .wave i { flex: 1; border-radius: 2px; background: var(--faint); display: block; }
+  .wave i.hit { background: linear-gradient(180deg,var(--g1),var(--g2)); }
+  .scan { position: absolute; top: -4px; bottom: -4px; width: 2px; background: linear-gradient(180deg,transparent,var(--g2),transparent); box-shadow: 0 0 12px var(--g2); animation: scan 4.5s linear infinite; }
+  .steps { display: flex; gap: 6px; margin-top: 10px; }
+  .steps span { flex: 1; height: 4px; border-radius: 2px; background: var(--faint); position: relative; overflow: hidden; }
+  .steps span.done { background: linear-gradient(90deg,var(--g1),var(--g2)); }
+  .steps span.now::after { content: ''; position: absolute; inset: 0; width: 40%; background: linear-gradient(90deg,var(--g1),var(--g2)); animation: slide 1.4s ease-in-out infinite alternate; }
+  .steps-l { display: flex; gap: 6px; margin-top: 6px; }
+  .steps-l span { flex: 1; font-size: 10.5px; color: var(--muted); }
+  .steps-l span.now { color: var(--accent); font-weight: 700; }
+  .stage2 .input { box-shadow: 0 0 0 4px var(--tint), 0 10px 50px var(--glow); }
+  .stage2 .input .ph { height: 32px; font-size: 14px; }
+  .clipsp { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .clipsp .reel { aspect-ratio: 9/14; }
+  .clipsp .reel .cap { position: absolute; left: 8px; right: 8px; bottom: 26px; font-size: 12px; font-weight: 900; color: #fff; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
+  .clipsp .reel.pending { background: var(--item); border: 1.5px dashed var(--faint); }
+  .clipsp .reel.pending::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(167,139,250,.16) 50%, transparent 70%); animation: shimmer 1.8s linear infinite; }
+  .btnp { font-size: 13px; font-weight: 700; height: 40px; border-radius: 12px; color: var(--on-grad); display: grid; place-items: center; margin-top: auto; }
+
+  @keyframes scan { from { left: 0; } to { left: 100%; } }
+  @keyframes pulse { 0%,100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+  @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+  @keyframes slide { from { left: 0; } to { left: 60%; } }
+</style>
+</head>
+<body>
+<div class="sec"><h2>Home</h2><div class="app dark" id="a"></div></div>
+<div class="sec"><h2>Home, light</h2><div class="app light" id="b"></div></div>
+<div class="sec"><h2>Making something</h2><div class="app dark" id="c"></div></div>
+
+<script>
+  const U = (id) => `url(https://images.unsplash.com/photo-${id}?w=400&q=60&auto=format&fit=crop)`;
+  const P = {
+    house: U('1600596542815-ffad4c1539a9'), house2: U('1600585154340-be6161a56a0c'), living: U('1586023492125-27b2c045efd7'),
+    kitchen: U('1556909114-f6e7ad7d3136'), apt: U('1502672260266-1c1ef2d93688'), ext: U('1512917774080-9991f1c4c750'),
+    yard: U('1570129477492-45c003edd2be'), interior: U('1560448204-e02f11c3d0e2'), face: U('1494790108377-be9c29b29330'),
+  };
+  const S = {
+    plus: '<path d="M12 5v14M5 12h14"/>', clip: '<path d="M20 12l-8 8a5 5 0 01-7-7l8-8a3 3 0 014 4l-8 8a1 1 0 01-2-2l7-7"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>', up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+    note: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>', play: '<path d="M8 5l11 7-11 7z" fill="currentColor"/>',
+    moon: '<path d="M20 14A8 8 0 0110 4a8 8 0 1010 10z"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/>',
+  };
+  const svg = (k, st='') => `<svg class="i" viewBox="0 0 24 24" style="${st}">${S[k]}</svg>`;
+  const pf = (k) => `<span class="pf ${k}">${{ig:'IG',li:'in',fb:'f',tt:'TT'}[k]}</span>`;
+  const bg = (k) => `style="background-image:${P[k]}"`;
+
+  const convs = (running) => `
+    <div class="convs">
+      <div class="brand"><div class="logo grad"></div>EchoMe</div>
+      <div class="newb">${svg('plus')}New <span style="margin-left:auto;color:var(--muted)">${svg('search')}</span></div>
+      ${running ? `<div class="cv on"><span class="ct img" ${bg('yard')}></span>Open house clips<span class="live grad"></span></div>` : ''}
+      <div class="cv${running?'':' on'}"><span class="ct img" ${bg('living')}></span>Staging on a budget</div>
+      <div class="cv"><span class="ct img" ${bg('ext')}></span>22 Maple notes</div>
+      <div class="cv"><span class="ct grad" style="opacity:.6"></span>Rate drop reaction</div>
+      <div class="cv"><span class="ct img" ${bg('apt')}></span>Market update, Nov</div>
+      <div class="cv"><span class="ct img" ${bg('kitchen')}></span>First-time buyer myths</div>
+      ${running ? '' : `<div class="cv"><span class="ct img" ${bg('face')}></span>Parks testimonial</div>`}
+      <div class="sp"></div>
+      <div class="me"><span class="avatar img" ${bg('face')}></span>Ara<span class="tog">${svg('moon')}</span></div>
+    </div>`;
+  const input = (ph) => `<div class="input ring"><div class="ph">${ph}</div><div class="row"><span class="ib">${svg('clip')}</span><span class="ib">${svg('mic')}</span><span class="send grad">${svg('up')}</span></div></div>`;
+  const col = (d, inner, today) => `<div class="col${today?' today':''}"><span class="d">${d}</span>${inner}</div>`;
+  const post = (k, p, done) => `<div class="post img${done?' done':''}" ${bg(k)}>${done?'':pf(p)}</div>`;
+  const side = () => `
+    <div class="side">
+      <div>
+        <div class="hd" style="margin-bottom:12px"><span class="lbl">This week</span><span class="r meter"><span class="bars"><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i></span>4/7</span></div>
+        <div class="wk">
+          ${col('M', post('house','ig',1))}${col('T', post('kitchen','ig',1))}${col('W','<div class="open">+</div>',1)}${col('T', post('living','ig'))}${col('F', post('yard','tt'))}${col('S','<div class="open">+</div>')}${col('S','<div class="empty"></div>')}
+        </div>
+      </div>
+      <div class="nx"><span class="th img" ${bg('living')}></span><div><div class="t">Staging on a budget</div><div class="s">Next &middot; Thu 9:00</div></div><span class="pfs">${pf('ig')}${pf('fb')}</span></div>
+      <div>
+        <div class="hd" style="margin-bottom:12px"><span class="lbl">Ready</span><span class="r lbl" style="color:var(--accent)">Fill open days</span></div>
+        <div class="rd">
+          <div class="reel img" ${bg('yard')}><span class="badge">0:38</span></div>
+          <div class="reel img" ${bg('kitchen')}><span class="badge">0:41</span></div>
+          <div class="reel img" ${bg('interior')}><span class="badge">0:29</span></div>
+          <div class="reel kit"><span class="n">3</span><span class="s">posts left in Spring listings</span></div>
+        </div>
+      </div>
+      <div class="know">
+        <div><div class="n grad-text">214</div><div class="s">things Echo<br>knows about you</div></div>
+        <div class="spark">${[6,9,7,12,10,14,11,16,13,19,17,22,26].map(h=>`<i style="height:${h}px"></i>`).join('')}</div>
+        <span class="plus">+4 today</span>
+      </div>
+    </div>`;
+  const home = () => `${convs(false)}
+    <div class="stage">
+      <div class="hello">Morning, Ara.<br><span class="grad-text">What should we make?</span></div>
+      ${input('Talk, paste a link, or drop a video...')}
+      <div class="tiles">
+        <div class="tile"><div class="pic img" ${bg('house2')}><span class="play">${svg('play')}</span><span class="badge">14:02</span></div><div class="cta">Clip Tuesday's video<span class="arr">&rarr;</span></div></div>
+        <div class="tile"><div class="pic radar"><div class="big grad-text">+9%</div><div class="src">condo fees &middot; Radar</div></div><div class="cta">Write my take<span class="arr">&rarr;</span></div></div>
+        <div class="tile"><div class="pic note">${svg('note')}</div><div class="cta">Add today's notes<span class="arr">&rarr;</span></div></div>
+      </div>
+    </div>${side()}`;
+  const wave = () => { let s=''; const hits=[[9,14],[27,33],[44,49]]; for (let i=0;i<56;i++){ const h=18+Math.round(Math.abs(Math.sin(i*1.7)*0.6+Math.sin(i*.43)*0.4)*78); s+=`<i class="${hits.some(([a,b])=>i>=a&&i<=b)?'hit':''}" style="height:${h}%"></i>`;} return s; };
+  const job = () => `${convs(true)}
+    <div class="conv stage2">
+      <div class="thread">
+        <div class="msg u">Clip yesterday's open house video, under 45 seconds each.</div>
+        <div class="msg e">On it, about 3 minutes.
+          <div class="jobc"><div class="src img" ${bg('house2')}><span class="badge">14:02</span></div>
+            <div class="body"><div class="wave">${wave()}<span class="scan"></span></div>
+              <div class="steps"><span class="done"></span><span class="done"></span><span class="now"></span><span></span></div>
+              <div class="steps-l"><span>Upload</span><span>Transcribe</span><span class="now">Find moments</span><span>Captions</span></div>
+            </div></div>
+        </div>
+      </div>
+      ${input('Steer it...')}
+    </div>
+    <div class="side">
+      <div class="hd"><span class="lbl">Open house clips</span><span class="r meter"><span class="bars"><i class="on"></i><i></i><i></i></span>1/3</span><span class="ib" style="margin-left:8px">${svg('x')}</span></div>
+      <div class="clipsp">
+        <div class="reel img" ${bg('yard')}><span class="cap">The backyard sets the price</span><span class="badge">0:38</span></div>
+        <div class="reel pending"></div>
+        <div class="reel pending"></div>
+      </div>
+      <div class="btnp grad">Schedule to open days</div>
+    </div>`;
+  document.getElementById('a').innerHTML = home();
+  document.getElementById('b').innerHTML = home();
+  document.getElementById('c').innerHTML = job();
+</script>
+</body>
+</html>
