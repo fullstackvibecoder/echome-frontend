@@ -27,6 +27,8 @@ export function getFailedUploadActions(input: {
 
   // The file never fully arrived: retrying cannot help, a fresh upload can.
   if (code === 'upload_incomplete' || code === 'upload_aborted') return ['upload_again'];
+  // The stored file was deleted after the failure (backend failed-source sweep).
+  if (code === 'source_removed') return ['upload_again'];
   if (code === 'zoom_password_required' || code === 'zoom_password_incorrect') return ['enter_passcode'];
   if (code === 'video_url_invalid') return ['upload_file'];
 

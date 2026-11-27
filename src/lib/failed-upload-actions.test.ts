@@ -12,6 +12,11 @@ describe('getFailedUploadActions', () => {
     expect(getFailedUploadActions({ errorCode: 'upload_aborted', sourceType: 'upload' })).toEqual(['upload_again']);
   });
 
+  it('offers only Upload again when the stored file was deleted', () => {
+    expect(getFailedUploadActions({ errorCode: 'source_removed', sourceType: 'upload' })).toEqual(['upload_again']);
+    expect(getFailedUploadActions({ errorCode: 'source_removed', sourceType: 'recording' })).not.toContain('try_again');
+  });
+
   it('never offers Try again for an incomplete upload, even from a link source', () => {
     expect(getFailedUploadActions({ errorCode: 'upload_incomplete', sourceType: 'youtube' })).not.toContain('try_again');
   });
