@@ -28,6 +28,23 @@ describe('StepBar', () => {
     expect(states(container)[0]).toBe('now');
   });
 
+  it('floors a fractional current', () => {
+    const { container } = render(<StepBar steps={STEPS} current={1.9} />);
+    expect(states(container)).toEqual(['done', 'now', 'todo', 'todo']);
+  });
+
+  it('treats NaN current as the first step', () => {
+    const { container } = render(<StepBar steps={STEPS} current={NaN} />);
+    expect(states(container)).toEqual(['now', 'todo', 'todo', 'todo']);
+  });
+
+  it('exposes done steps to screen readers', () => {
+    const { container } = render(<StepBar steps={STEPS} current={2} />);
+    const done = container.querySelectorAll('li[data-state="done"] .je-sr-only');
+    expect(done).toHaveLength(2);
+    expect(done[0].textContent).toBe('done');
+  });
+
   it('renders nothing for no steps', () => {
     const { container } = render(<StepBar steps={[]} current={0} />);
     expect(container).toBeEmptyDOMElement();
@@ -51,6 +68,11 @@ describe('ProgressWave', () => {
     expect(container.querySelector('[data-scan]')).not.toBeNull();
     rerender(<ProgressWave bars={[0.5]} />);
     expect(container.querySelector('[data-scan]')).toBeNull();
+  });
+
+  it('hides the scan line under reduced motion', () => {
+    const { container } = render(<ProgressWave bars={[0.5]} scanning />);
+    expect(container.querySelector('[data-scan]')!.className).toContain('motion-reduce:hidden');
   });
 
   it('renders nothing for empty bars', () => {

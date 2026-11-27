@@ -52,3 +52,26 @@ describe('Panel', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+describe('Panel extras', () => {
+  it('ignores Escape already handled by an inner element', async () => {
+    const onClose = vi.fn();
+    render(
+      <Panel title="Kit" onClose={onClose}>
+        <input aria-label="inner" onKeyDown={(e) => e.key === 'Escape' && e.preventDefault()} />
+      </Panel>,
+    );
+    screen.getByLabelText('inner').focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('renders the actions slot', () => {
+    render(
+      <Panel title="Kit" onClose={() => {}} actions={<button type="button">Extra</button>}>
+        x
+      </Panel>,
+    );
+    expect(screen.getByRole('button', { name: 'Extra' })).toBeInTheDocument();
+  });
+});

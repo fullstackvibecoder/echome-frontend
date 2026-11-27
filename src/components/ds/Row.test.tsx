@@ -80,10 +80,35 @@ describe('Meter', () => {
     expect(b.container.firstChild).toBeNull();
   });
 
+  it('renders nothing when the floored total is 0', () => {
+    const { container } = render(<Meter value={0} total={0.5} label="x" />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('segments at 14 and goes continuous at 15', () => {
+    const a = render(<Meter value={3} total={14} label="x" />);
+    expect(a.container.querySelectorAll('[data-filled]').length).toBe(14);
+    a.unmount();
+    const b = render(<Meter value={3} total={15} label="x" />);
+    expect(b.container.querySelectorAll('[data-filled]').length).toBe(2);
+  });
+
+  it('exposes aria-valuetext', () => {
+    render(<Meter value={4} total={7} label="x" />);
+    expect(screen.getByRole('meter').getAttribute('aria-valuetext')).toBe('4 of 7');
+  });
+
   it('renders one continuous bar for large totals', () => {
     const { container } = render(<Meter value={12} total={30} label="x" />);
     expect(screen.getByText('12/30')).toBeTruthy();
     expect(container.querySelectorAll('[data-filled="true"]').length).toBe(1);
     expect(container.querySelectorAll('[data-filled]').length).toBe(2);
+  });
+});
+
+describe('Tile overflow', () => {
+  it('truncates a long action', () => {
+    render(<Tile picture={<i />} action="A very long action label that should not overflow" />);
+    expect(screen.getByText(/A very long action/).className).toContain('truncate');
   });
 });

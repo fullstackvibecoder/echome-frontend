@@ -51,3 +51,16 @@ describe('IconButton', () => {
     expect(screen.getByRole('button', { name: 'Send' })).toHaveClass('je-grad');
   });
 });
+
+describe('rest-spread order', () => {
+  it('IconButton keeps its label as the accessible name', () => {
+    render(<IconButton label="Real" icon={ArrowUp} {...({ 'aria-label': 'x', title: 'y' } as object)} />);
+    expect(screen.getByRole('button', { name: 'Real' })).toHaveAttribute('title', 'Real');
+  });
+  it('Button keeps disabled and aria-busy while loading', () => {
+    render(<Button loading {...({ 'aria-busy': 'false', disabled: false } as object)}>Go</Button>);
+    const b = screen.getByRole('button');
+    expect(b).toBeDisabled();
+    expect(b).toHaveAttribute('aria-busy', 'true');
+  });
+});

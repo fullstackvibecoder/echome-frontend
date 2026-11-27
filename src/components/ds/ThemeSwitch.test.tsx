@@ -55,6 +55,13 @@ describe('ThemeSwitch', () => {
     delete document.documentElement.dataset.theme;
   });
 
+  it('gives every radio the focus-visible ring', () => {
+    render(<ThemeSwitch />);
+    for (const r of screen.getAllByRole('radio')) {
+      expect(r.className).toContain('focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--je-accent)]');
+    }
+  });
+
   it('renders a Theme radiogroup with Auto checked by default', () => {
     render(<ThemeSwitch />);
     expect(screen.getByRole('radiogroup', { name: 'Theme' })).toBeInTheDocument();

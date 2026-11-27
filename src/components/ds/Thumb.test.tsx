@@ -35,6 +35,9 @@ describe('Thumb', () => {
   });
 
   it('shows the placeholder when the image already failed before hydration', () => {
+    const proto = HTMLImageElement.prototype;
+    const origComplete = Object.getOwnPropertyDescriptor(proto, 'complete');
+    const origWidth = Object.getOwnPropertyDescriptor(proto, 'naturalWidth');
     Object.defineProperty(HTMLImageElement.prototype, 'complete', { configurable: true, get: () => true });
     Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', { configurable: true, get: () => 0 });
     try {
@@ -42,8 +45,10 @@ describe('Thumb', () => {
       expect(container.querySelector('img')).toBeNull();
       expect(screen.getByRole('img', { name: 'Clip one' })).toBeInTheDocument();
     } finally {
-      delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).complete;
-      delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).naturalWidth;
+      if (origComplete) Object.defineProperty(proto, 'complete', origComplete);
+      else delete (proto as unknown as Record<string, unknown>).complete;
+      if (origWidth) Object.defineProperty(proto, 'naturalWidth', origWidth);
+      else delete (proto as unknown as Record<string, unknown>).naturalWidth;
     }
   });
 
@@ -73,6 +78,25 @@ describe('Thumb', () => {
     expect(screen.getByText('Posted')).toBeInTheDocument();
     rerender(<Thumb alt="x" state="pending" />);
     expect(screen.getByText('Loading')).toBeInTheDocument();
+  });
+
+  it('hides an empty-alt placeholder from assistive tech', () => {
+    const { container } = render(<Thumb alt="" />);
+    const ph = container.querySelector('[aria-hidden="true"][style]') as HTMLElement;
+    expect(ph).not.toBeNull();
+    expect(ph).not.toHaveAttribute('role');
+    expect(ph).not.toHaveAttribute('aria-label');
+    expect(screen.queryByRole('img')).toBeNull();
+  });
+
+  it('keeps alt="" on the img', () => {
+    const { container } = render(<Thumb src="/a.jpg" alt="" />);
+    expect(container.querySelector('img')).toHaveAttribute('alt', '');
+  });
+
+  it('gives the done check a drop shadow', () => {
+    const { container } = render(<Thumb alt="x" state="done" />);
+    expect(container.querySelector('svg')!.parentElement!.className).toContain('drop-shadow');
   });
 
   it('renders a platform badge', () => {
@@ -106,6 +130,11 @@ describe('PlatformBadge', () => {
   it('capitalises unknown platforms', () => {
     render(<PlatformBadge platform="mastodon" />);
     expect(screen.getByRole('img', { name: 'Mastodon' })).toHaveTextContent('M');
+  });
+
+  it('uses an AA-safe fallback colour for unknown platforms', () => {
+    render(<PlatformBadge platform="mastodon" />);
+    expect(screen.getByRole('img', { name: 'Mastodon' }).style.background).toMatch(/#5b6070|rgb\(91, 96, 112\)/i);
   });
 
   it('renders nothing for empty string', () => {
