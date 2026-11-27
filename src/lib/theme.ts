@@ -39,4 +39,4 @@ export function applyThemePref(pref: ThemePref): ResolvedTheme {
  * with no flash. Self-contained: no imports, only localStorage and matchMedia.
  * Keep the rules in sync with resolveTheme/readThemePref above.
  */
-export const THEME_BOOTSTRAP_SCRIPT = `(function(){try{var s=localStorage.getItem('${THEME_STORAGE_KEY}');var t=(s==='light'||s==='dark')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
+export const THEME_BOOTSTRAP_SCRIPT = `(function(){var s=null;try{s=localStorage.getItem('${THEME_STORAGE_KEY}');}catch(e){}var t;if(s==='light'||s==='dark'){t=s;}else{try{t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}catch(e){t='light';}}document.documentElement.setAttribute('data-theme',t);})();`;

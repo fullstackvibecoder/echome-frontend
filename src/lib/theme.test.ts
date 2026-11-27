@@ -98,10 +98,29 @@ describe('THEME_BOOTSTRAP_SCRIPT', () => {
     new Function(THEME_BOOTSTRAP_SCRIPT)();
     expect(document.documentElement.dataset.theme).toBe('dark');
   });
-  it('falls back to light when storage throws', () => {
+  it('falls back to light when storage throws and the system is not dark', () => {
+    stubMatchMedia(false);
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked');
     });
+    new Function(THEME_BOOTSTRAP_SCRIPT)();
+    expect(document.documentElement.dataset.theme).toBe('light');
+  });
+  it('still follows a dark OS when storage throws', () => {
+    stubMatchMedia(true);
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    new Function(THEME_BOOTSTRAP_SCRIPT)();
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+  it('falls back to light when both storage and matchMedia throw', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    window.matchMedia = (() => {
+      throw new Error('nope');
+    }) as unknown as typeof window.matchMedia;
     new Function(THEME_BOOTSTRAP_SCRIPT)();
     expect(document.documentElement.dataset.theme).toBe('light');
   });

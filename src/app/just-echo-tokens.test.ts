@@ -18,7 +18,8 @@ function ruleBody(selectorTest: (sel: string) => boolean): string {
 }
 
 const dark = ruleBody((s) => s === ".je");
-const light = ruleBody((s) => s.startsWith('html[data-theme="light"] .je'));
+const LIGHT_SEL = norm('html[data-theme="light"] .je:not([data-je-theme="dark"]), .je[data-je-theme="light"]');
+const light = ruleBody((s) => norm(s) === LIGHT_SEL);
 
 const ROWS: [string, string, string][] = [
   ["canvas", "#08090D", "#F4F5F8"],
@@ -41,7 +42,7 @@ const ROWS: [string, string, string][] = [
   ["tint", "rgba(167,139,250,.14)", "rgba(124,58,237,.08)"],
   ["glow", "rgba(167,139,250,.28)", "rgba(124,58,237,.20)"],
   ["glow-2", "rgba(34,211,238,.16)", "rgba(6,182,212,.14)"],
-  ["on-grad", "#08090D", "#FFFFFF"],
+  ["on-grad", "#08090D", "#08090D"],
   ["ok", "#4ADE80", "#15803D"],
   ["thumb", "linear-gradient(160deg,#2a2f42,#151823)", "linear-gradient(160deg,#e1e4ec,#cdd1db)"],
   ["badge-ring", "#08090D", "#FFFFFF"],
@@ -82,6 +83,36 @@ describe("Just Echo tokens", () => {
   it.each(["ink", "ink-2", "muted", "accent", "ok"])("%s >= 4.5:1 on canvas", (n) => {
     expect(contrast(hexRows[n].d, hexRows.canvas.d)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(hexRows[n].l, hexRows.canvas.l)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(["d", "l"] as const)("on-grad >= 4.5:1 on both gradient stops (%s)", (k) => {
+    expect(contrast(hexRows["on-grad"][k], hexRows.g1[k])).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(hexRows["on-grad"][k], hexRows.g2[k])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("uses the full light selector", () => {
+    expect(css).toContain("html[data-theme=\"light\"] .je:not([data-je-theme=\"dark\"])");
+  });
+
+  it("theme rules and helpers sit inside @layer components", () => {
+    const start = css.indexOf("@layer components");
+    expect(start).toBeGreaterThan(-1);
+    const layers: string[] = [];
+    const re = /@layer components\s*\{/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(css))) {
+      let depth = 1, i = m.index + m[0].length;
+      while (depth && i < css.length) { if (css[i] === "{") depth++; else if (css[i] === "}") depth--; i++; }
+      layers.push(css.slice(m.index, i));
+    }
+    const joined = layers.join("\n");
+    expect(joined).toContain("--je-canvas: #08090D");
+    expect(norm(joined)).toContain(LIGHT_SEL);
+    for (const c of [".je-canvas", ".je-grad", ".je-grad-text", ".je-ring", ".je-mono", ".je-sr-only"]) {
+      expect(joined).toContain(c);
+    }
+    expect(joined).not.toContain("@theme");
+    expect(joined).not.toContain("@keyframes");
   });
 
   it("wiring", () => {
