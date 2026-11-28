@@ -180,8 +180,8 @@ export async function listConversations(): Promise<ConversationSummary[]> {
   return data.conversations;
 }
 
-export function createConversation(): Promise<ConversationRow> {
-  return call<ConversationRow>(() => apiClient.post('/echo/conversations'));
+export function createConversation(): Promise<{ id: string }> {
+  return call<{ id: string }>(() => apiClient.post('/echo/conversations'));
 }
 
 export function getConversation(
