@@ -158,4 +158,21 @@ describe('JustEchoApp', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByRole('region', { name: 'Your voice' })).toBeInTheDocument();
   });
+
+  it('back navigation to an earlier written URL resyncs', () => {
+    const { rerender } = render(<JustEchoApp />);
+    act(() => lastOpts!.onCreated('A'));
+    params = new URLSearchParams('c=A');
+    rerender(<JustEchoApp />);
+    act(() => lastOpts!.onCreated('B'));
+    params = new URLSearchParams('c=B');
+    rerender(<JustEchoApp />);
+    params = new URLSearchParams('c=A');
+    rerender(<JustEchoApp />);
+    act(() => lastOpts!.onPanel({ kind: 'voice' }));
+    const url = replace.mock.calls[replace.mock.calls.length - 1][0] as string;
+    expect(url).toContain('c=A');
+    expect(url).not.toContain('c=B');
+    expect(url).toContain('open=voice');
+  });
 });

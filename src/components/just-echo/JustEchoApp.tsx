@@ -45,10 +45,20 @@ export function JustEchoApp() {
   // so back-to-back updates compose instead of each starting from a stale render.
   const searchString = searchParams?.toString() ?? '';
   const queryRef = useRef(searchString);
-  const writtenRef = useRef(new Set<string>());
+  // Writes we made that searchParams has not reached yet, oldest first.
+  const pendingRef = useRef<string[]>([]);
+  const observedRef = useRef(searchString);
   useEffect(() => {
-    // Our own writes landing (possibly one behind) must not roll the ref back.
-    if (writtenRef.current.has(searchString)) return;
+    observedRef.current = searchString;
+    const idx = pendingRef.current.indexOf(searchString);
+    if (idx >= 0) {
+      // One of our writes landed; later ones may still be in flight, so keep the ref ahead.
+      pendingRef.current.splice(0, idx + 1);
+      if (pendingRef.current.length === 0) queryRef.current = searchString;
+      return;
+    }
+    // Anything else (Back/Forward, external link) is the new truth.
+    pendingRef.current = [];
     queryRef.current = searchString;
   }, [searchString]);
 
@@ -61,7 +71,7 @@ export function JustEchoApp() {
       }
       const q = qs.toString();
       queryRef.current = q;
-      writtenRef.current.add(q);
+      if (pendingRef.current.length > 0 || q !== observedRef.current) pendingRef.current.push(q);
       router.replace(q ? `/app?${q}` : '/app', { scroll: false });
     },
     [router],
