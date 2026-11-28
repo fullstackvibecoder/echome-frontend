@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { NavigationProvider } from '@/contexts/navigation-context';
 import { VoiceProvider } from '@/contexts/voice-context';
 import { useAuth } from '@/hooks/useAuth';
+import { ShellSwitch } from '@/components/just-echo/ShellSwitch';
 
 function AuthGuard({ children }: { children: ReactNode }) {
   const { user, loading, reconnecting, connectionFailed, retry } = useAuth();
@@ -107,13 +108,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </div>
     }>
       <AuthGuard>
-        <NavigationProvider>
-          <VoiceProvider>
-            <AppShell>
-              {children}
-            </AppShell>
-          </VoiceProvider>
-        </NavigationProvider>
+        <ShellSwitch>
+          <NavigationProvider>
+            <VoiceProvider>
+              <AppShell>
+                {children}
+              </AppShell>
+            </VoiceProvider>
+          </NavigationProvider>
+        </ShellSwitch>
       </AuthGuard>
     </Suspense>
   );
