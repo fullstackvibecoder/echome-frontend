@@ -56,7 +56,7 @@ export class EchoChatGateError extends Error {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-async function echoAuthHeader(): Promise<Record<string, string>> {
+export async function echoAuthHeader(): Promise<Record<string, string>> {
   // Mirror api-client's token source: the app logs in through the backend
   // (/api/auth/login) and keeps the JWT in localStorage — the Supabase
   // client session is only a refresh fallback, not the primary store.
