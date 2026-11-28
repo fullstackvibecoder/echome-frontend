@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
+import { useLayoutEffect, useRef, type KeyboardEvent, type RefObject } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { IconButton } from '@/components/ds/IconButton';
 
@@ -14,9 +14,11 @@ export type EchoBoxProps = {
   autoFocus?: boolean;
   value: string;
   onChange: (v: string) => void;
+  /** Lets a parent focus the box (for example after a suggestion tile fills it). */
+  inputRef?: RefObject<HTMLTextAreaElement | null>;
 };
 
-export function EchoBox({ onSend, disabled, placeholder, autoFocus, value, onChange }: EchoBoxProps) {
+export function EchoBox({ onSend, disabled, placeholder, autoFocus, value, onChange, inputRef }: EchoBoxProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
@@ -45,7 +47,10 @@ export function EchoBox({ onSend, disabled, placeholder, autoFocus, value, onCha
       style={{ boxShadow: '0 0 32px var(--je-glow), 0 0 64px var(--je-glow-2)' }}
     >
       <textarea
-        ref={ref}
+        ref={(el) => {
+          ref.current = el;
+          if (inputRef) inputRef.current = el;
+        }}
         rows={1}
         autoFocus={autoFocus}
         value={value}
