@@ -27,6 +27,7 @@ import {
 const POLL_MS = 15_000;
 const LOST_CONNECTION = 'Lost connection to Echo. Anything it finished is saved.';
 const UPGRADE_MESSAGE = 'Echo is part of the paid plans.';
+const NOT_STARTED = 'Could not start a conversation. Try again.';
 const NOT_DONE = 'That did not go through.';
 
 interface Options {
@@ -69,22 +70,32 @@ export function useConversation(opts: Options): {
   const activeIdRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const sendingRef = useRef(false);
+  const reloadSeqRef = useRef(0);
   const confirmingRef = useRef<string | null>(null);
   const optsRef = useRef(opts);
   useEffect(() => {
     optsRef.current = opts;
   });
 
-  /** Fetch the stored thread and show it, plus any items to keep on the end. */
-  const reload = useCallback(async (id: string, keep: ThreadItem[] = []) => {
+  /**
+   * Fetch the stored thread and show it, plus any items to keep on the end.
+   * Only the latest-started reload applies, and while a turn streams only the
+   * turn's own reload (own = true) may replace the live items.
+   */
+  const reload = useCallback(async (id: string, keep: ThreadItem[] = [], own = false) => {
+    const seq = ++reloadSeqRef.current;
+    const stale = () =>
+      activeIdRef.current !== id ||
+      seq !== reloadSeqRef.current ||
+      (!own && sendingRef.current);
     try {
       const data = await getConversation(id);
-      if (activeIdRef.current !== id) return;
+      if (stale()) return;
       setItems([...itemsFromMessages(data.messages, Date.now() / 1000), ...keep]);
       setJobRunning(data.jobs.some((j) => j.state === 'processing'));
       setNotFound(false);
     } catch (err) {
-      if (activeIdRef.current !== id) return;
+      if (stale()) return;
       if (err instanceof JustEchoHttpError && err.status === 404) {
         setNotFound(true);
         setItems([]);
@@ -165,7 +176,7 @@ export function useConversation(opts: Options): {
         }
         if (!live()) return;
         if (!done) trailing = appendError([], LOST_CONNECTION);
-        await reload(id, trailing);
+        await reload(id, trailing, true);
         if (live()) optsRef.current.onTurnDone();
       } catch (err) {
         if (!live() || isAbort(err)) return;
@@ -177,7 +188,8 @@ export function useConversation(opts: Options): {
         } else if (err instanceof JustEchoHttpError) {
           setItems((prev) => appendError(prev, err.message));
         } else {
-          if (id) await reload(id, appendError([], LOST_CONNECTION));
+          if (id) await reload(id, appendError([], LOST_CONNECTION), true);
+          else setItems((prev) => appendError(prev, NOT_STARTED));
         }
       } finally {
         if (abortRef.current === controller) {

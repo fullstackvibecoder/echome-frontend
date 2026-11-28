@@ -195,6 +195,97 @@ describe('useConversation sending', () => {
   });
 });
 
+function deferred<T>() {
+  let resolve!: (v: T) => void;
+  const promise = new Promise<T>((r) => (resolve = r));
+  return { promise, resolve };
+}
+
+describe('useConversation reload races', () => {
+  it('an initial load resolving after send does not wipe the optimistic message', async () => {
+    const load = deferred<ReturnType<typeof conv>>();
+    vi.mocked(getConversation).mockReturnValueOnce(load.promise);
+    const { gen, open } = gated([{ type: 'done' }]);
+    vi.mocked(streamTurn).mockReturnValue(gen);
+    const { result } = setup('c1');
+    let p!: Promise<void>;
+    act(() => {
+      p = result.current.send('hi');
+    });
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    vi.mocked(getConversation).mockResolvedValue(conv([msg('m1', 'user', 'hi')]));
+    await act(async () => {
+      load.resolve(conv([msg('old', 'assistant', 'older')]));
+    });
+    expect(result.current.items).toEqual([{ kind: 'user', key: expect.any(String), text: 'hi' }]);
+    open();
+    await act(async () => {
+      await p;
+    });
+    expect(result.current.items).toEqual([{ kind: 'user', key: 'm1', text: 'hi' }]);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('a poll in flight when a turn starts does not overwrite live items', async () => {
+    vi.useFakeTimers();
+    const processing: JobView = { jobType: 'video', jobId: 'j1', state: 'processing', progressPercent: 1, panel: null };
+    const poll = deferred<ReturnType<typeof conv>>();
+    vi.mocked(getConversation)
+      .mockResolvedValueOnce(conv([], [processing]))
+      .mockReturnValueOnce(poll.promise);
+    const { gen, open } = gated([{ type: 'done' }]);
+    vi.mocked(streamTurn).mockReturnValue(gen);
+    const { result } = setup('c1');
+    await act(async () => {});
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000);
+    });
+    expect(getConversation).toHaveBeenCalledTimes(2);
+    let p!: Promise<void>;
+    act(() => {
+      p = result.current.send('hi');
+    });
+    expect(result.current.items).toHaveLength(1);
+    vi.mocked(getConversation).mockResolvedValue(conv([msg('m1', 'user', 'hi')]));
+    await act(async () => {
+      poll.resolve(conv([msg('old', 'assistant', 'older')], [processing]));
+    });
+    expect(result.current.items).toEqual([{ kind: 'user', key: expect.any(String), text: 'hi' }]);
+    open();
+    await act(async () => {
+      await p;
+    });
+    expect(result.current.items).toEqual([{ kind: 'user', key: 'm1', text: 'hi' }]);
+  });
+});
+
+describe('useConversation create failures', () => {
+  it('a failed create shows an error item', async () => {
+    vi.mocked(createConversation).mockRejectedValue(new TypeError('network'));
+    const { result, cb } = setup(null);
+    await act(async () => {
+      await result.current.send('hi');
+    });
+    expect(result.current.items.at(-1)).toMatchObject({
+      kind: 'error',
+      message: 'Could not start a conversation. Try again.',
+    });
+    expect(result.current.sending).toBe(false);
+    expect(streamTurn).not.toHaveBeenCalled();
+    expect(cb.onCreated).not.toHaveBeenCalled();
+  });
+
+  it('a 429 from create maps to the limit message', async () => {
+    vi.mocked(createConversation).mockRejectedValue(new JustEchoHttpError('Too many chats today.', 429));
+    const { result } = setup(null);
+    await act(async () => {
+      await result.current.send('hi');
+    });
+    expect(result.current.items.at(-1)).toMatchObject({ kind: 'error', message: 'Too many chats today.' });
+    expect(result.current.sending).toBe(false);
+  });
+});
+
 describe('useConversation send errors', () => {
   async function sendWith(err: unknown) {
     vi.mocked(streamTurn).mockImplementation(async function* () {
