@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CalendarDays, Menu, X } from 'lucide-react';
 import { IconButton } from '@/components/ds/IconButton';
@@ -41,17 +41,30 @@ export function JustEchoApp() {
   const list = useConversationList();
   const home = useHomeData();
 
+  // The query as last written by us. setParams reads and updates it synchronously
+  // so back-to-back updates compose instead of each starting from a stale render.
+  const searchString = searchParams?.toString() ?? '';
+  const queryRef = useRef(searchString);
+  const writtenRef = useRef(new Set<string>());
+  useEffect(() => {
+    // Our own writes landing (possibly one behind) must not roll the ref back.
+    if (writtenRef.current.has(searchString)) return;
+    queryRef.current = searchString;
+  }, [searchString]);
+
   const setParams = useCallback(
     (updates: Record<string, string | null>) => {
-      const qs = new URLSearchParams(searchParams?.toString() ?? '');
+      const qs = new URLSearchParams(queryRef.current);
       for (const [k, v] of Object.entries(updates)) {
         if (v === null) qs.delete(k);
         else qs.set(k, v);
       }
-      const s = qs.toString();
-      router.replace(s ? `/app?${s}` : '/app', { scroll: false });
+      const q = qs.toString();
+      queryRef.current = q;
+      writtenRef.current.add(q);
+      router.replace(q ? `/app?${q}` : '/app', { scroll: false });
     },
-    [router, searchParams],
+    [router],
   );
 
   // Back/forward or Cmd+K changed ?open= from outside. Keep our own state when it
@@ -114,11 +127,14 @@ export function JustEchoApp() {
       } else if (e.key === 'Escape' && !e.defaultPrevented) {
         setListOpen(false);
         setHomeOpen(false);
+        // The panel handles Escape itself when focus is inside it.
+        const inSide = (e.target as Element | null)?.closest?.('[data-side]');
+        if (!inSide) closePanel();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [closePanel]);
 
   const sideSheet = panel !== null || homeOpen;
   const invalidC = cParam !== null && !validC;

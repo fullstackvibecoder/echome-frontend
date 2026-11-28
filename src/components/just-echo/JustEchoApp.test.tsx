@@ -126,4 +126,36 @@ describe('JustEchoApp', () => {
     const { container } = render(<JustEchoApp />);
     expect(container.querySelectorAll('.je')).toHaveLength(1);
   });
+
+  it('a panel event right after the conversation is created keeps ?c=', () => {
+    render(<JustEchoApp />);
+    act(() => {
+      lastOpts!.onCreated('abc-id');
+      lastOpts!.onPanel({ kind: 'voice' });
+    });
+    const url = replace.mock.calls[replace.mock.calls.length - 1][0] as string;
+    expect(url).toContain('c=abc-id');
+    expect(url).toContain('open=voice');
+  });
+
+  it('Escape closes the open panel', async () => {
+    const user = userEvent.setup();
+    params = new URLSearchParams(`c=${UUID}&open=voice`);
+    render(<JustEchoApp />);
+    expect(screen.getByRole('region', { name: 'Your voice' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('region', { name: 'Your voice' })).toBeNull();
+    expect(replace).toHaveBeenLastCalledWith(`/app?c=${UUID}`, { scroll: false });
+  });
+
+  it('Escape while Cmd+K is open closes only the search', async () => {
+    const user = userEvent.setup();
+    params = new URLSearchParams(`c=${UUID}&open=voice`);
+    render(<JustEchoApp />);
+    await user.keyboard('{Meta>}k{/Meta}');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Your voice' })).toBeInTheDocument();
+  });
 });
