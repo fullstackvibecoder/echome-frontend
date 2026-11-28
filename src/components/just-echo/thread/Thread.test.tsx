@@ -118,6 +118,31 @@ describe('Thread', () => {
     expect(top).toBe(1000);
   });
 
+  it('follows streamed text growth when pinned to the bottom', () => {
+    const items = [
+      { kind: 'user', key: 'u', text: 'hi' },
+      { kind: 'echo', key: 'e', text: 'He' },
+    ] as ThreadItem[];
+    const { rerender } = renderThread(items);
+    const log = screen.getByRole('log');
+    let top = 0;
+    Object.defineProperty(log, 'scrollHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(log, 'clientHeight', { configurable: true, value: 400 });
+    Object.defineProperty(log, 'scrollTop', { configurable: true, get: () => top, set: (v) => { top = v; } });
+    const grown = [items[0], { kind: 'echo', key: 'e', text: 'Hello there, more text' }] as ThreadItem[];
+
+    top = 540; // pinned: same length, longer tail text
+    fireEvent.scroll(log);
+    rerender(<Thread items={grown} onOpenPanel={noop} onConfirm={noop} confirmingId={null} />);
+    expect(top).toBe(1000);
+
+    top = 300; // scrolled up: do not yank
+    fireEvent.scroll(log);
+    const grownMore = [items[0], { kind: 'echo', key: 'e', text: 'Hello there, more text and more' }] as ThreadItem[];
+    rerender(<Thread items={grownMore} onOpenPanel={noop} onConfirm={noop} confirmingId={null} />);
+    expect(top).toBe(300);
+  });
+
   it('no em dashes in rendered copy', () => {
     const { container } = renderThread([...all(), confirm({ key: 'x', expiresAt: past() })]);
     expect(container.textContent).not.toMatch(/[—–]/);

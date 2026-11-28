@@ -4,7 +4,7 @@
  * useHomeData
  *
  * Loads the Just Echo home payload for the browser's time zone. A failed
- * call leaves data null and error true; nothing is invented.
+ * first load leaves data null and error true; a failed refresh keeps the last good data; nothing is invented.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { getHome, type HomeData } from '@/lib/just-echo-client';
@@ -28,8 +28,8 @@ export function useHomeData(): {
     setError(false);
     setLoading(false);
   }, []);
+  // A failed refresh keeps the last good data; only the error flag is set.
   const onFail = useCallback(() => {
-    setData(null);
     setError(true);
     setLoading(false);
   }, []);

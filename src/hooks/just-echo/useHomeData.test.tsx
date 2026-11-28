@@ -47,4 +47,17 @@ describe('useHomeData', () => {
     });
     expect(getHome).toHaveBeenCalledTimes(2);
   });
+
+  it('a failed refresh keeps the last good data', async () => {
+    vi.mocked(getHome).mockResolvedValueOnce(home);
+    const { result } = renderHook(() => useHomeData());
+    await waitFor(() => expect(result.current.data).toEqual(home));
+    vi.mocked(getHome).mockRejectedValueOnce(new Error('flaky'));
+    await act(async () => {
+      await result.current.refresh();
+    });
+    expect(result.current.data).toEqual(home);
+    expect(result.current.error).toBe(true);
+    expect(result.current.loading).toBe(false);
+  });
 });

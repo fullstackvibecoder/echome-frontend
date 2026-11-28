@@ -31,10 +31,12 @@ type ConvOpts = {
 let lastOpts: ConvOpts | null = null;
 let convState = { items: [] as unknown[], loading: false, sending: false, notFound: false, confirmingId: null as string | null };
 const send = vi.fn();
+let sendResult: boolean | undefined;
+let sendDeferred: Promise<boolean> | null = null;
 vi.mock('@/hooks/just-echo/useConversation', () => ({
   useConversation: (o: ConvOpts) => {
     lastOpts = o;
-    return { ...convState, send: (t: string) => { send(t); o.onCreated('11111111-1111-4111-8111-111111111111'); return Promise.resolve(); }, confirm: vi.fn() };
+    return { ...convState, send: (t: string) => { send(t); o.onCreated('11111111-1111-4111-8111-111111111111'); return sendDeferred ?? Promise.resolve(sendResult); }, confirm: vi.fn() };
   },
 }));
 vi.mock('@/hooks/just-echo/useConversationList', () => ({
@@ -56,6 +58,8 @@ const UUID = '22222222-2222-4222-8222-222222222222';
 beforeEach(() => {
   replace.mockReset();
   send.mockReset();
+  sendResult = undefined;
+  sendDeferred = null;
   params = new URLSearchParams();
   lastOpts = null;
   convState = { items: [], loading: false, sending: false, notFound: false, confirmingId: null };
@@ -96,6 +100,60 @@ describe('JustEchoApp', () => {
     await user.type(screen.getByRole('textbox'), 'hello{Enter}');
     expect(send).toHaveBeenCalledWith('hello');
     expect(replace).toHaveBeenCalledWith('/app?c=11111111-1111-4111-8111-111111111111', { scroll: false });
+  });
+
+  it('sending clears the box', async () => {
+    const user = userEvent.setup();
+    render(<JustEchoApp />);
+    const box = screen.getByRole('textbox') as HTMLTextAreaElement;
+    await user.type(box, 'hello{Enter}');
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(box.value).toBe('');
+    await user.keyboard('{Enter}');
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('a send that failed before streaming restores the text if the box is still empty', async () => {
+    const user = userEvent.setup();
+    sendResult = false;
+    render(<JustEchoApp />);
+    const box = screen.getByRole('textbox') as HTMLTextAreaElement;
+    await user.type(box, 'hello{Enter}');
+    expect(box.value).toBe('hello');
+  });
+
+  it('a failed send does not overwrite text typed meanwhile', async () => {
+    const user = userEvent.setup();
+    let fail!: () => void;
+    sendDeferred = new Promise<boolean>((r) => (fail = () => r(false)));
+    render(<JustEchoApp />);
+    const box = screen.getByRole('textbox') as HTMLTextAreaElement;
+    await user.type(box, 'hello{Enter}');
+    await user.type(box, 'other');
+    await act(async () => {
+      fail();
+      await sendDeferred;
+    });
+    expect(box.value).toBe('other');
+  });
+
+  it('the first message shows before the conversation is created', () => {
+    convState.items = [{ kind: 'user', key: 'u', text: 'hello there' }];
+    render(<JustEchoApp />);
+    expect(screen.getByText('hello there')).toBeInTheDocument();
+    expect(screen.queryByText('What should we make?')).toBeNull();
+  });
+
+  it('the box keeps focus after the first send', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<JustEchoApp />);
+    await user.type(screen.getByRole('textbox'), 'hello{Enter}');
+    convState.items = [{ kind: 'user', key: 'u', text: 'hello' }];
+    rerender(<JustEchoApp />);
+    expect(screen.getByRole('textbox')).toHaveFocus();
+    params = new URLSearchParams('c=11111111-1111-4111-8111-111111111111');
+    rerender(<JustEchoApp />);
+    expect(screen.getByRole('textbox')).toHaveFocus();
   });
 
   it('opening a receipt panel replaces the default side and closing restores it', async () => {

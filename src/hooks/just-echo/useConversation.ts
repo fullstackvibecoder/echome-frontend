@@ -53,7 +53,8 @@ export function useConversation(opts: Options): {
   sending: boolean;
   notFound: boolean;
   confirmingId: string | null;
-  send: (text: string) => Promise<void>;
+  /** Resolves false when the turn failed before Echo streamed anything. */
+  send: (text: string) => Promise<boolean>;
   confirm: (messageId: string, approved: boolean) => Promise<void>;
 } {
   const { conversationId } = opts;
@@ -140,9 +141,9 @@ export function useConversation(opts: Options): {
   }, [jobRunning, conversationId, reload]);
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string): Promise<boolean> => {
       const message = text.trim();
-      if (!message || sendingRef.current) return;
+      if (!message || sendingRef.current) return true;
       sendingRef.current = true;
       setSending(true);
       const controller = new AbortController();
@@ -150,19 +151,21 @@ export function useConversation(opts: Options): {
       let id = activeIdRef.current;
       const live = () => !controller.signal.aborted && activeIdRef.current === id;
       let trailing: ThreadItem[] = [];
+      let streamed = false;
 
       setItems((prev) => [...prev, { kind: 'user', key: `live-user-${prev.length}`, text: message }]);
       try {
         if (!id) {
           const created = await createConversation();
-          if (controller.signal.aborted) return;
+          if (controller.signal.aborted) return true;
           id = created.id;
           activeIdRef.current = id;
           optsRef.current.onCreated(id);
         }
         let done = false;
         for await (const event of streamTurn(id, message, optsRef.current.panel, controller.signal)) {
-          if (!live()) return;
+          if (!live()) return true;
+          streamed = true;
           if (event.type === 'done') {
             done = true;
             continue;
@@ -174,12 +177,13 @@ export function useConversation(opts: Options): {
           }
           setItems((prev) => applyTurnEvent(prev, event));
         }
-        if (!live()) return;
+        if (!live()) return true;
         if (!done) trailing = appendError([], LOST_CONNECTION);
         await reload(id, trailing, true);
         if (live()) optsRef.current.onTurnDone();
+        return true;
       } catch (err) {
-        if (!live() || isAbort(err)) return;
+        if (!live() || isAbort(err)) return true;
         if (err instanceof JustEchoHttpError && err.status === 404) {
           setNotFound(true);
           setItems([]);
@@ -191,6 +195,7 @@ export function useConversation(opts: Options): {
           if (id) await reload(id, appendError([], LOST_CONNECTION), true);
           else setItems((prev) => appendError(prev, NOT_STARTED));
         }
+        return streamed;
       } finally {
         if (abortRef.current === controller) {
           abortRef.current = null;
@@ -220,6 +225,7 @@ export function useConversation(opts: Options): {
         if (activeIdRef.current !== id) return;
         if (result.state === 'already_resolved') {
           await reload(id);
+          optsRef.current.onTurnDone();
           return;
         }
         const extra: ThreadItem[] = [];
@@ -238,6 +244,7 @@ export function useConversation(opts: Options): {
         }
         setCard(result.state, extra);
         if (result.panel) optsRef.current.onPanel(result.panel);
+        optsRef.current.onTurnDone();
       } catch {
         if (activeIdRef.current === id) {
           setItems((prev) => appendError(prev, NOT_DONE));

@@ -90,7 +90,7 @@ describe('useConversation sending', () => {
     vi.mocked(getConversation).mockResolvedValue(conv([msg('m1', 'user', 'hi')]));
     const { result, cb } = setup(null);
 
-    let p!: Promise<void>;
+    let p!: Promise<boolean>;
     act(() => {
       p = result.current.send('hi');
     });
@@ -114,7 +114,7 @@ describe('useConversation sending', () => {
     vi.mocked(streamTurn).mockReturnValue(gen);
     vi.mocked(getConversation).mockResolvedValue(conv([msg('m1', 'user', 'hi'), msg('m2', 'assistant', 'hello')]));
     const { result, rerender } = setup(null);
-    let p!: Promise<void>;
+    let p!: Promise<boolean>;
     act(() => {
       p = result.current.send('hi');
     });
@@ -169,7 +169,7 @@ describe('useConversation sending', () => {
     vi.mocked(streamTurn).mockReturnValue(gen);
     const { result } = setup('c1');
     await waitFor(() => expect(result.current.loading).toBe(false));
-    let p!: Promise<void>;
+    let p!: Promise<boolean>;
     act(() => {
       p = result.current.send('one');
     });
@@ -208,7 +208,7 @@ describe('useConversation reload races', () => {
     const { gen, open } = gated([{ type: 'done' }]);
     vi.mocked(streamTurn).mockReturnValue(gen);
     const { result } = setup('c1');
-    let p!: Promise<void>;
+    let p!: Promise<boolean>;
     act(() => {
       p = result.current.send('hi');
     });
@@ -241,7 +241,7 @@ describe('useConversation reload races', () => {
       await vi.advanceTimersByTimeAsync(15_000);
     });
     expect(getConversation).toHaveBeenCalledTimes(2);
-    let p!: Promise<void>;
+    let p!: Promise<boolean>;
     act(() => {
       p = result.current.send('hi');
     });
@@ -350,7 +350,7 @@ describe('useConversation loading and switching', () => {
     vi.mocked(streamTurn).mockReturnValue(gen);
     const { result, rerender, cb } = setup('c1');
     await waitFor(() => expect(result.current.loading).toBe(false));
-    let p!: Promise<void>;
+    let p!: Promise<boolean>;
     act(() => {
       p = result.current.send('hi');
     });
@@ -407,6 +407,27 @@ describe('useConversation confirms', () => {
     expect(result.current.items[1]).toMatchObject({ kind: 'receipt', verb: 'DELETED', label: 'content kit' });
     expect(cb.onPanel).toHaveBeenCalledWith({ kind: 'calendar' });
     expect(result.current.confirmingId).toBeNull();
+  });
+
+  it('a confirmed card refreshes the side via onTurnDone', async () => {
+    vi.mocked(getConversation).mockResolvedValue(conv([confirmMsg]));
+    const { result, cb } = setup('c1');
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    vi.mocked(resolveConfirm).mockResolvedValueOnce({ state: 'confirmed' });
+    await act(async () => {
+      await result.current.confirm('cf1', true);
+    });
+    expect(cb.onTurnDone).toHaveBeenCalledTimes(1);
+    vi.mocked(resolveConfirm).mockResolvedValueOnce({ state: 'failed' });
+    await act(async () => {
+      await result.current.confirm('cf1', true);
+    });
+    expect(cb.onTurnDone).toHaveBeenCalledTimes(2);
+    vi.mocked(resolveConfirm).mockResolvedValueOnce({ state: 'already_resolved' });
+    await act(async () => {
+      await result.current.confirm('cf1', true);
+    });
+    expect(cb.onTurnDone).toHaveBeenCalledTimes(3);
   });
 
   it('confirm is ignored while one is in flight for the same message', async () => {

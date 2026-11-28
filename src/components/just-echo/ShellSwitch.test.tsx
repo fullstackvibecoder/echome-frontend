@@ -66,6 +66,15 @@ describe('ShellSwitch', () => {
     }
   });
 
+  it('tracking params do not force classic', () => {
+    for (const q of ['utm_source=email&utm_campaign=x', 'fbclid=1', 'gclid=2', 'ref=nl', 'c=abc&utm_medium=email']) {
+      params = new URLSearchParams(q);
+      const { unmount } = render(<ShellSwitch>{classic}</ShellSwitch>);
+      expect(screen.getByTestId('je-app')).toBeInTheDocument();
+      unmount();
+    }
+  });
+
   it('renders classic when access is off', () => {
     access = 'off';
     render(<ShellSwitch>{classic}</ShellSwitch>);

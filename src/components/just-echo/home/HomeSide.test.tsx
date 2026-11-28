@@ -70,7 +70,9 @@ describe('HomeSide', () => {
     expect(screen.getByText(/^Next · /)).toBeInTheDocument();
     expect(screen.getByText('+3 today')).toBeInTheDocument();
     // running placeholder is not clickable
-    expect(screen.getAllByRole('button').every((b) => !b.hasAttribute('data-running'))).toBe(true);
+    const running = screen.getByRole('status', { name: 'Working' });
+    expect(running.closest('button')).toBeNull();
+    await user.click(running);
     expect(onOpen).toHaveBeenCalledTimes(5);
   });
 });

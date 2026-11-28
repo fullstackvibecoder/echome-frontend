@@ -23,6 +23,7 @@ export function Thread({ items, onOpenPanel, onConfirm, confirmingId }: ThreadPr
   const ref = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
   const prevLen = useRef(0);
+  const prevTail = useRef('');
   const nowSec = currentSec();
 
   function onScroll() {
@@ -31,13 +32,19 @@ export function Thread({ items, onOpenPanel, onConfirm, confirmingId }: ThreadPr
     nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight <= STICK_PX;
   }
 
+  // Streamed text grows the last item in place, so the tail signature (not just
+  // the length) tells us when there is new content to follow.
+  const last = items[items.length - 1];
+  const tail = last ? `${last.key}:${'text' in last ? last.text.length : 0}` : '';
+
   useLayoutEffect(() => {
     const el = ref.current;
-    const grew = items.length > prevLen.current;
+    const grew = items.length > prevLen.current || tail !== prevTail.current;
     const first = prevLen.current === 0;
     prevLen.current = items.length;
+    prevTail.current = tail;
     if (el && grew && (first || nearBottom.current)) el.scrollTop = el.scrollHeight;
-  }, [items.length]);
+  }, [items.length, tail]);
 
   return (
     <div

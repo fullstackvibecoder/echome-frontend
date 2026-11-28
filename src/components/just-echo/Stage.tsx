@@ -53,7 +53,7 @@ export function Stage(props: StageProps) {
           <Thread items={items} onOpenPanel={onOpenPanel} onConfirm={onConfirm} confirmingId={confirmingId} />
         </div>
         <div className="p-4">
-          <EchoBox onSend={onSend} disabled={sending} placeholder="Steer it..." value={draft} onChange={setDraft} />
+          <EchoBox onSend={onSend} disabled={sending} placeholder="Steer it..." autoFocus value={draft} onChange={setDraft} />
         </div>
       </div>
     );

@@ -111,6 +111,18 @@ export function JustEchoApp() {
     },
   });
 
+  // Clear the box as soon as a message goes out. If it failed before Echo
+  // streamed anything, put the text back, but only into a box still left empty.
+  const sendDraft = useCallback(
+    (text: string) => {
+      setDraft('');
+      void conv.send(text).then((ok) => {
+        if (ok === false) setDraft((cur) => (cur === '' ? text : cur));
+      });
+    },
+    [conv],
+  );
+
   const startNew = useCallback(() => {
     setDraft('');
     setPanel(null);
@@ -182,7 +194,7 @@ export function JustEchoApp() {
 
         <main className="min-h-0 flex-1 xl:flex-none">
           <Stage
-            mode={cParam !== null ? 'thread' : 'new'}
+            mode={cParam !== null || conv.items.length > 0 ? 'thread' : 'new'}
             firstName={firstName}
             suggestions={home.data?.suggestions ?? []}
             items={conv.items}
@@ -190,7 +202,7 @@ export function JustEchoApp() {
             notFound={invalidC || conv.notFound}
             draft={draft}
             setDraft={setDraft}
-            onSend={(t) => void conv.send(t)}
+            onSend={sendDraft}
             onOpenPanel={openPanel}
             onConfirm={(id, ok) => void conv.confirm(id, ok)}
             confirmingId={conv.confirmingId}
